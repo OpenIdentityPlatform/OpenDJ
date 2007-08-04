@@ -44,7 +44,18 @@
           </script>
     
           <call function="'testSuite_Preamble'"/>
-                                                
+
+          <!--- Test Suite information
+          #@TestSuiteName       Replication Basic Tests
+          #@TestSuitePurpose    Verify that the basic operations are replicated correctly between two serrvers.
+          #@TestSuiteID         Basic Tests
+          #@TestSuiteGroup      Basic
+          #@TestGroup           Replication
+          #@TestScript          replication_basic.xml
+          #@TestHTMLLink        http://opends.dev.java.net/
+          -->
+            
+                                                                        
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/replication/replication_setup.xml' % (TESTS_DIR)"/>
           <call function="'replication_setup'" />
@@ -74,10 +85,10 @@
               <call function="'addEntry'">
                 { 'location'       : clientHost,
                   'dsPath'         : clientPath,
-                  'dsInstanceHost' : server1.getHostname(),
-                  'dsInstancePort' : server1.getPort(), 
-                  'dsInstanceDn'   : server1.getRootDn(),
-                  'dsInstancePswd' : server1.getRootPwd(),
+                  'dsInstanceHost' : masterHost,
+                  'dsInstancePort' : master.getPort(), 
+                  'dsInstanceDn'   : master.getRootDn(),
+                  'dsInstancePswd' : master.getRootPwd(),
                   'entryToBeAdded' : '%s/replication_add_root_suffix.ldif' % clientDataDir }
               </call>
 
@@ -85,10 +96,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'         : synchroSuffix ,
                   'dsFilter'         : 'objectclass=*' }                  
               </call>
@@ -96,7 +107,7 @@
                 
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>              
                                                    
               <call function="'testCase_Postamble'"/>
@@ -127,19 +138,19 @@
               <call function="'addEntry'">
                 { 'location'        : clientHost,
                   'dsPath'          : clientPath,
-                  'dsInstanceHost'  : server1.getHostname(),
-                  'dsInstancePort'  : server1.getPort() ,
-                  'dsInstanceDn'    : server1.getRootDn() ,
-                  'dsInstancePswd'  : server1.getRootPwd() ,
+                  'dsInstanceHost'  : masterHost,
+                  'dsInstancePort'  : master.getPort() ,
+                  'dsInstanceDn'    : master.getRootDn() ,
+                  'dsInstancePswd'  : master.getRootPwd() ,
                   'entryToBeAdded'  : '%s/replication_add_single.ldif' % clientDataDir }
               </call>
               <call function="'ldapModifyWithScript'">
                 { 'location'          : clientHost,
                   'dsPath'            : clientPath,
-                  'dsInstanceHost'    : server1.getHostname() ,
-                  'dsInstancePort'    : server1.getPort() ,
-                  'dsInstanceDn'      : server1.getRootDn() ,
-                  'dsInstancePswd'    : server1.getRootPwd() ,
+                  'dsInstanceHost'    : masterHost ,
+                  'dsInstancePort'    : master.getPort() ,
+                  'dsInstanceDn'      : master.getRootDn() ,
+                  'dsInstancePswd'    : master.getRootPwd() ,
                   'dsFilename' : '%s/replication_mod.ldif' % clientDataDir }
               </call>
 
@@ -147,10 +158,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'         : entryDn,
                   'dsFilter'         :  '%s=%s' % (attr_type,attr_value) }                  
               </call>
@@ -168,7 +179,7 @@
                 
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>                                                 
                 
               <call function="'testCase_Postamble'"/>
@@ -198,10 +209,10 @@
               <call function="'DeleteEntry'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'         : entryDn }
               </call>
 
@@ -209,10 +220,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'         : entryDn,
                   'dsFilter'         : 'objectclass=*' ,
                   'expectedRC'  : 32 }                  
@@ -221,7 +232,7 @@
                 
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>                                 
     
               <call function="'testCase_Postamble'"/>
@@ -250,10 +261,10 @@
               <call function="'DeleteEntry'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'         : synchroSuffix }
               </call>
 
@@ -261,10 +272,10 @@
               <call function="'addEntry'">
                 { 'location'       : clientHost,
                   'dsPath'         : clientPath,
-                  'dsInstanceHost' : server1.getHostname(),
-                  'dsInstancePort' : server1.getPort(), 
-                  'dsInstanceDn'   : server1.getRootDn(),
-                  'dsInstancePswd' : server1.getRootPwd(),
+                  'dsInstanceHost' : masterHost,
+                  'dsInstancePort' : master.getPort(), 
+                  'dsInstanceDn'   : master.getRootDn(),
+                  'dsInstancePswd' : master.getRootPwd(),
                   'entryToBeAdded' : '%s/replication/Example.ldif' % clientDataDir }
               </call>             
    
@@ -272,10 +283,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'         : 'uid=scarter,ou=People,%s' % synchroSuffix,
                   'dsFilter'         : 'objectclass=*' }                  
               </call>
@@ -283,7 +294,7 @@
                 
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>
                                       
               <call function="'testCase_Postamble'"/>
@@ -313,11 +324,11 @@
 
                <!-- Modify "master" server -->
               <call function="'modifyAnAttribute'">
-                { 'dsPath' : server1Path,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'	  : server1.getPort(),
-                  'dsInstanceDn'	: server1.getRootDn(),
-                  'dsInstancePswd'	  : server1.getRootPwd(),
+                { 'dsPath' : masterPath,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'	  : master.getPort(),
+                  'dsInstanceDn'	: master.getRootDn(),
+                  'dsInstancePswd'	  : master.getRootPwd(),
                   'DNToModify'	  : 'uid=tmorris, ou=People,%s' % synchroSuffix,
                   'attributeName' : 'description',
                   'newAttributeValue' : ' ',
@@ -328,10 +339,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'         : 'uid=tmorris, ou=People,%s' % synchroSuffix,
                   'dsFilter'         : 'description=*' }                  
               </call>
@@ -349,7 +360,7 @@
                 
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
                                                                    
               <call function="'testCase_Postamble'"/>
@@ -379,11 +390,11 @@
 
               <!-- Modify "master" server -->
               <call function="'modifyAnAttribute'">
-                { 'dsPath' : server1Path,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'	  : server1.getPort(),
-                  'dsInstanceDn'	: server1.getRootDn(),
-                  'dsInstancePswd'	  : server1.getRootPwd(),
+                { 'dsPath' : masterPath,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'	  : master.getPort(),
+                  'dsInstanceDn'	: master.getRootDn(),
+                  'dsInstancePswd'	  : master.getRootPwd(),
                   'DNToModify'	  : 'uid=tmorris, ou=People,%s' % synchroSuffix,
                   'attributeName' : 'departmentnumber',
                   'newAttributeValue' : '5203214400',
@@ -394,10 +405,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'         : 'uid=tmorris, ou=People,%s' % synchroSuffix,
                   'dsFilter'         : 'departmentnumber=5203214400' }                  
               </call>
@@ -415,7 +426,7 @@
                                 
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
 
               <call function="'testCase_Postamble'"/>
@@ -466,10 +477,10 @@
               <call function="'ldapModifyWithScript'">
                 { 'location'          : clientHost,
                   'dsPath'            : clientPath,
-                  'dsInstanceHost'    : server1.getHostname() ,
-                  'dsInstancePort'    : server1.getPort() ,
-                  'dsInstanceDn'      : server1.getRootDn() ,
-                  'dsInstancePswd'    : server1.getRootPwd() ,
+                  'dsInstanceHost'    : masterHost ,
+                  'dsInstancePort'    : master.getPort() ,
+                  'dsInstanceDn'      : master.getRootDn() ,
+                  'dsInstancePswd'    : master.getRootPwd() ,
                   'dsFilename' : '%s/%s' % (clientDataDir, filename) }
               </call>        
                                 
@@ -477,10 +488,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'         : 'uid=smason, ou=People,%s' % synchroSuffix,
                   'dsFilter'         : 'roomNumber=*',
                   'expectedRC'  : 0 }                  
@@ -499,7 +510,7 @@
 
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
 
               <call function="'testCase_Postamble'"/>
@@ -527,11 +538,11 @@
 
               <!-- Modify "master" server -->
               <call function="'modifyAnAttribute'">
-                { 'dsPath' : server1Path,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'	  : server1.getPort(),
-                  'dsInstanceDn'	: server1.getRootDn(),
-                  'dsInstancePswd'	  : server1.getRootPwd(),
+                { 'dsPath' : masterPath,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'	  : master.getPort(),
+                  'dsInstanceDn'	: master.getRootDn(),
+                  'dsInstancePswd'	  : master.getRootPwd(),
                   'DNToModify'	  : 'uid=jwalker, ou=People,%s' % synchroSuffix,
                   'attributeName' : 'roomNumber',
                   'newAttributeValue' : '3915',
@@ -542,10 +553,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'         : 'uid=jwalker, ou=People,%s' % synchroSuffix,
                   'dsFilter'         : 'roomNumber=3915' ,
                   'expectedRC'  : 0 }                  
@@ -564,7 +575,7 @@
                     
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
 
               <call function="'testCase_Postamble'"/>
@@ -601,11 +612,11 @@
 
               <!-- Modify "master" server -->                               
               <call function="'modifyAnAttribute'">
-                { 'dsPath' : server1Path,
-                  'dsInstanceHost'  : server1.getHostname() ,
-                  'dsInstancePort'  : server1.getPort(),
-                  'dsInstanceDn'  : server1.getRootDn(),
-                  'dsInstancePswd'  : server1.getRootPwd(),
+                { 'dsPath' : masterPath,
+                  'dsInstanceHost'  : masterHost ,
+                  'dsInstancePort'  : master.getPort(),
+                  'dsInstanceDn'  : master.getRootDn(),
+                  'dsInstancePswd'  : master.getRootPwd(),
                   'DNToModify'  : 'uid=jwallace, ou=People,%s' % synchroSuffix,
                   'listAttributes'  : valuesToAdd,
                   'changetype'  : 'add' }
@@ -615,10 +626,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'    : 'uid=jwallace, ou=People,%s' % synchroSuffix,
                   'dsFilter'  : '&amp;(postaladdress=Residence Parc Europe)(postaladdress=Appartement #6)(postaladdress=31 Rue General Mangin)(postaladdress=38100 Grenoble)' }                  
               </call>
@@ -636,7 +647,7 @@
                 
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
                
               <call function="'testCase_Postamble'"/>
@@ -672,11 +683,11 @@
 
               <!-- Modify "master" server -->                
               <call function="'modifyAnAttribute'">
-                { 'dsPath' : server1Path,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'	  : server1.getPort(),
-                  'dsInstanceDn'	: server1.getRootDn(),
-                  'dsInstancePswd'	  : server1.getRootPwd(),
+                { 'dsPath' : masterPath,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'	  : master.getPort(),
+                  'dsInstanceDn'	: master.getRootDn(),
+                  'dsInstancePswd'	  : master.getRootPwd(),
                   'DNToModify'	  : 'uid=jwallace, ou=People,%s' % synchroSuffix,
                   'listAttributes' : valuesToDelete,
                   'changetype' : 'delete' }
@@ -686,10 +697,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'    : 'uid=jwallace, ou=People,%s' % synchroSuffix,
                   'dsFilter'  : '|(postaladdress=Appartement #6)(postaladdress=38100 Grenoble)',
                   'expectedRC'  : 0 }                  
@@ -708,7 +719,7 @@
 
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
                                 
               <call function="'testCase_Postamble'"/>
@@ -746,11 +757,11 @@
 
               <!-- Modify "master" server -->                
               <call function="'modifyAnAttribute'">
-                { 'dsPath' : server1Path,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'	  : server1.getPort(),
-                  'dsInstanceDn'	: server1.getRootDn(),
-                  'dsInstancePswd'	  : server1.getRootPwd(),
+                { 'dsPath' : masterPath,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'	  : master.getPort(),
+                  'dsInstanceDn'	: master.getRootDn(),
+                  'dsInstancePswd'	  : master.getRootPwd(),
                   'DNToModify'	  : 'uid=jwallace, ou=People,%s' % synchroSuffix,
                   'listAttributes' : valuesToReplace,
                   'changetype' : 'replace' }
@@ -760,10 +771,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'    : 'uid=jwallace, ou=People,%s' % synchroSuffix,
                   'dsFilter'  : '&amp;(postaladdress=Residence Letilleuil)(postaladdress=18 rue Nicolas Chorier)',
                   'expectedRC'  : 0 }                  
@@ -782,7 +793,7 @@
 
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
                                 
               <call function="'testCase_Postamble'"/>
@@ -818,11 +829,11 @@
 
               <!-- Modify "master" server -->                
               <call function="'modifyAnAttribute'">
-                { 'dsPath' : server1Path,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'	  : server1.getPort(),
-                  'dsInstanceDn'	: server1.getRootDn(),
-                  'dsInstancePswd'	  : server1.getRootPwd(),
+                { 'dsPath' : masterPath,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'	  : master.getPort(),
+                  'dsInstanceDn'	: master.getRootDn(),
+                  'dsInstancePswd'	  : master.getRootPwd(),
                   'DNToModify'	  : 'uid=jwallace, ou=People,%s' % synchroSuffix,
                   'listAttributes' : valuesToAdd,
                   'changetype' : 'add' }
@@ -832,10 +843,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'    : 'uid=jwallace, ou=People,%s' % synchroSuffix,
                   'dsFilter'  : 'postaladdress=38000 Grenoble',
                   'expectedRC'  : 0 }                  
@@ -854,7 +865,7 @@
 
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
                                 
               <call function="'testCase_Postamble'"/>
@@ -890,11 +901,11 @@
 
               <!-- Modify "master" server -->                
               <call function="'modifyAnAttribute'">
-                { 'dsPath' : server1Path,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'	  : server1.getPort(),
-                  'dsInstanceDn'	: server1.getRootDn(),
-                  'dsInstancePswd'	  : server1.getRootPwd(),
+                { 'dsPath' : masterPath,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'	  : master.getPort(),
+                  'dsInstanceDn'	: master.getRootDn(),
+                  'dsInstancePswd'	  : master.getRootPwd(),
                   'DNToModify'	  : 'uid=jwallace, ou=People,%s' % synchroSuffix,
                   'listAttributes' : valuesToDelete,
                   'changetype' : 'delete' }
@@ -904,10 +915,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'    : 'uid=jwallace, ou=People,%s' % synchroSuffix,
                   'dsFilter'  : 'postaladdress=Residence Letilleuil',
                   'expectedRC'  : 0 }                  
@@ -926,7 +937,7 @@
 
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
                                 
               <call function="'testCase_Postamble'"/>
@@ -953,48 +964,29 @@
                  'Replication: Basic: Modify Entry - replace case sensitive attribute. Check that case sensitive attribute modifications are replicated.'
               </message>
 
-                
-              <script>
-                entryAttributes = []
-                entryAttributes.append('cn: Tom Fitter')
-                entryAttributes.append('sn: Fitter')
-                entryAttributes.append('givenname: Tom')
-                entryAttributes.append('objectclass: top')
-                entryAttributes.append('objectclass: person')
-                entryAttributes.append('objectclass: organizationalPerson')
-                entryAttributes.append('objectclass: inetOrgPerson')
-                entryAttributes.append('ou: Accounting')
-                entryAttributes.append('ou: People')
-                entryAttributes.append('l: Sunnyvale')
-                entryAttributes.append('uid: tfitter')
-                entryAttributes.append('mail: tfitter@example.com')
-                entryAttributes.append('telephonenumber: +1 804  555 8974')
-                entryAttributes.append('facsimiletelephonenumber: +1 804 555 1579')
-                entryAttributes.append('roomnumber: 2164')
-                entryAttributes.append('userpassword: hamstring')                 
-                entryAttributes.append('description: PROFESSION Tap Fitter and PLUMBER')
-                                    
+                                
+              <!-- Modify "master" server -->                       
+              <call function="'addEntry'">
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost,
+                  'dsInstancePort' : master.getPort(), 
+                  'dsInstanceDn'   : master.getRootDn(),
+                  'dsInstancePswd' : master.getRootPwd(),
+                  'entryToBeAdded' : '%s/replication/tfitter.ldif' % clientDataDir }
+              </call>                         
+            
+              <script>    
                 valuesToReplace = []
                 valuesToReplace.append('description: Profession Tap Fitter and Plumber')
               </script>
                 
-              <!-- Modify "master" server -->                
-              <call function="'addAnEntry'">
-                { 'dsPath' : server1Path,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'	  : server1.getPort(),
-                  'dsInstanceDn'	: server1.getRootDn(),
-                  'dsInstancePswd'	  : server1.getRootPwd(),
-                  'DNToAdd'	  : 'uid=tfitter, ou=People,%s' % synchroSuffix,
-                  'listAttributes' : entryAttributes }
-              </call>
-            
               <call function="'modifyAnAttribute'">
-                { 'dsPath' : server1Path,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'	  : server1.getPort(),
-                  'dsInstanceDn'	: server1.getRootDn(),
-                  'dsInstancePswd'	  : server1.getRootPwd(),
+                { 'dsPath' : masterPath,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'	  : master.getPort(),
+                  'dsInstanceDn'	: master.getRootDn(),
+                  'dsInstancePswd'	  : master.getRootPwd(),
                   'DNToModify'	  : 'uid=tfitter, ou=People,%s' % synchroSuffix,
                   'listAttributes' : valuesToReplace,
                   'changetype' : 'replace' }
@@ -1004,10 +996,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'    : 'uid=tfitter, ou=People,%s' % synchroSuffix,
                   'dsFilter'  : 'description=Profession Tap Fitter and Plumber',
                   'expectedRC'  : 0 }                  
@@ -1026,7 +1018,7 @@
 
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
                                 
               <call function="'testCase_Postamble'"/>
@@ -1077,10 +1069,10 @@
               <call function="'ldapModifyWithScript'">
                 { 'location'          : clientHost,
                   'dsPath'            : clientPath,
-                  'dsInstanceHost'    : server1.getHostname() ,
-                  'dsInstancePort'    : server1.getPort() ,
-                  'dsInstanceDn'      : server1.getRootDn() ,
-                  'dsInstancePswd'    : server1.getRootPwd() ,
+                  'dsInstanceHost'    : masterHost ,
+                  'dsInstancePort'    : master.getPort() ,
+                  'dsInstanceDn'      : master.getRootDn() ,
+                  'dsInstancePswd'    : master.getRootPwd() ,
                   'dsFilename' : '%s/%s' % (clientDataDir, filename) }
               </call>                            
 				
@@ -1089,10 +1081,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'    : 'uid=hmiller, ou=People,%s' % synchroSuffix,
                   'dsFilter'  : 'jpegPhoto=*',
                   'expectedRC'  :  0 }                  
@@ -1111,7 +1103,7 @@
 
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>               
                                                              			  			
               <call function="'testCase_Postamble'"/>
@@ -1162,10 +1154,10 @@
               <call function="'ldapModifyWithScript'">
                 { 'location'          : clientHost,
                   'dsPath'            : clientPath,
-                  'dsInstanceHost'    : server1.getHostname() ,
-                  'dsInstancePort'    : server1.getPort() ,
-                  'dsInstanceDn'      : server1.getRootDn() ,
-                  'dsInstancePswd'    : server1.getRootPwd() ,
+                  'dsInstanceHost'    : masterHost ,
+                  'dsInstancePort'    : master.getPort() ,
+                  'dsInstanceDn'      : master.getRootDn() ,
+                  'dsInstancePswd'    : master.getRootPwd() ,
                   'dsFilename' : '%s/%s' % (clientDataDir, filename) }
               </call>                            
 				
@@ -1174,10 +1166,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'    : 'uid=hmiller, ou=People,%s' % synchroSuffix,
                   'dsFilter'  : 'jpegPhoto=*',
                   'expectedRC'  :  0 }                  
@@ -1196,7 +1188,7 @@
 
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>               
                                                              			  			
               <call function="'testCase_Postamble'"/>
@@ -1248,10 +1240,10 @@
               <call function="'ldapModifyWithScript'">
                 { 'location'          : clientHost,
                   'dsPath'            : clientPath,
-                  'dsInstanceHost'    : server1.getHostname() ,
-                  'dsInstancePort'    : server1.getPort() ,
-                  'dsInstanceDn'      : server1.getRootDn() ,
-                  'dsInstancePswd'    : server1.getRootPwd() ,
+                  'dsInstanceHost'    : masterHost ,
+                  'dsInstancePort'    : master.getPort() ,
+                  'dsInstanceDn'      : master.getRootDn() ,
+                  'dsInstancePswd'    : master.getRootPwd() ,
                   'dsFilename' : '%s/%s' % (clientDataDir, filename) }
               </call>        
                 
@@ -1259,10 +1251,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'    : 'uid=hmiller, ou=People,%s' % synchroSuffix,
                   'dsFilter'  : 'jpegPhoto=*',
                   'expectedRC'  :  0 }                  
@@ -1281,7 +1273,7 @@
 
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>               
                                                              			  			
               <call function="'testCase_Postamble'"/>
@@ -1332,10 +1324,10 @@
               <call function="'ldapModifyWithScript'">
                 { 'location'          : clientHost,
                   'dsPath'            : clientPath,
-                  'dsInstanceHost'    : server1.getHostname() ,
-                  'dsInstancePort'    : server1.getPort() ,
-                  'dsInstanceDn'      : server1.getRootDn() ,
-                  'dsInstancePswd'    : server1.getRootPwd() ,
+                  'dsInstanceHost'    : masterHost ,
+                  'dsInstancePort'    : master.getPort() ,
+                  'dsInstanceDn'      : master.getRootDn() ,
+                  'dsInstancePswd'    : master.getRootPwd() ,
                   'dsFilename' : '%s/%s' % (clientDataDir, filename) }
               </call>                            
 				
@@ -1345,10 +1337,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'    : 'uid=kvaughan, ou=People,%s' % synchroSuffix,
                   'dsFilter'  : 'objectclass=*',
                   'expectedRC'  : 32 }                  
@@ -1358,10 +1350,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'    : 'uid=kvaughan2, ou=People,%s' % synchroSuffix,
                   'dsFilter'  : 'objectclass=*' }                  
               </call>
@@ -1369,7 +1361,7 @@
 
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>               
                                                              			  			
               <call function="'testCase_Postamble'"/>
@@ -1421,10 +1413,10 @@
               <call function="'ldapModifyWithScript'">
                 { 'location'          : clientHost,
                   'dsPath'            : clientPath,
-                  'dsInstanceHost'    : server1.getHostname() ,
-                  'dsInstancePort'    : server1.getPort() ,
-                  'dsInstanceDn'      : server1.getRootDn() ,
-                  'dsInstancePswd'    : server1.getRootPwd() ,
+                  'dsInstanceHost'    : masterHost ,
+                  'dsInstancePort'    : master.getPort() ,
+                  'dsInstanceDn'      : master.getRootDn() ,
+                  'dsInstancePswd'    : master.getRootPwd() ,
                   'dsFilename' : '%s/%s' % (clientDataDir, filename) }
               </call>                            
 				
@@ -1434,10 +1426,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'    : 'uid=jwallace, ou=People,%s' % synchroSuffix,
                   'dsFilter'  : 'objectclass=*',
                   'expectedRC'  : 32 }                  
@@ -1447,10 +1439,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'    : 'uid=igueye, ou=People,%s' % synchroSuffix,
                   'dsFilter'  : 'uid=jwallace' }                  
               </call>
@@ -1468,7 +1460,7 @@
 
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>               
                                                              			  			
               <call function="'testCase_Postamble'"/>
@@ -1520,10 +1512,10 @@
               <call function="'ldapModifyWithScript'">
                 { 'location'          : clientHost,
                   'dsPath'            : clientPath,
-                  'dsInstanceHost'    : server1.getHostname() ,
-                  'dsInstancePort'    : server1.getPort() ,
-                  'dsInstanceDn'      : server1.getRootDn() ,
-                  'dsInstancePswd'    : server1.getRootPwd() ,
+                  'dsInstanceHost'    : masterHost ,
+                  'dsInstancePort'    : master.getPort() ,
+                  'dsInstanceDn'      : master.getRootDn() ,
+                  'dsInstancePswd'    : master.getRootPwd() ,
                   'dsFilename' : '%s/%s' % (clientDataDir, filename) }
               </call>                            
 				
@@ -1533,10 +1525,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'    : 'uid=gfarmer, ou=People,%s' % synchroSuffix,
                   'dsFilter'  : 'objectclass=*',
                   'expectedRC'  : 32 }                  
@@ -1546,10 +1538,10 @@
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'dsBaseDN'    : 'uid=gfarmer, ou=Special People, ou=Special Users,%s' % synchroSuffix,
                   'dsFilter'  : 'objectclass=*' }                  
               </call>
@@ -1557,7 +1549,7 @@
 
               <!-- Verify the synchronization of the trees among the servers in the topology -->      		
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>               
 
                                                                			  			

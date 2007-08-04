@@ -39,8 +39,7 @@
       </message>	  			
 	
       <script>
-        server1Path = '%s/%s' % (server1.getDir(),OPENDSNAME)
-        synchroSuffix = server1.getSynchronizedSuffixList()[0].getSuffixDn()
+        synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()
         entryDn = 'uid=scarter,%s' % synchroSuffix
         grandchildEntryDn = 'uid=scarter,ou=People,o=replication tests,%s' % synchroSuffix
         mod_type = 'replace'

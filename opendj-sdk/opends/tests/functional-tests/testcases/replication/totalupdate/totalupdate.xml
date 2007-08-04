@@ -137,12 +137,12 @@
               
               <!-- Verify the total update -->  
               <call function="'checkImport'">
-                { 'location'  : server1.getHostname(),
-                  'dsPath'    : '%s/%s' % (server1.getDir(),OPENDSNAME),                
-                  'dsHost'    : server1.getHostname(),
-                  'dsPort'    : server1.getPort(),
-                  'dsDn'      : server1.getRootDn(),
-                  'dsPswd'    : server1.getRootPwd(),
+                { 'location'  : server2.getHostname(),
+                  'dsPath'    : '%s/%s' % (server2.getDir(),OPENDSNAME),                
+                  'dsHost'    : server2.getHostname(),
+                  'dsPort'    : server2.getPort(),
+                  'dsDn'      : server2.getRootDn(),
+                  'dsPswd'    : server2.getRootPwd(),
                   'expectedEntries' : ['uid=scarter,ou=People,o=example',
                                        'uid=dmiller, ou=People, o=example',
                                        'uid=rhunt, ou=People, o=example'],

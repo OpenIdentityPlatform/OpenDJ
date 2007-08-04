@@ -85,6 +85,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
+      <function-arg-def name="remotehost" type="optional" default="location">
+        <function-arg-description>
+          The name of remote host (default same as location)
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>        
       <function-arg-def name="srcfolder" type="required">
         <function-arg-description>
           The name of the source folder
@@ -108,7 +114,7 @@
       <stafcmd name="'STAF Command: Copy all %s Files.' % (extension)">
         <location>'%s' % location</location>
         <service>'fs'</service>
-        <request>'COPY DIRECTORY %s TODIRECTORY %s TOMACHINE %s EXT %s RECURSE' % (srcfolder,destfolder,location,extension) </request>
+        <request>'COPY DIRECTORY %s TODIRECTORY %s TOMACHINE %s EXT %s RECURSE' % (srcfolder,destfolder,remotehost,extension) </request>
       </stafcmd>
       <script>
         cmdRC=RC

@@ -1,0 +1,10 @@
+dn: cn=testuser-1,ou=people,o=example
+objectclass: top
+objectclass: person
+objectclass: testobjectclass-1
+cn: testuser-1
+sn: Test
+c: Testland
+street: Test Lane
+testattribute-1: new test attribute
+
