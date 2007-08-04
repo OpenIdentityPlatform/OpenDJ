@@ -1230,6 +1230,7 @@
       <!-- Local variables -->
       <script>
         myLocation=location
+        myPath=dsPath
         taskLdifFile='import-task.ldif'
         taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
         tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
@@ -1301,6 +1302,7 @@
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
         { 'location'   : myLocation,
+          'dsPath'  :  myPath,
           'taskLabel'  : 'Online Import Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -1314,6 +1316,7 @@
         <sequence>
           <call function="'CheckLdapTask'">
             { 'location'   : myLocation,
+              'dsPath'  :  myPath,
               'dsTaskDn'   : taskDN,
               'dsHost'     : dsInstanceHost,
               'dsPort'     : dsInstancePort,
@@ -1772,6 +1775,7 @@
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
         { 'location'   : myLocation,
+          'dsPath'  :  myPath,
           'taskLabel'  : 'Online Export Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -1785,6 +1789,7 @@
         <sequence>
             <call function="'CheckLdapTask'">
             { 'location'   : myLocation,
+              'dsPath'  :  myPath,
               'dsTaskDn'   : taskDN,
               'dsHost'     : dsInstanceHost,
               'dsPort'     : dsInstancePort,
@@ -1839,6 +1844,8 @@
       <!-- Local variables -->
       <script>
         myLocation=location
+        if dsPath:  
+          dsBinPath='%s/%s' % (dsPath,fileFolder)           
       </script>
       <message>
         'backup%s -n %s -d %s %s' % (fileExt,backEnd,backupDir,extraParams)
@@ -1973,6 +1980,7 @@
     
        <script>
         myLocation=location
+        myPath=dsPath
         taskLdifFile='backup-task.ldif'
         taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
         tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
@@ -2026,6 +2034,7 @@
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
         { 'location'   : myLocation,
+          'dsPath'  :  myPath,
           'taskLabel'  : 'Online Backup Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -2039,6 +2048,7 @@
         <sequence>
             <call function="'CheckLdapTask'">
             { 'location'   : myLocation,
+              'dsPath'  :  myPath,
               'dsTaskDn'   : taskDN,
               'dsHost'     : dsInstanceHost,
               'dsPort'     : dsInstancePort,
@@ -2087,6 +2097,8 @@
       <!-- Local variables -->
       <script>
         myLocation=location
+        if dsPath:  
+          dsBinPath='%s/%s' % (dsPath,fileFolder)          
       </script>    
 
       <message>
@@ -2187,6 +2199,7 @@
     
        <script>
         myLocation=location
+        myPath=dsPath
         taskLdifFile='restore-task.ldif'
         taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
         tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
@@ -2232,6 +2245,7 @@
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
         { 'location'   : myLocation,
+          'dsPath'  :  myPath,
           'taskLabel'  : 'Online Restore Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -2245,6 +2259,7 @@
         <sequence>
             <call function="'CheckLdapTask'">
             { 'location'   : myLocation,
+              'dsPath'  :  myPath,
               'dsTaskDn'   : taskDN,
               'dsHost'     : dsInstanceHost,
               'dsPort'     : dsInstancePort,
@@ -2312,6 +2327,7 @@
       <!-- Local variables -->
       <script>
         myLocation=location
+        myPath=dsPath
         taskLdifFile='shutdown-task.ldif'
         taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
         tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
@@ -2352,6 +2368,7 @@
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
         { 'location'   : myLocation,
+          'dsPath'  :  myPath,
           'taskLabel'  : 'Online Export Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -2420,6 +2437,7 @@
       <!-- Local variables -->
       <script>
         myLocation=location
+        myPath=dsPath
         taskLdifFile='restart-task.ldif'
         taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
         tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
@@ -2460,6 +2478,7 @@
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
         { 'location'   : myLocation,
+          'dsPath'  :  myPath,
           'taskLabel'  : 'Online Export Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -2544,6 +2563,7 @@
 
          <script>
           myLocation=location
+          myPath=dsPath
           taskLdifFile='schema.ldif'
           taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
           tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
@@ -2595,6 +2615,7 @@
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
         { 'location'   : myLocation,
+          'dsPath'  :  myPath,
           'taskLabel'  : 'Online Schema Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -2606,6 +2627,7 @@
       <!-- Check that the ldap task is completed -->
       <call function="'CheckLdapTask'">
         { 'location'   : myLocation,
+          'dsPath'  :  myPath,
           'dsTaskDn'   : taskDN,
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -2671,6 +2693,7 @@
 
          <script>
           myLocation=location
+          myPath=dsPath
           taskLdifFile='leaveShutdownTask.ldif'
           taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
           tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
@@ -2720,6 +2743,7 @@
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
         { 'location'   : myLocation,
+          'dsPath'  :  myPath,
           'taskLabel'  : 'Online Schema Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -2731,6 +2755,7 @@
       <!-- Check that the ldap task is completed -->
       <call function="'CheckLdapTask'">
         { 'location'   : myLocation,
+          'dsPath'  :  myPath,
           'dsTaskDn'   : taskDN,
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -3208,5 +3233,6 @@
     </sequence>
     
   </function>
-                
+
+                                                
 </stax>

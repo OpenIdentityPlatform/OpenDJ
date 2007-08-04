@@ -600,7 +600,7 @@
 
       <script>
         replicationServer = syncserver.getChangelogServer()
-        replicatedSuffixList = server.getSynchronizedSuffixList()
+        replicatedSuffixList = syncserver.getSynchronizedSuffixList()
       </script>        
 
       <if expr="replicationServer">

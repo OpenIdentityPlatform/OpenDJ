@@ -68,45 +68,20 @@
              
             server1 = _topologyServerList[0]
             server2 = _topologyServerList[1]          
+              
+            master = _topologyServerList[0]
+            masterHost = master.getHostname()
+            masterPath = '%s/%s' % (master.getDir(),OPENDSNAME)
+            masterDataDir = '%s/%s' % (master.getDir(),relativeDataDir)
+
+            consumerList = _topologyServerList[1:]              
           </script>        
                           
           <!-- Start the servers in the topology -->			  
-          <iterate var="server" in="_topologyServerList">							
-            <sequence>
-			  
-              <message>
-                'Start DS on host  %s to run on port %s' % (server.getHostname(),server.getPort())
-              </message>
-
-              <!--- Start DS -->				         
-              <call function="'StartDsWithScript'">
-                { 'location'  : server.getHostname(),
-				  'dsPath' : '%s/%s' % (server.getDir(),OPENDSNAME) }
-              </call>
-    
-              <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-              </call>
-      
-            </sequence>			
-          </iterate>		
-
-          <!-- Check that the servers in the topology started -->
-          <iterate var="server" in="_topologyServerList">
-            <!--- Check that DS started -->
-            <call function="'isAlive'">
-              { 'location' : server.getHostname(),
-                'dsPath' : '%s/%s' % (server.getDir(),OPENDSNAME),
-                'dsInstanceHost' : server.getHostname(), 
-                'dsInstancePort' : server.getPort(),
-                'dsInstanceDn' : server.getRootDn(),
-                'dsInstancePswd' : server.getRootPwd(),
-                'noOfLoops' : 5 ,
-                'noOfMilliSeconds' : 2000 }
-            </call>
-	      </iterate>
-			 		   		
+          <call function="'startServers'">
+            [_topologyServerList]
+          </call>            
+            			 		   		
         </sequence>
 
       </block>

@@ -1,0 +1,15 @@
+dn: uid=tfitter, ou=People,o=example
+cn: Tom Fitter
+sn: Fitter
+givenname: Tom
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: tfitter
+mail: tfitter@example.com
+userpassword: hamstring
+

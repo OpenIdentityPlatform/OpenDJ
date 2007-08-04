@@ -37,34 +37,12 @@
 
         <sequence>                			
 			 		   		
-          <!-- Stop the servers in the topology -->					           
-          <iterate var="server" in="_topologyServerList">				
-            <sequence>
-    
-              <message>
-                 'Stop DS on host %s running on port %s' % (server.getHostname(),server.getPort())
-              </message>
-
-              <!--- Stop DS -->					      
-              <call function="'StopDsWithScript'">
-                { 'location'  : server.getHostname(),
-                  'dsHost' : server.getHostname(),
-                  'dsPath' : '%s/%s' % (server.getDir(),OPENDSNAME),
-                  'dsPort'    : server.getPort(),
-                  'dsBindDN'  : server.getRootDn(),
-                  'dsBindPwd' : server.getRootPwd() }
-              </call>
-    
-              <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-              </call>
-    
-            </sequence>
-            
-  		</iterate>
+          <!-- Stop the servers in the topology -->			
+          <call function="'stopServers'">
+            [_topologyServerList]
+          </call>
   
-  		<!-- Remove  the topology created for the test suite -->
+  		  <!-- Remove  the topology created for the test suite -->
           <message>
             'Remove DS topology created for the Synchronization Basic Test Suite'
           </message>				  
