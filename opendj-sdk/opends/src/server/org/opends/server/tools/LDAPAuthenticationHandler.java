@@ -596,7 +596,7 @@ public class LDAPAuthenticationHandler
         if (name.equalsIgnoreCase(SASL_PROPERTY_TRACE))
         {
           // This is acceptable, and we'll take any single value.
-          List<String> values = saslProperties.get(SASL_PROPERTY_TRACE);
+          List<String> values = saslProperties.get(name);
           Iterator<String> iterator = values.iterator();
           if (iterator.hasNext())
           {
@@ -848,7 +848,7 @@ public class LDAPAuthenticationHandler
 
       if (lowerName.equals(SASL_PROPERTY_AUTHID))
       {
-        List<String> values = saslProperties.get(SASL_PROPERTY_AUTHID);
+        List<String> values = saslProperties.get(name);
         Iterator<String> iterator = values.iterator();
         if (iterator.hasNext())
         {
@@ -1380,7 +1380,7 @@ public class LDAPAuthenticationHandler
 
       if (lowerName.equals(SASL_PROPERTY_AUTHID))
       {
-        List<String> values = saslProperties.get(SASL_PROPERTY_AUTHID);
+        List<String> values = saslProperties.get(name);
         Iterator<String> iterator = values.iterator();
         if (iterator.hasNext())
         {
@@ -1397,7 +1397,7 @@ public class LDAPAuthenticationHandler
       }
       else if (lowerName.equals(SASL_PROPERTY_REALM))
       {
-        List<String> values = saslProperties.get(SASL_PROPERTY_REALM);
+        List<String> values = saslProperties.get(name);
         Iterator<String> iterator = values.iterator();
         if (iterator.hasNext())
         {
@@ -1415,7 +1415,7 @@ public class LDAPAuthenticationHandler
       }
       else if (lowerName.equals(SASL_PROPERTY_QOP))
       {
-        List<String> values = saslProperties.get(SASL_PROPERTY_QOP);
+        List<String> values = saslProperties.get(name);
         Iterator<String> iterator = values.iterator();
         if (iterator.hasNext())
         {
@@ -1453,7 +1453,7 @@ public class LDAPAuthenticationHandler
       }
       else if (lowerName.equals(SASL_PROPERTY_DIGEST_URI))
       {
-        List<String> values = saslProperties.get(SASL_PROPERTY_DIGEST_URI);
+        List<String> values = saslProperties.get(name);
         Iterator<String> iterator = values.iterator();
         if (iterator.hasNext())
         {
@@ -1470,7 +1470,7 @@ public class LDAPAuthenticationHandler
       }
       else if (lowerName.equals(SASL_PROPERTY_AUTHZID))
       {
-        List<String> values = saslProperties.get(SASL_PROPERTY_AUTHZID);
+        List<String> values = saslProperties.get(name);
         Iterator<String> iterator = values.iterator();
         if (iterator.hasNext())
         {
@@ -2758,7 +2758,7 @@ public class LDAPAuthenticationHandler
 
       if (lowerName.equals(SASL_PROPERTY_AUTHID))
       {
-        List<String> values = saslProperties.get(SASL_PROPERTY_AUTHID);
+        List<String> values = saslProperties.get(name);
         Iterator<String> iterator = values.iterator();
         if (iterator.hasNext())
         {
@@ -2775,7 +2775,7 @@ public class LDAPAuthenticationHandler
       }
       else if (lowerName.equals(SASL_PROPERTY_AUTHZID))
       {
-        List<String> values = saslProperties.get(SASL_PROPERTY_AUTHZID);
+        List<String> values = saslProperties.get(name);
         Iterator<String> iterator = values.iterator();
         if (iterator.hasNext())
         {
@@ -2792,7 +2792,7 @@ public class LDAPAuthenticationHandler
       }
       else if (lowerName.equals(SASL_PROPERTY_KDC))
       {
-        List<String> values = saslProperties.get(SASL_PROPERTY_KDC);
+        List<String> values = saslProperties.get(name);
         Iterator<String> iterator = values.iterator();
         if (iterator.hasNext())
         {
@@ -2809,7 +2809,7 @@ public class LDAPAuthenticationHandler
       }
       else if (lowerName.equals(SASL_PROPERTY_QOP))
       {
-        List<String> values = saslProperties.get(SASL_PROPERTY_QOP);
+        List<String> values = saslProperties.get(name);
         Iterator<String> iterator = values.iterator();
         if (iterator.hasNext())
         {
@@ -2848,7 +2848,7 @@ public class LDAPAuthenticationHandler
       }
       else if (lowerName.equals(SASL_PROPERTY_REALM))
       {
-        List<String> values = saslProperties.get(SASL_PROPERTY_REALM);
+        List<String> values = saslProperties.get(name);
         Iterator<String> iterator = values.iterator();
         if (iterator.hasNext())
         {
@@ -3069,7 +3069,7 @@ public class LDAPAuthenticationHandler
 
       if (lowerName.equals(SASL_PROPERTY_AUTHID))
       {
-        List<String> values = saslProperties.get(SASL_PROPERTY_AUTHID);
+        List<String> values = saslProperties.get(name);
         Iterator<String> iterator = values.iterator();
         if (iterator.hasNext())
         {
@@ -3086,7 +3086,7 @@ public class LDAPAuthenticationHandler
       }
       else if (lowerName.equals(SASL_PROPERTY_AUTHZID))
       {
-        List<String> values = saslProperties.get(SASL_PROPERTY_AUTHZID);
+        List<String> values = saslProperties.get(name);
         Iterator<String> iterator = values.iterator();
         if (iterator.hasNext())
         {

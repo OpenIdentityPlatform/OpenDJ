@@ -28,20 +28,34 @@ package org.opends.server.extensions;
 
 
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
+import org.opends.server.controls.ProxiedAuthV1Control;
+import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.Control;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
-import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
 
 
 /**
@@ -51,6 +65,10 @@ import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
 public class WhoAmIExtendedOperation
        extends ExtendedOperationHandler<ExtendedOperationHandlerCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
 
 
 
@@ -62,7 +80,6 @@ public class WhoAmIExtendedOperation
   public WhoAmIExtendedOperation()
   {
     super();
-
   }
 
 
@@ -99,6 +116,7 @@ public class WhoAmIExtendedOperation
    * Performs any finalization that may be necessary for this extended
    * operation handler.  By default, no finalization is performed.
    */
+  @Override()
   public void finalizeExtendedOperationHandler()
   {
     DirectoryServer.deregisterSupportedExtension(OID_WHO_AM_I_REQUEST);
@@ -109,42 +127,172 @@ public class WhoAmIExtendedOperation
 
 
   /**
-   * Processes the provided extended operation.
-   *
-   * @param  operation  The extended operation to be processed.
+   * {@inheritDoc}
    */
+  @Override()
+  public Set<String> getSupportedControls()
+  {
+    HashSet<String> supportedControls = new HashSet<String>(2);
+
+    supportedControls.add(OID_PROXIED_AUTH_V1);
+    supportedControls.add(OID_PROXIED_AUTH_V2);
+
+    return supportedControls;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
   public void processExtendedOperation(ExtendedOperation operation)
   {
-    // Get the client connection and determine the DN of the user associated
-    // with it.
+    // Process any supported controls for this operation, including the
+    // proxied authorization control.
     ClientConnection clientConnection = operation.getClientConnection();
-    if (clientConnection == null)
+    List<Control> requestControls = operation.getRequestControls();
+    if (requestControls != null)
     {
-      // There is no client connection, so we can't make the determination.
-      operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+      for (Control c : requestControls)
+      {
+        String oid = c.getOID();
+        if (oid.equals(OID_PROXIED_AUTH_V1))
+        {
+          // The requester must have the PROXIED_AUTH privilige in order to
+          // be able to use this control.
+          if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH,
+                                              operation))
+          {
+            int msgID = MSGID_EXTOP_WHOAMI_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
+            operation.appendErrorMessage(getMessage(msgID));
+            operation.setResultCode(ResultCode.AUTHORIZATION_DENIED);
+            return;
+          }
 
-      int msgID = MSGID_EXTOP_WHOAMI_NO_CLIENT_CONNECTION;
-      operation.appendErrorMessage(getMessage(msgID));
-      return;
+
+          ProxiedAuthV1Control proxyControl;
+          if (c instanceof ProxiedAuthV1Control)
+          {
+            proxyControl = (ProxiedAuthV1Control) c;
+          }
+          else
+          {
+            try
+            {
+              proxyControl = ProxiedAuthV1Control.decodeControl(c);
+            }
+            catch (LDAPException le)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, le);
+              }
+
+              operation.setResultCode(ResultCode.valueOf(le.getResultCode()));
+              operation.appendErrorMessage(le.getMessage());
+              return;
+            }
+          }
+
+
+          Entry authorizationEntry;
+          try
+          {
+            authorizationEntry = proxyControl.getAuthorizationEntry();
+          }
+          catch (DirectoryException de)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
+            }
+
+            operation.setResultCode(de.getResultCode());
+            operation.appendErrorMessage(de.getErrorMessage());
+            return;
+          }
+
+          operation.setAuthorizationEntry(authorizationEntry);
+        }
+        else if (oid.equals(OID_PROXIED_AUTH_V2))
+        {
+          // The requester must have the PROXIED_AUTH privilige in order to
+          // be able to use this control.
+          if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH,
+                                              operation))
+          {
+            int msgID = MSGID_EXTOP_WHOAMI_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
+            operation.appendErrorMessage(getMessage(msgID));
+            operation.setResultCode(ResultCode.AUTHORIZATION_DENIED);
+            return;
+          }
+
+
+          ProxiedAuthV2Control proxyControl;
+          if (c instanceof ProxiedAuthV2Control)
+          {
+            proxyControl = (ProxiedAuthV2Control) c;
+          }
+          else
+          {
+            try
+            {
+              proxyControl = ProxiedAuthV2Control.decodeControl(c);
+            }
+            catch (LDAPException le)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, le);
+              }
+
+              operation.setResultCode(ResultCode.valueOf(le.getResultCode()));
+              operation.appendErrorMessage(le.getMessage());
+              return;
+            }
+          }
+
+
+          Entry authorizationEntry;
+          try
+          {
+            authorizationEntry = proxyControl.getAuthorizationEntry();
+          }
+          catch (DirectoryException de)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
+            }
+
+            operation.setResultCode(de.getResultCode());
+            operation.appendErrorMessage(de.getErrorMessage());
+            return;
+          }
+
+          operation.setAuthorizationEntry(authorizationEntry);
+        }
+      }
     }
 
-    // Get the auth info from the client connection.
-    AuthenticationInfo authInfo = clientConnection.getAuthenticationInfo();
-    if ((authInfo == null) || (authInfo.getAuthenticationDN() == null))
+
+    // Get the authorization DN for the operation and add it to the response
+    // value.
+    String authzID;
+    DN authzDN = operation.getAuthorizationDN();
+    if (authzDN == null)
     {
-      // The user must not be authenticated, so we can send back an empty
-      // response value.
-      operation.setResultCode(ResultCode.SUCCESS);
-      operation.setResponseValue(new ASN1OctetString());
-      return;
+      authzID = "";
+    }
+    else
+    {
+      authzID = "dn:" + authzDN.toString();
     }
 
-    // Get the DN of the authenticated user and put that in the response.
-    // FIXME -- Do we need to support the use of an authorization ID that is
-    //          different from the authentication ID?
+    operation.setResponseValue(new ASN1OctetString(authzID));
+    operation.appendAdditionalLogMessage("authzID=\"" + authzID + "\"");
     operation.setResultCode(ResultCode.SUCCESS);
-    operation.setResponseValue(new ASN1OctetString("dn:" +
-                                    authInfo.getAuthenticationDN().toString()));
   }
 }
 
