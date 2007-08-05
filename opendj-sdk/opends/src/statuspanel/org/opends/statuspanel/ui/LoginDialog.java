@@ -355,7 +355,8 @@ public class LoginDialog extends JDialog
   {
     BackgroundTask worker = new BackgroundTask()
     {
-      public Object processBackgroundTask() throws NamingException
+      public Object processBackgroundTask() throws NamingException,
+      ConfigException
       {
         Boolean isServerRunning = Boolean.TRUE;
         InitialLdapContext ctx = null;
@@ -472,7 +473,7 @@ public class LoginDialog extends JDialog
             throw ne;
           }
           isServerRunning = Boolean.FALSE;
-        } catch (Error e)
+        } catch (ConfigException e)
         {
           throw e;
         } catch (IllegalStateException ise)
@@ -779,12 +780,12 @@ public class LoginDialog extends JDialog
       {
         LOG.log(Level.INFO, "Accepting certificate presented by host "+host);
         getTrustManager().acceptCertificate(chain, authType, host);
-        /* Simulate a click on the OK */
+        /* Simulate a click on the OK by calling in the okClicked method. */
         SwingUtilities.invokeLater(new Runnable()
         {
           public void run()
           {
-            okButton.doClick();
+            okClicked();
           }
         });
       }
