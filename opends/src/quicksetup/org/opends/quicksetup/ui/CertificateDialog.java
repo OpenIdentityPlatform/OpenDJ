@@ -205,7 +205,8 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
         certificateDetails.getPreferredSize().width), gbc);
     gbc.insets.top = 0;
     gbc.weighty = 1.0;
-    JPanel auxPanel = new JPanel(new GridBagLayout());
+    JPanel auxPanel = UIFactory.makeJPanel();
+    auxPanel.setLayout(new GridBagLayout());
     gbc.weightx = 0.0;
     gbc.insets = UIFactory.getEmptyInsets();
     gbc.gridwidth = GridBagConstraints.RELATIVE;
@@ -235,9 +236,9 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
    */
   private Component createTitlePanel()
   {
-    JPanel titlePanel = new JPanel(new GridBagLayout());
+    JPanel titlePanel = UIFactory.makeJPanel();
+    titlePanel.setLayout(new GridBagLayout());
     GridBagConstraints gbc = new GridBagConstraints();
-    titlePanel.setOpaque(false);
     gbc.anchor = GridBagConstraints.NORTHWEST;
     gbc.fill = GridBagConstraints.BOTH;
     gbc.weightx = 0.0;
@@ -279,8 +280,8 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
       text = getMsg("certificate-name-mismatch-text",
           ce.getHost(), String.valueOf(ce.getPort()));
     }
-    JPanel p = new JPanel(new GridBagLayout());
-    p.setOpaque(false);
+    JPanel p = UIFactory.makeJPanel();
+    p.setLayout(new GridBagLayout());
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     gbc.anchor = GridBagConstraints.NORTHWEST;
@@ -318,8 +319,8 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
    */
   private Component createButtonsPanel()
   {
-    JPanel buttonsPanel = new JPanel(new GridBagLayout());
-    buttonsPanel.setOpaque(false);
+    JPanel buttonsPanel = UIFactory.makeJPanel();
+    buttonsPanel.setLayout(new GridBagLayout());
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.gridwidth = 4;
@@ -369,8 +370,8 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
    */
   private JComponent createCertificateDetailsPane()
   {
-    JPanel p = new JPanel(new GridBagLayout());
-    p.setOpaque(false);
+    JPanel p = UIFactory.makeJPanel();
+    p.setLayout(new GridBagLayout());
     if ((ce.getChain() != null) && (ce.getChain().length > 0))
     {
       final JComboBox combo = new JComboBox();
@@ -409,7 +410,8 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
             createVersionComponent(cert),
             createPublicKeyComponent(cert)
         };
-        JPanel certPanel = new JPanel(new GridBagLayout());
+        JPanel certPanel = UIFactory.makeJPanel();
+        certPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.NORTHWEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -454,7 +456,8 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
         gbc.anchor = GridBagConstraints.WEST;
         gbc.gridwidth = 3;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        JPanel auxPanel = new JPanel(new GridBagLayout());
+        JPanel auxPanel = UIFactory.makeJPanel();
+        auxPanel.setLayout(new GridBagLayout());
         JLabel l = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
             getMsg("certificate-chain-label"),
             UIFactory.TextStyle.PRIMARY_FIELD_VALID);
@@ -574,8 +577,17 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
 
   private JComponent createSignatureComponent(X509Certificate cert)
   {
-    String signature = String.valueOf(cert.getSignature());
-    return makeValueLabel(signature);
+    byte[] sig = cert.getSignature();
+    StringBuffer sb = new StringBuffer();
+    for (int i = 0; i < sig.length; i++)
+    {
+      if (i > 0)
+      {
+        sb.append(":");
+      }
+      sb.append(Integer.toHexString(((int) sig[i]) & 0xFF));
+    }
+    return makeValueLabel(sb.toString());
   }
 
   private JComponent createSignatureAlgorithmComponent(X509Certificate cert)
