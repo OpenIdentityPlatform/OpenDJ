@@ -587,7 +587,8 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
       }
       sb.append(Integer.toHexString(((int) sig[i]) & 0xFF));
     }
-    return makeValueLabel(sb.toString());
+    return UIFactory.makeTextPane(sb.toString(),
+        UIFactory.TextStyle.SECONDARY_FIELD_VALID);
   }
 
   private JComponent createSignatureAlgorithmComponent(X509Certificate cert)
