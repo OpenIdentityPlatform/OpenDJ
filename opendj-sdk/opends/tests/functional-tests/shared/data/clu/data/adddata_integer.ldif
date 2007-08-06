@@ -1,0 +1,59 @@
+dn: cn=entry_1,o=mcom.com
+objectClass: top
+objectClass: mytestintegerobject
+cn: entry_1
+myTestIntegerAttr: 167772161
+
+dn: cn=entry_2,o=mcom.com
+objectClass: top
+objectClass: mytestintegerobject
+cn: entry_2
+myTestIntegerAttr: 167772162
+
+dn: cn=entry_3,o=mcom.com
+objectClass: top
+objectClass: mytestintegerobject
+cn: entry_3
+myTestIntegerAttr: 167772163
+
+dn: cn=entry_4,o=mcom.com
+objectClass: top
+objectClass: mytestintegerobject
+cn: entry_4
+myTestIntegerAttr: 167772164
+
+dn: cn=entry_5,o=mcom.com
+objectClass: top
+objectClass: mytestintegerobject
+cn: entry_5
+myTestIntegerAttr: 167772165
+
+dn: cn=entry_6,o=mcom.com
+objectClass: top
+objectClass: mytestintegerobject
+cn: entry_6
+myTestIntegerAttr: 167772166
+
+dn: cn=entry_7,o=mcom.com
+objectClass: top
+objectClass: mytestintegerobject
+cn: entry_7
+myTestIntegerAttr: 167772167
+
+dn: cn=entry_8,o=mcom.com
+objectClass: top
+objectClass: mytestintegerobject
+cn: entry_8
+myTestIntegerAttr: 167772168
+
+dn: cn=entry_9,o=mcom.com
+objectClass: top
+objectClass: mytestintegerobject
+cn: entry_9
+myTestIntegerAttr: 167772169
+
+dn: cn=entry_10,o=mcom.com
+objectClass: top
+objectClass: mytestintegerobject
+cn: entry_10
+myTestIntegerAttr: 167772170
