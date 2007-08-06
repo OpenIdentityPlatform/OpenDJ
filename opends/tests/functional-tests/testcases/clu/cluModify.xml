@@ -1,0 +1,861 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, exclude this CDDL HEADER in each
+ ! file and exclude the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+
+<stax>
+
+  <defaultcall function="main_cluModify"/>
+
+  <function name="main_cluModify">
+
+    <sequence>
+
+      <block name="'cluModify'">
+      
+        <sequence>
+  
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='clu'						  
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+      
+          <call function="'testSuite_Preamble'"/>
+                  
+         <!--- Test Suite information
+            #@TestSuiteName       Clu: Ldap Modify: ldapmodify Tests
+            #@TestSuitePurpose    Check the ldapmodify command with common options and input and output options
+            #@TestSuiteID         Clu Ldap Modify Tests
+            #@TestSuiteGroup      cluModify
+            #@TestGroup           clu
+            #@TestScript          cluModify.xml
+            #@TestHTMLLink        http://opends.dev.java.net/
+          -->
+
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/clu/clu_setup.xml' % (TESTS_DIR)"/>
+          <call function="'clu_setup'"> 
+            { 'startDS' : True,
+			  'loadBackend' : True } 
+          </call>	  
+          
+         
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #1 
+            #@TestID              Test Case #1
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               
+                 <testcase name="'Clu: Ldap Modify: Test Case #1'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #1'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsAdd'            : 'True' ,
+                        'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                        'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                        'dsFilename'       : '%s/clu/data/ldif_mod.ldif' % logsRemoteDataDir }                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase> 
+         
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #2 
+            #@TestID              Test Case #2
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               
+                 <testcase name="'Clu: Ldap Modify: Test Case #2'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #2'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsInstanceHost'   :  '',
+                        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                        'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                        'dsAdd'            : 'TRUE' ,
+                        'dsFilename'       : '%s/clu/data/ldif_mod.ldif' % logsRemoteDataDir }                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult ,
+                        'expected'   : 89 }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase>                 							
+         
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #3 
+            #@TestID              Test Case #3
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               
+                 <testcase name="'Clu: Ldap Modify: Test Case #3'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #3'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsInstanceHost'   : 'bad' ,
+                        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                        'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                        'dsAdd'            : 'TRUE' ,
+                        'dsFilename'       : '%s/clu/data/ldif_mod.ldif' % logsRemoteDataDir }                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult ,
+                        'expected'   : 89 }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase>
+                          
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #4 
+            #@TestID              Test Case #4
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               
+                 <testcase name="'Clu: Ldap Modify: Test Case #4'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #4'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                        'dsFilename'       : '%s/clu/data/ldif_mod.ldif' % logsRemoteDataDir }                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult ,
+                        'expected'   : 91 }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase>
+                                           
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #5 
+            #@TestID              Test Case #5
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               
+         <!--        <testcase name="'Clu: Ldap Modify: Test Case #5'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #5'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstancePort'   : '',
+                        '-1'               : ' need to add a misc attribute
+                        'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                        'dsFilename'       : '%s/clu/data/ldif_mod.ldif' % logsRemoteDataDir }                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult ,
+                        'expected'   : 91 }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase> -->
+                                           
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #6 
+            #@TestID              Test Case #6
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               
+                 <testcase name="'Clu: Ldap Modify: Test Case #6'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #6'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                        'dsFilename'       : '%s/clu/data/ldif_mod.ldif' % logsRemoteDataDir }                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult ,
+                        'expected'   : 89 }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase>
+                          
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #7 
+            #@TestID              Test Case #7
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               
+                 <testcase name="'Clu: Ldap Modify: Test Case #7'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #7'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                        'dsInstanceDn'     : 'cn=bad dn' ,
+                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                        'dsFilename'       : '%s/clu/data/ldif_mod.ldif' % logsRemoteDataDir }                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult ,
+                        'expected'   : 32 }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase>
+                                           
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #8 
+            #@TestID              Test Case #8
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               <!-- this test is prompting for the password 
+               
+                 <testcase name="'Clu: Ldap Modify: Test Case #8'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #8'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                        'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                        'dsFilename'       : '%s/clu/data/ldif_mod.ldif' % logsRemoteDataDir }                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult ,
+                        'expected'   : 48 }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase> -->
+                                                            
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #9 
+            #@TestID              Test Case #9
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               
+                 <testcase name="'Clu: Ldap Modify: Test Case #9'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #9'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                        'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                        'dsInstancePswd'   : 'badpwd' ,
+                        'dsFilename'       : '%s/clu/data/ldif_mod.ldif' % logsRemoteDataDir }                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult ,
+                        'expected'   : 49 }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase>
+                                                                             
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #10 
+            #@TestID              Test Case #10
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               
+                 <testcase name="'Clu: Ldap Modify: Test Case #10'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #10'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                        'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                        'dsFilename'       : ' '}                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult ,
+                        'expected'   : 89 }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase>
+                                                                                              
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #11 
+            #@TestID              Test Case #11
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               
+                 <testcase name="'Clu: Ldap Modify: Test Case #11'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #11'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                        'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                        'dsFilename'       : 'bad'}                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult ,
+                        'expected'   : 89 }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase>
+                                                                                                               
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #12 
+            #@TestID              Test Case #12
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               
+                 <testcase name="'Clu: Ldap Modify: Test Case #12'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #12'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                        'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                        'dsFilename'       : '%s/clu/data/ldif_mod.ldif' % logsRemoteDataDir }                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase>
+                                                                                                                                
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #13 
+            #@TestID              Test Case #13
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               
+                 <testcase name="'Clu: Ldap Modify: Test Case #13'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #13'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                        'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                        'dsVerbose'        : 'TRUE',
+                        'dsFilename'       : '%s/clu/data/ldif_mod.ldif' % logsRemoteDataDir }                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase>
+                                                                                                                                                 
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #14 
+            #@TestID              Test Case #14
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               
+                 <testcase name="'Clu: Ldap Modify: Test Case #14'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #14'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                        'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                        'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                        'dsContinueOnError' : 'TRUE',
+                        'dsFilename'        : '%s/clu/data/ldif_mod.ldif' % logsRemoteDataDir }                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase>
+                                                                                                                                                 
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #15 
+            #@TestID              Test Case #15
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               <!-- needs a -R option?
+                 <testcase name="'Clu: Ldap Modify: Test Case #15'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #15'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                        'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                        'dsFilename'       : '%s/clu/data/ldif_mod.ldif' % logsRemoteDataDir }                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase> -->
+                                                                                                                                                 
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #16 
+            #@TestID              Test Case #16
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               
+                 <testcase name="'Clu: Ldap Modify: Test Case #16'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #16'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                        'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                        'dsAdd'            : 'TRUE' ,
+                        'dsFilename'       : '%s/clu/data/ldif_mod.ldif' % logsRemoteDataDir }                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase>
+                                                                                                                                                 
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #17 
+            #@TestID              Test Case #17
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               <!-- need a -b option
+                 <testcase name="'Clu: Ldap Modify: Test Case #17'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #17'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                        'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                        'dsFilename'       : '%s/clu/data/ldif_mod.ldif' % logsRemoteDataDir }                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase> -->
+                                                                                                                                                 
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #18 
+            #@TestID              Test Case #18
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               <!-- need a -F option
+                 <testcase name="'Clu: Ldap Modify: Test Case #18'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #18'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                        'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                        'dsFilename'       : '%s/clu/data/ldif_mod.ldif' % logsRemoteDataDir }                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase> -->
+                                                                                                                                                 
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #19 
+            #@TestID              Test Case #19
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               <!-- need a -e option
+                 <testcase name="'Clu: Ldap Modify: Test Case #19'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #19'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                        'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                        'dsFilename'       : '%s/clu/data/ldif_mod.ldif' % logsRemoteDataDir }                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase> -->
+                                                                                                                                                                  
+          <!--- Test Case information
+            #@TestMarker          Clu Ldap Modify Tests
+            #@TestName            Clu: Ldap Modify: Test Case #20 
+            #@TestID              Test Case #20
+            #@TestPurpose         Verify an export of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if ldapModifyWithScript returns 0
+          -->
+               
+                 <testcase name="'Clu: Ldap Modify: Test Case #20'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Clu: Ldap Modify: Test Case #20'
+                    </message>
+                    <call function="'ldapModifyWithScript'">
+                      { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                        'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                        'dsHelp'           : 'TRUE',
+                        'dsFilename'       : '%s/clu/data/ldif_mod.ldif' % logsRemoteDataDir }                
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult ,
+                        'expected'   : 89 }
+                    </call>
+          
+                  </sequence>
+          
+                 </testcase>
+                 
+                
+                 
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/clu/clu_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'clu_cleanup'"> { 'stopDS' : True } </call>
+
+												    
+        </sequence>
+    
+      </block>
+    
+    </sequence>
+
+  </function>
+
+</stax>
