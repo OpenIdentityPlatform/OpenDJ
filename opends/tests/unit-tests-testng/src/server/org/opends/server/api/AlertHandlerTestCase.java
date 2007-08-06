@@ -118,17 +118,10 @@ public class AlertHandlerTestCase
   @Test()
   public void testEnabledAlert()
   {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-alert-handler-prop",
       "--handler-name", "Dummy Alert Handler",
-      "--add", "enabled-alert-type:" + ALERT_TYPE
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--add", "enabled-alert-type:" + ALERT_TYPE);
 
     try
     {
@@ -140,17 +133,10 @@ public class AlertHandlerTestCase
     }
     finally
     {
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
+      TestCaseUtils.dsconfig(
         "set-alert-handler-prop",
         "--handler-name", "Dummy Alert Handler",
-        "--remove", "enabled-alert-type:" + ALERT_TYPE
-      };
-      assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+        "--remove", "enabled-alert-type:" + ALERT_TYPE);
     }
   }
 
@@ -163,17 +149,10 @@ public class AlertHandlerTestCase
   @Test()
   public void testNotEnabledAlert()
   {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-alert-handler-prop",
       "--handler-name", "Dummy Alert Handler",
-      "--add", "enabled-alert-type:" + ALERT_TYPE + ".bogus"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--add", "enabled-alert-type:" + ALERT_TYPE + ".bogus");
 
     try
     {
@@ -185,17 +164,10 @@ public class AlertHandlerTestCase
     }
     finally
     {
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
+      TestCaseUtils.dsconfig(
         "set-alert-handler-prop",
         "--handler-name", "Dummy Alert Handler",
-        "--remove", "enabled-alert-type:" + ALERT_TYPE + ".bogus"
-      };
-      assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+        "--remove", "enabled-alert-type:" + ALERT_TYPE + ".bogus");
     }
   }
 
@@ -208,17 +180,10 @@ public class AlertHandlerTestCase
   @Test()
   public void testDisabledAlert()
   {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-alert-handler-prop",
       "--handler-name", "Dummy Alert Handler",
-      "--add", "disabled-alert-type:" + ALERT_TYPE
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--add", "disabled-alert-type:" + ALERT_TYPE);
 
     try
     {
@@ -230,17 +195,10 @@ public class AlertHandlerTestCase
     }
     finally
     {
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
+      TestCaseUtils.dsconfig(
         "set-alert-handler-prop",
         "--handler-name", "Dummy Alert Handler",
-        "--remove", "disabled-alert-type:" + ALERT_TYPE
-      };
-      assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+        "--remove", "disabled-alert-type:" + ALERT_TYPE);
     }
   }
 
@@ -253,17 +211,10 @@ public class AlertHandlerTestCase
   @Test()
   public void testNotDisabledAlert()
   {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-alert-handler-prop",
       "--handler-name", "Dummy Alert Handler",
-      "--add", "disabled-alert-type:" + ALERT_TYPE + ".bogus"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--add", "disabled-alert-type:" + ALERT_TYPE + ".bogus");
 
     try
     {
@@ -275,17 +226,10 @@ public class AlertHandlerTestCase
     }
     finally
     {
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
+      TestCaseUtils.dsconfig(
         "set-alert-handler-prop",
         "--handler-name", "Dummy Alert Handler",
-        "--remove", "disabled-alert-type:" + ALERT_TYPE + ".bogus"
-      };
-      assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+        "--remove", "disabled-alert-type:" + ALERT_TYPE + ".bogus");
     }
   }
 
@@ -298,18 +242,11 @@ public class AlertHandlerTestCase
   @Test()
   public void testEnabledAndDisabledAlert()
   {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-alert-handler-prop",
       "--handler-name", "Dummy Alert Handler",
       "--add", "enabled-alert-type:" + ALERT_TYPE,
-      "--add", "disabled-alert-type:" + ALERT_TYPE,
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--add", "disabled-alert-type:" + ALERT_TYPE);
 
     try
     {
@@ -321,18 +258,11 @@ public class AlertHandlerTestCase
     }
     finally
     {
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
+      TestCaseUtils.dsconfig(
         "set-alert-handler-prop",
         "--handler-name", "Dummy Alert Handler",
         "--remove", "enabled-alert-type:" + ALERT_TYPE,
-        "--remove", "disabled-alert-type:" + ALERT_TYPE,
-      };
-      assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+        "--remove", "disabled-alert-type:" + ALERT_TYPE);
     }
   }
 

@@ -1922,16 +1922,9 @@ public class BindOperationTestCase
 
     // Change the server configuration so that error messages should be
     // returned.
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-global-configuration-prop",
-      "--set", "return-bind-error-messages:true"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--set", "return-bind-error-messages:true");
 
     bindOperation =
          conn.processSimpleBind(new ASN1OctetString("cn=Directory Manager"),
@@ -1942,16 +1935,9 @@ public class BindOperationTestCase
 
     // Change the configuration back and make sure that the error message goes
     // away.
-    args = new String[]
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-global-configuration-prop",
-      "--set", "return-bind-error-messages:false"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--set", "return-bind-error-messages:false");
 
     bindOperation =
          conn.processSimpleBind(new ASN1OctetString("cn=Directory Manager"),

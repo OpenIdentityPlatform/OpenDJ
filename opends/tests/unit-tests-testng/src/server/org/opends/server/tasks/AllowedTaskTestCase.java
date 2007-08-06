@@ -102,16 +102,9 @@ public class AllowedTaskTestCase
 
 
     // Update the set of allowed tasks to include the dummy task.
-    args = new String[]
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-global-configuration-prop",
-      "--add", "allowed-task:org.opends.server.tasks.DummyTask"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--add", "allowed-task:org.opends.server.tasks.DummyTask");
 
 
     // Now verify that we can add the task and have it complete successfully.
@@ -143,16 +136,9 @@ public class AllowedTaskTestCase
 
     // Remove the task class from the set of allowed tasks and verify that we
     // can no longer schedule the task.
-    args = new String[]
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-global-configuration-prop",
-      "--remove", "allowed-task:org.opends.server.tasks.DummyTask"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--remove", "allowed-task:org.opends.server.tasks.DummyTask");
 
 
     // Now verify that we can add the task and have it complete successfully.
