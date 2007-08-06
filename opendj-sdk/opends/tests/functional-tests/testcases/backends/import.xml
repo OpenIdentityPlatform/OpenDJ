@@ -78,10 +78,11 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
+                  
               <call function="'ImportLdifWithScript'">
                 { 'location'    : STAF_REMOTE_HOSTNAME ,
-                  'dsLdifFile'  : '%s/backends/Example.ldif' % logsRemoteDataDir }
+                  'dsLdifFile'  : '%s/backends/Example.ldif' % logsRemoteDataDir,
+                  'dsBackEnd'   : 'userRoot'}
               </call>
     
               <call function="'checktestRC'">
@@ -160,7 +161,51 @@
               <call function="'ImportLdifWithScript'">
                 { 'location'        : STAF_REMOTE_HOSTNAME,
                   'dsLdifFile'      : '%s/backends/Include.ldif' % logsRemoteDataDir,
-                  'dsIncludeBranch' : 'dc=com' }
+                  'dsIncludeBranch' : ['dc=com'] }
+              </call>
+    
+              <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+              </call>
+    
+              <call function="'checkImport'">
+                { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
+                                       'uid=dmiller, ou=People, dc=example,dc=com',
+                                       'uid=rhunt, ou=People, dc=example,dc=com'] }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+    
+          </testcase>
+              
+          <!--- Test Case information
+          #@TestMarker          Backend Import Tests
+          #@TestName            Backend: Import: Fractional Include Branch with backend ID
+          #@TestID              Fractional Include Branch
+          #@TestPurpose         Verify an import of a LDIF file specifying a branch that should be included in the import
+                                along with the backendID.
+                                
+          #@TestPreamble
+          #@TestSteps
+          #@TestPostamble
+          #@TestResult
+          -->
+    
+          <testcase name="'Backend: Import: Fractional Include Branch with backend ID'">
+    
+            <sequence>
+    
+              <call function="'testCase_Preamble'"/>
+
+              <call function="'ImportLdifWithScript'">
+                { 'location'        : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'      : '%s/backends/Include.ldif' % logsRemoteDataDir,
+                  'dsIncludeBranch' : ['dc=com'],
+                  'dsBackEnd'       : 'userRoot' 
+                }
               </call>
     
               <call function="'checktestRC'">
@@ -197,9 +242,10 @@
     
               <call function="'testCase_Preamble'"/>
                   
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Include.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-b "dc=com" -b "dc=example,dc=com"'
+              <call function="'ImportLdifWithScript'">
+                { 'location'        : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'      : '%s/backends/Include.ldif' % logsRemoteDataDir,
+                  'dsIncludeBranch' : ['dc=com','dc=example,dc=com']
                 }
               </call>
     
@@ -236,10 +282,12 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-B "ou=Departed,ou=People,dc=example,dc=com"'
+
+              <call function="'ImportLdifWithScript'">
+                { 'location'        : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'      : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
+                  'dsExcludeBranch' : ['ou=Departed,ou=People,dc=example,dc=com'],
+                  'dsBackEnd'       : 'userRoot'
                 }
               </call>
     
@@ -280,9 +328,11 @@
     
               <call function="'testCase_Preamble'"/>
     
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-B "ou=Departed,ou=People,dc=example,dc=com"'
+              <call function="'ImportLdifWithScript'">
+                { 'location'        : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'      : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
+                  'dsExcludeBranch' : ['ou=Departed,ou=People,dc=example,dc=com'],
+                  'dsBackEnd'       : 'userRoot'
                 }
               </call>
     
@@ -323,10 +373,12 @@
     
               <call function="'testCase_Preamble'"/>
     
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-b dc=com -B "ou=Departed,ou=People,dc=example,dc=com"'
-                }
+              <call function="'ImportLdifWithScript'">
+                  { 'location'        : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'      : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
+                  'dsIncludeBranch' : ['dc=com'],
+                  'dsExcludeBranch' : ['ou=Departed,ou=People,dc=example,dc=com']
+                  }
               </call>
     
               <call function="'checktestRC'">
@@ -365,11 +417,13 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Include.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-i dc'
-                }
+              
+              <call function="'ImportLdifWithScript'">
+                  { 'location'         : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'         : '%s/backends/Include.ldif' % logsRemoteDataDir,
+                  'dsIncludeAttribute' : ['dc'],
+                  'dsBackEnd'          : 'userRoot'
+                  }
               </call>
     
               <call function="'checktestRC'">
@@ -405,11 +459,13 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Include.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-i dc -i cn -i ou -i sn'
-                }
+              
+              <call function="'ImportLdifWithScript'">
+                  { 'location'         : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'         : '%s/backends/Include.ldif' % logsRemoteDataDir,
+                  'dsIncludeAttribute' : ['dc','cn','ou','sn'],
+                  'dsBackEnd'          : 'userRoot'
+                  }
               </call>
     
               <call function="'checktestRC'">
@@ -446,11 +502,13 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-e userpassword'
-                }
+                            
+              <call function="'ImportLdifWithScript'">
+                  { 'location'         : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'         : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
+                  'dsExcludeAttribute' : ['userpassword'],
+                  'dsBackEnd'          : 'userRoot'
+                  }
               </call>
     
               <call function="'checktestRC'">
@@ -486,11 +544,13 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-e userpassword -e mail -e roomnumber'
-                }
+                                          
+              <call function="'ImportLdifWithScript'">
+                  { 'location'         : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'         : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
+                  'dsExcludeAttribute' : ['userpassword','mail','roomnumber'],
+                  'dsBackEnd'          : 'userRoot'
+                  }
               </call>
     
               <call function="'checktestRC'">
@@ -526,11 +586,14 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Example.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-i dc -i cn -i ou -i sn -b "dc=com" -b "dc=example,dc=com" -b "ou=People,dc=example,dc=com" -B "ou=Departed,ou=People,dc=example,dc=com"'
-                }
+                                                            
+              <call function="'ImportLdifWithScript'">
+                  { 'location'         : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'         : '%s/backends/Example.ldif' % logsRemoteDataDir,
+                  'dsIncludeAttribute' : ['dc','cn','ou','sn'],
+                  'dsIncludeBranch'    : ['dc=com','dc=example,dc=com','ou=People,dc=example,dc=com'],
+                  'dsExcludeBranch'    : ['ou=Departed,ou=People,dc=example,dc=com']
+                  }
               </call>
     
               <call function="'checktestRC'">
@@ -569,11 +632,13 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Include.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-I "objectclass=*'
-                }
+                                                   
+              <call function="'ImportLdifWithScript'">
+                  { 'location'         : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'         : '%s/backends/Include.ldif' % logsRemoteDataDir,
+                  'dsIncludeFilter'    : ['objectclass=*'],
+                  'dsBackEnd'          : 'userRoot'
+                  }
               </call>
     
               <call function="'checktestRC'">
@@ -610,11 +675,13 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-E "objectclass=person"'
-                }
+                                          
+              <call function="'ImportLdifWithScript'">
+                  { 'location'         : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'         : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
+                  'dsExcludeFilter'    : ['objectclass=person'],
+                  'dsBackEnd'          : 'userRoot'
+                  }
               </call>
     
               <call function="'checktestRC'">
@@ -653,11 +720,13 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Include.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-I "objectclass=domain" -I "objectclass=organizationalunit"'
-                }
+                                                        
+              <call function="'ImportLdifWithScript'">
+                  { 'location'         : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'         : '%s/backends/Include.ldif' % logsRemoteDataDir,
+                  'dsIncludeFilter'    : ['objectclass=domain','objectclass=organizationalunit'],
+                  'dsBackEnd'          : 'userRoot'
+                  }
               </call>
     
               <call function="'checktestRC'">
@@ -696,13 +765,15 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-E "objectclass=person" -E "objectclass=organizationalunit"'
-                }
+                                                 
+              <call function="'ImportLdifWithScript'">
+                  { 'location'         : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'         : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
+                  'dsExcludeFilter'    : ['objectclass=person','objectclass=organizationalunit'],
+                  'dsBackEnd'          : 'userRoot'
+                  }
               </call>
-    
+                
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
@@ -736,11 +807,13 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Include.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-I "|(objectclass=person)(objectclass=domain)(objectclass=organizationalunit)"'
-                }
+                                       
+              <call function="'ImportLdifWithScript'">
+                  { 'location'         : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'         : '%s/backends/Include.ldif' % logsRemoteDataDir,
+                  'dsIncludeFilter'    : ['|(objectclass=person)(objectclass=domain)(objectclass=organizationalunit)'],
+                  'dsBackEnd'          : 'userRoot'
+                  }
               </call>
     
               <call function="'checktestRC'">
@@ -777,11 +850,13 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-E "&amp;(objectclass=person)(ou=Departed)"'
-                }
+                                                     
+              <call function="'ImportLdifWithScript'">
+                  { 'location'         : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'         : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
+                  'dsExcludeFilter'    : ['&amp;(objectclass=person)(ou=Departed)'],
+                  'dsBackEnd'          : 'userRoot'
+                  }
               </call>
     
               <call function="'checktestRC'">
@@ -817,11 +892,14 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-E "&amp;(objectclass=person)(ou=Departed)" -b "dc=com" -e userpassword'
-                }
+                                                                                 
+              <call function="'ImportLdifWithScript'">
+                  { 'location'         : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'         : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
+                  'dsExcludeFilter'    : ['&amp;(objectclass=person)(ou=Departed)'],
+                  'dsIncludeBranch'    : ['dc=com'],
+                  'dsExcludeAttribute' : ['userpassword']
+                  }
               </call>
     
               <call function="'checktestRC'">
@@ -857,11 +935,13 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Append.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-a'
-                }
+                                                                                               
+              <call function="'ImportLdifWithScript'">
+                  { 'location'         : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'         : '%s/backends/Append.ldif' % logsRemoteDataDir,
+                  'dsAppend'           : 'TRUE',
+                  'dsBackEnd'          : 'userRoot'
+                  }
               </call>
     
               <call function="'checktestRC'">
@@ -898,11 +978,14 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Append.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-a -r'
-                }
+                                                                                                             
+              <call function="'ImportLdifWithScript'">
+                  { 'location'         : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'         : '%s/backends/Append.ldif' % logsRemoteDataDir,
+                  'dsAppend'           : 'TRUE',
+                  'dsReplaceExisting'  : 'TRUE',
+                  'dsBackEnd'          : 'userRoot'
+                  }
               </call>
     
               <call function="'checktestRC'">
@@ -939,11 +1022,13 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Example.ldif.gz' % logsRemoteDataDir,
-                  'extraParams' : '-c'
-                }
+                                                                                                                           
+              <call function="'ImportLdifWithScript'">
+                  { 'location'         : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'         : '%s/backends/Example.ldif.gz' % logsRemoteDataDir,
+                  'dsIsCompressed'     : 'TRUE',
+                  'dsBackEnd'          : 'userRoot'
+                  }
               </call>
     
               <call function="'checktestRC'">
@@ -980,11 +1065,13 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Example.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-y'
-                }
+                                                                                                                                         
+              <call function="'ImportLdifWithScript'">
+                  { 'location'         : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'         : '%s/backends/Example.ldif' % logsRemoteDataDir,
+                  'dsIsEncrypted'      : 'TRUE',
+                  'dsBackEnd'          : 'userRoot'
+                  }
               </call>
     
               <call function="'checktestRC'">
@@ -1040,11 +1127,13 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Example.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-R %s/rejects.txt' % TMPDIR
-                }
+                                                                                                                                                       
+              <call function="'ImportLdifWithScript'">
+                  { 'location'         : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'         : '%s/backends/Example.ldif' % logsRemoteDataDir,
+                  'dsRejectFile'       : '%s/rejects.txt' % TMPDIR,
+                  'dsBackEnd'          : 'userRoot'
+                  }
               </call>
     
               <call function="'checktestRC'">
@@ -1081,11 +1170,13 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Example.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-R %s/rejects.txt -O' % TMPDIR
-                }
+                                                                                                                                                       
+              <call function="'ImportLdifWithScript'">
+                  { 'location'         : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'         : '%s/backends/Example.ldif' % logsRemoteDataDir,
+                  'dsRejectFile'       : '%s/rejects.txt' % TMPDIR,
+                  'dsBackEnd'          : 'userRoot'
+                  }
               </call>
     
               <call function="'checktestRC'">
@@ -1122,11 +1213,13 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Schema.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-S'
-                }
+                                                                                                                                                                     
+              <call function="'ImportLdifWithScript'">
+                  { 'location'             : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'             : '%s/backends/Schema.ldif' % logsRemoteDataDir,
+                  'dsSkipSchemaValidation' : 'TRUE',
+                  'dsBackEnd'              : 'userRoot'
+                  }
               </call>
     
               <call function="'checktestRC'">
@@ -1163,11 +1256,14 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Schema.ldif' % logsRemoteDataDir }
+                                                                                                                                                                                   
+              <call function="'ImportLdifWithScript'">
+                  { 'location'         : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'         : '%s/backends/Schema.ldif' % logsRemoteDataDir,
+                  'dsBackEnd'          : 'userRoot'
+                  }
               </call>
-    
+              
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
