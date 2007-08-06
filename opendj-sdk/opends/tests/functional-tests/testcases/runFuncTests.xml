@@ -61,6 +61,12 @@
         file="'%s/testcases/backends/backends.xml' % (TESTS_DIR)" />
       <!--
       <call function="'main_backends'" />
+      --> 
+      
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/testcases/clu/commands.xml' % (TESTS_DIR)" />
+      <!--
+      <call function="'main_commands'" />
       -->
 
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
