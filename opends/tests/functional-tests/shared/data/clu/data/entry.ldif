@@ -1,0 +1,9 @@
+dn: o=mcom.com
+o: mcom.com
+objectclass: top
+objectclass: organization
+
+dn: ou=People, o=mcom.com
+ou: people
+objectclass: top
+objectclass: organizationalunit

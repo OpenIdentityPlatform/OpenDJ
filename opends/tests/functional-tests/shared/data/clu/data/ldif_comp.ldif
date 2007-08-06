@@ -1,0 +1,126 @@
+dn: cn=Elvis Presley, o=mcom.com
+changetype: add
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+cn: Elvis Presley
+givenName: Elvis
+sn: Presley
+ou: People
+uid: epresley
+
+dn: uid=tqa1,o=mcom.com
+uid: tqa1
+givenName: test
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetorgperson
+sn: qa1
+cn: test qa1
+mail: tqa1@sun.com
+
+dn: uid=tqa2,o=mcom.com
+uid: tqa2
+givenName: test
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetorgperson
+sn: qa2
+cn: test qa2
+mail: tqa2@sun.com
+
+dn: uid=tqa3,o=mcom.com
+uid: tqa3
+givenName: test
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetorgperson
+sn: qa3
+cn: test qa3
+mail: tqa3@sun.com
+
+dn: uid=tqa4,o=mcom.com
+uid: tqa4
+givenName: test
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetorgperson
+sn: qa4
+cn: test qa4
+mail: tqa4@sun.com
+
+dn: cn=test4 user4, o=mcom.com
+changetype: add
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+cn: test4 user4
+givenName: test4
+sn: user4
+ou: People
+uid: suser4
+mail: email test4
+
+dn: cn=test3 user3, o=mcom.com
+changetype: add
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+cn: test3 user3
+givenName: test3
+sn: user3
+ou: People
+uid: suser3
+
+dn: cn=test2 user2, o=mcom.com
+changetype: add
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+cn: test2 user2
+givenName: test2
+sn: user2
+ou: People
+uid: suser2
+
+dn: cn=SmartGroup, ou=People, o=mcom.com
+changetype: add
+objectclass: top
+objectclass: groupOfUniqueNames
+cn: SmartGroup
+ou: People
+uniquemember: cn=Elvis Presley, o=mcom.com
+description: Smart People.
+
+dn: ou=PlacesOu, o=mcom.com
+changetype: add
+objectclass: organizationalUnit
+ou: PlacesOu
+
+dn: cn=MountainViewGroup, ou=PlacesOu, o=mcom.com
+changetype: add
+objectclass: top
+objectclass: groupOfUniqueNames
+cn: MountainViewGroup
+ou: PlacesOu
+uniquemember: cn=Elvis Presley, o=mcom.com
+description: People from Mountain View
+
+dn: ou=CaliforniaOu, ou=PlacesOu, o=mcom.com
+changetype: add
+objectclass: organizationalUnit
+ou: CaliforniaOu
+
+dn: cn=NorCalGroup, ou=CaliforniaOu, ou=PlacesOu, o=mcom.com
+changetype: add
+objectclass: top
+objectclass: groupOfUniqueNames
+cn: NorCalGroup
+ou: CaliforniaOu
+uniquemember: cn=Elvis Presley, o=mcom.com
+description: People from Northern California
+

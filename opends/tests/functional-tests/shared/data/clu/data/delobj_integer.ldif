@@ -1,0 +1,4 @@
+dn: cn=schema
+changetype: modify
+delete: objectclasses
+objectclasses: ( myTestIntegerObject-oid NAME 'myTestIntegerObject' SUP top STRUCTURAL MUST ( cn $ myTestIntegerAttr ) X-ORIGIN 'user defined' )
