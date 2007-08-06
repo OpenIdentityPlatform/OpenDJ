@@ -72,16 +72,9 @@ public class IdleTimeLimitTestCase
   public void testServerWideAnonymousIdleTimeLimit()
          throws Exception
   {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-global-configuration-prop",
-      "--set", "idle-time-limit:5 seconds"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--set", "idle-time-limit:5 seconds");
 
 
     Socket s = null;
@@ -107,16 +100,9 @@ public class IdleTimeLimitTestCase
         s.close();
       } catch (Exception e) {}
 
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
+      TestCaseUtils.dsconfig(
         "set-global-configuration-prop",
-        "--set", "idle-time-limit:0 seconds"
-      };
-      assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+        "--set", "idle-time-limit:0 seconds");
     }
   }
 
@@ -146,16 +132,9 @@ public class IdleTimeLimitTestCase
     );
 
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-global-configuration-prop",
-      "--set", "idle-time-limit:5 seconds"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--set", "idle-time-limit:5 seconds");
 
 
     Socket s = null;
@@ -194,16 +173,9 @@ public class IdleTimeLimitTestCase
         s.close();
       } catch (Exception e) {}
 
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
+      TestCaseUtils.dsconfig(
         "set-global-configuration-prop",
-        "--set", "idle-time-limit:0 seconds"
-      };
-      assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+        "--set", "idle-time-limit:0 seconds");
     }
   }
 

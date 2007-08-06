@@ -2333,31 +2333,18 @@ public class PrivilegeTestCase
 
     // Disable the PROXIED_AUTH privilege and verify that the operation now
     // succeeds.
-    String[] configArgs =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-global-configuration-prop",
-      "--add", "disabled-privilege:proxied-auth"
-    };
-    assertEquals(DSConfig.main(configArgs, false, System.out, System.err), 0);
+      "--add", "disabled-privilege:proxied-auth");
     assertEquals(LDAPSearch.mainSearch(searchArgs, false, null, null), 0);
 
 
     // Re-enable the PROXIED_AUTH privilege and verify that the operation
     // fails again.
-    configArgs = new String[]
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-global-configuration-prop",
-      "--remove", "disabled-privilege:proxied-auth"
-    };
-    assertEquals(DSConfig.main(configArgs, false, System.out, System.err), 0);
+      "--remove", "disabled-privilege:proxied-auth");
+
     assertFalse(LDAPSearch.mainSearch(searchArgs, false, null, null) == 0);
   }
 

@@ -68,6 +68,7 @@ import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.tools.LDAPModify;
+import org.opends.server.tools.dsconfig.DSConfig;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilePermission;
@@ -353,7 +354,7 @@ public final class TestCaseUtils {
     assertTrue(InvocationCounterPlugin.startupCalled());
 
     SERVER_STARTED = true;
-    
+
     initializeTestBackend(true);
   }
 
@@ -1223,4 +1224,39 @@ public final class TestCaseUtils {
       }
     }
   }
+
+
+
+  /**
+   * Invokes the dsconfig tool with the provided set of arguments.  Note that
+   * the address, port, bind DN (cn=Directory Manager), and password will always
+   * be provided, so they should not be included in the argument list.  The
+   * given arguments should include only the subcommand and its associated
+   * options, along with any other global options that may not be included by
+   * default.
+   * <BR><BR>
+   * An assertion will be used to ensure that the dsconfig invocation is
+   * successful.  If running dsconfig returns a non-zero result, then an
+   * assertion error will be thrown.
+   *
+   * @param  args  The set of arguments that should be provided when invoking
+   *               the dsconfig tool
+   */
+  public static void dsconfig(String... args)
+  {
+    String[] fullArgs = new String[args.length + 8];
+    fullArgs[0] = "-h";
+    fullArgs[1] = "127.0.0.1";
+    fullArgs[2] = "-p";
+    fullArgs[3] = String.valueOf(serverLdapPort);
+    fullArgs[4] = "-D";
+    fullArgs[5] = "cn=Directory Manager";
+    fullArgs[6] = "-w";
+    fullArgs[7] = "password";
+
+    System.arraycopy(args, 0, fullArgs, 8, args.length);
+
+    assertEquals(DSConfig.main(fullArgs, false, System.out, System.err), 0);
+  }
 }
+

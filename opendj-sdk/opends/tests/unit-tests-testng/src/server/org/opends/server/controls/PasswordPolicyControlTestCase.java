@@ -83,17 +83,10 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "force-change-on-add:true"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--set", "force-change-on-add:true");
 
     TestCaseUtils.addEntry(
       "dn: uid=test.user,o=test",
@@ -183,17 +176,10 @@ public class PasswordPolicyControlTestCase
     }
     finally
     {
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
+      TestCaseUtils.dsconfig(
         "set-password-policy-prop",
         "--policy-name", "Default Password Policy",
-        "--set", "force-change-on-add:false"
-      };
-      assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+        "--set", "force-change-on-add:false");
 
       try
       {
@@ -296,18 +282,11 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
       "--add", "password-validator-dn:cn=Length-Based Password Validator," +
-           "cn=Password Validators,cn=config"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+           "cn=Password Validators,cn=config");
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
@@ -367,18 +346,11 @@ public class PasswordPolicyControlTestCase
     }
     finally
     {
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
+      TestCaseUtils.dsconfig(
         "set-password-policy-prop",
         "--policy-name", "Default Password Policy",
         "--remove", "password-validator-dn:cn=Length-Based Password " +
-             "Validator,cn=Password Validators,cn=config"
-      };
-      assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+             "Validator,cn=Password Validators,cn=config");
 
       try
       {
@@ -402,17 +374,10 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "lockout-failure-count:3"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--set", "lockout-failure-count:3");
 
     TestCaseUtils.addEntry(
       "dn: uid=test.user,o=test",
@@ -481,17 +446,10 @@ public class PasswordPolicyControlTestCase
     }
     finally
     {
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
+      TestCaseUtils.dsconfig(
         "set-password-policy-prop",
         "--policy-name", "Default Password Policy",
-        "--set", "lockout-failure-count:0"
-      };
-      assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+        "--set", "lockout-failure-count:0");
 
       try
       {
@@ -514,17 +472,10 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "force-change-on-add:true"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--set", "force-change-on-add:true");
 
     TestCaseUtils.addEntry(
       "dn: uid=test.user,o=test",
@@ -591,17 +542,10 @@ public class PasswordPolicyControlTestCase
     }
     finally
     {
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
+      TestCaseUtils.dsconfig(
         "set-password-policy-prop",
         "--policy-name", "Default Password Policy",
-        "--set", "force-change-on-add:false"
-      };
-      assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+        "--set", "force-change-on-add:false");
 
       try
       {
@@ -624,17 +568,10 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "force-change-on-add:true"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--set", "force-change-on-add:true");
 
     TestCaseUtils.addEntries(
       "dn: uid=test.user,o=test",
@@ -705,17 +642,10 @@ public class PasswordPolicyControlTestCase
     }
     finally
     {
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
+      TestCaseUtils.dsconfig(
         "set-password-policy-prop",
         "--policy-name", "Default Password Policy",
-        "--set", "force-change-on-add:false"
-      };
-      assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+        "--set", "force-change-on-add:false");
 
       try
       {
@@ -738,17 +668,10 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "force-change-on-add:true"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--set", "force-change-on-add:true");
 
     TestCaseUtils.addEntry(
       "dn: uid=test.user,o=test",
@@ -818,17 +741,10 @@ public class PasswordPolicyControlTestCase
     }
     finally
     {
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
+      TestCaseUtils.dsconfig(
         "set-password-policy-prop",
         "--policy-name", "Default Password Policy",
-        "--set", "force-change-on-add:false"
-      };
-      assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+        "--set", "force-change-on-add:false");
 
       try
       {
@@ -852,17 +768,10 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "allow-user-password-changes:false"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--set", "allow-user-password-changes:false");
 
     TestCaseUtils.addEntry(
       "dn: uid=test.user,o=test",
@@ -933,17 +842,10 @@ public class PasswordPolicyControlTestCase
     }
     finally
     {
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
+      TestCaseUtils.dsconfig(
         "set-password-policy-prop",
         "--policy-name", "Default Password Policy",
-        "--set", "allow-user-password-changes:true"
-      };
-      assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+        "--set", "allow-user-password-changes:true");
 
       try
       {
@@ -967,17 +869,10 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "password-history-count:5"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--set", "password-history-count:5");
 
     TestCaseUtils.addEntry(
       "dn: uid=test.user,o=test",
@@ -1048,17 +943,10 @@ public class PasswordPolicyControlTestCase
     }
     finally
     {
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
+      TestCaseUtils.dsconfig(
         "set-password-policy-prop",
         "--policy-name", "Default Password Policy",
-        "--set", "password-history-count:0"
-      };
-      assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+        "--set", "password-history-count:0");
 
       try
       {
@@ -1082,17 +970,10 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "password-change-requires-current-password:true"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--set", "password-change-requires-current-password:true");
 
     TestCaseUtils.addEntry(
       "dn: uid=test.user,o=test",
@@ -1163,17 +1044,10 @@ public class PasswordPolicyControlTestCase
     }
     finally
     {
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
+      TestCaseUtils.dsconfig(
         "set-password-policy-prop",
         "--policy-name", "Default Password Policy",
-        "--set", "password-change-requires-current-password:false"
-      };
-      assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+        "--set", "password-change-requires-current-password:false");
 
       try
       {
@@ -1197,17 +1071,10 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "minimum-password-age:24 hours"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--set", "minimum-password-age:24 hours");
 
     TestCaseUtils.addEntry(
       "dn: uid=test.user,o=test",
@@ -1278,17 +1145,10 @@ public class PasswordPolicyControlTestCase
     }
     finally
     {
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
+      TestCaseUtils.dsconfig(
         "set-password-policy-prop",
         "--policy-name", "Default Password Policy",
-        "--set", "minimum-password-age:0 seconds"
-      };
-      assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+        "--set", "minimum-password-age:0 seconds");
 
       try
       {
@@ -1311,17 +1171,10 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "force-change-on-add:true"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--set", "force-change-on-add:true");
 
     TestCaseUtils.addEntries(
       "dn: uid=test.user,o=test",
@@ -1394,17 +1247,10 @@ public class PasswordPolicyControlTestCase
     }
     finally
     {
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
+      TestCaseUtils.dsconfig(
         "set-password-policy-prop",
         "--policy-name", "Default Password Policy",
-        "--set", "force-change-on-add:false"
-      };
-      assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+        "--set", "force-change-on-add:false");
 
       try
       {
@@ -1427,17 +1273,10 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
+    TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "force-change-on-add:true"
-    };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+      "--set", "force-change-on-add:true");
 
     TestCaseUtils.addEntry(
       "dn: uid=test.user,o=test",
@@ -1508,17 +1347,10 @@ public class PasswordPolicyControlTestCase
     }
     finally
     {
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
+      TestCaseUtils.dsconfig(
         "set-password-policy-prop",
         "--policy-name", "Default Password Policy",
-        "--set", "force-change-on-add:false"
-      };
-      assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+        "--set", "force-change-on-add:false");
 
       try
       {
