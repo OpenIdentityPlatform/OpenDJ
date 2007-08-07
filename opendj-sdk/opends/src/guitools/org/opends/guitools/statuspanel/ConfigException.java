@@ -25,36 +25,23 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.statuspanel.event;
+package org.opends.guitools.statuspanel;
+
 
 /**
- * Interface used to be notified of the button actions that can occur in the
- * StatusPanelDialog.
- *
- * In the current implementation StatusPanelController implements this
- * interface.
- *
+ * Exception thrown when there is an error with the configuration (for instance
+ * a valid URL for the requested protocol could not be found).
  */
-public interface StatusPanelButtonListener
+public class ConfigException extends Exception
 {
+  private static final long serialVersionUID = 1266482779183126905L;
+
   /**
-   * Method called when user clicks on Authenticate button.
+   * Constructor for the exception.
+   * @param msg the localized message to be used.
    */
-  public void authenticateClicked();
-  /**
-   * Method called when user clicks on Start button.
-   */
-  public void startClicked();
-  /**
-   * Method called when user clicks on Restart button.
-   */
-  public void restartClicked();
-  /**
-   * Method called when user clicks on Stop button.
-   */
-  public void stopClicked();
-  /**
-   * Method called when user clicks on Quit button.
-   */
-  public void quitClicked();
+  public ConfigException(String msg)
+  {
+    super(msg);
+  }
 }

@@ -25,7 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.statuspanel;
+package org.opends.guitools.statuspanel;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -45,9 +45,9 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ObjectClass;
+import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.Installation;
-import org.opends.statuspanel.i18n.ResourceProvider;
 
 /**
  * This class is used to retrieve configuration information directly from the

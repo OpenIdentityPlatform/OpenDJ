@@ -72,11 +72,11 @@ if "%~1" == "" goto callLaunch
 goto callJava
 
 :callLaunch
-"%DIR_HOME%\lib\winlauncher.exe" launch "%JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.uninstaller.UninstallLauncher
+"%DIR_HOME%\lib\winlauncher.exe" launch "%JAVA_BIN%" %JAVA_ARGS% org.opends.guitools.uninstaller.UninstallLauncher
 goto end
 
 :callJava
-"%JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.uninstaller.UninstallLauncher %*
+"%JAVA_BIN%" %JAVA_ARGS% org.opends.guitools.uninstaller.UninstallLauncher %*
 
 rem return part
 if %errorlevel% == 50 goto version

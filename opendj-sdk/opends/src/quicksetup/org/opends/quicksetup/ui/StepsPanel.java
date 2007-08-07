@@ -137,7 +137,7 @@ public class StepsPanel extends QuickSetupPanel
     boolean first = true;
     for (WizardStep s : orderedSteps)
     {
-      hmText.put(s, getMsg(s.getMessageKey()));
+      hmText.put(s, app.getI18n().getMsg(s.getMessageKey()));
 
       JPanel subPanel = new JPanel(new GridBagLayout());
       subPanel.setOpaque(false);

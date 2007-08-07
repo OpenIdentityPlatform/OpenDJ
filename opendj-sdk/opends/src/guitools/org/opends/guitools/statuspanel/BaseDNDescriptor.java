@@ -25,7 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.statuspanel;
+package org.opends.guitools.statuspanel;
 
 import org.opends.quicksetup.util.Utils;
 

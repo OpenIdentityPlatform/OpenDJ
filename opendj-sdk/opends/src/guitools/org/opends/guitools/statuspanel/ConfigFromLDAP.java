@@ -25,7 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.statuspanel;
+package org.opends.guitools.statuspanel;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,8 +42,8 @@ import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 
-import org.opends.statuspanel.i18n.ResourceProvider;
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
 
 /**

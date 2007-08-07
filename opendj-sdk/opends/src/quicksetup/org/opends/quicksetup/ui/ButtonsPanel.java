@@ -165,27 +165,33 @@ public class ButtonsPanel extends QuickSetupPanel
   private void createButtons()
   {
     nextButton =
-        createButton("next-button-label", "next-button-tooltip",
+        createButton(getMsg("next-button-label"), getMsg("next-button-tooltip"),
             ButtonName.NEXT);
 
     previousButton =
-        createButton("previous-button-label", "previous-button-tooltip",
+        createButton(getMsg("previous-button-label"),
+            getMsg("previous-button-tooltip"),
             ButtonName.PREVIOUS);
 
     String tooltip;
 
     GuiApplication application = getApplication();
-    tooltip = application.getQuitButtonToolTipKey();
+    tooltip =
+      application.getI18n().getMsg(application.getQuitButtonToolTipKey());
     quitButton =
-        createButton("quit-button-label", tooltip, ButtonName.QUIT);
+        createButton(getMsg("quit-button-label"), tooltip, ButtonName.QUIT);
 
 
 
-    tooltip = application.getCloseButtonToolTipKey();
-    closeButton = createButton("close-button-label", tooltip, ButtonName.CLOSE);
+    tooltip =
+      application.getI18n().getMsg(application.getCloseButtonToolTipKey());
+    closeButton = createButton(getMsg("close-button-label"),
+        tooltip, ButtonName.CLOSE);
 
-    String label = application.getFinishButtonLabelKey();
-    tooltip = application.getFinishButtonToolTipKey();
+    String label =
+      application.getI18n().getMsg(application.getFinishButtonLabelKey());
+    tooltip =
+      application.getI18n().getMsg(application.getFinishButtonToolTipKey());
     finishButton = createButton(label, tooltip, ButtonName.FINISH);
 
   }
@@ -271,15 +277,15 @@ public class ButtonsPanel extends QuickSetupPanel
 
   /**
    * Create a button.
-   * @param labelKey the key in the properties file for the label.
-   * @param tooltipKey the key in the properties file for the tooltip.
+   * @param label the label of the button.
+   * @param tooltip the tooltip of the button.
    * @param buttonName the ButtonName.
    * @return a new button with the specified parameters.
    */
-  private JButton createButton(String labelKey, String tooltipKey,
+  private JButton createButton(String label, String tooltip,
       ButtonName buttonName)
   {
-    JButton b = UIFactory.makeJButton(getMsg(labelKey), getMsg(tooltipKey));
+    JButton b = UIFactory.makeJButton(label, tooltip);
 
     final ButtonName fButtonName = buttonName;
 

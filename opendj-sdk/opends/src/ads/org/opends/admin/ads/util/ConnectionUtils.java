@@ -133,6 +133,7 @@ public class ConnectionUtils
 
         } catch (Throwable t)
         {
+          t.printStackTrace();
           pair[1] = t;
         }
       }

@@ -480,6 +480,18 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   private String getHtmlStack(Throwable ex)
   {
     StringBuilder buf = new StringBuilder();
+    buf.append(SPACE)
+    .append(SPACE)
+    .append(SPACE)
+    .append(SPACE)
+    .append(SPACE)
+    .append(SPACE)
+    .append(SPACE)
+    .append(SPACE)
+    .append(SPACE)
+    .append(SPACE)
+    .append(getHtml(ex.toString()))
+    .append(Constants.HTML_LINE_BREAK);
     StackTraceElement[] stack = ex.getStackTrace();
     for (StackTraceElement aStack : stack) {
       buf.append(SPACE)

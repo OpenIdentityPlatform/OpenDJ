@@ -32,7 +32,6 @@ import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.event.BrowseActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
-import org.opends.quicksetup.installandupgrader.InstallAndUpgradeUserData;
 import org.opends.quicksetup.installandupgrader.InstallAndUpgrader;
 import org.opends.server.util.DynamicConstants;
 
@@ -60,12 +59,17 @@ public class WelcomePanel extends QuickSetupStepPanel {
 
   private JButton butBrowse;
 
+  private InstallAndUpgrader appl;
+
+  private boolean initialized = false;
+
   /**
    * Default constructor.
    * @param application Upgrader application
    */
   public WelcomePanel(InstallAndUpgrader application) {
     super(application);
+    appl = application;
   }
 
   /**
@@ -73,10 +77,14 @@ public class WelcomePanel extends QuickSetupStepPanel {
    */
   public void beginDisplay(UserData data) {
     super.beginDisplay(data);
-    tcServerLocation.setText(data.getServerLocation());
-    boolean isUpgrade = ((InstallAndUpgradeUserData)data).isUpgrade();
-    rbInstall.setSelected(!isUpgrade);
-    rbUpgrade.setSelected(isUpgrade);
+    if (!initialized)
+    {
+      tcServerLocation.setText(data.getServerLocation());
+      boolean isUpgrade = appl.getInstallAndUpgradeUserData().isUpgrade();
+      rbInstall.setSelected(!isUpgrade);
+      rbUpgrade.setSelected(isUpgrade);
+      initialized = true;
+    }
     checkEnablingState();
   }
 

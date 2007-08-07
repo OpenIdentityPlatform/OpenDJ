@@ -24,7 +24,7 @@
  *
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
-package org.opends.statuspanel;
+package org.opends.guitools.statuspanel;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -33,13 +33,13 @@ import java.io.PrintStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.Installation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
-import org.opends.statuspanel.i18n.ResourceProvider;
 
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;

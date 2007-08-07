@@ -124,17 +124,7 @@ public class InstallAndUpgrader extends GuiApplication
    */
   public UserData getUserData()
   {
-    if (userData == null) {
-      userData = (InstallAndUpgradeUserData)createUserData();
-    }
-    return userData;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public UserData createUserData() {
-    return new InstallAndUpgradeUserData();
+    return getDelegateApplication().getUserData();
   }
 
   /**
@@ -466,7 +456,7 @@ public class InstallAndUpgrader extends GuiApplication
     if (cStep == Step.WELCOME)
     {
       Boolean isUpgrade = (Boolean)qs.getFieldValue(FieldName.IS_UPGRADE);
-      ((InstallAndUpgradeUserData)getUserData()).setUpgrade(isUpgrade);
+      getInstallAndUpgradeUserData().setUpgrade(isUpgrade);
       if (isUpgrade)
       {
         upgrader.updateUserData(UpgradeWizardStep.WELCOME, qs);
@@ -519,7 +509,7 @@ public class InstallAndUpgrader extends GuiApplication
   private GuiApplication getDelegateApplication()
   {
     GuiApplication application;
-    if (((InstallAndUpgradeUserData)getUserData()).isUpgrade())
+    if (getInstallAndUpgradeUserData().isUpgrade())
     {
       application = upgrader;
     }
@@ -528,5 +518,17 @@ public class InstallAndUpgrader extends GuiApplication
       application = installer;
     }
     return application;
+  }
+
+  /**
+   * Returns the install and upgrader specific user data.
+   * @return the install and upgrader specific user data.
+   */
+  public InstallAndUpgradeUserData getInstallAndUpgradeUserData()
+  {
+    if (userData == null) {
+      userData = new InstallAndUpgradeUserData();
+    }
+    return userData;
   }
 }

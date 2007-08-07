@@ -45,6 +45,7 @@ public class QuickSetupLog {
   static public final String LOG_FILE_SUFFIX = ".log";
 
   static private File logFile = null;
+  static private FileHandler fileHandler = null;
 
   /**
    * Creates a new file handler for writing log messages to the file indicated
@@ -55,7 +56,7 @@ public class QuickSetupLog {
   static public void initLogFileHandler(File file) throws IOException {
     if (!isInitialized()) {
       logFile = file;
-      FileHandler fileHandler = new FileHandler(logFile.getCanonicalPath());
+      fileHandler = new FileHandler(logFile.getCanonicalPath());
       fileHandler.setFormatter(new SimpleFormatter());
       Logger logger = Logger.getLogger("org.opends.quicksetup");
       logger.addHandler(fileHandler);
@@ -65,6 +66,22 @@ public class QuickSetupLog {
       logger = Logger.getLogger("org.opends.quicksetup");
       logger.log(Level.INFO, getInitialLogRecord());
     }
+  }
+
+  /**
+   * Creates a new file handler for writing log messages of a given package
+   * to the file indicated by <code>file</code>.
+   * @param file log file to which log messages will be written.
+   * @param packageName the name of the package of the classes that generate
+   * log messages.
+   * @throws IOException if something goes wrong
+   */
+  static public void initLogFileHandler(File file, String packageName)
+  throws IOException {
+    initLogFileHandler(file);
+    Logger logger = Logger.getLogger(packageName);
+    logger.addHandler(fileHandler);
+    logger.setUseParentHandlers(false);
   }
 
   /**

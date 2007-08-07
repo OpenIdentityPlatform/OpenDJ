@@ -723,6 +723,9 @@ public class ServerDescriptor
         v = getFirstValue(sr, "ds-cfg-replication-server-id");
         desc.serverProperties.put(ServerProperty.REPLICATION_SERVER_ID,
             Integer.parseInt(v));
+        Set<String> values = getValues(sr, "ds-cfg-replication-server");
+        desc.serverProperties.put(ServerProperty.EXTERNAL_REPLICATION_SERVERS,
+            values);
       }
     }
     catch (NameNotFoundException nse)

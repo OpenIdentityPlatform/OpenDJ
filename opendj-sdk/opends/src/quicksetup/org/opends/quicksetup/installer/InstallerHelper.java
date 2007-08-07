@@ -30,10 +30,7 @@ package org.opends.quicksetup.installer;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -55,22 +52,16 @@ import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.std.client.*;
 import org.opends.server.admin.std.meta.*;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.messages.CoreMessages;
 import org.opends.server.messages.ReplicationMessages;
 import org.opends.server.tools.ConfigureDS;
 import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.tools.ImportLDIF;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.ObjectClass;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.StaticUtils;
@@ -280,7 +271,8 @@ public class InstallerHelper implements JnlpProperties {
             "Multimaster Synchronization",
             new ArrayList<DefaultBehaviorException>());
         sync.setJavaImplementationClass(
-            "org.opends.server.replication.plugin.MultimasterReplication");
+            org.opends.server.replication.plugin.MultimasterReplication.class.
+            getName());
         sync.setEnabled(Boolean.TRUE);
         synchProviderCreated = true;
         synchProviderEnabled = false;
@@ -443,7 +435,6 @@ public class InstallerHelper implements JnlpProperties {
        */
       if (replConf.isSynchProviderCreated())
       {
-        MultimasterSynchronizationProviderCfgClient sync = null;
         try
         {
           root.removeSynchronizationProvider("Multimaster Synchronization");
@@ -476,6 +467,7 @@ public class InstallerHelper implements JnlpProperties {
             if (replServers != null)
             {
               replServers.removeAll(replConf.getNewReplicationServers());
+              replicationServer.setReplicationServer(replServers);
               replicationServer.commit();
             }
           }
@@ -495,6 +487,7 @@ public class InstallerHelper implements JnlpProperties {
                 if (replServers != null)
                 {
                   replServers.removeAll(domain.getAddedReplicationServers());
+                  d.setReplicationServer(replServers);
                   d.commit();
                 }
               }
@@ -584,52 +577,6 @@ public class InstallerHelper implements JnlpProperties {
   {
     return logMsg.indexOf(
         "="+ReplicationMessages.MSGID_NO_REACHABLE_PEER_IN_THE_DOMAIN) != -1;
-  }
-  private void addConfigEntry(ConfigFileHandler configFileHandler, DN dn,
-      String[] ocs, String[] attributeNames, String[][] attributeValues)
-  throws DirectoryException
-  {
-    HashMap<ObjectClass,String> objectClasses =
-      new HashMap<ObjectClass,String>();
-    HashMap<AttributeType,List<Attribute>> userAttributes =
-      new HashMap<AttributeType,List<Attribute>>();
-    HashMap<AttributeType,List<Attribute>> operationalAttributes =
-      new HashMap<AttributeType,List<Attribute>>();
-
-    for (int j=0; j<ocs.length; j++)
-    {
-      String ocName = ocs[j];
-      ObjectClass objectClass = DirectoryServer.getObjectClass(ocName);
-      if (objectClass == null)
-      {
-        objectClass = DirectoryServer.getDefaultObjectClass(ocName);
-      }
-      objectClasses.put(objectClass, ocName);
-    }
-    for (int j=0; j<attributeNames.length; j++)
-    {
-      String attrName = attributeNames[j];
-      AttributeType attrType = DirectoryServer.getAttributeType(attrName);
-      if (attrType == null)
-      {
-        attrType = DirectoryServer.getDefaultAttributeType(attrName);
-      }
-      String[] attrValues = attributeValues[j];
-      LinkedHashSet<AttributeValue> valueSet =
-        new LinkedHashSet<AttributeValue>();
-      for (int k=0; k<attrValues.length; k++)
-      {
-        AttributeValue attributeValue = new AttributeValue(attrType,
-            attrValues[k]);
-        valueSet.add(attributeValue);
-      }
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>();
-      attrList.add(new Attribute(attrType, attrName, null, valueSet));
-      userAttributes.put(attrType, attrList);
-    }
-    Entry entry = new Entry(dn, objectClasses, userAttributes,
-        operationalAttributes);
-    configFileHandler.addEntry(entry, null);
   }
 
   private int getReplicationId(Set<Integer> usedIds)

@@ -25,7 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.statuspanel;
+package org.opends.guitools.statuspanel;
 
 /**
  * This class is used to represent a Listener and is aimed to be used by the
