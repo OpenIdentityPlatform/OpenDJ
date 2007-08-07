@@ -16,11 +16,11 @@
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:property name="debug-scope" mandatory="true">
+  <adm:property name="debug-scope" mandatory="true" read-only="true">
     <adm:synopsis>
       The fully-qualified OpenDS Java package, class, or method affected by
       the settings in this target definition. Use the number character (#) to
-      seperate the class name and the method name.
+      separate the class name and the method name.
       (ie. org.opends.server.core.DirectoryServer#startUp)
     </adm:synopsis>
     <adm:syntax>
@@ -94,7 +94,7 @@
   </adm:property>
   <adm:property name="debug-category" multi-valued="true">
     <adm:synopsis>
-      The category(ies) of debug messages to log.
+      The debug message categories to be logged.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>

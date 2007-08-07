@@ -7,7 +7,7 @@
   xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
     <adm:user-friendly-plural-name />
-    are reponsible for distributing debug log messages from the debug
+    are responsible for distributing debug log messages from the debug
     logger to a destination.
   </adm:synopsis>
   <adm:profile name="ldap">
@@ -18,16 +18,14 @@
     </ldap:object-class>
   </adm:profile>
   <adm:relation name="debug-target">
-    <adm:one-to-many />
+    <adm:one-to-many naming-property="debug-scope"/>
     <adm:profile name="ldap">
       <ldap:rdn-sequence>cn=Debug Targets</ldap:rdn-sequence>
-      <ldap:naming-attribute>ds-cfg-debug-scope</ldap:naming-attribute>
     </adm:profile>
     <adm:profile name="cli">
       <cli:relation>
         <cli:default-property name="debug-level" />
         <cli:default-property name="debug-category" />
-        <cli:default-property name="debug-scope" />
       </cli:relation>
     </adm:profile>
   </adm:relation>
@@ -101,7 +99,7 @@
   </adm:property>
   <adm:property name="default-debug-category" multi-valued="true">
     <adm:synopsis>
-      The category(ies) of debug messages to log when none of the
+      The debug message categories to be logged when none of the
       defined targets match the message.
     </adm:synopsis>
     <adm:default-behavior>
