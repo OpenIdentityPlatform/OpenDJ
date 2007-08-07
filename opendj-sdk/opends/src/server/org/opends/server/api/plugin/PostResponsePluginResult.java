@@ -90,9 +90,8 @@ public class PostResponsePluginResult
    * Indicates whether any further post-response plugins should be
    * invoked for this operation.
    *
-   * @return  <CODE>true</CODE> if any further post-response plugins
-   *          should be invoked for this operation, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if any further post-response plugins should
+   *          be invoked for this operation, or {@code false} if not.
    */
   public boolean continuePluginProcessing()
   {
@@ -105,8 +104,8 @@ public class PostResponsePluginResult
    * Indicates whether the post-response plugin terminated the client
    * connection.
    *
-   * @return  <CODE>true</CODE> if the post-response plugin terminated
-   *          the client connection, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the post-response plugin terminated the
+   *          client connection, or {@code false} if not.
    */
   public boolean connectionTerminated()
   {

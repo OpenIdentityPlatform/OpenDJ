@@ -91,9 +91,8 @@ public class PostOperationPluginResult
    * Indicates whether the post-operation plugin terminated the client
    * connection.
    *
-   * @return  <CODE>true</CODE> if the post-operation plugin
-   *          terminated the client connection, or <CODE>false</CODE>
-   *          if not.
+   * @return  {@code true} if the post-operation plugin terminated the
+   *          client connection, or {@code false} if not.
    */
   public boolean connectionTerminated()
   {
@@ -106,9 +105,9 @@ public class PostOperationPluginResult
    * Indicates whether any further post-operation plugins should be
    * invoked for this operation.
    *
-   * @return  <CODE>true</CODE> if any further post-operation plugins
-   *          should be invoked for this operation, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if any further post-operation plugins
+   *          should be invoked for this operation, or {@code false}
+   *          if not.
    */
   public boolean continuePluginProcessing()
   {

@@ -64,8 +64,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       The value should be a comma-delimited list of plugin names (where the
       plugin name is the RDN value from the plugin configuration entry DN).
       The list may include at most one asterisk to indicate the position of any
-      unnamed plugin (and the relative order of those unnamed plugins will be
-      undefined).
+      unspecified plugin (and the relative order of those unspecified plugins
+      will  be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -92,8 +92,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -120,8 +120,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -148,8 +148,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -176,8 +176,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -204,8 +204,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -232,8 +232,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       and invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -260,8 +260,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -288,8 +288,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -316,8 +316,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       and invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -344,8 +344,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       and invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -372,8 +372,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       be loaded and invoked.  The value should be a comma-delimited list of
       plugin names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -400,8 +400,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       and invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -428,8 +428,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       and invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -456,8 +456,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       and invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -484,8 +484,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       and invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -512,8 +512,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       and invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -540,8 +540,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       and invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -568,8 +568,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       loaded and invoked.  The value should be a comma-delimited list of plugin
       names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -596,8 +596,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       loaded and invoked.  The value should be a comma-delimited list of plugin
       names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -624,8 +624,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       should be loaded and invoked.  The value should be a comma-delimited list
       of plugin names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -652,8 +652,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       loaded and invoked.  The value should be a comma-delimited list of plugin
       names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -680,8 +680,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       loaded and invoked.  The value should be a comma-delimited list of plugin
       names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -708,8 +708,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       and invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -736,8 +736,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       loaded and invoked.  The value should be a comma-delimited list of plugin
       names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -764,8 +764,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       and invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -792,8 +792,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       and invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -820,8 +820,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       loaded and invoked.  The value should be a comma-delimited list of plugin
       names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -848,8 +848,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       loaded and invoked.  The value should be a comma-delimited list of plugin
       names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -876,8 +876,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       should be loaded and invoked.  The value should be a comma-delimited list
       of plugin names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -904,8 +904,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       loaded and invoked.  The value should be a comma-delimited list of plugin
       names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -932,8 +932,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       loaded and invoked.  The value should be a comma-delimited list of plugin
       names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -960,8 +960,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       loaded and invoked.  The value should be a comma-delimited list of plugin
       names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -988,8 +988,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       loaded and invoked.  The value should be a comma-delimited list of plugin
       names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -1016,8 +1016,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       and invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -1044,8 +1044,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       and invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -1072,8 +1072,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       loaded and invoked.  The value should be a comma-delimited list of plugin
       names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -1100,8 +1100,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       loaded and invoked.  The value should be a comma-delimited list of plugin
       names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -1128,8 +1128,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       should be loaded and invoked.  The value should be a comma-delimited list
       of plugin names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -1156,8 +1156,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       loaded and invoked.  The value should be a comma-delimited list of plugin
       names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -1184,8 +1184,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       loaded and invoked.  The value should be a comma-delimited list of plugin
       names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -1212,8 +1212,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       loaded and invoked.  The value should be a comma-delimited list of plugin
       names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -1240,8 +1240,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       and invoked.  The value should be a comma-delimited list of plugin names
       (where the plugin name is the RDN value from the plugin configuration
       entry DN).  The list may include at most one asterisk to indicate the
-      position of any unnamed plugin (and the relative order of those unnamed
-      plugins will be undefined).
+      position of any unspecified plugin (and the relative order of those
+      unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -1268,8 +1268,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       loaded and invoked.  The value should be a comma-delimited list of plugin
       names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -1290,14 +1290,42 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     </adm:profile>
   </adm:property>
 
+  <adm:property name="plugin-order-subordinate-modify-dn" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which subordinate modify DN plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which subordinate modify DN plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.466</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-subordinate-modify-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
   <adm:property name="plugin-order-intermediate-response" mandatory="false">
     <adm:synopsis>
       Specifies the order in which intermediate response plugins should be
       loaded and invoked.  The value should be a comma-delimited list of plugin
       names (where the plugin name is the RDN value from the plugin
       configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unnamed plugin (and the relative order of
-      those unnamed plugins will be undefined).
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>

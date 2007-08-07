@@ -90,8 +90,8 @@ public class PostConnectPluginResult
    * Indicates whether the post-connect plugin terminated the client
    * connection.
    *
-   * @return  <CODE>true</CODE> if the post-connect plugin terminated
-   *          the client connection, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the post-connect plugin terminated the
+   *          client connection, or {@code false} if not.
    */
   public boolean connectionTerminated()
   {
@@ -104,9 +104,8 @@ public class PostConnectPluginResult
    * Indicates whether any further post-connect plugins should be
    * invoked for this connection.
    *
-   * @return  <CODE>true</CODE> if any further post-connect plugins
-   *          should be invoked for this connection, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if any further post-connect plugins should
+   *          be invoked for this connection, or {@code false} if not.
    */
   public boolean continuePluginProcessing()
   {

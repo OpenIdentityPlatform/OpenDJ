@@ -63,6 +63,7 @@ import org.opends.server.api.plugin.PreParsePluginResult;
 import org.opends.server.api.plugin.SearchEntryPluginResult;
 import org.opends.server.api.plugin.SearchReferencePluginResult;
 import org.opends.server.api.plugin.StartupPluginResult;
+import org.opends.server.api.plugin.SubordinateModifyDNPluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DisconnectReason;
@@ -80,6 +81,7 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.Modification;
 import org.opends.server.types.operation.PostOperationAbandonOperation;
 import org.opends.server.types.operation.PostOperationAddOperation;
 import org.opends.server.types.operation.PostOperationBindOperation;
@@ -118,6 +120,7 @@ import org.opends.server.types.operation.PreParseSearchOperation;
 import org.opends.server.types.operation.PreParseUnbindOperation;
 import org.opends.server.types.operation.SearchEntrySearchOperation;
 import org.opends.server.types.operation.SearchReferenceSearchOperation;
+import org.opends.server.types.operation.SubordinateModifyDNOperation;
 import org.opends.server.workflowelement.localbackend.*;
 
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -192,6 +195,7 @@ public class PluginConfigManager
   private DirectoryServerPlugin[] postResponseSearchPlugins;
   private DirectoryServerPlugin[] searchResultEntryPlugins;
   private DirectoryServerPlugin[] searchResultReferencePlugins;
+  private DirectoryServerPlugin[] subordinateModifyDNPlugins;
   private DirectoryServerPlugin[] intermediateResponsePlugins;
 
 
@@ -261,6 +265,7 @@ public class PluginConfigManager
     postResponseSearchPlugins    = new DirectoryServerPlugin[0];
     searchResultEntryPlugins     = new DirectoryServerPlugin[0];
     searchResultReferencePlugins = new DirectoryServerPlugin[0];
+    subordinateModifyDNPlugins   = new DirectoryServerPlugin[0];
     intermediateResponsePlugins  = new DirectoryServerPlugin[0];
     registeredPlugins            =
          new ConcurrentHashMap<DN,
@@ -313,6 +318,7 @@ public class PluginConfigManager
     for (String pluginName : pluginRootConfig.listPlugins())
     {
       PluginCfg pluginConfiguration = pluginRootConfig.getPlugin(pluginName);
+      pluginConfiguration.addChangeListener(this);
 
       if (! pluginConfiguration.isEnabled())
       {
@@ -335,8 +341,6 @@ public class PluginConfigManager
       {
         continue;
       }
-
-      pluginConfiguration.addChangeListener(this);
 
       try
       {
@@ -506,6 +510,7 @@ public class PluginConfigManager
       case POSTRESPONSESEARCH:     return PluginType.POST_RESPONSE_SEARCH;
       case SEARCHRESULTENTRY:      return PluginType.SEARCH_RESULT_ENTRY;
       case SEARCHRESULTREFERENCE:  return PluginType.SEARCH_RESULT_REFERENCE;
+      case SUBORDINATEMODIFYDN:    return PluginType.SUBORDINATE_MODIFY_DN;
       case INTERMEDIATERESPONSE:   return PluginType.INTERMEDIATE_RESPONSE;
       default:                     return null;
     }
@@ -824,6 +829,11 @@ public class PluginConfigManager
             searchResultReferencePlugins =
                  addPlugin(searchResultReferencePlugins, plugin, t,
                       pluginRootConfig.getPluginOrderSearchResultReference());
+            break;
+          case SUBORDINATE_MODIFY_DN:
+            subordinateModifyDNPlugins =
+                 addPlugin(subordinateModifyDNPlugins, plugin, t,
+                      pluginRootConfig.getPluginOrderSubordinateModifyDN());
             break;
           case INTERMEDIATE_RESPONSE:
             intermediateResponsePlugins =
@@ -1247,6 +1257,10 @@ public class PluginConfigManager
           case SEARCH_RESULT_REFERENCE:
             searchResultReferencePlugins =
                  removePlugin(searchResultReferencePlugins, plugin);
+            break;
+          case SUBORDINATE_MODIFY_DN:
+            subordinateModifyDNPlugins =
+                 removePlugin(subordinateModifyDNPlugins, plugin);
             break;
           case INTERMEDIATE_RESPONSE:
             intermediateResponsePlugins =
@@ -4886,6 +4900,88 @@ public class PluginConfigManager
       // This should only happen if there were no search result reference
       // plugins registered, which is fine.
       result = SearchReferencePluginResult.SUCCESS;
+    }
+
+    return result;
+  }
+
+
+
+  /**
+   * Invokes the set of subordinate modify DN plugins that have been configured
+   * in the Directory Server.
+   *
+   * @param  modifyDNOperation  The modify DN operation with which the
+   *                            subordinate entry is associated.
+   * @param  oldEntry           The subordinate entry prior to the move/rename
+   *                            operation.
+   * @param  newEntry           The subordinate enry after the move/rename
+   *                            operation.
+   * @param  modifications      A list into which any modifications made to the
+   *                            target entry should be placed.
+   *
+   * @return  The result of processing the subordinate modify DN plugins.
+   */
+  public SubordinateModifyDNPluginResult invokeSubordinateModifyDNPlugins(
+              SubordinateModifyDNOperation modifyDNOperation, Entry oldEntry,
+              Entry newEntry, List<Modification> modifications)
+  {
+    SubordinateModifyDNPluginResult result = null;
+
+    for (DirectoryServerPlugin p : subordinateModifyDNPlugins)
+    {
+      try
+      {
+        DirectoryServerPlugin<? extends PluginCfg> gp =
+             (DirectoryServerPlugin<? extends PluginCfg>) p;
+        result = gp.processSubordinateModifyDN(modifyDNOperation, oldEntry,
+                                               newEntry, modifications);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        int    msgID   = MSGID_PLUGIN_SUBORDINATE_MODIFY_DN_PLUGIN_EXCEPTION;
+        String message =
+             getMessage(msgID,
+                        String.valueOf(p.getPluginEntryDN()),
+                        modifyDNOperation.getConnectionID(),
+                        modifyDNOperation.getOperationID(),
+                        stackTraceToSingleLineString(e));
+        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
+                 message, msgID);
+
+        return new SubordinateModifyDNPluginResult(false, false, true);
+      }
+
+      if (result == null)
+      {
+        int msgID = MSGID_PLUGIN_SUBORDINATE_MODIFY_DN_PLUGIN_RETURNED_NULL;
+        String message =
+             getMessage(msgID,
+                        String.valueOf(p.getPluginEntryDN()),
+                        modifyDNOperation.getConnectionID(),
+                        modifyDNOperation.getOperationID());
+        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
+                 message, msgID);
+
+        return new SubordinateModifyDNPluginResult(false, false, true);
+      }
+      else if (result.connectionTerminated() ||
+               (! result.continuePluginProcessing()))
+      {
+        return result;
+      }
+    }
+
+    if (result == null)
+    {
+      // This should only happen if there were no subordinate modify DN plugins
+      // registered, which is fine.
+      result = SubordinateModifyDNPluginResult.SUCCESS;
     }
 
     return result;

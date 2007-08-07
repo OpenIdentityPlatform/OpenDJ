@@ -108,9 +108,9 @@ public class SearchEntryPluginResult
    * Indicates whether the search result entry plugin terminated the
    * client connection.
    *
-   * @return  <CODE>true</CODE> if the search result entry plugin
-   *          terminated the client connection, or <CODE>false</CODE>
-   *          if not.
+   * @return  {@code true} if the search result entry plugin
+   *          terminated the client connection, or {@code false} if
+   *          not.
    */
   public boolean connectionTerminated()
   {
@@ -123,9 +123,9 @@ public class SearchEntryPluginResult
    * Indicates whether any further search result entry plugins should
    * be invoked for this operation.
    *
-   * @return  <CODE>true</CODE> if any further search result entry
-   *          plugins should be invoked for this operation, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if any further search result entry plugins
+   *          should be invoked for this operation, or {@code false}
+   *          if not.
    */
   public boolean continuePluginProcessing()
   {
@@ -138,9 +138,8 @@ public class SearchEntryPluginResult
    * Indicates whether the associated search result entry should be
    * sent to the client.
    *
-   * @return  <CODE>true</CODE> if the associated search result entry
-   *          should be sent to the client, or <CODE>false</CODE> if
-   *          not.
+   * @return  {@code true} if the associated search result entry
+   *          should be sent to the client, or {@code false} if not.
    */
   public boolean sendEntry()
   {
@@ -154,8 +153,8 @@ public class SearchEntryPluginResult
    * search operation (i.e., if it should continue looking for more
    * matching entries).
    *
-   * @return  <CODE>true</CODE> if processing on the search operation
-   *          should continue, or <CODE>false</CODE> if not.
+   * @return  {@code true} if processing on the search operation
+   *          should continue, or {@code false} if not.
    */
   public boolean continueSearch()
   {

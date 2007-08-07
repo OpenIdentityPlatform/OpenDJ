@@ -41,6 +41,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.Modification;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.operation.*;
@@ -917,6 +918,47 @@ public abstract class DirectoryServerPlugin
     String message =
          getMessage(msgID, String.valueOf(pluginDN),
                     PluginType.PRE_OPERATION_MODIFY_DN.getName());
+    throw new UnsupportedOperationException(message);
+  }
+
+
+
+  /**
+   * Performs any necessary processing that should be done whenever a
+   * subordinate entry is moved or renamed as part of a modify DN
+   * operation.  Note that if the entry is to be changed in any way,
+   * the new entry should be directly modified, and the changes made
+   * should also be added to the provided list of modifications.
+   * <BR><BR>
+   * NOTE:  At the present time, OpenDS does not provide support for
+   * altering entries subordinate to the target of a modify DN
+   * operation.  While this may be available in the future, current
+   * plugins should not attempt to alter the new or old entries in any
+   * way, nor should they attempt to add any modifications to the
+   * provided list.
+   *
+   * @param  modifyDNOperation  The modify DN operation with which the
+   *                            subordinate entry is associated.
+   * @param  oldEntry           The subordinate entry prior to the
+   *                            move/rename operation.
+   * @param  newEntry           The subordinate enry after the
+   *                            move/rename operation.
+   * @param  modifications      A list into which any modifications
+   *                            made to the target entry should be
+   *                            placed.
+   *
+   * @return  Information about the result of the plugin processing.
+   */
+  public SubordinateModifyDNPluginResult
+       processSubordinateModifyDN(SubordinateModifyDNOperation
+                                       modifyDNOperation,
+                                  Entry oldEntry, Entry newEntry,
+                                  List<Modification> modifications)
+  {
+    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
+    String message =
+         getMessage(msgID, String.valueOf(pluginDN),
+                    PluginType.SUBORDINATE_MODIFY_DN.getName());
     throw new UnsupportedOperationException(message);
   }
 

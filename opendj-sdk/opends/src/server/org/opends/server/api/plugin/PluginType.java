@@ -394,6 +394,15 @@ public enum PluginType
 
 
   /**
+   * The plugin type for plugins that are to be invoked on each
+   * subordinate entry that is moved or renamed as part of a modify DN
+   * operation.
+   */
+  SUBORDINATE_MODIFY_DN(PluginType.NAME_SUBORDINATE_MODIFY_DN),
+
+
+
+  /**
    * The plugin type for plugins that are to be invoked before each
    * intermediate response message is sent to a client.
    */
@@ -745,6 +754,14 @@ public enum PluginType
 
 
   /**
+   * The name that will be used for subordinate modify DN plugins.
+   */
+  private static final String NAME_SUBORDINATE_MODIFY_DN =
+       "subordinatemodifydn";
+
+
+
+  /**
    * The name that will be used for intermediate response plugins.
    */
   private static final String NAME_INTERMEDIATE_RESPONSE =
@@ -757,7 +774,7 @@ public enum PluginType
    * types.
    */
   private static final Set<String> PLUGIN_TYPE_NAMES =
-       new HashSet<String>(45);
+       new HashSet<String>(46);
 
 
 
@@ -766,7 +783,7 @@ public enum PluginType
    * corresponding plugin type.
    */
   private static final Map<String,PluginType> PLUGIN_TYPE_MAP =
-       new HashMap<String,PluginType>(45);
+       new HashMap<String,PluginType>(46);
 
 
 
@@ -816,6 +833,7 @@ public enum PluginType
     PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_RESPONSE_SEARCH);
     PLUGIN_TYPE_NAMES.add(PluginType.NAME_SEARCH_ENTRY);
     PLUGIN_TYPE_NAMES.add(PluginType.NAME_SEARCH_REFERENCE);
+    PLUGIN_TYPE_NAMES.add(PluginType.NAME_SUBORDINATE_MODIFY_DN);
     PLUGIN_TYPE_NAMES.add(PluginType.NAME_INTERMEDIATE_RESPONSE);
 
     PLUGIN_TYPE_MAP.put(PluginType.NAME_STARTUP, PluginType.STARTUP);
@@ -905,6 +923,8 @@ public enum PluginType
                         PluginType.SEARCH_RESULT_ENTRY);
     PLUGIN_TYPE_MAP.put(PluginType.NAME_SEARCH_REFERENCE,
                         PluginType.SEARCH_RESULT_REFERENCE);
+    PLUGIN_TYPE_MAP.put(PluginType.NAME_SUBORDINATE_MODIFY_DN,
+                        PluginType.SUBORDINATE_MODIFY_DN);
     PLUGIN_TYPE_MAP.put(PluginType.NAME_INTERMEDIATE_RESPONSE,
                         PluginType.INTERMEDIATE_RESPONSE);
   }

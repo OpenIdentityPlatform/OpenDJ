@@ -81,7 +81,7 @@ public class PreOperationPluginResult
    * information.
    *
    * @param  connectionTerminated      Indicates whether the
-   *                                   post-response plugin terminated
+   *                                   pre-operation plugin terminated
    *                                   the client connection.
    * @param  continuePluginProcessing  Indicates whether any further
    *                                   pre-operation plugins should be
@@ -107,7 +107,7 @@ public class PreOperationPluginResult
    * information.
    *
    * @param  connectionTerminated      Indicates whether the
-   *                                   post-response plugin terminated
+   *                                   pre-operation plugin terminated
    *                                   the client connection.
    * @param  continuePluginProcessing  Indicates whether any further
    *                                   pre-operation plugins should be
@@ -139,11 +139,11 @@ public class PreOperationPluginResult
 
 
   /**
-   * Indicates whether the post-response plugin terminated the client
+   * Indicates whether the pre-operation plugin terminated the client
    * connection.
    *
-   * @return  <CODE>true</CODE> if the post-response plugin terminated
-   *          the client connection, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the pre-operation plugin terminated the
+   *          client connection, or {@code false} if not.
    */
   public boolean connectionTerminated()
   {
@@ -153,12 +153,11 @@ public class PreOperationPluginResult
 
 
   /**
-   * Indicates whether any further post-response plugins should be
+   * Indicates whether any further pre-operation plugins should be
    * invoked for this operation.
    *
-   * @return  <CODE>true</CODE> if any further post-response plugins
-   *          should be invoked for this operation, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if any further pre-operation plugins should
+   *          be invoked for this operation, or {@code false} if not.
    */
   public boolean continuePluginProcessing()
   {
@@ -172,10 +171,10 @@ public class PreOperationPluginResult
    * plugin to the client immediately with no further processing on
    * the operation.
    *
-   * @return  <CODE>true</CODE> if the server should send the response
-   *          set by this plugin to the client immediately, or
-   *          <CODE>false</CODE> if further processing should be
-   *          performed on the operation.
+   * @return  {@code true} if the server should send the response set
+   *          by this plugin to the client immediately, or
+   *          {@code false} if further processing should be performed
+   *          on the operation.
    */
   public boolean sendResponseImmediately()
   {
@@ -201,10 +200,10 @@ public class PreOperationPluginResult
 
 
   /**
-   * Retrieves a string representation of this post-response plugin
+   * Retrieves a string representation of this pre-operation plugin
    * result.
    *
-   * @return  A string representation of this post-response plugin
+   * @return  A string representation of this pre-operation plugin
    *          result.
    */
   public String toString()
@@ -217,7 +216,7 @@ public class PreOperationPluginResult
 
 
   /**
-   * Appends a string representation of this post-response plugin
+   * Appends a string representation of this pre-operation plugin
    * result to the provided buffer.
    *
    * @param  buffer  The buffer to which the information should be
@@ -225,7 +224,7 @@ public class PreOperationPluginResult
    */
   public void toString(StringBuilder buffer)
   {
-    buffer.append("PostResponsePluginResult(connectionTerminated=");
+    buffer.append("PreOperationPluginResult(connectionTerminated=");
     buffer.append(connectionTerminated);
     buffer.append(", continuePluginProcessing=");
     buffer.append(continuePluginProcessing);

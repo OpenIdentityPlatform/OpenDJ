@@ -256,6 +256,7 @@ ds-cfg-plugin-type: postResponseModifyDN
 ds-cfg-plugin-type: postResponseSearch
 ds-cfg-plugin-type: searchResultEntry
 ds-cfg-plugin-type: searchResultReference
+ds-cfg-plugin-type: subordinateModifyDN
 ds-cfg-plugin-type: intermediateResponse
 ds-cfg-plugin-type: postConnect
 ds-cfg-plugin-type: postDisconnect

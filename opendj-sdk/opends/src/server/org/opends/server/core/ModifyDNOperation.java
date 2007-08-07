@@ -33,12 +33,14 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.types.RDN;
+import org.opends.server.types.operation.SubordinateModifyDNOperation;
 
 /**
  * This interface defines an operation used to move an entry in
  * the Directory Server.
  */
-public interface ModifyDNOperation extends Operation
+public interface ModifyDNOperation
+       extends Operation, SubordinateModifyDNOperation
 {
 
   /**

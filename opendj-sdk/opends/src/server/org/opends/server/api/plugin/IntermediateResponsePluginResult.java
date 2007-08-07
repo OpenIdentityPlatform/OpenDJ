@@ -113,9 +113,9 @@ public class IntermediateResponsePluginResult
    * Indicates whether the intermediate response plugin terminated the
    * client connection.
    *
-   * @return  <CODE>true</CODE> if the intermediate response plugin
-   *          terminated the client connection, or <CODE>false</CODE>
-   *          if not.
+   * @return  {@code true} if the intermediate response plugin
+   *          terminated the client connection, or {@code false} if
+   *          not.
    */
   public boolean connectionTerminated()
   {
@@ -128,9 +128,9 @@ public class IntermediateResponsePluginResult
    * Indicates whether any further intermediate response plugins
    * should be invoked for this operation.
    *
-   * @return  <CODE>true</CODE> if any further intermediate response
+   * @return  {@code true} if any further intermediate response
    *          plugins should be invoked for this operation, or
-   *          <CODE>false</CODE> if not.
+   *          {@code false} if not.
    */
   public boolean continuePluginProcessing()
   {
@@ -143,9 +143,9 @@ public class IntermediateResponsePluginResult
    * Indicates whether the associated intermediate response message
    * should be sent to the client.
    *
-   * @return  <CODE>true</CODE> if the associated intermediate
-   *          response message should be sent to the client, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if the associated intermediate response
+   *          message should be sent to the client, or {@code false}
+   *          if not.
    */
   public boolean sendIntermediateResponse()
   {
@@ -158,8 +158,8 @@ public class IntermediateResponsePluginResult
    * Indicates whether processing should continue for the associated
    * operation.
    *
-   * @return  <CODE>true</CODE> if processing on the operation should
-   *          continue, or <CODE>false</CODE> if not.
+   * @return  {@code true} if processing on the operation should
+   *          continue, or {@code false} if not.
    */
   public boolean continueOperation()
   {

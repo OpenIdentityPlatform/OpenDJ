@@ -1557,6 +1557,10 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.465
   NAME 'ds-cfg-notification-sender-address'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.466
+  NAME 'ds-cfg-plugin-order-subordinate-modify-dn'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -2161,6 +2165,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.114 NAME 'ds-cfg-plugin-root'
   ds-cfg-plugin-order-post-response-search $
   ds-cfg-plugin-order-search-result-entry $
   ds-cfg-plugin-order-search-result-reference $
+  ds-cfg-plugin-order-subordinate-modify-dn $
   ds-cfg-plugin-order-intermediate-response )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.115

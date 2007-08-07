@@ -480,6 +480,16 @@ public class DirectoryServerPluginTestCase
     expectedPublicMethods.add(sigList);
 
     sigList = new LinkedList<String>();
+    sigList.add("processSubordinateModifyDN");
+    sigList.add("org.opends.server.api.plugin.SubordinateModifyDNPluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "SubordinateModifyDNOperation");
+    sigList.add("org.opends.server.types.Entry");
+    sigList.add("org.opends.server.types.Entry");
+    sigList.add("java.util.List");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
     sigList.add("processIntermediateResponse");
     sigList.add("org.opends.server.api.plugin." +
                 "IntermediateResponsePluginResult");

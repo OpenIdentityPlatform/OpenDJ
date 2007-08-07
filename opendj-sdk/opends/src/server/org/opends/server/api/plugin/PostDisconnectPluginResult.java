@@ -80,9 +80,9 @@ public class PostDisconnectPluginResult
    * Indicates whether any further post-disconnect plugins should be
    * invoked for this connection.
    *
-   * @return  <CODE>true</CODE> if any further post-disconnect plugins
-   *          should be invoked for this connection, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if any further post-disconnect plugins
+   *          should be invoked for this connection, or {@code false}
+   *          if not.
    */
   public boolean continuePluginProcessing()
   {
