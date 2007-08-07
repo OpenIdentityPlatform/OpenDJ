@@ -298,6 +298,7 @@ public final class TestCaseUtils {
 
     writer.close();
     outFile.close();
+    reader.close();
 
     serverLdapSocket.close();
     serverJmxSocket.close();
