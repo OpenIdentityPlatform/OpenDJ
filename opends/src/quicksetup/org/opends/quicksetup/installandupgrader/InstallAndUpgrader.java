@@ -508,6 +508,14 @@ public class InstallAndUpgrader extends GuiApplication
     return getDelegateApplication().getInstallationPath();
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public void setQuickSetupDialog(QuickSetupDialog dialog) {
+    installer.setQuickSetupDialog(dialog);
+    upgrader.setQuickSetupDialog(dialog);
+  }
+
   private GuiApplication getDelegateApplication()
   {
     GuiApplication application;
