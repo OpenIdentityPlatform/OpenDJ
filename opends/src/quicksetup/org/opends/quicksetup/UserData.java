@@ -595,7 +595,7 @@ public class UserData
     String name = "";
     try
     {
-      name = java.net.InetAddress.getLocalHost().getHostName();
+      name = java.net.InetAddress.getLocalHost().getCanonicalHostName();
     }
     catch (Throwable t)
     {

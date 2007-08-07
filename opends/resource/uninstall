@@ -117,7 +117,7 @@ fi
 
 
 # Launch the uninstall process.
-"${JAVA_BIN}" org.opends.quicksetup.uninstaller.UninstallLauncher "${@}"
+"${JAVA_BIN}" org.opends.guitools.uninstaller.UninstallLauncher "${@}"
 
 RETURN_CODE=$?
 if test ${RETURN_CODE} -eq 50

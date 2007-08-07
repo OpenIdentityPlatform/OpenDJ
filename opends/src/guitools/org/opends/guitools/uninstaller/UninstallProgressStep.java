@@ -25,7 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.uninstaller;
+package org.opends.guitools.uninstaller;
 
 import org.opends.quicksetup.ProgressStep;
 
@@ -38,6 +38,11 @@ public enum UninstallProgressStep implements ProgressStep {
    * Uninstall not started.
    */
   NOT_STARTED,
+
+  /**
+   * Unconfiguring replication in remote servers.
+   */
+  UNCONFIGURING_REPLICATION,
 
   /**
    * Stopping server.
@@ -75,6 +80,11 @@ public enum UninstallProgressStep implements ProgressStep {
   FINISHED_SUCCESSFULLY,
 
   /**
+   * Installation finished with a non critical error updating remote servers.
+   */
+  FINISHED_WITH_ERROR_ON_REMOTE,
+
+  /**
    * Installation finished with an error.
    */
   FINISHED_WITH_ERROR;
@@ -84,7 +94,8 @@ public enum UninstallProgressStep implements ProgressStep {
    */
   public boolean isLast() {
     return this == FINISHED_SUCCESSFULLY ||
-    this == FINISHED_WITH_ERROR;
+    this == FINISHED_WITH_ERROR ||
+    this == FINISHED_WITH_ERROR_ON_REMOTE;
   }
 
   /**

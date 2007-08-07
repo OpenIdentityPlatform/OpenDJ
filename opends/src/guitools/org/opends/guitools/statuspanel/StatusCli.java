@@ -25,7 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.statuspanel;
+package org.opends.guitools.statuspanel;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -49,15 +49,15 @@ import javax.swing.table.TableModel;
 
 import org.opends.admin.ads.util.ApplicationKeyManager;
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.guitools.i18n.ResourceProvider;
+import org.opends.guitools.statuspanel.ui.DatabasesTableModel;
+import org.opends.guitools.statuspanel.ui.ListenersTableModel;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.util.Utils;
 
 import org.opends.server.core.DirectoryServer;
 
-import org.opends.statuspanel.i18n.ResourceProvider;
-import org.opends.statuspanel.ui.DatabasesTableModel;
-import org.opends.statuspanel.ui.ListenersTableModel;
 
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ToolMessages.*;

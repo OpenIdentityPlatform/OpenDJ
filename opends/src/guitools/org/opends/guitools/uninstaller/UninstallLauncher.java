@@ -25,7 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.uninstaller;
+package org.opends.guitools.uninstaller;
 
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
@@ -33,6 +33,7 @@ import static org.opends.server.tools.ToolConstants.*;
 import java.io.File;
 import java.util.logging.Logger;
 
+import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.Installation;
@@ -69,7 +70,9 @@ public class UninstallLauncher extends Launcher {
   public static void main(String[] args) {
     try {
       QuickSetupLog.initLogFileHandler(
-              File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX));
+              File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX),
+              "org.opends.guitools.uninstaller");
+
     } catch (Throwable t) {
       System.err.println("Unable to initialize log");
       t.printStackTrace();
@@ -149,7 +152,7 @@ public class UninstallLauncher extends Launcher {
   protected void willLaunchGui() {
     System.out.println(getMsg("uninstall-launcher-launching-gui"));
     System.setProperty("org.opends.quicksetup.Application.class",
-            "org.opends.quicksetup.uninstaller.Uninstaller");
+            org.opends.guitools.uninstaller.Uninstaller.class.getName());
   }
 
   /**
@@ -166,4 +169,11 @@ public class UninstallLauncher extends Launcher {
     return getI18n().getMsg("frame-uninstall-title");
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  protected ResourceProvider getI18n()
+  {
+    return ResourceProvider.getInstance();
+  }
 }

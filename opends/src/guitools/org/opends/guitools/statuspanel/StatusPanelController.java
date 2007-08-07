@@ -25,7 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
-package org.opends.statuspanel;
+package org.opends.guitools.statuspanel;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -40,6 +40,12 @@ import javax.swing.SwingUtilities;
 import org.opends.server.core.DirectoryServer;
 
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.guitools.i18n.ResourceProvider;
+import org.opends.guitools.statuspanel.event.ServerStatusChangeEvent;
+import org.opends.guitools.statuspanel.event.ServerStatusChangeListener;
+import org.opends.guitools.statuspanel.event.StatusPanelButtonListener;
+import org.opends.guitools.statuspanel.ui.LoginDialog;
+import org.opends.guitools.statuspanel.ui.StatusPanelDialog;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ui.ProgressDialog;
 import org.opends.quicksetup.ui.UIFactory;
@@ -48,12 +54,6 @@ import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 
-import org.opends.statuspanel.event.ServerStatusChangeEvent;
-import org.opends.statuspanel.event.ServerStatusChangeListener;
-import org.opends.statuspanel.event.StatusPanelButtonListener;
-import org.opends.statuspanel.i18n.ResourceProvider;
-import org.opends.statuspanel.ui.LoginDialog;
-import org.opends.statuspanel.ui.StatusPanelDialog;
 
 /**
  * This is the main class of the status panel.

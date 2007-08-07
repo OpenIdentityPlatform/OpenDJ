@@ -27,7 +27,11 @@
 
 package org.opends.quicksetup;
 
+import org.opends.admin.ads.ADSContext;
+import org.opends.admin.ads.ServerDescriptor;
+import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ServerLoader;
 import org.opends.quicksetup.event.ProgressNotifier;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.util.ServerController;
@@ -40,8 +44,12 @@ import java.io.PrintStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.naming.NamingException;
+import javax.naming.ldap.InitialLdapContext;
 
 /**
  * This class represents an application that can be run in the context of
@@ -280,7 +288,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * Returns a ResourceProvider instance.
    * @return a ResourceProvider instance.
    */
-  protected ResourceProvider getI18n()
+  public ResourceProvider getI18n()
   {
     return ResourceProvider.getInstance();
   }
@@ -648,6 +656,70 @@ public abstract class Application implements ProgressNotifier, Runnable {
       String msg = getMsg("error-logging-operation");
       throw ApplicationException.createFileSystemException(msg, e);
     }
+  }
+
+  /**
+   * Returns a localized representation of a TopologyCacheException object.
+   * @param e the exception we want to obtain the representation from.
+   * @return a localized representation of a TopologyCacheException object.
+   */
+  protected String getStringRepresentation(TopologyCacheException e)
+  {
+    StringBuilder buf = new StringBuilder();
+
+    String ldapUrl = e.getLdapUrl();
+    if (ldapUrl != null)
+    {
+      String hostName = ldapUrl.substring(ldapUrl.indexOf("://") + 3);
+      buf.append(getMsg("server-error", hostName) + " ");
+    }
+    if (e.getCause() instanceof NamingException)
+    {
+      buf.append(getThrowableMsg("bug-msg", null, e.getCause()));
+    }
+    else
+    {
+      // This is unexpected.
+      buf.append(getThrowableMsg("bug-msg", null, e.getCause()));
+    }
+    return buf.toString();
+  }
+
+  /**
+   * Gets an InitialLdapContext based on the information that appears on the
+   * provided ServerDescriptor object.  Note that the server is assumed to be
+   * registered and that contains a Map with ADSContext.ServerProperty keys.
+   * @param server the object describing the server.
+   * @param trustManager the trust manager to be used to establish the
+   * connection.
+   * @param dn the dn to be used to authenticate.
+   * @param pwd the pwd to be used to authenticate.
+   * @return the InitialLdapContext to the remote server.
+   * @throws ApplicationException if something goes wrong.
+   */
+  protected InitialLdapContext getRemoteConnection(ServerDescriptor server,
+      String dn, String pwd, ApplicationTrustManager trustManager)
+  throws ApplicationException
+  {
+    Map<ADSContext.ServerProperty, Object> adsProperties =
+      server.getAdsProperties();
+    ServerLoader loader = new ServerLoader(adsProperties, dn, pwd,
+        trustManager);
+
+    InitialLdapContext ctx = null;
+    try
+    {
+      ctx = loader.createContext();
+    }
+    catch (NamingException ne)
+    {
+      String errorMessage = getMsg("cannot-connect-to-remote-generic",
+          server.getHostPort(true), ne.toString(true));
+      throw new ApplicationException(
+          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR, errorMessage,
+          ne);
+    }
+    return ctx;
   }
 
   /**

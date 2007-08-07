@@ -62,7 +62,6 @@ import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.admin.ads.util.ServerLoader;
 import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.*;
@@ -1158,7 +1157,24 @@ public abstract class Installer extends GuiApplication {
         {
           if (registeredNewServerOnRemote)
           {
-            adsContext.unregisterServer(getNewServerAdsProperties());
+            try
+            {
+              adsContext.unregisterServer(getNewServerAdsProperties());
+            }
+            catch (ADSContextException ace)
+            {
+              if (ace.getError() !=
+                ADSContextException.ErrorType.NOT_YET_REGISTERED)
+              {
+                throw ace;
+              }
+              else
+              {
+                // Nothing to do: this may occur if the new server has been
+                // unregistered on another server and the modification has
+                // been already propagated by replication.
+              }
+            }
           }
           if (createdAdministrator)
           {
@@ -3728,28 +3744,6 @@ public abstract class Installer extends GuiApplication {
     return Utils.isCertificateException(t);
   }
 
-  private String getStringRepresentation(TopologyCacheException e)
-  {
-    StringBuilder buf = new StringBuilder();
-
-    String ldapUrl = e.getLdapUrl();
-    if (ldapUrl != null)
-    {
-      String hostName = ldapUrl.substring(ldapUrl.indexOf("://") + 3);
-      buf.append(getMsg("server-error", hostName) + " ");
-    }
-    if (e.getCause() instanceof NamingException)
-    {
-      buf.append(getThrowableMsg("bug-msg", null, e.getCause()));
-    }
-    else
-    {
-      // This is unexpected.
-      buf.append(getThrowableMsg("bug-msg", null, e.getCause()));
-    }
-    return buf.toString();
-  }
-
   private Map<ServerDescriptor, Integer> getRemoteWithNoReplicationPort(
       UserData userData)
   {
@@ -3815,6 +3809,16 @@ public abstract class Installer extends GuiApplication {
     }
   }
 
+
+  /**
+   * Gets an InitialLdapContext based on the information that appears on the
+   * provided ServerDescriptor.
+   * @param server the object describing the server.
+   * @param trustManager the trust manager to be used to establish the
+   * connection.
+   * @return the InitialLdapContext to the remote server.
+   * @throws ApplicationException if something goes wrong.
+   */
   private InitialLdapContext getRemoteConnection(ServerDescriptor server,
       ApplicationTrustManager trustManager) throws ApplicationException
   {
@@ -3837,7 +3841,7 @@ public abstract class Installer extends GuiApplication {
       if (auth.useSecureConnection())
       {
         adsProperties.put(ADSContext.ServerProperty.LDAPS_PORT,
-          String.valueOf(auth.getPort()));
+            String.valueOf(auth.getPort()));
         adsProperties.put(ADSContext.ServerProperty.LDAPS_ENABLED, "true");
       }
       else
@@ -3846,29 +3850,10 @@ public abstract class Installer extends GuiApplication {
             String.valueOf(auth.getPort()));
         adsProperties.put(ADSContext.ServerProperty.LDAP_ENABLED, "true");
       }
+      server.setAdsProperties(adsProperties);
     }
-    else
-    {
-      adsProperties = server.getAdsProperties();
-    }
-
-    ServerLoader loader = new ServerLoader(adsProperties, auth.getDn(),
-        auth.getPwd(), trustManager);
-
-    InitialLdapContext ctx = null;
-    try
-    {
-      ctx = loader.createContext();
-    }
-    catch (NamingException ne)
-    {
-      String errorMessage = getMsg("cannot-connect-to-remote-generic",
-          server.getHostPort(true), ne.toString(true));
-      throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR, errorMessage,
-          ne);
-    }
-    return ctx;
+    return  getRemoteConnection(server, auth.getDn(), auth.getPwd(),
+        trustManager);
   }
 
   private void initializeSuffix(InitialLdapContext ctx, int replicaId,
@@ -4044,12 +4029,12 @@ public abstract class Installer extends GuiApplication {
           if (lastLogMsg == null)
           {
             errorMsg = getMsg("error-during-initialization-no-log",
-                sourceServerDisplay);
+                sourceServerDisplay, state);
           }
           else
           {
             errorMsg = getMsg("error-during-initialization-log",
-                sourceServerDisplay, lastLogMsg);
+                sourceServerDisplay, lastLogMsg, state);
           }
 
           if (helper.isCompletedWithErrors(state))
@@ -4062,9 +4047,10 @@ public abstract class Installer extends GuiApplication {
             ApplicationException ae = new ApplicationException(
                 ApplicationReturnCode.ReturnCode.APPLICATION_ERROR, errorMsg,
                 null);
-            if ((lastLogMsg != null) &&
+            if ((lastLogMsg == null) ||
                 helper.isPeersNotFoundError(lastLogMsg))
             {
+              // Assume that this is a peer not found error.
               throw new PeerNotFoundException(errorMsg);
             }
             else

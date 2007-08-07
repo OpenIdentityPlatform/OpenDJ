@@ -25,7 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.statuspanel;
+package org.opends.guitools.statuspanel;
 
 import javax.swing.SwingUtilities;
 
@@ -65,7 +65,7 @@ public class SplashScreen extends org.opends.quicksetup.SplashScreen
     try
     {
       statusPanelClass = Class.forName(
-          "org.opends.statuspanel.StatusPanelController");
+          "org.opends.guitools.statuspanel.StatusPanelController");
       statusPanel = statusPanelClass.newInstance();
       statusPanelClass.getMethod("initialize", new Class[]
         { String[].class }).invoke(statusPanel, new Object[]

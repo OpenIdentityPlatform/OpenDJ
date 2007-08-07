@@ -344,7 +344,7 @@ public class CliApplicationHelper {
    * @param key String key
    * @return String message
    */
-  protected static String getMsg(String key)
+  protected String getMsg(String key)
   {
     return org.opends.server.util.StaticUtils.wrapText(getI18n().getMsg(key),
         Utils.getCommandLineMaxLineWidth());
@@ -357,7 +357,7 @@ public class CliApplicationHelper {
    * @param args String[] args
    * @return String message
    */
-  protected static String getMsg(String key, String... args)
+  protected String getMsg(String key, String... args)
   {
     return org.opends.server.util.StaticUtils.wrapText(
         getI18n().getMsg(key, args), Utils.getCommandLineMaxLineWidth());
@@ -367,7 +367,7 @@ public class CliApplicationHelper {
    * Gets the resource provider instance.
    * @return ResourceProvider instance
    */
-  protected static ResourceProvider getI18n()
+  protected ResourceProvider getI18n()
   {
     return ResourceProvider.getInstance();
   }

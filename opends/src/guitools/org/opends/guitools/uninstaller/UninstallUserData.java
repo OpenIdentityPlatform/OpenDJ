@@ -25,7 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.uninstaller;
+package org.opends.guitools.uninstaller;
 
 import org.opends.quicksetup.UserData;
 
@@ -45,6 +45,7 @@ public class UninstallUserData extends UserData {
   private boolean removeBackups;
   private boolean removeLDIFs;
   private boolean removeConfigurationAndSchema;
+  private boolean updateRemoteReplication;
 
   /**
    * Sets the database directories located outside the installation which must
@@ -205,5 +206,26 @@ public class UninstallUserData extends UserData {
   public boolean getRemoveConfigurationAndSchema()
   {
     return removeConfigurationAndSchema;
+  }
+
+  /**
+   * Sets whether to update remote replication configuration or not.
+   * @param updateRemoteReplication update remote replication configuration
+   * or not.
+   */
+  public void setUpdateRemoteReplication(boolean updateRemoteReplication)
+  {
+    this.updateRemoteReplication = updateRemoteReplication;
+  }
+
+  /**
+   * Returns whether the user wants to update remote replication configuration
+   * or not.
+   * @return <CODE>true</CODE> if the user wants to update remote replication
+   * configuration and <CODE>false</CODE> otherwise.
+   */
+  public boolean getUpdateRemoteReplication()
+  {
+    return updateRemoteReplication;
   }
 }

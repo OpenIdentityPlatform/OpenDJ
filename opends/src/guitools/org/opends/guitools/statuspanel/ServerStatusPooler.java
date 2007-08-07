@@ -25,7 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.statuspanel;
+package org.opends.guitools.statuspanel;
 
 import java.io.File;
 import java.util.HashSet;
@@ -33,11 +33,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.guitools.i18n.ResourceProvider;
+import org.opends.guitools.statuspanel.event.ServerStatusChangeEvent;
+import org.opends.guitools.statuspanel.event.ServerStatusChangeListener;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.util.Utils;
-import org.opends.statuspanel.event.ServerStatusChangeEvent;
-import org.opends.statuspanel.event.ServerStatusChangeListener;
-import org.opends.statuspanel.i18n.ResourceProvider;
 
 
 /**

@@ -25,7 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.statuspanel;
+package org.opends.guitools.statuspanel;
 
 /** Policy to follow to choose the protocol to be used. */
 public enum ConnectionProtocolPolicy

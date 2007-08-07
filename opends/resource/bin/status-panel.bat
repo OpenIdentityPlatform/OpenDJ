@@ -57,7 +57,7 @@ FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\lib\setcp.bat" %%x
 
 set PATH=%SystemRoot%
 
-"%DIR_HOME%\lib\winlauncher.exe" launch "%JAVA_BIN%" %JAVA_ARGS%  org.opends.statuspanel.StatusPanelLauncher %*
+"%DIR_HOME%\lib\winlauncher.exe" launch "%JAVA_BIN%" %JAVA_ARGS%  org.opends.guitools.statuspanel.StatusPanelLauncher %*
 goto end
 
 

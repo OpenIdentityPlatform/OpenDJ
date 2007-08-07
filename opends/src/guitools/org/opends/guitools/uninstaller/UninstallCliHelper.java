@@ -25,9 +25,9 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.uninstaller;
+package org.opends.guitools.uninstaller;
 
-
+import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.util.Utils;
 
@@ -140,6 +140,15 @@ class UninstallCliHelper extends CliApplicationHelper {
     }
 
     return userData;
+  }
+
+  /**
+   * Gets the resource provider instance.
+   * @return ResourceProvider instance
+   */
+  protected ResourceProvider getI18n()
+  {
+    return ResourceProvider.getInstance();
   }
 
   /**
@@ -402,5 +411,4 @@ class UninstallCliHelper extends CliApplicationHelper {
     }
     return confirm;
   }
-
 }
