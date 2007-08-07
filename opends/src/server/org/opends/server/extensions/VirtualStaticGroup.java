@@ -253,7 +253,7 @@ public class VirtualStaticGroup
   @Override()
   public boolean supportsNestedGroups()
   {
-    // Dynamic groups don't support nesting.
+    // Virtual static groups don't support nesting.
     return false;
   }
 
@@ -265,7 +265,7 @@ public class VirtualStaticGroup
   @Override()
   public List<DN> getNestedGroupDNs()
   {
-    // Dynamic groups don't support nesting.
+    // Virtual static groups don't support nesting.
     return Collections.<DN>emptyList();
   }
 
@@ -278,7 +278,7 @@ public class VirtualStaticGroup
   public void addNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
   {
-    // Dynamic groups don't support nesting.
+    // Virtual static groups don't support nesting.
     int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_NESTING_NOT_SUPPORTED;
     String message = getMessage(msgID);
     throw new UnsupportedOperationException(message);
@@ -293,7 +293,7 @@ public class VirtualStaticGroup
   public void removeNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
   {
-    // Dynamic groups don't support nesting.
+    // Virtual static groups don't support nesting.
     int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_NESTING_NOT_SUPPORTED;
     String message = getMessage(msgID);
     throw new UnsupportedOperationException(message);
@@ -452,7 +452,7 @@ public class VirtualStaticGroup
   public void addMember(Entry userEntry)
          throws UnsupportedOperationException, DirectoryException
   {
-    // Dynamic groups don't support altering the member list.
+    // Virtual static groups don't support altering the member list.
     int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_ALTERING_MEMBERS_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(groupEntryDN));
     throw new UnsupportedOperationException(message);
@@ -467,7 +467,7 @@ public class VirtualStaticGroup
   public void removeMember(DN userDN)
          throws UnsupportedOperationException, DirectoryException
   {
-    // Dynamic groups don't support altering the member list.
+    // Virtual static groups don't support altering the member list.
     int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_ALTERING_MEMBERS_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(groupEntryDN));
     throw new UnsupportedOperationException(message);
