@@ -852,6 +852,31 @@ public class PluginMessages
 
 
   /**
+   * The message ID for the message that will be used if an exception is thrown
+   * by one of the Directory Server subordinate modify DN plugins.  This takes
+   * four arguments, which are the DN of the plugin configuration entry, the
+   * connection ID for the client, the operation ID for the operation, and a
+   * string representation of the exception that was caught.
+   */
+  public static final int MSGID_PLUGIN_SUBORDINATE_MODIFY_DN_PLUGIN_EXCEPTION =
+       CATEGORY_MASK_PLUGIN | SEVERITY_MASK_SEVERE_ERROR | 75;
+
+
+
+  /**
+   * The message ID for the message that will be used if one of the Directory
+   * Server subordinate modify DN plugins returns null rather than a valid
+   * result.  This takes three arguments, which are the DN of the plugin
+   * configuration entry, the connection ID for the client connection, and the
+   * operation ID for the operation.
+   */
+  public static final int
+       MSGID_PLUGIN_SUBORDINATE_MODIFY_DN_PLUGIN_RETURNED_NULL =
+            CATEGORY_MASK_PLUGIN | SEVERITY_MASK_SEVERE_ERROR | 76;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -1147,6 +1172,19 @@ public class PluginMessages
                     "connection %d operation %s with referral URL(s) %s.  " +
                     "This is an illegal response, and processing on this " +
                     "search operation will be terminated");
+
+
+    registerMessage(MSGID_PLUGIN_SUBORDINATE_MODIFY_DN_PLUGIN_EXCEPTION,
+                    "The subordinate modify DN plugin defined in " +
+                    "configuration entry %s threw an exception when it was " +
+                    "invoked for connection %d operation %d:  %s.  " +
+                    "Processing on this operation will be terminated");
+    registerMessage(MSGID_PLUGIN_SUBORDINATE_MODIFY_DN_PLUGIN_RETURNED_NULL,
+                    "The subordinate modify DN plugin defined in " +
+                    "configuration entry %s returned null when invoked for " +
+                    "connection %d operation %s.  This is an illegal " +
+                    "response, and processing on this operation will be " +
+                    "terminated");
 
 
     registerMessage(MSGID_PLUGIN_INTERMEDIATE_RESPONSE_PLUGIN_EXCEPTION,

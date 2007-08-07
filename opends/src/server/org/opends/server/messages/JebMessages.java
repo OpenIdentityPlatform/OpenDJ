@@ -1262,6 +1262,27 @@ public class JebMessages
       CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 162;
 
   /**
+   * The message ID for the message that is used to indicate that the modify DN
+   * operation has been aborted by a subordinate modify DN plugin.  This takes
+   * two arguments, which are the old DN and new DN for the subordinate entry
+   * that caused the operation to be aborted.
+   */
+  public static final int MSGID_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_PLUGIN =
+       CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 163;
+
+  /**
+   * The message ID for the message that is used to indicate that the modify DN
+   * operation has been aborted because subordinate modify DN plugin has altered
+   * an entry in a manner than violates the server schema.  This takes three
+   * arguments, which are the old DN and new DN for the subordinate entry that
+   * caused the operation to be aborted, and a message explaining the schema
+   * violation.
+   */
+  public static final int
+       MSGID_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_SCHEMA_ERROR =
+            CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 164;
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -1396,6 +1417,14 @@ public class JebMessages
     registerMessage(MSGID_JEB_MODIFYDN_ALREADY_EXISTS,
                     "The entry cannot be renamed to '%s' because an entry " +
                     "with that name already exists");
+    registerMessage(MSGID_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_PLUGIN,
+                    "A plugin caused the modify DN operation to be aborted " +
+                    "while moving and/or renaming an entry from %s to %s");
+    registerMessage(MSGID_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_SCHEMA_ERROR,
+                    "A plugin caused the modify DN operation to be aborted " +
+                    "while moving and/or renaming an entry from %s to %s " +
+                    "because the change to that entry violated the server " +
+                    "schema configuration:  %s");
     registerMessage(MSGID_JEB_NEW_SUPERIOR_NO_SUCH_OBJECT,
                     "The entry cannot be moved because the new parent " +
                     "entry '%s' does not exist");

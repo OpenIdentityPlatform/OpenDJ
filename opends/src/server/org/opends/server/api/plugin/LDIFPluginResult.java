@@ -90,9 +90,9 @@ public class LDIFPluginResult
    * Indicates whether any further LDIF import/export plugins should
    * be invoked for the associated entry.
    *
-   * @return  <CODE>true</CODE> if any further LDIF import/export
-   *          plugins should be invoked for the associated entry, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if any further LDIF import/export plugins
+   *          should be invoked for the associated entry, or
+   *          {@code false} if not.
    */
   public boolean continuePluginProcessing()
   {
@@ -105,8 +105,8 @@ public class LDIFPluginResult
    * Indicates whether the associated entry should still be
    * imported/exported.
    *
-   * @return  <CODE>true</CODE> if the associated entry should still
-   *          be imported/exported, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the associated entry should still be
+   *          imported/exported, or {@code false} if not.
    */
   public boolean continueEntryProcessing()
   {

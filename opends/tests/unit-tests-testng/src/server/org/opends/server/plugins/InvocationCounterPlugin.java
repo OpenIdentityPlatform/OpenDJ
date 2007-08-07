@@ -28,6 +28,7 @@ package org.opends.server.plugins;
 
 
 
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -46,11 +47,13 @@ import org.opends.server.api.plugin.PreParsePluginResult;
 import org.opends.server.api.plugin.SearchEntryPluginResult;
 import org.opends.server.api.plugin.SearchReferencePluginResult;
 import org.opends.server.api.plugin.StartupPluginResult;
+import org.opends.server.api.plugin.SubordinateModifyDNPluginResult;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.Modification;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.operation.*;
@@ -88,6 +91,8 @@ public class InvocationCounterPlugin
   private static AtomicInteger postResponseCounter    = new AtomicInteger(0);
   private static AtomicInteger searchEntryCounter     = new AtomicInteger(0);
   private static AtomicInteger searchReferenceCounter = new AtomicInteger(0);
+  private static AtomicInteger subordinateModifyDNCounter =
+                                    new AtomicInteger(0);
   private static AtomicInteger intermediateResponseCounter =
                                     new AtomicInteger(0);
   private static AtomicInteger postConnectCounter     = new AtomicInteger(0);
@@ -781,6 +786,48 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
+  public SubordinateModifyDNPluginResult processSubordinateModifyDN(
+              SubordinateModifyDNOperation modifyDNOperation, Entry oldEntry,
+              Entry newEntry, List<Modification> modifications)
+  {
+    subordinateModifyDNCounter.incrementAndGet();
+    return SubordinateModifyDNPluginResult.SUCCESS;
+  }
+
+
+
+
+  /**
+   * Retrieves the number of times the subordinate modify DN plugins have been
+   * called since the last reset.
+   *
+   * @return  The number of times the subordinate modify DN plugins have been
+   *          called since the last reset.
+   */
+  public static int getSubordinateModifyDNCount()
+  {
+    return subordinateModifyDNCounter.get();
+  }
+
+
+
+  /**
+   * Resets the subordinate modify DN plugin invocation count to zero.
+   *
+   * @return  The subordinate modify DN plugin invocation count before it was
+   *          reset.
+   */
+  public static int resetSubordinateModifyDNCount()
+  {
+    return subordinateModifyDNCounter.getAndSet(0);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
   public IntermediateResponsePluginResult processIntermediateResponse(
               IntermediateResponse intermediateResponse)
   {
@@ -986,6 +1033,7 @@ public class InvocationCounterPlugin
     resetPostResponseCount();
     resetSearchEntryCount();
     resetSearchReferenceCount();
+    resetSubordinateModifyDNCount();
     resetIntermediateResponseCount();
     resetPostConnectCount();
     resetPostDisconnectCount();

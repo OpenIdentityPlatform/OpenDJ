@@ -47,7 +47,7 @@ public class PreParsePluginResult
   // invoked for this operation.
   private final boolean continuePluginProcessing;
 
-  // Indicates whether the pre-operation plugin terminated the client
+  // Indicates whether the pre-parse plugin terminated the client
   // connection.
   private final boolean connectionTerminated;
 
@@ -77,14 +77,14 @@ public class PreParsePluginResult
 
 
   /**
-   * Creates a new pre-operation plugin result with the provided
+   * Creates a new pre-parse plugin result with the provided
    * information.
    *
    * @param  connectionTerminated      Indicates whether the
-   *                                   post-response plugin terminated
+   *                                   pre-parse plugin terminated
    *                                   the client connection.
    * @param  continuePluginProcessing  Indicates whether any further
-   *                                   pre-operation plugins should be
+   *                                   pre-parse plugins should be
    *                                   invoked for this operation.
    * @param  sendResponseImmediately   Indicates whether the server
    *                                   should send the response set by
@@ -103,14 +103,14 @@ public class PreParsePluginResult
 
 
   /**
-   * Creates a new pre-operation plugin result with the provided
+   * Creates a new pre-parse plugin result with the provided
    * information.
    *
    * @param  connectionTerminated      Indicates whether the
-   *                                   post-response plugin terminated
+   *                                   pre-parse plugin terminated
    *                                   the client connection.
    * @param  continuePluginProcessing  Indicates whether any further
-   *                                   pre-operation plugins should be
+   *                                   pre-parse plugins should be
    *                                   invoked for this operation.
    * @param  sendResponseImmediately   Indicates whether the server
    *                                   should send the response set by
@@ -139,11 +139,11 @@ public class PreParsePluginResult
 
 
   /**
-   * Indicates whether the post-response plugin terminated the client
+   * Indicates whether the pre-parse plugin terminated the client
    * connection.
    *
-   * @return  <CODE>true</CODE> if the post-response plugin terminated
-   *          the client connection, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the pre-parse plugin terminated the
+   *          client connection, or {@code false} if not.
    */
   public boolean connectionTerminated()
   {
@@ -153,12 +153,11 @@ public class PreParsePluginResult
 
 
   /**
-   * Indicates whether any further post-response plugins should be
-   * invoked for this operation.
+   * Indicates whether any further pre-parse plugins should be invoked
+   * for this operation.
    *
-   * @return  <CODE>true</CODE> if any further post-response plugins
-   *          should be invoked for this operation, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if any further pre-parse plugins should be
+   *          invoked for this operation, or {@code false} if not.
    */
   public boolean continuePluginProcessing()
   {
@@ -172,10 +171,10 @@ public class PreParsePluginResult
    * plugin to the client immediately with no further processing on
    * the operation.
    *
-   * @return  <CODE>true</CODE> if the server should send the response
-   *          set by this plugin to the client immediately, or
-   *          <CODE>false</CODE> if further processing should be
-   *          performed on the operation.
+   * @return  {@code true} if the server should send the response set
+   *          by this plugin to the client immediately, or
+   *          {@code false} if further processing should be performed
+   *          on the operation.
    */
   public boolean sendResponseImmediately()
   {
@@ -201,11 +200,10 @@ public class PreParsePluginResult
 
 
   /**
-   * Retrieves a string representation of this post-response plugin
+   * Retrieves a string representation of this pre-parse plugin
    * result.
    *
-   * @return  A string representation of this post-response plugin
-   *          result.
+   * @return  A string representation of this pre-parse plugin result.
    */
   public String toString()
   {
@@ -217,15 +215,15 @@ public class PreParsePluginResult
 
 
   /**
-   * Appends a string representation of this post-response plugin
-   * result to the provided buffer.
+   * Appends a string representation of this pre-parse plugin result
+   * to the provided buffer.
    *
    * @param  buffer  The buffer to which the information should be
    *                 appended.
    */
   public void toString(StringBuilder buffer)
   {
-    buffer.append("PostResponsePluginResult(connectionTerminated=");
+    buffer.append("PreParsePluginResult(connectionTerminated=");
     buffer.append(connectionTerminated);
     buffer.append(", continuePluginProcessing=");
     buffer.append(continuePluginProcessing);

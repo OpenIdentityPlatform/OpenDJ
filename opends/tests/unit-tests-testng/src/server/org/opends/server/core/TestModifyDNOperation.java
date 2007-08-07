@@ -1298,5 +1298,166 @@ public class TestModifyDNOperation extends OperationTestCase
 
     assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
   }
+
+
+
+  /**
+   * Tests a subtree rename operation to ensure that subordinate modify DN
+   * plugins will be invoked as expected.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testSubordinateModifyDNPluginsForSubtreeRename()
+         throws Exception
+  {
+    try
+    {
+      InvocationCounterPlugin.resetAllCounters();
+      TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+
+      TestCaseUtils.addEntries(
+        "dn: ou=People,dc=example,dc=com",
+        "objectClass: top",
+        "objectClass: organizationalUnit",
+        "ou: People",
+        "",
+        "dn: uid=first.test,ou=People,dc=example,dc=com",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: first.test",
+        "givenName: First",
+        "sn: Test",
+        "cn: First Test",
+        "userPassword: Password",
+        "ou: People",
+        "",
+        "dn: uid=second.test,ou=People,dc=example,dc=com",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: second.test",
+        "givenName: Second",
+        "sn: Test",
+        "cn: Second Test",
+        "userPassword: Password");
+
+      assertTrue(DirectoryServer.entryExists(
+                      DN.decode("uid=first.test,ou=People,dc=example,dc=com")));
+      assertFalse(DirectoryServer.entryExists(
+                      DN.decode("uid=first.test,ou=Users,dc=example,dc=com")));
+
+
+      InternalClientConnection conn =
+           InternalClientConnection.getRootConnection();
+      ModifyDNOperation modifyDNOperation =
+           conn.processModifyDN("ou=People,dc=example,dc=com", "ou=Users",
+                                true);
+      assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
+      assertEquals(InvocationCounterPlugin.getSubordinateModifyDNCount(), 2);
+
+
+      assertFalse(DirectoryServer.entryExists(
+                       DN.decode("uid=first.test,ou=People,dc=example,dc=com")));
+      assertTrue(DirectoryServer.entryExists(
+                      DN.decode("uid=first.test,ou=Users,dc=example,dc=com")));
+    }
+    finally
+    {
+      // Other tests in this class rely on a predefined structure, so we need to
+      // make sure to put it back to the way it should be.
+      setUp();
+      InvocationCounterPlugin.resetAllCounters();
+    }
+  }
+
+
+
+  /**
+   * Tests a subtree move operation to ensure that subordinate modify DN
+   * plugins will be invoked as expected.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testSubordinateModifyDNPluginsForSubtreeMove()
+         throws Exception
+  {
+    try
+    {
+      InvocationCounterPlugin.resetAllCounters();
+      TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+
+      TestCaseUtils.addEntries(
+        "dn: ou=Org 1,dc=example,dc=com",
+        "objectClass: top",
+        "objectClass: organizationalUnit",
+        "ou: Org 1",
+        "",
+        "dn: ou=Org 2,dc=example,dc=com",
+        "objectClass: top",
+        "objectClass: organizationalUnit",
+        "ou: Org 2",
+        "",
+        "dn: ou=Org 1.1,ou=Org 1,dc=example,dc=com",
+        "objectClass: top",
+        "objectClass: organizationalUnit",
+        "ou: Org 1.1",
+        "",
+        "dn: uid=first.test,ou=Org 1.1,ou=Org 1,dc=example,dc=com",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: first.test",
+        "givenName: First",
+        "sn: Test",
+        "cn: First Test",
+        "userPassword: Password",
+        "ou: Org 1.1",
+        "",
+        "dn: uid=second.test,ou=Org 1.1,ou=Org 1,dc=example,dc=com",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: second.test",
+        "givenName: Second",
+        "sn: Test",
+        "cn: Second Test",
+        "userPassword: Password");
+
+      assertTrue(DirectoryServer.entryExists(
+           DN.decode("uid=first.test,ou=Org 1.1,ou=Org 1,dc=example,dc=com")));
+      assertFalse(DirectoryServer.entryExists(
+           DN.decode("uid=first.test,ou=Org 2.1,ou=Org 2,dc=example,dc=com")));
+
+
+      InternalClientConnection conn =
+           InternalClientConnection.getRootConnection();
+      ModifyDNOperation modifyDNOperation =
+           conn.processModifyDN("ou=Org 1.1,ou=Org 1,dc=example,dc=com",
+                                "ou=Org 2.1", true,
+                                "ou=Org 2,dc=example,dc=com");
+      assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
+      assertEquals(InvocationCounterPlugin.getSubordinateModifyDNCount(), 2);
+
+
+      assertFalse(DirectoryServer.entryExists(
+           DN.decode("uid=first.test,ou=Org 1.1,ou=Org 1,dc=example,dc=com")));
+      assertTrue(DirectoryServer.entryExists(
+           DN.decode("uid=first.test,ou=Org 2.1,ou=Org 2,dc=example,dc=com")));
+    }
+    finally
+    {
+      // Other tests in this class rely on a predefined structure, so we need to
+      // make sure to put it back to the way it should be.
+      setUp();
+      InvocationCounterPlugin.resetAllCounters();
+    }
+  }
 }
 

@@ -32,9 +32,11 @@ import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.api.plugin.SubordinateModifyDNPluginResult;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
@@ -3391,14 +3393,64 @@ public class EntryContainer
 
       }
 
-      // Change the entry DN.
-      oldEntry.setDN(newDN);
+
+      // Create a new entry that is a copy of the old entry but with the new DN.
+      // Also invoke any subordinate modify DN plugins on the entry.
+      // FIXME -- At the present time, we don't support subordinate modify DN
+      //          plugins that make changes to subordinate entries and therefore
+      //          provide an unmodifiable list for the modifications element.
+      // FIXME -- This will need to be updated appropriately if we decided that
+      //          these plugins should be invoked for synchronization
+      //          operations.
+      Entry newEntry = oldEntry.duplicate(false);
+      newEntry.setDN(newDN);
+
+      if (! modifyDNOperation.isSynchronizationOperation())
+      {
+        PluginConfigManager pluginManager =
+             DirectoryServer.getPluginConfigManager();
+        List<Modification> modifications =
+             Collections.unmodifiableList(new ArrayList<Modification>(0));
+        SubordinateModifyDNPluginResult pluginResult =
+             pluginManager.invokeSubordinateModifyDNPlugins(
+                  modifyDNOperation, oldEntry, newEntry, modifications);
+
+        if (pluginResult.connectionTerminated() ||
+            pluginResult.abortModifyDNOperation())
+        {
+          int    msgID   = MSGID_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_PLUGIN;
+          String message = getMessage(msgID, oldDN.toString(),
+                                      newDN.toString());
+          throw new DirectoryException(
+                         DirectoryServer.getServerErrorResultCode(), message,
+                         msgID);
+        }
+
+        if (! modifications.isEmpty())
+        {
+          indexModifications(txn, oldEntry, newEntry, newID, modifications);
+
+          StringBuilder invalidReason = new StringBuilder();
+          if (! newEntry.conformsToSchema(null, false, false, false,
+                                          invalidReason))
+          {
+            int msgID = MSGID_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_SCHEMA_ERROR;
+            String message = getMessage(msgID, oldDN.toString(),
+                                        newDN.toString(),
+                                        invalidReason.toString());
+            throw new DirectoryException(
+                           DirectoryServer.getServerErrorResultCode(), message,
+                           msgID);
+          }
+        }
+      }
+
 
       // Add any referral records for the new DN.
-      dn2uri.addEntry(txn, oldEntry);
+      dn2uri.addEntry(txn, newEntry);
 
       // Put the new entry (old entry with new DN) in id2entry.
-      id2entry.put(txn, newID, oldEntry);
+      id2entry.put(txn, newID, newEntry);
 
       if (!newID.equals(oldID))
       {
@@ -3456,7 +3508,7 @@ public class EntryContainer
      */
     private void renameSubordinateEntry(Transaction txn, EntryID entryID,
                                         Entry oldEntry, DN newDN)
-        throws DirectoryException, DatabaseException
+        throws DirectoryException, JebException, DatabaseException
     {
       DN oldDN = oldEntry.getDN();
 
@@ -3475,14 +3527,64 @@ public class EntryContainer
       // Delete any existing referral records for the old DN.
       dn2uri.deleteEntry(txn, oldEntry);
 
-      // Change the entry DN.
-      oldEntry.setDN(newDN);
+
+      // Create a new entry that is a copy of the old entry but with the new DN.
+      // Also invoke any subordinate modify DN plugins on the entry.
+      // FIXME -- At the present time, we don't support subordinate modify DN
+      //          plugins that make changes to subordinate entries and therefore
+      //          provide an unmodifiable list for the modifications element.
+      // FIXME -- This will need to be updated appropriately if we decided that
+      //          these plugins should be invoked for synchronization
+      //          operations.
+      Entry newEntry = oldEntry.duplicate(false);
+      newEntry.setDN(newDN);
+
+      if (! modifyDNOperation.isSynchronizationOperation())
+      {
+        PluginConfigManager pluginManager =
+             DirectoryServer.getPluginConfigManager();
+        List<Modification> modifications =
+             Collections.unmodifiableList(new ArrayList<Modification>(0));
+        SubordinateModifyDNPluginResult pluginResult =
+             pluginManager.invokeSubordinateModifyDNPlugins(
+                  modifyDNOperation, oldEntry, newEntry, modifications);
+
+        if (pluginResult.connectionTerminated() ||
+            pluginResult.abortModifyDNOperation())
+        {
+          int    msgID   = MSGID_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_PLUGIN;
+          String message = getMessage(msgID, oldDN.toString(),
+                                      newDN.toString());
+          throw new DirectoryException(
+                  DirectoryServer.getServerErrorResultCode(),
+                                       message, msgID);
+        }
+
+        if (! modifications.isEmpty())
+        {
+          indexModifications(txn, oldEntry, newEntry, entryID, modifications);
+
+          StringBuilder invalidReason = new StringBuilder();
+          if (! newEntry.conformsToSchema(null, false, false, false,
+                                          invalidReason))
+          {
+            int msgID = MSGID_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_SCHEMA_ERROR;
+            String message = getMessage(msgID, oldDN.toString(),
+                                        newDN.toString(),
+                                        invalidReason.toString());
+            throw new DirectoryException(
+                           DirectoryServer.getServerErrorResultCode(), message,
+                           msgID);
+          }
+        }
+      }
+
 
       // Add any referral records for the new DN.
-      dn2uri.addEntry(txn, oldEntry);
+      dn2uri.addEntry(txn, newEntry);
 
       // Replace the entry in id2entry.
-      id2entry.put(txn, entryID, oldEntry);
+      id2entry.put(txn, entryID, newEntry);
 
       // Remove the entry from the entry cache.
       EntryCache entryCache = DirectoryServer.getEntryCache();

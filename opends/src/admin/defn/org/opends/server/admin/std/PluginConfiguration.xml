@@ -318,6 +318,12 @@
             Invoked before sending a search result reference to the client.
           </adm:synopsis>
         </adm:value>
+        <adm:value name="subordinatemodifydn">
+          <adm:synopsis>
+            Invoked in the course of moving or renaming an entry subordinate to
+            the target of a modify DN operation.
+          </adm:synopsis>
+        </adm:value>
         <adm:value name="intermediateresponse">
           <adm:synopsis>
             Invoked before sending an intermediate repsonse message to the
