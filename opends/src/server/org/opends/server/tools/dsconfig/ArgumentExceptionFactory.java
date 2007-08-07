@@ -90,7 +90,7 @@ public final class ArgumentExceptionFactory {
 
         int msgID = MSGID_DSCFG_ERROR_ILLEGAL_NAME_SYNTAX;
         String message = getMessage(msgID, illegalName,
-            d.getUserFriendlyName(), pd.getName(), syntax);
+            d.getUserFriendlyName(), syntax);
         return new ArgumentException(msgID, message);
       }
     }
