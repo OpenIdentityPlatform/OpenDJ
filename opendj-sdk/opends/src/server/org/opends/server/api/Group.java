@@ -28,7 +28,9 @@ package org.opends.server.api;
 
 
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.config.ConfigException;
@@ -277,7 +279,43 @@ public abstract class Group<T extends GroupImplementationCfg>
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to make the determination.
    */
-  public abstract boolean isMember(DN userDN)
+  public boolean isMember(DN userDN)
+         throws DirectoryException
+  {
+    return isMember(userDN, new HashSet<DN>());
+  }
+
+
+
+  /**
+   * Indicates whether the user with the specified DN is a member of
+   * this group.  Note that this is a point-in-time determination and
+   * the caller must not cache the result.  Also note that group
+   * implementations that support nesting should use this version of
+   * the method ratehr than the version that does not take a set of
+   * DNs when attempting to determine whether a nested group includes
+   * the target member.
+   *
+   * @param  userDN          The DN of the user for which to make the
+   *                         determination.
+   * @param  examinedGroups  A set of groups that have already been
+   *                         examined in the process of making the
+   *                         determination.  This provides a mechanism
+   *                         to prevent infinite recursion due to
+   *                         circular references (e.g., two groups
+   *                         include each other as nested groups).
+   *                         Each time a group instance is checked,
+   *                         its DN should be added to the list, and
+   *                         any DN already contained in the list
+   *                         should be skipped.
+   *
+   * @return  {@code true} if the specified user is currently a member
+   *          of this group, or {@code false} if not.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to make the determination.
+   */
+  public abstract boolean isMember(DN userDN, Set<DN> examinedGroups)
          throws DirectoryException;
 
 
@@ -296,7 +334,44 @@ public abstract class Group<T extends GroupImplementationCfg>
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to make the determination.
    */
-  public abstract boolean isMember(Entry userEntry)
+  public boolean isMember(Entry userEntry)
+         throws DirectoryException
+  {
+    return isMember(userEntry, new HashSet<DN>());
+  }
+
+
+
+  /**
+   * Indicates whether the user described by the provided user entry
+   * is a member of this group.  Note that this is a point-in-time
+   * determination and the caller must not cache the result.  Also
+   * note that group implementations that support nesting should use
+   * this version of the method ratehr than the version that does not
+   * take a set of DNs when attempting to determine whether a nested
+   * group includes the target member.
+   *
+   * @param  userEntry       The entry for the user for which to make
+   *                         the determination.
+   * @param  examinedGroups  A set of groups that have already been
+   *                         examined in the process of making the
+   *                         determination.  This provides a mechanism
+   *                         to prevent infinite recursion due to
+   *                         circular references (e.g., two groups
+   *                         include each other as nested groups).
+   *                         Each time a group instance is checked,
+   *                         its DN should be added to the list, and
+   *                         any DN already contained in the list
+   *                         should be skipped.
+   *
+   * @return  {@code true} if the specified user is currently a member
+   *          of this group, or {@code false} if not.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to make the determination.
+   */
+  public abstract boolean isMember(Entry userEntry,
+                                   Set<DN> examinedGroups)
          throws DirectoryException;
 
 
@@ -305,7 +380,8 @@ public abstract class Group<T extends GroupImplementationCfg>
    * Retrieves an iterator that may be used to cursor through the
    * entries of the members contained in this group.  Note that this
    * is a point-in-time determination, and the caller must not cache
-   * the result.
+   * the result.  Further, the determination should only include this
+   * group and not members from nested groups.
    *
    * @return  An iterator that may be used to cursor through the
    *          entries of the members contained in this group.

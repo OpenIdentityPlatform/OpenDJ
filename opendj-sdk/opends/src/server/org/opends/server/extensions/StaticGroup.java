@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.api.Group;
@@ -358,9 +359,14 @@ public class StaticGroup
    * {@inheritDoc}
    */
   @Override()
-  public boolean isMember(DN userDN)
+  public boolean isMember(DN userDN, Set<DN> examinedGroups)
          throws DirectoryException
   {
+    if (! examinedGroups.add(getGroupDN()))
+    {
+      return false;
+    }
+
     return memberDNs.contains(userDN);
   }
 
@@ -370,9 +376,14 @@ public class StaticGroup
    * {@inheritDoc}
    */
   @Override()
-  public boolean isMember(Entry userEntry)
+  public boolean isMember(Entry userEntry, Set<DN> examinedGroups)
          throws DirectoryException
   {
+    if (! examinedGroups.add(getGroupDN()))
+    {
+      return false;
+    }
+
     return memberDNs.contains(userEntry.getDN());
   }
 

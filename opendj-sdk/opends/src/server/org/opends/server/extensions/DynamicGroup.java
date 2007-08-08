@@ -299,9 +299,14 @@ public class DynamicGroup
    * {@inheritDoc}
    */
   @Override()
-  public boolean isMember(DN userDN)
+  public boolean isMember(DN userDN, Set<DN> examinedGroups)
          throws DirectoryException
   {
+    if (! examinedGroups.add(getGroupDN()))
+    {
+      return false;
+    }
+
     Entry entry = DirectoryConfig.getEntry(userDN);
     if (entry == null)
     {
@@ -319,9 +324,14 @@ public class DynamicGroup
    * {@inheritDoc}
    */
   @Override()
-  public boolean isMember(Entry userEntry)
+  public boolean isMember(Entry userEntry, Set<DN> examinedGroups)
          throws DirectoryException
   {
+    if (! examinedGroups.add(getGroupDN()))
+    {
+      return false;
+    }
+
     for (LDAPURL memberURL : memberURLs)
     {
       if (memberURL.matchesEntry(userEntry))
