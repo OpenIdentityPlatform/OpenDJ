@@ -6306,28 +6306,6 @@ public class CoreMessages
        CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 632;
 
 
-
-  /**
-   * The message ID for the message that will be used if an error occurred while
-   * trying to terminate a client connection.  It takes two arguments, which are
-   * the connection ID and a string representation of the exception that was
-   * caught.
-   */
-  public static final int MSGID_IDLETIME_DISCONNECT_ERROR =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 632;
-
-
-
-  /**
-   * The message ID for the message that will be used if an unexpected error
-   * occurred in the time thread.  It takes a single argument, which is a string
-   * representation of the exception that was caught.
-   */
-  public static final int MSGID_IDLETIME_UNEXPECTED_ERROR =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 632;
-
-
-
   /**
    * The message ID for the message that will be used if the maximum password
    * age is enabled, but the warning interval is longer than the maximum age.
@@ -6380,6 +6358,26 @@ public class CoreMessages
   public static final int MSGID_REGISTER_NETWORK_GROUP_ALREADY_EXISTS =
        CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 637;
 
+
+
+  /**
+   * The message ID for the message that will be used if an error occurred while
+   * trying to terminate a client connection.  It takes two arguments, which are
+   * the connection ID and a string representation of the exception that was
+   * caught.
+   */
+  public static final int MSGID_IDLETIME_DISCONNECT_ERROR =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 638;
+
+
+
+  /**
+   * The message ID for the message that will be used if an unexpected error
+   * occurred in the time thread.  It takes a single argument, which is a string
+   * representation of the exception that was caught.
+   */
+  public static final int MSGID_IDLETIME_UNEXPECTED_ERROR =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 639;
 
 
   /**
@@ -6999,7 +6997,7 @@ public class CoreMessages
                     "Unable to decode the provided string \"%s\" as a " +
                     "relative distinguished name because the first non-blank " +
                     "character after the attribute type %s was not an " +
-                    "equal sign (character read was %s)");
+                    "equal sign (character read was %c)");
     registerMessage(MSGID_RDN_UNEXPECTED_COMMA,
                     "Unable to decode the provided string \"%s\" as a " +
                     "relative distinguished name because it contained an " +
@@ -7008,7 +7006,7 @@ public class CoreMessages
     registerMessage(MSGID_RDN_ILLEGAL_CHARACTER,
                     "Unable to decode the provided string \"%s\" as a " +
                     "relative distinguished name because an illegal " +
-                    "character %s was found at position %d, where either the " +
+                    "character %c was found at position %d, where either the " +
                     "end of the string or a '+' sign were expected");
 
 
