@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="repeat_chars"/>
+
+  <function name="repeat_chars">
+
+      <sequence>
+
+        <testcase name="'Security: Pwd Validator: Repeat Chars: Preamble'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Repeat Chars: Admin Enabling Validator'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'password-validator-dn' ,
+                    'attributeValue'         : 'cn=Repeated Characters,cn=Password Validators,cn=config' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <testcase name="'Security: Pwd Validator: Repeat Chars: password with 3 repeat chars'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Repeat Chars: user modifying password'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'sensitive' ,
+                    'DNToModify'             : 'uid=trigden, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'abbbcdef' ,
+                    'changetype'             : 'replace' , 
+                    'expectedRC'             : 53  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Repeat Chars: user binding with new password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'abbbcdef' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base', 
+                'expectedRC'       : 49 }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+        <testcase name="'Security: Pwd Validator: Repeat Chars: password with 2 repeat chars'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Repeat Chars: user modifying password'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'sensitive' ,
+                    'DNToModify'             : 'uid=trigden, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'abbcdef' ,
+                    'changetype'             : 'replace'  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Repeat Chars: user binding with new password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'abbcdef' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base'  }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+        <testcase name="'Security: Pwd Validator: Repeat Chars: change maximum length'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Validator: Repeat Chars: change maximum length'
+            </message>
+            
+            <call function="'modifyPwdValidator'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Repeated Characters' ,
+                    'attributeName'          : 'maximum-consecutive-length' ,
+                    'attributeValue'         : '3' ,
+                    'modifyType'             : 'set' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <testcase name="'Security: Pwd Validator: Repeat Chars: password with 3 repeat chars 2'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Repeat Chars: user modifying password'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'abbcdef' ,
+                    'DNToModify'             : 'uid=trigden, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'abbbcdef' ,
+                    'changetype'             : 'replace'  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Repeat Chars: user binding with new password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'abbbcdef' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base'  }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+        <testcase name="'Security: Pwd Validator: Repeat Chars: reset maximum length'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Validator: Repeat Chars: change unique chars'
+            </message>
+            
+            <call function="'modifyPwdValidator'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Repeated Characters' ,
+                    'attributeName'          : 'maximum-consecutive-length' ,
+                    'attributeValue'         : '2' ,
+                    'modifyType'             : 'set' }
+            </call>
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+       
+        <testcase name="'Security: Pwd Validator: Repeat Chars: enable case sensitive chars'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Validator: Repeat Chars: enable case sensitive chars'
+            </message>
+            
+            <call function="'modifyPwdValidator'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Repeated Characters' ,
+                    'attributeName'          : 'case-sensitive-validation' ,
+                    'attributeValue'         : 'true' ,
+                    'modifyType'             : 'set' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+       
+        <testcase name="'Security: Pwd Validator: Repeat Chars: password with 3 repeat chars 3'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Repeat Chars: user modifying password'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'abbbcdef' ,
+                    'DNToModify'             : 'uid=trigden, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'abcccdef' ,
+                    'changetype'             : 'replace' , 
+                    'expectedRC'             : 53  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Repeat Chars: user binding with new password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'abcccdef' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base', 
+                'expectedRC'       : 49 }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+        <testcase name="'Security: Pwd Validator: Repeat Chars: password with 3 case sensitive repeat chars'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Repeat Chars: user modifying password'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'abbbcdef' ,
+                    'DNToModify'             : 'uid=trigden, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'abcCcdef' ,
+                    'changetype'             : 'replace' }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Repeat Chars: user binding with new password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'abcCcdef' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base'  }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+        <testcase name="'Security: Pwd Validator: Repeat Chars: Postamble'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Validator: Repeat Chars: Postamble Step 1. Admin Resetting Maximum Pwd Length'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'password-validator-dn' ,
+                    'attributeValue'         : 'cn=Repeated Characters,cn=Password Validators,cn=config' ,
+                    'modifyType'             : 'remove' }
+            </call>
+            
+            <!--- User Change Password -->
+            <message>
+               'Security: Pwd Validator: Repeat Chars: Postamble Step 2. User Changing Password'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'abcCcdef' ,
+                    'DNToModify'             : 'uid=trigden, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'abbbcde' ,
+                    'changetype'             : 'replace' }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Unique Chars: Postamble Step 3. User Searching With Password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'abbbcde' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+     </sequence>
+
+  </function>
+
+</stax>

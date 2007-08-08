@@ -475,6 +475,122 @@
     
   </function>
 
+  <!-- Modify password validator using dsconfig -->
+  <function name="modifyPwdValidator">
+    <function-prolog>
+      This function modifies a password validator using dsconfig
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+		<function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+		
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>		  
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+		
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+		
+      <function-arg-def name="propertyName" type="required">
+        <function-arg-description>
+          Property to modify, e.g. enabled
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+			
+      <function-arg-def name="attributeName" type="required">
+        <function-arg-description>
+          Attribute to modify, e.g. match-attribute
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+			
+      <function-arg-def name="attributeValue" type="optional" default="'none'">
+        <function-arg-description>
+          New attribute value
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+			
+      <function-arg-def name="modifyType" type="optional" default="'set'">
+        <function-arg-description>
+          The modify type. Default value is set.
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>			
+			
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>			
+	
+    </function-map-args>
+    <sequence>
+    
+    <call function="'dsconfigSet'">
+      { 'location'               : '%s' % location ,
+        'dsPath'                 : '%s' % dsPath ,
+        'dsInstanceHost'         : '%s' % dsInstanceHost ,
+        'dsInstancePort'         : '%s' % dsInstancePort ,
+        'dsInstanceDn'           : '%s' % dsInstanceDn ,
+        'dsInstancePswd'         : '%s' % dsInstancePswd ,
+        'objectName'             : 'password-validator' ,
+        'propertyType'           : 'validator' ,
+        'propertyName'           : '%s' % (propertyName) ,
+        'attributeName'          : '%s' % (attributeName) ,
+        'attributeValue'         : '%s' % (attributeValue) ,
+        'modifyType'             : '%s' % (modifyType) ,
+        'expectedRC'             : expectedRC }
+    </call>
+        
+    <call function="'checktestRC'">
+      { 'returncode' : STAXCode ,
+        'result'     : STAXReason ,
+        'expected'   : expectedRC }
+    </call>
+
+    <return>
+        STAXReason
+    </return>
+      
+   </sequence>
+    
+  </function>
+
   <!-- Modify password policy using dsconfig -->
   <function name="modifyGlobal">
     <function-prolog>

@@ -61,6 +61,34 @@
         <call function="'pwd_length'" />
 
         <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          file="'%s/testcases/security/pwd_validator/security_attribute_value.xml' % (TESTS_DIR)"/>
+        <call function="'attribute_value'" />
+
+        <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          file="'%s/testcases/security/pwd_validator/security_character_set.xml' % (TESTS_DIR)"/>
+        <call function="'character_set'" />
+
+        <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          file="'%s/testcases/security/pwd_validator/security_history_based.xml' % (TESTS_DIR)"/>
+        <call function="'history_based'" />
+        <!--
+        <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          file="'%s/testcases/security/pwd_validator/security_similarity_based.xml' % (TESTS_DIR)"/>
+        <call function="'similarity_based'" />
+        -->
+        <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          file="'%s/testcases/security/pwd_validator/security_dictionary.xml' % (TESTS_DIR)"/>
+        <call function="'dictionary'" />
+
+        <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          file="'%s/testcases/security/pwd_validator/security_unique_chars.xml' % (TESTS_DIR)"/>
+        <call function="'unique_chars'" />
+
+        <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          file="'%s/testcases/security/pwd_validator/security_repeat_chars.xml' % (TESTS_DIR)"/>
+        <call function="'repeat_chars'" />
+
+        <import machine="'%s' % STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_validator/security_skip_val_for_admins.xml' % (TESTS_DIR)"/>
         <call function="'skip_val_for_admins'" />
 

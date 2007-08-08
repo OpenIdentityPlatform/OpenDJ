@@ -1,0 +1,469 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="history_based"/>
+
+  <function name="history_based">
+
+      <sequence>
+
+        <testcase name="'Security: Pwd Validator: History Based: Preamble'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: History Based: Preamble - Admin Enabling Validator'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'password-history-count' ,
+                    'attributeValue'         : '3' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <testcase name="'Security: Pwd Validator: History Based: user modifying password 1'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: History Based: user modifying password 1'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'sprain' ,
+                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'sprainone' ,
+                    'changetype'             : 'replace'  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: History Based: user modifying password back to old password'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'sprainone' ,
+                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'sprain' ,
+                    'changetype'             : 'replace'  ,
+                    'expectedRC'             : 53 }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: History Based: user binding with password 1'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'sprainone' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+        <testcase name="'Security: Pwd Validator: History Based: user modifying password 2'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: History Based: user modifying password 2'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'sprainone' ,
+                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'spraintwo' ,
+                    'changetype'             : 'replace'  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: History Based: user modifying password back to old passwords'
+            </message>
+
+            <script>
+                modify_pwds = ['sprain', 'sprainone']
+            </script>
+            
+            <iterate var="pwds" in="modify_pwds" indexvar="index">
+              <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'spraintwo' ,
+                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : '%s' % pwds ,
+                    'changetype'             : 'replace'  ,
+                    'expectedRC'             : 53 }
+              </call>
+            </iterate>
+            
+            <message>
+               'Security: Pwd Validator: History Based: user binding with password 2'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'spraintwo' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+        <testcase name="'Security: Pwd Validator: History Based: user modifying password 3'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: History Based: user modifying password 3'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'spraintwo' ,
+                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'sprainthree' ,
+                    'changetype'             : 'replace'  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: History Based: user modifying password back to old passwords'
+            </message>
+
+            <script>
+                modify_pwds = ['sprain', 'sprainone', 'spraintwo']
+            </script>
+            
+            <iterate var="pwds" in="modify_pwds" indexvar="index">
+              <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'sprainthree' ,
+                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : '%s' % pwds ,
+                    'changetype'             : 'replace'  ,
+                    'expectedRC'             : 53 }
+              </call>
+            </iterate>
+            
+            <message>
+               'Security: Pwd Validator: History Based: user binding with password 3'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'sprainthree' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+        <testcase name="'Security: Pwd Validator: History Based: user modifying password 4'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: History Based: user modifying password 4'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'sprainthree' ,
+                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'sprainfour' ,
+                    'changetype'             : 'replace'  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: History Based: user modifying password back to old passwords'
+            </message>
+
+            <script>
+                modify_pwds = ['sprainone', 'spraintwo', 'sprainthree']
+            </script>
+            
+            <iterate var="pwds" in="modify_pwds" indexvar="index">
+              <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'sprainfour' ,
+                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : '%s' % pwds ,
+                    'changetype'             : 'replace'  ,
+                    'expectedRC'             : 53 }
+              </call>
+            </iterate>
+            
+            <message>
+               'Security: Pwd Validator: History Based: user modifying password to original one'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'sprainfour' ,
+                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'sprain' ,
+                    'changetype'             : 'replace'  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: History Based: user binding with original password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'sprain' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+        <testcase name="'Security: Pwd Validator: History Based: Modify password history duration'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: History Based: Admin modifying password history duration'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'password-history-duration' ,
+                    'attributeValue'         : '10 s' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <testcase name="'Security: Pwd Validator: History Based: user modifying password after duration'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: History Based:  - Sleeping'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds' : '15000' }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: History Based: user modifying password after duration'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'sprain' ,
+                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'sprainone' ,
+                    'changetype'             : 'replace'  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: History Based: user binding with password after duration'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'sprainone' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+        <testcase name="'Security: Pwd Validator: History Based: Postamble'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Validator: History Based: Postamble Step 1. Admin resetting password history duration'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'password-history-duration' ,
+                    'attributeValue'         : '0 d' }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: History Based: Postamble Step 2. Admin resetting password history count'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'password-history-count' ,
+                    'attributeValue'         : '0' }
+            </call>
+            
+            <!--- User Change Password -->
+            <message>
+               'Security: Pwd Validator: History Based: Postamble Step 3. user modifying password back to old passwords'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'sprainone' ,
+                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'spraintwo' ,
+                    'changetype'             : 'replace'   }
+            </call>
+            
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'spraintwo' ,
+                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'sprainthree' ,
+                    'changetype'             : 'replace'   }
+            </call>
+            
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'sprainthree' ,
+                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'sprain' ,
+                    'changetype'             : 'replace'   }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: History Based: Postamble Step 4. User Searching With Password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'sprain' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+     </sequence>
+
+  </function>
+
+</stax>
