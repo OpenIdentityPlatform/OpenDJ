@@ -30,6 +30,7 @@ package org.opends.server.extensions;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.api.Group;
@@ -305,9 +306,14 @@ public class VirtualStaticGroup
    * {@inheritDoc}
    */
   @Override()
-  public boolean isMember(DN userDN)
+  public boolean isMember(DN userDN, Set<DN> examinedGroups)
          throws DirectoryException
   {
+    if (! examinedGroups.add(getGroupDN()))
+    {
+      return false;
+    }
+
     Group targetGroup =
          DirectoryServer.getGroupManager().getGroupInstance(targetGroupDN);
     if (targetGroup == null)
@@ -338,9 +344,14 @@ public class VirtualStaticGroup
    * {@inheritDoc}
    */
   @Override()
-  public boolean isMember(Entry userEntry)
+  public boolean isMember(Entry userEntry, Set<DN> examinedGroups)
          throws DirectoryException
   {
+    if (! examinedGroups.add(getGroupDN()))
+    {
+      return false;
+    }
+
     Group targetGroup =
          DirectoryServer.getGroupManager().getGroupInstance(targetGroupDN);
     if (targetGroup == null)
