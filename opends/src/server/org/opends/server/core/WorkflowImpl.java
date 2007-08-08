@@ -27,8 +27,16 @@
 package org.opends.server.core;
 
 
+import static org.opends.server.messages.CoreMessages.*;
+import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.server.util.Validator.ensureNotNull;
+
+import java.util.TreeMap;
+
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Operation;
+import org.opends.server.types.ResultCode;
 import org.opends.server.workflowelement.WorkflowElement;
 
 
@@ -43,6 +51,8 @@ import org.opends.server.workflowelement.WorkflowElement;
  */
 public class WorkflowImpl implements Workflow
 {
+  // The workflow identifier used by the configuration.
+  private String workflowID = null;
 
   // The root of the workflow task tree.
   private WorkflowElement rootWorkflowElement = null;
@@ -63,6 +73,13 @@ public class WorkflowImpl implements Workflow
   // flag will always return false.
   private boolean isPrivate = false;
 
+  // The set of workflows registered with the server.
+  private static TreeMap<String, Workflow> registeredWorkflows =
+    new TreeMap<String, Workflow>();
+
+  // A lock to protect concurrent access to the registeredWorkflows.
+  private static Object registeredWorkflowsLock = new Object();
+
 
   /**
    * Creates a new instance of a workflow implementation. To define a worfklow
@@ -71,14 +88,17 @@ public class WorkflowImpl implements Workflow
    *
    * The rootWorkflowElement must not be null.
    *
+   * @param workflowId          workflow internal identifier
    * @param baseDN              identifies the data handled by the workflow
    * @param rootWorkflowElement the root node of the workflow task tree
    */
   public WorkflowImpl(
+      String          workflowId,
       DN              baseDN,
       WorkflowElement rootWorkflowElement
       )
   {
+    this.workflowID = workflowId;
     this.baseDN = baseDN;
     this.rootWorkflowElement = rootWorkflowElement;
     if (this.rootWorkflowElement != null)
@@ -96,6 +116,17 @@ public class WorkflowImpl implements Workflow
   public DN getBaseDN()
   {
     return baseDN;
+  }
+
+
+  /**
+   * Gets the workflow internal identifier.
+   *
+   * @return the workflow internal indentifier
+   */
+  public String getWorkflowId()
+  {
+    return workflowID;
   }
 
 
@@ -123,5 +154,80 @@ public class WorkflowImpl implements Workflow
       )
   {
     rootWorkflowElement.execute(operation);
+  }
+
+
+  /**
+   * Registers the current worklow (this) with the server.
+   *
+   * @throws  DirectoryException  If the workflow ID for the provided workflow
+   *                              conflicts with the workflow ID of an existing
+   *                              workflow.
+   */
+  public void register()
+      throws DirectoryException
+  {
+    ensureNotNull(workflowID);
+
+    synchronized (registeredWorkflowsLock)
+    {
+      // The workflow must not be already registered
+      if (registeredWorkflows.containsKey(workflowID))
+      {
+        int msgID = MSGID_REGISTER_WORKFLOW_ALREADY_EXISTS;
+        String message = getMessage(msgID, workflowID);
+        throw new DirectoryException(
+            ResultCode.UNWILLING_TO_PERFORM, message, msgID);
+      }
+
+      TreeMap<String, Workflow> newRegisteredWorkflows =
+        new TreeMap<String, Workflow>(registeredWorkflows);
+      newRegisteredWorkflows.put(workflowID, this);
+      registeredWorkflows = newRegisteredWorkflows;
+    }
+  }
+
+
+  /**
+   * Deregisters the current worklow (this) with the server.
+   */
+  public void deregister()
+  {
+    ensureNotNull(workflowID);
+
+    synchronized (registeredWorkflowsLock)
+    {
+      TreeMap<String, Workflow> newWorkflows =
+        new TreeMap<String, Workflow>(registeredWorkflows);
+      newWorkflows.remove(workflowID);
+      registeredWorkflows = newWorkflows;
+    }
+  }
+
+
+  /**
+   * Deregisters a worklow with the server. The workflow to deregister
+   * is identified with its identifier.
+   *
+   * @param workflowID  the identifier of the workflow to deregister
+   *
+   * @return the workflow that has been deregistered,
+   *         <code>null</code> if no workflow has been found.
+   */
+  public WorkflowImpl deregister(String workflowID)
+  {
+    WorkflowImpl workflowToDeregister = null;
+
+    synchronized (registeredWorkflowsLock)
+    {
+      if (registeredWorkflows.containsKey(workflowID))
+      {
+        workflowToDeregister =
+          (WorkflowImpl) registeredWorkflows.get(workflowID);
+        workflowToDeregister.deregister();
+      }
+    }
+
+    return workflowToDeregister;
   }
 }

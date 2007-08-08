@@ -6352,6 +6352,37 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if an attempt is made to
+   * register a workflow with an ID that is already registered with the server.
+   * This takes a single argument, which is the conflicting workflow ID.
+   */
+  public static final int MSGID_REGISTER_WORKFLOW_ALREADY_EXISTS =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 635;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * register a workflow node with an ID that is already registered with a
+   * network group.  This takes two arguments, which are the conflicting
+   * workflow ID and the network group ID.
+   */
+  public static final int MSGID_REGISTER_WORKFLOW_NODE_ALREADY_EXISTS =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 636;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * register a network group with an ID that is already registered.  This
+   * takes a single argument, which is the conflicting network group ID.
+   */
+  public static final int MSGID_REGISTER_NETWORK_GROUP_ALREADY_EXISTS =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 637;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -8655,6 +8686,18 @@ public class CoreMessages
     registerMessage(MSGID_IDLETIME_UNEXPECTED_ERROR,
                     "An unexpected error occurred in the idle time limit " +
                     "thread:  %s");
+    registerMessage(MSGID_REGISTER_WORKFLOW_ALREADY_EXISTS,
+                    "Unable to register workflow %s with the Directory " +
+                    "Server because another workflow with the same " +
+                    "workflow ID is already registered");
+    registerMessage(MSGID_REGISTER_WORKFLOW_NODE_ALREADY_EXISTS,
+                    "Unable to register workflow node %s with the network " +
+                    "group %s because another workflow node with the same " +
+                    "workflow node ID is already registered");
+    registerMessage(MSGID_REGISTER_NETWORK_GROUP_ALREADY_EXISTS,
+                    "Unable to register network group %s with the Directory " +
+                    "Server because another network group with the same " +
+                    "network group ID is already registered");
   }
 }
 

@@ -27,8 +27,10 @@
 package org.opends.server.core;
 
 
+import static org.opends.server.messages.CoreMessages.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertNotNull;
 
 import java.util.ArrayList;
 
@@ -428,7 +430,7 @@ public class WorkflowTopologyTest extends UtilTestCase
    * @param dummyDN        a DN not registered in any workflow
    */
   @Test (dataProvider = "DNSet_1", groups = "virtual")
-  public void createWorkflow_basic (
+  public void createWorkflow_basic(
       DN baseDN,
       DN subordinateDN,
       DN dummyDN
@@ -436,30 +438,32 @@ public class WorkflowTopologyTest extends UtilTestCase
   {
     // create a DIT set with the baseDN (no workflow element in the DIT).
     WorkflowElement nullWE = null;
-    WorkflowImpl realWorkflow = new WorkflowImpl (baseDN, nullWE);
+    WorkflowImpl workflow =
+      new WorkflowImpl (baseDN.toString(), baseDN, nullWE);
 
     // Create a worflow with the dit, no pre/post-workflow element.
-    WorkflowTopologyNode workflow = new WorkflowTopologyNode (realWorkflow, null, null);
+    WorkflowTopologyNode workflowNode =
+      new WorkflowTopologyNode (workflow, null, null);
 
     // The base DN in the workflow should match baseDN parameter
-    DN workflowBaseDN = workflow.getBaseDN();
+    DN workflowBaseDN = workflowNode.getBaseDN();
     assertEquals (workflowBaseDN, baseDN);
 
     // There should be no parent workflow.
-    WorkflowTopologyNode parent = workflow.getParent();
+    WorkflowTopologyNode parent = workflowNode.getParent();
     assertEquals (parent, null);
 
     // The workflow should handle the baseDN and subordinateDN.
     DN readBaseDN = null;
-    readBaseDN = workflow.getParentBaseDN (baseDN);
+    readBaseDN = workflowNode.getParentBaseDN (baseDN);
     assertEquals (readBaseDN, baseDN);
-    readBaseDN = workflow.getParentBaseDN (subordinateDN);
+    readBaseDN = workflowNode.getParentBaseDN (subordinateDN);
     assertEquals (readBaseDN, baseDN);
 
     // The workflow should not handle the dummyDN.
     if (dummyDN != null)
     {
-      readBaseDN = workflow.getParentBaseDN (dummyDN);
+      readBaseDN = workflowNode.getParentBaseDN (dummyDN);
       assertNull (readBaseDN);
     }
 
@@ -498,11 +502,11 @@ public class WorkflowTopologyTest extends UtilTestCase
     WorkflowImpl unrelatedWorkflow = null;
     {
       WorkflowElement nullWE = null;
-      workflow    = new WorkflowImpl (baseDN, nullWE);
-      subWorkflow = new WorkflowImpl (subordinateDN, nullWE);
+      workflow = new WorkflowImpl (baseDN.toString(), baseDN, nullWE);
+      subWorkflow = new WorkflowImpl (subordinateDN.toString(), subordinateDN, nullWE);
       if (unrelatedDN != null)
       {
-        unrelatedWorkflow = new WorkflowImpl (unrelatedDN, nullWE);
+        unrelatedWorkflow = new WorkflowImpl (unrelatedDN.toString(), unrelatedDN, nullWE);
       }
     }
 
@@ -643,9 +647,9 @@ public class WorkflowTopologyTest extends UtilTestCase
       WorkflowImpl workflow3;
       {
         WorkflowElement nullWE = null;
-        workflow1 = new WorkflowImpl (baseDN1, nullWE);
-        workflow2 = new WorkflowImpl (baseDN2, nullWE);
-        workflow3 = new WorkflowImpl(baseDN3, nullWE);
+        workflow1 = new WorkflowImpl (baseDN1.toString(), baseDN1, nullWE);
+        workflow2 = new WorkflowImpl (baseDN2.toString(), baseDN2, nullWE);
+        workflow3 = new WorkflowImpl (baseDN3.toString(), baseDN3, nullWE);
       }
 
       w1 = new WorkflowTopologyNode (workflow1, null, null);
@@ -803,7 +807,7 @@ public class WorkflowTopologyTest extends UtilTestCase
    * @param unrelatedDN     a DN not registered in any workflow
    */
   @Test (dataProvider = "DNSet_3", groups = "virtual")
-  public void createWorkflow_complexTopology1 (
+  public void createWorkflow_complexTopology1(
       DN baseDN1,
       DN baseDN2,
       DN baseDN3,
@@ -825,9 +829,9 @@ public class WorkflowTopologyTest extends UtilTestCase
       {
         WorkflowElement nullWE = null;
 
-        workflow1 = new WorkflowImpl (baseDN1, nullWE);
-        workflow2 = new WorkflowImpl (baseDN2, nullWE);
-        workflow3 = new WorkflowImpl (baseDN3, nullWE);
+        workflow1 = new WorkflowImpl (baseDN1.toString(), baseDN1, nullWE);
+        workflow2 = new WorkflowImpl (baseDN2.toString(), baseDN2, nullWE);
+        workflow3 = new WorkflowImpl (baseDN3.toString(), baseDN3, nullWE);
       }
 
       w1 = new WorkflowTopologyNode (workflow1, null, null);
@@ -934,5 +938,42 @@ public class WorkflowTopologyTest extends UtilTestCase
         receivedResultCode, new StringBuilder("")
         );
     assertEquals (globalResultCode.resultCode(), expectedGlobalResultCode);
+  }
+
+
+  /**
+   * Tests the workflow registration.
+   */
+  @Test (dataProvider = "DNSet_1", groups = "virtual")
+  public void testWorkflowRegistration(
+      DN baseDN,
+      DN subordinateDN,
+      DN dummyDN
+      )
+      throws DirectoryException
+  {
+    WorkflowElement nullWE = null;
+
+    // Create a workflow to handle the baseDN with no workflow element
+    WorkflowImpl workflow = new WorkflowImpl(
+        baseDN.toString(), baseDN, nullWE);
+    
+    // Register the workflow with the server. Don't catch the
+    // DirectoryException that could be thrown by the register() method.
+    workflow.register();
+    
+    // Register the same workflow twice and catch the expected
+    // DirectoryException.
+    boolean exceptionRaised = false;
+    try
+    {
+      workflow.register();
+    }
+    catch (DirectoryException e)
+    {
+      exceptionRaised = true;
+      assertEquals(e.getMessageID(), MSGID_REGISTER_WORKFLOW_ALREADY_EXISTS);
+    }
+    assertEquals(exceptionRaised, true);
   }
 }

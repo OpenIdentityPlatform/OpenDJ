@@ -27,6 +27,7 @@
 package org.opends.server.core;
 
 
+import static org.opends.server.messages.CoreMessages.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
@@ -41,10 +42,10 @@ import org.testng.annotations.Test;
 
 
 /**
- * This set of tests checks that network groups are properly created.
+ * This set of tests test the network groups.
  */
 public class NetworkGroupTest
-{
+{  
   //===========================================================================
   //
   //                      B E F O R E    C L A S S
@@ -70,6 +71,53 @@ public class NetworkGroupTest
   //                      D A T A    P R O V I D E R
   //
   //===========================================================================
+
+  /**
+   * Provides information to create a network group with one workflow inside.
+   *
+   * Each set of DNs contains:
+   * - one network group identifier
+   * - one base DN for the workflow to register with the network group
+
+   */
+  @DataProvider (name = "DNSet_0")
+  public Object[][] initDNSet_0()
+    throws Exception
+  {
+    // Network group ID
+    String networkGroupID1 = "networkGroup1";
+    String networkGroupID2 = "networkGroup2";
+
+    // Workflow base DNs
+    DN dn1 = null;
+    DN dn2 = null;
+    try
+    {
+      dn1 = DN.decode("o=test1");
+      dn2 = DN.decode("o=test2");
+    }
+    catch (DirectoryException de)
+    {
+      throw de;
+    }
+
+    // Network group info
+    Object[][] myData =
+    {
+        // Test1: create a network group with the identifier networkGroupID1
+        { networkGroupID1, dn1 },
+
+        // Test2: create the same network group to check that previous
+        // network group was properly cleaned.
+        { networkGroupID1, dn1 },
+
+        // Test3: create another network group
+        { networkGroupID2, dn2 },
+    };
+
+    return myData;
+  }
+
 
   /**
    * Provides a single DN to search a workflow in a network group.
@@ -137,8 +185,10 @@ public class NetworkGroupTest
     return myData;
   }
 
+
   /**
-   * Provides information to create a network group.
+   * Provides information to create a network group to test the routing
+   * process.
    *
    * Each set of DNs contains:
    * - one base DN for the 1st workflow
@@ -223,11 +273,76 @@ public class NetworkGroupTest
   //
   //===========================================================================
 
+  
   /**
-   * Gets a workflow candidate in the default network group.
+   * Tests the network group registration.
+   * 
+   * @param networkGroupID   the ID of the network group to register
+   * @param workflowBaseDN1  the base DN of the first workflow node to register
+   *                         in the network group
+   */
+  @Test (dataProvider = "DNSet_0", groups = "virtual")
+  public void testNetworkGroupRegistration(
+      String networkGroupID,
+      DN     workflowBaseDN
+      )
+      throws DirectoryException
+  {
+    // Create and register the network group with the server.
+    NetworkGroup networkGroup = new NetworkGroup(networkGroupID);
+    networkGroup.register();
+    
+    // Register again the network group with the server and catch the
+    // expected DirectoryServer exception.
+    boolean exceptionRaised = false;
+    try
+    {
+      networkGroup.register();
+    }
+    catch (DirectoryException de)
+    {
+      exceptionRaised = true;
+      assertEquals(
+          de.getMessageID(), MSGID_REGISTER_NETWORK_GROUP_ALREADY_EXISTS);
+    }
+    assertEquals(exceptionRaised, true);
+
+    // Create a workflow -- the workflow ID is the string representation
+    // of the workflow base DN.
+    WorkflowElement nullWE = null;
+    WorkflowImpl workflow = new WorkflowImpl(
+        workflowBaseDN.toString(), workflowBaseDN, nullWE);
+    
+    // Register the workflow with the network group.
+    networkGroup.registerWorkflow(workflow);
+    
+    // Register again the workflow with the network group and catch the
+    // expected DirectoryServer exception.
+    exceptionRaised = false;
+    try
+    {
+      networkGroup.registerWorkflow(workflow);
+    }
+    catch (DirectoryException de)
+    {
+      exceptionRaised = true;
+      assertEquals(
+          de.getMessageID(), MSGID_REGISTER_WORKFLOW_NODE_ALREADY_EXISTS);
+    }
+    assertEquals(exceptionRaised, true);
+    
+    // Clean the network group
+    networkGroup.deregisterWorkflow(workflow.getWorkflowId());
+    networkGroup.deregister();
+  }
+
+
+  /**
+   * Check the route process in the default network group.
    *
-   *  @param dnToSearch     the DN of a workflow in the default network group
-   *  @param dnSubordinate  a subordinate of dnToSearch
+   *  @param dnToSearch     the DN of a workflow to search in the default
+   *                        network group
+   *  @param dnSubordinate  a subordinate DN of dnToSearch
    *  @param exists         true if we are supposed to find a workflow for
    *                        dnToSearch
    */
@@ -238,16 +353,121 @@ public class NetworkGroupTest
       boolean exists
       )
   {
-    // let's get the default network group (it should always exist)
+    // let's get the default network group -- it should always exist
     NetworkGroup defaultNG = NetworkGroup.getDefaultNetworkGroup();
     assertNotNull(defaultNG);
 
     // let's check the routing through the network group
-    doCheckNetworkGroup(defaultNG, dnToSearch, dnSubordinate, exists);
+    doCheckNetworkGroup(defaultNG, dnToSearch, dnSubordinate, null, exists);
 
-    // Dump info
-    StringBuffer sb = defaultNG.toString("defaultNetworkGroup> ");
-    writeln(sb.toString());
+    // Dump the default network group
+    dump(defaultNG, "defaultNetworkGroup> ");
+  }
+
+
+  /**
+   * Creates a network group with several workflows inside and do some check
+   * on the route processing.
+   *
+   * @param dn1           the DN for the 1st workflow
+   * @param dn2           the DN for the 2nd workflow
+   * @param dn3           the DN for the 3rd workflow
+   * @param subordinate1  the subordinate DN for the 1st workflow
+   * @param subordinate2  the subordinate DN for the 2nd workflow
+   * @param subordinate3  the subordinate DN for the 3rd workflow
+   * @param unrelatedDN   a DN with no hierarchical relationship with
+   *                      any of the DNs above
+   *
+   * @throws  DirectoryException  If the network group ID for a provided
+   *                              network group conflicts with the network
+   *                              group ID of an existing network group.
+   */
+  @Test (dataProvider = "DNSet_2", groups = "virtual")
+  public void createNetworkGroup(
+      DN dn1,
+      DN dn2,
+      DN dn3,
+      DN subordinate1,
+      DN subordinate2,
+      DN subordinate3,
+      DN unrelatedDN
+      ) throws DirectoryException
+  {
+    // The network group identifier is always the same for this test.
+    String networkGroupID = "Network Group for test2";
+
+    // Create the network group
+    NetworkGroup networkGroup = new NetworkGroup(networkGroupID);
+    assertNotNull(networkGroup);
+
+    // Register the network group with the server
+    networkGroup.register();
+
+    // Create and register workflow 1, 2 and 3
+    createAndRegisterWorkflow(networkGroup, dn1);
+    createAndRegisterWorkflow(networkGroup, dn2);
+    createAndRegisterWorkflow(networkGroup, dn3);
+
+    // Check the route thorugh the network group
+    doCheckNetworkGroup(networkGroup, dn1, subordinate1, unrelatedDN, true);
+    doCheckNetworkGroup(networkGroup, dn2, subordinate2, unrelatedDN, true);
+    doCheckNetworkGroup(networkGroup, dn3, subordinate3, unrelatedDN, true);
+
+    // Deregister the workflow1 and check the route again.
+    // Workflow to deregister is identified by its baseDN.
+    networkGroup.deregisterWorkflow(dn1);
+    doCheckNetworkGroup(networkGroup, dn1, subordinate1, unrelatedDN, false);
+    doCheckNetworkGroup(networkGroup, dn2, subordinate2, unrelatedDN, true);
+    doCheckNetworkGroup(networkGroup, dn3, subordinate3, unrelatedDN, true);
+
+    // Deregister the workflow2 and check the route again
+    networkGroup.deregisterWorkflow(dn2);
+    doCheckNetworkGroup(networkGroup, dn1, subordinate1, unrelatedDN, false);
+    doCheckNetworkGroup(networkGroup, dn2, subordinate2, unrelatedDN, false);
+    doCheckNetworkGroup(networkGroup, dn3, subordinate3, unrelatedDN, true);
+
+    // Deregister the workflow3 and check the route again
+    networkGroup.deregisterWorkflow(dn3);
+    doCheckNetworkGroup(networkGroup, dn1, subordinate1, unrelatedDN, false);
+    doCheckNetworkGroup(networkGroup, dn2, subordinate2, unrelatedDN, false);
+    doCheckNetworkGroup(networkGroup, dn3, subordinate3, unrelatedDN, false);
+
+    // Now create again the workflow 1, 2 and 3...
+    WorkflowImpl w1;
+    WorkflowImpl w2;
+    WorkflowImpl w3;
+    w1 = createAndRegisterWorkflow(networkGroup, dn1);
+    w2 = createAndRegisterWorkflow(networkGroup, dn2);
+    w3 = createAndRegisterWorkflow(networkGroup, dn3);
+
+    // ... and deregister the workflows using their workflowID
+    // instead of their baseDN
+    if (w1 != null)
+    {
+      networkGroup.deregisterWorkflow(w1.getWorkflowId());
+      doCheckNetworkGroup(networkGroup, dn1, subordinate1, unrelatedDN, false);
+      doCheckNetworkGroup(networkGroup, dn2, subordinate2, unrelatedDN, true);
+      doCheckNetworkGroup(networkGroup, dn3, subordinate3, unrelatedDN, true);
+    }
+    
+    if (w2 != null)
+    {
+      networkGroup.deregisterWorkflow(w2.getWorkflowId());
+      doCheckNetworkGroup(networkGroup, dn1, subordinate1, unrelatedDN, false);
+      doCheckNetworkGroup(networkGroup, dn2, subordinate2, unrelatedDN, false);
+      doCheckNetworkGroup(networkGroup, dn3, subordinate3, unrelatedDN, true);
+    }
+    
+    if (w3 != null)
+    {
+      networkGroup.deregisterWorkflow(w3.getWorkflowId());
+      doCheckNetworkGroup(networkGroup, dn1, subordinate1, unrelatedDN, false);
+      doCheckNetworkGroup(networkGroup, dn2, subordinate2, unrelatedDN, false);
+      doCheckNetworkGroup(networkGroup, dn3, subordinate3, unrelatedDN, false);
+    }
+    
+    // Deregister the network group
+    networkGroup.deregister();
   }
 
 
@@ -255,8 +475,11 @@ public class NetworkGroupTest
    * Checks the DN routing through a network group.
    *
    * @param networkGroup    the network group to use for the check
-   * @param dnToSearch      the DN of a workflow in the network group
+   * @param dnToSearch      the DN of a workflow in the network group; may
+   *                        be null
    * @param dnSubordinate   a subordinate of dnToSearch
+   * @param unrelatedDN     a DN with no hierarchical relationship with
+   *                        any of the DNs above, may be null
    * @param shouldExist     true if we are supposed to find a workflow for
    *                        dnToSearch
    */
@@ -264,9 +487,15 @@ public class NetworkGroupTest
       NetworkGroup networkGroup,
       DN           dnToSearch,
       DN           dnSubordinate,
+      DN           unrelatedDN,
       boolean      shouldExist
       )
   {
+    if (dnToSearch == null)
+    {
+      return;
+    }
+
     // Let's retrieve the workflow that maps best the dnToSearch
     Workflow workflow = networkGroup.getWorkflowCandidate(dnToSearch);
     if (shouldExist)
@@ -285,82 +514,14 @@ public class NetworkGroupTest
        Workflow workflow2 = networkGroup.getWorkflowCandidate(dnSubordinate);
        assertEquals(workflow2, workflow);
     }
-  }
-
-
-  /**
-   * Creates a network group with several workflows inside. Routing operation
-   * is done through the default root DSE workflow (which is automatically
-   * created by the network group class).
-   *
-   * @param dn1           the DN for the 1st workflow
-   * @param dn2           the DN for the 2nd workflow
-   * @param dn3           the DN for the 3rd workflow
-   * @param subordinate1  the subordinate DN for the 1st workflow
-   * @param subordinate2  the subordinate DN for the 2nd workflow
-   * @param subordinate3  the subordinate DN for the 3rd workflow
-   * @param unrelatedDN   a DN with no hierarchical relationship with
-   *                      any of the DNs above
-   */
-  @Test (dataProvider = "DNSet_2", groups = "virtual")
-  public void createNetworkGroup2(
-      DN dn1,
-      DN dn2,
-      DN dn3,
-      DN subordinate1,
-      DN subordinate2,
-      DN subordinate3,
-      DN unrelatedDN
-      )
-  {
-    String networkGroupName = "Network Group for test2";
-
-    // Create the network group
-    NetworkGroup ng = new NetworkGroup(networkGroupName);
-    assertNotNull(ng);
-
-    // Register the network group
-    NetworkGroup.registerNetworkGroup(ng);
-
-    // Create and register workflow 1
-    if (dn1 != null)
-    {
-      createAndRegisterWorkflow(ng, dn1, subordinate1, unrelatedDN);
-    }
-
-    // Create and register workflow 2
-    if (dn2 != null)
-    {
-      createAndRegisterWorkflow(ng, dn2, subordinate2, unrelatedDN);
-    }
-
-    // Create and register workflow 3
-    if (dn3 != null)
-    {
-      createAndRegisterWorkflow(ng, dn3, subordinate3, unrelatedDN);
-    }
-
-    // Dump info
-    StringBuffer sb = ng.toString("createNetworkGroup2(" + dn1 + ")> ");
-    writeln(sb.toString());
-
-    // Dump info of defaultNetworkGroup
-    StringBuffer sb2 =
-       NetworkGroup.getDefaultNetworkGroup().toString("defaultNetworkGroup> ");
-    writeln(sb2.toString());
     
-    // Deregister the workflow1...
-    deregisterWorkflow(ng, dn1, subordinate1, unrelatedDN);
-    
-    // ... and dump info again
-    sb = ng.toString("DEREGISTER Workflow> ");
-    writeln(sb.toString());
-
-    // dump info of defaultNetworkGroup
-    sb2 = NetworkGroup.getDefaultNetworkGroup().toString(
-        "DEREGISTER defaultNetworkGroup> "
-        );
-    writeln(sb2.toString());
+    // Check that the unrelatedDN is not handled by any workflow
+    if (unrelatedDN != null)
+    {
+      Workflow unrelatedWorkflow =
+        networkGroup.getWorkflowCandidate(unrelatedDN);
+      assertNull(unrelatedWorkflow);
+    }
   }
 
 
@@ -368,81 +529,36 @@ public class NetworkGroupTest
    * Creates a workflow and register it with a network group.
    *
    * @param networkGroup     a network group to register the workflow with
-   * @param workflowBaseDN   the base DN of the workflow to register
-   * @param subordinateDN    subordinate DN of the workflowBaseDN
-   * @param unrelatedDN      a DN with no hierarchical relationship with
-   *                         any of the base DN above
+   * @param workflowBaseDN   the base DN of the workflow to register; may be
+   *                         null
+   * @throws  DirectoryException  If the workflow ID for the provided
+   *                              workflow conflicts with the workflow
+   *                              ID of an existing workflow.
    */
-  private void createAndRegisterWorkflow(
+  private WorkflowImpl createAndRegisterWorkflow(
       NetworkGroup networkGroup,
-      DN           workflowBaseDN,
-      DN           subordinateDN,
-      DN           unrelatedDN
-      )
+      DN           workflowBaseDN
+      ) throws DirectoryException
   {
     assertNotNull(networkGroup);
 
-    // Create and register a workflow (no task in the workflow)
-    WorkflowElement rootWE = null;
-    WorkflowImpl realWorkflow = new WorkflowImpl(workflowBaseDN, rootWE);
-    assertNotNull(realWorkflow);
-
-    // Register the workflow with the network group.
-    networkGroup.registerWorkflow(realWorkflow);
-
-    // Now check that workflow is accessible through the network group
-    Workflow electedWorkflow;
-    electedWorkflow = networkGroup.getWorkflowCandidate(workflowBaseDN);
-    assertEquals(electedWorkflow.getBaseDN(), workflowBaseDN);
-
-    electedWorkflow = networkGroup.getWorkflowCandidate(subordinateDN);
-    assertEquals(electedWorkflow.getBaseDN(), workflowBaseDN);
-
-    // Check that the unrelatedDN is not handled by the workflow
-    Workflow unrelatedWorkflow =
-      networkGroup.getWorkflowCandidate(unrelatedDN);
-    assertNull(unrelatedWorkflow);
-  }
-  
-  
-  /**
-   * Deregisters a workflow with a network group. The workflow to
-   * deregister is identified by its baseDN.
-   *
-   * @param networkGroup     a network group that contains the workflow
-   *                         to deregister
-   * @param workflowBaseDN   the base DN of the workflow to deregister
-   * @param subordinateDN    subordinate DN of the workflowBaseDN
-   * @param unrelatedDN      a DN with no hierarchical relationship with
-   *                         any of the base DN above
-   */
-  private void deregisterWorkflow(
-      NetworkGroup networkGroup,
-      DN           workflowBaseDN,
-      DN           subordinateDN,
-      DN           unrelatedDN
-      )
-  {
-    assertNotNull(networkGroup);
-
-    // get the workflow in the network group
-    Workflow workflow = networkGroup.getWorkflowCandidate(workflowBaseDN);
-    if (workflow == null)
+    if (workflowBaseDN == null)
     {
-      // found no workflow
-      return;
+      return null;
     }
 
-    // Deregister the workflow with the network group
-    networkGroup.deregisterWorkflow(workflow.getBaseDN());
+    // Create a workflow with no task inside. The workflow identifier
+    // is the a string representation of the workflow base DN.
+    WorkflowElement rootWE = null;
+    String workflowId = workflowBaseDN.toString();
+    WorkflowImpl workflow = new WorkflowImpl(
+        workflowId, workflowBaseDN, rootWE);
+    assertNotNull(workflow);
 
-    // Check that the workflow is no more accessible through the network
-    // group
-    Workflow electedWorkflow;
-    electedWorkflow = networkGroup.getWorkflowCandidate(workflowBaseDN);
-    assertNull(electedWorkflow);
-    electedWorkflow = networkGroup.getWorkflowCandidate(subordinateDN);
-    assertNull(electedWorkflow);
+    // Register the workflow with the network group.
+    networkGroup.registerWorkflow(workflow);
+
+    return workflow;
   }
   
   
@@ -451,12 +567,7 @@ public class NetworkGroupTest
    */
   private void write(String msg)
   {
-    boolean dumpInfo = true;
-
-    if (dumpInfo)
-    {
-      System.out.print(msg);
-    }
+    System.out.print(msg);
   }
   
   
@@ -467,4 +578,21 @@ public class NetworkGroupTest
   {
     write(msg + "\n");
   }
+
+  
+  
+  /**
+   * Dump the network group info to the console.
+   */
+  private void dump(NetworkGroup networkGroup, String prompt)
+  {
+    final boolean doDump = false;
+
+    if (doDump)
+    {
+      StringBuffer sb = networkGroup.toString(prompt);
+      writeln(sb.toString());      
+    }
+  }
+
 }

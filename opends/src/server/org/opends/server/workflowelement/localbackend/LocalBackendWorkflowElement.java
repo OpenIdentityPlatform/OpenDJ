@@ -142,12 +142,16 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
   /**
    * Creates a new instance of the local backend workflow element.
    *
+   * @param workflowElementID  the workflow element identifier
    * @param backend  the backend associated to that workflow element
    */
   public LocalBackendWorkflowElement(
+      String  workflowElementID,
       Backend backend
       )
   {
+    super(workflowElementID);
+
     this.backend  = backend;
 
     if (this.backend != null)
