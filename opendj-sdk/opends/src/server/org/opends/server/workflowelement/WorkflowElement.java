@@ -41,6 +41,10 @@ import org.opends.server.types.Operation;
 public abstract class WorkflowElement
 {
 
+  // The workflow element identifier.
+  private String workflowElementID = null;
+
+
   /**
    * Indicates whether the workflow element encapsulates a private
    * local backend.
@@ -50,10 +54,13 @@ public abstract class WorkflowElement
 
   /**
    * Creates a new instance of the workflow element.
+   *
+   * @param workflowElementID  the workflow element identifier as defined
+   *                           in the configuration.
    */
-  public WorkflowElement()
+  public WorkflowElement(String workflowElementID)
   {
-    // No implementation is required.
+    this.workflowElementID = workflowElementID;
   }
 
 
@@ -77,5 +84,16 @@ public abstract class WorkflowElement
   public boolean isPrivate()
   {
     return isPrivate;
+  }
+
+
+  /**
+   * Provides the workflow element identifier.
+   *
+   * @return the worflow element identifier
+   */
+  public String getWorkflowElementID()
+  {
+    return workflowElementID;
   }
 }

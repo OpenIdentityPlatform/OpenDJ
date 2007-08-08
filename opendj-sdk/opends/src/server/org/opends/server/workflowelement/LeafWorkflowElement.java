@@ -36,5 +36,14 @@ package org.opends.server.workflowelement;
 public abstract class LeafWorkflowElement
   extends WorkflowElement
 {
-  // Empty at the moment.
+  /**
+   * Creates a new instance of the leaf workflow element.
+   *
+   * @param workflowElementID  the workflow element identifier as defined
+   *                           in the configuration.
+   */
+  protected LeafWorkflowElement(String workflowElementID)
+  {
+    super(workflowElementID);
+  }
 }

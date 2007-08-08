@@ -2427,21 +2427,26 @@ public class DirectoryServer
    * TODO implement the registration with the appropriate network group.
    *
    * @param backend  the backend handled by the workflow
+   *
+   * @throws  DirectoryException  If the workflow ID for the provided
+   *                              workflow conflicts with the workflow
+   *                              ID of an existing workflow.
    */
   private static void createAndRegisterWorkflows(
       Backend backend
-      )
+      ) throws DirectoryException
   {
     // Create a root workflow element to encapsulate the backend
     LocalBackendWorkflowElement rootWE =
-        new LocalBackendWorkflowElement(backend);
+        new LocalBackendWorkflowElement(backend.getBackendID(), backend);
 
     // Create a worklfow for each baseDN being configured
-    // in the backend and register the workflow with the network groups
+    // in the backend and register the workflow with the network groups.
+    // The workflow identifier is the same as the backend ID.
     for (DN curBaseDN: backend.getBaseDNs())
     {
       WorkflowImpl workflowImpl = new WorkflowImpl(
-          curBaseDN, (WorkflowElement) rootWE);
+          curBaseDN.toString(), curBaseDN, (WorkflowElement) rootWE);
       registerWorkflowInNetworkGroups(workflowImpl);
     }
   }
@@ -2456,10 +2461,15 @@ public class DirectoryServer
    * TODO implement the registration with the appropriate network group.
    *
    * @param workflowImpl  the workflow to register
+   *
+   * @throws  DirectoryException  If the workflow ID for the provided
+   *                              workflow conflicts with the workflow
+   *                              ID of an existing workflow in a
+   *                              network group.
    */
   private static void registerWorkflowInNetworkGroups(
       WorkflowImpl workflowImpl
-      )
+      ) throws DirectoryException
   {
     // Register first the workflow with the default network group
     NetworkGroup defaultNetworkGroup = NetworkGroup.getDefaultNetworkGroup();
@@ -2482,14 +2492,25 @@ public class DirectoryServer
    * For the prototype: there is no configuration for the workflows.
    * So we create one workflow per local backend, and we register it
    * to the pool.
+   *
+   * @throws  ConfigException  If there is a configuration problem with any of
+   *                           the workflows.
    */
   private void createAndRegisterRemainingWorkflows()
+      throws ConfigException
   {
-    // Create a workflow for the cn=config backend
-    createAndRegisterWorkflows (configHandler);
+    try
+    {
+      // Create a workflow for the cn=config backend
+      createAndRegisterWorkflows (configHandler);
 
-    // Create a workflows for the rootDSE backend
-    createAndRegisterWorkflows (rootDSEBackend);
+      // Create a workflows for the rootDSE backend
+      createAndRegisterWorkflows (rootDSEBackend);
+    }
+    catch (DirectoryException de)
+    {
+      throw new ConfigException(de.getMessageID(), de.getErrorMessage());
+    }
   }
 
 
