@@ -434,7 +434,14 @@
     </function-prolog>
     <function-no-args />
     <sequence>
-      <message>''</message>
+      <script>
+        testcaseStartTime=strftime("%Y%m%d@%H:%M:%S",localtime())
+        myLog = open('%s/my.log' % TMPDIR, 'a')
+        myLog.seek(0,2)
+        myLog.write('%s - starting testcase: %s\n' % (testcaseStartTime, STAXCurrentTestcase ) )
+        myLog.close()
+      </script>
+      <message level="'start'">'testcase: %s' % STAXCurrentTestcase</message>
       <message>'****************************************************'</message>
       <message>'*** STARTING TEST CASE %s.' % STAXCurrentTestcase</message>
       <message>'***'</message>
@@ -450,7 +457,7 @@
       <message>'***'</message>
       <message>'*** ENDING TEST CASE %s.' % STAXCurrentTestcase</message>
       <message>'****************************************************'</message>
-      <message>''</message>
+      <message level="'stop'">'testcase: %s' % STAXCurrentTestcase</message>
     </sequence>
   </function>
 
@@ -499,16 +506,98 @@
           numFail=int(STAFResult['numFails'])
         else:
           numFail=int(0)
+
       </script>
              
       <if expr="numFail &gt; 0">
-        <message>'## Test Verdict: FAIL ##'</message>
+        <message level="'status'">'## Test Verdict: FAIL ##'</message>
       <else>
-        <message>'## Test Verdict: PASS ##'</message>
+        <message level="'status'">'## Test Verdict: PASS ##'</message>
       </else>
-      </if>    
-      
+      </if>
       <call function="'testCase_EndBanner'" />
+
+      <script>
+        testcaseEndTime = strftime("%Y%m%d@%H:%M:%S",localtime())
+      </script>
+      <call function="'queryLogs'">
+        { 'location'  : STAXServiceMachine,
+          'logname'   : 'STAX_Job_%s_User' % STAXJobID, 
+          'startfrom' : testcaseStartTime,
+          'endat'     : testcaseEndTime }
+      </call>
+      <script>
+        class Test:
+          def __init__(self, group, suite, fullname, start, stop, failures):
+            self.log=''
+            self.group=group
+            self.suite=suite
+            self.fullname=fullname
+            self.start=start
+            self.stop=stop
+            tmp=fullname.split(":")
+            del tmp[0:2]
+            self.name=''.join(tmp)
+            self.duration = 0
+            if failures == 0:
+              self.result='pass'
+            else:
+              self.result='fail'
+            
+          def toXML(self):
+            xml  = '      &lt;test&gt;\n'
+            xml += '        &lt;name&gt;%s&lt;/name&gt;\n'         % self.name
+            xml += '        &lt;group&gt;%s&lt;/group&gt;\n'       % self.group
+            xml += '        &lt;suite&gt;%s&lt;/suite&gt;\n'       % self.suite
+            xml += '        &lt;start&gt;%s&lt;/start&gt;\n'       % self.start
+            xml += '        &lt;stop&gt;%s&lt;/stop&gt;\n'         % self.stop
+            xml += '        &lt;result&gt;%s&lt;/result&gt;\n'     % self.result
+            xml += '        &lt;duration&gt;%d&lt;/duration&gt;\n' % self.duration
+            xml += '        &lt;log&gt;\n'
+            xml += '%s' % self.log
+            xml += '        &lt;/log&gt;\n'
+            xml += '      &lt;/test&gt;\n'
+            return xml
+            
+          def appendLog(self, log):
+            self.log +='          %s&lt;br /&gt;\n' % log
+            
+          def getName(self):
+            return self.name
+         
+        thisTest = Test(CurrentTestPath['group'],CurrentTestPath['suite'],STAXCurrentTestcase, testcaseStartTime,testcaseEndTime,numFail)
+            
+        doLog = False
+        testlog=open('%s/test.log' % TMPDIR,'a')
+        testlog.seek(0,2)
+
+        # loop through the log lines
+        for element in STAFResult:
+          level=element['level'] 
+          
+          # this test is BEFORE the append so we don't get the
+          # end of testcase banner in the XML but only the relevant data
+          if level == 'Stop':
+            doLog=False
+          
+          # if the current element is actually this test's output then log it
+          if doLog == True:
+            thisTest.appendLog(element['message'])
+            
+          # this test is AFTER the append log so we don't get the
+          # "starting testcase ..." header in the XML
+          if level == 'Start':
+            tmp = element['message'].split(':')
+            # this is a verification that we start logging for the right
+            # test case. this is especially useful for tests that execute
+            # within the same second (that is the resolution of the STAF
+            # log facility)
+            if tmp[3] == thisTest.getName():
+              doLog=True
+
+        testlog.write(thisTest.toXML())
+        testlog.close()
+      </script>
     </sequence>
   </function>
 
@@ -529,6 +618,18 @@
           
         ThisGroupName=CurrentTestPath['group']  
         ThisSuiteName=CurrentTestPath['suite']
+        
+        mylog='::coverage: begin\n'
+        if os.path.exists('%s/classes' % dsPath):
+          mylog+='::coverage: setting %s/%s.coverage to file %s/classes/emma.properties\n' % (TMPDIR,CurrentTestPath['group'],dsPath)
+          coveragefh = open( '%s/classes/emma.properties' % dsPath, 'w' )
+          coveragefh.write( 'coverage.out.file=%s/%s.coverage\n' % (TMPDIR,CurrentTestPath['group']) )
+          coveragefh.close()
+          coveragefh = open( '%s/classes/emma.properties' % dsPath, 'r' )
+          mylog+='::coverage:contents: %s' % coveragefh.read()
+          coveragefh.close()
+          
+
       </script>
 
       <!-- Start time of test suite -->      
@@ -608,7 +709,7 @@
         if not CurrentTestPath.has_key('group'):
           CurrentTestPath['group']='unknown-group'
         
-        ThisGroupName=CurrentTestPath['group']          
+        ThisGroupName=CurrentTestPath['group']
       </script>
       
       <message>'##### %s group preamble #####' % ThisGroupName</message>
@@ -956,4 +1057,66 @@
     </sequence>
   </function>
   
+  <function name="runCommand" >
+    <function-description>
+      A general wrapper to run a command without having to write a dedicated 
+      function for it
+    </function-description>
+    <function-map-args>
+      <function-arg-def name="command" type="required">
+        <function-arg-description>
+          the command to run
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="path" type="optional" default="'%s' % dsPath">
+        <function-arg-description>
+          the path where the command is to be run from
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="argmunents" type="optional" default="''">
+        <function-arg-description>
+          the path where the command is to be found
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="env" 
+                        type="optional" 
+                        default="['PATH=/bin:/usr/bin:%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]">
+        <function-arg-description>
+          the environment variables to set. The default set here should just
+          work for OpenDS commands
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="location" 
+                        type="optional" 
+                        default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Which machine should the command be executed on
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <message>
+        '%s' % command
+      </message>
+            
+      <process name="'run a system command'">
+        <location>'%s' % location</location>
+        <command>'%s' % command</command>
+        <parms>'%s' % arguments</parms>
+        <workdir>'%s' % path</workdir>
+        <envs>
+          '%s' % env
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      <script>
+        STAXResult.replace('EMMA: collecting runtime coverage data ...\n','')
+      </script>
+      <return>
+        [ RC , STAXResult ]
+      </return>
+    </sequence>
+  </function>
 </stax>
