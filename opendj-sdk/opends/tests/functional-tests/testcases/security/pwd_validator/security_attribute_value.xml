@@ -1,0 +1,557 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="attribute_value"/>
+
+  <function name="attribute_value">
+
+      <sequence>
+
+        <testcase name="'Security: Pwd Validator: Attribute Value: Preamble'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: Preamble Step 1. Checking existence of ds-cfg-password-validator-length'
+            </message>
+
+            <call function="'compareEntry'">
+              { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'       : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'   : 'ds-cfg-password-validator-enabled:true',
+                'entryToBeCompared'  : 'cn=Attribute Value,cn=Password Validators,cn=config' }
+            </call>
+
+            <message>
+               'Security: Pwd Validator: Attribute Value: Preamble Step 2. Admin Enabling Validator'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'password-validator-dn' ,
+                    'attributeValue'         : 'cn=Attribute Value,cn=Password Validators,cn=config' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <testcase name="'Security: Pwd Validator: Attribute Value: add attribute sn'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Validator: Attribute Value: add attribute sn'
+            </message>
+            
+            <call function="'modifyPwdValidator'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Attribute Value' ,
+                    'attributeName'          : 'match-attribute' ,
+                    'attributeValue'         : 'sn' ,
+                    'modifyType'             : 'add' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+        <testcase name="'Security: Pwd Validator: Attribute Value: user modifying password to sn'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: user modifying password to sn'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'gosling' ,
+                    'DNToModify'             : 'uid=dmiller, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'Miller' ,
+                    'changetype'             : 'replace' , 
+                    'expectedRC'             : 53  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: user binding with invalid password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'Miller' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base', 
+                'expectedRC'       : 49 }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <testcase name="'Security: Pwd Validator: Attribute Value: user modifying password to lower case sn'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: user modifying password to lower case sn'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'gosling' ,
+                    'DNToModify'             : 'uid=dmiller, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'miller' ,
+                    'changetype'             : 'replace' , 
+                    'expectedRC'             : 53  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: user binding with invalid password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'miller' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base', 
+                'expectedRC'       : 49 }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <testcase name="'Security: Pwd Validator: Attribute Value: user modifying password to upper case sn'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: user modifying password to upper case sn'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'gosling' ,
+                    'DNToModify'             : 'uid=dmiller, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'MILLER' ,
+                    'changetype'             : 'replace' , 
+                    'expectedRC'             : 53  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: user binding with invalid password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'MILLER' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base', 
+                'expectedRC'       : 49 }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <testcase name="'Security: Pwd Validator: Attribute Value: user modifying password to mixed case sn'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: user modifying password to mixed case sn'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'gosling' ,
+                    'DNToModify'             : 'uid=dmiller, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'mIlLeR' ,
+                    'changetype'             : 'replace' , 
+                    'expectedRC'             : 53  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: user binding with invalid password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'mIlLeR' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base', 
+                'expectedRC'       : 49 }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <testcase name="'Security: Pwd Validator: Attribute Value: user modifying password to reversed upper case sn'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: user modifying password to reversed upper case sn'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'gosling' ,
+                    'DNToModify'             : 'uid=dmiller, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'RELLIM' ,
+                    'changetype'             : 'replace' , 
+                    'expectedRC'             : 53  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: user binding with invalid password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'RELLIM' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base', 
+                'expectedRC'       : 49 }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <testcase name="'Security: Pwd Validator: Attribute Value: add attribute roomnumber'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Validator: Attribute Value: add attribute roomnumber'
+            </message>
+            
+            <call function="'modifyPwdValidator'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Attribute Value' ,
+                    'attributeName'          : 'match-attribute' ,
+                    'attributeValue'         : 'roomnumber' ,
+                    'modifyType'             : 'add' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+        <testcase name="'Security: Pwd Validator: Attribute Value: user modifying password to roomnumber'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: user modifying password to roomnumber'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'gosling' ,
+                    'DNToModify'             : 'uid=dmiller, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : '4135' ,
+                    'changetype'             : 'replace' , 
+                    'expectedRC'             : 53  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: user binding with invalid password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'Miller' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base', 
+                'expectedRC'       : 49 }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <testcase name="'Security: Pwd Validator: Attribute Value: user modifying password to sn 2'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: user modifying password to sn 2'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'gosling' ,
+                    'DNToModify'             : 'uid=dmiller, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'Miller' ,
+                    'changetype'             : 'replace' , 
+                    'expectedRC'             : 53  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: user binding with invalid password 2'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'Miller' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base', 
+                'expectedRC'       : 49 }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <testcase name="'Security: Pwd Validator: Attribute Value: disable reverse match-attribute'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Validator: Attribute Value: add attribute sn'
+            </message>
+            
+            <call function="'modifyPwdValidator'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Attribute Value' ,
+                    'attributeName'          : 'test-reversed-password' ,
+                    'attributeValue'         : 'false' ,
+                    'modifyType'             : 'set' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+        <testcase name="'Security: Pwd Validator: Attribute Value: user modifying password to reverse sn'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: user modifying password to reverse sn'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'gosling' ,
+                    'DNToModify'             : 'uid=dmiller, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'rellim' ,
+                    'changetype'             : 'replace'  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: user binding with good password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'rellim' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <testcase name="'Security: Pwd Validator: Attribute Value: user modifying password to sn 3'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: user modifying password to sn 3'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'rellim' ,
+                    'DNToModify'             : 'uid=dmiller, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'Miller' ,
+                    'changetype'             : 'replace' , 
+                    'expectedRC'             : 53  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: user binding with invalid password 3'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'Miller' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base', 
+                'expectedRC'       : 49 }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        
+        <testcase name="'Security: Pwd Validator: Attribute Value: Postamble'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Validator: Attribute Value: Postamble Step 1. Admin Resetting Maximum Pwd Length'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'password-validator-dn' ,
+                    'attributeValue'         : 'cn=Attribute Value,cn=Password Validators,cn=config' ,
+                    'modifyType'             : 'remove' }
+            </call>
+            
+            <!--- User Change Password -->
+            <message>
+               'Security: Pwd Validator: Attribute Value: Postamble Step 2. User Changing Password'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'rellim' ,
+                    'DNToModify'             : 'uid=dmiller, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'Miller' ,
+                    'changetype'             : 'replace' }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Attribute Value: Postamble Step 3. User Searching With Password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'Miller' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+     </sequence>
+
+  </function>
+
+</stax>
