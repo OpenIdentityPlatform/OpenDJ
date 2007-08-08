@@ -25,6 +25,7 @@
  !
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
+
 <stax>
   
   <function name="_dsconfigCommonArgs">
@@ -207,6 +208,9 @@
     
   </function>
 
+
+  
+	
   <!-- generic wrapper on dsconfig -->
   <!-- can be used to list, get or set a list of attribues -->
 	
@@ -264,16 +268,16 @@
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
 			
-      <function-arg-def name="propertyName" type="optional">
+      <function-arg-def name="objectType" type="optional">
         <function-arg-description>
-          Property type to modify, e.g. backend-name
+          Object type to modify, e.g. backend-name
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
 			
-      <function-arg-def name="propertyValue" type="optional">
+      <function-arg-def name="objectName" type="optional">
         <function-arg-description>
-          Property to modify, e.g. enabled
+          object name  to modify, e.g. userroot
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
@@ -307,8 +311,8 @@
             
         STAFCmdParamsList=[]
         STAFCmdParamsList.append('%s' % (subcommand))
-        if propertyName:
-          STAFCmdParamsList.append('--%s "%s" ' % (propertyName,propertyValue))		  
+        if objectType:
+          STAFCmdParamsList.append('--%s "%s" ' % (objectType,objectName))		  
         if optionsString:
           STAFCmdParamsList.append(' %s' % (optionsString))
       </script>
@@ -1780,8 +1784,4 @@
     </sequence>
     
   </function>     
-
-
-
-                                           
 </stax>

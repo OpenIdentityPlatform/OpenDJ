@@ -518,8 +518,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-key-manager-prop' ,
-        'propertyName'        : 'manager-name' ,
-        'propertyValue'        :  keystoreType,
+        'objectType'        : 'manager-name' ,
+        'objectName'        :  keystoreType,
         'optionsString'        :  '--set key-store-file:config/keystore --reset key-store-pin-file --set key-store-pin:%s --set enabled:true' % keystorePin,
         'expectedRC'            : 0 }
     </call>
@@ -538,8 +538,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-trust-manager-prop' ,
-        'propertyName'        : 'manager-name' ,
-        'propertyValue'        : 'Blind Trust',
+        'objectType'        : 'manager-name' ,
+        'objectName'        : 'Blind Trust',
         'optionsString'        : '--set enabled:true' ,
         'expectedRC'            : 0 }
     </call>		
@@ -567,8 +567,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-connection-handler-prop' ,
-        'propertyName'        : 'handler-name' ,
-        'propertyValue'        : 'LDAPS Connection Handler',
+        'objectType'             : 'handler-name' ,
+        'objectName'            : 'LDAPS Connection Handler',
         'optionsString'        :  optionsString,
         'expectedRC'            : 0 }
     </call>				
@@ -663,8 +663,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-key-manager-prop' ,
-        'propertyName'        : 'manager-name' ,
-        'propertyValue'        : keystoreType,
+        'objectType'        : 'manager-name' ,
+        'objectName'        : keystoreType,
         'optionsString'        :  '--set key-store-file:config/keystore --reset key-store-pin-file --set key-store-pin:%s --set enabled:true' % keystorePin,
         'expectedRC'            : 0 }
     </call>
@@ -683,8 +683,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-trust-manager-prop' ,
-        'propertyName'        : 'manager-name' ,
-        'propertyValue'        : 'Blind Trust',
+        'objectType'        : 'manager-name' ,
+        'objectName'        : 'Blind Trust',
         'optionsString'        : '--set enabled:true' ,
         'expectedRC'            : 0 }
       </call>		
@@ -711,8 +711,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-connection-handler-prop' ,
-        'propertyName'        : 'handler-name' ,
-        'propertyValue'        : 'LDAP Connection Handler',
+        'objectType'        : 'handler-name' ,
+        'objectName'        : 'LDAP Connection Handler',
         'optionsString'        :  optionsString,
         'expectedRC'            : 0 }
     </call>				
@@ -809,8 +809,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-key-manager-prop' ,
-        'propertyName'        : 'manager-name' ,
-        'propertyValue'        : keystoreType,
+        'objectType'        : 'manager-name' ,
+        'objectName'        : keystoreType,
         'optionsString'        :  '--set key-store-file:config/keystore --reset key-store-pin-file  --set key-store-pin:%s --set enabled:true' % keystorePin,
         'expectedRC'            : 0 }
     </call>
@@ -829,8 +829,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-trust-manager-prop' ,
-        'propertyName'        : 'manager-name' ,
-        'propertyValue'        : 'Blind Trust',
+        'objectType'        : 'manager-name' ,
+        'objectName'        : 'Blind Trust',
         'optionsString'        : '--set enabled:true' ,
         'expectedRC'            : 0 }
     </call>		
@@ -858,8 +858,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-connection-handler-prop' ,
-        'propertyName'        : 'handler-name' ,
-        'propertyValue'        : 'LDAPS Connection Handler',
+        'objectType'        : 'handler-name' ,
+        'objectName'        : 'LDAPS Connection Handler',
         'optionsString'        :  optionsString,
         'expectedRC'            : 0 }
     </call>				
@@ -885,8 +885,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-connection-handler-prop' ,
-        'propertyName'        : 'handler-name' ,
-        'propertyValue'        : 'LDAP Connection Handler',
+        'objectType'        : 'handler-name' ,
+        'objectName'        : 'LDAP Connection Handler',
         'optionsString'        :  optionsString,
         'expectedRC'            : 0 }
     </call>						
@@ -970,8 +970,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-connection-handler-prop' ,
-        'propertyName'        : 'handler-name' ,
-        'propertyValue'        : 'LDAPS Connection Handler',
+        'objectType'        : 'handler-name' ,
+        'objectName'        : 'LDAPS Connection Handler',
         'optionsString'        :  '--set enabled:false',
         'expectedRC'            : 0 }
     </call>				
@@ -990,8 +990,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-trust-manager-prop' ,
-        'propertyName'        : 'manager-name' ,
-        'propertyValue'        : 'Blind Trust',
+        'objectType'        : 'manager-name' ,
+        'objectName'        : 'Blind Trust',
         'optionsString'        : '--set enabled:false' ,
         'expectedRC'            : 0 }
       </call>		
@@ -1010,8 +1010,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-key-manager-prop' ,
-        'propertyName'        : 'manager-name' ,
-        'propertyValue'        : keystoreType,
+        'objectType'        : 'manager-name' ,
+        'objectName'        : keystoreType,
         'optionsString'        :  '--set enabled:false',
         'expectedRC'            : 0 }
     </call>
@@ -1093,8 +1093,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-connection-handler-prop' ,
-        'propertyName'        : 'handler-name' ,
-        'propertyValue'        : 'LDAP Connection Handler',
+        'objectType'        : 'handler-name' ,
+        'objectName'        : 'LDAP Connection Handler',
         'optionsString'        :  ' --set allow-start-tls:false',
         'expectedRC'            : 0 }
     </call>				
@@ -1112,8 +1112,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-trust-manager-prop' ,
-        'propertyName'        : 'manager-name' ,
-        'propertyValue'        : 'Blind Trust',
+        'objectType'        : 'manager-name' ,
+        'objectName'        : 'Blind Trust',
         'optionsString'        : '--set enabled:false' ,
         'expectedRC'            : 0 }
       </call>		
@@ -1132,8 +1132,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-key-manager-prop' ,
-        'propertyName'        : 'manager-name' ,
-        'propertyValue'        : keystoreType,
+        'objectType'        : 'manager-name' ,
+        'objectName'        : keystoreType,
         'optionsString'        :  '--set enabled:false',
         'expectedRC'            : 0 }
     </call>
@@ -1216,8 +1216,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-connection-handler-prop' ,
-        'propertyName'        : 'handler-name' ,
-        'propertyValue'        : 'LDAPS Connection Handler',
+        'objectType'        : 'handler-name' ,
+        'objectName'        : 'LDAPS Connection Handler',
         'optionsString'        :  '--set enabled:false',
         'expectedRC'            : 0 }
     </call>				
@@ -1236,8 +1236,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-connection-handler-prop' ,
-        'propertyName'        : 'handler-name' ,
-        'propertyValue'        : 'LDAP Connection Handler',
+        'objectType'        : 'handler-name' ,
+        'objectName'        : 'LDAP Connection Handler',
         'optionsString'        :  ' --set allow-start-tls:false',
         'expectedRC'            : 0 }
     </call>				
@@ -1256,8 +1256,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-trust-manager-prop' ,
-        'propertyName'        : 'manager-name' ,
-        'propertyValue'        : 'Blind Trust',
+        'objectType'        : 'manager-name' ,
+        'objectName'        : 'Blind Trust',
         'optionsString'        : '--set enabled:false' ,
         'expectedRC'            : 0 }
       </call>		
@@ -1276,8 +1276,8 @@
         'dsInstanceDn'          :  dsInstanceDn ,
         'dsInstancePswd'       : dsInstancePswd ,
         'subcommand'          :  'set-key-manager-prop' ,
-        'propertyName'        : 'manager-name' ,
-        'propertyValue'        : keystoreType,
+        'objectType'        : 'manager-name' ,
+        'objectName'        : keystoreType,
         'optionsString'        :  '--set enabled:false',
         'expectedRC'            : 0 }
     </call>
