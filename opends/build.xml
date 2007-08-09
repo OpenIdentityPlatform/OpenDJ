@@ -77,13 +77,13 @@
   <property name="quicksetup.src.dir" location="src/quicksetup"       />
   <property name="quicksetup.classes.dir"
             location="${build.dir}/quicksetup/classes"                />
-	<property name="quicksetup.globalcompile.classes.dir"
-						location="${classes.dir}/org/opends/quicksetup" />
+  <property name="quicksetup.globalcompile.classes.dir"
+            location="${classes.dir}/org/opends/quicksetup" />
   <property name="ads.src.dir" location="src/ads"       />
   <property name="ads.classes.dir" location="${classes.dir}/org/opends/admin/ads"/>
 
   <!-- Properties for use with the GUI Tools that go in OpenDS jar.                      -->
-	  <property name="guitools.src.dir" location="src/guitools"       />
+  <property name="guitools.src.dir" location="src/guitools"       />
 
   <!-- Properties for coverage diff reports                        -->
   <property name="cvgdiff.dir" location="build/diff"                />
@@ -444,9 +444,9 @@
         <fileset dir="${lib.dir}">
           <include name="*.jar" />
         </fileset>
-      	<fileset dir="${build.dir}/build-tools">
+        <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
-      	</fileset>
+        </fileset>
       </classpath>
     </javac>
 
@@ -589,23 +589,23 @@
         <fileset dir="${lib.dir}">
           <include name="*.jar" />
         </fileset>
-      	<fileset dir="${build.dir}/build-tools">
+        <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
-      	</fileset>
+        </fileset>
       </classpath>
     </javac>
 
     <copy todir="${classes.dir}">
       <fileset dir="${src.dir}" includes="**/*.properties" />
-    	<fileset dir="${quicksetup.src.dir}" includes="**/*.properties, **/*.gif, **/*.png" />
+      <fileset dir="${quicksetup.src.dir}" includes="**/*.properties, **/*.gif, **/*.png" />
       <fileset dir="${guitools.src.dir}" includes="**/*.properties, **/*.gif, **/*.png" />
     </copy>
 
     <!-- Generate the OpenDS.jar file -->
     <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
          basedir="${classes.dir}"
-  	     excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir}"
-  			 compress="true" index="true" />
+         excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir}"
+         compress="true" index="true" />
 
     <!-- Recreate the quicksetup classes directory and recompile into it. -->
     <mkdir dir="${quicksetup.classes.dir}" />
@@ -690,8 +690,8 @@
 
     <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
          basedir="${classes.dir}" 
-  			 excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir}"    
-  	     compress="true" index="true" />
+         excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir}"    
+         compress="true" index="true" />
 
     <jar jarfile="${pdir}/lib/quicksetup.jar"
          basedir="${quicksetup.classes.dir}" compress="true" index="true" />
@@ -920,7 +920,8 @@
 
 
   <!-- Prepare to execute the Directory Server TestNG unit tests. -->
-  <target name="testinit" depends="buildtools, weave"
+<!--  <target name="testinit" depends="buildtools, weave" -->
+  <target name="testinit" depends="buildtools"
          description="Prepare to execute the Directory Server TestNG unit tests.">
     <!-- If we are to perform coverage tests, then set that up. -->
     <path id="emma.lib">
@@ -1314,7 +1315,7 @@
           <include name="*.jar" />
         </fileset>
 
-	<!-- Needed by quicksetup tests -->
+        <!-- Needed by quicksetup tests -->
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
         </fileset>
