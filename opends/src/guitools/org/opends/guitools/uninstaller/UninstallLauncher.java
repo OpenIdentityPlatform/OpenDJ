@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 
 import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.quicksetup.CliApplication;
+import org.opends.quicksetup.CliApplicationHelper;
 import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.QuickSetupLog;
@@ -102,13 +103,23 @@ public class UninstallLauncher extends Launcher {
         getI18n().getMsg("uninstall-launcher-usage-description"), false);
     BooleanArgument cli;
     BooleanArgument silent;
+    BooleanArgument interactive;
     BooleanArgument showUsage;
     try
     {
       cli = new BooleanArgument("cli", 'c', "cli",
           MSGID_UNINSTALLDS_DESCRIPTION_CLI);
       argParser.addArgument(cli);
-      silent = new BooleanArgument("silent", 's', "silent",
+      interactive = new BooleanArgument(
+          CliApplicationHelper.INTERACTIVE_OPTION_LONG,
+          CliApplicationHelper.INTERACTIVE_OPTION_SHORT,
+          CliApplicationHelper.INTERACTIVE_OPTION_LONG,
+          MSGID_DESCRIPTION_INTERACTIVE);
+      argParser.addArgument(interactive);
+      silent = new BooleanArgument(
+          CliApplicationHelper.SILENT_OPTION_LONG,
+          CliApplicationHelper.SILENT_OPTION_SHORT,
+          CliApplicationHelper.SILENT_OPTION_LONG,
           MSGID_UNINSTALLDS_DESCRIPTION_SILENT);
       argParser.addArgument(silent);
       showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
