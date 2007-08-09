@@ -27,11 +27,14 @@
 
 package org.opends.guitools.uninstaller;
 
+import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.util.args.Argument;
+import org.opends.server.util.args.ArgumentException;
+import org.opends.server.util.args.ArgumentParser;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.Collections;
 import java.util.logging.Level;
@@ -59,36 +62,48 @@ class UninstallCliHelper extends CliApplicationHelper {
    * Creates a UserData based in the arguments provided.  It asks
    * user for additional information if what is provided in the arguments is not
    * enough.
-   * @param args the arguments provided in the command line.
+   * @param args the ArgumentParser with the allowed arguments of the command
+   * line.
+   * @param rawArguments the arguments provided in the command line.
+   * @param trustManager the Application Trust Manager to be used to connect
+   * to the remote servers.
    * @return the UserData object with what the user wants to uninstall
    * and null if the user cancels the uninstallation.
    * @throws UserDataException if there is an error parsing the data
    * in the arguments.
    */
-  public UninstallUserData createUserData(String[] args
-  ) throws UserDataException
+  public UninstallUserData createUserData(ArgumentParser args,
+      String[] rawArguments, ApplicationTrustManager trustManager)
+  throws UserDataException
   {
     UninstallUserData userData = new UninstallUserData();
 
-    boolean silentUninstall;
+    boolean isInteractive;
+    boolean isSilent;
     boolean isCancelled = false;
 
-    /* Step 1: validate the arguments
+    /* Step 1: analyze the arguments.  We assume that the arguments have
+     * already been parsed.
      */
-    Set<String> validArgs = new HashSet<String>();
-    validArgs.add("--cli");
-    validArgs.add("-c");
-    validArgs.add("-H");
-    validArgs.add("--help");
-    validArgs.add("--silentUninstall");
-    validArgs.add("-s");
-    validateArguments(userData, args, validArgs);
+    try
+    {
+      args.parseArguments(rawArguments);
+    }
+    catch (ArgumentException ae)
+    {
+      throw new UserDataException(null, ae.getLocalizedMessage());
+    }
 
-    silentUninstall = isSilent(args);
+    Argument interactive = args.getArgumentForLongID(INTERACTIVE_OPTION_LONG);
+    isInteractive = interactive != null && interactive.isPresent();
 
+    Argument silent = args.getArgumentForLongID(SILENT_OPTION_LONG);
+    isSilent = silent != null && silent.isPresent();
 
-    /* Step 2: If this is not a silent install ask for confirmation to delete
-     * the different parts of the installation
+    userData.setSilent(isSilent);
+
+    /* Step 2: If this is an interactive uninstall ask for confirmation to
+     * delete the different parts of the installation.
      */
     Set<String> outsideDbs;
     Set<String> outsideLogs;
@@ -108,7 +123,7 @@ class UninstallCliHelper extends CliApplicationHelper {
       LOG.log(Level.INFO, "error determining outside logs", ioe);
     }
 
-    if (silentUninstall)
+    if (!isInteractive)
     {
       userData.setRemoveBackups(true);
       userData.setRemoveConfigurationAndSchema(true);
@@ -131,7 +146,7 @@ class UninstallCliHelper extends CliApplicationHelper {
      */
     if (!isCancelled)
     {
-      isCancelled = askConfirmationToStop(userData, silentUninstall);
+      isCancelled = askConfirmationToStop(userData, isInteractive);
     }
 
     if (isCancelled)
@@ -300,8 +315,11 @@ class UninstallCliHelper extends CliApplicationHelper {
             !userData.getRemoveLogs())
         {
           somethingSelected = false;
-          System.out.println(Constants.LINE_SEPARATOR+
-              getMsg("cli-uninstall-nothing-to-be-uninstalled"));
+          if (!userData.isSilent())
+          {
+            System.out.println(Constants.LINE_SEPARATOR+
+                getMsg("cli-uninstall-nothing-to-be-uninstalled"));
+          }
         }
         else
         {
@@ -319,7 +337,7 @@ class UninstallCliHelper extends CliApplicationHelper {
    * be able to shut down the server in Windows.
    * @param userData the UserData object to be updated with the
    * authentication of the user.
-   * @param silentUninstall boolean telling whether this is a silent uninstall
+   * @param interactive boolean telling whether this is an interactive uninstall
    * or not.
    * @return <CODE>true</CODE> if the user wants to continue with uninstall and
    * <CODE>false</CODE> otherwise.
@@ -328,14 +346,14 @@ class UninstallCliHelper extends CliApplicationHelper {
    * uninstall and some data is missing or not valid).
    */
   private boolean askConfirmationToStop(UserData userData,
-                                        boolean silentUninstall)
+                                        boolean interactive)
   throws UserDataException
   {
     boolean cancelled = false;
     Status status = Installation.getLocal().getStatus();
     if (status.isServerRunning())
     {
-        if (!silentUninstall)
+        if (interactive)
         {
             /* Ask for confirmation to stop server */
             cancelled = !confirmToStopServer();
@@ -350,7 +368,7 @@ class UninstallCliHelper extends CliApplicationHelper {
     else
     {
       userData.setStopServer(false);
-      if (!silentUninstall)
+      if (interactive)
       {
         /* Ask for confirmation to delete files */
         cancelled = !confirmDeleteFiles();

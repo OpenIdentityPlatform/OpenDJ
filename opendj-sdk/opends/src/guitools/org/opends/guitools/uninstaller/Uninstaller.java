@@ -107,8 +107,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   private UninstallData conf;
   private String replicationServerHostPort;
   private TopologyCache lastLoadedCache;
-  private ApplicationTrustManager trustManager =
-    new ApplicationTrustManager(null);
 
   /**
    * Default constructor.
@@ -567,7 +565,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    */
   public UserData createUserData(Launcher launcher)
           throws UserDataException {
-    return cliHelper.createUserData(launcher.getArguments());
+    return cliHelper.createUserData(launcher.getArgumentParser(),
+        launcher.getArguments(), getTrustManager());
   }
 
   /**
@@ -1328,7 +1327,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   {
     if (loginDialog == null)
     {
-      loginDialog = new LoginDialog(qs.getDialog().getFrame(), trustManager);
+      loginDialog = new LoginDialog(qs.getDialog().getFrame(),
+          getTrustManager());
       loginDialog.pack();
     }
     Utilities.centerOnComponent(loginDialog, qs.getDialog().getFrame());

@@ -30,6 +30,7 @@ package org.opends.quicksetup.upgrader;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 
+import org.opends.quicksetup.CliApplicationHelper;
 import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.Installation;
@@ -186,10 +187,16 @@ public class UpgradeLauncher extends Launcher {
               "{file}",
               null, null, MSGID_UPGRADE_DESCRIPTION_FILE);
       argParser.addArgument(file);
-      interactive = new BooleanArgument("interactive", 'i', "interactive",
+      interactive = new BooleanArgument(
+          CliApplicationHelper.INTERACTIVE_OPTION_LONG,
+          CliApplicationHelper.INTERACTIVE_OPTION_SHORT,
+          CliApplicationHelper.INTERACTIVE_OPTION_LONG,
           MSGID_UPGRADE_DESCRIPTION_INTERACTIVE);
       argParser.addArgument(interactive);
-      silent = new BooleanArgument("silent", 's', "silent",
+      silent = new BooleanArgument(
+          CliApplicationHelper.SILENT_OPTION_LONG,
+          CliApplicationHelper.SILENT_OPTION_SHORT,
+          CliApplicationHelper.SILENT_OPTION_LONG,
           MSGID_UPGRADE_DESCRIPTION_SILENT);
       argParser.addArgument(silent);
       showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
