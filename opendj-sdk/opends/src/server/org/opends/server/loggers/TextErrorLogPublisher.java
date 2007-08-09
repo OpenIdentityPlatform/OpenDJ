@@ -186,7 +186,7 @@ public class TextErrorLogPublisher
     {
       for(ErrorLogPublisherCfgDefn.DefaultSeverity defSev : defSevs)
       {
-        if(defSev.name().equalsIgnoreCase(LOG_SEVERITY_ALL))
+        if(defSev.toString().equalsIgnoreCase(LOG_SEVERITY_ALL))
         {
           defaultSeverities.add(ErrorLogSeverity.FATAL_ERROR);
           defaultSeverities.add(ErrorLogSeverity.INFORMATIONAL);
@@ -199,7 +199,7 @@ public class TextErrorLogPublisher
         else
         {
           ErrorLogSeverity errorSeverity =
-              ErrorLogSeverity.getByName(defSev.name());
+              ErrorLogSeverity.getByName(defSev.toString());
           if(errorSeverity != null)
           {
             defaultSeverities.add(errorSeverity);
@@ -418,7 +418,7 @@ public class TextErrorLogPublisher
     {
       for(ErrorLogPublisherCfgDefn.DefaultSeverity defSev : defSevs)
       {
-        if(defSev.name().equalsIgnoreCase(LOG_SEVERITY_ALL))
+        if(defSev.toString().equalsIgnoreCase(LOG_SEVERITY_ALL))
         {
           defaultSeverities.add(ErrorLogSeverity.FATAL_ERROR);
           defaultSeverities.add(ErrorLogSeverity.INFORMATIONAL);
@@ -431,7 +431,7 @@ public class TextErrorLogPublisher
         else
         {
           ErrorLogSeverity errorSeverity =
-              ErrorLogSeverity.getByName(defSev.name());
+              ErrorLogSeverity.getByName(defSev.toString());
           if(errorSeverity != null)
           {
             defaultSeverities.add(errorSeverity);

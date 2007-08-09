@@ -629,6 +629,11 @@ public class SortValuesSet
       }
     }
 
+    if(id2entry == null)
+    {
+      return new byte[0];
+    }
+
     // Get the entry from id2entry and assign the values from the entry.
     // Once the values are assigned from the retrieved entry, it will
     // not be retrieve again from future compares.
