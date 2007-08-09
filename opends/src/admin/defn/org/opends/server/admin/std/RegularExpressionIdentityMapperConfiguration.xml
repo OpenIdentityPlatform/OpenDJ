@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+! CDDL HEADER START
+!
+! The contents of this file are subject to the terms of the
+! Common Development and Distribution License, Version 1.0 only
+! (the "License").  You may not use this file except in compliance
+! with the License.
+!
+! You can obtain a copy of the license at
+! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+! See the License for the specific language governing permissions
+! and limitations under the License.
+!
+! When distributing Covered Code, include this CDDL HEADER in each
+! file and include the License file at
+! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+! add the following below this CDDL HEADER, with the fields enclosed
+! by brackets "[]" replaced with your own identifying information:
+!      Portions Copyright [yyyy] [name of copyright owner]
+!
+! CDDL HEADER END
+!
+!
+!      Portions Copyright 2007 Sun Microsystems, Inc.
+! -->
+
+<adm:managed-object name="regular-expression-identity-mapper"
+plural-name="regular-expression-identity-mappers"
+package="org.opends.server.admin.std" extends="identity-mapper"
+xmlns:adm="http://www.opends.org/admin"
+xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    provides a means of using a regular expression to translate the provided
+    identifier when searching for the appropriate user entry.  This may be used,
+    for example, if the provided identifier is expected to be an e-mail address
+    or Kerberos principal, but only the username portion (the part before the
+    "@" symbol) should be used in the mapping process.
+
+    Note that a replacement will be made only if all or part of the provided ID
+    string matches the given match pattern.  If no part of the provided ID
+    string matches the provided pattern, then the given ID string will be used
+    without any alteration.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.121</ldap:oid>
+      <ldap:name>ds-cfg-regular-expression-identity-mapper</ldap:name>
+      <ldap:superior>ds-cfg-identity-mapper</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+
+  <adm:property-override name="mapper-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.extensions.RegularExpressionIdentityMapper
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+
+  <adm:property name="match-attribute" mandatory="true" multi-valued="true">
+    <adm:synopsis>
+      Specifies the attribute to use to perform the mapping.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the name or OID of the attribute whose value should match the
+      provided identifier string after it has been processed by the associated
+      regular expression.  At least one value must be provided.  All values must
+      refer to the name or OID of an attribute type defined in the Directory
+      Server schema.  If multiple attribute type names or OIDs are provided,
+      then at least one of those attributes must contain the provided ID string
+      value in exactly one entry.
+    </adm:description>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.146</ldap:oid>
+        <ldap:name>ds-cfg-match-attribute</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="match-base-dn" mandatory="false" multi-valued="true">
+    <adm:synopsis>
+      Specifies the set of base DNs below which to search for users.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the base DN(s) that should be used when performing searches to
+      map the provided ID string to a user entry.  If no values are provided,
+      then the server will search below all public naming contexts.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The server will search below all public naming contexts.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:dn />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.147</ldap:oid>
+        <ldap:name>ds-cfg-match-base-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="match-pattern" mandatory="true" multi-valued="false">
+    <adm:synopsis>
+      Specifies the regular expression pattern that will be used to identify
+      portions of the ID string which will be replaced.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the regular expression pattern that should be used to match
+      all or part of the provided ID string.  Any portion of the ID string which
+      matches this pattern will be replaced in accordance with the provided
+      replace pattern (or will be removed if no replace pattern is specified).
+      If multiple substrings within the given ID string match this pattern, then
+      all occurrences will be replaced.  If no part of the given ID string
+      matches this pattern, then the ID string will not be altered.
+
+      Exactly one match pattern value must be provided, and it must be a valid
+      regular expression as described in the API documentation for the
+      java.util.regex.Pattern class, including support for capturing groups.
+    </adm:description>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.469</ldap:oid>
+        <ldap:name>ds-cfg-match-pattern</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="replace-pattern" mandatory="false" multi-valued="false">
+    <adm:synopsis>
+      Specifies the replacement pattern that should be used for substrings in
+      the ID string that match the provided regular expression pattern.  If no
+      replacement pattern is provided, then any matching portions of the ID
+      string will be removed.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the replacement pattern that should be used for substrings in
+      the ID string that match the provided regular expression pattern.  If no
+      replacement pattern is provided, then any matching portions of the ID
+      string will be removed (i.e., replaced with an empty string).  The
+      replacement pattern may include a string from a capturing group by using a
+      dollar sign ($) followed by an integer value that indicates which
+      capturing group should be used.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The replace pattern will be the empty string.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.470</ldap:oid>
+        <ldap:name>ds-cfg-replace-pattern</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>
+

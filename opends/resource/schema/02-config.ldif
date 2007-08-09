@@ -1561,6 +1561,12 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.466
   NAME 'ds-cfg-plugin-order-subordinate-modify-dn'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.469 NAME 'ds-cfg-match-pattern'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.470 NAME 'ds-cfg-replace-pattern'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -2189,5 +2195,10 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.119
   NAME 'ds-task-disconnect' SUP ds-task STRUCTURAL
   MUST ds-task-disconnect-connection-id
   MAY ( ds-task-disconnect-message $ ds-task-disconnect-notify-client )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.121
+  NAME 'ds-cfg-regular-expression-identity-mapper' SUP ds-cfg-identity-mapper
+  STRUCTURAL MUST ( ds-cfg-match-attribute $ ds-cfg-match-pattern )
+  MAY ( ds-cfg-match-base-dn $ ds-cfg-replace-pattern )
   X-ORIGIN 'OpenDS Directory Server' )
 

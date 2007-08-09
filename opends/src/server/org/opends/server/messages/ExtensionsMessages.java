@@ -5533,6 +5533,58 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used if the provided match
+   * pattern cannot be parsed as a valid regular expression.  This takes two
+   * arguments, which are the provided match pattern and a message explaining
+   * the problem that occurred.
+   */
+  public static final int MSGID_REGEXMAP_INVALID_MATCH_PATTERN =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 533;
+
+
+
+  /**
+   * The message ID for the message that will be used if any of the match
+   * attributes is not defined in the server schema.  This takes two arguments,
+   * which are the DN of the configuration entry and the value of the provided
+   * attribute.
+   */
+  public static final int MSGID_REGEXMAP_UNKNOWN_ATTR =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 534;
+
+
+
+  /**
+   * The message ID for the message that will be used if the search to map a
+   * user returned multiple entries.  This takes a single argument, which is the
+   * provided ID string.
+   */
+  public static final int MSGID_REGEXMAP_MULTIPLE_MATCHING_ENTRIES =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 535;
+
+
+
+  /**
+   * The message ID for the message that will be used if the search to map a
+   * user could not be processed efficiently.  This two arguments, which are the
+   * provided ID string and the error message from the internal search.
+   */
+  public static final int MSGID_REGEXMAP_INEFFICIENT_SEARCH =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 536;
+
+
+
+  /**
+   * The message ID for the message that will be used if the search to map a
+   * user could failed for some reason.  This two arguments, which are the
+   * provided ID string and the error message from the internal search.
+   */
+  public static final int MSGID_REGEXMAP_SEARCH_FAILED =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 537;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -7951,6 +8003,27 @@ public class ExtensionsMessages
                     "An error occurred when trying to send an e-mail message " +
                     "for administrative alert with type %s and message %s:  " +
                     "%s");
+
+
+    registerMessage(MSGID_REGEXMAP_INVALID_MATCH_PATTERN,
+                    "The provided match pattern \"%s\" could not be parsed " +
+                    "as a regular expression:  %s");
+    registerMessage(MSGID_REGEXMAP_UNKNOWN_ATTR,
+                    "Configuration entry %s contains value %s for attribute " +
+                    ATTR_MATCH_ATTRIBUTE + " but that is not a valid name or " +
+                    "OID for any attribute type defined in the Directory " +
+                    "Server schema");
+    registerMessage(MSGID_REGEXMAP_MULTIPLE_MATCHING_ENTRIES,
+                    "The processed ID string %s mapped to multiple users");
+    registerMessage(MSGID_REGEXMAP_INEFFICIENT_SEARCH,
+                    "The internal search based on processed ID string %s "+
+                    "could not be processed efficiently:  %s.  Check the " +
+                    "server configuration to ensure that all associated " +
+                    "backends are properly configured for these types of " +
+                    "searches");
+    registerMessage(MSGID_REGEXMAP_SEARCH_FAILED,
+                    "An internal failure occurred while attempting to " +
+                    "resolve processed ID string %s to a user entry:  %s");
   }
 }
 

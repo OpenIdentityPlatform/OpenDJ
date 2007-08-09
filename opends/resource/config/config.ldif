@@ -496,6 +496,17 @@ ds-cfg-identity-mapper-class: org.opends.server.extensions.ExactMatchIdentityMap
 ds-cfg-identity-mapper-enabled: true
 ds-cfg-match-attribute: uid
 
+dn: cn=Regular Expression,cn=Identity Mappers,cn=config
+objectClass: top
+objectClass: ds-cfg-identity-mapper
+objectClass: ds-cfg-regular-expression-identity-mapper
+cn: Regular Expression
+ds-cfg-identity-mapper-class: org.opends.server.extensions.RegularExpressionIdentityMapper
+ds-cfg-identity-mapper-enabled: true
+ds-cfg-match-attribute: uid
+ds-cfg-match-pattern: ^([^@]+)@.+$
+ds-cfg-replace-pattern: $1
+
 dn: cn=Key Manager Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-branch
@@ -1439,7 +1450,7 @@ objectClass: ds-cfg-gssapi-sasl-mechanism-handler
 cn: GSSAPI
 ds-cfg-sasl-mechanism-handler-class: org.opends.server.extensions.GSSAPISASLMechanismHandler
 ds-cfg-sasl-mechanism-handler-enabled: false
-ds-cfg-identity-mapper-dn: cn=Exact Match,cn=Identity Mappers,cn=config
+ds-cfg-identity-mapper-dn: cn=Regular Expression,cn=Identity Mappers,cn=config
 ds-cfg-keytab: /etc/krb5/krb5.keytab
 
 dn: cn=PLAIN,cn=SASL Mechanisms,cn=config
