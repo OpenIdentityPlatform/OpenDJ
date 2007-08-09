@@ -518,6 +518,36 @@ public class SubCommandArgumentParser
     globalArgumentList.add(argument);
   }
 
+  /**
+   * Removes the provided argument from the set of global arguments handled by
+   * this parser.
+   *
+   * @param  argument  The argument to be removed.
+   */
+  protected void removeGlobalArgument(Argument argument)
+  {
+    String argumentName = argument.getName();
+    globalArgumentMap.remove(argumentName);
+
+    Character shortID = argument.getShortIdentifier();
+    if (shortID != null)
+    {
+      globalShortIDMap.remove(shortID);
+    }
+
+    String longID = argument.getLongIdentifier();
+    if (longID != null)
+    {
+      if (! longArgumentsCaseSensitive)
+      {
+        longID = toLowerCase(longID);
+      }
+
+      globalLongIDMap.remove(longID);
+    }
+
+    globalArgumentList.remove(argument);
+  }
 
 
   /**
