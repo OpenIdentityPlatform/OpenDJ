@@ -888,7 +888,7 @@ public class ServerConstants
    * The English name for the basic disabled log severity used for all
    * log severities.
    */
-  public static final String LOG_SEVERITY_DISABLED = "DISABLED";
+  public static final String LOG_SEVERITY_DISABLED = "disabled";
 
 
 
@@ -896,7 +896,7 @@ public class ServerConstants
    * The English name for the basic all log severity used for all log
    * severities.
    */
-  public static final String LOG_SEVERITY_ALL = "ALL";
+  public static final String LOG_SEVERITY_ALL = "all";
 
 
 
@@ -904,14 +904,14 @@ public class ServerConstants
    * The English name for the debug log category used for access control
    * debugging.
    */
-  public static final String DEBUG_CATEGORY_MESSAGE = "MESSAGE";
+  public static final String DEBUG_CATEGORY_MESSAGE = "message";
 
 
 
   /**
    * The English name for the debug log category used for constructor debugging.
    */
-  public static final String DEBUG_CATEGORY_CONSTRUCTOR = "CONSTRUCTOR";
+  public static final String DEBUG_CATEGORY_CONSTRUCTOR = "constructor";
 
 
 
@@ -919,21 +919,21 @@ public class ServerConstants
    * The English name for the debug log category used for debugging raw data
    * read.
    */
-  public static final String DEBUG_CATEGORY_DATA = "DATA";
+  public static final String DEBUG_CATEGORY_DATA = "data";
 
 
 
   /**
    * The English name for the debug log category used for exception debugging.
    */
-  public static final String DEBUG_CATEGORY_THROWN = "THROWN";
+  public static final String DEBUG_CATEGORY_THROWN = "thrown";
 
 
 
   /**
    * The English name for the debug log category used for exception debugging.
    */
-  public static final String DEBUG_CATEGORY_CAUGHT = "CAUGHT";
+  public static final String DEBUG_CATEGORY_CAUGHT = "caught";
 
 
 
@@ -941,7 +941,7 @@ public class ServerConstants
    * The English name for the debug log category used for method entry
    * debugging.
    */
-  public static final String DEBUG_CATEGORY_ENTER = "ENTER";
+  public static final String DEBUG_CATEGORY_ENTER = "enter";
 
 
 
@@ -949,7 +949,7 @@ public class ServerConstants
    * The English name for the debug log category used for method exit
    * debugging.
    */
-  public static final String DEBUG_CATEGORY_EXIT = "EXIT";
+  public static final String DEBUG_CATEGORY_EXIT = "exit";
 
 
 
@@ -957,7 +957,7 @@ public class ServerConstants
    * The English name for the debug log category used for debugging protocol
    * elements.
    */
-  public static final String DEBUG_CATEGORY_PROTOCOL = "PROTOCOL";
+  public static final String DEBUG_CATEGORY_PROTOCOL = "protocol";
 
 
 
@@ -965,14 +965,14 @@ public class ServerConstants
    * The English name for the debug log category used for raw data access
    * from the JE database.
    */
-  public static final String DEBUG_CATEGORY_DATABASE_ACCESS = "DATABASE_ACCESS";
+  public static final String DEBUG_CATEGORY_DATABASE_ACCESS = "database-access";
 
 
 
   /**
    * The English name for the debug log severity used for verbose messages.
    */
-  public static final String DEBUG_SEVERITY_VERBOSE = "VERBOSE";
+  public static final String DEBUG_SEVERITY_VERBOSE = "verbose";
 
 
 
@@ -980,21 +980,21 @@ public class ServerConstants
    * The English name for the debug log severity used for informational
    * messages.
    */
-  public static final String DEBUG_SEVERITY_INFO = "INFO";
+  public static final String DEBUG_SEVERITY_INFO = "info";
 
 
 
   /**
    * The English name for the debug log severity used for warning messages.
    */
-  public static final String DEBUG_SEVERITY_WARNING = "WARNING";
+  public static final String DEBUG_SEVERITY_WARNING = "warning";
 
 
 
   /**
    * The English name for the debug log severity used for error messages.
    */
-  public static final String DEBUG_SEVERITY_ERROR = "ERROR";
+  public static final String DEBUG_SEVERITY_ERROR = "error";
 
 
 
@@ -1002,14 +1002,14 @@ public class ServerConstants
    * The English name for the error log category used for access control
    * processing.
    */
-  public static final String ERROR_CATEGORY_ACCESS_CONTROL = "ACCESS_CONTROL";
+  public static final String ERROR_CATEGORY_ACCESS_CONTROL = "access-control";
 
 
 
   /**
    * The English name for the error log category used for backend processing.
    */
-  public static final String ERROR_CATEGORY_BACKEND = "BACKEND";
+  public static final String ERROR_CATEGORY_BACKEND = "backend";
 
 
 
@@ -1017,7 +1017,7 @@ public class ServerConstants
    * The English name for the error log category used for configuration
    * processing.
    */
-  public static final String ERROR_CATEGORY_CONFIG = "CONFIG";
+  public static final String ERROR_CATEGORY_CONFIG = "config";
 
 
 
@@ -1025,7 +1025,7 @@ public class ServerConstants
    * The English name for the error log category used for client connection
    * handling.
    */
-  public static final String ERROR_CATEGORY_CONNECTION_HANDLING = "CONNECTION";
+  public static final String ERROR_CATEGORY_CONNECTION_HANDLING = "connection";
 
 
 
@@ -1033,14 +1033,14 @@ public class ServerConstants
    * The English name for the error log category used for core server
    * processing.
    */
-  public static final String ERROR_CATEGORY_CORE_SERVER = "CORE";
+  public static final String ERROR_CATEGORY_CORE_SERVER = "core";
 
 
   /**
    * The English name for the error log category used for extended operation
    * processing.
    */
-  public static final String ERROR_CATEGORY_EXTENDED_OPERATION = "EXTENDED_OP";
+  public static final String ERROR_CATEGORY_EXTENDED_OPERATION = "extended-op";
 
 
 
@@ -1048,7 +1048,7 @@ public class ServerConstants
    * The English name for the error log category used for server extension
    * processing.
    */
-  public static final String ERROR_CATEGORY_EXTENSIONS = "EXTENTIONS";
+  public static final String ERROR_CATEGORY_EXTENSIONS = "extensions";
 
 
 
@@ -1056,49 +1056,49 @@ public class ServerConstants
    * The English name for the error log category used for password policy
    * processing.
    */
-  public static final String ERROR_CATEGORY_PASSWORD_POLICY = "PW_POLICY";
+  public static final String ERROR_CATEGORY_PASSWORD_POLICY = "pw-policy";
 
 
 
   /**
    * The English name for the error log category used for plugin processing.
    */
-  public static final String ERROR_CATEGORY_PLUGIN = "PLUGIN";
+  public static final String ERROR_CATEGORY_PLUGIN = "plugin";
 
 
 
   /**
    * The English name for the error log category used for request handling.
    */
-  public static final String ERROR_CATEGORY_REQUEST = "REQUEST";
+  public static final String ERROR_CATEGORY_REQUEST = "request";
 
 
 
   /**
    * The English name for the error log category used for SASL processing.
    */
-  public static final String ERROR_CATEGORY_SASL_MECHANISM = "SASL";
+  public static final String ERROR_CATEGORY_SASL_MECHANISM = "sasl";
 
 
 
   /**
    * The English name for the error log category used for schema processing.
    */
-  public static final String ERROR_CATEGORY_SCHEMA = "SCHEMA";
+  public static final String ERROR_CATEGORY_SCHEMA = "schema";
 
 
 
   /**
    * The English name for the error log category used for shutdown processing.
    */
-  public static final String ERROR_CATEGORY_SHUTDOWN = "SHUTDOWN";
+  public static final String ERROR_CATEGORY_SHUTDOWN = "shutdown";
 
 
 
   /**
    * The English name for the error log category used for startup processing.
    */
-  public static final String ERROR_CATEGORY_STARTUP = "STARTUP";
+  public static final String ERROR_CATEGORY_STARTUP = "startup";
 
 
 
@@ -1106,21 +1106,21 @@ public class ServerConstants
    * The English name for the error log category used for synchronization
    * processing.
    */
-  public static final String ERROR_CATEGORY_SYNCHRONIZATION = "SYNC";
+  public static final String ERROR_CATEGORY_SYNCHRONIZATION = "sync";
 
 
 
   /**
    * The English name for the error log category used for task processing.
    */
-  public static final String ERROR_CATEGORY_TASK = "TASK";
+  public static final String ERROR_CATEGORY_TASK = "task";
 
 
 
   /**
    * The English name for the error log severity used for fatal error messages.
    */
-  public static final String ERROR_SEVERITY_FATAL = "FATAL_ERROR";
+  public static final String ERROR_SEVERITY_FATAL = "fatal-error";
 
 
 
@@ -1128,21 +1128,21 @@ public class ServerConstants
    * The English name for the error log severity used for informational
    * messages.
    */
-  public static final String ERROR_SEVERITY_INFORMATIONAL = "INFO";
+  public static final String ERROR_SEVERITY_INFORMATIONAL = "info";
 
 
 
   /**
    * The English name for the error log severity used for mild error messages.
    */
-  public static final String ERROR_SEVERITY_MILD_ERROR = "MILD_ERROR";
+  public static final String ERROR_SEVERITY_MILD_ERROR = "mild-error";
 
 
 
   /**
    * The English name for the error log severity used for mild warning messages.
    */
-  public static final String ERROR_SEVERITY_MILD_WARNING = "MILD_WARNING";
+  public static final String ERROR_SEVERITY_MILD_WARNING = "mild-warning";
 
 
 
@@ -1150,14 +1150,14 @@ public class ServerConstants
    * The English name for the error log severity used for important
    * informational messages.
    */
-  public static final String ERROR_SEVERITY_NOTICE = "NOTICE";
+  public static final String ERROR_SEVERITY_NOTICE = "notice";
 
 
 
   /**
    * The English name for the error log severity used for severe error messages.
    */
-  public static final String ERROR_SEVERITY_SEVERE_ERROR = "SEVERE_ERROR";
+  public static final String ERROR_SEVERITY_SEVERE_ERROR = "severe-error";
 
 
 
@@ -1165,7 +1165,7 @@ public class ServerConstants
    * The English name for the error log severity used for severe warning
    * messages.
    */
-  public static final String ERROR_SEVERITY_SEVERE_WARNING = "SEVERE_WARNING";
+  public static final String ERROR_SEVERITY_SEVERE_WARNING = "severe-warning";
 
 
 

@@ -166,7 +166,7 @@ public class TraceSettings
   public TraceSettings(DebugTargetCfg config)
   {
     this.level =
-        DebugLogLevel.parse(config.getDebugLevel().name());
+        DebugLogLevel.parse(config.getDebugLevel().toString());
 
     Set<LogCategory> logCategories = null;
     if(!config.getDebugCategory().isEmpty())
@@ -176,7 +176,7 @@ public class TraceSettings
       for(DebugTargetCfgDefn.DebugCategory category :
           config.getDebugCategory())
       {
-        logCategories.add(DebugLogCategory.parse(category.name()));
+        logCategories.add(DebugLogCategory.parse(category.toString()));
       }
     }
 
@@ -215,7 +215,7 @@ public class TraceSettings
     // naming attribute. Changing it would result in a modify DN.
 
     this.level =
-        DebugLogLevel.parse(config.getDebugLevel().name());
+        DebugLogLevel.parse(config.getDebugLevel().toString());
 
     Set<LogCategory> logCategories = null;
     if(!config.getDebugCategory().isEmpty())
@@ -225,7 +225,7 @@ public class TraceSettings
       for(DebugTargetCfgDefn.DebugCategory category :
           config.getDebugCategory())
       {
-        logCategories.add(DebugLogCategory.parse(category.name()));
+        logCategories.add(DebugLogCategory.parse(category.toString()));
       }
     }
 

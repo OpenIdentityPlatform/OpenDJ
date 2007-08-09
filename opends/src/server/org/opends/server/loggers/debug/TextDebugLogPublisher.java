@@ -217,7 +217,7 @@ public class TextDebugLogPublisher
 
     //Get the default/global settings
     LogLevel logLevel =
-        DebugLogLevel.parse(config.getDefaultDebugLevel().name());
+        DebugLogLevel.parse(config.getDefaultDebugLevel().toString());
     Set<LogCategory> logCategories = null;
     if(!config.getDefaultDebugCategory().isEmpty())
     {
@@ -226,7 +226,7 @@ public class TextDebugLogPublisher
       for(DebugLogPublisherCfgDefn.DefaultDebugCategory category :
           config.getDefaultDebugCategory())
       {
-        logCategories.add(DebugLogCategory.parse(category.name()));
+        logCategories.add(DebugLogCategory.parse(category.toString()));
       }
     }
 
@@ -340,7 +340,7 @@ public class TextDebugLogPublisher
 
     //Get the default/global settings
     LogLevel logLevel =
-        DebugLogLevel.parse(config.getDefaultDebugLevel().name());
+        DebugLogLevel.parse(config.getDefaultDebugLevel().toString());
     Set<LogCategory> logCategories = null;
     if(!config.getDefaultDebugCategory().isEmpty())
     {
@@ -349,7 +349,7 @@ public class TextDebugLogPublisher
       for(DebugLogPublisherCfgDefn.DefaultDebugCategory category :
           config.getDefaultDebugCategory())
       {
-        logCategories.add(DebugLogCategory.parse(category.name()));
+        logCategories.add(DebugLogCategory.parse(category.toString()));
       }
     }
 

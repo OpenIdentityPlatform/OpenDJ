@@ -614,6 +614,17 @@ public class EntryContainer
   }
 
   /**
+   * Get the state database used by this entry container.
+   * The entry container must have been opened.
+   *
+   * @return The state database.
+   */
+  public State getState()
+  {
+    return state;
+  }
+
+  /**
    * Look for an attribute index for the given attribute type.
    *
    * @param attrType The attribute type for which an attribute index is needed.
