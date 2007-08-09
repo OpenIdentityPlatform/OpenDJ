@@ -920,8 +920,7 @@
 
 
   <!-- Prepare to execute the Directory Server TestNG unit tests. -->
-<!--  <target name="testinit" depends="buildtools, weave" -->
-  <target name="testinit" depends="buildtools"
+  <target name="testinit" depends="buildtools, weave"
          description="Prepare to execute the Directory Server TestNG unit tests.">
     <!-- If we are to perform coverage tests, then set that up. -->
     <path id="emma.lib">
