@@ -166,16 +166,16 @@
 
       <if expr='re.search(searchre, returnString) != None'>
         <sequence>
-          <tcstatus result="'pass'"/>
+          <tcstatus result="'pass'"/>			
           <message log="1">
-            'Found substring, %s, in the return string' % (expectedString)
+            'SUCCESS :  Found substring, %s, in the return string' % (expectedString)
           </message>
         </sequence>
         <else>
           <sequence>
             <tcstatus result="'fail'"/>
             <message log="1" level="'Error'">
-              'Did not find substring, %s, in the return string, %s' % (expectedString, returnString)
+              'ERROR : Did not find substring, %s, in the return string, %s' % (expectedString, returnString)
             </message>
           </sequence>
         </else>
