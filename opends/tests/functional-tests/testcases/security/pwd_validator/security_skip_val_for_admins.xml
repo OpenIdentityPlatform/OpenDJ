@@ -34,14 +34,14 @@
       <sequence>
 
         <!--- Test Case : Setup -->
-        <testcase name="'Security: Root User Bypass Valid: Preamble Setup'">
+        <testcase name="'Security: Pwd Validator: Root User Bypass Valid: Preamble Setup'">
           <sequence>
           
             <call function="'testCase_Preamble'"/>
 
             <!--- Admin Enable Pwd Length Validator -->
             <message>
-               'Security: Root User Bypass Valid: Preamble - Step 1. Admin Enabling Pwd Length Validator On Root Users'
+               'Security: Pwd Validator: Root User Bypass Valid: Preamble - Step 1. Admin Enabling Pwd Length Validator On Root Users'
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -60,11 +60,11 @@
         </testcase>
 
         <!--- Root Change Password - Too Short-->
-        <testcase name="'Security: Root User Bypass Valid: No Bypass'">
+        <testcase name="'Security: Pwd Validator: Root User Bypass Valid: No Bypass'">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Root User Bypass Valid: No Bypass - Step 1. Root Changing Password - Too Short'
+               'Security: Pwd Validator: Root User Bypass Valid: No Bypass - Step 1. Root Changing Password - Too Short'
             </message>
 
             <call function="'modifyAnAttribute'">
@@ -81,7 +81,7 @@
             
             <!--- Root Search With Password -->
             <message>
-               'Security: Root User Bypass Valid: No Bypass - Step 2. Root Searching With Password'
+               'Security: Pwd Validator: Root User Bypass Valid: No Bypass - Step 2. Root Searching With Password'
             </message>
 
             <call function="'SearchObject'">
@@ -101,11 +101,11 @@
         </testcase>
 
        <!--- Enable Bypass Validator-->
-        <testcase name="'Security: Root User Bypass Valid: Bypass Enabled 1'">
+        <testcase name="'Security: Pwd Validator: Root User Bypass Valid: Bypass Enabled 1'">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Root User Bypass Valid: Bypass Enabled 1 - Step 1. Admin Enabling Bypass For Pwd Validator'
+               'Security: Pwd Validator: Root User Bypass Valid: Bypass Enabled 1 - Step 1. Admin Enabling Bypass For Pwd Validator'
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -119,7 +119,7 @@
             </call>
             
             <message>
-               'Security: Root User Bypass Valid: Bypass Enabled 1 - Step 2. Root Changing Password - Too Short'
+               'Security: Pwd Validator: Root User Bypass Valid: Bypass Enabled 1 - Step 2. Root Changing Password - Too Short'
             </message>
 
             <call function="'modifyAnAttribute'">
@@ -135,7 +135,7 @@
             
             <!--- Root Search With Password -->
            <message>
-               'Security: Root User Bypass Valid: Bypass Enabled 1 - Step 3. Root Searching With Password'
+               'Security: Pwd Validator: Root User Bypass Valid: Bypass Enabled 1 - Step 3. Root Searching With Password'
             </message>
 
             <call function="'SearchObject'">
@@ -154,11 +154,11 @@
         </testcase>
 
         <!--- Admin Change Minimum Pwd Length -->
-        <testcase name="'Security: Root User Bypass Valid: Bypass Enabled 2'">
+        <testcase name="'Security: Pwd Validator: Root User Bypass Valid: Bypass Enabled 2'">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Root User Bypass Valid: Bypass Enabled 2 - Step 1. Admin Changing Minimum Pwd Length'
+               'Security: Pwd Validator: Root User Bypass Valid: Bypass Enabled 2 - Step 1. Admin Changing Minimum Pwd Length'
             </message>
 
             <call function="'dsconfigSet'">
@@ -175,7 +175,7 @@
             
             <!--- User Change Password - Too Short-->
             <message>
-               'Security: Root User Bypass Valid: Bypass Enabled 2 - Step 2. Root Changing Password - Too Short'
+               'Security: Pwd Validator: Root User Bypass Valid: Bypass Enabled 2 - Step 2. Root Changing Password - Too Short'
             </message>
 
             <call function="'modifyAnAttribute'">
@@ -191,7 +191,7 @@
             
             <!--- Root Search With Password -->
             <message>
-               'Security: Root User Bypass Valid: Bypass Enabled 2 - Step 3. Root Searching With Password'
+               'Security: Pwd Validator: Root User Bypass Valid: Bypass Enabled 2 - Step 3. Root Searching With Password'
             </message>
 
             <call function="'SearchObject'">
@@ -210,14 +210,14 @@
         </testcase>
 
         <!--- Check Self-Change Pwd -->
-        <testcase name="'Security: Root User Bypass Valid: Self-Change Pwd'">
+        <testcase name="'Security: Pwd Validator: Root User Bypass Valid: Self-Change Pwd'">
           <sequence>
           
             <call function="'testCase_Preamble'"/>
   
           <!--- Sales Admin Self-Change Pwd-->
             <message>
-               'Security: Root User Bypass Valid: Self-Change Pwd - Step 1. Root Changing Password - Too Short'
+               'Security: Pwd Validator: Root User Bypass Valid: Self-Change Pwd - Step 1. Root Changing Password - Too Short'
             </message>
 
             <call function="'modifyAnAttribute'">
@@ -234,7 +234,7 @@
             
             <!--- Root Search With Password -->
             <message>
-               'Security: Root User Bypass Valid: Self-Change Pwd - Step 2. Root Searching With Password'
+               'Security: Pwd Validator: Root User Bypass Valid: Self-Change Pwd - Step 2. Root Searching With Password'
             </message>
 
             <call function="'SearchObject'">
@@ -254,14 +254,14 @@
         </testcase>
 
         <!--- Test Case : Admin Reset Minimum Pwd Length -->
-        <testcase name="'Security: Root User Bypass Valid: Postamble Teardown'">
+        <testcase name="'Security: Pwd Validator: Root User Bypass Valid: Postamble Teardown'">
           <sequence>
           
             <call function="'testCase_Preamble'"/>
 
             <!--- Root Search With Original Password -->
             <message>
-               'Security: Root User Bypass Valid: Postamble - Step 1. Admin Disabling Bypass For Pwd Validator'
+               'Security: Pwd Validator: Root User Bypass Valid: Postamble - Step 1. Admin Disabling Bypass For Pwd Validator'
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -275,7 +275,7 @@
             </call>
             
             <message>
-               'Security: Root User Bypass Valid: Postamble - Step 2. Admin Resetting Minimum Pwd Length'
+               'Security: Pwd Validator: Root User Bypass Valid: Postamble - Step 2. Admin Resetting Minimum Pwd Length'
             </message>
 
             <call function="'dsconfigSet'">
@@ -291,7 +291,7 @@
             </call>
             <!--
             <message>
-               'Security: Root User Bypass Valid: Postamble - Step 3. Admin Disabling Pwd Length Validator On Root Users'
+               'Security: Pwd Validator: Root User Bypass Valid: Postamble - Step 3. Admin Disabling Pwd Length Validator On Root Users'
             </message>
 
             <call function="'modifyEntry'">
