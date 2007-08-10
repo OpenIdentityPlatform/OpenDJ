@@ -209,8 +209,178 @@
   </function>
 
 
-  
+  <!-- Get property value using dsconfig -->
+  <function name="dsconfigGet">
+    <function-prolog>
+      This function get a property value using dsconfig
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+		<function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+		
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>		  
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+		
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+		
+      <function-arg-def name="objectName" type="required">
+        <function-arg-description>
+          Object to get, e.g. password validator. it's used to make the subcommand name get-...-prop
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+			
+      <function-arg-def name="propertyType" type="required">
+        <function-arg-description>
+          Property type to get, e.g. backend. it's used to make the  property type: --backend-name
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+			
+      <function-arg-def name="propertyName" type="required">
+        <function-arg-description>
+          Property to get, e.g. userroot
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+			
+      <function-arg-def name="attributeName" type="required">
+        <function-arg-description>
+          Attribute to get, e.g. minimum-password-length
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+
+      <function-arg-def name="extraParams" type="optional">
+        <function-arg-description>
+          Optional extra parameters for specific test cases. ie -M
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+							
+      <function-arg-def name="expectedAttributeValue" type="optional" default="'none'">
+        <function-arg-description>
+          expected attribute value
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+		
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>			
 	
+    </function-map-args>
+    <sequence>
+    
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+        STAFCmdParams=''	
+        STAFCmd=''
+      
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+          STAFCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
+            
+        STAFCmdParamsList=[]
+        STAFCmdParamsList.append('get-%s-prop ' % (objectName))
+        STAFCmdParamsList.append('--%s-name "%s" -s' % (propertyType,propertyName))
+            
+        STAFCmdParamsList.append('--property "%s"' % (attributeName))
+        if extraParams:
+          STAFCmdParamsList.append('%s' % extraParams)		  
+      </script>
+     
+      <call function="'_dsconfigCommonArgs'"/>
+      
+      <script>
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+           
+      <process name="'Get dsconfig object'">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath]
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult[0][1]
+      </script>
+
+	  <sequence>
+	    <if expr="expectedAttributeValue == 'none'">
+           <call function="'checktestRC'">
+           { 'returncode' : STAXCode ,
+           'result'     : STAXReason,
+           'expected'   : expectedRC }
+           </call>		
+		 <else>		
+			 <call function="'checktestString'">
+               { 'expectedString'	   : expectedAttributeValue ,
+                  'returnString'	   :  STAXReason}
+	   	     </call>
+		 </else>
+		</if>
+		</sequence>  
+      <return>
+        STAXReason
+      </return>
+      
+    </sequence>
+    
+  </function>
+
+  
+  
   <!-- generic wrapper on dsconfig -->
   <!-- can be used to list, get or set a list of attribues -->
 	
