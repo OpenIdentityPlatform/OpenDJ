@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE stax SYSTEM "../../../stax.dtd">
+<!DOCTYPE stax SYSTEM "../../shared/stax.dtd">
 <!--
  ! CDDL HEADER START
  !
@@ -26,134 +26,128 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-  
   <defaultcall function="client_auth_setup"/>
-	
   <function name="client_auth_setup" scope="local">      
-
     <sequence>
-                   
-       <!--- Test Case : Server Certificate configuration -->
-       <!---
-            #@TestMarker              Setup Tests
-            #@TestName                 Create certificates for server and client
-            #@TestIssue                   
-            #@TestPurpose             Create server and client certificates
-            #@TestPreamble           none
-            #@TestStep                  Generate server and client certificates.
-            #@TestStep                  Self-sign the certificates.
-            #@TestPostamble          none
-            #@TestResult                Success if OpenDS returns 0 for all operations
-        -->
+      <!--- Test Case : Server Certificate configuration -->
+      <!---
+          #@TestMarker              Setup Tests
+          #@TestName                 Create certificates for server and client
+          #@TestIssue                   
+          #@TestPurpose             Create server and client certificates
+          #@TestPreamble           none
+          #@TestStep                  Generate server and client certificates.
+          #@TestStep                  Self-sign the certificates.
+          #@TestPostamble          none
+          #@TestResult                Success if OpenDS returns 0 for all operations
+      -->
+      <!-- Generate Server Cert -->
+      <testcase name="'Security: client_auth:  Setup. certificates configuration'">
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <!-- Load in the local shared python objects from libraries -->
+          <call function="'loadVariables'" />
+          <message>   
+            '---- Generating Server Certicate -----'
+          </message>
+    
+          <!-- create a server certificate -->           
+            
+          <call function="'genCertificate'">
+            { 'certAlias'        : 'server-cert' ,
+              'dname'           : "uid=server,%s" % (DIRECTORY_INSTANCE_SFX),
+              'keystore'        : 'keystore',
+              'storepass'       : SERVER_STOREPASS,
+              'keypass'         : SERVER_KEYPASS,
+              'storetype'  	   : 'JKS' 
+            }
+          </call>  
 		  
-        <!-- Generate Server Cert -->
-		
-    <testcase name="'Security: client_auth:  Setup. certificates configuration'">
-      <sequence>
+          <!-- Self-Sign Server Cert    -->
+          <message>
+                   '---- Self-Signing Server Certicate  ---- '
+          </message>
 
- 	<!-- Load in the local shared python objects from libraries -->
-      <call function="'loadVariables'">
-	 </call>			    
-		 
-      <message>   
-		    '---- Generating Server Certicate -----'
-      </message>
-
-      <!-- create a server certificate -->           
-		    
-      <call function="'genCertificate'">
-         { 'certAlias'        : 'server-cert' ,
-            'dname'           : "uid=server,%s" % (DIRECTORY_INSTANCE_SFX),
-            'keystore'        : 'keystore',
-            'storepass'       : SERVER_STOREPASS,
-            'keypass'         : SERVER_KEYPASS,
-            'storetype'  	   : 'JKS' }
-      </call>  
+          <call function="'SelfSignCertificate'">
+            { 'certAlias'        : 'server-cert' ,
+              'storepass'       : SERVER_STOREPASS,
+              'keypass'         : SERVER_KEYPASS,
+               'keystore'        : 'keystore',
+               'storetype'  	   : 'JKS' 
+            }
+          </call>
+   
+          <!-- Create folder on local host where are store client keystore and certificate-->
+          <message>
+            'Create folder %s' % (CERT_TMP)
+          </message>  
+          <call function="'createFolder'">
+              { 'location' : '%s' % (DIRECTORY_INSTANCE_HOST), 
+                 'foldername' : '%s' % (CERT_TMP) }
+          </call>		
+          <call function="'checktestRC'">
+             { 'returncode' : RC ,
+             'result'     : STAXResult }
+          </call>			
+            
+          <message>
+                   '---- Generating client Certicate : %s ---- ' % (USER_1_CERT)
+          </message>
+            
+          <!-- create a client certificate  : USER_1_CERT -->           		 
+          <call function="'genCertificate'">
+           { 'certAlias' : USER_1_CERT,  
+             'dname'     : USER_1_DN,
+             'storepass' : CLIENT_STOREPASS,
+             'keystore'  : CLIENT_KEYSTORE,
+             'keypass'   : CLIENT_KEYPASS,
+             'storetype' : 'JKS'
+            }
+          </call> 
+             
+          <!-- Self-Sign client Certificate : USER_1_CERT    -->
+          <message>'---- Self-Signing client Certificate : %s ---- ' % (USER_1_CERT)</message>
+          
+          <call function="'SelfSignCertificate'">
+               { 'certAlias'  : USER_1_CERT,
+                 'storepass'  : CLIENT_STOREPASS,
+                 'keypass'    : CLIENT_KEYPASS,
+                 'keystore'   : CLIENT_KEYSTORE,
+                 'storetype'  : 'JKS' 
+               }
+          </call>
+    
+          <!-- create a client certificate  : USER_2_CERT -->           
+          <message>'---- Self-Signing client Certificate : %s ---- ' % (USER_2_CERT)</message>
+            
+          <call function="'genCertificate'">
+            { 'certAlias' : USER_2_CERT,
+              'dname'     : USER_2_DN,
+              'storepass' : CLIENT_STOREPASS,
+              'keystore'  : CLIENT_KEYSTORE,
+              'keypass'   : CLIENT_KEYPASS,
+              'storetype' : 'JKS'
+            }
+          </call> 
+            
+         <!-- Self-Sign client Certificate : USER_2_CERT    -->
+          <message>'---- Self-Signing client Certificate : %s ---- ' % (USER_2_CERT)</message>
+    
+          <call function="'SelfSignCertificate'">
+            { 'certAlias' : USER_2_CERT,
+              'storepass' : CLIENT_STOREPASS,
+              'keypass'   : CLIENT_KEYPASS,
+              'keystore'  : CLIENT_KEYSTORE,
+              'storetype' : 'JKS'
+            } 
+          </call>
+          <call function="'testCase_Postamble'" />
+       </sequence>
+      </testcase>
 		  
-      <!-- Self-Sign Server Cert    -->
-
-      <message>
-               '---- Self-Signing Server Certicate  ---- '
-      </message>
-
-      <call function="'SelfSignCertificate'">
-          { 'certAlias'        : 'server-cert' ,
-            'storepass'       : SERVER_STOREPASS,
-            'keypass'         : SERVER_KEYPASS,
-             'keystore'        : 'keystore',
-             'storetype'  	   : 'JKS' }
-      </call>
- 
-	    <!-- Create folder on local host where are store client keystore and certificate-->
-      <message>
-                'Create folder %s' % (CERT_TMP)
-      </message>  
-			
-      <call function="'createFolder'">
-          { 'location' : '%s' % (DIRECTORY_INSTANCE_HOST), 
-             'foldername' : '%s' % (CERT_TMP) }
-      </call>		
-      <call function="'checktestRC'">
-	       { 'returncode' : RC ,
-	       'result'     : STAXResult }
-      </call>			
-			  
-      <message>
-               '---- Generating client Certicate : %s ---- ' % (USER_1_CERT)
-      </message>
-			  
-      <!-- create a client certificate  : USER_1_CERT -->           		 
-      <call function="'genCertificate'">
-           { 'certAlias'        : '%s' % USER_1_CERT,  
-            'dname'           : '%s' % (USER_1_DN),
-            'storepass'       : '%s' % (CLIENT_STOREPASS),
-            'keystore'        : '%s' % (CLIENT_KEYSTORE),
-            'keypass'         : '%s' % (CLIENT_KEYPASS),
-            'storetype'  	   : 'JKS' }
-      </call> 
-			   
-      <!-- Self-Sign client Certificate : USER_1_CERT    -->
-      <message>'---- Self-Signing client Certificate : %s ---- ' % (USER_1_CERT)</message>
       
-      <call function="'SelfSignCertificate'">
-           { 'certAlias'        :  '%s' % USER_1_CERT,
-              'storepass'      : '%s' % (CLIENT_STOREPASS),
-              'keypass'         : '%s' % (CLIENT_KEYPASS),
-              'keystore'        : '%s' % (CLIENT_KEYSTORE),
-              'storetype'  	 : 'JKS' }
-      </call>
-
-      <!-- create a client certificate  : USER_2_CERT -->           
-      <message>'---- Self-Signing client Certificate : %s ---- ' % (USER_2_CERT)</message>
-			  
-      <call function="'genCertificate'">
-              { 'certAlias'        : '%s' % USER_2_CERT,
-                'dname'           : '%s' % (USER_2_DN),
-                'storepass'       : '%s' % (CLIENT_STOREPASS),
-                'keystore'        : '%s' % (CLIENT_KEYSTORE),
-                'keypass'         : '%s' % (CLIENT_KEYPASS),
-                'storetype'  	   : 'JKS' }
-      </call> 
-			  
-     <!-- Self-Sign client Certificate : USER_2_CERT    -->
-      <message>'---- Self-Signing client Certificate : %s ---- ' % (USER_2_CERT)</message>
-
-      <call function="'SelfSignCertificate'">
-           { 'certAlias'        :  '%s' % USER_2_CERT,
-              'storepass'       : '%s' % (CLIENT_STOREPASS),
-              'keypass'         : '%s' % (CLIENT_KEYPASS),
-              'keystore'        : '%s' % (CLIENT_KEYSTORE),
-              'storetype'  	   : 'JKS' } 
-      </call>
-                                    
-			  			  			  			      
-      <call function="'testCase_Postamble'"/>
-     </sequence>
-    </testcase>
-		  
-		  			 
-       <!--- Test Case : export client and server certificates -->
-       <!---
+      <!--- Test Case : export client and server certificates -->
+      <!---
             #@TestMarker              Setup Tests
             #@TestName                Export and Import Certificates
             #@TestIssue                   
@@ -165,118 +159,110 @@
             #@TestResult                Success if OpenDS returns 0 for all operations
         -->
 		  
-   <testcase name="'Security: client_auth:  setup. Export and Import certificates'">
-      <sequence>
-			  
-      <call function="'testCase_Preamble'"/>
-		 
- 	<!-- Load in the local shared python objects from libraries -->
-      <call function="'loadVariables'">
-	 </call>
-		  			  	
-	  <!-- Export the server Cert -->
+      <testcase name="'Security: client_auth:  setup. Export and Import certificates'">
+        <sequence>
+          <call function="'testCase_Preamble'" />
+          
+          <!-- Load in the local shared python objects from libraries -->
+          <call function="'loadVariables'" />
+                  
+          <!-- Export the server Cert -->
+          <message>'----  Export the  Server Certicate ----'</message>	  
+          <call function="'ExportCertificate'">
+            { 'certAlias'  : 'server-cert' ,
+              'outputfile' : SERVER_CERT_FILE,
+              'storepass'  : SERVER_STOREPASS,
+              'storetype'  : 'JKS' 
+            }
+          </call>	
 
-      <message>'----  Export the  Server Certicate ----'</message>	  
-			  
-      <call function="'ExportCertificate'">
-			     	{ 'certAlias'        : 'server-cert' ,
-            		'outputfile'        : '%s' % (SERVER_CERT_FILE),
-                    'storepass'       : SERVER_STOREPASS,
-                    'storetype'  	   : 'JKS' }
-      </call>	
-
-			<!-- export client certificate : USER_1_CERT -->
-      <message> '----  Export the  client certificate : : %s ---- ' % (USER_1_CERT)</message>
+          <!-- export client certificate : USER_1_CERT -->
+          <message> '----  Export the  client certificate : : %s ---- ' % (USER_1_CERT)</message>
               
-      <call function="'ExportCertificate'">
-			 { 'certAlias'        : '%s' % USER_1_CERT,
-                'outputfile'        : '%s' % (USER_1_CERT_FILE),
-                'storepass'       : '%s' % (CLIENT_STOREPASS),
-                'keystore'        : '%s' % (CLIENT_KEYSTORE),		   
-                'storetype'  	   : 'JKS' }				
-      </call>			
-		  		  			 
-			<!-- export client certificate  RFC format : USER_1_CERT -->
-      <message> '----  Export the  client certificate in RFC : : %s ---- ' % (USER_1_CERT)</message>
-            
-			  
-      <call function="'ExportCertificate'">
-			 { 'certAlias'        : '%s' % USER_1_CERT,
-                'outputfile'        : '%s' % (USER_1_CERT_FILE_RFC),
-                'storepass'       : '%s' % (CLIENT_STOREPASS),
-                'keystore'        : '%s' % (CLIENT_KEYSTORE),
-                'format'           : 'rfc',		   
-                'storetype'  	   : 'JKS' }				
-      </call>
-		
-	 <!-- export client certificate : USER_2_CERT -->
+          <call function="'ExportCertificate'">
+            { 'certAlias'  : USER_1_CERT,
+              'outputfile' : USER_1_CERT_FILE,
+              'storepass'  : CLIENT_STOREPASS,
+              'keystore'   : CLIENT_KEYSTORE,
+              'storetype'  : 'JKS'
+            }
+          </call>
           
-      <message>'----  Export the  client certificate : : %s ---- ' % (USER_2_CERT)</message>
-    	  
-      <call function="'ExportCertificate'">
-            { 'certAlias'        :'%s' % USER_2_CERT,
-              	'outputfile'        : '%s' % (USER_2_CERT_FILE),
-                'storepass'       : '%s' % (CLIENT_STOREPASS),
-                'keystore'        : '%s' % (CLIENT_KEYSTORE),
-                'storetype'  	   : 'JKS' }				
-      </call>
-
-			<!-- export client certificate RFC format : USER_2_CERT -->
+          <!-- export client certificate  RFC format : USER_1_CERT -->
+          <message> '----  Export the  client certificate in RFC : : %s ---- ' % (USER_1_CERT)</message>
           
-      <message>'----  Export the  client certificate in RFC format : : %s ---- ' % (USER_2_CERT)</message>
-    	  
-      <call function="'ExportCertificate'">
-            { 'certAlias'        :'%s' % USER_2_CERT,
-              	'outputfile'        : '%s' % (USER_2_CERT_FILE_RFC),
-                'storepass'       : '%s' % (CLIENT_STOREPASS),
-                'keystore'        : '%s' % (CLIENT_KEYSTORE),
-                'format'           : 'rfc',		  
-                'storetype'  	   : 'JKS' }				
-      </call>
+          <call function="'ExportCertificate'">
+            { 'certAlias'  : USER_1_CERT,
+              'outputfile' : USER_1_CERT_FILE_RFC,
+              'storepass'  : CLIENT_STOREPASS,
+              'keystore'   : CLIENT_KEYSTORE,
+              'format'     : 'rfc',
+              'storetype'  : 'JKS' 
+            }
+          </call>
+          
+          <!-- export client certificate : USER_2_CERT -->
+          <message>'----  Export the  client certificate : : %s ---- ' % (USER_2_CERT)</message>
+          
+          <call function="'ExportCertificate'">
+            { 'certAlias'  : USER_2_CERT,
+              'outputfile' : USER_2_CERT_FILE,
+              'storepass'  : CLIENT_STOREPASS,
+              'keystore'   : CLIENT_KEYSTORE,
+              'storetype'  : 'JKS' 
+            }
+          </call>
+          
+          <!-- export client certificate RFC format : USER_2_CERT -->
+          <message>'----  Export the  client certificate in RFC format : : %s ---- ' % (USER_2_CERT)</message>
+          
+          <call function="'ExportCertificate'">
+            { 'certAlias'  : USER_2_CERT,
+              'outputfile' : USER_2_CERT_FILE_RFC,
+              'storepass'  : CLIENT_STOREPASS,
+              'keystore'   : CLIENT_KEYSTORE,
+              'format'     : 'rfc',
+              'storetype'  : 'JKS' 
+            }
+          </call>
 	  			
-			  <!-- Import the server Certificate under the client database -->
-
-            <message>
-               '----  Import the  Server Certificate under the client keystore----'
-            </message>	  
-		  
-            <call function="'ImportCertificate'">
-				{ 'certAlias'        : 'server-cert' ,
-                'inputfile'        : '%s' % (SERVER_CERT_FILE),
-                'storepass'       : '%s' % (CLIENT_STOREPASS),
-                'keystore'        : '%s' % (CLIENT_KEYSTORE),
-                'storetype'  	   : 'JKS' }
-            </call>
-			
-			  <!-- Import the client Certificates under the server keystore  -->
-    
-      <message> '----  Import the  client Certificates %s under the server keystore----' % (USER_1_CERT)</message>
-       
-		  
-      <call function="'ImportCertificate'">
-				{ 'certAlias'        : '%s' % (USER_1_CERT),
-              	'inputfile'        : '%s' % (USER_1_CERT_FILE),
-                'storepass'       : SERVER_STOREPASS,
-                'storetype'  	   : 'JKS' }
-      </call>
-			  
-      <message> '----  Import the  client Certificates %s under the server keystore----' % (USER_2_CERT)</message> 	  
-			 
-      <call function="'ImportCertificate'">
-				{ 'certAlias'        : '%s' % (USER_2_CERT),
-              	'inputfile'        : '%s' % (USER_2_CERT_FILE),
-                'storepass'       : SERVER_STOREPASS,
-                'storetype'  	   : 'JKS' }
-      </call>
-            			  			  			  
-            
-      <call function="'testCase_Postamble'"/>
-     </sequence>
-   </testcase>
-		   
-		  
-       <!--- Test Case : configure SSL and StartTLS -->
-       <!---
+          <!-- Import the server Certificate under the client database -->
+          <message>'----  Import the  Server Certificate under the client keystore----'</message>	  
+          <call function="'ImportCertificate'">
+            { 'certAlias' : 'server-cert',
+              'inputfile' : SERVER_CERT_FILE,
+              'storepass' : CLIENT_STOREPASS,
+              'keystore'  : CLIENT_KEYSTORE,
+              'storetype' : 'JKS'
+            }
+          </call>
+          
+          <!-- Import the client Certificates under the server keystore  -->
+          <message> '----  Import the  client Certificates %s under the server keystore----' % (USER_1_CERT)</message>
+          <call function="'ImportCertificate'">
+            { 'certAlias' : USER_1_CERT,
+              'inputfile' : USER_1_CERT_FILE,
+              'storepass' : SERVER_STOREPASS,
+              'storetype' : 'JKS'
+            }
+          </call>
+			    
+          <message> '----  Import the  client Certificates %s under the server keystore----' % (USER_2_CERT)</message> 	  
+          <call function="'ImportCertificate'">
+            { 'certAlias' : USER_2_CERT,
+              'inputfile' : USER_2_CERT_FILE,
+              'storepass' : SERVER_STOREPASS,
+              'storetype' : 'JKS'
+            }
+          </call>
+          
+          <call function="'testCase_Postamble'"/>
+       </sequence>
+      </testcase>
+      
+      
+      <!--- Test Case : configure SSL and StartTLS -->
+      <!---
             #@TestMarker              Setup Tests
             #@TestName                Configure SSL and startTLS
             #@TestIssue                   
@@ -286,79 +272,62 @@
             #@TestStep                   Configure StartTLS
             #@TestPostamble          none
             #@TestResult                Success if OpenDS returns 0 for all operations
-        -->
-		  
-		
-    <testcase name="'Security: client_auth: setup. Configure SSL and StartTLS'">
-     <sequence>
-		  
-	  <call function="'testCase_Preamble'"/>
-		 
- 	<!-- Load in the local shared python objects from libraries -->
-      <call function="'loadVariables'">
-	 </call>		 
-		 
-	  <!-- Configure SSL and TLS -->
-
-      <message>
-               '----  Configure SSL  and TLS----'
-      </message>	  
-
-       <call function="'configureSSL_TLS'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
-                'keystorePin'         : SERVER_STOREPASS,
-		        'certAlias'              : 'server-cert'}
-        </call>
-		 
-		 		 		
-      <!--- Initial Search With SSL -->
-      <message>
-               'Security: Client_auth:  Searching with SSL Connection'
-      </message>
-
-      <call function="'ldapSearchWithScript'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,
-			    'dsScope'           :  'base',
-                'dsFilter'         : 'objectclass=*' ,
-                'dsUseSSL'  	   : ' ',
-                'dsTrustAll' : ' ',
-                'expectedRC'           :  0 }
-      </call>
-	  
-
-      <!--- Initial Search With startTLS-->
-      <message>
-               'Security: Client_auth:  Searching with StartTLS Connection'
-      </message>
-
-      <call function="'ldapSearchWithScript'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,
-			    'dsScope'           :  'base',
-                'dsFilter'         : 'objectclass=*' ,
-                'dsUseStartTLS'  	   : ' ',
-                'dsTrustAll' : ' ',
-                'expectedRC'           :  0 }		  
-      </call>
-
-			    			  			  
-      <call function="'testCase_Postamble'"/>
-     </sequence>
-    </testcase>
-	
-  	  
-       <!--- Test Case : Create users entries with userCertificates -->
-       <!---
+      -->
+      <testcase name="'Security: client_auth: setup. Configure SSL and StartTLS'">
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <!-- Load in the local shared python objects from libraries -->
+          <call function="'loadVariables'" />
+          
+          <!-- Configure SSL and TLS -->
+          <message>'----  Configure SSL  and TLS----'</message>
+          <call function="'configureSSL_TLS'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'keystorePin'    : SERVER_STOREPASS,
+              'certAlias'      : 'server-cert'}
+          </call>
+          
+          <!--- Initial Search With SSL -->
+          <message>'Security: Client_auth:  Searching with SSL Connection'</message>
+          <call function="'ldapSearchWithScript'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort' : DIRECTORY_INSTANCE_SSL_PORT ,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+              'dsBaseDN'       : DIRECTORY_INSTANCE_SFX,
+              'dsScope'        : 'base',
+              'dsFilter'       : 'objectclass=*' ,
+              'dsUseSSL'  	   : ' ',
+              'dsTrustAll'     : ' ',
+              'expectedRC'     :  0 
+            }
+          </call>
+          
+          <!--- Initial Search With startTLS-->
+          <message>'Security: Client_auth:  Searching with StartTLS Connection'</message>
+          <call function="'ldapSearchWithScript'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+              'dsBaseDN'       : DIRECTORY_INSTANCE_SFX,
+              'dsScope'        : 'base',
+              'dsFilter'       : 'objectclass=*' ,
+              'dsUseStartTLS'  : ' ',
+              'dsTrustAll'     : ' ',
+              'expectedRC'     :  0 
+            }
+          </call>
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase>
+      
+      
+      <!--- Test Case : Create users entries with userCertificates -->
+      <!---
             #@TestMarker              Setup Tests
             #@TestName                Create users entries
             #@TestIssue                   
@@ -367,100 +336,93 @@
             #@TestStep                  Create users entries with usercertificates
             #@TestPostamble          none
             #@TestResult                Success if OpenDS returns 0 for all operations
-        -->
-		  
-		
-    <testcase name="'Security: client_auth: setup. Create users entries'">
-      <sequence>
-      
-      <call function="'testCase_Preamble'"/>
-		  
- 	<!-- Load in the local shared python objects from libraries -->
-      <call function="'loadVariables'">
-	 </call>		  
-		  
-      <!-- Create users entries--> 
-  
-      <!-- Create USER_1_DN -->       
-      <message> '----  Create User entry : %s----' % USER_1_DN</message>	  
-        
-     	<script>
-            listAttr = []   
+       -->
+      <testcase name="'Security: client_auth: setup. Create users entries'">
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <!-- Load in the local shared python objects from libraries -->
+          <call function="'loadVariables'" />
+          
+          <!-- Create users entries--> 
+          <!-- Create USER_1_DN -->       
+          <message> '----  Create User entry : %s----' % USER_1_DN</message>	  
+          <script>
+            listAttr = []
             listAttr.append('objectclass:top')
             listAttr.append('objectclass:organizationalperson')
             listAttr.append('objectclass:inetorgperson')
             listAttr.append('objectclass:person')
-            listAttr.append('objectclass:ds-certificate-user') 			 
+            listAttr.append('objectclass:ds-certificate-user')
             listAttr.append('objectclass:strongAuthenticationUser')
-            listAttr.append('userCertificate;binary:  bad_certificate')			 
+            listAttr.append('userCertificate;binary:  bad_certificate')
             listAttr.append('givenname:%s' % USER_1_CERT)
             listAttr.append('sn:%s' % USER_1_CERT)
             listAttr.append('cn:%s' % USER_1_CERT)
-      </script>      
-		  
-      <call function="'addAnEntry'">
-           { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'	: DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'DNToAdd'	  : USER_1_DN,
+          </script>
+          
+          <call function="'addAnEntry'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'	 : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+              'DNToAdd'	       : USER_1_DN,
               'listAttributes' : listAttr,
-              'expectedRC'           :  0 }		  
-    	</call>
-   
-		  
-    <!-- Extract BEGIN CERTIFICATE and END CERTIFICATE -->
-	  <script>
-              cert_file = open(USER_1_CERT_FILE_RFC,"r")
-              ret_str = ""
-              for line in cert_file.readlines():
-                  index_cert = line.find("CERTIFICATE")
-                  if index_cert == -1:
-              		line=line.strip()
-              		ret_str = ret_str + line
-      </script>
-     <script>
-             listAttr = []  
-             listAttr.append('dn: %s' % USER_1_DN)
-             listAttr.append('changetype: modify')
-             listAttr.append('replace: userCertificate;binary')
-             listAttr.append('userCertificate;binary:: %s' % ret_str)
-      </script>  
-		  		  
-     <!-- Write out the ldif -->
-      <script>
-        outfile = open(localUser1LdifFile,"w")
+              'expectedRC'     :  0
+            }
+          </call>
           
-        for line in listAttr:
-          outfile.write("%s\n" % line)
+          <!-- Extract BEGIN CERTIFICATE and END CERTIFICATE -->
+          <script>
+            cert_file = open(USER_1_CERT_FILE_RFC,"r")
+            ret_str = ""
+            for line in cert_file.readlines():
+              index_cert = line.find("CERTIFICATE")
+              if index_cert == -1:
+                line=line.strip()
+              ret_str = ret_str + line
+              
+            listAttr = []
+            listAttr.append('dn: %s' % USER_1_DN)
+            listAttr.append('changetype: modify')
+            listAttr.append('replace: userCertificate;binary')
+            listAttr.append('userCertificate;binary:: %s' % ret_str)
+          </script>
           
-        outfile.close()
-      </script>		  
-
-      <!-- Copy the ldif file containing user certificate to remote host -->
-      <message>'Copy ldif (%s) file to user entry %s  to %s' % (localUser1LdifFile,USER_1_DN,remoteUser1LdifFile)</message>
-      <call function="'copyFile'">
-        { 'location'   : STAXServiceMachine,
-          'srcfile'    : localUser1LdifFile,
-          'destfile'   : remoteUser1LdifFile,
-          'remotehost' : STAF_REMOTE_HOSTNAME }
-      </call>		    
-
-	  <call function="'modifyEntry'">
-		       { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'	: DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'	  : '%s' % remoteUser1LdifFile,
-                    'expectedRC'           :  0 }		  
-		</call>
-	 
-      <!-- Create USER_2_DN : this used contains the objectclass  ds-certificate-user -->
-		              
-       <message>'----  Create User entry : %s----' % USER_2_DN </message>
-       <message>'----  This user contains an objectclass ds-certificate-user' </message>
-    
-     	<script>
+          <!-- Write out the ldif -->
+          <script>
+            outfile = open(localUser1LdifFile,"w")
+            
+            for line in listAttr:
+              outfile.write("%s\n" % line)
+            
+            outfile.close()
+          </script>
+          
+          <!-- Copy the ldif file containing user certificate to remote host -->
+          <message>'Copy ldif (%s) file to user entry %s  to %s' % (localUser1LdifFile,USER_1_DN,remoteUser1LdifFile)</message>
+          <call function="'copyFile'">
+            { 'location'   : STAXServiceMachine,
+              'srcfile'    : localUser1LdifFile,
+              'destfile'   : remoteUser1LdifFile,
+              'remotehost' : STAF_REMOTE_HOSTNAME
+            }
+          </call>
+          
+          <call function="'modifyEntry'">
+            { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'	    : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
+              'entryToBeModified'	: remoteUser1LdifFile,
+              'expectedRC'        :  0
+            }
+          </call>
+          
+          <!-- Create USER_2_DN : this used contains the objectclass  ds-certificate-user -->
+          <message>'----  Create User entry : %s----' % USER_2_DN </message>
+          <message>'----  This user contains an objectclass ds-certificate-user' </message>
+          
+          <script>
             listAttr = []   
             listAttr.append('objectclass:top')
             listAttr.append('objectclass:organizationalperson')
@@ -472,75 +434,68 @@
             listAttr.append('givenname:%s' % USER_2_CERT)
             listAttr.append('sn:%s' % USER_2_CERT)
             listAttr.append('cn:%s' % USER_2_CERT)
-      </script>      
-              
-      <call function="'addAnEntry'">
-           { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-             'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-             'dsInstanceDn'	: DIRECTORY_INSTANCE_DN ,
-             'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-             'DNToAdd'	  : USER_2_DN,
-             'listAttributes' : listAttr,
-             'expectedRC'           :  0 }		  
-  	  </call>
-            	
-
-   
-      <!-- Extract BEGIN CERTIFICATE and END CERTIFICATE -->
-	  <script>
-              cert_file = open(USER_2_CERT_FILE_RFC,"r")
-              ret_str = ""
-              for line in cert_file.readlines():
-                  index_cert = line.find("CERTIFICATE")
-                  if index_cert == -1:
-              		line=line.strip()
-              		ret_str = ret_str + line
-      </script>
-		  
- 	<!-- Modify the user Entry to store the certificates -->	  
-
-      <script>
-             listAttr = []  
-             listAttr.append('dn: %s' % USER_2_DN)
-             listAttr.append('changetype: modify')
-             listAttr.append('replace: userCertificate;binary')
-             listAttr.append('userCertificate;binary:: %s' % ret_str)
-      </script>  
-		  		  
-     <!-- Write out the ldif -->
-      <script>
-        outfile = open(localUser2LdifFile,"w")
+          </script>
+          <call function="'addAnEntry'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'	 : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'DNToAdd'	       : USER_2_DN,
+              'listAttributes' : listAttr,
+              'expectedRC'     :  0
+            }
+          </call>
           
-        for line in listAttr:
-          outfile.write("%s\n" % line)
+          <!-- Extract BEGIN CERTIFICATE and END CERTIFICATE -->
+          <script>
+            cert_file = open(USER_2_CERT_FILE_RFC,"r")
+            ret_str = ""
+            for line in cert_file.readlines():
+              index_cert = line.find("CERTIFICATE")
+              if index_cert == -1:
+                line=line.strip()
+              ret_str = ret_str + line
+          </script>
           
-        outfile.close()
-      </script>		  
-
-      <!-- Copy the ldif file containing user certificate to remote host -->
-      <message>'Copy ldif (%s) file to user entry %s  to %s' % (localUser2LdifFile,USER_2_DN,remoteUser2LdifFile)</message>
-      <call function="'copyFile'">
-        { 'location'   : STAXServiceMachine,
-          'srcfile'    : localUser2LdifFile,
-          'destfile'   : remoteUser2LdifFile,
-          'remotehost' : STAF_REMOTE_HOSTNAME }
-      </call>		    
-
-	  <call function="'modifyEntry'">
-		       { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'	: DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'	  : '%s' % remoteUser2LdifFile,
-                    'expectedRC'           :  0 }		  
-		</call>
-
-		  		  
-      <call function="'testCase_Postamble'"/>
+          <!-- Modify the user Entry to store the certificates -->	  
+          <script>
+            listAttr = []
+            listAttr.append('dn: %s' % USER_2_DN)
+            listAttr.append('changetype: modify')
+            listAttr.append('replace: userCertificate;binary')
+            listAttr.append('userCertificate;binary:: %s' % ret_str)
+          </script>
+          
+          <!-- Write out the ldif -->
+          <script>
+            outfile = open(localUser2LdifFile,"w")
+            for line in listAttr:
+              outfile.write("%s\n" % line)
+            outfile.close()
+          </script>
+          
+          <!-- Copy the ldif file containing user certificate to remote host -->
+          <message>'Copy ldif (%s) file to user entry %s  to %s' % (localUser2LdifFile,USER_2_DN,remoteUser2LdifFile)</message>
+          <call function="'copyFile'">
+            { 'location'   : STAXServiceMachine,
+              'srcfile'    : localUser2LdifFile,
+              'destfile'   : remoteUser2LdifFile,
+              'remotehost' : STAF_REMOTE_HOSTNAME 
+            }
+          </call>
+        
+          <call function="'modifyEntry'">
+            { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'	    : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
+              'entryToBeModified'	: '%s' % remoteUser2LdifFile,
+              'expectedRC'        :  0 
+            }
+          </call>
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase>
     </sequence>
-    </testcase>
-          		
-</sequence>
-</function>
-
+  </function>
 </stax>
