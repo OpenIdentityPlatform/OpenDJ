@@ -60,6 +60,7 @@ import org.opends.server.admin.Tag;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
+import org.opends.server.admin.client.IllegalManagedObjectNameException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
@@ -140,6 +141,13 @@ abstract class SubCommandHandler {
               gotException = true;
               return;
             }
+          } else if (childName.trim().length() == 0) {
+            IllegalManagedObjectNameException e =
+              new IllegalManagedObjectNameException(childName);
+            ae = ArgumentExceptionFactory
+                .adaptIllegalManagedObjectNameException(e, d);
+            gotException = true;
+            return;
           }
 
           ManagedObject<?> child = managedObject.getChild(r, childName);

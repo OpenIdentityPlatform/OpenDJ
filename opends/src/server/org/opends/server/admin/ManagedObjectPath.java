@@ -719,11 +719,18 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
    *          The relative name of the child managed object.
    * @return Returns a new child managed object path beneath the
    *         provided parent path.
+   * @throws IllegalArgumentException
+   *           If the provided name is empty or blank.
    */
   public <M extends ConfigurationClient, N extends Configuration>
       ManagedObjectPath<M, N> child(
       InstantiableRelationDefinition<? super M, ? super N> r,
-      AbstractManagedObjectDefinition<M, N> d, String name) {
+      AbstractManagedObjectDefinition<M, N> d, String name)
+      throws IllegalArgumentException {
+    if (name.trim().length() == 0) {
+      throw new IllegalArgumentException(
+          "Empty or blank managed object names are not allowed");
+    }
     LinkedList<Element<?, ?>> celements = new LinkedList<Element<?, ?>>(
         elements);
     celements.add(new InstantiableElement<M, N>(r, d, name));
@@ -748,10 +755,13 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
    *          The relative name of the child managed object.
    * @return Returns a new child managed object path beneath the
    *         provided parent path.
+   * @throws IllegalArgumentException
+   *           If the provided name is empty or blank.
    */
   public <M extends ConfigurationClient, N extends Configuration>
       ManagedObjectPath<M, N> child(
-      InstantiableRelationDefinition<M, N> r, String name) {
+      InstantiableRelationDefinition<M, N> r, String name)
+      throws IllegalArgumentException {
     return child(r, r.getChildDefinition(), name);
   }
 
