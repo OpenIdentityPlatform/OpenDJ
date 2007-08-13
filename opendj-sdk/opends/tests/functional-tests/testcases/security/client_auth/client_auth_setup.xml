@@ -82,8 +82,8 @@
             'Create folder %s' % (CERT_TMP)
           </message>  
           <call function="'createFolder'">
-              { 'location' : '%s' % (DIRECTORY_INSTANCE_HOST), 
-                 'foldername' : '%s' % (CERT_TMP) }
+              { 'location' : DIRECTORY_INSTANCE_HOST, 
+                 'foldername' : CERT_TMP }
           </call>		
           <call function="'checktestRC'">
              { 'returncode' : RC ,
@@ -378,8 +378,7 @@
             for line in cert_file.readlines():
               index_cert = line.find("CERTIFICATE")
               if index_cert == -1:
-                line=line.strip()
-              ret_str = ret_str + line
+                ret_str+=line.strip()
               
             listAttr = []
             listAttr.append('dn: %s' % USER_1_DN)
@@ -453,8 +452,7 @@
             for line in cert_file.readlines():
               index_cert = line.find("CERTIFICATE")
               if index_cert == -1:
-                line=line.strip()
-              ret_str = ret_str + line
+                ret_str+=line.strip()
           </script>
           
           <!-- Modify the user Entry to store the certificates -->	  

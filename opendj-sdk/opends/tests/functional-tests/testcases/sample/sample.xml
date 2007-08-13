@@ -53,13 +53,13 @@
             <!-- the sequence tag is superfluous here since there is only a 
                  single instruction to execute within the iterate block 
              -->
-            <call function="'%s' % setupStep" />
+            <call function="setupStep" />
           </iterate>
           <iterate in="['passing_test']" var="testStep">
             <!-- the sequence tag is superfluous here since there is only a 
                  single instruction to execute within the iterate block 
              -->
-            <call function="'%s' % testStep" />
+            <call function="testStep" />
           </iterate>
         </sequence>
         <catch exception="'STAFException.Topology.CreationException'">
@@ -83,7 +83,7 @@
         </catch>
         <finally>
           <iterate in="['sample_cleanup','testSuite_Postamble','testGroup_Postamble']" var="testStep">
-            <call function="'%s' % testStep" />
+            <call function="testStep" />
           </iterate>
         </finally>
       </try>

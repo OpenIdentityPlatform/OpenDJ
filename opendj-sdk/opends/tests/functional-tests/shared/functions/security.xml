@@ -34,7 +34,7 @@
       This function generates a server certificate
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -112,7 +112,7 @@
       This function self-signs a certificate
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -157,7 +157,7 @@
       </script>
 			
       <call function="'runCommand'" >
-        { 'name'      : 'Generate a Self-Signs Server Certificate',
+        { 'name'      : 'Generate a Self-Signed Server Certificate',
           'location'  : location,
           'command'   : '%s/bin/keytool' % JAVA_HOME,
           'arguments' : '-selfcert -alias %s -keystore "%s"  -keypass "%s" -storepass "%s" -storetype "%s" ' % (certAlias,keystore,keypass,storepass,storetype),
@@ -186,7 +186,7 @@
       This function exports a certificate
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -270,7 +270,7 @@
       This function imports a certificate
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -345,7 +345,7 @@
       This function returns the fingerprint MD5 or SHA1
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -413,7 +413,7 @@
       This function makes the configuration changes for SSL
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -554,7 +554,7 @@
       This function makes the configuration changes for startTLS
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
             Location of target host
         </function-arg-description>
@@ -695,7 +695,7 @@
       This function makes the configuration changes for SSL and TLS
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -865,7 +865,7 @@
       This function reverses the configuration changes for SSL
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -984,7 +984,7 @@
       This function reverses the configuration changes for startTLS
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
             Location of target host
         </function-arg-description>
@@ -1104,7 +1104,7 @@
       This function reverses the configuration changes for SSL and TLS
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
             Location of target host
         </function-arg-description>

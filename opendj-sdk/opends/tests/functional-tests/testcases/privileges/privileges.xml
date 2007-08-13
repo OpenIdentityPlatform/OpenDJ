@@ -45,31 +45,31 @@
           <call function="'testGroup_Preamble'"/>
 			        											
    
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/privileges/privileges_users.xml' % (TESTS_DIR)"/>
           <call function="'privileges_users'" />
   
-         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+         <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/privileges/privileges_directory_manager.xml' % (TESTS_DIR)"/>
           <call function="'privileges_directory_manager'" />
   
-         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+         <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/privileges/privileges_new_root_user.xml' % (TESTS_DIR)"/>
           <call function="'privileges_new_root_user'" />
   
-         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+         <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/privileges/privileges_import_task.xml' % (TESTS_DIR)"/>
           <call function="'privileges_import_task'" />
   
-         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+         <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/privileges/privileges_export_task.xml' % (TESTS_DIR)"/>
           <call function="'privileges_export_task'" />
   
-         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+         <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/privileges/privileges_backup_task.xml' % (TESTS_DIR)"/>
           <call function="'privileges_backup_task'" />
   
-         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+         <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/privileges/privileges_restore_task.xml' % (TESTS_DIR)"/>
           <call function="'privileges_restore_task'" />
   

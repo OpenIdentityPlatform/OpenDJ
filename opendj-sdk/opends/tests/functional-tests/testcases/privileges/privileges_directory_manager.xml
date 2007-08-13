@@ -54,7 +54,7 @@
           -->
 
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/privileges/privileges_setup.xml' % (TESTS_DIR)"/>
           <call function="'privileges_setup'" />
 
@@ -1995,7 +1995,7 @@
            
          
             
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/privileges/privileges_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'privileges_cleanup'" />
 

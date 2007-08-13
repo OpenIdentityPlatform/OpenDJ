@@ -46,65 +46,65 @@
           <call function="'testSuite_Preamble'"/>
 
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
           <call function="'security_setup'"/>
 									        
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_setup_pwd_storage.xml' % (TESTS_DIR)"/>
           <call function="'setup_pwd_storage'" />
   
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_pwd_SSHA.xml' % (TESTS_DIR)"/>
           <call function="'pwd_SSHA'" />
   
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_pwd_SHA.xml' % (TESTS_DIR)"/>
           <call function="'pwd_SHA'" />
   
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_pwd_SSHA256.xml' % (TESTS_DIR)"/>
           <call function="'pwd_SSHA256'" />
   
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_pwd_SSHA384.xml' % (TESTS_DIR)"/>
           <call function="'pwd_SSHA384'" />
   
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_pwd_SSHA512.xml' % (TESTS_DIR)"/>
           <call function="'pwd_SSHA512'" />
   
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_pwd_MD5.xml' % (TESTS_DIR)"/>
           <call function="'pwd_MD5'" />
   
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_pwd_SMD5.xml' % (TESTS_DIR)"/>
           <call function="'pwd_SMD5'" />
   
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_pwd_BASE64.xml' % (TESTS_DIR)"/>
           <call function="'pwd_BASE64'" />
   
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_pwd_CLEAR.xml' % (TESTS_DIR)"/>
           <call function="'pwd_CLEAR'" />
   
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_multiple_schemes.xml' % (TESTS_DIR)"/>
           <call function="'multiple_schemes'" />
   
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_deprecated_schemes.xml' % (TESTS_DIR)"/>
           <call function="'deprecated_schemes'" />
   
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_teardown_pwd_storage.xml' % (TESTS_DIR)"/>
           <call function="'teardown_pwd_storage'" />
 
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'security_cleanup'"/>
 									  

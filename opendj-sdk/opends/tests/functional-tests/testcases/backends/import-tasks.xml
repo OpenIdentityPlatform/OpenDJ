@@ -57,7 +57,7 @@
           -->
 		
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/backends/backend_setup.xml' % (TESTS_DIR)"/>
           <call function="'backend_setup'" />			
 			
@@ -1346,7 +1346,7 @@
             <!-- Need to know what the error codes are -->
                 
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/backends/backend_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'backend_cleanup'" />
 									

@@ -31,7 +31,7 @@
       This function gets variables associated with the Directory Server
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
         <function-arg-description>
           Location of target host
         </function-arg-description>

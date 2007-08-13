@@ -45,19 +45,19 @@
       
           <call function="'testGroup_Preamble'"/>
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/groups/group_static_uniquemember.xml' % (TESTS_DIR)"/>
           <call function="'main_staticgroup_uniquemember'" />
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/groups/group_static_member.xml' % (TESTS_DIR)"/>
           <call function="'main_staticgroup_member'" />
           
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/groups/group_dynamic.xml' % (TESTS_DIR)"/>
           <call function="'main_dynamicgroup'" />
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/groups/group_virtual_static.xml' % (TESTS_DIR)"/>
           <call function="'main_virtualStaticGroup'" />
           

@@ -46,59 +46,59 @@
         <call function="'testSuite_Preamble'"/>
 
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
           <call function="'security_setup'"/>
 
 												          
 
-        <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_validator/security_setup_pwd_validator.xml' % (TESTS_DIR)"/>
         <call function="'setup_pwd_validator'" />
 
-        <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_validator/security_pwd_length.xml' % (TESTS_DIR)"/>
         <call function="'pwd_length'" />
 
-        <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_validator/security_attribute_value.xml' % (TESTS_DIR)"/>
         <call function="'attribute_value'" />
 
-        <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_validator/security_character_set.xml' % (TESTS_DIR)"/>
         <call function="'character_set'" />
 
-        <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_validator/security_history_based.xml' % (TESTS_DIR)"/>
         <call function="'history_based'" />
         <!--
-        <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_validator/security_similarity_based.xml' % (TESTS_DIR)"/>
         <call function="'similarity_based'" />
         -->
-        <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_validator/security_dictionary.xml' % (TESTS_DIR)"/>
         <call function="'dictionary'" />
 
-        <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_validator/security_unique_chars.xml' % (TESTS_DIR)"/>
         <call function="'unique_chars'" />
 
-        <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_validator/security_repeat_chars.xml' % (TESTS_DIR)"/>
         <call function="'repeat_chars'" />
 
-        <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_validator/security_skip_val_for_admins.xml' % (TESTS_DIR)"/>
         <call function="'skip_val_for_admins'" />
 
-        <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_validator/security_teardown_pwd_validator.xml' % (TESTS_DIR)"/>
         <call function="'teardown_pwd_validator'" />
 
 
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'security_cleanup'"/>
 

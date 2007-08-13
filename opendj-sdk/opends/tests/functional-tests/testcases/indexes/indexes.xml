@@ -62,7 +62,7 @@
           </catch>
           <finally>
             <iterate in="_cleanupSteps" var="_cleanupStep">
-              <call function="'%s' % _cleanupStep" />
+              <call function="_cleanupStep" />
             </iterate>
           </finally>
         </try>
@@ -478,7 +478,7 @@
                     
               </script>
               <message level="'trace'">'%s searchReturnCode=[%s] srt=[%s] searchResultString=[%s] string looked for=[%s]' % (test.desc(), searchReturnCode, srt, searchResultString, test.getSearchString())</message>
-              <tcstatus result="'%s' % test.getStatus()" />
+              <tcstatus result="test.getStatus()" />
               <call function="'testCase_Postamble'" />
               <script>
                 testNumber=testNumber+1

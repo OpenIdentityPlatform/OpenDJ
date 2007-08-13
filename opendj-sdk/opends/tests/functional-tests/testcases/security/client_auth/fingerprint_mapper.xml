@@ -102,8 +102,8 @@
       <!-- get the fingerprint for USER_1_CERT -->           		 
       <call function="'getFingerprint'">
            { 'certAlias'        : '%s' % USER_1_CERT,  
-            'storepass'       : '%s' % (CLIENT_STOREPASS),
-            'keystore'        : '%s' % (CLIENT_KEYSTORE) }
+            'storepass'       : CLIENT_STOREPASS,
+            'keystore'        : CLIENT_KEYSTORE }
       </call> 
 	
       <script>
@@ -125,8 +125,8 @@
       <!-- get the fingerprint for USER_2_CERT -->           		 
       <call function="'getFingerprint'">
            { 'certAlias'        : '%s' % USER_2_CERT,  
-            'storepass'       : '%s' % (CLIENT_STOREPASS),
-            'keystore'        : '%s' % (CLIENT_KEYSTORE) }
+            'storepass'       : CLIENT_STOREPASS,
+            'keystore'        : CLIENT_KEYSTORE }
       </call> 
 	
       <script>
@@ -480,8 +480,8 @@
       <!-- get the fingerprint for USER_1_CERT -->           		 
       <call function="'getFingerprint'">
            { 'certAlias'        : '%s' % USER_1_CERT,  
-            'storepass'       : '%s' % (CLIENT_STOREPASS),
-            'keystore'        : '%s' % (CLIENT_KEYSTORE) }
+            'storepass'       : CLIENT_STOREPASS,
+            'keystore'        : CLIENT_KEYSTORE }
       </call> 
 	
       <script>
@@ -505,8 +505,8 @@
       <!-- get the fingerprint for USER_2_CERT -->           		 
       <call function="'getFingerprint'">
            { 'certAlias'        : '%s' % USER_2_CERT,  
-            'storepass'       : '%s' % (CLIENT_STOREPASS),
-            'keystore'        : '%s' % (CLIENT_KEYSTORE) }
+            'storepass'       : CLIENT_STOREPASS,
+            'keystore'        : CLIENT_KEYSTORE }
       </call> 
 	
       <script>
