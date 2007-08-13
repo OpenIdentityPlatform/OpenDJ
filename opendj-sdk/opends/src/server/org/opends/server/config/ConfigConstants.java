@@ -2723,6 +2723,15 @@ public class ConfigConstants
 
 
   /**
+   * The default name of the file that holds the configuration for the Directory
+   * Server.  It should exist below the directory specified by the
+   * {@code CONFIG_DIR_NAME}.
+   */
+  public static final String CONFIG_FILE_NAME = "config.ldif";
+
+
+
+  /**
    * The DN of the entry that will serve as the root for the Directory Server
    * configuration.
    */
