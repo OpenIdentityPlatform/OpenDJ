@@ -54,6 +54,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ResultCode;
+import org.opends.server.util.TimeThread;
 
 import static org.testng.Assert.*;
 
@@ -2204,18 +2205,10 @@ public class PasswordPolicyTestCase
     assertNotNull(defaultSchemes);
     assertFalse(defaultSchemes.isEmpty());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-default-password-storage-scheme";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "BASE64")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "default-password-storage-scheme:BASE64");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     defaultSchemes = p.getDefaultStorageSchemes();
@@ -2223,11 +2216,10 @@ public class PasswordPolicyTestCase
     assertFalse(defaultSchemes.isEmpty());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "SSHA")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "default-password-storage-scheme:SSHA");
   }
 
 
@@ -2250,16 +2242,10 @@ public class PasswordPolicyTestCase
     assertNotNull(defaultSchemes);
     assertFalse(defaultSchemes.isEmpty());
 
-    String attr  = "ds-cfg-default-password-storage-scheme";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "MD5")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "default-password-storage-scheme:MD5");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     defaultSchemes = p.getDefaultStorageSchemes();
@@ -2267,11 +2253,10 @@ public class PasswordPolicyTestCase
     assertFalse(defaultSchemes.isEmpty());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "SHA1")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "default-password-storage-scheme:SHA1");
   }
 
 
@@ -2290,29 +2275,20 @@ public class PasswordPolicyTestCase
     assertTrue(p.isDefaultStorageScheme("SSHA"));
     assertFalse(p.isDefaultStorageScheme("CLEAR"));
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-default-password-storage-scheme";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "BASE64")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "default-password-storage-scheme:BASE64");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.isDefaultStorageScheme("BASE64"));
     assertFalse(p.isDefaultStorageScheme("SSHA"));
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "SSHA")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "default-password-storage-scheme:SSHA");
   }
 
 
@@ -2333,27 +2309,20 @@ public class PasswordPolicyTestCase
     assertTrue(p.isDefaultStorageScheme("SHA1"));
     assertFalse(p.isDefaultStorageScheme("MD5"));
 
-    String attr  = "ds-cfg-default-password-storage-scheme";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "MD5")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "default-password-storage-scheme:MD5");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.isDefaultStorageScheme("MD5"));
     assertFalse(p.isDefaultStorageScheme("SHA1"));
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "SHA1")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "default-password-storage-scheme:SHA1");
   }
 
 
@@ -2374,19 +2343,10 @@ public class PasswordPolicyTestCase
     assertNotNull(deprecatedSchemes);
     assertTrue(deprecatedSchemes.isEmpty());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-deprecated-password-storage-scheme";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "BASE64")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "deprecated-password-storage-scheme:BASE64");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     deprecatedSchemes = p.getDeprecatedStorageSchemes();
@@ -2394,10 +2354,10 @@ public class PasswordPolicyTestCase
     assertFalse(deprecatedSchemes.isEmpty());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE, new Attribute(type)));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--remove", "deprecated-password-storage-scheme:BASE64");
   }
 
 
@@ -2420,17 +2380,10 @@ public class PasswordPolicyTestCase
     assertNotNull(deprecatedSchemes);
     assertTrue(deprecatedSchemes.isEmpty());
 
-    String attr  = "ds-cfg-deprecated-password-storage-scheme";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "MD5")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "deprecated-password-storage-scheme:MD5");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     deprecatedSchemes = p.getDeprecatedStorageSchemes();
@@ -2438,10 +2391,10 @@ public class PasswordPolicyTestCase
     assertFalse(deprecatedSchemes.isEmpty());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE, new Attribute(type)));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--remove", "deprecated-password-storage-scheme:MD5");
   }
 
 
@@ -2459,28 +2412,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertFalse(p.isDeprecatedStorageScheme("BASE64"));
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-deprecated-password-storage-scheme";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "BASE64")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "deprecated-password-storage-scheme:BASE64");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.isDeprecatedStorageScheme("BASE64"));
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE, new Attribute(type)));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--remove", "deprecated-password-storage-scheme:BASE64");
   }
 
 
@@ -2500,26 +2444,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertFalse(p.isDeprecatedStorageScheme("MD5"));
 
-    String attr  = "ds-cfg-deprecated-password-storage-scheme";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "MD5")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "deprecated-password-storage-scheme:MD5");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.isDeprecatedStorageScheme("MD5"));
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE, new Attribute(type)));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--remove", "deprecated-password-storage-scheme:MD5");
   }
 
 
@@ -2538,32 +2475,22 @@ public class PasswordPolicyTestCase
     assertNotNull(p.getPasswordValidators());
     assertFalse(p.getPasswordValidators().isEmpty());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-password-validator-dn";
     String valDN = "cn=Length-Based Password Validator," +
                    "cn=Password Validators,cn=config";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, valDN)));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--add", "password-validator-dn:"+valDN);
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertNotNull(p.getPasswordValidators());
     assertFalse(p.getPasswordValidators().isEmpty());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(type)));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--remove", "password-validator-dn:"+valDN);
   }
 
 
@@ -2584,29 +2511,22 @@ public class PasswordPolicyTestCase
     assertNotNull(p.getPasswordValidators());
     assertFalse(p.getPasswordValidators().isEmpty());
 
-    String attr  = "ds-cfg-password-validator-dn";
     String valDN = "cn=Length-Based Password Validator," +
                    "cn=Password Validators,cn=config";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, valDN)));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--add", "password-validator-dn:"+valDN);
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertNotNull(p.getPasswordValidators());
     assertFalse(p.getPasswordValidators().isEmpty());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE, new Attribute(type)));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--remove", "password-validator-dn:"+valDN);
   }
 
 
@@ -2625,32 +2545,22 @@ public class PasswordPolicyTestCase
     assertNotNull(p.getAccountStatusNotificationHandlers());
     assertTrue(p.getAccountStatusNotificationHandlers().isEmpty());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-account-status-notification-handler-dn";
     String notDN = "cn=Error Log Handler," +
                    "cn=Account Status Notification Handlers,cn=config";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, notDN)));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--add", "account-status-notification-handler-dn:"+notDN);
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertNotNull(p.getAccountStatusNotificationHandlers());
     assertFalse(p.getAccountStatusNotificationHandlers().isEmpty());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(type)));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--remove", "account-status-notification-handler-dn:"+notDN);
   }
 
 
@@ -2671,29 +2581,22 @@ public class PasswordPolicyTestCase
     assertNotNull(p.getAccountStatusNotificationHandlers());
     assertTrue(p.getAccountStatusNotificationHandlers().isEmpty());
 
-    String attr  = "ds-cfg-account-status-notification-handler-dn";
     String notDN = "cn=Error Log Handler," +
                    "cn=Account Status Notification Handlers,cn=config";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, notDN)));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--add", "account-status-notification-handler-dn:"+notDN);
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertNotNull(p.getAccountStatusNotificationHandlers());
     assertFalse(p.getAccountStatusNotificationHandlers().isEmpty());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE, new Attribute(type)));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--remove", "account-status-notification-handler-dn:"+notDN);
   }
 
 
@@ -2711,28 +2614,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.allowUserPasswordChanges());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-allow-user-password-changes";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "allow-user-password-changes:false");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertFalse(p.allowUserPasswordChanges());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "allow-user-password-changes:true");
   }
 
 
@@ -2752,26 +2646,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.allowUserPasswordChanges());
 
-    String attr  = "ds-cfg-allow-user-password-changes";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "allow-user-password-changes:false");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertFalse(p.allowUserPasswordChanges());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "allow-user-password-changes:true");
   }
 
 
@@ -2789,28 +2676,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertFalse(p.requireCurrentPassword());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-password-change-requires-current-password";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "password-change-requires-current-password:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.requireCurrentPassword());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "password-change-requires-current-password:false");
   }
 
 
@@ -2830,26 +2708,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertFalse(p.requireCurrentPassword());
 
-    String attr  = "ds-cfg-password-change-requires-current-password";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "password-change-requires-current-password:true");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.allowUserPasswordChanges());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "password-change-requires-current-password:false");
   }
 
 
@@ -2867,28 +2738,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertFalse(p.forceChangeOnAdd());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-force-change-on-add";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "force-change-on-add:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.forceChangeOnAdd());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "force-change-on-add:false");
   }
 
 
@@ -2908,26 +2770,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertFalse(p.requireCurrentPassword());
 
-    String attr  = "ds-cfg-force-change-on-add";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "force-change-on-add:true");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.forceChangeOnAdd());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "force-change-on-add:false");
   }
 
 
@@ -2945,28 +2800,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertFalse(p.forceChangeOnReset());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-force-change-on-reset";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "force-change-on-reset:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.forceChangeOnReset());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "force-change-on-reset:false");
   }
 
 
@@ -2986,26 +2832,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertFalse(p.requireCurrentPassword());
 
-    String attr  = "ds-cfg-force-change-on-reset";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "force-change-on-reset:true");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.forceChangeOnReset());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "force-change-on-reset:false");
   }
 
 
@@ -3023,28 +2862,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertFalse(p.skipValidationForAdministrators());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-skip-validation-for-administrators";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "skip-validation-for-administrators:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.skipValidationForAdministrators());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "skip-validation-for-administrators:false");
   }
 
 
@@ -3064,26 +2894,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertFalse(p.skipValidationForAdministrators());
 
-    String attr  = "ds-cfg-skip-validation-for-administrators";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "skip-validation-for-administrators:true");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.skipValidationForAdministrators());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "skip-validation-for-administrators:false");
   }
 
 
@@ -3101,31 +2924,21 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertNotNull(p.getPasswordGeneratorDN());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-password-generator-dn";
     String genDN = "cn=Random Password Generator,cn=Password Generators," +
                    "cn=config";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(type)));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--remove", "password-generator-dn:"+genDN);
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertNull(p.getPasswordGeneratorDN());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, genDN)));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "password-generator-dn:"+genDN);
   }
 
 
@@ -3145,29 +2958,21 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertNotNull(p.getPasswordGeneratorDN());
 
-    String attr  = "ds-cfg-password-generator-dn";
     String genDN = "cn=Random Password Generator,cn=Password Generators," +
                    "cn=config";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(type)));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--remove", "password-generator-dn:"+genDN);
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertNull(p.getPasswordGeneratorDN());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, genDN)));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "password-generator-dn:"+genDN);
   }
 
 
@@ -3185,31 +2990,21 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertNotNull(p.getPasswordGenerator());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-password-generator-dn";
     String genDN = "cn=Random Password Generator,cn=Password Generators," +
                    "cn=config";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(type)));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--remove", "password-generator-dn:"+genDN);
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertNull(p.getPasswordGenerator());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, genDN)));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "password-generator-dn:"+genDN);
   }
 
 
@@ -3229,29 +3024,21 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertNotNull(p.getPasswordGenerator());
 
-    String attr  = "ds-cfg-password-generator-dn";
     String genDN = "cn=Random Password Generator,cn=Password Generators," +
                    "cn=config";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(type)));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--remove", "password-generator-dn:"+genDN);
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertNull(p.getPasswordGenerator());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, genDN)));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "password-generator-dn:"+genDN);
   }
 
 
@@ -3269,28 +3056,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertFalse(p.requireSecureAuthentication());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-require-secure-authentication";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "require-secure-authentication:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.requireSecureAuthentication());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "require-secure-authentication:false");
   }
 
 
@@ -3310,26 +3088,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertFalse(p.requireSecureAuthentication());
 
-    String attr  = "ds-cfg-require-secure-authentication";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "require-secure-authentication:true");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.requireSecureAuthentication());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "require-secure-authentication:false");
   }
 
 
@@ -3347,28 +3118,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertFalse(p.requireSecurePasswordChanges());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-require-secure-password-changes";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "require-secure-password-changes:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.requireSecurePasswordChanges());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "require-secure-password-changes:false");
   }
 
 
@@ -3388,26 +3150,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertFalse(p.requireSecurePasswordChanges());
 
-    String attr  = "ds-cfg-require-secure-password-changes";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "require-secure-password-changes:true");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.requireSecurePasswordChanges());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "require-secure-password-changes:false");
   }
 
 
@@ -3425,28 +3180,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertFalse(p.allowMultiplePasswordValues());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-allow-multiple-password-values";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "allow-multiple-password-values:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.allowMultiplePasswordValues());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "allow-multiple-password-values:false");
   }
 
 
@@ -3466,26 +3212,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertFalse(p.allowMultiplePasswordValues());
 
-    String attr  = "ds-cfg-allow-multiple-password-values";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "allow-multiple-password-values:true");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.allowMultiplePasswordValues());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "allow-multiple-password-values:false");
   }
 
 
@@ -3503,28 +3242,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertFalse(p.allowPreEncodedPasswords());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-allow-pre-encoded-passwords";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "allow-pre-encoded-passwords:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.allowPreEncodedPasswords());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "allow-pre-encoded-passwords:false");
   }
 
 
@@ -3544,26 +3274,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertFalse(p.allowPreEncodedPasswords());
 
-    String attr  = "ds-cfg-allow-pre-encoded-passwords";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "allow-pre-encoded-passwords:true");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.allowPreEncodedPasswords());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "allow-pre-encoded-passwords:false");
   }
 
 
@@ -3581,28 +3304,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getMinimumPasswordAge(), 0);
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-minimum-password-age";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "24 hours")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "minimum-password-age:24 hours");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getMinimumPasswordAge(), (24*60*60));
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "0 seconds")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "minimum-password-age:0 seconds");
   }
 
 
@@ -3622,26 +3336,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getMinimumPasswordAge(), 0);
 
-    String attr  = "ds-cfg-minimum-password-age";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "24 hours")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "minimum-password-age:24 hours");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getMinimumPasswordAge(), (24*60*60));
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "0 seconds")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "minimum-password-age:0 seconds");
   }
 
 
@@ -3659,28 +3366,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getMaximumPasswordAge(), 0);
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-maximum-password-age";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "90 days")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "maximum-password-age:90 days");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getMaximumPasswordAge(), (90*60*60*24));
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "0 seconds")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "maximum-password-age:0 seconds");
   }
 
 
@@ -3700,26 +3398,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getMaximumPasswordAge(), 0);
 
-    String attr  = "ds-cfg-maximum-password-age";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "90 days")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "maximum-password-age:90 days");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getMaximumPasswordAge(), (90*60*60*24));
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "0 seconds")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "maximum-password-age:0 seconds");
   }
 
 
@@ -3737,28 +3428,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getMaximumPasswordResetAge(), 0);
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-maximum-password-reset-age";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "24 hours")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "maximum-password-reset-age:24 hours");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getMaximumPasswordResetAge(), (24*60*60));
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "0 seconds")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "maximum-password-reset-age:0 seconds");
   }
 
 
@@ -3778,26 +3460,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getMaximumPasswordResetAge(), 0);
 
-    String attr  = "ds-cfg-maximum-password-reset-age";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "24 hours")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "maximum-password-reset-age:24 hours");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getMaximumPasswordResetAge(), (24*60*60));
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "0 seconds")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "maximum-password-reset-age:0 seconds");
   }
 
 
@@ -3815,28 +3490,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getWarningInterval(), (5*60*60*24));
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-password-expiration-warning-interval";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "24 hours")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "password-expiration-warning-interval:24 hours");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getWarningInterval(), (24*60*60));
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "5 days")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "password-expiration-warning-interval:5 days");
   }
 
 
@@ -3856,26 +3522,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getWarningInterval(), (5*60*60*24));
 
-    String attr  = "ds-cfg-password-expiration-warning-interval";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "24 hours")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "password-expiration-warning-interval:24 hours");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getWarningInterval(), (24*60*60));
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "5 days")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "password-expiration-warning-interval:5 days");
   }
 
 
@@ -3893,28 +3552,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertFalse(p.expirePasswordsWithoutWarning());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-expire-passwords-without-warning";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "expire-passwords-without-warning:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.expirePasswordsWithoutWarning());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "expire-passwords-without-warning:false");
   }
 
 
@@ -3934,26 +3584,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertFalse(p.expirePasswordsWithoutWarning());
 
-    String attr  = "ds-cfg-expire-passwords-without-warning";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "expire-passwords-without-warning:true");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.expirePasswordsWithoutWarning());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "expire-passwords-without-warning:false");
   }
 
 
@@ -3971,28 +3614,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertFalse(p.allowExpiredPasswordChanges());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-allow-expired-password-changes";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "allow-expired-password-changes:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.allowExpiredPasswordChanges());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "allow-expired-password-changes:false");
   }
 
 
@@ -4012,26 +3646,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertFalse(p.allowExpiredPasswordChanges());
 
-    String attr  = "ds-cfg-allow-expired-password-changes";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "allow-expired-password-changes:true");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.allowExpiredPasswordChanges());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "allow-expired-password-changes:false");
   }
 
 
@@ -4049,28 +3676,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getGraceLoginCount(), 0);
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-grace-login-count";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "3")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "grace-login-count:3");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getGraceLoginCount(), 3);
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "0")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "grace-login-count:0");
   }
 
 
@@ -4090,26 +3708,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getGraceLoginCount(), 0);
 
-    String attr  = "ds-cfg-grace-login-count";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "3")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "grace-login-count:3");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getGraceLoginCount(), 3);
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "0")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "grace-login-count:0");
   }
 
 
@@ -4127,28 +3738,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getLockoutFailureCount(), 0);
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-lockout-failure-count";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "3")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "lockout-failure-count:3");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getLockoutFailureCount(), 3);
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "0")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "lockout-failure-count:0");
   }
 
 
@@ -4168,26 +3770,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getLockoutFailureCount(), 0);
 
-    String attr  = "ds-cfg-lockout-failure-count";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "3")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "lockout-failure-count:3");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getLockoutFailureCount(), 3);
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "0")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "lockout-failure-count:0");
   }
 
 
@@ -4205,28 +3800,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getLockoutDuration(), 0);
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-lockout-duration";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "15 minutes")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "lockout-duration:15 minutes");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getLockoutDuration(), (15*60));
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "0 seconds")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "lockout-duration:0 seconds");
   }
 
 
@@ -4246,26 +3832,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getLockoutDuration(), 0);
 
-    String attr  = "ds-cfg-lockout-duration";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "15 minutes")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "lockout-duration:15 minutes");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getLockoutDuration(), (15*60));
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "0 seconds")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "lockout-duration:0 seconds");
   }
 
 
@@ -4283,28 +3862,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getLockoutFailureExpirationInterval(), 0);
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-lockout-failure-expiration-interval";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "10 minutes")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "lockout-failure-expiration-interval:10 minutes");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getLockoutFailureExpirationInterval(), (10*60));
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "0 seconds")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "lockout-failure-expiration-interval:0 seconds");
   }
 
 
@@ -4324,26 +3894,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getLockoutFailureExpirationInterval(), 0);
 
-    String attr  = "ds-cfg-lockout-failure-expiration-interval";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "10 minutes")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "lockout-failure-expiration-interval:10 minutes");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getLockoutFailureExpirationInterval(), (10*60));
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "0 seconds")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "lockout-failure-expiration-interval:0 seconds");
   }
 
 
@@ -4361,28 +3924,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getRequireChangeByTime(), 0);
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-require-change-by-time";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "19700101000001Z")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "require-change-by-time:19700101000001Z");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getRequireChangeByTime(), 1000);
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE, new Attribute(type)));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--remove", "require-change-by-time:19700101000001Z");
   }
 
 
@@ -4402,26 +3956,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getRequireChangeByTime(), 0);
 
-    String attr  = "ds-cfg-require-change-by-time";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "19700101000001Z")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "require-change-by-time:19700101000001Z");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getRequireChangeByTime(), 1000);
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE, new Attribute(type)));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--remove", "require-change-by-time:19700101000001Z");
   }
 
 
@@ -4439,28 +3986,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertNull(p.getLastLoginTimeAttribute());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-last-login-time-attribute";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "ds-pwp-last-login-time")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "last-login-time-attribute:ds-pwp-last-login-time");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertNotNull(p.getLastLoginTimeAttribute());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE, new Attribute(type)));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--remove", "last-login-time-attribute:ds-pwp-last-login-time");
   }
 
 
@@ -4480,26 +4018,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertNull(p.getLastLoginTimeAttribute());
 
-    String attr  = "ds-cfg-last-login-time-attribute";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "ds-pwp-last-login-time")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "last-login-time-attribute:ds-pwp-last-login-time");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertNotNull(p.getLastLoginTimeAttribute());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE, new Attribute(type)));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--remove", "last-login-time-attribute:ds-pwp-last-login-time");
   }
 
 
@@ -4517,28 +4048,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertNull(p.getLastLoginTimeFormat());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-last-login-time-format";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "yyyyMMdd")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "last-login-time-format:yyyyMMdd");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getLastLoginTimeFormat(), "yyyyMMdd");
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE, new Attribute(type)));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--remove", "last-login-time-format:yyyyMMdd");
   }
 
 
@@ -4558,26 +4080,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertNull(p.getLastLoginTimeFormat());
 
-    String attr  = "ds-cfg-last-login-time-format";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "yyyyMMdd")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "last-login-time-format:yyyyMMdd");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getLastLoginTimeFormat(), "yyyyMMdd");
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE, new Attribute(type)));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--remove", "last-login-time-format:yyyyMMdd");
   }
 
 
@@ -4596,29 +4111,20 @@ public class PasswordPolicyTestCase
     assertNotNull(p.getPreviousLastLoginTimeFormats());
     assertTrue(p.getPreviousLastLoginTimeFormats().isEmpty());
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-previous-last-login-time-format";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "yyyyMMdd")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "previous-last-login-time-format:yyyyMMdd");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertNotNull(p.getPreviousLastLoginTimeFormats());
     assertFalse(p.getPreviousLastLoginTimeFormats().isEmpty());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE, new Attribute(type)));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--remove", "previous-last-login-time-format:yyyyMMdd");
   }
 
 
@@ -4639,27 +4145,20 @@ public class PasswordPolicyTestCase
     assertNotNull(p.getPreviousLastLoginTimeFormats());
     assertTrue(p.getPreviousLastLoginTimeFormats().isEmpty());
 
-    String attr  = "ds-cfg-previous-last-login-time-format";
-    AttributeType type = DirectoryServer.getAttributeType(attr);
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "yyyyMMdd")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "previous-last-login-time-format:yyyyMMdd");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertNotNull(p.getPreviousLastLoginTimeFormats());
     assertFalse(p.getPreviousLastLoginTimeFormats().isEmpty());
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE, new Attribute(type)));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--remove", "previous-last-login-time-format:yyyyMMdd");
   }
 
 
@@ -4677,28 +4176,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getIdleLockoutInterval(), 0);
 
-    String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-idle-lockout-interval";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "90 days")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "idle-lockout-interval:90 days");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getIdleLockoutInterval(), (90*60*60*24));
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "0 seconds")));
-    modifyOperation = conn.processModify(DN.decode(dnStr), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "idle-lockout-interval:0 seconds");
   }
 
 
@@ -4718,26 +4208,19 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getIdleLockoutInterval(), 0);
 
-    String attr  = "ds-cfg-idle-lockout-interval";
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "90 days")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "idle-lockout-interval:90 days");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getIdleLockoutInterval(), (90*60*60*24));
     p.toString();
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "0 seconds")));
-    modifyOperation = conn.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "SHA1 AuthPassword Policy",
+      "--set", "idle-lockout-interval:0 seconds");
   }
 
 
@@ -4768,20 +4251,16 @@ public class PasswordPolicyTestCase
       "ds-privilege-name: bypass-acl"
     );
 
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "force-change-on-reset:true",
+      "--set", "last-login-time-attribute:ds-pwp-last-login-time",
+      "--set", "last-login-time-format:yyyyMMdd");
+
     try
     {
       TestCaseUtils.applyModifications(
-        "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
-        "changetype: modify",
-        "replace: ds-cfg-force-change-on-reset",
-        "ds-cfg-force-change-on-reset: true",
-        "-",
-        "replace: ds-cfg-last-login-time-attribute",
-        "ds-cfg-last-login-time-attribute: ds-pwp-last-login-time",
-        "-",
-        "replace: ds-cfg-last-login-time-format",
-        "ds-cfg-last-login-time-format: yyyyMMdd",
-        "",
         "dn: uid=test.user,o=test",
         "changetype: modify",
         "replace: userPassword",
@@ -4807,15 +4286,12 @@ public class PasswordPolicyTestCase
     }
     finally
     {
-      TestCaseUtils.applyModifications(
-        "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
-        "changetype: modify",
-        "replace: ds-cfg-force-change-on-reset",
-        "ds-cfg-force-change-on-reset: false",
-        "-",
-        "replace: ds-cfg-last-login-time-attribute",
-        "-",
-        "replace: ds-cfg-last-login-time-format");
+      TestCaseUtils.dsconfig(
+        "set-password-policy-prop",
+        "--policy-name", "Default Password Policy",
+        "--set", "force-change-on-reset:false",
+        "--remove", "last-login-time-attribute:ds-pwp-last-login-time",
+        "--remove", "last-login-time-format:yyyyMMdd");
     }
   }
 
@@ -4827,7 +4303,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(enabled=false)
+  @Test()
   public void testPasswordHistoryUsingCount()
          throws Exception
   {
@@ -4864,11 +4340,10 @@ public class PasswordPolicyTestCase
 
     assertEquals(LDAPModify.mainModify(args, false, System.out, System.err), 0);
 
-    TestCaseUtils.applyModifications(
-      "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
-      "changetype: modify",
-      "replace: ds-cfg-password-history-count",
-      "ds-cfg-password-history-count: 3");
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "password-history-count:3");
 
     try
     {
@@ -4906,6 +4381,21 @@ public class PasswordPolicyTestCase
 
       assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
                    0);
+
+
+      // Sleep until we can be sure that the time thread has been updated.
+      // Otherwise, the password changes can all appear to be in the same
+      // millisecond and really weird things start to happen because of the way
+      // that we handle conflicts in password history timestamps.  In short, if
+      // the history is already at the maximum count and all the previous
+      // changes occurred in the same millisecond as the new change, then it's
+      // possible for a new change to come with a timestamp that is before the
+      // timestamps of all the existing values.
+      long timeThreadCurrentTime = TimeThread.getTime();
+      while (timeThreadCurrentTime == TimeThread.getTime())
+      {
+        Thread.sleep(10);
+      }
 
 
       // Make sure that we still can't use the original password.
@@ -4948,12 +4438,20 @@ public class PasswordPolicyTestCase
                    0);
 
 
-      // Make sure that we can't use the first new password.
+      // Sleep again to ensure that the time thread is updated.
+      timeThreadCurrentTime = TimeThread.getTime();
+      while (timeThreadCurrentTime == TimeThread.getTime())
+      {
+        Thread.sleep(10);
+      }
+
+
+      // Make sure that we can't use the second new password.
       String firstPWPath = TestCaseUtils.createTempFile(
         "dn: uid=test.user,o=test",
         "changetype: modify",
         "replace: userPassword",
-        "userPassword: newPassword1");
+        "userPassword: newPassword2");
 
       args = new String[]
       {
@@ -4968,24 +4466,30 @@ public class PasswordPolicyTestCase
                   0);
 
 
+      // Sleep again to ensure that the time thread is updated.
+      timeThreadCurrentTime = TimeThread.getTime();
+      while (timeThreadCurrentTime == TimeThread.getTime())
+      {
+        Thread.sleep(10);
+      }
+
+
       // Reduce the password history count from 3 to 2 and verify that we can
-      // now use the first new password.
-      TestCaseUtils.applyModifications(
-        "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
-        "changetype: modify",
-        "replace: ds-cfg-password-history-count",
-        "ds-cfg-password-history-count: 0");
+      // now use the second new password.
+      TestCaseUtils.dsconfig(
+        "set-password-policy-prop",
+        "--policy-name", "Default Password Policy",
+        "--set", "password-history-count:2");
 
       assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
                    0);
     }
     finally
     {
-      TestCaseUtils.applyModifications(
-        "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
-        "changetype: modify",
-        "replace: ds-cfg-password-history-count",
-        "ds-cfg-password-history-count: 0");
+      TestCaseUtils.dsconfig(
+        "set-password-policy-prop",
+        "--policy-name", "Default Password Policy",
+        "--set", "password-history-count:0");
     }
   }
 
@@ -5034,11 +4538,10 @@ public class PasswordPolicyTestCase
 
     assertEquals(LDAPModify.mainModify(args, false, System.out, System.err), 0);
 
-    TestCaseUtils.applyModifications(
-      "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
-      "changetype: modify",
-      "replace: ds-cfg-password-history-duration",
-      "ds-cfg-password-history-duration: 5 seconds");
+    TestCaseUtils.dsconfig(
+      "set-password-policy-prop",
+      "--policy-name", "Default Password Policy",
+      "--set", "password-history-duration:5 seconds");
 
     try
     {
@@ -5100,11 +4603,10 @@ public class PasswordPolicyTestCase
     }
     finally
     {
-      TestCaseUtils.applyModifications(
-        "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
-        "changetype: modify",
-        "replace: ds-cfg-password-history-duration",
-        "ds-cfg-password-history-duration: 0 seconds");
+      TestCaseUtils.dsconfig(
+        "set-password-policy-prop",
+        "--policy-name", "Default Password Policy",
+        "--set", "password-history-duration:0 seconds");
     }
   }
 
