@@ -1177,4 +1177,8 @@ email.server.pwd=${email.server.pwd.input}
           style="shared/xsl/my-report.xsl">
     </xslt>
   </target>
+  
+  <target name="opends">
+    <ant dir="../.." target="package" inheritAll="false" />
+  </target>
 </project>
