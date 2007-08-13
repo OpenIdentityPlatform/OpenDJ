@@ -46,39 +46,39 @@
           <call function="'testSuite_Preamble'"/>
 
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
           <call function="'security_setup'"/>
 
 												            
   
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/sasl/security_setup_sasl.xml' % (TESTS_DIR)"/>
           <call function="'setup_sasl'" />
   
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/sasl/security_sasl_anon.xml' % (TESTS_DIR)"/>
           <call function="'sasl_anon'" />
   
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/sasl/security_sasl_plain.xml' % (TESTS_DIR)"/>
           <call function="'sasl_plain'" />
   
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/sasl/security_sasl_cram-md5.xml' % (TESTS_DIR)"/>
           <call function="'sasl_cram-md5'" />
   
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/sasl/security_sasl_digest-md5.xml' % (TESTS_DIR)"/>
           <call function="'sasl_digest-md5'" />
   
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/sasl/security_teardown_sasl.xml' % (TESTS_DIR)"/>
           <call function="'teardown_sasl'" />
 
 
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'security_cleanup'"/>
 

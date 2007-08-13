@@ -33,7 +33,7 @@
       This function sets up a Directory Server using a script
     </function-prolog>    
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -157,7 +157,7 @@
       This function configures a Directory Server using a script
     </function-prolog>    
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -334,7 +334,7 @@
       This function starts a Directory Server
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -438,7 +438,7 @@
       This function starts a Directory Server using the script
     </function-prolog>    
     <function-map-args>    
-      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -750,7 +750,7 @@
       This function performs an offline import of an ldif file
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -768,7 +768,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="filename"/>
       </function-arg-def>
-      <function-arg-def name="backEnd" type="optional" default="'%s' % DIRECTORY_INSTANCE_BE">
+      <function-arg-def name="backEnd" type="optional" default="DIRECTORY_INSTANCE_BE">
         <function-arg-description>
           Backend ID for the backend to import
         </function-arg-description>
@@ -815,7 +815,7 @@
       This function performs an offline import of an ldif file using the script
     </function-prolog>  
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -1051,7 +1051,7 @@
         This function performs an on line import task of an ldif file
     </function-prolog>
     <function-map-args>    
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -1099,7 +1099,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-      <function-arg-def name="backEnd" type="optional" default="'%s' % DIRECTORY_INSTANCE_BE">
+      <function-arg-def name="backEnd" type="optional" default="DIRECTORY_INSTANCE_BE">
         <function-arg-description>
           Optional the name of the database backend
         </function-arg-description>
@@ -1295,7 +1295,7 @@
       This function verifies an import of an ldif file 
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -1307,25 +1307,25 @@
         </function-arg-description>
         <function-arg-property name="type" value="pathname"/>
       </function-arg-def>
-      <function-arg-def name="dsHost" type="optional" default="'%s' % DIRECTORY_INSTANCE_HOST">
+      <function-arg-def name="dsHost" type="optional" default="DIRECTORY_INSTANCE_HOST">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>      
-      <function-arg-def name="dsPort" type="optional" default="'%s' % DIRECTORY_INSTANCE_PORT">
+      <function-arg-def name="dsPort" type="optional" default="DIRECTORY_INSTANCE_PORT">
         <function-arg-description>
           Directory server port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
-      <function-arg-def name="dsDn" type="optional" default="'%s' % DIRECTORY_INSTANCE_DN">
+      <function-arg-def name="dsDn" type="optional" default="DIRECTORY_INSTANCE_DN">
         <function-arg-description>
           Bind DN
         </function-arg-description>
         <function-arg-property name="type" value="DN"/>
       </function-arg-def> 
-      <function-arg-def name="dsPswd" type="optional" default="'%s' % DIRECTORY_INSTANCE_PSWD">
+      <function-arg-def name="dsPswd" type="optional" default="DIRECTORY_INSTANCE_PSWD">
         <function-arg-description>
           Bind password
         </function-arg-description>
@@ -1355,7 +1355,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="list"/>
       </function-arg-def>
-      <function-arg-def name="suffix" type="optional" default="'%s' % DIRECTORY_INSTANCE_SFX">
+      <function-arg-def name="suffix" type="optional" default="DIRECTORY_INSTANCE_SFX">
         <function-arg-description>
           Optional main suffix for the import
         </function-arg-description>
@@ -1477,7 +1477,7 @@
     </function-prolog>
 
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -1495,7 +1495,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="filename"/>
       </function-arg-def>
-      <function-arg-def name="backEnd" type="optional" default="'%s' % DIRECTORY_INSTANCE_BE">
+      <function-arg-def name="backEnd" type="optional" default="DIRECTORY_INSTANCE_BE">
         <function-arg-description>
           The name of the database backend
         </function-arg-description>
@@ -1543,7 +1543,7 @@
       This function performs an on line export task of an ldif file
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -1591,7 +1591,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-      <function-arg-def name="backEnd" type="optional" default="'%s' % DIRECTORY_INSTANCE_BE">
+      <function-arg-def name="backEnd" type="optional" default="DIRECTORY_INSTANCE_BE">
         <function-arg-description>
           Optional the name of the database backend
         </function-arg-description>
@@ -1761,7 +1761,7 @@
         This function performs an off line backup
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -1773,7 +1773,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="pathname"/>
       </function-arg-def>
-      <function-arg-def name="backEnd" type="optional" default="'%s' % DIRECTORY_INSTANCE_BE">
+      <function-arg-def name="backEnd" type="optional" default="DIRECTORY_INSTANCE_BE">
         <function-arg-description>
           Optional the name of the database backend
         </function-arg-description>
@@ -1829,7 +1829,7 @@
         This function performs an on line backup task 
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -1876,7 +1876,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
       </function-arg-def>
-      <function-arg-def name="backEnd" type="optional" default="'%s' % DIRECTORY_INSTANCE_BE">
+      <function-arg-def name="backEnd" type="optional" default="DIRECTORY_INSTANCE_BE">
         <function-arg-description>
           Optional the name of the database backend
         </function-arg-description>
@@ -2017,7 +2017,7 @@
       This function performs an off line restore
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -2080,7 +2080,7 @@
         This function performs an on line restore task of a backup file
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -2224,7 +2224,7 @@
       This function performs an on line export task for shutdown of the directory
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -2334,7 +2334,7 @@
       This function performs an on line export task for restart of the directory
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -2456,7 +2456,7 @@
     </function-prolog>
 
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -2592,7 +2592,7 @@
     </function-prolog>
 
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -2720,7 +2720,7 @@
     </function-prolog>
 
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -2896,7 +2896,7 @@
       This function starts a task using the ldap task interface
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -2984,7 +2984,7 @@
       </message>
 
       <!-- Perform Task with ldapmodify -->
-      <process name="'%s' % taskLabel">
+      <process name="taskLabel">
         <location>'%s' % myLocation</location>
         <command>'%s' % STAFCmd</command>
         <parms>'%s' % STAFCmdParams</parms>
@@ -3018,7 +3018,7 @@
       This function checks a task using the ldap task interface
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>

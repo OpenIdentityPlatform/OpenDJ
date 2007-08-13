@@ -45,23 +45,23 @@
 			
 			
 			          
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/core/core_entry_cache.xml' % (TESTS_DIR)"/>
           <call function="'core_entry_cache'" />
              
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/core/core_search_sizelimit.xml' % (TESTS_DIR)"/>
           <call function="'core_search_sizelimit'" />
           
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/core/core_search_timelimit.xml' % (TESTS_DIR)"/>
           <call function="'core_search_timelimit'" />
           
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/core/core_tf_filters.xml' % (TESTS_DIR)"/>
           <call function="'core_tf_filters'" />
           
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/core/core_version_report.xml' % (TESTS_DIR)"/>
           <call function="'core_version_report'" />
           

@@ -56,11 +56,11 @@
           -->
             
                                                                         
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/replication_setup.xml' % (TESTS_DIR)"/>
           <call function="'replication_setup'" />
     
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/basic/replication_basic_setup.xml' % (TESTS_DIR)"/>
           <call function="'replication_basic_setup'" />
                     			    
@@ -1562,7 +1562,7 @@
 
 												
 			    			
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/replication_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'replication_cleanup'" />
                           

@@ -46,70 +46,70 @@
           <call function="'testSuite_Preamble'"/>
 
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
           <call function="'security_setup'"/>
 
 												              
 
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_policy/security_setup_pwd_policy.xml' % (TESTS_DIR)"/>
           <call function="'setup_pwd_policy'" />
   
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_policy/security_user_pwd_policy.xml' % (TESTS_DIR)"/>
           <call function="'user_pwd_policy'" />
   
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_policy/security_force_pwd_change.xml' % (TESTS_DIR)"/>
           <call function="'force_pwd_change'" />
   
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_policy/security_force_pwd_change_all_users.xml' % (TESTS_DIR)"/>
           <call function="'force_pwd_change_all_users'" />
           <!--
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_policy/security_enable_max_pwd_age.xml' % (TESTS_DIR)"/>
           <call function="'enable_max_pwd_age'" />
   
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_policy/security_disable_max_pwd_age.xml' % (TESTS_DIR)"/>
           <call function="'disable_max_pwd_age'" />
           -->
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_policy/security_min_pwd_age.xml' % (TESTS_DIR)"/>
           <call function="'min_pwd_age'" />
   
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_policy/security_lockout_fail_cnt.xml' % (TESTS_DIR)"/>
           <call function="'lockout_fail_cnt'" />
   
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_policy/security_grace_login.xml' % (TESTS_DIR)"/>
           <call function="'grace_login'" />
   
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_policy/security_mult_pwd_policies.xml' % (TESTS_DIR)"/>
           <call function="'mult_pwd_policies'" />
   
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_policy/security_preencoded_pwds.xml' % (TESTS_DIR)"/>
           <call function="'preencoded_pwds'" />
   
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_policy/security_lockout_duration.xml' % (TESTS_DIR)"/>
           <call function="'lockout_duration'" />
   
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_policy/security_last_login.xml' % (TESTS_DIR)"/>
           <call function="'last_login'" />
   
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_policy/security_teardown_pwd_policy.xml' % (TESTS_DIR)"/>
           <call function="'teardown_pwd_policy'" />
   
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'security_cleanup'"/>
 

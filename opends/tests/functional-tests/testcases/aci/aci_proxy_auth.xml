@@ -53,7 +53,7 @@
               #@TestScript                aci_proxy_auth.xml
           -->
           
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_setup.xml' % (TESTS_DIR)"/>
           <call function="'aci_setup'" />
 
@@ -2682,7 +2682,7 @@
             </sequence>
           </testcase>
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'aci_cleanup'" />
           

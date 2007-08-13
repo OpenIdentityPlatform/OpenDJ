@@ -31,7 +31,7 @@
       This function adds an entry to the Directory Server from an ldif file
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -146,7 +146,7 @@
       This function performs an ldapmodify using the script
     </function-prolog>  
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -504,7 +504,7 @@
       This function modifies an entry in the Directory Server
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -623,7 +623,7 @@
       This function performs an ldapsearch using the script
     </function-prolog>  
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -1117,7 +1117,7 @@
       This function searches the Directory Server with optional arguments possible
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -1274,7 +1274,7 @@
       This function searches the Directory Server with optional arguments possible
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -1357,7 +1357,7 @@
       This function searches the Directory Server anonymously with optional arguments possible
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -1436,7 +1436,7 @@
       This function performs an ldapdelete using the script
     </function-prolog>  
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -1755,7 +1755,7 @@
       This function an entry in the Directory Server
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -1876,7 +1876,7 @@
       This function performs an ldapcompare using the script
     </function-prolog>  
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -2200,7 +2200,7 @@
       This function compares the attribute and value an entry to the Directory Server
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -2346,7 +2346,7 @@
       This function performs an ldappasswordmodify using the script
     </function-prolog>  
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -2613,7 +2613,7 @@
       This function modifies an entry in the Directory Server
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -2627,7 +2627,7 @@
         <function-arg-property name="type" value="filepath"/>
       </function-arg-def>
 		
-      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="dsInstanceHost" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
@@ -2778,7 +2778,7 @@
       This function modifies an entry in the Directory Server
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -2790,7 +2790,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
       </function-arg-def>
-      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="dsInstanceHost" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
@@ -2887,7 +2887,7 @@
       This function rename the rdn
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -2899,7 +2899,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
       </function-arg-def>
-      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="dsInstanceHost" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>

@@ -84,8 +84,8 @@
             </message>  
 			
             <call function="'deleteFolder'">
-            { 'location' : '%s' % (DIRECTORY_INSTANCE_HOST), 
-		      'foldername' : '%s' % (CERT_TMP) }
+            { 'location' : DIRECTORY_INSTANCE_HOST, 
+		      'foldername' : CERT_TMP }
             </call>	
 			  
             <!--- Remove JKS Keystore -->

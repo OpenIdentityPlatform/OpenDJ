@@ -36,51 +36,51 @@
         
         <call function="'testGroup_Preamble'"/>
         
-        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/client_auth/client_auth.xml' % (TESTS_DIR)"/>
         <call function="'client_auth'" />
         
-        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/jks/security_jks.xml' % (TESTS_DIR)"/>
         <call function="'security_jks'" />
         
-        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pkcs12/security_pkcs12.xml' % (TESTS_DIR)"/>
         <call function="'security_pkcs12'" />
         
-        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/startTLS/security_startTLS.xml' % (TESTS_DIR)"/>
         <call function="'security_startTLS'" />
         
-        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/sasl/security_sasl.xml' % (TESTS_DIR)"/>
         <call function="'security_sasl'" />
         
-        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_policy/security_pwd_policy.xml' % (TESTS_DIR)"/>
         <call function="'security_pwd_policy'" />
         
-        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_policy_root/security_pwd_policy_root.xml' % (TESTS_DIR)"/>
         <call function="'security_pwd_policy_root'" />
         
-        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/auth_pwd_syntax/security_auth_pwd_syntax.xml' % (TESTS_DIR)"/>
         <call function="'security_auth_pwd_syntax'" />
         
-        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_validator/security_pwd_validator.xml' % (TESTS_DIR)"/>
         <call function="'security_pwd_validator'" />
         
-        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_storage/security_pwd_storage.xml' % (TESTS_DIR)"/>
         <call function="'security_pwd_storage'" />
         
-        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/bind_no_pwd/security_bind_no_pwd.xml' % (TESTS_DIR)"/>
         <call function="'security_bind_no_pwd'" />
         
-        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/account_activation/security_account_activation.xml' % (TESTS_DIR)"/>
         <call function="'security_account_activation'" />
         

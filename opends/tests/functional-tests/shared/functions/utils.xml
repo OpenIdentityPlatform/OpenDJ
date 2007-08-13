@@ -274,7 +274,7 @@
       Checks that the ldap server is running
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
       </function-arg-description>
@@ -298,25 +298,25 @@
         </function-arg-description>
         <function-arg-property name="type" value="seconds"/>
       </function-arg-def>
-      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % DIRECTORY_INSTANCE_HOST">
+      <function-arg-def name="dsInstanceHost" type="optional" default="DIRECTORY_INSTANCE_HOST">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>      
-      <function-arg-def name="dsInstancePort" type="optional" default="'%s' % DIRECTORY_INSTANCE_PORT">
+      <function-arg-def name="dsInstancePort" type="optional" default="DIRECTORY_INSTANCE_PORT">
         <function-arg-description>
           Directory server port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
-      <function-arg-def name="dsInstanceDn" type="optional" default="'%s' % DIRECTORY_INSTANCE_DN">
+      <function-arg-def name="dsInstanceDn" type="optional" default="DIRECTORY_INSTANCE_DN">
         <function-arg-description>
           Bind DN
         </function-arg-description>
         <function-arg-property name="type" value="DN"/>
       </function-arg-def> 
-      <function-arg-def name="dsInstancePswd" type="optional" default="'%s' % DIRECTORY_INSTANCE_PSWD">
+      <function-arg-def name="dsInstancePswd" type="optional" default="DIRECTORY_INSTANCE_PSWD">
         <function-arg-description>
           Bind password
         </function-arg-description>
@@ -371,7 +371,7 @@
       Sleep for number of milliseconds
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
         <function-arg-description>
           Location of target host
       </function-arg-description>
@@ -1079,7 +1079,7 @@
       </script>
       <message log="1" level="'info'" if="_displayMessage == True">'%s' % functionMessage</message>
       <message log="1" level="'debug'">'runFunction: %s: called with parameters [%s]' % (functionName,functionArguments)</message>
-      <call function="'%s' % functionName">functionArguments</call>
+      <call function="functionName">functionArguments</call>
       <script>
         _functionRC = RC
       </script>
@@ -1136,7 +1136,7 @@
           the command to run
         </function-arg-description>
       </function-arg-def>
-      <function-arg-def name="path" type="optional" default="'%s' % dsBinPath">
+      <function-arg-def name="path" type="optional" default="dsBinPath">
         <function-arg-description>
           the path where the command is to be run from
         </function-arg-description>
@@ -1156,13 +1156,13 @@
       </function-arg-def>
       <function-arg-def name="location" 
                         type="optional" 
-                        default="'%s' % STAXServiceMachine">
+                        default="STAXServiceMachine">
         <function-arg-description>
           Which machine should the command be executed on
         </function-arg-description>
       </function-arg-def>
       <function-arg-def name="name" 
-                        default="'Run a system command'" 
+                        default="'Running %s' % command" 
                         type="optional">
         <function-arg-description>
           The name to give the process (only matters in the STAX Monitor really)
@@ -1188,17 +1188,19 @@
       <message>
         'Running command:\n %s %s\nenv: %s\nworkdir: %s' % (command,arguments,env,path)
       </message>
-            
-      <process name="name">
-        <location>location</location>
-        <command>command</command>
-        <parms>arguments</parms>
-        <workdir>path</workdir>
-        <envs>env</envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      
+      <block name="'runCommand wrapper'">
+        <process name="name">
+          <location>location</location>
+          <command>command</command>
+          <parms>arguments</parms>
+          <workdir>path</workdir>
+          <envs>env</envs>
+          <console use="'same'"/>
+          <stderr mode="'stdout'"/>
+          <returnstdout/>
+        </process>
+      </block>
       <message level="'info'">
         'Command returned:\n%s' % STAXResult[0][1]
       </message>

@@ -53,7 +53,7 @@
                 #@TestScript                aci_modify_filter_test.xml
           -->
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_setup.xml' % (TESTS_DIR)"/>
           <call function="'aci_setup'" />
 									    
@@ -79,7 +79,7 @@
                 #@TestResult                Success if OpenDS returns 0 or 50
                                             where appropriate
           -->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_modify_filter_tests_aci1.xml' % (TESTS_DIR)"/>
           <call function="'aci_modify_filter_tests_aci1'" />
   
@@ -105,7 +105,7 @@
                 #@TestResult                Success if OpenDS returns 0 or 50
                                             where appropriate
           -->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_modify_filter_tests_aci2.xml' % (TESTS_DIR)"/>
           <call function="'aci_modify_filter_tests_aci2'" />
   
@@ -131,7 +131,7 @@
                 #@TestResult                Success if OpenDS returns 0 or 50
                                             where appropriate
           -->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_modify_filter_tests_aci3.xml' % (TESTS_DIR)"/>
           <call function="'aci_modify_filter_tests_aci3'" />
 
@@ -157,7 +157,7 @@
                 #@TestResult                Success if OpenDS returns 0 or 50
                                             where appropriate
           -->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_modify_filter_tests_aci4.xml' % (TESTS_DIR)"/>
           <call function="'aci_modify_filter_tests_aci4'" />
   
@@ -183,7 +183,7 @@
                 #@TestResult                Success if OpenDS returns 0 or 50
                                             where appropriate
           -->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_modify_filter_tests_aci5.xml' % (TESTS_DIR)"/>
           <call function="'aci_modify_filter_tests_aci5'" />
   
@@ -209,7 +209,7 @@
                 #@TestResult                Success if OpenDS returns 0 or 50
                                             where appropriate
           -->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_modify_filter_tests_aci6.xml' % (TESTS_DIR)"/>
           <call function="'aci_modify_filter_tests_aci6'" />
   
@@ -235,7 +235,7 @@
                 #@TestResult                Success if OpenDS returns 0 or 50
                                             where appropriate
           -->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_modify_filter_tests_aci11.xml' % (TESTS_DIR)"/>
           <call function="'aci_modify_filter_tests_aci11'" />
   
@@ -261,7 +261,7 @@
                 #@TestResult                Success if OpenDS returns 0 or 50
                                             where appropriate
           -->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_modify_filter_tests_aci12.xml' % (TESTS_DIR)"/>
           <call function="'aci_modify_filter_tests_aci12'" />
   
@@ -287,7 +287,7 @@
                 #@TestResult                Success if OpenDS returns 0 or 50
                                             where appropriate
           -->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_modify_filter_tests_aci13.xml' % (TESTS_DIR)"/>
           <call function="'aci_modify_filter_tests_aci13'" />
 
@@ -313,7 +313,7 @@
                 #@TestResult                Success if OpenDS returns 0 or 50
                                             where appropriate
           -->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_modify_filter_tests_aci14.xml' % (TESTS_DIR)"/>
           <call function="'aci_modify_filter_tests_aci14'" />
   
@@ -339,7 +339,7 @@
                 #@TestResult                Success if OpenDS returns 0 or 50
                                             where appropriate
           -->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_modify_filter_tests_aci15.xml' % (TESTS_DIR)"/>
           <call function="'aci_modify_filter_tests_aci15'" />
   
@@ -365,7 +365,7 @@
                 #@TestResult                Success if OpenDS returns 0 or 50
                                             where appropriate
           -->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_modify_filter_tests_aci16.xml' % (TESTS_DIR)"/>
           <call function="'aci_modify_filter_tests_aci16'" />
   
@@ -391,7 +391,7 @@
                 #@TestResult                Success if OpenDS returns 0 or 50
                                             where appropriate
           -->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_modify_filter_tests_aci21.xml' % (TESTS_DIR)"/>
           <call function="'aci_modify_filter_tests_aci21'" />
   
@@ -417,7 +417,7 @@
                 #@TestResult                Success if OpenDS returns 0 or 50
                                             where appropriate
           -->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_modify_filter_tests_aci22.xml' % (TESTS_DIR)"/>
           <call function="'aci_modify_filter_tests_aci22'" />
   
@@ -443,7 +443,7 @@
                 #@TestResult                Success if OpenDS returns 0 or 50
                                             where appropriate
           -->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_modify_filter_tests_aci23.xml' % (TESTS_DIR)"/>
           <call function="'aci_modify_filter_tests_aci23'" />
 
@@ -469,7 +469,7 @@
                 #@TestResult                Success if OpenDS returns 0 or 50
                                             where appropriate
           -->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_modify_filter_tests_aci24.xml' % (TESTS_DIR)"/>
           <call function="'aci_modify_filter_tests_aci24'" />
   
@@ -495,7 +495,7 @@
                 #@TestResult                Success if OpenDS returns 0 or 50
                                             where appropriate
           -->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_modify_filter_tests_aci25.xml' % (TESTS_DIR)"/>
           <call function="'aci_modify_filter_tests_aci25'" />
   
@@ -521,11 +521,11 @@
                 #@TestResult                Success if OpenDS returns 0 or 50
                                             where appropriate
           -->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_modify_filter_tests_aci26.xml' % (TESTS_DIR)"/>
           <call function="'aci_modify_filter_tests_aci26'" />
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'aci_cleanup'" />
 			

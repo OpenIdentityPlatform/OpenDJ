@@ -32,7 +32,7 @@
     <function-prolog>Queries the current testcase</function-prolog>
 
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
         <function-arg-description>
           Location of target host
         </function-arg-description>

@@ -46,32 +46,32 @@
           <call function="'testSuite_Preamble'"/>
 
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
           <call function="'security_setup'"/>
 
 								        
 
 
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/startTLS/security_setup_startTLS.xml' % (TESTS_DIR)"/>
           <call function="'setup_startTLS'" />
 
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/startTLS/security_bob_startTLS.xml' % (TESTS_DIR)"/>
           <call function="'bob_startTLS'" />
     
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/startTLS/security_force_pwd_change_startTLS.xml' % (TESTS_DIR)"/>
           <call function="'force_pwd_change_startTLS'" />
 
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/startTLS/security_teardown_startTLS.xml' % (TESTS_DIR)"/>
           <call function="'teardown_startTLS'" />
  
 
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'security_cleanup'"/>
 

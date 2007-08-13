@@ -46,27 +46,27 @@
           <call function="'testSuite_Preamble'"/>
 
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
           <call function="'security_setup'"/>
 
 															
      
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/jks/security_setup_jks.xml' % (TESTS_DIR)"/>
           <call function="'setup_jks'" />
   
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/jks/security_bob_jks.xml' % (TESTS_DIR)"/>
           <call function="'bob_jks'" />
   
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/jks/security_teardown_jks.xml' % (TESTS_DIR)"/>
           <call function="'teardown_jks'" />
   
 
 
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'security_cleanup'"/>
 
