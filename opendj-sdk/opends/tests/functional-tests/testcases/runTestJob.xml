@@ -27,13 +27,9 @@
  ! -->
 
 <stax>
-
   <defaultcall function="start_job"/>
-
   <function name="start_job">
-
     <sequence>
-
       <script>
         STAXLogMessage = 1
       </script>
@@ -45,23 +41,23 @@
           <log>'Started sub-job %s on %s' % (STAXSubJobID,STAF_REMOTE_HOSTNAME)</log>
         </job-action>
       </job>
-
+      
       <if expr="RC == 0">
         <message>
           'Sub-job %s completed. Result: %s' % (STAXSubJobID, STAXResult)
         </message>
-      <else>
-        <sequence>
-          <message log="1" level="'Error'">'Sub-job %s could not be started. RC: %s Result: %s' % (STAXSubJobID,RC,STAFResult)</message>
-          <return>1</return>
-        </sequence>
-      </else>
+        <else>
+          <sequence>
+            <message log="1" level="'Error'">'Sub-job %s could not be started. RC: %s Result: %s' % (STAXSubJobID,RC,STAFResult)</message>
+            <return>1</return>
+          </sequence>
+        </else>
       </if>
-
+      
       <!--- Import required shared xml libraries -->
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/stafcmd.xml' % (TESTS_FUNCTIONS_DIR)" />
-        
+      <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/stafcmd.xml' % TESTS_FUNCTIONS_DIR" />
+      
       <!--
         dirty workaround because utils.xml now depends on environment.xml
         to avoid loading environment.xml I'll just set the required vars here
@@ -72,26 +68,27 @@
         NO_CHECK = 'noCheck'
       </script>
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/utils.xml' % (TESTS_FUNCTIONS_DIR)" />        
-        
+        file="'%s/utils.xml' % (TESTS_FUNCTIONS_DIR)" />
+      
       <!-- Get Directory Server Variables -->
       <call function="'GetVar'">
         { 'location'  : STAF_REMOTE_HOSTNAME,
           'type'      : 'shared',
-          'variable'  : 'Job%s_ServerInfo' % STAXSubJobID }
+          'variable'  : 'Job%s_ServerInfo' % STAXSubJobID
+        }
       </call>
-
+      
       <if expr="RC != 0">
         <script>
           STAFResult='{}'
         </script>
       </if>
-            
+      
       <!-- Build the Servers Information Dictionary -->
       <script> 
-                    
+        
         ServersInfoDict=eval(STAFResult)
-
+        
         ServerVersion='unknown'
         ServerBuildId='unknown'
         ServerJavaVersion='unknown'
@@ -101,49 +98,49 @@
         ServerSystemOS='unknown'
         ServerSystemName='unknown'
         ServerSvnRevision='unknown'
-                  
+        
         if ServersInfoDict.has_key('%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)):       
           ServerInfoDict=ServersInfoDict['%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)]
           
           ServerInfoKey='server version'
           if ServerInfoDict.has_key(ServerInfoKey):
-            ServerVersion=ServerInfoDict[ServerInfoKey]  
-    
-          ServerInfoKey='server buildid'        
+            ServerVersion=ServerInfoDict[ServerInfoKey]
+          
+          ServerInfoKey='server buildid'
           if ServerInfoDict.has_key(ServerInfoKey):
-            ServerBuildId=ServerInfoDict[ServerInfoKey]  
-
-          ServerInfoKey='java version'    
+            ServerBuildId=ServerInfoDict[ServerInfoKey]
+          
+          ServerInfoKey='java version'
           if ServerInfoDict.has_key(ServerInfoKey):
-            ServerJavaVersion=ServerInfoDict[ServerInfoKey]  
-
-          ServerInfoKey='java vendor'    
+            ServerJavaVersion=ServerInfoDict[ServerInfoKey]
+          
+          ServerInfoKey='java vendor'
           if ServerInfoDict.has_key(ServerInfoKey):
-            ServerJavaVendor=ServerInfoDict[ServerInfoKey]  
-
-          ServerInfoKey='jvm version'    
+            ServerJavaVendor=ServerInfoDict[ServerInfoKey]
+          
+          ServerInfoKey='jvm version'
           if ServerInfoDict.has_key(ServerInfoKey):
-            ServerJVMVersion=ServerInfoDict[ServerInfoKey]  
-
-          ServerInfoKey='jvm vendor'    
+            ServerJVMVersion=ServerInfoDict[ServerInfoKey]
+          
+          ServerInfoKey='jvm vendor'
           if ServerInfoDict.has_key(ServerInfoKey):
-            ServerJVMVendor=ServerInfoDict[ServerInfoKey]  
-
-          ServerInfoKey='system os'    
+            ServerJVMVendor=ServerInfoDict[ServerInfoKey]
+          
+          ServerInfoKey='system os'
           if ServerInfoDict.has_key(ServerInfoKey):
-            ServerSystemOS=ServerInfoDict[ServerInfoKey]  
-
-          ServerInfoKey='system name'    
+            ServerSystemOS=ServerInfoDict[ServerInfoKey]
+          
+          ServerInfoKey='system name'
           if ServerInfoDict.has_key(ServerInfoKey):
-            ServerSystemName=ServerInfoDict[ServerInfoKey]  
-
-          ServerInfoKey='svn revision'    
+            ServerSystemName=ServerInfoDict[ServerInfoKey]
+          
+          ServerInfoKey='svn revision'
           if ServerInfoDict.has_key(ServerInfoKey):
-            ServerSvnRevision=ServerInfoDict[ServerInfoKey]  
+            ServerSvnRevision=ServerInfoDict[ServerInfoKey]
                                                                                                 
         else:
           ServerInfoDict='No key found (%s/%s)' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
-                    
+        
       </script>
       
       <message>'Server= %s' % ServerInfoDict </message>     
@@ -155,7 +152,7 @@
           'QUERY ALL MACHINE %s LOGNAME STAX_Job_%s' % (STAXServiceMachine,STAXSubJobID)
         </request>
       </stafcmd>
-
+      
       <if expr="RC == 0">
         <sequence>
           <script>
@@ -165,23 +162,24 @@
             'Log Query on STAX_Job_%s Completed. RC=%s' % (STAXSubJobID,RC)
           </message>
         </sequence>
-      <else>
-        <sequence>
-          <message log="1" level="'Error'">
-            'Unable to perform log query on STAX_Job_%s. RC: %s Result: %s' % (STAXSubJobID,RC,STAFResult)
-          </message>
-          <return>1</return>
-        </sequence>
-      </else>
+        <else>
+          <sequence>
+            <message log="1" level="'Error'">
+              'Unable to perform log query on STAX_Job_%s. RC: %s Result: %s' % (STAXSubJobID,RC,STAFResult)
+            </message>
+            <return>1</return>
+          </sequence>
+        </else>
       </if>
-
+      
       <!-- Get logsDir Variable -->
       <call function="'GetVar'">
         { 'location'  : STAF_REMOTE_HOSTNAME,
           'type'      : 'shared',
-          'variable'  : 'Job%s_LogsDir' % STAXSubJobID }
+          'variable'  : 'Job%s_LogsDir' % STAXSubJobID 
+        }
       </call>
-
+      
       <if expr="RC == 0">
         <script>
           logsDir=STAFResult
@@ -197,38 +195,38 @@
         </sequence>
       </else>
       </if>
-
+      
       <script>
         logsReportDir='%s/reports' % logsDir
       </script>
-
+      
       <call function="'createFolder'">
         { 'location'   : STAF_LOCAL_HOSTNAME, 
           'foldername' : logsReportDir }
       </call>
-                   
+     
       <!-- Write Text File for results -->
       <script>
           textfile= '%s/results.txt' % logsReportDir
           txtfh=open(textfile,'w')
       </script>
       
-      <iterate var="line" in="resultQuery"> 
-
-        <script> 
-          txtfh.write('%s\n' % line) 
+      <iterate var="line" in="resultQuery">
+        
+        <script>
+          txtfh.write('%s\n' % line)
         </script>
       
       </iterate> 
- 
+      
       <script> 
         txtfh.close() 
-      </script> 
-
+      </script>
+      
       <message>
         'TEXT Report Written to %s.' % textfile
       </message>
-
+      
       <!-- Write XML File for results -->
       <script>
         import re
@@ -237,74 +235,68 @@
         errorfile= '%s/results.errors' % logsReportDir
         errorfh=open(errorfile,'w')
       </script>
-
+      
       <!-- Build the test case dictionary object -->
       <script>
         testDict={}
         testCaseList=[]
       </script>
-
+      
       <iterate var="element" in="resultQuery">
         <script>
           level=element['level']
           message=element['message']
           timestamp=element['timestamp']
-
+          
           startValueDict={}
           stopValueDict={}
           statusValueDict={}
-
+          
           if level == 'Start':
-
             tcpattern=re.compile("(Testcase): (.*)")
             tcmatch = tcpattern.search(message)
-
             if tcmatch:
               tctype=tcmatch.group(1)
               tcname=tcmatch.group(2)
-
               if testDict.has_key(tcname):
-
                 for key in testDict[tcname].keys():
                   value=testDict[tcname][key]
                   startValueDict[key]=value
-
+              
               startValueDict['start']=timestamp
               testDict[tcname]=startValueDict
-
+              
               testCaseList.append(tcname)
-
+            
             else:
               errorfh.write('Warning: No match Start element %s.\n' % element)
-
+          
           elif level == 'Stop':
-
+            
             tcpattern=re.compile("(Testcase): (.*), ElapsedTime: (.*)")
             tcmatch = tcpattern.search(message)
-
+            
             if tcmatch:
               tctype=tcmatch.group(1)
               tcname=tcmatch.group(2)
               tctime=tcmatch.group(3)
-
               if testDict.has_key(tcname):
-
                 for key in testDict[tcname].keys():
                   value=testDict[tcname][key]
                   stopValueDict[key]=value
-
+              
               stopValueDict['stop']=timestamp
               stopValueDict['duration']=tctime
               testDict[tcname]=stopValueDict
-
+            
             else:
               errorfh.write('Warning: No match Stop element %s.\n' % element)
-
+          
           elif level == 'Status':
-
+            
             tcpattern=re.compile("(Testcase): (.*), Pass: (.*), Fail: (.*), ElapsedTime: (.*), NumStarts: (.*)")
             tcmatch = tcpattern.search(message)
-
+            
             if tcmatch:
               tctype=tcmatch.group(1)
               tcname=tcmatch.group(2)
@@ -312,26 +304,26 @@
               tcfail=tcmatch.group(4)
               tctime=tcmatch.group(5)
               tcnums=tcmatch.group(6)
-
+              
               if testDict.has_key(tcname):
-
+                
                 for key in testDict[tcname].keys():
                   value=testDict[tcname][key]
                   statusValueDict[key]=value
-
+              
               statusValueDict['pass']=tcpass
               statusValueDict['fail']=tcfail
               testDict[tcname]=statusValueDict
-
+            
             else:
               errorfh.write('Warning: No match Status element %s.\n' % element)
           
           elif level == 'Info':
             errorfh.write('Warning: Info element %s.\n' % element)
-              
+          
           else:
             errorfh.write('Error: Unknown element %s.\n' % element)
-
+          
         </script>
       </iterate>
 
@@ -365,7 +357,7 @@
       <!-- XML Report Results -->
       <script>
         for tcname in testCaseList:
-
+          
           if testDict.has_key(tcname):
             tcnamesplit=tcname.split(":")
             if tcnamesplit[0]:
@@ -382,60 +374,60 @@
               tcpass=testDict[tcname]['pass']
             else:
               tcpass='0'
-
+            
             if testDict[tcname].has_key('fail'):
               tcfail=testDict[tcname]['fail']
             else:
               tcfail='0'
-
+            
             if testDict[tcname].has_key('start'):
               tcstart=testDict[tcname]['start']
             else:
               tcstart='unknown'
-
+            
             if testDict[tcname].has_key('stop'):
               tcstop=testDict[tcname]['stop']
             else:
               tcstop='unknown'
-
+            
             if testDict[tcname].has_key('duration'):
               tcduration=testDict[tcname]['duration']
             else:
               duration='unknown'
-
+          
           else:
             errorfh.write('No key for testcase %s.\n' % tcname)
-
+          
           if int(tcfail) == 0 and int(tcpass) > 0:
             tcresult='pass'
           elif int(tcfail) == 0 and int(tcpass) == 0: 
             tcresult='unknown'
           else:
             tcresult='fail'
-
+          
           xmlfh.write('      &lt;testgroup name="%s"&gt;\n' % testgroup)
           xmlfh.write('        &lt;testsuite name="%s"&gt;\n' % testsuite)
           xmlfh.write('          &lt;testcase name="%s" result="%s" start="%s" stop="%s" duration="%s"/&gt;\n' % (tcname,tcresult,tcstart,tcstop,tcduration))
           xmlfh.write('        &lt;/testsuite&gt;\n')
           xmlfh.write('      &lt;/testgroup&gt;\n')
-      </script> 
- 
+      </script>
+      
       <!-- XML Report Post -->
       <script>
         xmlfh.write('    &lt;/results&gt;\n')
         xmlfh.write('  &lt;/functional-tests&gt;\n')
         xmlfh.write('&lt;/qa&gt;\n')
       </script>
-
-      <script> 
+      
+      <script>
         xmlfh.close() 
         errorfh.close() 
-      </script> 
-
+      </script>
+      
       <message>
         'XML Report Written to %s.' % xmlfile
       </message>
-
+      
       <!-- Transform Report XML into HTML -->
       <script>
         xslfile= '%s/xsl/gen-alltests-report.xsl' % TESTS_SHARED_DIR
@@ -450,35 +442,36 @@
         from java.io import FileInputStream
         from java.io import FileOutputStream
         from java.io import ByteArrayOutputStream
-      
+        
         from javax.xml.transform import TransformerFactory
         from javax.xml.transform.stream import StreamSource
         from javax.xml.transform.stream import StreamResult
-  
+        
         xslSource = StreamSource(FileInputStream("%s" % xslfile))
         xslTemplate = TransformerFactory.newInstance().newTemplates(xslSource)
         transformer = xslTemplate.newTransformer()
-  
+        
         source = StreamSource(FileInputStream("%s" % xmlfile))
         result = StreamResult(FileOutputStream("%s" % htmlfile))
+        # the original report
+        transformer.transform(source, result)
         
-        transformer.transform(source, result)      
+        #the new report transformation
+        TransformerFactory.newInstance().newTemplates(StreamSource(FileInputStream("%s/xsl/my-report.xsl" % TESTS_SHARED_DIR))).newTransformer().transform(StreamSource(FileInputStream("%s/tests-log.xml" % TMPDIR)), StreamResult(FileOutputStream("%s/my-report.html" % TMPDIR)))
       </script>
-
+      
       <if expr="SEND_MAIL_AFTER_TEST_RUN == 'TRUE'">
-
         <sequence>
-
           <message>
             'Sending Email Test Report to %s.' % SEND_MAIL_TO
           </message>
-
+          
           <script>
             MailToList= SEND_MAIL_TO.split(",")
             MailSubject= 'OpenDS Test Report for %s' % STAF_REMOTE_HOSTNAME
             MailSendTo= ' '
           </script>
-
+          
           <iterate var="Recipient" in="MailToList">
             <script>
              MailSendTo='to %s %s' % (Recipient,MailSendTo)
@@ -492,30 +485,26 @@
               'send %s contenttype "text/html" file %s subject "%s" noheader' % (MailSendTo,htmlfile,MailSubject)
             </request>
           </stafcmd>
-
+          
           <if expr="RC != 0">
             <message log="1" level="'Error'">
               'Send test report failed. RC: %s STAFResult: %s' % (RC,STAFResult)
             </message>
-          <else>
-            <message>
-              'Send test report successful. RC: %s' % (RC)
-            </message>
-          </else>
+            <else>
+              <message>
+                'Send test report successful. RC: %s' % (RC)
+              </message>
+            </else>
           </if>
-
         </sequence>
-
       </if>
-
+      
       <!-- fixMe: Copy the html results file to TMPDIR for Hudson -->
       <call function="'copyFile'">
         { 'srcfile'    : htmlfile,
-          'destfile'   : '%s/results.html' % (TMPDIR) }
+          'destfile'   : '%s/results.html' % TMPDIR
+        }
       </call>
-
     </sequence>
-
   </function>
-
 </stax>

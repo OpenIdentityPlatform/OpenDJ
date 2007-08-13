@@ -434,13 +434,6 @@
     </function-prolog>
     <function-no-args />
     <sequence>
-      <script>
-        testcaseStartTime=strftime("%Y%m%d@%H:%M:%S",localtime())
-        myLog = open('%s/my.log' % TMPDIR, 'a')
-        myLog.seek(0,2)
-        myLog.write('%s - starting testcase: %s\n' % (testcaseStartTime, STAXCurrentTestcase ) )
-        myLog.close()
-      </script>
       <message level="'start'">'testcase: %s' % STAXCurrentTestcase</message>
       <message>'****************************************************'</message>
       <message>'*** STARTING TEST CASE %s.' % STAXCurrentTestcase</message>
@@ -467,6 +460,9 @@
     </function-prolog>
     <function-no-args />
       <sequence>
+        <script>
+          testcaseStartTime=strftime("%Y%m%d@%H:%M:%S",localtime())
+        </script>
         <call function="'testCase_StartBanner'" />
     </sequence>
   </function>
@@ -506,7 +502,7 @@
           numFail=int(STAFResult['numFails'])
         else:
           numFail=int(0)
-
+          
       </script>
              
       <if expr="numFail &gt; 0">
@@ -528,7 +524,7 @@
       </call>
       <script>
         class Test:
-          def __init__(self, group, suite, fullname, start, stop, failures):
+          def __init__(self, group, suite, fullname, start, stop, failures, successes):
             self.log=''
             self.group=group
             self.suite=suite
@@ -540,7 +536,10 @@
             self.name=''.join(tmp)
             self.duration = 0
             if failures == 0:
-              self.result='pass'
+              if successes == 0:
+                self.result='inconclusive'
+              else:
+                self.result='pass'
             else:
               self.result='fail'
             
@@ -560,15 +559,17 @@
             return xml
             
           def appendLog(self, log):
-            self.log +='          %s&lt;br /&gt;\n' % log
+            log=log.replace('&lt;','')
+            log=log.replace('&gt;','')
+            self.log +='          %s\n' % log
             
           def getName(self):
             return self.name
          
-        thisTest = Test(CurrentTestPath['group'],CurrentTestPath['suite'],STAXCurrentTestcase, testcaseStartTime,testcaseEndTime,numFail)
+        thisTest = Test(CurrentTestPath['group'],CurrentTestPath['suite'],STAXCurrentTestcase, testcaseStartTime,testcaseEndTime,numFail,numPass)
             
         doLog = False
-        testlog=open('%s/test.log' % TMPDIR,'a')
+        testlog=open('%s/tests-log.xml' % TMPDIR,'a')
         testlog.seek(0,2)
 
         # loop through the log lines
@@ -618,20 +619,8 @@
           
         ThisGroupName=CurrentTestPath['group']  
         ThisSuiteName=CurrentTestPath['suite']
-        
-        mylog='::coverage: begin\n'
-        if os.path.exists('%s/classes' % dsPath):
-          mylog+='::coverage: setting %s/%s.coverage to file %s/classes/emma.properties\n' % (TMPDIR,CurrentTestPath['group'],dsPath)
-          coveragefh = open( '%s/classes/emma.properties' % dsPath, 'w' )
-          coveragefh.write( 'coverage.out.file=%s/%s.coverage\n' % (TMPDIR,CurrentTestPath['group']) )
-          coveragefh.close()
-          coveragefh = open( '%s/classes/emma.properties' % dsPath, 'r' )
-          mylog+='::coverage:contents: %s' % coveragefh.read()
-          coveragefh.close()
-          
-
       </script>
-
+      
       <!-- Start time of test suite -->      
       <script>
         TestSuiteStartTime=strftime("%Y%m%d@%H:%M:%S",localtime())
@@ -703,17 +692,35 @@
     </function-prolog>
     <function-no-args />
     <sequence>
-    
-      <!-- Take the values from the current test path -->     
+      <!-- Take the values from the current test path -->
       <script>
         if not CurrentTestPath.has_key('group'):
           CurrentTestPath['group']='unknown-group'
         
         ThisGroupName=CurrentTestPath['group']
+        
+        # NOTE: the same code lives in topology.xml
+        #       the reason for that is that the topology is created AFTER the
+        #       first test group has started (as part of the first setup)
+        #       the following groups are going to use the same topology
+        mylog="::coverage - checking for %s/lib/emma.jar\n" % dsPath
+        if os.path.exists('%s/lib/emma.jar' % dsPath):
+          mylog+="  ::coverage on\n"
+          if not os.path.exists('%s/coverage' % TMPDIR):
+            os.mkdir('%s/coverage' % TMPDIR)
+            mylog+="    ::mkdir %s/coverage on\n" % TMPDIR
+          if not os.path.exists('%s/coverage/%s' % (TMPDIR,CurrentTestPath['group'])):
+            os.mkdir('%s/coverage/%s' % (TMPDIR,CurrentTestPath['group']))
+            mylog+="    ::mkdir %s/coverage/%s on\n" % (TMPDIR,CurrentTestPath['group'])
+          mylog+="  ::writing to %s/classes/emma.properties" % dsPath
+          coveragefh = open( '%s/classes/emma.properties' % dsPath, 'w' )
+          coveragefh.write( 'coverage.out.file=%s/coverage/%s/coverage.ec\n' % (TMPDIR,CurrentTestPath['group']) )
+          coveragefh.close()
       </script>
-      
+      <message>
+        mylog
+      </message>
       <message>'##### %s group preamble #####' % ThisGroupName</message>
-      
     </sequence>
   </function>
 
@@ -729,15 +736,76 @@
           ThisGroupName=CurrentTestPath['group']
         else:
           ThisGroupName='unknown-group'
+        
+        coverage='N/A'
       </script>
       
       <message>'##### %s group postamble #####' % ThisGroupName</message>
+      
+      <if expr="os.path.exists('%s/lib/emma.jar' % dsPath)">
+        <sequence>
+          <call function="'runCommand'">
+            { 'name'      : 'Generate coverage xml report for test group %s' % CurrentTestPath['group'],
+              'command'   : 'java',
+              'arguments' : ' -Xms64M -Xmx512M -cp %s/lib/emma.jar emma report -r xml,html -in %s/coverage.em,%s/coverage/%s/coverage.ec -Dreport.xml.out.file=%s/coverage/%s/coverage.xml -Dreport.html.out.file=%s/coverage/%s/coverage.html -sp %s/../../../src' % (dsPath,dsPath,TMPDIR,CurrentTestPath['group'],TMPDIR,CurrentTestPath['group'],TMPDIR,CurrentTestPath['group'],TMPDIR),
+              'path'      : TMPDIR
+            }
+          </call>
+          <script>
+            from java.io import FileInputStream
+            from javax.xml.transform.stream import StreamSource
+            from javax.xml.transform.stream import StreamResult
+            from javax.xml.parsers import DocumentBuilderFactory
+            from org.w3c.dom import *
+            
+            factory = DocumentBuilderFactory.newInstance() 
+            builder = factory.newDocumentBuilder()
+            
+            input = FileInputStream("%s/coverage/%s/coverage.xml" % (TMPDIR,CurrentTestPath['group']))
+            document = builder.parse(input)
+            dom = document.getDocumentElement()
+            coverageNodes = dom.getElementsByTagName("all").item(0).getChildNodes()
+            for coverageNodeIndex in range(coverageNodes.getLength()):
+              thisNode = coverageNodes.item(coverageNodeIndex)
+              if thisNode.getNodeName() == 'coverage':
+                thisNodeAttributes = thisNode.getAttributes()
+                if thisNodeAttributes.getNamedItem("type").getNodeValue() == 'block, %':
+                  rawCoverage = thisNodeAttributes.getNamedItem("value").getNodeValue()
+                  coverage = rawCoverage.split('%')[0]
+            testlog=open('%s/tests-log.xml' % TMPDIR,'a')
+            testlog.seek(0,2)
+            testlog.write("      &lt;group&gt;\n")
+            testlog.write("        &lt;name&gt;\n")
+            testlog.write("          %s\n" % CurrentTestPath['group'])
+            testlog.write("        &lt;/name&gt;\n")
+            testlog.write("        &lt;coverage&gt;\n")
+            testlog.write("          %s\n" % coverage)
+            testlog.write("        &lt;/coverage&gt;\n")
+            testlog.write("      &lt;/group&gt;\n")
+            testlog.close()
+          </script>
+        </sequence>
+        <else>
+          <script>
+            testlog=open('%s/tests-log.xml' % TMPDIR,'a')
+            testlog.seek(0,2)
+            testlog.write("      &lt;group&gt;\n")
+            testlog.write("        &lt;name&gt;\n")
+            testlog.write("          %s\n" % CurrentTestPath['group'])
+            testlog.write("        &lt;/name&gt;\n")
+            testlog.write("        &lt;coverage&gt;\n")
+            testlog.write("          N/A\n")
+            testlog.write("        &lt;/coverage&gt;\n")
+            testlog.write("      &lt;/group&gt;\n")
+            testlog.close()
+          </script>
+        </else>
+      </if>
       
       <script>
         if CurrentTestPath.has_key('group'):
           del CurrentTestPath['group']
       </script>
-      
     </sequence>
   </function>
   
@@ -1068,12 +1136,12 @@
           the command to run
         </function-arg-description>
       </function-arg-def>
-      <function-arg-def name="path" type="optional" default="'%s' % dsPath">
+      <function-arg-def name="path" type="optional" default="'%s' % dsBinPath">
         <function-arg-description>
           the path where the command is to be run from
         </function-arg-description>
       </function-arg-def>
-      <function-arg-def name="argmunents" type="optional" default="''">
+      <function-arg-def name="arguments" type="optional" default="''">
         <function-arg-description>
           the path where the command is to be found
         </function-arg-description>
@@ -1093,29 +1161,67 @@
           Which machine should the command be executed on
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="name" 
+                        default="'Run a system command'" 
+                        type="optional">
+        <function-arg-description>
+          The name to give the process (only matters in the STAX Monitor really)
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="stripOutput" default="True" type="optional">
+        <function-arg-description>
+          A boolean (use True or False here, case matters) to enable disable
+          stripping the output of a command
+          TODO: consider allowing passing a function name to enable custom
+                output manipulation (overkill?)
+        </function-arg-description>
+        <function-arg-property name="type" value="enum">
+          <function-arg-property-description>
+            This argument can only have boolean values
+          </function-arg-property-description>
+          <function-arg-property-data type="choice" value="True"/>
+          <function-arg-property-data type="choice" value="False"/>
+        </function-arg-property>
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <message>
-        '%s' % command
+        'Running command:\n %s %s\nenv: %s\nworkdir: %s' % (command,arguments,env,path)
       </message>
             
-      <process name="'run a system command'">
-        <location>'%s' % location</location>
-        <command>'%s' % command</command>
-        <parms>'%s' % arguments</parms>
-        <workdir>'%s' % path</workdir>
-        <envs>
-          '%s' % env
-        </envs>
+      <process name="name">
+        <location>location</location>
+        <command>command</command>
+        <parms>arguments</parms>
+        <workdir>path</workdir>
+        <envs>env</envs>
         <console use="'same'"/>
         <stderr mode="'stdout'"/>
         <returnstdout/>
       </process>
+      <message level="'info'">
+        'Command returned:\n%s' % STAXResult[0][1]
+      </message>
       <script>
-        STAXResult.replace('EMMA: collecting runtime coverage data ...\n','')
+        def dig(var):
+          try:
+            if var.__class__==[].__class__:
+              for i in range(len(var)):
+                var[i]=dig(var[i])
+              return var
+            else:
+              if var.__class__==''.__class__:
+                return re.compile(r'EMMA:.*\n').sub('',var)
+              else:
+                return var
+          except TypeError:
+            return 'could not evaluate the following component: %s' % var
+        
+        if stripOutput == True:
+          STAXResult=dig(STAXResult)
       </script>
       <return>
-        [ RC , STAXResult ]
+        STAXResult
       </return>
     </sequence>
   </function>

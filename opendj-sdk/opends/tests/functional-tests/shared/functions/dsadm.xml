@@ -137,19 +137,13 @@
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
-            
-      <process name="'Setup DS Script'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      <call function="'runCommand'">
+        { 'name'      : 'Setup DS Script',
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'path'      : dsPath
+        }
+      </call>
       <call function="'checkRC'">
         { 'returncode' : RC ,
           'result'     : STAXResult }
@@ -321,18 +315,12 @@
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
             
-      <process name="'Setup DS Script'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      <call function="'runCommand'">
+        { 'name'      : 'Setup DS Script',
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }
+      </call>
       <call function="'checkRC'">
         { 'returncode' : RC ,
           'result'     : STAXResult }
@@ -423,30 +411,22 @@
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
       
-      <process name="'Start DS Script'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-
+      <call function="'runCommand'">
+        { 'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'location'  : location
+        }
+      </call>
       <script>
         startRC=RC
         startResult=STAXResult
       </script>
-      
       <call function="'checkRC'">
           { 'returncode' : startRC ,
             'result'     : startResult }
       </call>
      
-      <return>startResult[0]</return>
+      <return>startResult</return>
           
     </sequence>
     
@@ -670,17 +650,12 @@
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
             
-      <process name="'Stop DS Script'">
-        <location>'%s' % (location)</location>
-        <command>'%s' % (STAFCmd)</command>
-        <parms>'%s' % (STAFCmdParams)</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      <call function="'runCommand'">
+        { 'name'      : 'Stop DS Script',
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }
+      </call>
       <call function="'checkRC'">
         { 'returncode' : RC ,
           'result'     : STAXResult }
@@ -694,17 +669,14 @@
       This function generates a server jks certificate
     </function-prolog>
     <sequence>
-      <process name="'Generate Server JKS Certificate'">
-        <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-        <command>'%s/bin/keytool' % JAVA_HOME</command> 
-        <parms>'-genkey -alias server-cert -keyalg rsa -dname "cn=client,O=Sun Microsystems,C=US" -keystore "keystore" -storepass "servercert" -keypass "servercert"'</parms>
-        <workdir>'%s/../config' % (OPENDS_BINPATH)</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
-        </envs>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      <call function="'runCommand'">
+        { 'name'      : 'Generate Server JKS Certificate',
+          'command'   : '%s/bin/keytool' % JAVA_HOME,
+          'arguments' : '-genkey -alias server-cert -keyalg rsa -dname "cn=client,O=Sun Microsystems,C=US" -keystore "keystore" -storepass "servercert" -keypass "servercert"',
+          'path'      : '%s/../config' % (OPENDS_BINPATH),
+          'location'  : STAF_REMOTE_HOSTNAME
+        }
+      </call>
       <call function="'checkRC'">
           { 'returncode' : RC ,
             'result'     : STAXResult }
@@ -717,17 +689,14 @@
       This function generates a server PKCS12 certificate
     </function-prolog>
     <sequence>
-      <process name="'Generate Server PKCS12 Certificate'">
-        <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-        <command>'%s/bin/keytool' % JAVA_HOME</command> 
-        <parms>'-genkey -alias server-cert -keyalg rsa -dname "cn=client,O=Sun Microsystems,C=US" -keystore "keystore" -storepass "servercert" -keypass "servercert" -storetype "PKCS12"'</parms>
-        <workdir>'%s/../config' % (OPENDS_BINPATH)</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
-        </envs>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      <call function="'runCommand'">
+        { 'name'      : 'Generate Server PKCS12 Certificate',
+          'command'   : '%s/bin/keytool' % JAVA_HOME,
+          'arguments' : '-genkey -alias server-cert -keyalg rsa -dname "cn=client,O=Sun Microsystems,C=US" -keystore "keystore" -storepass "servercert" -keypass "servercert" -storetype "PKCS12"',
+          'path'      : '%s/../config' % (OPENDS_BINPATH),
+          'location'  : STAF_REMOTE_HOSTNAME
+        }
+      </call>
       <call function="'checkRC'">
           { 'returncode' : RC ,
             'result'     : STAXResult }
@@ -740,17 +709,14 @@
       This function self-signs a server JKS certificate
     </function-prolog>
     <sequence>
-      <process name="'Self-Signs Server JKS Certificate'">
-        <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-        <command>'%s/bin/keytool' % JAVA_HOME</command> 
-        <parms>'-selfcert -alias server-cert -keystore "keystore" -storepass "servercert"'</parms>
-        <workdir>'%s/../config' % (OPENDS_BINPATH)</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
-        </envs>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      <call function="'runCommand'">
+        { 'name'      : 'Self-Signs Server JKS Certificate',
+          'command'   : '%s/bin/keytool' % JAVA_HOME,
+          'arguments' : '-selfcert -alias server-cert -keystore "keystore" -storepass "servercert"',
+          'path'      : '%s/../config' % (OPENDS_BINPATH),
+          'location'  : STAF_REMOTE_HOSTNAME
+        }
+      </call>
       <call function="'checkRC'">
           { 'returncode' : RC ,
             'result'     : STAXResult }
@@ -763,17 +729,14 @@
       This function self-signs a server PKCS12 certificate
     </function-prolog>
     <sequence>
-      <process name="'Self-Signs Server PKCS12 Certificate'">
-        <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
-        <command>'%s/bin/keytool' % JAVA_HOME</command> 
-        <parms>'-selfcert -alias server-cert -keystore "keystore" -storepass "servercert" -storetype "PKCS12"'</parms>
-        <workdir>'%s/../config' % (OPENDS_BINPATH)</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
-        </envs>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      <call function="'runCommand'">
+        { 'name'      : 'Self-Signs Server PKCS12 Certificate',
+          'command'   : '%s/bin/keytool' % JAVA_HOME,
+          'arguments' : '-selfcert -alias server-cert -keystore "keystore" -storepass "servercert" -storetype "PKCS12"',
+          'path'      : '%s/../config' % (OPENDS_BINPATH),
+          'location'  : STAF_REMOTE_HOSTNAME
+        }
+      </call>
       <call function="'checkRC'">
           { 'returncode' : RC ,
             'result'     : STAXResult }
@@ -828,17 +791,12 @@
       <message>
         '%s/import-ldif%s -l %s -n %s %s' % (dsBinPath,fileExt,ldifFile,backEnd,extraParams)
       </message>
-      <process name="'Offline Import'">
-        <location>'%s' % location </location>
-        <command>'%s/import-ldif%s' % (dsBinPath,fileExt)</command>
-        <parms>'-l %s -n %s %s' % (ldifFile,backEnd,extraParams)</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      <call function="'runCommand'">
+        { 'name'      : 'Offline Import',
+          'command'   : '%s/import-ldif%s' % (dsBinPath,fileExt),
+          'arguments' : '-l %s -n %s %s' % (ldifFile,backEnd,extraParams)
+        }
+      </call>
       <script>
         importRC=RC
         importResult=STAXResult
@@ -1073,18 +1031,12 @@
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
             
-      <process name="'Offline Import Script'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>         
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-      
+      <call function="'runCommand'">
+        { 'name'      : 'Offline Import Script',
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }
+      </call>
       <call function="'checkRC'">
         { 'returncode' : RC ,
           'result'     : STAXResult }
@@ -1309,7 +1261,7 @@
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
         { 'location'   : myLocation,
-          'dsPath'  :  myPath,
+          'dsPath'     :  myPath,
           'taskLabel'  : 'Online Import Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -1323,7 +1275,7 @@
         <sequence>
           <call function="'CheckLdapTask'">
             { 'location'   : myLocation,
-              'dsPath'  :  myPath,
+              'dsPath'     :  myPath,
               'dsTaskDn'   : taskDN,
               'dsHost'     : dsInstanceHost,
               'dsPort'     : dsInstancePort,
@@ -1567,17 +1519,12 @@
       <message> 
         '%s/export-ldif%s -l %s -n %s %s' % (dsBinPath,fileExt,ldifFile,backEnd,extraParams)
       </message>
-      <process name="'Ldif Export'">
-        <location>'%s' % location </location>
-        <command>'%s/export-ldif%s' % (dsBinPath,fileExt)</command>
-        <parms>'-l %s -n %s %s' % (ldifFile,backEnd,extraParams)</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      <call function="'runCommand'">
+        { 'name'      : 'Ldif Export',
+          'command'   : '%s/export-ldif%s' % (dsBinPath,fileExt),
+          'arguments' : '-l %s -n %s %s' % (ldifFile,backEnd,extraParams)
+        }
+      </call>
       <script>
         exportRC=RC
         exportResult=STAXResult
@@ -1857,17 +1804,13 @@
       <message>
         'backup%s -n %s -d %s %s' % (fileExt,backEnd,backupDir,extraParams)
       </message>
-      <process name="'Offline Backup'">
-        <location>'%s' % myLocation </location>
-        <command>'%s/backup%s' % (dsBinPath,fileExt)</command>
-        <parms>'-d %s -n %s %s' % (backupDir,backEnd,extraParams)</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-              ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      <call function="'runCommand'">
+        { 'name'      : 'Offline Backup',
+          'location'  : myLocation,
+          'command'   : '%s/backup%s' % (dsBinPath,fileExt),
+          'arguments' : '-d %s -n %s %s' % (backupDir,backEnd,extraParams)
+        }
+      </call>
       <script>
         backupRC=RC
         backupResult=STAXResult
@@ -2111,17 +2054,13 @@
       <message>
         'restore%s -d %s %s' % (fileExt,backupDir,extraParams)
       </message>
-      <process name="'Offline restore'">
-        <location>'%s' % myLocation </location>
-        <command>'%s/restore%s' % (dsBinPath,fileExt)</command>
-        <parms>'-d %s %s' % (backupDir,extraParams)</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      <call function="'runCommand'">
+        { 'name'      : 'Offline Restore',
+          'location'  : myLocation,
+          'command'   : '%s/restore%s' % (dsBinPath,fileExt),
+          'arguments' : '-d %s %s' % (backupDir,extraParams)
+        }
+      </call>
       <script>
         restoreRC=RC
         restoreResult=STAXResult
@@ -3183,17 +3122,14 @@
           </message>
 
           <!-- Search for task status -->
-          <process name="'Search On line Import Task'">
-            <location>'%s' % myLocation</location>
-            <command>'%s' % STAFCmd</command>
-            <parms>'%s' % STAFCmdParams</parms>
-            <workdir>'%s' % dsBinPath</workdir>
-            <envs>
-              ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-            </envs>
-            <stderr mode="'stdout'"/>
-            <returnstdout/>
-          </process>
+          
+          <call function="'runCommand'">
+            { 'name'      : 'Search On line Import Task',
+              'command'   : STAFCmd,
+              'arguments' : STAFCmdParams,
+              'location'  : myLocation
+            }
+          </call>
           
           <script>
             STAFCmdRC=RC

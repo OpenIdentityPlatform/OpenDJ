@@ -34,7 +34,7 @@
           CurrentTestPath={'group':'indexes','suite':'indexes'}
           envAlreadyLoaded='true'
           _setupSteps=['testGroup_Preamble','testSuite_Preamble','indexes_setup']
-          _testSteps=['indexes_search','indexes_modify','indexes_add','indexes_remove']
+          _testSteps=['indexes_search','indexes_add','indexes_remove']
           _cleanupSteps=['indexes_cleanup','testSuite_Postamble','testGroup_Postamble']
         </script>
         <!---
@@ -289,6 +289,52 @@
   </function>
 
   <function name="indexes_entry_limit">
+    <!--
+      This test does a bunch of searches on the 
+      and then verifies that it worked
+      #@TestMarker                indexes
+      #@TestName                  indexes_remove
+      #@TestIssue                 TODO: look up the issue in issue tracker
+      #@TestPurpose               Check if the user can remove indexes
+      #@TestPreamble              none
+      #@TestStep                  iterate through filters prior to removing index
+      #@TestStep                  remove index
+      #@TestStep                  iterate through filters after to removing index
+      #@TestPostamble             none
+      #@TestResult                Success if entry are indexed as expected
+    -->
+    <block name="'Entry_Limit'">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'loopThroughFilters'">
+              { 'filters' : 'before-entry-limit' }
+            </call>
+            <call function="'runFunction'">
+              { 'functionName'      : 'modifyIndex'                                ,
+                'functionException' : 'LDAP.ModifyIndexException'                  ,
+                'functionFailureTC' : '%s: %s: %s' % (CurrentTestPath['group'], CurrentTestPath['suite'], STAXCurrentBlock),
+                'functionMessage'   : 'Modify index entry limit on attribute uid'  ,
+                'functionArguments' : { 'operation'          : 'set'               ,
+                                        'indexAttribute'     : 'uid'               ,
+                                        'indexProperty'      : 'index-entry-limit' ,
+                                        'indexPropertyValue' : '3'
+                                      }
+              }
+            </call>
+            <call function="'loopThroughFilters'">
+              { 'filters' : 'after-entry-limit' }
+            </call>
+          </sequence>
+          <catch exception="'STAXException.LDAP.RemoveIndexException'">
+            <message log="1" level="'fatal'">'Fatal Error: Failed to remove index for attribute l'</message>
+          </catch>
+        </try>
+      </sequence>
+    </block>
+  </function>
+
+  <function name="indexes_vlv_add">
     <!--
       This test does a bunch of searches on the 
       and then verifies that it worked

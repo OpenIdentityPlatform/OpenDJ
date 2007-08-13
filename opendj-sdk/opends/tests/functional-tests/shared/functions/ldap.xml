@@ -87,7 +87,6 @@
         </function-arg-def>		
     </function-map-args>
     <sequence>
-    
       <!-- Local variables -->
       <script>
         mylocation=location
@@ -106,7 +105,7 @@
       </script>
 
       <!-- Set common ldap arguments -->      
-      <call function="'_ldapCommonArgs'"/>
+      <call function="'_ldapCommonArgs'" />
       
       <script>          
         if extraParams:
@@ -117,24 +116,13 @@
  
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
-      
-      <message>
-        '%s %s' % (STAFCmd, STAFCmdParams)
-      </message>
-            
-      <process name="'Add Entry from ldif file'">
-        <location>'%s' % mylocation</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-      
+      <call function="'runCommand'">
+        { 'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'location'  : mylocation,
+          'name'      : 'Add Entry From LDIF'
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult
@@ -142,14 +130,16 @@
       <call function="'checktestRC'">
         { 'returncode' : STAXCode ,
           'result'     : STAXReason,
-          'expected'   : expectedRC }
+          'expected'   : expectedRC
+        }
       </call>
       <return>
         STAXReason
       </return>
     </sequence>
   </function>
-
+  
+  
   <!-- ldapmodify Function With Script-->
   <function name="ldapModifyWithScript">
     <function-prolog>
@@ -484,18 +474,14 @@
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
-            
-      <process name="'LDAP Modify Script'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>         
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      
+      <call function="'runCommand'">
+        { 'name'      : 'LDAP Modify Script',
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'location'  : location
+        }
+      </call>
       
       <script>
         STAXCode=RC
@@ -511,6 +497,7 @@
       </return>
     </sequence>
   </function>
+  
   
   <function name="modifyEntry">
     <function-prolog>
@@ -606,19 +593,13 @@
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
-            
-      <process name="'Modify Entry from ldif file'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      <call function="'runCommand'">
+        { 'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'name'      : 'Modify Entry from ldif file'
+        }
+      </call>
       
       <script>
         STAXCode=RC
@@ -634,7 +615,8 @@
       </return>
     </sequence>
   </function>
-
+  
+  
   <!-- ldapsearch Function With Script-->
   <function name="ldapSearchWithScript">
     <function-prolog>
@@ -1101,7 +1083,7 @@
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
       
-      <process name="'LDAP Search Script'">
+      <process name="'LDAP Search Script to file'">
         <location>'%s' % location</location>
         <command>'%s' % STAFCmd</command>
         <parms>'%s' % STAFCmdParams</parms>
@@ -1128,6 +1110,7 @@
       </return>
     </sequence>
   </function>
+  
   
   <function name="SearchObject">
     <function-prolog>
@@ -1259,20 +1242,14 @@
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
-            
-      <process name="'Search Base Object'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-
+      
+      <call function="'runCommand'">
+        { 'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'location'  : location,
+          'name'      : 'ldapsearch'
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult
@@ -1290,7 +1267,8 @@
     </sequence>
 
   </function>
-
+  
+  
   <function name="SearchObjectNoPwd">
     <function-prolog>
       This function searches the Directory Server with optional arguments possible
@@ -1351,20 +1329,13 @@
       </function-arg-def>
     </function-map-args>
     <sequence>
-      <message>
-          'ldapsearch%s -h %s -p %s -D "%s" %s -b "%s" "%s"' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,extraParams,dsBaseDN,dsFilter)
-      </message>
-      <process name="'Search Base Object No Password'">
-        <location>'%s' % location </location>
-        <command>'%s/ldapsearch%s' % (dsBinPath,fileExt)</command>
-        <parms>'-h %s -p %s -D "%s" %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,extraParams,dsBaseDN,dsFilter)</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      <call function="'runCommand'" >
+        { 'name'      : 'Search Base Object No Password',
+          'command'   : '%s/ldapsearch%s' % (dsBinPath,fileExt),
+          'arguments' : '-h %s -p %s -D "%s" %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,extraParams,dsBaseDN,dsFilter),
+          'location'  : location
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult
@@ -1379,6 +1350,7 @@
       </return>
     </sequence>
   </function>
+  
   
   <function name="AnonSearchObject">
     <function-prolog>
@@ -1435,20 +1407,13 @@
         </function-arg-def>		
     </function-map-args>
     <sequence>
-      <message>
-        'ldapsearch%s -h %s -p %s %s -b "%s" "%s"' % (fileExt,dsInstanceHost,dsInstancePort,extraParams,dsBaseDN,dsFilter)
-      </message>
-      <process name="'Anonymous Search Base Object'">
-        <location>'%s' % location </location>
-        <command>'%s/ldapsearch%s' % (dsBinPath,fileExt)</command>
-        <parms>'-h %s -p %s %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,extraParams,dsBaseDN,dsFilter)</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      <call function="'runCommand'" >
+        { 'name'      : 'Anonymous Search Base Object',
+          'location'  : location,
+          'command'   : '%s/ldapsearch%s' % (dsBinPath,fileExt),
+          'arguments' : '-h %s -p %s %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,extraParams,dsBaseDN,dsFilter)
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult
@@ -1464,7 +1429,8 @@
     </sequence>
   </function>
   
-    <!-- ldapdelete Function With Script-->
+  
+  <!-- ldapdelete Function With Script-->
   <function name="ldapDeleteWithScript">
     <function-prolog>
       This function performs an ldapdelete using the script
@@ -1761,18 +1727,13 @@
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
             
-      <process name="'LDAP Delete Script'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>         
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-      
+      <call function="'runCommand'">
+        { 'name'      : 'LDAP Delete Script',
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'location'  : location
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult
@@ -1787,6 +1748,7 @@
       </return>
     </sequence>
   </function>
+  
   
   <function name="DeleteEntry">
     <function-prolog>
@@ -1883,20 +1845,14 @@
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
-            
-      <process name="'Delete Object'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-
+      
+      <call function="'runCommand'">
+        { 'name'      : 'Delete Object',
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'location'  : location
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult
@@ -1912,7 +1868,8 @@
     </sequence>
     
   </function>
-
+  
+  
   <!-- ldapcompare Function With Script-->
   <function name="ldapCompareWithScript">
     <function-prolog>
@@ -2215,22 +2172,13 @@
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
       
-      <message>
-        '%s %s' % (STAFCmd, STAFCmdParams)
-      </message>
-            
-      <process name="'LDAP Compare Script'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>         
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-      
+      <call function="'runCommand'" >
+        { 'name'      : 'LDAP Compare Script',
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'location'  : location
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult
@@ -2245,6 +2193,7 @@
       </return>
     </sequence>
   </function>
+  
   
   <function name="compareEntry">
     <function-prolog>
@@ -2345,23 +2294,13 @@
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
       
-      <message>
-        '%s %s' % (STAFCmd, STAFCmdParams)
-      </message>
-            
-      <process name="'Compare Object'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-      
+      <call function="'runCommand'" >
+        { 'name'      : 'Compare Object',
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'location'  : location
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult
@@ -2376,7 +2315,7 @@
       </return>
     </sequence>
   </function>
-
+  
   
   <function name="_ldapCommonArgs">
     <function-prolog>
@@ -2399,6 +2338,7 @@
     </script>
               
   </function>
+  
   
   <!-- ldappasswordmodify Function With Script-->
   <function name="ldapPasswordModifyWithScript">
@@ -2644,21 +2584,13 @@
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
       
-      <message>
-        '%s %s' % (STAFCmd, STAFCmdParams)
-      </message>
-            
-      <process name="'LDAP Password Modify Script'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>         
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      <call function="'runCommand'" >
+        { 'name'      : 'LDAP Password Modify Script',
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'location'  : location
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult
@@ -2673,6 +2605,7 @@
       </return>
     </sequence>
   </function>
+  
   
 	<!-- Modify an attribute -->
   <function name="modifyAnAttribute">
@@ -2808,25 +2741,20 @@
 
         if changetype:
           STAFCmdParamsList.append('-t "%s"' % changetype)
-		  		  
+        
         STAFCmdParams=' '.join(STAFCmdParamsList)
-		  		 
+        
         STAFCmd='modifyAnAttribute' 
-   
-    </script>
-      <process name="'Modify An Attribut value'">
-        <location>'%s' % location</location>
-        <command>'java'</command>
-        <workdir>'%s' % TESTS_JAVA_DIR</workdir>
-		  <parms>'%s %s' % (STAFCmd,STAFCmdParams)</parms>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s' % TESTS_JAVA_DIR]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-
+      </script>
+      <call function="'runCommand'" >
+        { 'name'      : 'Modify An Attribute value',
+          'command'   : 'java',
+          'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
+          'location'  : location,
+          'path'      : TESTS_JAVA_DIR,
+          'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s' % TESTS_JAVA_DIR]
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult
@@ -2842,7 +2770,7 @@
     </sequence>
     
   </function>
-
+  
 	
 	<!-- Add a New entry-->
   <function name="addAnEntry">
@@ -2850,116 +2778,93 @@
       This function modifies an entry in the Directory Server
     </function-prolog>
     <function-map-args>
- 
       <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-		
       <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
       </function-arg-def>
-		
       <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
-		<function-arg-property name="type" value="hostname"/>
-      </function-arg-def>      
-		
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
       <function-arg-def name="dsInstancePort" type="required">
          <function-arg-description>
           Directory server port number
         </function-arg-description>		  
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
-		
       <function-arg-def name="dsInstanceDn" type="required">
         <function-arg-description>
           Bind DN
         </function-arg-description>
         <function-arg-property name="type" value="DN"/>
       </function-arg-def> 
-		     
       <function-arg-def name="dsInstancePswd" type="required">
         <function-arg-description>
           Bind password
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
-      </function-arg-def>          
-		
-	   <function-arg-def name="DNToAdd" type="required">
+      </function-arg-def>
+	    <function-arg-def name="DNToAdd" type="required">
         <function-arg-description>
           DN to add
         </function-arg-description>
         <function-arg-property name="type" value="DN"/>
       </function-arg-def>
-			
       <function-arg-def name="listAttributes" type="required">
         <function-arg-description>
           Attributes to add
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           expected value. Default is 0
         </function-arg-description>
-      </function-arg-def>	
+      </function-arg-def>
     </function-map-args>
     <sequence>
-    
       <!-- Local variables -->
       <script>
         mylocation=location
-      
-		
-      <!-- Build the Command -->
-      
+        
+        # build the command
         STAFCmdParamsList=[]
-        STAFCmdParams=''	
-        STAFCmd=''			  	
-		</script>
-		  
+        STAFCmdParams=''
+        STAFCmd=''
+      </script>
      <!-- Set common ldap arguments -->      
       <call function="'_ldapCommonArgs'"/>
 
-	<iterate var="anAttributeToAdd" in="listAttributes">
-	<script>
-        STAFCmdParamsList.append('-v "%s"' % anAttributeToAdd)
-	</script>
-	</iterate>
-                  		
+      <iterate var="anAttributeToAdd" in="listAttributes">
       <script>
- 
+        STAFCmdParamsList.append('-v "%s"' % anAttributeToAdd)
+      </script>
+      </iterate>
+      <script>
         if DNToAdd:
           STAFCmdParamsList.append('-d "%s"' % DNToAdd)
-
         STAFCmdParams=' '.join(STAFCmdParamsList)
-		  		 
         STAFCmd='addAnEntry' 
-     </script>
-    
-
-      <process name="'Add a new  entry'">
-        <location>'%s' % location</location>
-        <command>'java'</command>
-        <workdir>'%s' % TESTS_JAVA_DIR</workdir>
-		  <parms>'%s %s' % (STAFCmd,STAFCmdParams)</parms>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s' % TESTS_JAVA_DIR]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-
+      </script>
+      <call function="'runCommand'" >
+        { 'name'      : 'Add New Entry',
+          'command'   : 'java',
+          'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
+          'location'  : location,
+          'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s' % TESTS_JAVA_DIR],
+          'path'      : TESTS_JAVA_DIR
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult
@@ -2969,16 +2874,13 @@
           'result'     : STAXReason,
           'expected'   : expectedRC }
       </call>
-      
       <return>
         STAXReason
       </return>
-      
     </sequence>
-    
   </function>
   
-
+  
 	<!-- Modify an attribute -->
   <function name="modifyDn">
     <function-prolog>
@@ -2991,116 +2893,97 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-		
       <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
       </function-arg-def>
-		
       <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
-		<function-arg-property name="type" value="hostname"/>
-      </function-arg-def>      
-		
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
       <function-arg-def name="dsInstancePort" type="required">
         <function-arg-description>
           Directory server port number
-        </function-arg-description>		  
+        </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
-		
       <function-arg-def name="dsInstanceDn" type="required">
         <function-arg-description>
           Bind DN
         </function-arg-description>
         <function-arg-property name="type" value="DN"/>
-      </function-arg-def> 
-		
+      </function-arg-def>
       <function-arg-def name="dsInstancePswd" type="required">
         <function-arg-description>
           Bind password
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
-      </function-arg-def>          
-		
-	   <function-arg-def name="DNToModify" type="required">
+      </function-arg-def>
+	    <function-arg-def name="DNToModify" type="required">
         <function-arg-description>
           DN to modify
         </function-arg-description>
         <function-arg-property name="type" value="DN"/>
       </function-arg-def>
-			
       <function-arg-def name="newRDN" type="optional">
         <function-arg-description>
           new rdn name : ie uid=jdoe_bis
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-		
 	    <function-arg-def name="deleteOldRDN" type="optional">
         <function-arg-description>
           1 : delete old rdn, 0 do not delete old rdn, default value is 1
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
       </function-arg-def>
-  
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>		  
-      </function-arg-def>		
-	
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
     </function-map-args>
     <sequence>
     
       <!-- Local variables -->
       <script>
         mylocation=location
-      
-		
-      <!-- Build the Command -->
-      
+        #Build the Command
         STAFCmdParamsList=[]
-        STAFCmdParams=''	
-        STAFCmd=''			  	
-		</script>
+        STAFCmdParams=''
+        STAFCmd=''
+      </script>
 		  
-     <!-- Set common ldap arguments -->      
-      <call function="'_ldapCommonArgs'"/>
-
+      <!-- Set common ldap arguments -->      
+      <call function="'_ldapCommonArgs'" />
       <script>
- 
         if DNToModify:
           STAFCmdParamsList.append('-d "%s"' % DNToModify)
-
+        
         if newRDN:
           STAFCmdParamsList.append('-e "%s"' % newRDN)
-
+        
         if deleteOldRDN:
           STAFCmdParamsList.append('-f "%s"' % deleteOldRDN)		  		  		  		  
-		  		  
+        
         STAFCmdParams=' '.join(STAFCmdParamsList)
-		  		 
+        
         STAFCmd='modifyDn' 
-   
-    </script>
-      <process name="'Modify DN'">
-        <location>'%s' % location</location>
-        <command>'java'</command>
-        <workdir>'%s' % TESTS_JAVA_DIR</workdir>
-		  <parms>'%s %s' % (STAFCmd,STAFCmdParams)</parms>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s' % TESTS_JAVA_DIR]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      </script>
+      <call function="'runCommand'" >
+        { 'name'      : 'Modify DN',
+          'command'   : 'java',
+          'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
+          'location'  : location,
+          'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s' % TESTS_JAVA_DIR],
+          'path'      : TESTS_JAVA_DIR
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult
@@ -3115,9 +2998,4 @@
       </return>
     </sequence>
   </function>
-
-          
-  
-    
-  
 </stax>

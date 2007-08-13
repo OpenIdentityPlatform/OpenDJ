@@ -30,7 +30,7 @@
   <function name="sample">
     <sequence>
       <script>
-        CurrentTestPath={ 'group' : 'sample', 'suite' : 'sample' }
+        CurrentTestPath['group']= 'sample'
         envAlreadyLoaded='true'
       </script>
       
@@ -48,12 +48,20 @@
         <!-- this is an example of how to loop through a list of functions to 
              run instead of duplicating calls 
          -->
-        <iterate in="['testGroup_Preamble','testSuite_Preamble','sample_setup','sample_test']" var="testStep">
-          <!-- the sequence tag is superfluous here since there is only a 
-               single instruction to execute within the iterate block 
-           -->
-          <call function="'%s' % testStep" />
-        </iterate>
+         <sequence>
+          <iterate in="['testGroup_Preamble','testSuite_Preamble','sample_setup']" var="setupStep">
+            <!-- the sequence tag is superfluous here since there is only a 
+                 single instruction to execute within the iterate block 
+             -->
+            <call function="'%s' % setupStep" />
+          </iterate>
+          <iterate in="['passing_test']" var="testStep">
+            <!-- the sequence tag is superfluous here since there is only a 
+                 single instruction to execute within the iterate block 
+             -->
+            <call function="'%s' % testStep" />
+          </iterate>
+        </sequence>
         <catch exception="'STAFException.Topology.CreationException'">
           <!-- it is a good idea to make sure that the messages getting
                sent to the gui also make their way in the logs for easier 
@@ -96,20 +104,87 @@
       #@TestPostamble             none
       #@TestResult                Success if OpenDS returns 0
     -->
-    <testcase name="'%s: %s: %s' % (CurrentTestPath['group'],CurrentTestPath['suite'],STAXCurrentFunction)">
+    <block name="'sample_test'">
       <sequence>
-        <call function="'testCase_Preamble'" />
-        <call function="'SearchObject'">
-        { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-          'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-          'dsInstanceDn'     : DIRECTORY_INSTANCE_DN   ,
-          'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX  ,
-          'dsFilter'         : 'objectclass=*'         }
-        </call>
-        <call function="'testCase_Postamble'" />
+        <script>
+          CurrentTestPath['suite']= 'search'
+        </script>
+        <testcase name="'%s: %s: %s' % (CurrentTestPath['group'],CurrentTestPath['suite'],STAXCurrentBlock)">
+          <sequence>
+            <call function="'testCase_Preamble'" />
+            <call function="'SearchObject'">
+            { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN   ,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              'dsBaseDN'         : DIRECTORY_INSTANCE_SFX  ,
+              'dsFilter'         : 'objectclass=*'         }
+            </call>
+            <call function="'testCase_Postamble'" />
+          </sequence>
+        </testcase>
       </sequence>
-    </testcase>
+    </block>
+  </function>
+  
+  <!-- the dummy failing test -->
+  <function name="failing_test">
+    <!---
+      Place test-specific test information here.
+      The tag, TestMarker, must be the same as the tag, TestSuiteName.
+      #@TestMarker                Sample
+      #@TestName                  failing_test
+      #@TestIssue                 xyz
+      #@TestPurpose               Illustrate how to issue a query on OpenDS
+      #@TestPreamble              none
+      #@TestStep                  Fetch all the entries in the server
+      #@TestPostamble             none
+      #@TestResult                Success if OpenDS returns 0
+    -->
+    <block name="'failing_test'">
+      <sequence>
+        <script>
+          CurrentTestPath['suite']= 'dummy'
+        </script>
+        <testcase name="'%s: %s: %s' % (CurrentTestPath['group'],CurrentTestPath['suite'],STAXCurrentBlock)">
+          <sequence>
+            <call function="'testCase_Preamble'" />
+            <tcstatus result="'fail'" />
+            <call function="'testCase_Postamble'" />
+          </sequence>
+        </testcase>
+      </sequence>
+    </block>
+  </function>
+
+  <!-- the dummy passing test -->
+  <function name="passing_test">
+    <!---
+      Place test-specific test information here.
+      The tag, TestMarker, must be the same as the tag, TestSuiteName.
+      #@TestMarker                Sample
+      #@TestName                  passing_test
+      #@TestIssue                 xyz
+      #@TestPurpose               Illustrate how to issue a query on OpenDS
+      #@TestPreamble              none
+      #@TestStep                  Fetch all the entries in the server
+      #@TestPostamble             none
+      #@TestResult                Success if OpenDS returns 0
+    -->
+    <block name="'passing_test'">
+      <sequence>
+        <script>
+          CurrentTestPath['suite']= 'dummy'
+        </script>
+        <testcase name="'%s: %s: %s' % (CurrentTestPath['group'],CurrentTestPath['suite'],STAXCurrentBlock)">
+          <sequence>
+            <call function="'testCase_Preamble'" />
+            <tcstatus result="'pass'" />
+            <call function="'testCase_Postamble'" />
+          </sequence>
+        </testcase>
+      </sequence>
+    </block>
   </function>
   
   <!-- Setup the instance for sample test -->

@@ -26,78 +26,57 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-
   <defaultcall function="main_quickstart"/>
-
   <function name="main_quickstart">
-
-    <sequence>
-
-      <block name="'quickstart'">
-      
-        <sequence>
+    <block name="'quickstart'">
+      <sequence>
+        <!--- Start DS -->
+        <call function="'StartDsWithScript'">
+         { 'location'  : STAF_REMOTE_HOSTNAME }
+        </call>
+        <call function="'checkRC'">
+           { 'returncode' : RC ,
+             'result'     : STAXResult }
+        </call>
         
-          <!--- Start DS -->
-          <message>
-            'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
-          </message>
-          
-          <call function="'StartDsWithScript'">
-           { 'location'  : STAF_REMOTE_HOSTNAME }
-          </call>
-          
-          <call function="'checkRC'">
-             { 'returncode' : RC ,
-               'result'     : STAXResult }
-          </call>
-          
-          <!--- Check that DS started -->
-          <call function="'isAlive'">
-            { 'noOfLoops'        : 5 ,
-              'noOfMilliSeconds' : 2000 }
-          </call>
-          
-          <message>
-             'Quickstart: Adding quickstart entries'
-          </message>
-          
-          <call function="'addEntry'">
-            { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'entryToBeAdded'   : '%s/quickstart/quickstart.ldif' % logsRemoteDataDir }
-          </call>
-          
-          <call function="'checkRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult }
-          </call>
-          
-          <!--- Stop DS -->
-          <message>
-             'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
-          </message>
-          
-          <call function="'StopDsWithScript'">
-              { 'location'  : STAF_REMOTE_HOSTNAME,
-                'dsHost'    : DIRECTORY_INSTANCE_HOST,
-                'dsPort'    : DIRECTORY_INSTANCE_PORT,
-                'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-                'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
-          </call>
-          
-          <call function="'checkRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult }
-          </call>
-      
-        </sequence>
-    
-      </block>
-    
-    </sequence>
-
+        <!--- Check that DS started -->
+        <call function="'isAlive'">
+          { 'noOfLoops'        : 5 ,
+            'noOfMilliSeconds' : 2000 }
+        </call>
+        
+        <message>
+           'Quickstart: Adding quickstart entries'
+        </message>
+        <call function="'addEntry'">
+          { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+            'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+            'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+            'entryToBeAdded'   : '%s/quickstart/quickstart.ldif' % logsRemoteDataDir 
+          }
+        </call>
+        <call function="'checkRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+        </call>
+        
+        <!--- Stop DS -->
+        <call function="'StopDsWithScript'">
+          { 'location'  : STAF_REMOTE_HOSTNAME,
+            'dsHost'    : DIRECTORY_INSTANCE_HOST,
+            'dsPort'    : DIRECTORY_INSTANCE_PORT,
+            'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+            'dsBindPwd' : DIRECTORY_INSTANCE_PSWD 
+          }
+        </call>
+        
+        <call function="'checkRC'">
+          { 'returncode' : RC ,
+            'result'     : STAXResult 
+          }
+        </call>
+      </sequence>
+    </block>
   </function>
-
 </stax>
