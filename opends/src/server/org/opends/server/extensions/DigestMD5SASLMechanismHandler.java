@@ -212,12 +212,22 @@ public class DigestMD5SASLMechanismHandler
     String realm = config.getRealm();
 
 
-    // The DIGEST-MD5 bind process uses two stages.  See if the client provided
-    // any credentials.  If not, then this is an initial authentication so we
-    // will send a challenge to the client.
-    ByteString       clientCredentials = bindOperation.getSASLCredentials();
+    // The DIGEST-MD5 bind process uses two stages.  See if we have any state
+    // information from the first stage to determine whether this is a
+    // continuation of an existing bind or an initial authentication.  Note that
+    // this implementation does not support subsequent authentication, so even
+    // if the client provided credentials for the bind, it will be treated as an
+    // initial authentication if there is no existing state.
+    boolean initialAuth = true;
     ClientConnection clientConnection  = bindOperation.getClientConnection();
-    if ((clientCredentials == null) || (clientCredentials.value().length == 0))
+    Object saslStateInfo = clientConnection.getSASLAuthStateInfo();
+    if ((saslStateInfo != null) &&
+        (saslStateInfo instanceof DigestMD5StateInfo))
+    {
+      initialAuth = false;
+    }
+
+    if (initialAuth)
     {
       // Create a buffer to hold the challenge.
       StringBuilder challengeBuffer = new StringBuilder();
@@ -310,32 +320,29 @@ public class DigestMD5SASLMechanismHandler
     }
 
 
-    // If we've gotten here, then the client did provide credentials.  This can
-    // be either an initial or subsequent authentication, but they will both be
-    // handled identically.  First, get the stored client SASL state.  If it's
-    // not there, then fail.
-    Object saslStateInfo = clientConnection.getSASLAuthStateInfo();
-    if (saslStateInfo == null)
+    // If we've gotten here, then we have existing SASL state information for
+    // this client.  Make sure that the client also provided credentials.
+    ASN1OctetString clientCredentials = bindOperation.getSASLCredentials();
+    if ((clientCredentials == null) || (clientCredentials.value().length == 0))
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLDIGESTMD5_NO_STORED_STATE;
+      int    msgID   = MSGID_SASLDIGESTMD5_NO_CREDENTIALS;
       String message = getMessage(msgID);
       bindOperation.setAuthFailureReason(msgID, message);
       return;
     }
 
-    if (! (saslStateInfo instanceof DigestMD5StateInfo))
-    {
-      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLDIGESTMD5_INVALID_STORED_STATE;
-      String message = getMessage(msgID);
-      bindOperation.setAuthFailureReason(msgID, message);
-      return;
-    }
-
+    // Parse the SASL state information.  Also, since there are only ever two
+    // stages of a DIGEST-MD5 bind, clear the SASL state information stored in
+    // the client connection because it shouldn't be used anymore regardless of
+    // whether the bind succeeds or fails.  Note that if we do add support for
+    // subsequent authentication in the future, then we will probably need to
+    // keep state information in the client connection, but even then it will
+    // be different from what's already there.
     DigestMD5StateInfo stateInfo = (DigestMD5StateInfo) saslStateInfo;
+    clientConnection.setSASLAuthStateInfo(null);
 
 
     // Create variables to hold values stored in the client's response.  We'll

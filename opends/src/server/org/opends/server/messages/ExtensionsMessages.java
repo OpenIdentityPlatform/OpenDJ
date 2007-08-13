@@ -2149,11 +2149,12 @@ public class ExtensionsMessages
 
 
   /**
-   * The message ID for the message that will be used if the client provides
-   * SASL credentials but the server doesn't have any previous SASL state for
-   * that client.  This does not take any arguments.
+   * The message ID for the message that will be used if the bind request
+   * did not contain any credentials when the client connection already had
+   * DIGEST-MD5 state information, indicating that it was not an initial
+   * authentication.  This does not take any arguments.
    */
-  public static final int MSGID_SASLDIGESTMD5_NO_STORED_STATE =
+  public static final int MSGID_SASLDIGESTMD5_NO_CREDENTIALS =
        CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 201;
 
 
@@ -6836,12 +6837,11 @@ public class ExtensionsMessages
     registerMessage(MSGID_SASLDIGESTMD5_CHALLENGE_TOO_LONG,
                     "The initial DIGEST-MD5 must be less than 2048 bytes, " +
                     "but the generated challenge was %d bytes");
-    registerMessage(MSGID_SASLDIGESTMD5_NO_STORED_STATE,
-                    "The SASL DIGEST-MD5 bind request contained SASL " +
-                    "credentials but there is no stored SASL state " +
-                    "information for this client connection.  If this is " +
-                    "an initial authentication, then the client must not " +
-                    "provide any SASL credentials");
+    registerMessage(MSGID_SASLDIGESTMD5_NO_CREDENTIALS,
+                    "The client connection included DIGEST-MD5 state " +
+                    "information, indicating that the client was in the " +
+                    "process of performing a DIGEST-MD5 bind, but the " +
+                    "bind request did not include any credentials");
     registerMessage(MSGID_SASLDIGESTMD5_INVALID_STORED_STATE,
                     "The SASL DIGEST-MD5 bind request contained SASL " +
                     "credentials, but the stored SASL state information for " +
