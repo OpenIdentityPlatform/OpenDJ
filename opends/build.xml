@@ -373,7 +373,8 @@
 
     <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
          failOnViolation="true">
-      <fileset dir="${src.dir}" includes="**/*.java" />
+      <fileset dir="${src.dir}" includes="**/*.java"
+           excludes="**/PublicAPI.java" />
       <formatter type="plain" />
     </checkstyle>
 
@@ -401,7 +402,7 @@
       <fileset dir="${src.dir}/org/opends/server/protocols/internal"
            includes="**/*.java" />
       <fileset dir="${src.dir}/org/opends/server/types"
-           includes="**/*.java" />
+           includes="**/*.java" excludes="**/PublicAPI.java"/>
       <formatter type="plain" />
     </checkstyle>
 
