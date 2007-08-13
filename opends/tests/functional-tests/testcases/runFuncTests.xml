@@ -26,81 +26,77 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-
   <defaultcall function="main" />
-
   <function name="main">
-
     <sequence>
-		
       <!--- Load the environment for the test suite execution -->
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/environment.xml' % (TESTS_FUNCTIONS_DIR)" />
-      <call function="'loadEnvironment'" />  
+      <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
+      <call function="'loadEnvironment'" />
 
       <!-- The Functional Tests -->
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/testcases/security/security.xml' % (TESTS_DIR)" />
+      <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/testcases/security/security.xml' % TESTS_DIR" />
       <!--
       <call function="'main_security'" />
       -->
 
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/testcases/aci/aci.xml' % (TESTS_DIR)" />
+      <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/testcases/aci/aci.xml' % TESTS_DIR" />
       <!--
       <call function="'main_aci'" />
       -->
 
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/testcases/privileges/privileges.xml' % (TESTS_DIR)" />
+      <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/testcases/privileges/privileges.xml' % TESTS_DIR" />
       <!--
       <call function="'main_privileges'" />
       -->
 
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/testcases/backends/backends.xml' % (TESTS_DIR)" />
+      <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/testcases/backends/backends.xml' % TESTS_DIR" />
       <!--
       <call function="'main_backends'" />
       --> 
       
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/testcases/clu/commands.xml' % (TESTS_DIR)" />
+      <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/testcases/clu/commands.xml' % TESTS_DIR" />
       <!--
       <call function="'main_commands'" />
       -->
 
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/testcases/core/core.xml' % (TESTS_DIR)" />
+      <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/testcases/core/core.xml' % TESTS_DIR" />
       <!--
       <call function="'main_core'" />
       -->
 
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/testcases/schema/schema.xml' % (TESTS_DIR)" />
+      <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/testcases/schema/schema.xml' % TESTS_DIR" />
       <!--
       <call function="'main_schema'" />
       -->
 
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/testcases/replication/replication.xml' % (TESTS_DIR)" />
+      <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/testcases/replication/replication.xml' % TESTS_DIR" />
       <!--
       <call function="'main_replication'" />					
       -->
 
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/testcases/indexes/indexes.xml' % (TESTS_DIR)" />
+      <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/testcases/indexes/indexes.xml' % TESTS_DIR" />
       <!--
       <call function="'indexes'" />
       -->
 
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/testcases/groups/groups.xml' % (TESTS_DIR)" />
+      <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/testcases/groups/groups.xml' % TESTS_DIR" />
       <!--
       <call function="'main_groups'" />
       -->
 
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/testcases/sample/sample.xml' % (TESTS_DIR)" />
+      <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/testcases/sample/sample.xml' % TESTS_DIR" />
       <script>
         class functionToRun:
           def __init__(self, name):
@@ -109,6 +105,11 @@
           def getName(self):
             return self.name
           
+        testlog=open('%s/tests-log.xml' % TMPDIR,'w')
+        testlog.write('&lt;qa&gt;\n')
+        testlog.write('  &lt;functional-tests&gt;\n')
+        testlog.write('    &lt;results&gt;\n')
+        testlog.close()
           
         suitesFileName='%s/testcases/run-custom-suites.dat' % TESTS_DIR
         
@@ -124,11 +125,171 @@
       <iterate var="function" in="functionsToRun">
         <sequence>
           <message>'calling function [%s]' % function.getName()</message>
-          <call function="'%s' % function.getName()" />
+          <call function="function.getName()" />
         </sequence>
       </iterate>
+      
+      <!-- in this section we'll compute the coverage for all the tests
+           if coverage is turned on
+           so far I could only get through this on either machines with a lot
+           of memory or small sets of tests
+      -->
+      <if expr="os.path.exists('%s/lib/emma.jar' % dsPath)">
+        <sequence>
+          <script>
+            coverageFiles=''
+            for group in os.listdir('%s/coverage/' % TMPDIR):
+              coverageFiles+='%s/coverage/%s/coverage.ec' % (TMPDIR,group)
+          </script>
+          <call function="'runCommand'">
+              { 'name'      : 'Generate global coverage xml report',
+                'command'   : 'java',
+                'arguments' : ' -Xms64M -Xmx1024M -cp %s/lib/emma.jar emma report -r xml,html -in %s/coverage.em,%s -Dreport.xml.out.file=%s/coverage/coverage.xml -Dreport.html.out.file=%s/coverage/coverage.html -sp %s/../../../src' % (dsPath,dsPath,coverageFiles,TMPDIR,TMPDIR,TMPDIR),
+                'path'      : TMPDIR
+              }
+          </call>
+          <script>
+            from java.io import FileInputStream
+            from javax.xml.transform.stream import StreamSource
+            from javax.xml.transform.stream import StreamResult
+            from javax.xml.parsers import DocumentBuilderFactory
+            from org.w3c.dom import *
+            
+            factory = DocumentBuilderFactory.newInstance() 
+            builder = factory.newDocumentBuilder()
+            
+            input = FileInputStream("%s/coverage/coverage.xml" % TMPDIR)
+            document = builder.parse(input)
+            dom = document.getDocumentElement()
+            coverageNodes = dom.getElementsByTagName("all").item(0).getChildNodes()
+            for coverageNodeIndex in range(coverageNodes.getLength()):
+              thisNode = coverageNodes.item(coverageNodeIndex)
+              if thisNode.getNodeName() == 'coverage':
+                thisNodeAttributes = thisNode.getAttributes()
+                if thisNodeAttributes.getNamedItem("type").getNodeValue() == 'block, %':
+                  rawCoverage = thisNodeAttributes.getNamedItem("value").getNodeValue()
+                  coverage = rawCoverage.split('%')[0]
+            testlog=open('%s/tests-log.xml' % TMPDIR,'a')
+            testlog.seek(0,2)
+            testlog.write("      &lt;all&gt;\n")
+            testlog.write("        &lt;coverage&gt;\n")
+            testlog.write("          %s\n" % coverage)
+            testlog.write("        &lt;/coverage&gt;\n")
+            testlog.write("      &lt;/all&gt;\n")
+            testlog.close()
+          </script>
+        </sequence>
+        <else>
+          <script>
+            testlog=open('%s/tests-log.xml' % TMPDIR,'a')
+            testlog.seek(0,2)
+            testlog.write("      &lt;all&gt;\n")
+            testlog.write("        &lt;coverage&gt;\n")
+            testlog.write("          N/A\n")
+            testlog.write("        &lt;/coverage&gt;\n")
+            testlog.write("      &lt;/all&gt;\n")
+            testlog.close()
+          </script>
+        </else>
+      </if>
 
+      <!-- here goes the section where we get the product's info -->
+      <call function="'GetVar'">
+        { 'location'  : STAF_REMOTE_HOSTNAME,
+          'type'      : 'shared',
+          'variable'  : 'Job%s_ServerInfo' % STAXJobID
+        }
+      </call>
+
+      <if expr="RC != 0">
+        <script>
+          STAFResult='{}'
+        </script>
+      </if>
+            
+      <!-- Build the Servers Information Dictionary -->
+      <script> 
+        ServersInfoDict=eval(STAFResult)
+
+        ServerVersion='unknown'
+        ServerBuildId='unknown'
+        ServerJavaVersion='unknown'
+        ServerJavaVendor='unknown'
+        ServerJVMVersion='unknown'
+        ServerJVMVendor='unknown'
+        ServerSystemOS='unknown'
+        ServerSystemName='unknown'
+        ServerSvnRevision='unknown'
+        
+        if ServersInfoDict.has_key('%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)):
+          ServerInfoDict=ServersInfoDict['%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)]
+          
+          ServerInfoKey='server version'
+          if ServerInfoDict.has_key(ServerInfoKey):
+            ServerVersion=ServerInfoDict[ServerInfoKey]
+          
+          ServerInfoKey='server buildid'
+          if ServerInfoDict.has_key(ServerInfoKey):
+            ServerBuildId=ServerInfoDict[ServerInfoKey]
+          
+          ServerInfoKey='java version'
+          if ServerInfoDict.has_key(ServerInfoKey):
+            ServerJavaVersion=ServerInfoDict[ServerInfoKey]
+          
+          ServerInfoKey='java vendor'
+          if ServerInfoDict.has_key(ServerInfoKey):
+            ServerJavaVendor=ServerInfoDict[ServerInfoKey]
+
+          ServerInfoKey='jvm version'
+          if ServerInfoDict.has_key(ServerInfoKey):
+            ServerJVMVersion=ServerInfoDict[ServerInfoKey]
+
+          ServerInfoKey='jvm vendor'
+          if ServerInfoDict.has_key(ServerInfoKey):
+            ServerJVMVendor=ServerInfoDict[ServerInfoKey]
+
+          ServerInfoKey='system os'
+          if ServerInfoDict.has_key(ServerInfoKey):
+            ServerSystemOS=ServerInfoDict[ServerInfoKey]
+
+          ServerInfoKey='system name'
+          if ServerInfoDict.has_key(ServerInfoKey):
+            ServerSystemName=ServerInfoDict[ServerInfoKey]
+
+          ServerInfoKey='svn revision'
+          if ServerInfoDict.has_key(ServerInfoKey):
+            ServerSvnRevision=ServerInfoDict[ServerInfoKey]
+          
+        else:
+          ServerInfoDict='No key found (%s/%s)' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+        
+        testlog=open('%s/tests-log.xml' % TMPDIR,'a')
+        testlog.seek(0,2)
+        testlog.write('    &lt;/results&gt;\n')
+        testlog.write('    &lt;identification&gt;\n')
+        testlog.write('      &lt;version&gt;\n')
+        testlog.write('        %s\n' % ServerVersion)
+        testlog.write('      &lt;/version&gt;\n')    
+        testlog.write('      &lt;buildid&gt;\n')
+        testlog.write('        %s\n' % ServerBuildId)
+        testlog.write('      &lt;/buildid&gt;\n')
+        testlog.write('      &lt;revision&gt;\n')
+        testlog.write('        %s\n' % ServerSvnRevision)
+        testlog.write('      &lt;/revision&gt;\n')                 
+        testlog.write('      &lt;platform&gt;\n')
+        testlog.write('        %s\n' % ServerSystemOS)
+        testlog.write('      &lt;/platform&gt;\n')
+        testlog.write('      &lt;jvm-version&gt;\n')
+        testlog.write('        %s\n' % ServerJVMVersion)
+        testlog.write('      &lt;/jvm-version&gt;\n')
+        testlog.write('      &lt;jvm-vendor&gt;\n')
+        testlog.write('        %s\n' % ServerJVMVendor)
+        testlog.write('      &lt;/jvm-vendor&gt;\n')        
+        testlog.write('    &lt;/identification&gt;\n')
+        testlog.write('  &lt;/functional-tests&gt;\n')
+        testlog.write('&lt;/qa&gt;\n')
+        testlog.close()
+      </script>
     </sequence>
   </function>
 </stax>
-

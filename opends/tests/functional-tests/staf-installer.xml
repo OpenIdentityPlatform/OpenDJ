@@ -682,7 +682,7 @@ email.server.pwd=${email.server.pwd.input}
       </then>
     </if>
   </target>
-  <target name="run-my-tests-default-plan" depends="run-my-tests-define">
+  <target name="run-my-tests-default-plan" depends="run-my-tests-define" unless="custom-suites.on">
     <delete file="${test.plan.default}"/>
     <foreach list="${test.plan.list}" param="test" target="run-my-tests-default-plan-add"/>
   </target>
@@ -826,11 +826,11 @@ email.server.pwd=${email.server.pwd.input}
   </target>
   
   <target name="coverage-report" if="coverage.on">
-    <delete dir="${staf.tmp.dir}/coverage" />
-    <mkdir dir="${staf.tmp.dir}/coverage" />
+    <delete dir="${staf.tmp.dir}/coverage/all" />
+    <mkdir dir="${staf.tmp.dir}/coverage/all" />
     <emma enabled="${coverage.on}" >
       <report >
-        <infileset dir="${staf.tmp.dir}" includes="**/*.em,**/*.coverage" />
+        <infileset dir="${staf.tmp.dir}" includes="**/*.em,**/*.ec" />
 
         <sourcepath>
           <dirset dir="${project.home}" >
@@ -838,7 +838,7 @@ email.server.pwd=${email.server.pwd.input}
           </dirset>
         </sourcepath>
 
-        <html outfile="${staf.tmp.dir}/coverage/index.html"
+        <html outfile="${staf.tmp.dir}/coverage/all/index.html"
               columns="name, method, line"
               sort="+line, +name"
               metrics="line:80"
@@ -1024,7 +1024,7 @@ email.server.pwd=${email.server.pwd.input}
         </and>
       </condition>
       <available file="${daily.package}" property="daily.package.downloaded"/>
-      
+      <available file="testcases/run-custom-suites.dat" property="custom-suites.on" />
       <available file="${staf.install.dir}" 
                 type="dir" 
                 property="staf.installed" />
@@ -1170,14 +1170,11 @@ email.server.pwd=${email.server.pwd.input}
   </target>
   
   <target name="generate-report">
-    <tstamp>
-      <format property="tstamp.today" pattern="yyyyMMdd"/>
-    </tstamp>
-    <fileset id="resultxml" file="${tstamp.today}-*/**/reports/results.xml" />
+    <delete file="${staf.tmp.dir}/my-report.html"/>
     <xslt processor="trax"
-          in="C:\Users\arnaud\.hudson\jobs\opends-vista-functional-tests\workspace\opends\tests\functional-run\tmp\20070726-234928\Windows-x86-jvm1.5\reports\results.xml" 
-          out="${staf.tmp.dir}/results.html"
-          style="shared/xsl/gen-alltests-report.xsl">
+          in="${staf.tmp.dir}/tests-log.xml" 
+          out="${staf.tmp.dir}/my-report.html"
+          style="shared/xsl/my-report.xsl">
     </xslt>
   </target>
 </project>

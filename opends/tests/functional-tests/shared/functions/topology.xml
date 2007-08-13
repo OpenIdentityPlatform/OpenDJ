@@ -399,23 +399,23 @@
       
       <!-- configure the coverage dump file -->
       <script>
-        mylog='::coverage: begin\n'
-        emmaprops = '%s/%s/classes/emma.properties' % (dsDir,OPENDSNAME)
-        group='emma'
-        if CurrentTestPath['group']:
-          group=CurrentTestPath['group'].strip()
-          
-        if os.path.exists('%s' % emmaprops):
-          mylog+='::coverage: setting %s/%s.coverage to file %s\n' % (TMPDIR,group,emmaprops)
-          coveragefh = open(emmaprops,'w')
-          coveragefh.write('coverage.out.file=%s/%s.coverage\n' % (TMPDIR,group) )
+        mylog="::coverage - checking for %s/lib/emma.jar\n" % dsPath
+        if os.path.exists('%s/lib/emma.jar' % dsPath):
+          mylog+="  ::coverage on\n"
+          if not os.path.exists('%s/coverage' % TMPDIR):
+            os.mkdir('%s/coverage' % TMPDIR)
+            mylog+="    ::mkdir %s/coverage on\n" % TMPDIR
+          if not os.path.exists('%s/coverage/%s' % (TMPDIR,CurrentTestPath['group'])):
+            os.mkdir('%s/coverage/%s' % (TMPDIR,CurrentTestPath['group']))
+            mylog+="    ::mkdir %s/coverage/%s on\n" % (TMPDIR,CurrentTestPath['group'])
+          mylog+="  ::writing to %s/classes/emma.properties" % dsPath
+          coveragefh = open( '%s/classes/emma.properties' % dsPath, 'w' )
+          coveragefh.write( 'coverage.out.file=%s/coverage/%s/coverage.ec\n' % (TMPDIR,CurrentTestPath['group']) )
           coveragefh.close()
           
       </script>
-      <message>
-        '%s' % mylog
-      </message>
 
+      <message>mylog</message>
       <!--- Set up DS -->
       <message>
         'Set up DS on %s : %s/%s' % (dsHost,dsDir,OPENDSNAME)
