@@ -655,38 +655,11 @@ public class ConfigFileHandler
     }
 
 
-    // Determine the appropriate server root for the Directory Server.  First,
-    // do this by looking for a Java property.  If that isn't specified, then
-    // look for an environment variable, and if all else fails then try to
-    // figure it out from the location of the configuration file.
-    String rootDirStr = System.getProperty(PROPERTY_SERVER_ROOT);
-    if (rootDirStr == null)
-    {
-      rootDirStr = System.getenv(ENV_VAR_INSTANCE_ROOT);
-    }
-
-    if (rootDirStr != null)
-    {
-      try
-      {
-        File serverRootFile = new File(rootDirStr);
-        serverRoot = serverRootFile.getAbsolutePath();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        int    msgID   = MSGID_CONFIG_CANNOT_DETERMINE_SERVER_ROOT;
-        String message = getMessage(msgID, ENV_VAR_INSTANCE_ROOT);
-        throw new InitializationException(msgID, message);
-      }
-    }
-
-
-    if (serverRoot == null)
+    // Determine the appropriate server root.  If it's not defined in the
+    // environment config, then try to figure it out from the location of the
+    // configuration file.
+    File rootFile = DirectoryServer.getEnvironmentConfig().getServerRoot();
+    if (rootFile == null)
     {
       try
       {
@@ -724,6 +697,10 @@ public class ConfigFileHandler
         String message = getMessage(msgID, ENV_VAR_INSTANCE_ROOT);
         throw new InitializationException(msgID, message);
       }
+    }
+    else
+    {
+      serverRoot = rootFile.getAbsolutePath();
     }
 
 

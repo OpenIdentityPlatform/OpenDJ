@@ -69,12 +69,14 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.dsconfig.DSConfig;
-import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DN;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.OperatingSystem;
 import org.opends.server.types.ResultCode;
+import org.opends.server.util.EmbeddedUtils;
 
 import static org.testng.Assert.*;
 
@@ -304,53 +306,27 @@ public final class TestCaseUtils {
     serverJmxSocket.close();
     serverLdapsSocket.close();
 
-    // Actually start the server and set a variable that will prevent us from
-    // needing to do it again.
-    System.setProperty(PROPERTY_SERVER_ROOT, testRoot.getAbsolutePath());
-    System.setProperty(PROPERTY_FORCE_DAEMON_THREADS, "true");
 
-    String configClass = ConfigFileHandler.class.getName();
-    String configFile  = testConfigDir.getAbsolutePath() + File.separator +
-                         "config.ldif";
+    // Create a configuration for the server.
+    DirectoryEnvironmentConfig config = new DirectoryEnvironmentConfig();
+    config.setServerRoot(testRoot);
+    config.setForceDaemonThreads(true);
+    config.setConfigClass(ConfigFileHandler.class);
+    config.setConfigFile(new File(testConfigDir, "config.ldif"));
 
-    DirectoryServer directoryServer = DirectoryServer.getInstance();
-    directoryServer.bootstrapServer();
-    directoryServer.initializeConfiguration(configClass, configFile);
+    config.addAccessLogger(
+          TextAccessLogPublisher.getStartupTextAccessPublisher(
+              TestListener.ACCESS_TEXT_WRITER, false));
 
-    String debugTarget = System.getProperty("org.opends.test.debug.target");
-    if(debugTarget != null)
-    {
-      System.setProperty("org.opends.server.debug.enabled", "true");
-      System.setProperty("org.opends.server.debug.target.1", debugTarget);
-    }
+    config.addErrorLogger(
+         TextErrorLogPublisher.getStartupTextErrorPublisher(
+              TestListener.ERROR_TEXT_WRITER));
 
-    try
-    {
-    TextDebugLogPublisher startupDebugPublisher =
-        TextDebugLogPublisher.getStartupTextDebugPublisher(
-            TestListener.DEBUG_TEXT_WRITER);
-    DebugLogger.removeAllDebugLogPublishers();
-    DebugLogger.addDebugLogPublisher(startupDebugPublisher);
+    config.addDebugLogger(
+         TextDebugLogPublisher.getStartupTextDebugPublisher(
+              TestListener.DEBUG_TEXT_WRITER));
 
-    TextErrorLogPublisher startupErrorPublisher =
-        TextErrorLogPublisher.getStartupTextErrorPublisher(
-            TestListener.ERROR_TEXT_WRITER);
-    ErrorLogger.removeAllErrorLogPublishers();
-    ErrorLogger.addErrorLogPublisher(startupErrorPublisher);
-
-    TextAccessLogPublisher startupAccessPublisher =
-        TextAccessLogPublisher.getStartupTextAccessPublisher(
-            TestListener.ACCESS_TEXT_WRITER, false);
-    AccessLogger.removeAllAccessLogPublishers();
-    AccessLogger.addAccessLogPublisher(startupAccessPublisher);
-    }
-    catch(Exception e)
-    {
-      System.out.println("Error installing test log publishers: " +
-          e.toString());
-    }
-
-    directoryServer.startServer();
+    EmbeddedUtils.startServer(config);
 
     assertTrue(InvocationCounterPlugin.startupCalled());
 

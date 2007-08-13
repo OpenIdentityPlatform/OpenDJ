@@ -1753,6 +1753,15 @@ public class UtilityMessages
 
 
   /**
+   * The message ID for the message that will be used if an attempt is made to
+   * start the Directory Server if it is already running.  It does not take any
+   * arguments.
+   */
+  public static final int MSGID_EMBEDUTILS_SERVER_ALREADY_RUNNING =
+    CATEGORY_MASK_UTIL | SEVERITY_MASK_SEVERE_ERROR | 167;
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -2333,6 +2342,11 @@ public class UtilityMessages
     registerMessage(MSGID_EXPCHECK_TRUSTMGR_SERVER_CERT_NOT_YET_VALID,
                     "Refusing to trust server or issuer certificate '%s' " +
                     "because it is not valid until %s");
+
+
+    registerMessage(MSGID_EMBEDUTILS_SERVER_ALREADY_RUNNING,
+                    "The Directory Server cannot be started because it is " +
+                    "already running");
   }
 }
 

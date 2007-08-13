@@ -117,14 +117,9 @@ public class SchemaConfigManager
    */
   public static String getSchemaDirectoryPath()
   {
-    String schemaDirPath = System.getProperty(PROPERTY_SCHEMA_DIRECTORY);
-    if ((schemaDirPath == null) || (schemaDirPath.length() == 0))
-    {
-      schemaDirPath = DirectoryServer.getServerRoot() + File.separator +
-                      PATH_SCHEMA_DIR;
-    }
-
-    return schemaDirPath;
+    File schemaDir =
+              DirectoryServer.getEnvironmentConfig().getSchemaDirectory();
+    return schemaDir.getAbsolutePath();
   }
 
 

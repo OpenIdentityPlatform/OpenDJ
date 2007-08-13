@@ -262,6 +262,9 @@ public class DirectoryServer
   // The configuration manager that will handle the certificate mapper.
   private CertificateMapperConfigManager certificateMapperConfigManager;
 
+  // The class used to provide the config handler implementation.
+  private Class configClass;
+
   // The configuration handler for the Directory Server.
   private ConfigHandler configHandler;
 
@@ -398,6 +401,9 @@ public class DirectoryServer
   // The crypto manager for the Directory Server.
   private CryptoManager cryptoManager;
 
+  // The environment configuration for the Directory Server.
+  private DirectoryEnvironmentConfig environmentConfig;
+
   // The shutdown hook that has been registered with the server.
   private DirectoryServerShutdownHook shutdownHook;
 
@@ -419,6 +425,10 @@ public class DirectoryServer
 
   // The configuration manager for extended operation handlers.
   private ExtendedOperationConfigManager extendedOperationConfigManager;
+
+  // The path to the file containing the Directory Server configuration, or the
+  // information needed to bootstrap the configuration handler.
+  private File configFile;
 
   // The group manager for the Directory Server.
   private GroupManager groupManager;
@@ -535,13 +545,6 @@ public class DirectoryServer
   // The set of allowed task classes.
   private Set<String> allowedTasks;
 
-  // The fully-qualified name of the configuration handler class.
-  private String configClass;
-
-  // The path to the file containing the Directory Server configuration, or the
-  // information needed to bootstrap the configuration handler.
-  private String configFile;
-
   // The time that the server was started, formatted in UTC time.
   private String startTimeUTC;
 
@@ -597,11 +600,28 @@ public class DirectoryServer
    */
   private DirectoryServer()
   {
-    isBootstrapped        = false;
-    isRunning             = false;
-    shuttingDown          = false;
-    lockdownMode          = false;
-    serverErrorResultCode = ResultCode.OTHER;
+    this(new DirectoryEnvironmentConfig());
+  }
+
+
+
+  /**
+   * Creates a new instance of the Directory Server.  This will allow only a
+   * single instance of the server per JVM.
+   *
+   * @param  config  The environment configuration to use for the Directory
+   *                 Server instance.
+   */
+  private DirectoryServer(DirectoryEnvironmentConfig config)
+  {
+    environmentConfig        = config;
+    isBootstrapped           = false;
+    isRunning                = false;
+    shuttingDown             = false;
+    lockdownMode             = false;
+    serverErrorResultCode    = ResultCode.OTHER;
+    startupDebugLogPublisher = null;
+    startupErrorLogPublisher = null;
 
     operatingSystem = OperatingSystem.forName(System.getProperty("os.name"));
   }
@@ -627,15 +647,67 @@ public class DirectoryServer
    * reference to it.  This should only be used in the context of an in-core
    * restart after the existing server has been shut down.
    *
+   * @param  config  The environment configuration for the Directory Server.
+   *
    * @return  The new instance of the Directory Server that is associated with
    *          this JVM.
    */
-  private static DirectoryServer getNewInstance()
+  private static DirectoryServer
+                      getNewInstance(DirectoryEnvironmentConfig config)
   {
     synchronized (directoryServer)
     {
-      return directoryServer = new DirectoryServer();
+      return directoryServer = new DirectoryServer(config);
     }
+  }
+
+
+
+  /**
+   * Retrieves the environment configuration for the Directory Server.
+   *
+   * @return  The environment configuration for the Directory Server.
+   */
+  public static DirectoryEnvironmentConfig getEnvironmentConfig()
+  {
+    return directoryServer.environmentConfig;
+  }
+
+
+
+  /**
+   * Sets the environment configuration for the Directory Server.  This method
+   * may only be invoked when the server is not running.
+   *
+   * @param  config  The environment configuration for the Directory Server.
+   *
+   * @throws  InitializationException  If the Directory Server is currently
+   *                                   running.
+   */
+  private void setEnvironmentConfig(DirectoryEnvironmentConfig config)
+          throws InitializationException
+  {
+    if (isRunning)
+    {
+      int    msgID   = MSGID_CANNOT_SET_ENVIRONMENT_CONFIG_WHILE_RUNNING;
+      String message = getMessage(msgID);
+      throw new InitializationException(msgID, message);
+    }
+
+    environmentConfig = config;
+  }
+
+
+
+  /**
+   * Indicates whether the Directory Server is currently running.
+   *
+   * @return  {@code true} if the server is currently running, or {@code false}
+   *          if not.
+   */
+  public static boolean isRunning()
+  {
+    return directoryServer.isRunning;
   }
 
 
@@ -788,16 +860,24 @@ public class DirectoryServer
 
     // Install default debug and error loggers for use until enough of the
     // configuration has been read to allow the real loggers to be installed.
+    removeAllAccessLogPublishers();
+    for (AccessLogPublisher p : environmentConfig.getAccessLoggers())
+    {
+      addAccessLogPublisher(p);
+    }
 
-    startupErrorLogPublisher =
-        TextErrorLogPublisher.getStartupTextErrorPublisher(
-            new TextWriter.STDOUT());
-    addErrorLogPublisher(startupErrorLogPublisher);
+    removeAllErrorLogPublishers();
+    for (ErrorLogPublisher p : environmentConfig.getErrorLoggers())
+    {
+      addErrorLogPublisher(p);
+    }
 
-    startupDebugLogPublisher =
-        TextDebugLogPublisher.getStartupTextDebugPublisher(
-            new TextWriter.STDOUT());
-    addDebugLogPublisher(startupDebugLogPublisher);
+    removeAllDebugLogPublishers();
+    for (DebugLogPublisher p : environmentConfig.getDebugLoggers())
+    {
+      addDebugLogPublisher(p);
+    }
+
 
     // Create the MBean server that we will use for JMX interaction.
     initializeJMX();
@@ -891,8 +971,45 @@ public class DirectoryServer
   public void initializeConfiguration(String configClass, String configFile)
          throws InitializationException
   {
-    this.configClass = configClass;
-    this.configFile  = configFile;
+    Class cfgClass;
+    try
+    {
+      cfgClass = Class.forName(configClass);
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      int    msgID   = MSGID_CANNOT_LOAD_CONFIG_HANDLER_CLASS;
+      String message = getMessage(msgID, configClass,
+                                  stackTraceToSingleLineString(e));
+      throw new InitializationException(msgID, message, e);
+    }
+
+    File cfgFile = new File(configFile);
+
+    environmentConfig.setConfigClass(cfgClass);
+    environmentConfig.setConfigFile(cfgFile);
+    initializeConfiguration();
+  }
+
+
+
+  /**
+   * Instantiates the configuration handler and loads the Directory Server
+   * configuration.
+   *
+   * @throws  InitializationException  If a problem occurs while trying to
+   *                                   initialize the config handler.
+   */
+  public void initializeConfiguration()
+         throws InitializationException
+  {
+    this.configClass = environmentConfig.getConfigClass();
+    this.configFile  = environmentConfig.getConfigFile();
 
 
     // Make sure that administration framework definition classes are loaded.
@@ -904,23 +1021,7 @@ public class DirectoryServer
 
 
     // Load and instantiate the configuration handler class.
-    Class handlerClass;
-    try
-    {
-      handlerClass = Class.forName(configClass);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int    msgID   = MSGID_CANNOT_LOAD_CONFIG_HANDLER_CLASS;
-      String message = getMessage(msgID, configClass, e);
-      throw new InitializationException(msgID, message, e);
-    }
-
+    Class handlerClass = configClass;
     try
     {
       configHandler = (ConfigHandler) handlerClass.newInstance();
@@ -941,7 +1042,8 @@ public class DirectoryServer
     // Perform the handler-specific initialization.
     try
     {
-      configHandler.initializeConfigHandler(configFile, false);
+      configHandler.initializeConfigHandler(configFile.getAbsolutePath(),
+                                            false);
     }
     catch (InitializationException ie)
     {
@@ -976,7 +1078,7 @@ public class DirectoryServer
    */
   public static String getConfigFile()
   {
-    return directoryServer.configFile;
+    return directoryServer.configFile.getAbsolutePath();
   }
 
 
@@ -1054,11 +1156,8 @@ public class DirectoryServer
 
 
       // Determine whether or not we should start the connection handlers.
-      String disableProperty =
-                  System.getProperty(PROPERTY_DISABLE_CONNECTION_HANDLERS);
       boolean startConnectionHandlers =
-                   ((disableProperty == null) ||
-                    (! disableProperty.equalsIgnoreCase("true")));
+           (! environmentConfig.disableConnectionHandlers());
 
 
       // Initialize all the schema elements.
@@ -1225,8 +1324,15 @@ public class DirectoryServer
       sendAlertNotification(this, ALERT_TYPE_SERVER_STARTED, msgID, message);
 
 
-      removeDebugLogPublisher(startupDebugLogPublisher);
-      removeErrorLogPublisher(startupErrorLogPublisher);
+      if (startupDebugLogPublisher != null)
+      {
+        removeDebugLogPublisher(startupDebugLogPublisher);
+      }
+
+      if (startupErrorLogPublisher != null)
+      {
+        removeErrorLogPublisher(startupErrorLogPublisher);
+      }
 
 
       // If a server.starting file exists, then remove it.
@@ -2176,7 +2282,7 @@ public class DirectoryServer
 
     try
     {
-      configHandler.initializeConfigHandler(configFile, true);
+      configHandler.initializeConfigHandler(configFile.getAbsolutePath(), true);
     }
     catch (InitializationException ie)
     {
@@ -2860,23 +2966,15 @@ public class DirectoryServer
   {
     if (directoryServer.configHandler == null)
     {
-      String serverRoot = System.getProperty(PROPERTY_SERVER_ROOT);
-
-      if (serverRoot == null)
-      {
-        serverRoot = System.getenv(ENV_VAR_INSTANCE_ROOT);
-      }
-
+      File serverRoot = directoryServer.environmentConfig.getServerRoot();
       if (serverRoot != null)
       {
-        return serverRoot;
+        return serverRoot.getAbsolutePath();
       }
-      else
-      {
-        // We don't know where the server root is, so we'll have to assume it's
-        // the current working directory.
-        return System.getProperty("user.dir");
-      }
+
+      // We don't know where the server root is, so we'll have to assume it's
+      // the current working directory.
+      return System.getProperty("user.dir");
     }
     else
     {
@@ -8283,10 +8381,29 @@ public class DirectoryServer
    */
   public static void restart(String className, String reason)
   {
+    restart(className, reason, directoryServer.environmentConfig);
+  }
+
+
+
+  /**
+   * Causes the Directory Server to perform an in-core restart.  This will
+   * cause virtually all components of the Directory Server to shut down, and
+   * once that has completed it will be restarted.
+   *
+   * @param  className  The fully-qualified name of the Java class that
+   *                    initiated the shutdown.
+   * @param  reason     The human-readable reason that the directory server is
+   *                    shutting down.
+   * @param  config     The environment configuration to use for the server.
+   */
+  public static void restart(String className, String reason,
+                             DirectoryEnvironmentConfig config)
+  {
     try
     {
       shutDown(className, reason);
-      reinitialize();
+      reinitialize(config);
       directoryServer.startServer();
     }
     catch (Exception e)
@@ -8300,22 +8417,51 @@ public class DirectoryServer
     }
   }
 
+
+
   /**
-   * Reinitializes the server following a shutdown, preparing it for
-   * a call to <code>startServer</code>.
+   * Reinitializes the server following a shutdown, preparing it for a call to
+   * {@code startServer}.
+   *
+   * @return  The new Directory Server instance created during the
+   *          reinitialization process.
    *
    * @throws  InitializationException  If a problem occurs while trying to
    *                                   initialize the config handler or
    *                                   bootstrap that server.
    */
-  public static void reinitialize() throws InitializationException
+  public static DirectoryServer reinitialize()
+         throws InitializationException
   {
-    String configClass = directoryServer.configClass;
-    String configFile  = directoryServer.configFile;
-    getNewInstance();
-    directoryServer.bootstrapServer();
-    directoryServer.initializeConfiguration(configClass, configFile);
+    return reinitialize(directoryServer.environmentConfig);
   }
+
+
+
+  /**
+   * Reinitializes the server following a shutdown, preparing it for a call to
+   * {@code startServer}.
+   *
+   * @param  config  The environment configuration for the Directory Server.
+   *
+   * @return  The new Directory Server instance created during the
+   *          reinitialization process.
+   *
+   * @throws  InitializationException  If a problem occurs while trying to
+   *                                   initialize the config handler or
+   *                                   bootstrap that server.
+   */
+  public static DirectoryServer reinitialize(DirectoryEnvironmentConfig config)
+         throws InitializationException
+  {
+    getNewInstance(config);
+    LockManager.reinitializeLockTable();
+    directoryServer.bootstrapServer();
+    directoryServer.initializeConfiguration();
+    return directoryServer;
+  }
+
+
 
   /**
    * Retrieves the maximum number of concurrent client connections that may be
@@ -9217,10 +9363,45 @@ public class DirectoryServer
     }
 
 
+    // Create an environment configuration for the server and populate a number
+    // of appropriate properties.
+    TextErrorLogPublisher startupErrorLogPublisher = null;
+    TextDebugLogPublisher startupDebugLogPublisher = null;
+    DirectoryEnvironmentConfig environmentConfig =
+         new DirectoryEnvironmentConfig();
+    try
+    {
+      environmentConfig.setProperty(PROPERTY_CONFIG_CLASS,
+                                    configClass.getValue());
+      environmentConfig.setProperty(PROPERTY_CONFIG_FILE,
+                                    configFile.getValue());
+
+
+      startupErrorLogPublisher =
+          TextErrorLogPublisher.getStartupTextErrorPublisher(
+              new TextWriter.STDOUT());
+      environmentConfig.addErrorLogger(startupErrorLogPublisher);
+
+      startupDebugLogPublisher =
+          TextDebugLogPublisher.getStartupTextDebugPublisher(
+              new TextWriter.STDOUT());
+      environmentConfig.addDebugLogger(startupDebugLogPublisher);
+    }
+    catch (Exception e)
+    {
+      // This shouldn't happen.  For the methods we are using, the exception is
+      // just a guard against making changes with the server running.
+    }
+
+
     // Bootstrap and start the Directory Server.
     DirectoryServer directoryServer = DirectoryServer.getInstance();
     try
     {
+      directoryServer.startupErrorLogPublisher = startupErrorLogPublisher;
+      directoryServer.startupDebugLogPublisher = startupDebugLogPublisher;
+
+      directoryServer.setEnvironmentConfig(environmentConfig);
       directoryServer.bootstrapServer();
       directoryServer.initializeConfiguration(configClass.getValue(),
                                               configFile.getValue());

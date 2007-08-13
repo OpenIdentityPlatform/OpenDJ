@@ -6380,6 +6380,97 @@ public class CoreMessages
        CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 639;
 
 
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * change the directory environment configuration while the server is running.
+   * This does not take any arguments.
+   */
+  public static final int MSGID_DIRCFG_SERVER_ALREADY_RUNNING =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 640;
+
+
+
+  /**
+   * The message ID for the message that will be used if an invalid server root
+   * directory is specified.  This takes a single argument, which is the invalid
+   * server root directory.
+   */
+  public static final int MSGID_DIRCFG_INVALID_SERVER_ROOT =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 641;
+
+
+
+  /**
+   * The message ID for the message that will be used if an invalid
+   * configuration file is specified.  This takes a single argument, which is
+   * the invalid configuration file.
+   */
+  public static final int MSGID_DIRCFG_INVALID_CONFIG_FILE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 642;
+
+
+
+  /**
+   * The message ID for the message that will be used if an invalid config
+   * handler class is specified.  This takes a single argument, which is the
+   * fully-qualified class name.
+   */
+  public static final int MSGID_DIRCFG_INVALID_CONFIG_CLASS =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 643;
+
+
+
+  /**
+   * The message ID for the message that will be used if an invalid schema
+   * directory is specified.  This takes a single argument, which is the invalid
+   * schema directory.
+   */
+  public static final int MSGID_DIRCFG_INVALID_SCHEMA_DIRECTORY =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 644;
+
+
+
+  /**
+   * The message ID for the message that will be used if an invalid lock
+   * directory is specified.  This takes a single argument, which is the invalid
+   * lock directory.
+   */
+  public static final int MSGID_DIRCFG_INVALID_LOCK_DIRECTORY =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 645;
+
+
+
+  /**
+   * The message ID for the message that will be used if an invalid concurrency
+   * level is specified.  This takes a single argument, which is the invalid
+   * concurrency level.
+   */
+  public static final int MSGID_DIRCFG_INVALID_CONCURRENCY_LEVEL =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 646;
+
+
+
+  /**
+   * The message ID for the message that will be used if an invalid lock table
+   * size is specified.  This takes a single argument, which is the invalid lock
+   * table size.
+   */
+  public static final int MSGID_DIRCFG_INVALID_LOCK_TABLE_SIZE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 647;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * alter the server environment configuration while the server is running.
+   * This does not take any arguments.
+   */
+  public static final int MSGID_CANNOT_SET_ENVIRONMENT_CONFIG_WHILE_RUNNING =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_FATAL_ERROR | 648;
+
+
+
   /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
@@ -6608,6 +6699,10 @@ public class CoreMessages
                     "threads in the Directory Server was reduced");
 
 
+    registerMessage(MSGID_CANNOT_SET_ENVIRONMENT_CONFIG_WHILE_RUNNING,
+                    "The Directory Server is currently running.  The " +
+                    "environment configuration may not be altered while the " +
+                    "server is online");
     registerMessage(MSGID_CANNOT_BOOTSTRAP_WHILE_RUNNING,
                     "The Directory Server is currently running.  The " +
                     "configuration may not be bootstrapped while the server " +
@@ -8696,6 +8791,35 @@ public class CoreMessages
                     "Unable to register network group %s with the Directory " +
                     "Server because another network group with the same " +
                     "network group ID is already registered");
+
+
+    registerMessage(MSGID_DIRCFG_SERVER_ALREADY_RUNNING,
+                    "The Directory Server is currently running.  Environment " +
+                    "configuration changes are not allowed with the server " +
+                    "running");
+    registerMessage(MSGID_DIRCFG_INVALID_SERVER_ROOT,
+                    "The specified server root directory '%s' is invalid.  " +
+                    "The specified path must exist and must be a directory");
+    registerMessage(MSGID_DIRCFG_INVALID_CONFIG_FILE,
+                    "The specified config file path '%s' is invalid.  " +
+                    "The specified path must exist and must be a file");
+    registerMessage(MSGID_DIRCFG_INVALID_CONFIG_CLASS,
+                    "The specified config handler class '%s' is invalid.  " +
+                    "The specified class must be a subclass of the " +
+                    "org.opends.server.api.ConfigHandler superclass");
+    registerMessage(MSGID_DIRCFG_INVALID_SCHEMA_DIRECTORY,
+                    "The specified schema configuration directory '%s' is " +
+                    "invalid.  The specified path must exist and must be a " +
+                    "directory");
+    registerMessage(MSGID_DIRCFG_INVALID_LOCK_DIRECTORY,
+                    "The specified lock directory '%s' is invalid.  The " +
+                    "specified path must exist and must be a directory");
+    registerMessage(MSGID_DIRCFG_INVALID_CONCURRENCY_LEVEL,
+                    "The specified lock table concurrency level %d is " +
+                    "invalid.  It must be an integer value greater than zero");
+    registerMessage(MSGID_DIRCFG_INVALID_LOCK_TABLE_SIZE,
+                    "The specified initial lock table size %d is invalid.  " +
+                    "It must be an integer value greater than zero");
   }
 }
 

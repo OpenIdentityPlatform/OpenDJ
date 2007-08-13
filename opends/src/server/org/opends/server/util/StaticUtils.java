@@ -2264,15 +2264,7 @@ public final class StaticUtils
    */
   public static boolean mayUseExec()
   {
-    String s = System.getProperty(PROPERTY_DISABLE_EXEC);
-    if (s == null)
-    {
-      return true;
-    }
-
-    s = toLowerCase(s);
-    return (s.equals("false") || s.equals("off") || s.equals("no") ||
-            s.equals("0"));
+    return (! DirectoryServer.getEnvironmentConfig().disableExec());
   }
 
 

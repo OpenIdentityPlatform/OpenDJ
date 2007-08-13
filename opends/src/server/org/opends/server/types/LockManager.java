@@ -33,8 +33,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -88,49 +90,69 @@ public class LockManager
 
 
 
-  // Initialize all of the lock variables.
+  // Initialize the lock table.
   static
   {
-    // Determine the concurrency level to use.  We'll let it be
-    // specified by a system property, but if it isn't specified then
-    // we'll set the default value based on the number of CPUs in the
-    // system.
-    int concurrencyLevel = -1;
-    String propertyStr =
-         System.getProperty(PROPERTY_LOCK_MANAGER_CONCURRENCY_LEVEL);
-    if (propertyStr != null)
-    {
-      try
-      {
-        concurrencyLevel = Integer.parseInt(propertyStr);
-      } catch (Exception e) {}
-    }
-
-    if (concurrencyLevel <= 0)
-    {
-      concurrencyLevel =
-           Math.max(DEFAULT_CONCURRENCY_LEVEL,
-                    (2*Runtime.getRuntime().availableProcessors()));
-    }
-
-
-    // Set the lock table size either to a user-defined value from a
-    // property or a hard-coded default.
-    int lockTableSize = DEFAULT_INITIAL_TABLE_SIZE;
-    propertyStr =
-         System.getProperty(PROPERTY_LOCK_MANAGER_TABLE_SIZE);
-    if (propertyStr != null)
-    {
-      try
-      {
-        lockTableSize = Integer.parseInt(propertyStr);
-      } catch (Exception e) {}
-    }
-
-
-    // Create an empty table for holding the entry locks.
+    DirectoryEnvironmentConfig environmentConfig =
+         DirectoryServer.getEnvironmentConfig();
     lockTable = new ConcurrentHashMap<DN,ReentrantReadWriteLock>(
-         lockTableSize, DEFAULT_LOAD_FACTOR, concurrencyLevel);
+         environmentConfig.getLockManagerTableSize(),
+         DEFAULT_LOAD_FACTOR,
+         environmentConfig.getLockManagerConcurrencyLevel());
+  }
+
+
+
+  /**
+   * Recreates the lock table.  This should be called only in the
+   * case that the Directory Server is in the process of an in-core
+   * restart because it will destroy the existing lock table.
+   */
+  public synchronized static void reinitializeLockTable()
+  {
+    ConcurrentHashMap<DN,ReentrantReadWriteLock> oldTable = lockTable;
+
+    DirectoryEnvironmentConfig environmentConfig =
+         DirectoryServer.getEnvironmentConfig();
+    lockTable = new ConcurrentHashMap<DN,ReentrantReadWriteLock>(
+         environmentConfig.getLockManagerTableSize(),
+         DEFAULT_LOAD_FACTOR,
+         environmentConfig.getLockManagerConcurrencyLevel());
+
+    if  (! oldTable.isEmpty())
+    {
+      for (DN dn : oldTable.keySet())
+      {
+        try
+        {
+          ReentrantReadWriteLock lock = oldTable.get(dn);
+          if (lock.isWriteLocked())
+          {
+            TRACER.debugWarning("Found stale write lock on " +
+                                dn.toString());
+          }
+          else if (lock.getReadLockCount() > 0)
+          {
+            TRACER.debugWarning("Found stale read lock on " +
+                                dn.toString());
+          }
+          else
+          {
+            TRACER.debugWarning("Found stale unheld lock on " +
+                                dn.toString());
+          }
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+      }
+
+      oldTable.clear();
+    }
   }
 
 

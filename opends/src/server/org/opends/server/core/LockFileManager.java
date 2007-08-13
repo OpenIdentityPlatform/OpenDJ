@@ -574,14 +574,9 @@ public class LockFileManager
    */
   public static String getLockDirectoryPath()
   {
-    String lockDirectory = System.getProperty(PROPERTY_LOCK_DIRECTORY);
-    if ((lockDirectory == null) || (lockDirectory.length() == 0))
-    {
-      lockDirectory = DirectoryServer.getServerRoot() + File.separator +
-                      LOCKS_DIRECTORY;
-    }
-
-    return lockDirectory;
+    File lockDirectory =
+              DirectoryServer.getEnvironmentConfig().getLockDirectory();
+    return lockDirectory.getAbsolutePath();
   }
 
 

@@ -141,16 +141,9 @@ public class DirectoryThread
       task = null;
     }
 
-    String forceDaemonStr =
-         System.getProperty(PROPERTY_FORCE_DAEMON_THREADS);
-    if (forceDaemonStr != null)
+    if (DirectoryServer.getEnvironmentConfig().forceDaemonThreads())
     {
-      String lowerStr = toLowerCase(forceDaemonStr);
-      if (lowerStr.equals("true") || lowerStr.equals("yes") ||
-          lowerStr.equals("on") || lowerStr.equals("1"))
-      {
-        setDaemon(true);
-      }
+      setDaemon(true);
     }
   }
 
