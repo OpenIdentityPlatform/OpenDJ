@@ -9751,6 +9751,27 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used if a list tag does not
+   * contain any arguments.  This takes a single argument, which is the line
+   * number on which it appears in the template file.
+   */
+  public static final int MSGID_MAKELDIF_TAG_LIST_NO_ARGUMENTS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 1291;
+
+
+
+  /**
+   * The message ID for the message that will be used if a list tag includes an
+   * argument with a semicolon that is not followed by an integer.  This takes
+   * two arguments, which are the line number on which it appears in the
+   * template file and the list item containing the semicolon.
+   */
+  public static final int MSGID_MAKELDIF_TAG_LIST_INVALID_WEIGHT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_WARNING | 1292;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -11499,6 +11520,16 @@ public class ToolMessages
                     "LDIF:  %s");
     registerMessage(MSGID_MAKELDIF_PROCESSING_COMPLETE,
                     "LDIF processing complete.  %d entries written");
+    registerMessage(MSGID_MAKELDIF_TAG_LIST_NO_ARGUMENTS,
+                    "The list tag on line %d of the template file does not " +
+                    "contain any arguments to specify the list values.  At " +
+                    "least one list value must be provided");
+    registerMessage(MSGID_MAKELDIF_TAG_LIST_INVALID_WEIGHT,
+                    "The list tag on line %d of the template file contains " +
+                    "item '%s' that includes a semicolon but that semicolon " +
+                    "is not followed by an integer.  The semicolon will be " +
+                    "assumed to be part of the value and not a delimiter to " +
+                    "separate the value from its relative weight");
 
 
     registerMessage(MSGID_LDIFMODIFY_CANNOT_ADD_ENTRY_TWICE,

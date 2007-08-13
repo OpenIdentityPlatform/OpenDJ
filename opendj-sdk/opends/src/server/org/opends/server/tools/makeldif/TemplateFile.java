@@ -284,6 +284,7 @@ public class TemplateFile
       IfAbsentTag.class,
       IfPresentTag.class,
       LastNameTag.class,
+      ListTag.class,
       ParentDNTag.class,
       PresenceTag.class,
       RandomTag.class,
