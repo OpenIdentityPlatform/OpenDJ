@@ -104,6 +104,10 @@ public class GroupManager
   private static final DebugTracer TRACER = getTracer();
 
 
+  //Used by group instances to determine if new groups have been
+  //registered or groups deleted.
+  private long refreshToken=0;
+
 
   // A mapping between the DNs of the config entries and the associated
   // group implementations.
@@ -711,8 +715,11 @@ public class GroupManager
         }
       }
     }
-
-    createAndRegisterGroup(entry);
+    synchronized (groupInstances)
+    {
+      createAndRegisterGroup(entry);
+      refreshToken++;
+    }
   }
 
 
@@ -735,8 +742,11 @@ public class GroupManager
         }
       }
     }
-
-    groupInstances.remove(entry.getDN());
+    synchronized (groupInstances)
+    {
+      groupInstances.remove(entry.getDN());
+      refreshToken++;
+    }
   }
 
 
@@ -773,6 +783,7 @@ public class GroupManager
         }
 
         createAndRegisterGroup(newEntry);
+        refreshToken++;
       }
     }
   }
@@ -807,6 +818,7 @@ public class GroupManager
       {
         createAndRegisterGroup(newEntry);
         groupInstances.remove(oldEntry.getDN());
+        refreshToken++;
       }
     }
   }
@@ -854,6 +866,31 @@ public class GroupManager
   void deregisterAllGroups()
   {
     groupInstances.clear();
+  }
+
+
+  /**
+   * Compare the specified token against the current group manager
+   * token value. Can be used to reload cached group instances if there has
+   * been a group instance change.
+   *
+   * @param token The current token that the group class holds.
+   *
+   * @return {@code true} if the group class should reload its nested groups,
+   *         or {@code false} if it shouldn't.
+   */
+  public boolean hasInstancesChanged(long token)  {
+    return token != this.refreshToken;
+  }
+
+  /**
+   * Return the current refresh token value. Can be used to
+   * reload cached group instances if there has been a group instance change.
+   *
+   * @return The current token value.
+   */
+  public long refreshToken() {
+    return this.refreshToken;
   }
 }
 

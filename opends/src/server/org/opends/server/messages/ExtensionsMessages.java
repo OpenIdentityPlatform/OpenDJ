@@ -5583,6 +5583,36 @@ public class ExtensionsMessages
        CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 537;
 
 
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * add a nested group to a static group that already includes that nested
+   * group. This takes two arguments, which is the DN of the nested group
+   * being added and the DN of the group.
+   */
+  public static final int MSGID_STATICGROUP_ADD_NESTED_GROUP_ALREADY_EXISTS =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 538;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * remove a nested group from a static group that does not include that group.
+   * This takes two arguments, which is the DN of the nested group being removed
+   * and the DN of the group.
+   */
+  public static final int MSGID_STATICGROUP_REMOVE_NESTED_GROUP_NO_SUCH_GROUP =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 539;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * refresh a static group member list using a group instance that has been
+   * removed from the group manager via a ldap operation. This takes one
+   * arguments, which is the DN of invalid or stale nested group instance.
+   */
+  public static final int MSGID_STATICGROUP_GROUP_INSTANCE_INVALID =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 540;
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -8024,6 +8054,17 @@ public class ExtensionsMessages
     registerMessage(MSGID_REGEXMAP_SEARCH_FAILED,
                     "An internal failure occurred while attempting to " +
                     "resolve processed ID string %s to a user entry:  %s");
+    registerMessage(MSGID_STATICGROUP_ADD_NESTED_GROUP_ALREADY_EXISTS,
+                    "Cannot add group %s as a new nested group of static " +
+                    "group %s because that group is already in the nested " +
+                    "group list for the group");
+    registerMessage(MSGID_STATICGROUP_REMOVE_NESTED_GROUP_NO_SUCH_GROUP,
+                    "Cannot remove group %s as a nested group of static " +
+                    "group %s because that group is not included in the " +
+                    "nested group list for the group");
+    registerMessage(MSGID_STATICGROUP_GROUP_INSTANCE_INVALID,
+                    "Group instance with DN %s has been deleted and is no " +
+                    "longer valid");
   }
 }
 

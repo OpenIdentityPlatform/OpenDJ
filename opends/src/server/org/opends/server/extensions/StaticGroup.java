@@ -28,42 +28,21 @@ package org.opends.server.extensions;
 
 
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.api.Group;
 import org.opends.server.core.ModifyOperationBasis;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Control;
-import org.opends.server.types.DirectoryConfig;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.MemberList;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
 
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.Validator.*;
 
@@ -94,7 +73,13 @@ public class StaticGroup
   // The set of the DNs of the members for this group.
   private LinkedHashSet<DN> memberDNs;
 
+  //The list of nested group DNs for this group.
+  private LinkedList<DN> nestedGroups = new LinkedList<DN>();
 
+  //Passed to the group manager to see if the nested group list needs to be
+  //refreshed.
+  private long nestedGroupRefreshToken =
+                              DirectoryServer.getGroupManager().refreshToken();
 
   /**
    * Creates a new, uninitialized static group instance.  This is intended for
@@ -311,8 +296,7 @@ public class StaticGroup
   @Override()
   public boolean supportsNestedGroups()
   {
-    // FIXME -- We should add support for nested groups.
-    return false;
+    return true;
   }
 
 
@@ -323,8 +307,12 @@ public class StaticGroup
   @Override()
   public List<DN> getNestedGroupDNs()
   {
-    // FIXME -- We should add support for nested groups.
-    return Collections.<DN>emptyList();
+    try {
+       reloadIfNeeded();
+    } catch (DirectoryException ex) {
+      return Collections.<DN>emptyList();
+    }
+    return nestedGroups;
   }
 
 
@@ -336,8 +324,62 @@ public class StaticGroup
   public void addNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
   {
-    // FIXME -- We should add support for nested groups.
-    throw new UnsupportedOperationException();
+     ensureNotNull(nestedGroupDN);
+
+    synchronized (this)
+    {
+      if (nestedGroups.contains(nestedGroupDN))
+      {
+        int    msgID   = MSGID_STATICGROUP_ADD_NESTED_GROUP_ALREADY_EXISTS;
+        String message = getMessage(msgID,String.valueOf(nestedGroupDN),
+                                    String.valueOf(groupEntryDN));
+        throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
+                                     message, msgID);
+      }
+
+      LinkedHashSet<AttributeValue> values =
+           new LinkedHashSet<AttributeValue>(1);
+      values.add(new AttributeValue(memberAttributeType,
+                                    nestedGroupDN.toString()));
+
+      Attribute attr = new Attribute(memberAttributeType,
+                                     memberAttributeType.getNameOrOID(),
+                                     values);
+
+      LinkedList<Modification> mods = new LinkedList<Modification>();
+      mods.add(new Modification(ModificationType.ADD, attr));
+
+      LinkedList<Control> requestControls = new LinkedList<Control>();
+      requestControls.add(new Control(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
+                                      false));
+
+      InternalClientConnection conn =
+           InternalClientConnection.getRootConnection();
+      ModifyOperationBasis modifyOperation =
+           new ModifyOperationBasis(conn,
+                   InternalClientConnection.nextOperationID(),
+                   InternalClientConnection.nextMessageID(), requestControls,
+                               groupEntryDN, mods);
+      modifyOperation.run();
+      if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
+      {
+        int    msgID   = MSGID_STATICGROUP_ADD_MEMBER_UPDATE_FAILED;
+        String message = getMessage(msgID, String.valueOf(nestedGroupDN),
+                              String.valueOf(groupEntryDN),
+                              modifyOperation.getErrorMessage().toString());
+        throw new DirectoryException(modifyOperation.getResultCode(), message,
+                                     msgID);
+      }
+
+
+      LinkedList<DN> newNestedGroups = new LinkedList<DN>(nestedGroups);
+      newNestedGroups.add(nestedGroupDN);
+      nestedGroups = newNestedGroups;
+      //Add it to the member DN list.
+      LinkedHashSet<DN> newMemberDNs = new LinkedHashSet<DN>(memberDNs);
+      newMemberDNs.add(nestedGroupDN);
+      memberDNs = newMemberDNs;
+    }
   }
 
 
@@ -349,8 +391,62 @@ public class StaticGroup
   public void removeNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
   {
-    // FIXME -- We should add support for nested groups.
-    throw new UnsupportedOperationException();
+    ensureNotNull(nestedGroupDN);
+
+    synchronized (this)
+    {
+      if (! nestedGroups.contains(nestedGroupDN))
+      {
+        int    msgID   = MSGID_STATICGROUP_REMOVE_NESTED_GROUP_NO_SUCH_GROUP;
+        String message = getMessage(msgID, String.valueOf(nestedGroupDN),
+                                    String.valueOf(groupEntryDN));
+        throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, message,
+                                     msgID);
+      }
+
+      LinkedHashSet<AttributeValue> values =
+           new LinkedHashSet<AttributeValue>(1);
+      values.add(new AttributeValue(memberAttributeType,
+                                                     nestedGroupDN.toString()));
+
+      Attribute attr = new Attribute(memberAttributeType,
+                                     memberAttributeType.getNameOrOID(),
+                                     values);
+
+      LinkedList<Modification> mods = new LinkedList<Modification>();
+      mods.add(new Modification(ModificationType.DELETE, attr));
+
+      LinkedList<Control> requestControls = new LinkedList<Control>();
+      requestControls.add(new Control(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
+                                      false));
+
+      InternalClientConnection conn =
+           InternalClientConnection.getRootConnection();
+      ModifyOperationBasis modifyOperation =
+           new ModifyOperationBasis(conn,
+                   InternalClientConnection.nextOperationID(),
+                   InternalClientConnection.nextMessageID(), requestControls,
+                   groupEntryDN, mods);
+      modifyOperation.run();
+      if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
+      {
+        int    msgID   = MSGID_STATICGROUP_REMOVE_MEMBER_UPDATE_FAILED;
+        String message = getMessage(msgID,String.valueOf(nestedGroupDN),
+                              String.valueOf(groupEntryDN),
+                              modifyOperation.getErrorMessage().toString());
+        throw new DirectoryException(modifyOperation.getResultCode(), message,
+                                     msgID);
+      }
+
+
+      LinkedList<DN> newNestedGroups = new LinkedList<DN>(nestedGroups);
+      newNestedGroups.remove(nestedGroupDN);
+      nestedGroups = newNestedGroups;
+      //Remove it from the member DN list.
+      LinkedHashSet<DN> newMemberDNs = new LinkedHashSet<DN>(memberDNs);
+      newMemberDNs.remove(nestedGroupDN);
+      memberDNs = newMemberDNs;
+    }
   }
 
 
@@ -360,14 +456,31 @@ public class StaticGroup
    */
   @Override()
   public boolean isMember(DN userDN, Set<DN> examinedGroups)
-         throws DirectoryException
+          throws DirectoryException
   {
-    if (! examinedGroups.add(getGroupDN()))
+    reloadIfNeeded();
+    if(memberDNs.contains(userDN))
+    {
+      return true;
+    }
+    else if (! examinedGroups.add(getGroupDN()))
     {
       return false;
     }
-
-    return memberDNs.contains(userDN);
+    else
+    {
+      for(DN nestedGroupDN : nestedGroups)
+      {
+        Group<? extends GroupImplementationCfg> g =
+             (Group<? extends GroupImplementationCfg>)
+              DirectoryServer.getGroupManager().getGroupInstance(nestedGroupDN);
+        if((g != null) && (g.isMember(userDN, examinedGroups)))
+        {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
 
@@ -379,14 +492,58 @@ public class StaticGroup
   public boolean isMember(Entry userEntry, Set<DN> examinedGroups)
          throws DirectoryException
   {
-    if (! examinedGroups.add(getGroupDN()))
-    {
-      return false;
-    }
-
-    return memberDNs.contains(userEntry.getDN());
+    return isMember(userEntry.getDN(), examinedGroups);
   }
 
+
+
+  /**
+   * Check if the group manager has registered a new group instance or removed a
+   * a group instance that might impact this group's membership list.
+   */
+  private void
+  reloadIfNeeded() throws DirectoryException
+  {
+    //Check if group instances have changed by passing the group manager
+    //the current token.
+    if(DirectoryServer.getGroupManager().
+            hasInstancesChanged(nestedGroupRefreshToken))
+    {
+      synchronized (this)
+      {
+        Group thisGroup =
+               DirectoryServer.getGroupManager().getGroupInstance(groupEntryDN);
+        //Check if the group itself has been removed
+        if(thisGroup == null) {
+          int    msgID   = MSGID_STATICGROUP_GROUP_INSTANCE_INVALID;
+          String message = getMessage(msgID, String.valueOf(groupEntryDN));
+          throw new
+               DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, message, msgID);
+        } else if(thisGroup != this) {
+          LinkedHashSet<DN> newMemberDNs = new LinkedHashSet<DN>();
+          MemberList memberList=thisGroup.getMembers();
+          while (memberList.hasMoreMembers()) {
+            try {
+              newMemberDNs.add(memberList.nextMemberDN());
+            } catch (MembershipException ex) {}
+          }
+          memberDNs=newMemberDNs;
+        }
+        LinkedList<DN> newNestedGroups = new LinkedList<DN>();
+        for(DN dn : memberDNs)
+        {
+          Group gr=DirectoryServer.getGroupManager().getGroupInstance(dn);
+          if(gr != null)
+          {
+            newNestedGroups.add(gr.getGroupDN());
+          }
+        }
+        nestedGroupRefreshToken =
+                DirectoryServer.getGroupManager().refreshToken();
+        nestedGroups=newNestedGroups;
+      }
+    }
+  }
 
 
   /**
@@ -396,6 +553,7 @@ public class StaticGroup
   public MemberList getMembers()
          throws DirectoryException
   {
+    reloadIfNeeded();
     return new SimpleStaticGroupMemberList(groupEntryDN, memberDNs);
   }
 
@@ -409,6 +567,7 @@ public class StaticGroup
                                SearchFilter filter)
          throws DirectoryException
   {
+    reloadIfNeeded();
     if ((baseDN == null) && (filter == null))
     {
       return new SimpleStaticGroupMemberList(groupEntryDN, memberDNs);
@@ -554,6 +713,12 @@ public class StaticGroup
       LinkedHashSet<DN> newMemberDNs = new LinkedHashSet<DN>(memberDNs);
       newMemberDNs.remove(userDN);
       memberDNs = newMemberDNs;
+      //If it is in the nested group list remove it.
+      if(nestedGroups.contains(userDN)) {
+        LinkedList<DN> newNestedGroups = new LinkedList<DN>(nestedGroups);
+        newNestedGroups.remove(userDN);
+        nestedGroups = newNestedGroups;
+      }
     }
   }
 

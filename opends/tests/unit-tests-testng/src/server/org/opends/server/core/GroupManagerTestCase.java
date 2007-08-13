@@ -35,12 +35,11 @@ import java.util.Set;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.testng.annotations.AfterClass;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.api.Group;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.extensions.DynamicGroup;
 import org.opends.server.extensions.StaticGroup;
 import org.opends.server.extensions.VirtualStaticGroup;
@@ -62,7 +61,7 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 
 import static org.testng.Assert.*;
-
+import static org.testng.Assert.assertTrue;
 
 
 /**
@@ -84,7 +83,11 @@ public class GroupManagerTestCase
     TestCaseUtils.startServer();
   }
 
-
+  @AfterClass()
+  public void cleanUp() {
+    GroupManager groupManager = DirectoryServer.getGroupManager();
+    groupManager.deregisterAllGroups();
+  }
 
   /**
    * Tests the {@code GroupManager.getGroupImplementations} method to ensure
@@ -111,6 +114,382 @@ public class GroupManagerTestCase
 
     assertTrue(groupClasses.isEmpty(),
                "Unexpected group class(es) registered:  " + groupClasses);
+  }
+
+  /**
+   * Test static group nesting with some of the groups pointing to each
+   * other in a circular fashion. Once this situation is detected the
+   * membership check should return false.
+   *
+   * @throws Exception If an unexpected problem occurs.
+   */
+
+  @Test()
+  public void testStaticGroupCircularNested() throws Exception {
+    TestCaseUtils.initializeTestBackend(true);
+    GroupManager groupManager = DirectoryServer.getGroupManager();
+    groupManager.deregisterAllGroups();
+    addNestedGroupTestEntries();
+    DN group1DN = DN.decode("cn=group 1,ou=Groups,o=test");
+    DN group2DN = DN.decode("cn=group 2,ou=Groups,o=test");
+    DN group3DN = DN.decode("cn=group 3,ou=Groups,o=test");
+    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
+    DN user3DN = DN.decode("uid=user.3,ou=People,o=test");
+    DN user4DN = DN.decode("uid=user.4,ou=People,o=test");
+    DN user5DN = DN.decode("uid=user.5,ou=People,o=test");
+    Entry user1Entry = DirectoryServer.getEntry(user1DN);
+    Entry user2Entry = DirectoryServer.getEntry(user2DN);
+    Entry user3Entry = DirectoryServer.getEntry(user3DN);
+    Entry user4Entry = DirectoryServer.getEntry(user4DN);
+    Group group1Instance = groupManager.getGroupInstance(group1DN);
+    Group group2Instance = groupManager.getGroupInstance(group2DN);
+    Group group3Instance = groupManager.getGroupInstance(group3DN);
+    assertNotNull(group1Instance);
+    assertNotNull(group2Instance);
+    assertNotNull(group3Instance);
+    group1Instance.addNestedGroup(group2DN);
+    group2Instance.addNestedGroup(group3DN);
+    //Add circular nested group definition by adding group 1 to group 3
+    //nested list. Group 1 contains group 2, which contains group 3, which
+    //contains group 1.
+    group3Instance.addNestedGroup(group1DN);
+    group1Instance.addMember(user1Entry);
+    group2Instance.addMember(user2Entry);
+    group3Instance.addMember(user3Entry);
+    group2Instance.addMember(user4Entry);
+    //Search for DN not in any of the groups/
+    assertFalse(group1Instance.isMember(user5DN));
+  }
+
+  /**
+   * Test static group nesting wit one of the nested groups being a
+   * dynamic group.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testStaticGroupDynamicNested() throws Exception {
+    TestCaseUtils.initializeTestBackend(true);
+    GroupManager groupManager = DirectoryServer.getGroupManager();
+    groupManager.deregisterAllGroups();
+    addNestedGroupTestEntries();
+    DN group1DN = DN.decode("cn=group 1,ou=Groups,o=test");
+    DN group2DN = DN.decode("cn=group 2,ou=Groups,o=test");
+    DN group3DN = DN.decode("cn=group 3,ou=Groups,o=test");
+    DN group4DN = DN.decode("cn=group 4,ou=Groups,o=test");
+    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
+    DN user3DN = DN.decode("uid=user.3,ou=People,o=test");
+    DN user4DN = DN.decode("uid=user.4,ou=People,o=test");
+    DN user5DN = DN.decode("uid=user.5,ou=People,o=test");
+    Entry user1Entry = DirectoryServer.getEntry(user1DN);
+    Entry user2Entry = DirectoryServer.getEntry(user2DN);
+    Entry user3Entry = DirectoryServer.getEntry(user3DN);
+    Entry user4Entry = DirectoryServer.getEntry(user4DN);
+    //User 5 is not added to any group, it matches the URL of the dynamic
+    //group "group 4".
+    Group group1Instance = groupManager.getGroupInstance(group1DN);
+    Group group2Instance = groupManager.getGroupInstance(group2DN);
+    Group group3Instance = groupManager.getGroupInstance(group3DN);
+    //Group 4 is a dynamic group.
+    Group group4Instance = groupManager.getGroupInstance(group4DN);
+    assertNotNull(group1Instance);
+    assertNotNull(group2Instance);
+    assertNotNull(group3Instance);
+    assertNotNull(group4Instance);
+    group1Instance.addNestedGroup(group2DN);
+    group2Instance.addNestedGroup(group3DN);
+    //Dynamic group 4 is added to nested list of group 3.
+    group3Instance.addNestedGroup(group4DN);
+    group1Instance.addMember(user1Entry);
+    group2Instance.addMember(user2Entry);
+    group3Instance.addMember(user3Entry);
+    group2Instance.addMember(user4Entry);
+    //Check membership of user 5 through group 1. User 5 is a member of the
+    //dynamic group "group 4" which is nested.
+    assertTrue(group1Instance.isMember(user5DN));
+  }
+
+  /**
+   * Invokes membership and nested group APIs using a group instance that has
+   * been changed by the group manager via ldap modify.
+   *
+   * @throws Exception If an unexpected problem occurs.
+   */
+  @Test()
+  public void testStaticGroupInstanceChange() throws Exception {
+    TestCaseUtils.initializeTestBackend(true);
+    GroupManager groupManager = DirectoryServer.getGroupManager();
+    groupManager.deregisterAllGroups();
+    addNestedGroupTestEntries();
+    DN group1DN = DN.decode("cn=group 1,ou=Groups,o=test");
+    DN group2DN = DN.decode("cn=group 2,ou=Groups,o=test");
+    DN group3DN = DN.decode("cn=group 3,ou=Groups,o=test");
+    DN group4DN = DN.decode("cn=group 4,ou=Groups,o=test");
+    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
+    DN user3DN = DN.decode("uid=user.3,ou=People,o=test");
+    DN user4DN = DN.decode("uid=user.4,ou=People,o=test");
+    DN user5DN = DN.decode("uid=user.5,ou=People,o=test");
+    Entry user1Entry = DirectoryServer.getEntry(user1DN);
+    Entry user2Entry = DirectoryServer.getEntry(user2DN);
+    Entry user3Entry = DirectoryServer.getEntry(user3DN);
+    Entry user4Entry = DirectoryServer.getEntry(user4DN);
+    Entry user5Entry = DirectoryServer.getEntry(user5DN);
+    Group<? extends GroupImplementationCfg> group1Instance =
+            (Group<? extends GroupImplementationCfg>)
+                    groupManager.getGroupInstance(group1DN);
+    assertNotNull(group1Instance);
+    //Add even numbered groups.
+    group1Instance.addNestedGroup(group2DN);
+    group1Instance.addNestedGroup(group4DN);
+    //Add even numbered members.
+    group1Instance.addMember(user2Entry);
+    group1Instance.addMember(user4Entry);
+    //Switch things around, change groups and members to odd numbered nested
+    //groups and odd numbered members via ldap modify.
+    LinkedList<Modification> mods = new LinkedList<Modification>();
+    Attribute g1 = new Attribute("member", "cn=group 1,ou=Groups,o=test");
+    Attribute g2 = new Attribute("member", "cn=group 2,ou=Groups,o=test");
+    Attribute g3 = new Attribute("member", "cn=group 3,ou=Groups,o=test");
+    Attribute g4 = new Attribute("member", "cn=group 4,ou=Groups,o=test");
+    Attribute u1 = new Attribute("member", "uid=user.1,ou=People,o=test");
+    Attribute u2 = new Attribute("member", "uid=user.2,ou=People,o=test");
+    Attribute u3 = new Attribute("member", "uid=user.3,ou=People,o=test");
+    Attribute u4 = new Attribute("member", "uid=user.4,ou=People,o=test");
+    Attribute u5 = new Attribute("member", "uid=user.5,ou=People,o=test");
+    //Delete even groups and users.
+    mods.add(new Modification(ModificationType.DELETE, g2));
+    mods.add(new Modification(ModificationType.DELETE, g4));
+    mods.add(new Modification(ModificationType.DELETE, u2));
+    mods.add(new Modification(ModificationType.DELETE, u4));
+    //Add odd groups and users.
+    mods.add(new Modification(ModificationType.ADD, g1));
+    mods.add(new Modification(ModificationType.ADD, g3));
+    mods.add(new Modification(ModificationType.ADD, u1));
+    mods.add(new Modification(ModificationType.ADD, u3));
+    mods.add(new Modification(ModificationType.ADD, u5));
+    InternalClientConnection conn =
+            InternalClientConnection.getRootConnection();
+    ModifyOperation modifyOperation =
+            conn.processModify(group1Instance.getGroupDN(), mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    //Check that the user membership changes were picked up.
+    assertFalse(group1Instance.isMember(user2Entry));
+    assertFalse(group1Instance.isMember(user4Entry));
+    assertTrue(group1Instance.isMember(user1Entry));
+    assertTrue(group1Instance.isMember(user3Entry));
+    assertTrue(group1Instance.isMember(user5Entry));
+    assertFalse(group1Instance.isMember(group2DN));
+    assertFalse(group1Instance.isMember(group4DN));
+    assertTrue(group1Instance.isMember(group1DN));
+    assertTrue(group1Instance.isMember(group3DN));
+    //Check get members picked up everything.
+    MemberList memberList = group1Instance.getMembers();
+    while (memberList.hasMoreMembers())
+    {
+      DN memberDN = memberList.nextMemberDN();
+      assertTrue(memberDN.equals(group1DN) || memberDN.equals(group3DN) ||
+                                 memberDN.equals(user1DN) ||
+                                 memberDN.equals(user3DN) ||
+                                 memberDN.equals(user5DN));
+    }
+    //Check that the nested group changes were picked up.
+    List<DN> nestedGroups=group1Instance.getNestedGroupDNs();
+    assertFalse(nestedGroups.isEmpty());
+    assertTrue(nestedGroups.contains(group1DN));
+    assertFalse(nestedGroups.contains(group2DN));
+    assertTrue(nestedGroups.contains(group3DN));
+    assertFalse(nestedGroups.contains(group4DN));
+  }
+
+  /**
+   * Invokes membership and nested group APIs using a group instance that has
+   * been removed from the group manager via ldap delete.
+   *
+   * @throws Exception If an unexpected problem occurs.
+   */
+  @Test()
+  public void testStaticGroupInstanceInvalid() throws Exception {
+    TestCaseUtils.initializeTestBackend(true);
+    GroupManager groupManager = DirectoryServer.getGroupManager();
+    groupManager.deregisterAllGroups();
+    addNestedGroupTestEntries();
+    DN group1DN = DN.decode("cn=group 1,ou=Groups,o=test");
+    DN group2DN = DN.decode("cn=group 2,ou=Groups,o=test");
+    DN group3DN = DN.decode("cn=group 3,ou=Groups,o=test");
+    DN group4DN = DN.decode("cn=group 4,ou=Groups,o=test");
+    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
+    Entry user1Entry = DirectoryServer.getEntry(user1DN);
+    Group<? extends GroupImplementationCfg> group1Instance =
+            (Group<? extends GroupImplementationCfg>)
+                    groupManager.getGroupInstance(group1DN);
+    Group<? extends GroupImplementationCfg> group2Instance =
+            (Group<? extends GroupImplementationCfg>)
+                    groupManager.getGroupInstance(group2DN);
+    assertNotNull(group1Instance);
+    //Add some nested groups and members.
+    group1Instance.addNestedGroup(group2DN);
+    group1Instance.addMember(user1Entry);
+    InternalClientConnection conn =
+            InternalClientConnection.getRootConnection();
+    //Delete the group.
+    DeleteOperation deleteOperation = conn.processDelete(group1DN);
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNull(groupManager.getGroupInstance(group1DN));
+    //Membership check should throw an exception.
+    try
+    {
+      group1Instance.isMember(user1DN);
+      throw new AssertionError("Expected isMember to fail but " +
+              "it didn't");
+    } catch (DirectoryException ex) {}
+    //Nested groups should be empty.
+    List<DN> nestedGroups=group1Instance.getNestedGroupDNs();
+    assertTrue(nestedGroups.isEmpty());
+    try
+    {
+      MemberList memberList=group1Instance.getMembers();
+      throw new AssertionError("Expected getMembers to fail but " +
+              "it didn't");
+    } catch (DirectoryException ex) {}
+  }
+
+  /**
+   * Invokes nested group API methods on various nested group
+   * scenerios.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testStaticGroupNestedAPI() throws Exception {
+    TestCaseUtils.initializeTestBackend(true);
+    GroupManager groupManager = DirectoryServer.getGroupManager();
+    groupManager.deregisterAllGroups();
+    addNestedGroupTestEntries();
+    DN group1DN = DN.decode("cn=group 1,ou=Groups,o=test");
+    DN group2DN = DN.decode("cn=group 2,ou=Groups,o=test");
+    DN group3DN = DN.decode("cn=group 3,ou=Groups,o=test");
+    DN group4DN = DN.decode("cn=group 4,ou=Groups,o=test");
+    DN bogusGroup = DN.decode("cn=bogus group,ou=Groups,o=test");
+    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
+    DN user3DN = DN.decode("uid=user.3,ou=People,o=test");
+    DN user4DN = DN.decode("uid=user.4,ou=People,o=test");
+    DN user5DN = DN.decode("uid=user.5,ou=People,o=test");
+    Entry user1Entry = DirectoryServer.getEntry(user1DN);
+    Entry user2Entry = DirectoryServer.getEntry(user2DN);
+    Entry user3Entry = DirectoryServer.getEntry(user3DN);
+    Entry user4Entry = DirectoryServer.getEntry(user4DN);
+    Entry user5Entry = DirectoryServer.getEntry(user5DN);
+    //These casts are needed so there isn't a unchecked assignment
+    //compile warning in the getNestedGroupDNs calls below.  Some IDEs
+    //will give a unchecked cast warning.
+    Group<? extends GroupImplementationCfg> group1Instance =
+            (Group<? extends GroupImplementationCfg>)
+                    groupManager.getGroupInstance(group1DN);
+    Group<? extends GroupImplementationCfg> group2Instance =
+            (Group<? extends GroupImplementationCfg>)
+                    groupManager.getGroupInstance(group2DN);
+    Group group3Instance = groupManager.getGroupInstance(group3DN);
+    assertNotNull(group1Instance);
+    assertNotNull(group2Instance);
+    assertNotNull(group3Instance);
+    //Add nested groups.
+    group1Instance.addNestedGroup(group2DN);
+    group2Instance.addNestedGroup(group3DN);
+    //Add some members.
+    group1Instance.addMember(user1Entry);
+    group2Instance.addMember(user2Entry);
+    group3Instance.addMember(user3Entry);
+    group2Instance.addMember(user4Entry);
+    group3Instance.addMember(user5Entry);
+    //Check if group 3 shows up in the group 2 membership list.
+    MemberList memberList = group2Instance.getMembers();
+    boolean found=false;
+    while (memberList.hasMoreMembers())
+    {
+      if( memberList.nextMemberDN().equals(group3DN)) {
+        found=true;
+        break;
+      }
+    }
+    assertTrue(found);
+    //Check membership via group 1 using nesting of group 2 and group 3.
+    //User 5 is in group 3.
+    assertTrue(group1Instance.isMember(user5DN));
+    group2Instance.removeNestedGroup(group3DN);
+    //Check group 3 is removed from group 2 membership list.
+    memberList = group2Instance.getMembers();
+    found=false;
+    while (memberList.hasMoreMembers())
+    {
+      if(memberList.nextMemberDN().equals(user3DN)){
+        found=true;
+        break;
+      }
+    }
+    assertFalse(found);
+    //Check membership via group 1 should fail now, since nested group 3
+    //was removed from group 2.
+    assertFalse(group1Instance.isMember(user5DN));
+    group2Instance.addNestedGroup(group3DN);
+    //Check remove member call also removes DN from nested group list.
+    group2Instance.removeMember(group3DN);
+    assertFalse(group2Instance.getNestedGroupDNs().contains(group3DN));
+    group1Instance.removeNestedGroup(group2DN);
+    List<DN> nestedGroups=group1Instance.getNestedGroupDNs();
+    assertTrue(nestedGroups.isEmpty());
+    //Add nested groups to group 1
+    group1Instance.addNestedGroup(group2DN);
+    group1Instance.addNestedGroup(group3DN);
+    group1Instance.addNestedGroup(group4DN);
+    //Check get nested groups DNs list returns correct DN list.
+    List<DN> nestedGroups1=group1Instance.getNestedGroupDNs();
+    assertFalse(nestedGroups1.isEmpty());
+    assertTrue(nestedGroups1.contains(group2DN));
+    assertTrue(nestedGroups1.contains(group3DN));
+    assertTrue(nestedGroups1.contains(group4DN));
+    //Check removing a group not in the nested group list fails.
+    try
+    {
+      group1Instance.removeNestedGroup(bogusGroup);
+      throw new AssertionError("Expected removeNestedGroup to fail but " +
+              "it didn't");
+    } catch (DirectoryException ex) {}
+    //Check adding a nested group already in the nested group list fails.
+    try
+    {
+      group1Instance.addNestedGroup(group2DN);
+      throw new AssertionError("Expected addNestedGroup to fail but " +
+              "it didn't");
+    } catch (DirectoryException ex) {}
+    //Modify list via ldap modify.
+    LinkedList<Modification> mods = new LinkedList<Modification>();
+    Attribute a2 = new Attribute("member", "cn=group 2,ou=Groups,o=test");
+    Attribute a3 = new Attribute("member", "cn=group 1,ou=Groups,o=test");
+    mods.add(new Modification(ModificationType.DELETE, a2));
+    mods.add(new Modification(ModificationType.ADD, a3));
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    ModifyOperation modifyOperation =
+                        conn.processModify(group1Instance.getGroupDN(), mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    //Check removing a group already removed via ldap modify fails.
+    try
+    {
+      group1Instance.removeNestedGroup(group2DN);
+      throw new AssertionError("Expected removeNestedGroup to fail but " +
+              "it didn't");
+    } catch (DirectoryException ex) {}
+    //Check adding a group added via ldap modify fails.
+    try
+    {
+      group1Instance.addNestedGroup(group1DN);
+      throw new AssertionError("Expected addNestedGroup to fail but " +
+              "it didn't");
+    } catch (DirectoryException ex) {}
   }
 
 
@@ -192,23 +571,25 @@ public class GroupManagerTestCase
     assertTrue(groupInstance.isMember(user2DN));
     assertFalse(groupInstance.isMember(user3DN));
 
-    assertFalse(groupInstance.supportsNestedGroups());
+    assertTrue(groupInstance.supportsNestedGroups());
     assertTrue(groupInstance.getNestedGroupDNs().isEmpty());
 
     try
     {
       groupInstance.addNestedGroup(DN.decode("uid=test,ou=People,o=test"));
-      throw new AssertionError("Expected addNestedGroup to fail but it " +
-                               "didn't");
-    } catch (UnsupportedOperationException uoe) {}
+    } catch (DirectoryException ex) {
+           throw new AssertionError("Expected addNestedGroup to succeed but" +
+                                    " it didn't");
+    }
 
     try
     {
       groupInstance.removeNestedGroup(
            DN.decode("uid=test,ou=People,o=test"));
-      throw new AssertionError("Expected removeNestedGroup to fail but " +
-                               "it didn't");
-    } catch (UnsupportedOperationException uoe) {}
+    } catch (DirectoryException ex) {
+            throw new AssertionError("Expected removeNestedGroup to succeed " +
+                    "but it didn't");
+    }
 
 
     assertTrue(groupInstance.mayAlterMemberList());
@@ -1690,6 +2071,101 @@ public class GroupManagerTestCase
     DeleteOperation deleteOperation = conn.processDelete(groupDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(groupDN));
+  }
+
+  /**
+   * Adds nested group entries.
+   *
+   * @throws Exception If a problem adding the entries occurs.
+   */
+  private void addNestedGroupTestEntries() throws Exception {
+
+    TestCaseUtils.addEntries(
+      "dn: ou=People,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: People",
+      "",
+      "dn: ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: Groups",
+      "",
+      "dn: cn=group 1,ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: groupOfNames",
+      "cn: group 1",
+      "",
+      "dn: cn=group 2,ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: groupOfNames",
+      "cn: group 2",
+      "",
+      "dn: cn=group 3,ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: groupOfNames",
+      "cn: group 3",
+      "",
+      "dn: cn=group 4,ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: groupOfURLs",
+      "cn: group 4",
+      "memberURL: ldap:///ou=people,o=test??sub?(sn>=5)",
+       "",
+      "dn: uid=user.1,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.1",
+      "givenName: User",
+      "sn: 1",
+      "cn: User 1",
+      "userPassword: password",
+      "",
+      "dn: uid=user.2,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.2",
+      "givenName: User",
+      "sn: 2",
+      "cn: User 2",
+      "userPassword: password",
+      "",
+      "dn: uid=user.3,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.3",
+      "givenName: User",
+      "sn: 3",
+      "cn: User 3",
+      "userPassword: password",
+      "",
+      "dn: uid=user.4,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.4",
+      "givenName: User",
+      "sn: 4",
+      "cn: User 4",
+      "userPassword: password",
+      "",
+      "dn: uid=user.5,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.5",
+      "givenName: User",
+      "sn: 5",
+      "cn: User 5",
+      "userPassword: password");
   }
 }
 
