@@ -42,7 +42,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
 
-@Test(groups = { "precommit", "dseecompat" })
+@Test(groups = {"precommit", "dseecompat"})
 public abstract class  AciTestCase extends DirectoryServerTestCase {
   public static final String DIR_MGR_DN = "cn=Directory Manager";
   public static final String PWD = "password";
@@ -441,6 +441,32 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
             "cn: group",
             "member: uid=user.3,ou=People," + suffix,
             "",
+            "dn: ou=Nested Groups," + suffix,
+            "objectClass: top",
+            "objectClass: organizationalUnit",
+            "ou: Nested Groups",
+            "",
+            "dn: cn=group 1,ou=Nested Groups," + suffix,
+            "objectClass: top",
+            "objectClass: groupOfNames",
+            "cn: group 1",
+            "",
+            "dn: cn=group 2,ou=Nested Groups," + suffix,
+            "objectClass: top",
+            "objectClass: groupOfNames",
+            "cn: group 2",
+            "",
+            "dn: cn=group 3,ou=Nested Groups," + suffix,
+            "objectClass: top",
+            "objectClass: groupOfNames",
+            "cn: group 3",
+            "",
+            "dn: cn=group 4,ou=Nested Groups," + suffix,
+            "objectClass: top",
+            "objectClass: groupOfURLs",
+            "cn: group 4",
+            "memberURL: ldap:///ou=people,o=test??sub?(sn>=5)",
+            "",
             "dn: uid=superuser,ou=admins," + suffix,
             "objectClass: top",
             "objectClass: person",
@@ -500,7 +526,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
             "givenName: User 2",
             "sn: 2",
             "cn: User 2",
-             "l: dallas",
+            "l: dallas",
             "userPassword: password",
             "",
             "dn: uid=user.3,ou=People," + suffix,
@@ -512,7 +538,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
             "givenName: User 3",
             "sn: 3",
             "cn: User 3",
-             "l: Austin",
+            "l: Austin",
             "userPassword: password",
             "ds-privilege-name: proxied-auth",
             "",
@@ -525,7 +551,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
             "givenName: User 4",
             "sn: 4",
             "cn: User 4",
-             "l: ft worth",
+            "l: ft worth",
             "userPassword: password",
             "",
             "dn: uid=user.5,ou=People," + suffix,
