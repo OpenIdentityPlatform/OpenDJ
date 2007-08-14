@@ -25,27 +25,18 @@
  !
  !      Portions Copyright 2007 Sun Microsystems, Inc.
  ! -->
-
 <stax>
-
   <defaultcall function="main_restore-tasks"/>
-
   <function name="main_restore-tasks">
-
     <sequence>
-
       <block name="'restore-tasks'">
-      
         <sequence>
-  
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='backends'						  
+              CurrentTestPath['group']='backends'
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
-          
           <call function="'testSuite_Preamble'"/>
-    
           <!--- Test Suite information
             #@TestSuiteName       Backend Restore Tasks Tests
             #@TestSuitePurpose    Verify that the basic restore task functionality is working in the Directory Server.
@@ -55,13 +46,10 @@
             #@TestScript          restore-tasks.xml
             #@TestHTMLLink        http://opends.dev.java.net/
           -->
-
-
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/backends/backend_setup.xml' % (TESTS_DIR)"/>
           <call function="'backend_setup'"> { 'loadBackend' : True } </call>	  
-
-												    
+          
           <!--- Test Case information
             #@TestMarker          Backend Restore Tasks Tests
             #@TestName            Restore Tasks: Restore Tasks 1
@@ -73,52 +61,36 @@
                                   with the static ldapmodify.
             #@TestPostamble
             #@TestResult          Success if OpenDS returns 0
-          -->            
-    
-            <testcase name="'Backend: Restore Tasks 1'">
-
-              
-              <sequence>
-      
-                <call function="'testCase_Preamble'"/>
-                <message>
-                  'Backend RestoreTasks1: Restore the data in OpenDS by scheduling a task'
-                </message>
-                <call function="'restoreTask'">
-                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                    'taskID'         : '4',
-                    'backupDir'      : '%s/backends/' % logsRemoteDataDir
-                  }
-                </call>
-      
-                <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-                </call>
-                     
-                <call function="'testCase_Postamble'"/>
-      
+          -->
+          <testcase name="'Backend: Restore Tasks: Test 1'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                'Backend RestoreTasks1: Restore the data in OpenDS by scheduling a task'
+              </message>
+              <call function="'restoreTask'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'taskID'         : '4',
+                  'backupDir'      : '%s/backends/' % logsRemoteDataDir
+                }
+              </call>
+              <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
+              </call>
+              <call function="'testCase_Postamble'"/>
               </sequence>
-      
             </testcase>
-
-
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/backends/backend_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'backend_cleanup'"/>
-
-												
           <call function="'testSuite_Postamble'"/>
-      
         </sequence>
-    
       </block>
-    
     </sequence>
-
   </function>
-
 </stax>
