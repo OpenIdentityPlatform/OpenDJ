@@ -25,27 +25,18 @@
  !
  !      Portions Copyright 2007 Sun Microsystems, Inc.
  ! -->
-
 <stax>
-
   <defaultcall function="main_backup"/>
-
   <function name="main_backup">
-
     <sequence>
-
       <block name="'backup'">
-      
         <sequence>
-  
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='backends'						  
+              CurrentTestPath['group']='backends'
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
-      
-          <call function="'testSuite_Preamble'"/>
-                  
+          <call function="'testSuite_Preamble'" />
           <!--- Test Suite information
             #@TestSuiteName       Backend Backup Tests
             #@TestSuitePurpose    Verify that the basic backup functionality is working in the Directory Server.
@@ -55,16 +46,13 @@
             #@TestScript          backup.xml
             #@TestHTMLLink        http://opends.dev.java.net/
           -->
-
-
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/backends/backend_setup.xml' % (TESTS_DIR)"/>
           <call function="'backend_setup'"> 
             { 'startDS' : False,
-			  'loadBackend' : True } 
-		  </call>	  
-
-												    
+              'loadBackend' : True
+            } 
+          </call>
           <!--- Test Case information
             #@TestMarker          Backend Backup Tests
             #@TestName            Export: Backup 1
@@ -76,32 +64,27 @@
             #@TestPostamble
             #@TestResult Success if backup returns 0
           -->
-        
-          <testcase name="'Backend: Backup:1'">
-  
+          <testcase name="'Backend: Backup: Test 1'">
             <sequence>
-    
               <call function="'testCase_Preamble'"/>
               <message>
                 'Backend Backup1: Create a backup of the data in OpenDS'
               </message>
               <call function="'backup'">
-                { 
-                  'backupDir'       : '%s/backends/backup1' % logsRemoteDataDir
+                { 'backupDir'       : '%s/backends/backup1' % logsRemoteDataDir
                 }
               </call>
-    
+              
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-                   
+              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
-            
+          
           <!--- Test Case information
             #@TestMarker          Backend Backup Tests
             #@TestName            Export: Backup 2
@@ -113,32 +96,26 @@
             #@TestPostamble
             #@TestResult Success if backup returns 0
           -->
-        
-          <testcase name="'Backend: Backup 2'">
-  
+          <testcase name="'Backend: Backup: Test 2'">
             <sequence>
-    
               <call function="'testCase_Preamble'"/>
               <message>
                 'Backend Backup2: Create an incremental backup of the data in OpenDS'
               </message>
               <call function="'backup'">
-                { 
-                  'backupDir'       : '%s/backends/backup1' % logsRemoteDataDir,
+                { 'backupDir'   : '%s/backends/backup1' % logsRemoteDataDir,
                   'extraParams' : '-i'
                 }
               </call>
-    
+              
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-                   
-              <call function="'testCase_Postamble'"/>
-    
+              <call function="'testCase_Postamble'" />
             </sequence>
-    
-          </testcase>  
+          </testcase>
           
           <!--- Test Case information
             #@TestMarker          Backend Backup Tests
@@ -151,33 +128,26 @@
             #@TestPostamble
             #@TestResult Success if backup returns 0
           -->
-        
-          <testcase name="'Backend: Backup 3'">
-  
+          <testcase name="'Backend: Backup: Test 3'">
             <sequence>
-                
               <call function="'testCase_Preamble'"/>
               <message>
                 'Backend Backup3: Create a backup of the data in OpenDS with a backup id'
               </message>
               <call function="'backup'">
-                { 
-                  'backupDir'       : '%s/backends/backup2' % logsRemoteDataDir,
+                { 'backupDir'   : '%s/backends/backup2' % logsRemoteDataDir,
                   'extraParams' : '-I 20070714142807Z'
                 }
               </call>
-    
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-                   
-              <call function="'testCase_Postamble'"/>
-    
+              <call function="'testCase_Postamble'" />
             </sequence>
-    
           </testcase>
-            
+          
           <!--- Test Case information
             #@TestMarker          Backend Backup Tests
             #@TestName            Export: Backup 4
@@ -189,33 +159,26 @@
             #@TestPostamble
             #@TestResult Success if backup returns 0
           -->
-        
-          <testcase name="'Backend: Backup 4'">
-  
+          <testcase name="'Backend: Backup: Test 4'">
             <sequence>
-
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
                 'Backend Backup4: Create an incremental backup of the data in OpenDS with a backup id'
               </message>
               <call function="'backup'">
-                { 
-                  'backupDir'       : '%s/backends/backup2' % logsRemoteDataDir,
+                { 'backupDir'   : '%s/backends/backup2' % logsRemoteDataDir,
                   'extraParams' : '-B 20070714142807Z -i'
                 }
               </call>
-    
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-                   
-              <call function="'testCase_Postamble'"/>
-    
+              <call function="'testCase_Postamble'" />
             </sequence>
-    
           </testcase>
-            
+          
           <!--- Test Case information
             #@TestMarker          Backend Backup Tests
             #@TestName            Export: Backup 5
@@ -227,47 +190,31 @@
             #@TestPostamble
             #@TestResult Success if backup returns 0
           -->
-        
-          <testcase name="'Backend: Backup 5'">
-  
+          <testcase name="'Backend: Backup: Test 5'">
             <sequence>
-
               <call function="'testCase_Preamble'"/>
               <message>
                 'Backend Backup5: Create a compressed backup of the data in OpenDS'
               </message>
               <call function="'backup'">
-                { 
-                  'backupDir'       : '%s/backends/backup1' % logsRemoteDataDir,
+                { 'backupDir'   : '%s/backends/backup1' % logsRemoteDataDir,
                   'extraParams' : '-c'
                 }
               </call>
-    
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-                   
-              <call function="'testCase_Postamble'"/>
-    
+              <call function="'testCase_Postamble'" />
             </sequence>
-    
           </testcase>
-
-
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/backends/backend_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'backend_cleanup'"> { 'stopDS' : False } </call>
-
-												            
-          <call function="'testSuite_Postamble'"/>
-            
+          <call function="'testSuite_Postamble'" />
         </sequence>
-    
       </block>
-    
     </sequence>
-
   </function>
-
 </stax>
