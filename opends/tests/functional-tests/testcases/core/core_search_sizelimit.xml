@@ -111,13 +111,14 @@
               <message>
                  'Core SSzL3: Change the server-wide search size limit to 5'
               </message>
-    
-              <call function="'addEntry'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/core/ldifs/mod_searchsizelimit.ldif' % logsRemoteDataDir }
+              
+              <call function="'modifyGlobal'">
+                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                      'attributeName'          : 'size-limit' ,
+                      'attributeValue'         : '5' }
               </call>
     
               <call function="'checktestRC'">
@@ -157,13 +158,14 @@
               <message>
                  'Core SSzL5: Change the server-wide search size limit to 1000'
               </message>
-    
-              <call function="'addEntry'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/core/ldifs/mod_searchsizelimit2.ldif' % logsRemoteDataDir }
+              
+              <call function="'modifyGlobal'">
+                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                      'attributeName'          : 'size-limit' ,
+                      'attributeValue'         : '1000' }
               </call>
     
               <call function="'checktestRC'">
@@ -270,12 +272,12 @@
             </sequence>
           </testcase>
           
-          <!--- Test Case : Search Size Limit: Modify Directory Manager Limit -1 -->
-          <testcase name="'Core: Search Size Limit: Modify Directory Manager Limit -1'">
+          <!--- Test Case : Search Size Limit: Modify Directory Manager Limit 0 -->
+          <testcase name="'Core: Search Size Limit: Modify Directory Manager Limit 0'">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
-                 'Core SSzL10: Change the search size limit for cn=Directory Manager to -1'
+                 'Core SSzL10: Change the search size limit for cn=Directory Manager to 0'
               </message>
     
               <call function="'addEntry'">
