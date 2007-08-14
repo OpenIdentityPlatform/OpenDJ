@@ -50,18 +50,19 @@
             file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)"/>
           <call function="'core_setup'"/>
 
-	  <!--- Set the server wide size limit 10000 to allow time limit tests to run properly-->
+	  <!--- Set the server wide size limit 0 to allow time limit tests to run properly-->
             <sequence>
               <message>
-                 'Set the server wide size limit 10000 to allow time limit tests to run properly'
+                 'Set the server wide size limit 0 to allow time limit tests to run properly'
               </message>
-    
-              <call function="'addEntry'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/core/ldifs/mod_searchsizelimit2.ldif' % logsRemoteDataDir }
+                                          
+              <call function="'modifyGlobal'">
+                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                      'attributeName'          : 'size-limit' ,
+                      'attributeValue'         : '0' }
               </call>
     
               <call function="'checktestRC'">
@@ -109,7 +110,7 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*' ,
-                  'extraParams'	   : '-l 100' }
+                  'extraParams'	   : '-l 500' }
                   
               </call>
     
@@ -121,21 +122,24 @@
             </sequence>
           </testcase>
           
-           <!--- Test Case : Search Time Limit: Server Wide Time Limit 1 -->
-          <testcase name="'Core: Search Time Limit: Server Wide Time Limit 1'">
+           <!--- Test Case : Search Time Limit: Server Wide Time Limit 1 second -->
+          <testcase name="'Core: Search Time Limit: Server Wide Time Limit 1 second'">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
-                 'Core STmL3: Change the server-wide search time limit to 1'
+                 'Core STmL3: Change the server-wide search time limit to 1 second'
               </message>
-    
-              <call function="'addEntry'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/core/ldifs/mod_timelimit.ldif' % logsRemoteDataDir }
+
+                                                        
+              <call function="'modifyGlobal'">
+                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                      'attributeName'          : 'time-limit' ,
+                      'attributeValue'         : '1s' }
               </call>
+              
     
               <call function="'checktestRC'">
                   { 'returncode' : RC ,
@@ -166,20 +170,21 @@
             </sequence>
           </testcase>
           
-          <!--- Test Case : Search Time Limit: Server Wide Time Limit 60 -->
-          <testcase name="'Core: Search Time Limit: Server Wide Time Limit 60'">
+          <!--- Test Case : Search Time Limit: Server Wide Time Limit 120 seconds -->
+          <testcase name="'Core: Search Time Limit: Server Wide Time Limit 120'seconds">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
-                 'Core STmL5: Change the server-wide search time limit to 60'
+                 'Core STmL5: Change the server-wide search time limit to 120 seconds'
               </message>
-    
-              <call function="'addEntry'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/core/ldifs/mod_timelimit2.ldif' % logsRemoteDataDir }
+                                                                     
+              <call function="'modifyGlobal'">
+                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                      'attributeName'          : 'time-limit' ,
+                      'attributeValue'         : '120s' }
               </call>
     
               <call function="'checktestRC'">
