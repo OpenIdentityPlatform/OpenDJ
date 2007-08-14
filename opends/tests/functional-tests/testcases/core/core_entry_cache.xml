@@ -92,12 +92,14 @@
                  'Enable the default entry cache'
               </message>
               
-              <call function="'modifyEntry'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/core/ldifs/mod_entrycache2.ldif' % logsRemoteDataDir }
+              <call function="'dsconfig'">
+                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                      'subcommand'             : 'set-entry-cache-prop' ,
+                      'optionsString'          : '--set enabled:true'
+                    }
               </call>
     
               <call function="'checktestRC'">
@@ -119,13 +121,35 @@
               <message>
                  'Add three attributes to cn=Entry Cache,cn=config'
               </message>
-              
-              <call function="'modifyEntry'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/core/ldifs/mod_entrycache3.ldif' % logsRemoteDataDir }
+                            
+              <call function="'dsconfig'">
+                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                      'subcommand'             : 'set-entry-cache-prop' ,
+                      'optionsString'          : '--set lock-timeout:60s'
+                    }
+              </call>
+                            
+              <call function="'dsconfig'">
+                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                      'subcommand'             : 'set-entry-cache-prop' ,
+                      'optionsString'          : '--set exclude-filter:telephonenumber=*'
+                    }
+              </call>
+                            
+              <call function="'dsconfig'">
+                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                      'subcommand'             : 'set-entry-cache-prop' ,
+                      'optionsString'          : '--set include-filter:roomNumber=*'
+                    }
               </call>
     
               <call function="'checktestRC'">
@@ -147,15 +171,16 @@
               <message>
                  'Add one attribute that is not allowed under cn=Entry Cache,cn=config'
               </message>
-              
-              <call function="'modifyEntry'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/core/ldifs/mod_entrycache4.ldif' % logsRemoteDataDir ,
-                  'expectedRC'          : 65
-                }
+                                          
+              <call function="'dsconfig'">
+                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                      'subcommand'             : 'set-entry-cache-prop' ,
+                      'optionsString'          : '--add max-entries:100000',
+                      'expectedRC'             : 1  
+                    }
               </call>
               
               <call function="'testCase_Postamble'"/>
