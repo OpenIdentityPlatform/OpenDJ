@@ -1185,11 +1185,16 @@
       </function-arg-def>
     </function-map-args>
     <sequence>
+      <script>
+        import random
+        random.seed()
+        _id = '%s#%d' % (strftime('%Y-%m-%d %H:%M:%S',localtime()),random.randint(0,9))
+      </script>
       <message>
-        'Running command:\n %s %s\nenv: %s\nworkdir: %s' % (command,arguments,env,path)
+        '%s: Running command:\n %s %s\nenv: %s\nworkdir: %s' % (_id,command,arguments,env,path)
       </message>
       
-      <block name="'runCommand wrapper'">
+      <block name="'%s:Wrapper for %s' % (_id,command)">
         <process name="name">
           <location>location</location>
           <command>command</command>
@@ -1202,7 +1207,7 @@
         </process>
       </block>
       <message level="'info'">
-        'Command returned:\n%s' % STAXResult[0][1]
+        '%s: Command returned:\n%s' % (_id,STAXResult[0][1])
       </message>
       <script>
         def dig(var):
