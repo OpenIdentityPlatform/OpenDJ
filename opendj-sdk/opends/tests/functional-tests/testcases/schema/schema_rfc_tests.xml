@@ -712,14 +712,15 @@
             <message>
                'Schema: Disable schema checking'
             </message>
-            
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/schema/ldifs/disable_schema_checking.ldif' % logsRemoteDataDir }
-            </call>
+                                                                               
+            <call function="'modifyGlobal'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'attributeName'          : 'check-schema' ,
+                    'attributeValue'         : 'false' }
+            </call> 
     
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
@@ -736,13 +737,14 @@
             <message>
                'Schema: Enable Schema Checking'
             </message>
-            
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/schema/ldifs/enable_schema_checking.ldif' % logsRemoteDataDir }
+                                                                               
+            <call function="'modifyGlobal'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'attributeName'          : 'check-schema' ,
+                    'attributeValue'         : 'true' }
             </call>
     
             <call function="'checktestRC'">
@@ -761,13 +763,17 @@
                'Schema: Disable syntax checking'
             </message>
             
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/schema/ldifs/disable_syntax_checking.ldif' % logsRemoteDataDir }
-            </call>
+            <call function="'dsconfig'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'subcommand'             : 'set-attribute-syntax-prop' ,
+                    'objectType'             : 'syntax-name' ,
+                    'objectName'             : 'Generalized Time',
+                    'optionsString'          : '--set enabled:false'
+                    }
+            </call> 
     
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
@@ -777,20 +783,24 @@
           </sequence>
         </testcase>
         
-        <!--- Test Case : Schema: Disable Syntax Checking -->
-        <testcase name="'Core: Schema: Disable Syntax Checking'">
+        <!--- Test Case : Schema: Enable Syntax Checking -->
+        <testcase name="'Core: Schema: Enable Syntax Checking'">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
                'Schema:  Enable syntax checking'
             </message>
-            
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/schema/ldifs/enable_syntax_checking.ldif' % logsRemoteDataDir }
+                        
+            <call function="'dsconfig'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'subcommand'             : 'set-attribute-syntax-prop' ,
+                    'objectType'             : 'syntax-name' ,
+                    'objectName'             : 'Generalized Time',
+                    'optionsString'          : '--set enabled:true'
+                    }
             </call>
     
             <call function="'checktestRC'">
