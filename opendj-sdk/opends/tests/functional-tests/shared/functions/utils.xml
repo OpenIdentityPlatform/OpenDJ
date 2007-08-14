@@ -561,6 +561,7 @@
           def appendLog(self, log):
             log=log.replace('&lt;','')
             log=log.replace('&gt;','')
+            log=log.replace('&amp;','&amp;amp;')
             self.log +='          %s\n' % log
             
           def getName(self):
