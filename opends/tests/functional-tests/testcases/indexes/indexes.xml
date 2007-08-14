@@ -394,7 +394,7 @@
             self.name = testName
             self.filter = filter
             self.rc = expectedValue
-            self.isIndexed=isIndexed
+            self.isIndexed=re.compile(r'[\r\n]').sub('',isIndexed)
             self.status='fail'
           
           def getAttribute(self):
@@ -422,11 +422,11 @@
             return self.status
             
           def desc(self):
-            description  = 'name=[%s]' % self.name
-            description += ' attribute=[%s]' % self.attribute
-            description += ' filter=[%s]' % self.filter
-            description += ' rc=[%s]' % self.rc
-            description += ' indexed=[%s]' % self.isIndexed
+            description  = 'test:: name=[%s]\n' % self.name
+            description += 'test:: attribute=[%s]\n' % self.attribute
+            description += 'test:: filter=[%s]\n' % self.filter
+            description += 'test:: rc=[%s]\n' % self.rc
+            description += 'test:: indexed=[%s]\n' % self.isIndexed
             return description
             
         indexTests = []
@@ -470,14 +470,15 @@
               </call>
               <script>
                 searchReturnCode, searchResultString = STAXResult[0]
-                srs=searchResultString.split('[')
-                srt=srs[1].replace('\n','').replace(' ','').replace('\r','')
-                
+                # chop off the first line that contains the dn
+                searchResultString = re.compile(r'^dn:.*\n?').sub('',searchResultString)
+                # join multiple lines into a single one
+                searchResultString = re.compile(r'[ \t]*\r?\n[ \t]*').sub('',searchResultString)
+                srt=searchResultString.split('[')[1]
                 if (str(searchReturnCode) == str(test.getRC())) and srt.startswith(test.getSearchString()):
                   test.pass()
-                    
               </script>
-              <message level="'trace'">'%s searchReturnCode=[%s] srt=[%s] searchResultString=[%s] string looked for=[%s]' % (test.desc(), searchReturnCode, srt, searchResultString, test.getSearchString())</message>
+              <message level="'trace'">'%s\nsearchReturnCode=[%s]\nldapsearch return string=[%s]\nchunk to parse=[%s]\nstring looked for=[%s]' % (test.desc(), searchReturnCode, searchResultString, srt, test.getSearchString())</message>
               <tcstatus result="test.getStatus()" />
               <call function="'testCase_Postamble'" />
               <script>
