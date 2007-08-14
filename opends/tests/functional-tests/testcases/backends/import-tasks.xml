@@ -27,23 +27,16 @@
  ! -->
 
 <stax>
-
   <defaultcall function="main_import-tasks"/>
-
   <function name="main_import-tasks">
-
     <sequence>
-
       <block name="'import-tasks'">
-      
         <sequence>
-  
           <script>
             if not CurrentTestPath.has_key('group'):
               CurrentTestPath['group']='backends'						  
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
-          
           <call function="'testSuite_Preamble'"/>
 
           <!--- Test Suite information
@@ -55,13 +48,9 @@
             #@TestScript          import-tasks.xml
             #@TestHTMLLink        http://opends.dev.java.net/
           -->
-		
-
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/backends/backend_setup.xml' % (TESTS_DIR)"/>
           <call function="'backend_setup'" />			
-			
-						   
           <!--- Test Case information
             #@TestMarker          Backend Import Tasks Tests
             #@TestName            Import Tasks: LDIF Default
@@ -72,28 +61,23 @@
             #@TestPostamble
             #@TestResult
           -->
-
           <testcase name="'Backend: Import Tasks: LDIF Default'">
-    
             <sequence>
-    
               <call function="'testCase_Preamble'"/>
-    
               <call function="'importLdifTask'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'taskID'         : STAXCurrentTestcase,
-                  'ldifFile'       : '%s/backends/Example.ldif' % logsRemoteDataDir,
+                  'ldifFile'       : '%s/backends/Example.ldif' % logsRemoteDataDir
                 }
               </call>
-    
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult 
+                }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
                                        'uid=dmiller, ou=People, dc=example,dc=com',
@@ -101,24 +85,10 @@
                    'startDS'        : 'no' 
                  }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
-    
-          <!--- Test Case information
-            #@TestMarker          Backend Import Tasks Tests
-            #@TestName            Backend: Import Tasks: LDIF Non Default
-            #@TestID              LDIF Non Default
-            #@TestPurpose         Verify an import task of a LDIF file using a differrent backend to the default.
-            #@TestPreamble
-            #@TestSteps           
-            #@TestPostamble
-            #@TestResult
-          -->
-
+          
           <!--- Test Case information
             #@TestMarker          Backend Import Tasks Tests
             #@TestName            Backend: Import Tasks: Fractional Include Branch
@@ -129,13 +99,9 @@
             #@TestPostamble
             #@TestResult
           -->
-          
           <testcase name="'Backend: Import Tasks: Fractional Include Branch'">
-    
             <sequence>
-    
               <call function="'testCase_Preamble'"/>
-
               <call function="'importLdifTask'">
                 { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
@@ -146,12 +112,11 @@
                   'includeBranches' : ['dc=com'],
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
               </call>
-    
+              
               <call function="'checkImport'">
                 { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
                                        'uid=dmiller, ou=People, dc=example,dc=com',
@@ -159,11 +124,8 @@
                   'startDS'         : 'no'
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -176,13 +138,9 @@
             #@TestPostamble
             #@TestResult
           -->
-    
           <testcase name="'Backend: Import Tasks: Fractional Include Branches'">
-    
             <sequence>
-    
               <call function="'testCase_Preamble'"/>
-
               <call function="'importLdifTask'">
                 { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
@@ -193,12 +151,11 @@
                   'includeBranches' : ['dc=com','dc=example,dc=com']
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
                                        'uid=dmiller, ou=People, dc=example,dc=com',
@@ -206,13 +163,10 @@
                   'startDS'         : 'no'
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
-
+          
           <!--- Test Case information
             #@TestMarker          Backend Import Tasks Tests
             #@TestName            Backend: Import Tasks: Fractional Exclude Branch
@@ -223,13 +177,9 @@
             #@TestPostamble
             #@TestResult
           -->
-    
           <testcase name="'Backend: Import Tasks: Fractional Exclude Branch'">
-    
             <sequence>
-    
-              <call function="'testCase_Preamble'"/>
-
+              <call function="'testCase_Preamble'" />
               <call function="'importLdifTask'">
                 { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
@@ -240,12 +190,11 @@
                   'excludeBranches' : ['ou=Departed,ou=People,dc=example,dc=com'],
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
                                        'uid=dmiller, ou=People, dc=example,dc=com',
@@ -255,11 +204,8 @@
                   'startDS'         : 'no'
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -272,13 +218,9 @@
             #@TestPostamble
             #@TestResult
           -->
-
           <testcase name="'Backend: Import Tasks: Fractional Exclude Branches'">
-    
             <sequence>
-    
-              <call function="'testCase_Preamble'"/>
-
+              <call function="'testCase_Preamble'" />
               <call function="'importLdifTask'">
                 { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
@@ -290,12 +232,11 @@
                                        'cn=QA Managers,ou=groups,dc=example,dc=com']
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
                                        'uid=dmiller, ou=People, dc=example,dc=com',
@@ -306,11 +247,8 @@
                   'startDS'         : 'no'
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -323,13 +261,9 @@
             #@TestPostamble
             #@TestResult
           -->
-          
           <testcase name="'Backend: Import Tasks: Fractional Branches Mix'">
-    
             <sequence>
-    
               <call function="'testCase_Preamble'"/>
-
               <call function="'importLdifTask'">
                 { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
@@ -341,12 +275,12 @@
                   'excludeBranches' : ['ou=Departed,ou=People,dc=example,dc=com'],
                 }
               </call>
-
+              
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
                                        'uid=dmiller, ou=People, dc=example,dc=com',
@@ -358,9 +292,7 @@
               </call>
               
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -369,17 +301,13 @@
             #@TestID              Fractional Include Attribute
             #@TestPurpose         Verify an import task of a LDIF file specifying an attribute that should be included in the import.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps
             #@TestPostamble
             #@TestResult
           -->
-
           <testcase name="'Backend: Import Tasks: Fractional Include Attribute'">
-    
             <sequence>
-    
-              <call function="'testCase_Preamble'"/>
-
+              <call function="'testCase_Preamble'" />
               <call function="'importLdifTask'">
                 { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
@@ -390,23 +318,19 @@
                   'includeAttributes' : ['dc'],
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries' : ['dc=com','dc=example,dc=com'],
                   'missingEntries'  : ['ou=People,dc=example,dc=com'],
                   'startDS'         : 'no'
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -415,17 +339,13 @@
             #@TestID              Fractional Include Attributes
             #@TestPurpose         Verify an import task of a LDIF file specifying multiple attributes that should be included in the import.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps
             #@TestPostamble
             #@TestResult
           -->
-
           <testcase name="'Backend: Import Tasks: Fractional Include Attributes'">
-    
             <sequence>
-    
-              <call function="'testCase_Preamble'"/>
-
+              <call function="'testCase_Preamble'" />
               <call function="'importLdifTask'">
                 { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
@@ -436,12 +356,11 @@
                   'includeAttributes' : ['dc','cn','ou','sn']
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
                                        'uid=dmiller,ou=People,dc=example,dc=com',
@@ -449,11 +368,8 @@
                   'startDS'         : 'no'
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -462,17 +378,13 @@
             #@TestID              Fractional Exclude Attribute
             #@TestPurpose         Verify an import task of a LDIF file specifying an attribute that should be excluded in the import.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps
             #@TestPostamble
             #@TestResult
           -->
-    
           <testcase name="'Backend: Import Tasks: Fractional Exclude Attribute'">
-    
             <sequence>
-    
-              <call function="'testCase_Preamble'"/>
-
+              <call function="'testCase_Preamble'" />
               <call function="'importLdifTask'">
                 { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
@@ -483,23 +395,18 @@
                   'excludeAttributes' : ['userpassword']
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries'   : ['uid=scarter,ou=People,dc=example,dc=com'],
                   'missingAttributes' : ['userpassword'],
                   'startDS'         : 'no'
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -512,13 +419,9 @@
             #@TestPostamble
             #@TestResult
           -->
-    
           <testcase name="'Backend: Import Tasks: Fractional Exclude Attributes'">
-    
             <sequence>
-    
-              <call function="'testCase_Preamble'"/>
-
+              <call function="'testCase_Preamble'" />
               <call function="'importLdifTask'">
                 { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
@@ -529,23 +432,19 @@
                   'excludeAttributes' : ['userpassword','mail','roomnumber']
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries'   : ['uid=scarter,ou=People,dc=example,dc=com'],
                   'missingAttributes' : ['userpassword','mail','roomnumber'],
                   'startDS'         : 'no'
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -558,13 +457,9 @@
             #@TestPostamble
             #@TestResult
           -->
-    
           <testcase name="'Backend: Import Tasks: Fractional Mix'">
-    
             <sequence>
-    
-              <call function="'testCase_Preamble'"/>
-
+              <call function="'testCase_Preamble'" />
               <call function="'importLdifTask'">
                 { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
@@ -577,12 +472,11 @@
                   'includeAttributes' : ['dc','cn','ou','sn'],
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
                                        'uid=dmiller, ou=People, dc=example,dc=com',
@@ -592,11 +486,8 @@
                   'startDS'         : 'no'
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -605,17 +496,13 @@
             #@TestID              Filtered Include
             #@TestPurpose         Verify an import task of a LDIF file specifying a search filter control which entries are included in the import.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps
             #@TestPostamble
             #@TestResult
           -->
-
           <testcase name="'Backend: Import Tasks: Filtered Include'">
-    
             <sequence>
-    
-              <call function="'testCase_Preamble'"/>
-
+              <call function="'testCase_Preamble'" />
               <call function="'importLdifTask'">
                 { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
@@ -626,12 +513,10 @@
                   'includeFilters'  : ['objectclass=*'],
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
                                        'uid=dmiller,ou=People,dc=example,dc=com',
@@ -639,11 +524,8 @@
                   'startDS'         : 'no'
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -656,13 +538,9 @@
             #@TestPostamble
             #@TestResult
           -->
-    
           <testcase name="'Backend: Import Tasks: Filtered Exclude'">
-    
             <sequence>
-    
               <call function="'testCase_Preamble'"/>
-
               <call function="'importLdifTask'">
                 { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
@@ -673,12 +551,11 @@
                   'excludeFilters'  : ['objectclass=person'],
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries' : ['dc=example,dc=com',
                                        'ou=People,dc=example,dc=com'],
@@ -688,11 +565,8 @@
                   'startDS'         : 'no'
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -705,13 +579,9 @@
             #@TestPostamble
             #@TestResult
           -->
-    
           <testcase name="'Backend: Import Tasks: Filtered Includes'">
-    
             <sequence>
-    
               <call function="'testCase_Preamble'"/>
-
               <call function="'importLdifTask'">
                 { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
@@ -722,12 +592,11 @@
                   'includeFilters'  : ['objectclass=domain*','objectclass=organizationalunit']
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries' : ['dc=example,dc=com',
                                        'ou=People,dc=example,dc=com'],
@@ -737,11 +606,8 @@
                   'startDS'         : 'no'
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -754,13 +620,9 @@
             #@TestPostamble
             #@TestResult
           -->
-   
           <testcase name="'Backend: Import Tasks: Filtered Excludes'">
-    
             <sequence>
-    
               <call function="'testCase_Preamble'"/>
-
               <call function="'importLdifTask'">
                 { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
@@ -771,23 +633,19 @@
                   'excludeFilters'  : ['objectclass=person','objectclass=organizationalunit'],
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries' : ['dc=example,dc=com'],
                   'missingEntries'  : ['ou=People,dc=example,dc=com'],
                   'startDS'         : 'no'
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -800,13 +658,9 @@
             #@TestPostamble
             #@TestResult
           -->
-   
           <testcase name="'Backend: Import Tasks: Filtered Includes Complex'">
-    
             <sequence>
-    
               <call function="'testCase_Preamble'"/>
-
               <call function="'importLdifTask'">
                 { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
@@ -817,12 +671,10 @@
                   'includeFilters'  : ['|(objectclass=person)(objectclass=domain)(objectclass=organizationalunit)'],
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
                                        'uid=dmiller,ou=People,dc=example,dc=com',
@@ -830,11 +682,8 @@
                   'startDS'         : 'no'
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -847,13 +696,9 @@
             #@TestPostamble
             #@TestResult
           -->
-    
           <testcase name="'Backend: Import Tasks: Filtered Excludes Complex'">
-    
             <sequence>
-    
               <call function="'testCase_Preamble'"/>
-
               <call function="'importLdifTask'">
                 { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
@@ -864,23 +709,19 @@
                   'excludeFilters'  : ['&amp;(objectclass=person)(ou=Departed)'],
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries' : ['uid=rhunt,ou=People,dc=example,dc=com'],
                   'missingEntries'  : ['uid=fvinker,ou=Departed,ou=People,dc=example,dc=com'],
                   'startDS'         : 'no'
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -893,13 +734,9 @@
             #@TestPostamble
             #@TestResult
           -->
-    
           <testcase name="'Backend: Import Tasks: Fractional Filtered Mix'">
-    
             <sequence>
-    
               <call function="'testCase_Preamble'"/>
-
               <call function="'importLdifTask'">
                 { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
@@ -912,23 +749,19 @@
                   'excludeAttributes' : ['userpassword']
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries'   : ['uid=scarter,ou=People,dc=example,dc=com'],
                   'missingAttributes' : ['userpassword'],
                   'startDS'           : 'no'
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -937,17 +770,13 @@
             #@TestID              Append
             #@TestPurpose         Verify an import task of a LDIF file specifying that the import process should append to the existing database.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps
             #@TestPostamble
             #@TestResult
           -->
-    
           <testcase name="'Backend: Import Tasks: Append'">
-    
             <sequence>
-    
               <call function="'testCase_Preamble'"/>
-
               <call function="'importLdifTask'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
@@ -958,12 +787,10 @@
                   'append'         : 'TRUE'
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries'  : ['ou=Departed,ou=People,dc=example,dc=com',
                                         'uid=fvinker,ou=Departed,ou=People,dc=example,dc=com',
@@ -971,11 +798,8 @@
                   'startDS'         : 'no'
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -984,17 +808,13 @@
             #@TestID              Append Replace Existing
             #@TestPurpose         Verify an import task of a LDIF file specifying that an existing entry should be replaced when appending to an existing database.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps
             #@TestPostamble
             #@TestResult
           -->
-    
           <testcase name="'Backend: Import Tasks: Append Replace Existing'">
-    
             <sequence>
-    
               <call function="'testCase_Preamble'"/>
-
               <call function="'importLdifTask'">
                 { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
@@ -1006,12 +826,10 @@
                   'replaceExisting' : 'TRUE'
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries'  : ['ou=Departed,ou=People,dc=example,dc=com',
                                         'uid=fvinker,ou=Departed,ou=People,dc=example,dc=com',
@@ -1019,11 +837,8 @@
                   'startDS'         : 'no'
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -1032,17 +847,13 @@
             #@TestID              Compressed
             #@TestPurpose         Verify an import task of a LDIF file specifying the data to import is compressed.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps
             #@TestPostamble
             #@TestResult
           -->
-
           <testcase name="'Backend: Import Tasks: Compressed'">
-    
             <sequence>
-    
               <call function="'testCase_Preamble'"/>
-
               <call function="'importLdifTask'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
@@ -1053,12 +864,11 @@
                   'isCompressed'   : 'TRUE'
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
                                        'uid=dmiller,ou=People,dc=example,dc=com',
@@ -1066,11 +876,8 @@
                   'startDS'         : 'no'
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -1085,11 +892,8 @@
           -->
           
           <testcase name="'Backend: Import Tasks: Encrypted'">
-    
             <sequence>
-    
               <call function="'testCase_Preamble'"/>
-
               <call function="'importLdifTask'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
@@ -1100,7 +904,6 @@
                   'isEncrypted'    : 'TRUE'
                 }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
                                        'uid=dmiller,ou=People,dc=example,dc=com',
@@ -1108,22 +911,18 @@
                   'startDS'         : 'no'
                 }
               </call>
-
               <!-- This test should fail. -->
               <tcstatus result="'fail'"/>
               <message log="1" level="'Error'">
                'Error: Known bug. Issue 839: Encrypted LDIF export is not implemented'
               </message>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -1132,11 +931,10 @@
             #@TestID              Hashed Signed
             #@TestPurpose         Verify an import task of a LDIF file specifying the data to import is hashed/signed.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps
             #@TestPostamble
             #@TestResult
           -->
-    
           <!-- Test Not Implemented. Feature not avaliable -->
           
           <!--- Test Case information
@@ -1145,17 +943,13 @@
             #@TestID              Rejects File
             #@TestPurpose         Verify an import task of a LDIF file specifying the a path to a file into which rejected entries may be written if they are not accepted during the import process, when the rejects file is not overwritten.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps
             #@TestPostamble
             #@TestResult
           -->
-    
           <testcase name="'Backend: Import Tasks: Rejects File'">
-    
             <sequence>
-    
               <call function="'testCase_Preamble'"/>
-
               <call function="'importLdifTask'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
@@ -1166,12 +960,11 @@
                   'rejectsFile'    : './rejects'
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
                                        'uid=dmiller,ou=People,dc=example,dc=com',
@@ -1179,13 +972,9 @@
                   'startDS'         : 'no'
                 }
               </call>
-
               <!-- Should check there is a rejects file and the contents are correct -->
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -1194,17 +983,13 @@
             #@TestID              Rejects File Overwrite
             #@TestPurpose         Verify an import task of a LDIF file specifying the a path to a file into which rejected entries may be written if they are not accepted during the import process, when the rejects file is overwritten.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps
             #@TestPostamble
             #@TestResult
           -->
-    
           <testcase name="'Backend: Import Tasks: Rejects File'">
-    
             <sequence>
-    
               <call function="'testCase_Preamble'"/>
-
               <call function="'importLdifTask'">
                 { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort'       : DIRECTORY_INSTANCE_PORT,
@@ -1216,12 +1001,11 @@
                   'overwriteRejectsFile' : 'TRUE'
                 }
               </call>
-
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                  'result'     : STAXResult
+                }
               </call>
-    
               <call function="'checkImport'">
                 { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
                                        'uid=dmiller,ou=People,dc=example,dc=com',
@@ -1229,13 +1013,9 @@
                   'startDS'         : 'no'
                 }
               </call>
-
               <!-- Should check there is a rejects file and the contents are correct -->
-              
               <call function="'testCase_Postamble'"/>
-    
             </sequence>
-    
           </testcase>
           
           <!--- Test Case information
@@ -1244,17 +1024,13 @@
             #@TestID              Skip Schema Validation Accept
             #@TestPurpose         Verify an import task of a LDIF file containing invalided schema is accepted when skip schema validation is specified
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps
             #@TestPostamble
             #@TestResult
           -->
-      
             <testcase name="'Backend: Import Tasks: Skip Schema Validation Accept'">
-      
               <sequence>
-      
                 <call function="'testCase_Preamble'"/>
-
                 <call function="'importLdifTask'">
                   { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
                     'dsInstancePort'       : DIRECTORY_INSTANCE_PORT,
@@ -1265,12 +1041,11 @@
                     'skipSchemaValidation' : 'TRUE'
                   }
                 </call>
-
                 <call function="'checktestRC'">
                   { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                    'result'     : STAXResult
+                  }
                 </call>
-      
                 <call function="'checkImport'">
                   { 'expectedEntries' : ['uid=scarter,ou=People,dc=example,dc=com',
                                          'uid=dmiller,ou=People,dc=example,dc=com',
@@ -1278,11 +1053,8 @@
                     'startDS'         : 'no'
                   }
                 </call>
-                
                 <call function="'testCase_Postamble'"/>
-      
               </sequence>
-      
             </testcase>
             
             <!--- Test Case information
@@ -1291,74 +1063,57 @@
               #@TestID              Skip Schema Validation Reject
               #@TestPurpose         Verify an import task of a LDIF file containing invalided schema is rejected when skip schema validation is not specified
               #@TestPreamble
-              #@TestSteps           
+              #@TestSteps
               #@TestPostamble
               #@TestResult
             -->
-            
-            <testcase name="'Backend: Import Tasks: Skip Schema Validation Reject'">
-      
-              <sequence>
-      
-                <call function="'testCase_Preamble'"/>
-
-                <call function="'importLdifTask'">
-                  { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'       : DIRECTORY_INSTANCE_PORT,
-                    'dsInstanceDn'         : DIRECTORY_INSTANCE_DN,
-                    'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD,
-                    'taskID'               : STAXCurrentTestcase,
-                    'ldifFile'             : '%s/backends/Schema.ldif' % logsRemoteDataDir,
-                    'skipSchemaValidation' : 'FALSE'
-                  }
-                </call>
-
-                <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-                </call>
-      
-                <call function="'checkImport'">
-                  { 'expectedEntries' : ['uid=dmiller,ou=People,dc=example,dc=com'],
-                    'missingEntries'  : ['uid=scarter,ou=People,dc=example,dc=com',
-                                         'uid=kwinters,ou=People,dc=example,dc=com'],
-                    'startDS'         : 'no'
-                  }
-                </call>
-                
-                <call function="'testCase_Postamble'"/>
-      
-              </sequence>
-      
-            </testcase>
-
-             <!--- Test Case information
-              #@TestMarker          Backend Import Tasks Tests
-              #@TestName            Backend: Import Tasks: Error Codes
-              #@TestID              Error Codes
-              #@TestPurpose         Verify an import task fails with an error code.
-              #@TestPreamble
-              #@TestSteps           
-              #@TestPostamble
-              #@TestResult
-            -->
-
-            <!-- Need to know what the error codes are -->
-                
-
+          <testcase name="'Backend: Import Tasks: Skip Schema Validation Reject'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <call function="'importLdifTask'">
+                { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'       : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'         : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD,
+                  'taskID'               : STAXCurrentTestcase,
+                  'ldifFile'             : '%s/backends/Schema.ldif' % logsRemoteDataDir,
+                  'skipSchemaValidation' : 'FALSE'
+                }
+              </call>
+              <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
+              </call>
+              <call function="'checkImport'">
+                { 'expectedEntries' : ['uid=dmiller,ou=People,dc=example,dc=com'],
+                  'missingEntries'  : ['uid=scarter,ou=People,dc=example,dc=com',
+                                       'uid=kwinters,ou=People,dc=example,dc=com'],
+                  'startDS'         : 'no'
+                }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          <!--- Test Case information
+                #@TestMarker          Backend Import Tasks Tests
+                #@TestName            Backend: Import Tasks: Error Codes
+                #@TestID              Error Codes
+                #@TestPurpose         Verify an import task fails with an error code.
+                #@TestPreamble
+                #@TestSteps
+                #@TestPostamble
+                #@TestResult
+          -->
+          <!-- Need to know what the error codes are -->
+          
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/backends/backend_cleanup.xml' % (TESTS_DIR)"/>
+                  file="'%s/testcases/backends/backend_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'backend_cleanup'" />
-									
-						          
           <call function="'testSuite_Postamble'"/>
-
         </sequence>
-    
       </block>
-    
     </sequence>
-
   </function>
-
 </stax>
