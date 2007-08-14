@@ -1194,7 +1194,7 @@
         '%s: Running command:\n %s %s\nenv: %s\nworkdir: %s' % (_id,command,arguments,env,path)
       </message>
       
-      <block name="'%s:Wrapper for %s' % (_id,command)">
+      <block name="'%s:Wrapper for %s' % (_id,re.compile('\..*$').sub('',os.path.basename(command)))">
         <process name="name">
           <location>location</location>
           <command>command</command>
