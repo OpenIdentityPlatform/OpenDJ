@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
+import org.opends.messages.Message;
 
 
 
@@ -35,7 +36,6 @@ import java.util.LinkedList;
 import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
-import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.SendFailedException;
 import javax.mail.Session;
@@ -50,8 +50,8 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
+import static org.opends.messages.UtilityMessages.*;
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -83,7 +83,7 @@ public class EMailMessage
   private String subject;
 
   // The body for the mail message.
-  private StringBuilder body;
+  private MessageBuilder body;
 
 
 
@@ -102,7 +102,7 @@ public class EMailMessage
     recipients = new ArrayList<String>();
     recipients.add(recipient);
 
-    body         = new StringBuilder();
+    body         = new MessageBuilder();
     attachments  = new LinkedList<MimeBodyPart>();
     bodyMIMEType = "text/plain";
   }
@@ -123,7 +123,7 @@ public class EMailMessage
     this.recipients = recipients;
     this.subject    = subject;
 
-    body         = new StringBuilder();
+    body         = new MessageBuilder();
     attachments  = new LinkedList<MimeBodyPart>();
     bodyMIMEType = "text/plain";
   }
@@ -221,7 +221,7 @@ public class EMailMessage
    *
    * @return  The body for this message.
    */
-  public StringBuilder getBody()
+  public MessageBuilder getBody()
   {
     return body;
   }
@@ -233,7 +233,7 @@ public class EMailMessage
    *
    * @param  body  The body for this message.
    */
-  public void setBody(StringBuilder body)
+  public void setBody(MessageBuilder body)
   {
     this.body = body;
   }
@@ -243,11 +243,11 @@ public class EMailMessage
   /**
    * Specifies the body for this message.
    *
-   * @param  bodyString  The body for this message.
+   * @param  body  The body for this message.
    */
-  public void setBody(String bodyString)
+  public void setBody(Message body)
   {
-    body = new StringBuilder(bodyString);
+    this.body = new MessageBuilder(body);
   }
 
 
@@ -365,10 +365,9 @@ public class EMailMessage
           TRACER.debugCaught(DebugLogLevel.ERROR, me);
         }
 
-        int msgID = MSGID_EMAILMSG_INVALID_SENDER_ADDRESS;
-        String msg = getMessage(msgID, String.valueOf(sender),
-                                me.getMessage());
-        throw new MessagingException(msg, me);
+        Message msg = ERR_EMAILMSG_INVALID_SENDER_ADDRESS.get(
+            String.valueOf(sender), me.getMessage());
+        throw new MessagingException(msg.toString(), me);
       }
 
 
@@ -391,13 +390,14 @@ public class EMailMessage
             TRACER.debugCaught(DebugLogLevel.ERROR, me);
           }
 
-          int msgID = MSGID_EMAILMSG_INVALID_RECIPIENT_ADDRESS;
-          String msg = getMessage(msgID, String.valueOf(recipient),
-                                  me.getMessage());
-          throw new MessagingException(msg, me);
+          Message msg = ERR_EMAILMSG_INVALID_RECIPIENT_ADDRESS.get(
+              String.valueOf(recipient), me.getMessage());
+          throw new MessagingException(msg.toString(), me);
         }
       }
-      message.setRecipients(Message.RecipientType.TO, recipientAddresses);
+      message.setRecipients(
+              javax.mail.Message.RecipientType.TO,
+              recipientAddresses);
 
 
       // If we have any attachments, then the whole thing needs to be
@@ -456,9 +456,8 @@ public class EMailMessage
     // Otherwise, throw a generic exception.
     if (sendException == null)
     {
-      int    msgID   = MSGID_EMAILMSG_CANNOT_SEND;
-      String message = getMessage(msgID);
-      throw new MessagingException(message);
+      Message message = ERR_EMAILMSG_CANNOT_SEND.get();
+      throw new MessagingException(message.toString());
     }
     else
     {

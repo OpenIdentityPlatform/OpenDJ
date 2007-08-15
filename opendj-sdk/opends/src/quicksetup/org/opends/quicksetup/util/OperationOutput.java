@@ -26,6 +26,7 @@
  */
 
 package org.opends.quicksetup.util;
+import org.opends.messages.Message;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -40,10 +41,10 @@ public class OperationOutput {
 
   private Exception exception = null;
 
-  private List<String> outputMessages = new ArrayList<String>();
-  private List<String> errorMessages = new ArrayList<String>();
-  private List<String> debugMessages = new ArrayList<String>();
-  private List<String> accessMessages = new ArrayList<String>();
+  private List<Message> outputMessages = new ArrayList<Message>();
+  private List<Message> errorMessages = new ArrayList<Message>();
+  private List<Message> debugMessages = new ArrayList<Message>();
+  private List<Message> accessMessages = new ArrayList<Message>();
 
   /**
    * Gets a list of strings representing error messages obtained
@@ -52,10 +53,10 @@ public class OperationOutput {
    * @return List of Strings representing errorMessages that contain
    * the provided <code>regex</code> string.
    */
-  public List<String> getErrorMessages(String regex) {
-    List<String> errorMessagesSubset = new ArrayList<String>();
-    for (String msg : errorMessages) {
-      if (msg.matches(regex)) {
+  public List<Message> getErrorMessages(String regex) {
+    List<Message> errorMessagesSubset = new ArrayList<Message>();
+    for (Message msg : errorMessages) {
+      if (msg.toString().matches(regex)) {
         errorMessagesSubset.add(msg);
       }
     }
@@ -67,7 +68,7 @@ public class OperationOutput {
    * by invoking the operation.
    * @return List of Strings representing errorMessages
    */
-  public List<String> getErrorMessages() {
+  public List<Message> getErrorMessages() {
     return Collections.unmodifiableList(errorMessages);
   }
 
@@ -76,7 +77,7 @@ public class OperationOutput {
    * by invoking the operation.
    * @return List of Strings representing errorMessages
    */
-  public List<String> getOutputMessages() {
+  public List<Message> getOutputMessages() {
     return Collections.unmodifiableList(outputMessages);
   }
 
@@ -85,7 +86,7 @@ public class OperationOutput {
    * by invoking the operation.
    * @return List of Strings representing errorMessages
    */
-  public List<String> getDebugMessages() {
+  public List<Message> getDebugMessages() {
     return Collections.unmodifiableList(debugMessages);
   }
 
@@ -94,7 +95,7 @@ public class OperationOutput {
    * by invoking the operation.
    * @return List of Strings representing errorMessages
    */
-  public List<String> getAccessMessages() {
+  public List<Message> getAccessMessages() {
     return Collections.unmodifiableList(accessMessages);
   }
 
@@ -129,7 +130,7 @@ public class OperationOutput {
    * Adds an error message.
    * @param errorMessage an error message
    */
-  void addErrorMessage(String errorMessage) {
+  void addErrorMessage(Message errorMessage) {
     this.errorMessages.add(errorMessage);
   }
 
@@ -137,7 +138,7 @@ public class OperationOutput {
    * Adds an output message.
    * @param outputMessage an error message
    */
-  void addOutputMessage(String outputMessage) {
+  void addOutputMessage(Message outputMessage) {
     this.outputMessages.add(outputMessage);
   }
 
@@ -145,7 +146,7 @@ public class OperationOutput {
    * Adds an access message.
    * @param accessMessage an error message
    */
-  void addAccessMessage(String accessMessage) {
+  void addAccessMessage(Message accessMessage) {
     this.accessMessages.add(accessMessage);
   }
 
@@ -153,7 +154,7 @@ public class OperationOutput {
    * Adds an error message.
    * @param debugMessage an error message
    */
-  void addDebugMessage(String debugMessage) {
+  void addDebugMessage(Message debugMessage) {
     this.debugMessages.add(debugMessage);
   }
 
@@ -162,7 +163,7 @@ public class OperationOutput {
    * Sets the list of error messages that occurred during execution.
    * @param accessMessages List of Strings representing error messages
    */
-  void setAccessMessages(List<String> accessMessages) {
+  void setAccessMessages(List<Message> accessMessages) {
     this.accessMessages = accessMessages;
   }
 
@@ -170,7 +171,7 @@ public class OperationOutput {
    * Sets the list of error messages that occurred during execution.
    * @param debugMessages List of Strings representing error messages
    */
-  void setDebugMessages(List<String> debugMessages) {
+  void setDebugMessages(List<Message> debugMessages) {
     this.debugMessages = debugMessages;
   }
 

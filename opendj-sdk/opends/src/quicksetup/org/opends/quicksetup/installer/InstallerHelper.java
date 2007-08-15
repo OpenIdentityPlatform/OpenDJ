@@ -41,9 +41,8 @@ import javax.naming.ldap.InitialLdapContext;
 
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.ApplicationReturnCode;
-import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.webstart.JnlpProperties;
-import org.opends.quicksetup.util.Utils;
+import static org.opends.quicksetup.util.Utils.*;
 import org.opends.server.admin.DefaultBehaviorException;
 import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.client.ManagementContext;
@@ -52,8 +51,10 @@ import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.std.client.*;
 import org.opends.server.admin.std.meta.*;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.messages.CoreMessages;
-import org.opends.server.messages.ReplicationMessages;
+import org.opends.messages.CoreMessages;
+import org.opends.messages.ReplicationMessages;
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
 import org.opends.server.tools.ConfigureDS;
 import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.tools.ImportLDIF;
@@ -112,7 +113,7 @@ public class InstallerHelper implements JnlpProperties {
    */
   public String getStartedId()
   {
-    return String.valueOf(CoreMessages.MSGID_DIRECTORY_SERVER_STARTED);
+    return String.valueOf(CoreMessages.NOTE_DIRECTORY_SERVER_STARTED.getId());
   }
 
   /**
@@ -122,7 +123,7 @@ public class InstallerHelper implements JnlpProperties {
   public void enableWindowsService() throws ApplicationException {
     int code = ConfigureWindowsService.enableService(System.out, System.err);
 
-    String errorMessage = getMsg("error-enabling-windows-service");
+    Message errorMessage = INFO_ERROR_ENABLING_WINDOWS_SERVICE.get();
 
     switch (code) {
       case
@@ -147,19 +148,10 @@ public class InstallerHelper implements JnlpProperties {
     int code = ConfigureWindowsService.disableService(System.out, System.err);
     if (code == ConfigureWindowsService.SERVICE_DISABLE_ERROR) {
       throw new ApplicationException(
+          // TODO: fix this message's format string
           ApplicationReturnCode.ReturnCode.WINDOWS_SERVICE_ERROR,
-              getMsg("error-disabling-windows-service"), null);
+              INFO_ERROR_DISABLING_WINDOWS_SERVICE.get(""), null);
     }
-  }
-
-  private String getThrowableMsg(String key, Throwable t)
-  {
-    return getThrowableMsg(key, null, t);
-  }
-
-  private String getThrowableMsg(String key, String[] args, Throwable t)
-  {
-    return Utils.getThrowableMsg(ResourceProvider.getInstance(), key, args, t);
   }
 
   /**
@@ -178,7 +170,8 @@ public class InstallerHelper implements JnlpProperties {
       ldifFile.deleteOnExit();
     } catch (IOException ioe)
     {
-      String failedMsg = getThrowableMsg("error-creating-temp-file", null, ioe);
+      Message failedMsg =
+              getThrowableMsg(INFO_ERROR_CREATING_TEMP_FILE.get(), ioe);
       throw new ApplicationException(
           ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
           failedMsg, ioe);
@@ -199,19 +192,19 @@ public class InstallerHelper implements JnlpProperties {
     } catch (DirectoryException de) {
       throw new ApplicationException(
           ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
-              getThrowableMsg("error-importing-ldif", null, de), de);
+              getThrowableMsg(INFO_ERROR_IMPORTING_LDIF.get(), de), de);
     } catch (LDIFException le) {
       throw new ApplicationException(
           ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
-              getThrowableMsg("error-importing-ldif", null, le), le);
+              getThrowableMsg(INFO_ERROR_IMPORTING_LDIF.get(), le), le);
     } catch (IOException ioe) {
       throw new ApplicationException(
           ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
-              getThrowableMsg("error-importing-ldif", null, ioe), ioe);
+              getThrowableMsg(INFO_ERROR_IMPORTING_LDIF.get(), ioe), ioe);
     } catch (Throwable t) {
       throw new ApplicationException(
           ApplicationReturnCode.ReturnCode.BUG, getThrowableMsg(
-              "bug-msg", t), t);
+              INFO_BUG_MSG.get(), t), t);
     }
     return ldifFile;
   }
@@ -357,7 +350,7 @@ public class InstallerHelper implements JnlpProperties {
         String domainName = null;
         for (int i=0; i<domains.length && (domain == null); i++)
         {
-          if (Utils.areDnsEqual(dn,
+          if (areDnsEqual(dn,
               domains[i].getReplicationDN().toString()))
           {
             domain = domains[i];
@@ -403,8 +396,8 @@ public class InstallerHelper implements JnlpProperties {
     }
     catch (Throwable t)
     {
-      String errorMessage = getMsg("error-configuring-remote-generic",
-          serverDisplay, t.toString());
+      Message errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
+              serverDisplay, t.toString());
       throw new ApplicationException(
           ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR, errorMessage,
           t);
@@ -507,8 +500,8 @@ public class InstallerHelper implements JnlpProperties {
     }
     catch (Throwable t)
     {
-      String errorMessage = getMsg("error-configuring-remote-generic",
-          serverDisplay, t.toString());
+      Message errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
+              serverDisplay, t.toString());
       throw new ApplicationException(
           ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR, errorMessage,
           t);
@@ -576,7 +569,8 @@ public class InstallerHelper implements JnlpProperties {
   public boolean isPeersNotFoundError(String logMsg)
   {
     return logMsg.indexOf(
-        "="+ReplicationMessages.MSGID_NO_REACHABLE_PEER_IN_THE_DOMAIN) != -1;
+        "="+ReplicationMessages.
+                ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.getId()) != -1;
   }
 
   private int getReplicationId(Set<Integer> usedIds)
@@ -588,11 +582,6 @@ public class InstallerHelper implements JnlpProperties {
       id = r.nextInt(MAX_ID_VALUE);
     }
     return id;
-  }
-
-  private String getMsg(String key, String ... args)
-  {
-    return ResourceProvider.getInstance().getMsg(key, args);
   }
 
   private String getDomainName(String[] existingDomains, int newDomainId)

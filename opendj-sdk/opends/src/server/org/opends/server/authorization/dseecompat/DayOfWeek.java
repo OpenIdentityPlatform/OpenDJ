@@ -26,9 +26,9 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.AciMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.AccessControlMessages.*;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
@@ -76,9 +76,8 @@ public class DayOfWeek  implements KeywordBindRule {
           EnumDayOfWeek day=EnumDayOfWeek.createDayOfWeek(dayArray[i]);
           if (day == null)
           {
-              int msgID = MSGID_ACI_SYNTAX_INVALID_DAYOFWEEK;
-              String message = getMessage(msgID, expr);
-              throw new AciException(msgID, message);
+              Message message = WARN_ACI_SYNTAX_INVALID_DAYOFWEEK.get(expr);
+              throw new AciException(message);
           }
           days.add(day);
         }

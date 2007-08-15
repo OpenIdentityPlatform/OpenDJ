@@ -33,7 +33,6 @@ import java.lang.reflect.Modifier;
 import java.util.LinkedList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
@@ -43,6 +42,7 @@ import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.operation.*;
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 
 import static org.testng.Assert.*;
 
@@ -51,7 +51,7 @@ import static org.testng.Assert.*;
 /**
  * A set of generic test cases for the Directory Server plugin API.
  */
-public class DirectoryServerPluginTestCase
+  public class DirectoryServerPluginTestCase
        extends PluginAPITestCase
 {
   @BeforeClass
@@ -195,7 +195,7 @@ public class DirectoryServerPluginTestCase
     sigList = new LinkedList<String>();
     sigList.add("doShutdown");
     sigList.add("void");
-    sigList.add("java.lang.String");
+    sigList.add("org.opends.messages.Message");
     expectedPublicMethods.add(sigList);
 
     sigList = new LinkedList<String>();
@@ -209,8 +209,7 @@ public class DirectoryServerPluginTestCase
     sigList.add("org.opends.server.api.plugin.PostDisconnectPluginResult");
     sigList.add("org.opends.server.api.ClientConnection");
     sigList.add("org.opends.server.types.DisconnectReason");
-    sigList.add("int");
-    sigList.add("java.lang.String");
+    sigList.add("org.opends.messages.Message");
     expectedPublicMethods.add(sigList);
 
     sigList = new LinkedList<String>();
@@ -746,7 +745,7 @@ public class DirectoryServerPluginTestCase
   @Test(expectedExceptions = { UnsupportedOperationException.class })
   public void testDoShutdown()
   {
-    new NullPlugin().doShutdown("testDoShutdown");
+    new NullPlugin().doShutdown(Message.raw("testDoShutdown"));
   }
 
 
@@ -771,7 +770,7 @@ public class DirectoryServerPluginTestCase
   public void testDoPostDisconnect()
   {
     new NullPlugin().doPostDisconnect(null, DisconnectReason.CLOSED_BY_PLUGIN,
-                                      -1, null);
+            null);
   }
 
 

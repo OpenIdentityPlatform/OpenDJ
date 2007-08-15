@@ -30,11 +30,10 @@ package org.opends.dsml.protocol;
 
 import java.io.IOException;
 
+import org.opends.messages.Message;
 import org.opends.server.tools.LDAPConnection;
-import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ModifyDNRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNResponseProtocolOp;
@@ -113,9 +112,10 @@ public class DSMLModifyDNOperation
     ModifyDNResponseProtocolOp modDNOp =
          responseMessage.getModifyDNResponseProtocolOp();
     int resultCode = modDNOp.getResultCode();
-    String errorMessage = modDNOp.getErrorMessage();
+    Message errorMessage = modDNOp.getErrorMessage();
 
-    modDNResponse.setErrorMessage(errorMessage);
+    modDNResponse.setErrorMessage(
+            errorMessage != null ? errorMessage.toString() : null);
     ResultCode code = objFactory.createResultCode();
     code.setCode(resultCode);
     modDNResponse.setResultCode(code);

@@ -33,9 +33,8 @@ import java.util.Random;
 
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
-
+import static org.opends.messages.ToolMessages.*;
+import org.opends.messages.Message;
 
 
 /**
@@ -117,7 +116,7 @@ public class ListTag
    */
   public void initializeForBranch(TemplateFile templateFile, Branch branch,
                                   String[] arguments, int lineNumber,
-                                  List<String> warnings)
+                                  List<Message> warnings)
          throws InitializationException
   {
     initializeInternal(templateFile, arguments, lineNumber, warnings);
@@ -142,7 +141,7 @@ public class ListTag
    */
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
-                                    int lineNumber, List<String> warnings)
+                                    int lineNumber, List<Message> warnings)
          throws InitializationException
   {
     initializeInternal(templateFile, arguments, lineNumber, warnings);
@@ -164,14 +163,13 @@ public class ListTag
    *                                   this tag.
    */
   private void initializeInternal(TemplateFile templateFile, String[] arguments,
-                                  int lineNumber, List<String> warnings)
+                                  int lineNumber, List<Message> warnings)
           throws InitializationException
   {
     if (arguments.length == 0)
     {
-      int    msgID   = MSGID_MAKELDIF_TAG_LIST_NO_ARGUMENTS;
-      String message = getMessage(msgID, lineNumber);
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_MAKELDIF_TAG_LIST_NO_ARGUMENTS.get(lineNumber));
     }
 
 
@@ -195,9 +193,8 @@ public class ListTag
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_MAKELDIF_TAG_LIST_INVALID_WEIGHT;
-          String message = getMessage(msgID, lineNumber, s);
-          warnings.add(message);
+          warnings.add(WARN_MAKELDIF_TAG_LIST_INVALID_WEIGHT.get(
+                          lineNumber,s));
         }
       }
 

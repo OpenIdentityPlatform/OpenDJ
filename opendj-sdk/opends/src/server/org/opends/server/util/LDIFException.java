@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
+import org.opends.messages.Message;
 
 
 
@@ -57,23 +58,18 @@ public final class LDIFException
   // The line number of the last line read from the LDIF source.
   private final long lineNumber;
 
-  // The unique message ID for the associated message.
-  private final int messageID;
-
 
 
   /**
    * Creates a new LDIF exception with the provided information.
    *
-   * @param  messageID  The unique message ID for the provided message.
    * @param  message    The message to use for this LDIF exception.
    */
-  public LDIFException(int messageID, String message)
+  public LDIFException(Message message)
   {
     super(message);
 
 
-    this.messageID     = messageID;
     lineNumber         = -1;
     canContinueReading = true;
   }
@@ -83,16 +79,14 @@ public final class LDIFException
   /**
    * Creates a new LDIF exception with the provided information.
    *
-   * @param  messageID  The unique message ID for the provided message.
    * @param  message    The message to use for this LDIF exception.
    * @param  cause      The underlying cause that triggered this LDIF exception.
    */
-  public LDIFException(int messageID, String message, Throwable cause)
+  public LDIFException(Message message, Throwable cause)
   {
     super(message, cause);
 
 
-    this.messageID     = messageID;
     lineNumber         = -1;
     canContinueReading = true;
   }
@@ -102,20 +96,18 @@ public final class LDIFException
   /**
    * Creates a new LDIF exception with the provided information.
    *
-   * @param  messageID           The unique message ID for the provided message.
    * @param  message             The message to use for this LDIF exception.
    * @param  lineNumber          The line number of the last line read from the
    *                             LDIF source.
    * @param  canContinueReading  Indicates whether it is possible to continue
    *                             reading from the LDIF input source.
    */
-  public LDIFException(int messageID, String message, long lineNumber,
+  public LDIFException(Message message, long lineNumber,
                        boolean canContinueReading)
   {
     super(message);
 
 
-    this.messageID          = messageID;
     this.lineNumber         = lineNumber;
     this.canContinueReading = canContinueReading;
   }
@@ -126,7 +118,6 @@ public final class LDIFException
    * Creates a new configuration exception with the provided message and
    * underlying cause.
    *
-   * @param  messageID           The unique message ID for the provided message.
    * @param  message             The message to use for this LDIF exception.
    * @param  canContinueReading  Indicates whether it is possible to continue
    *                             reading from the LDIF input source.
@@ -135,27 +126,14 @@ public final class LDIFException
    * @param  cause               The underlying cause that triggered this LDIF
    *                             exception.
    */
-  public LDIFException(int messageID, String message, long lineNumber,
+  public LDIFException(Message message, long lineNumber,
                        boolean canContinueReading, Throwable cause)
   {
     super(message, cause);
 
 
-    this.messageID          = messageID;
     this.lineNumber         = lineNumber;
     this.canContinueReading = canContinueReading;
-  }
-
-
-
-  /**
-   * Retrieves the message ID for this exception.
-   *
-   * @return  The message ID for this exception.
-   */
-  public int getMessageID()
-  {
-    return messageID;
   }
 
 

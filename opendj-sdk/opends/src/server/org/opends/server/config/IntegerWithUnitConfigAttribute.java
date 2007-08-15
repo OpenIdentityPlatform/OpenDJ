@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.config;
+import org.opends.messages.Message;
 
 
 
@@ -42,18 +43,13 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-
-
+import org.opends.server.loggers.ErrorLogger;
+import static org.opends.messages.ConfigMessages.*;
 /**
  * This class defines a configuration attribute that stores both an integer
  * value and an associated unit.  The unit will contain both a string and a
@@ -136,7 +132,7 @@ public class IntegerWithUnitConfigAttribute
    *                              enforced for the calculated value.
    * @param  upperBound           The upper bound for the calculated value.
    */
-  public IntegerWithUnitConfigAttribute(String name, String description,
+  public IntegerWithUnitConfigAttribute(String name, Message description,
                                         boolean requiresAdminAction,
                                         HashMap<String,Double> units,
                                         boolean hasLowerBound, long lowerBound,
@@ -178,7 +174,7 @@ public class IntegerWithUnitConfigAttribute
    * @param  selectedUnit         The selected unit for this configuration
    *                              attribute.
    */
-  public IntegerWithUnitConfigAttribute(String name, String description,
+  public IntegerWithUnitConfigAttribute(String name, Message description,
                                         boolean requiresAdminAction,
                                         HashMap<String,Double> units,
                                         boolean hasLowerBound, long lowerBound,
@@ -239,7 +235,7 @@ public class IntegerWithUnitConfigAttribute
    * @param  pendingSelectedUnit  The pending selected unit for this
    *                              configuration attribute.
    */
-  public IntegerWithUnitConfigAttribute(String name, String description,
+  public IntegerWithUnitConfigAttribute(String name, Message description,
                                         boolean requiresAdminAction,
                                         HashMap<String,Double> units,
                                         boolean hasLowerBound, long lowerBound,
@@ -509,27 +505,24 @@ public class IntegerWithUnitConfigAttribute
   {
     if ((unit == null) || (! units.containsKey(unit)))
     {
-      int    msgID   = MSGID_CONFIG_ATTR_INVALID_UNIT;
-      String message = getMessage(msgID, unit, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_INVALID_UNIT.get(unit, getName());
+      throw new ConfigException(message);
     }
 
 
     long calculatedValue = (long) (intValue * units.get(unit));
     if (hasLowerBound && (calculatedValue < lowerBound))
     {
-      int    msgID   = MSGID_CONFIG_ATTR_INT_BELOW_LOWER_BOUND;
-      String message = getMessage(msgID, getName(), calculatedValue,
-                                  lowerBound);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
+          getName(), calculatedValue, lowerBound);
+      throw new ConfigException(message);
     }
 
     if (hasUpperBound && (calculatedValue > upperBound))
     {
-      int    msgID   = MSGID_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND;
-      String message = getMessage(msgID, getName(), calculatedValue,
-                                  upperBound);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
+          getName(), calculatedValue, upperBound);
+      throw new ConfigException(message);
     }
 
 
@@ -565,9 +558,9 @@ public class IntegerWithUnitConfigAttribute
     int spacePos = value.indexOf(' ');
     if (spacePos <= 0)
     {
-      int    msgID   = MSGID_CONFIG_ATTR_NO_UNIT_DELIMITER;
-      String message = getMessage(msgID, String.valueOf(value), getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_NO_UNIT_DELIMITER.get(
+          String.valueOf(value), getName());
+      throw new ConfigException(message);
     }
 
 
@@ -583,10 +576,9 @@ public class IntegerWithUnitConfigAttribute
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT;
-      String message = getMessage(msgID, String.valueOf(value), getName(),
-                                  String.valueOf(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.get(
+          String.valueOf(value), getName(), String.valueOf(e));
+      throw new ConfigException(message, e);
     }
 
     setValue(longValue, value.substring(spacePos+1));
@@ -686,8 +678,8 @@ public class IntegerWithUnitConfigAttribute
     int spacePos = lowerValue.indexOf(' ');
     if (spacePos < 0)
     {
-      rejectReason.append(getMessage(MSGID_CONFIG_ATTR_NO_UNIT_DELIMITER,
-                                     lowerValue, getName()));
+      rejectReason.append(ERR_CONFIG_ATTR_NO_UNIT_DELIMITER.get(
+              lowerValue, getName()));
       return false;
     }
 
@@ -705,8 +697,8 @@ public class IntegerWithUnitConfigAttribute
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      rejectReason.append(getMessage(MSGID_CONFIG_ATTR_INT_COULD_NOT_PARSE,
-                                     lowerValue, getName(), String.valueOf(e)));
+      rejectReason.append(ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
+              lowerValue, getName(), String.valueOf(e)));
       return false;
     }
 
@@ -717,7 +709,7 @@ public class IntegerWithUnitConfigAttribute
     double multiplier;
     if (! units.containsKey(unit))
     {
-      rejectReason.append(getMessage(MSGID_CONFIG_ATTR_INVALID_UNIT, unit,
+      rejectReason.append(ERR_CONFIG_ATTR_INVALID_UNIT.get(unit,
                                      getName()));
       return false;
     }
@@ -732,15 +724,15 @@ public class IntegerWithUnitConfigAttribute
     long calculatedValue = (long) (longValue * multiplier);
     if (hasLowerBound && (calculatedValue < lowerBound))
     {
-      rejectReason.append(getMessage(MSGID_CONFIG_ATTR_INT_BELOW_LOWER_BOUND,
-                                     getName(), calculatedValue, lowerBound));
+      rejectReason.append(ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
+              getName(), calculatedValue, lowerBound));
       return false;
     }
 
     if (hasUpperBound && (calculatedValue > upperBound))
     {
-      rejectReason.append(getMessage(MSGID_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND,
-                                     getName(), calculatedValue, upperBound));
+      rejectReason.append(ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
+              getName(), calculatedValue, upperBound));
       return false;
     }
 
@@ -778,9 +770,8 @@ public class IntegerWithUnitConfigAttribute
     {
       if (isRequired())
       {
-        int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-        String message = getMessage(msgID, getName());
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+        throw new ConfigException(message);
       }
       else
       {
@@ -792,9 +783,9 @@ public class IntegerWithUnitConfigAttribute
     int numValues = valueStrings.size();
     if ((! isMultiValued()) && (numValues > 1))
     {
-      int    msgID   = MSGID_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message =
+          ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
+      throw new ConfigException(message);
     }
 
 
@@ -804,18 +795,15 @@ public class IntegerWithUnitConfigAttribute
     {
       if ((valueString == null) || (valueString.length() == 0))
       {
-        int    msgID   = MSGID_CONFIG_ATTR_EMPTY_STRING_VALUE;
-        String message = getMessage(msgID, getName());
-
+        Message message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
         if (allowFailures)
         {
-          logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
-                   message, msgID);
+          ErrorLogger.logError(message);
           continue;
         }
         else
         {
-          throw new ConfigException(msgID, message);
+          throw new ConfigException(message);
         }
       }
 
@@ -823,19 +811,18 @@ public class IntegerWithUnitConfigAttribute
       StringBuilder rejectReason = new StringBuilder();
       if (! valueIsAcceptable(valueString.toLowerCase(), rejectReason))
       {
-        int msgID = MSGID_CONFIG_ATTR_INVALID_VALUE_WITH_UNIT;
-        String message = getMessage(msgID, valueString, getName(),
-                                    rejectReason.toString());
+        Message message = ERR_CONFIG_ATTR_INVALID_VALUE_WITH_UNIT.get(
+                valueString, getName(),
+                rejectReason.toString());
 
         if (allowFailures)
         {
-          logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
-                   message, msgID);
+          ErrorLogger.logError(message);
           continue;
         }
         else
         {
-          throw new ConfigException(msgID, message);
+          throw new ConfigException(message);
         }
       }
 
@@ -850,9 +837,8 @@ public class IntegerWithUnitConfigAttribute
     // attribute and if so deal with it accordingly.
     if ((isRequired()) && valueSet.isEmpty())
     {
-      int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+      throw new ConfigException(message);
     }
 
 
@@ -948,9 +934,9 @@ public class IntegerWithUnitConfigAttribute
           if (pendingUnit != null)
           {
             // We cannot have multiple pending value sets.
-            int    msgID   = MSGID_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS;
-            String message = getMessage(msgID, a.getName());
-            throw new ConfigException(msgID, message);
+            Message message =
+                ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(a.getName());
+            throw new ConfigException(message);
           }
 
 
@@ -958,9 +944,8 @@ public class IntegerWithUnitConfigAttribute
           if (values.isEmpty())
           {
             // This is illegal -- it must have a value.
-            int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-            String message = getMessage(msgID, a.getName());
-            throw new ConfigException(msgID, message);
+            Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
+            throw new ConfigException(message);
           }
           else
           {
@@ -971,9 +956,9 @@ public class IntegerWithUnitConfigAttribute
             if (iterator.hasNext())
             {
               // This is illegal -- the attribute is single-valued.
-              int    msgID   = MSGID_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED;
-              String message = getMessage(msgID, a.getName());
-              throw new ConfigException(msgID, message);
+              Message message =
+                  ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
+              throw new ConfigException(message);
             }
 
             try
@@ -985,10 +970,9 @@ public class IntegerWithUnitConfigAttribute
             }
             catch (Exception e)
             {
-              int    msgID   = MSGID_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT;
-              String message = getMessage(msgID, valueString, a.getName(),
-                                          String.valueOf(e));
-              throw new ConfigException(msgID, message);
+              Message message = ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.
+                  get(valueString, a.getName(), String.valueOf(e));
+              throw new ConfigException(message);
             }
 
 
@@ -996,9 +980,9 @@ public class IntegerWithUnitConfigAttribute
             // multiplier.
             if (! units.containsKey(pendingUnit))
             {
-              int    msgID   = MSGID_CONFIG_ATTR_INVALID_UNIT;
-              String message = getMessage(msgID, pendingUnit, a.getName());
-              throw new ConfigException(msgID, message);
+              Message message =
+                  ERR_CONFIG_ATTR_INVALID_UNIT.get(pendingUnit, a.getName());
+              throw new ConfigException(message);
             }
 
             double multiplier = units.get(activeUnit);
@@ -1008,18 +992,16 @@ public class IntegerWithUnitConfigAttribute
             // Check the bounds set for this attribute.
             if (hasLowerBound && (pendingCalculatedValue < lowerBound))
             {
-              int    msgID   = MSGID_CONFIG_ATTR_INT_BELOW_LOWER_BOUND;
-              String message = getMessage(msgID, a.getName(),
-                                          pendingCalculatedValue, lowerBound);
-              throw new ConfigException(msgID, message);
+              Message message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
+                  a.getName(), pendingCalculatedValue, lowerBound);
+              throw new ConfigException(message);
             }
 
             if (hasUpperBound && (pendingCalculatedValue > upperBound))
             {
-              int    msgID   = MSGID_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND;
-              String message = getMessage(msgID, a.getName(),
-                                          pendingCalculatedValue, upperBound);
-              throw new ConfigException(msgID, message);
+              Message message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
+                  a.getName(), pendingCalculatedValue, upperBound);
+              throw new ConfigException(message);
             }
           }
         }
@@ -1027,9 +1009,9 @@ public class IntegerWithUnitConfigAttribute
         {
           // This is illegal -- only the pending option is allowed for
           // configuration attributes.
-          int    msgID   = MSGID_CONFIG_ATTR_OPTIONS_NOT_ALLOWED;
-          String message = getMessage(msgID, a.getName());
-          throw new ConfigException(msgID, message);
+          Message message =
+              ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(a.getName());
+          throw new ConfigException(message);
         }
       }
       else
@@ -1038,9 +1020,9 @@ public class IntegerWithUnitConfigAttribute
         if (activeUnit != null)
         {
           // We cannot have multiple active value sets.
-          int    msgID   = MSGID_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS;
-          String message = getMessage(msgID, a.getName());
-          throw new ConfigException(msgID, message);
+          Message message =
+              ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(a.getName());
+          throw new ConfigException(message);
         }
 
 
@@ -1048,9 +1030,8 @@ public class IntegerWithUnitConfigAttribute
         if (values.isEmpty())
         {
           // This is illegal -- it must have a value.
-          int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-          String message = getMessage(msgID, a.getName());
-          throw new ConfigException(msgID, message);
+          Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
+          throw new ConfigException(message);
         }
         else
         {
@@ -1061,9 +1042,9 @@ public class IntegerWithUnitConfigAttribute
           if (iterator.hasNext())
           {
             // This is illegal -- the attribute is single-valued.
-            int    msgID   = MSGID_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED;
-            String message = getMessage(msgID, a.getName());
-            throw new ConfigException(msgID, message);
+            Message message =
+                ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
+            throw new ConfigException(message);
           }
 
           try
@@ -1075,19 +1056,18 @@ public class IntegerWithUnitConfigAttribute
           }
           catch (Exception e)
           {
-            int    msgID   = MSGID_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT;
-            String message = getMessage(msgID, valueString, a.getName(),
-                                        String.valueOf(e));
-            throw new ConfigException(msgID, message);
+            Message message = ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.get(
+                valueString, a.getName(), String.valueOf(e));
+            throw new ConfigException(message);
           }
 
 
           // Get the unit and use it to determine the corresponding multiplier.
           if (! units.containsKey(activeUnit))
           {
-            int    msgID   = MSGID_CONFIG_ATTR_INVALID_UNIT;
-            String message = getMessage(msgID, activeUnit, a.getName());
-            throw new ConfigException(msgID, message);
+            Message message =
+                ERR_CONFIG_ATTR_INVALID_UNIT.get(activeUnit, a.getName());
+            throw new ConfigException(message);
           }
 
           double multiplier = units.get(activeUnit);
@@ -1097,18 +1077,16 @@ public class IntegerWithUnitConfigAttribute
           // Check the bounds set for this attribute.
           if (hasLowerBound && (activeCalculatedValue < lowerBound))
           {
-            int    msgID   = MSGID_CONFIG_ATTR_INT_BELOW_LOWER_BOUND;
-            String message = getMessage(msgID, a.getName(),
-                                        activeCalculatedValue, lowerBound);
-            throw new ConfigException(msgID, message);
+            Message message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
+                a.getName(), activeCalculatedValue, lowerBound);
+            throw new ConfigException(message);
           }
 
           if (hasUpperBound && (activeCalculatedValue > upperBound))
           {
-            int    msgID   = MSGID_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND;
-            String message = getMessage(msgID, a.getName(),
-                                        activeCalculatedValue, upperBound);
-            throw new ConfigException(msgID, message);
+            Message message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
+                a.getName(), activeCalculatedValue, upperBound);
+            throw new ConfigException(message);
           }
         }
       }
@@ -1117,9 +1095,8 @@ public class IntegerWithUnitConfigAttribute
     if (activeUnit == null)
     {
       // This is not OK.  The value set must contain an active value.
-      int    msgID   = MSGID_CONFIG_ATTR_NO_ACTIVE_VALUE_SET;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_NO_ACTIVE_VALUE_SET.get(getName());
+      throw new ConfigException(message);
     }
 
     if (pendingUnit == null)
@@ -1214,16 +1191,18 @@ public class IntegerWithUnitConfigAttribute
   {
     attributeInfoList.add(new MBeanAttributeInfo(getName(),
                                                  String.class.getName(),
-                                                 getDescription(), true, true,
-                                                 false));
+                                                 String.valueOf(
+                                                         getDescription()),
+                                                 true, true, false));
 
     if (requiresAdminAction())
     {
       String name = getName() + ";" + OPTION_PENDING_VALUES;
       attributeInfoList.add(new MBeanAttributeInfo(name,
                                                    String.class.getName(),
-                                                   getDescription(), true,
-                                                   false, false));
+                                                   String.valueOf(
+                                                           getDescription()),
+                                                   true, false, false));
     }
   }
 
@@ -1239,7 +1218,7 @@ public class IntegerWithUnitConfigAttribute
   public MBeanParameterInfo toJMXParameterInfo()
   {
     return new MBeanParameterInfo(getName(), String.class.getName(),
-                                  getDescription());
+                                  String.valueOf(getDescription()));
   }
 
 
@@ -1265,10 +1244,9 @@ public class IntegerWithUnitConfigAttribute
     }
     else
     {
-      int    msgID   = MSGID_CONFIG_ATTR_INT_WITH_UNIT_INVALID_TYPE;
-      String message = getMessage(msgID, String.valueOf(value), getName(),
-                                  value.getClass().getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_INT_WITH_UNIT_INVALID_TYPE.get(
+          String.valueOf(value), getName(), value.getClass().getName());
+      throw new ConfigException(message);
     }
   }
 

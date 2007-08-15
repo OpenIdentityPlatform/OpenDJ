@@ -26,14 +26,16 @@
  */
 package org.opends.server.loggers;
 
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.DN;
 import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.util.TimeThread;
+import org.opends.messages.Message;
+import org.opends.messages.Severity;
+import org.opends.messages.Category;
 
 /**
  * This class provides an implementation of an error logger where only messages
@@ -80,23 +82,26 @@ public class ThreadFilterTextErrorLogPublisher
   /**
    * {@inheritDoc}
    */
-  public void logError(ErrorLogCategory category,
-                       ErrorLogSeverity severity, String message,
-                       int errorID)
+  public void logError(Message message)
   {
-    Thread currentThread = Thread.currentThread();
-    if(this.thread.equals(currentThread) ||
-        this.thread.getThreadGroup().equals(currentThread.getThreadGroup()))
-    {
-      StringBuilder sb = new StringBuilder();
-      sb.append("[");
-      sb.append(TimeThread.getLocalTime());
-      sb.append("] category=").append(category.getCategoryName()).
-          append(" severity=").append(severity.getSeverityName()).
-          append(" msgID=").append(String.valueOf(errorID)).
-          append(" msg=").append(message);
+    if (message != null) {
+      Severity severity = message.getDescriptor().getSeverity();
+      Category category = message.getDescriptor().getCategory();
+      int msgId = message.getDescriptor().getId();
+      Thread currentThread = Thread.currentThread();
+      if(this.thread.equals(currentThread) ||
+          this.thread.getThreadGroup().equals(currentThread.getThreadGroup()))
+      {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        sb.append(TimeThread.getLocalTime());
+        sb.append("] category=").append(category).
+            append(" severity=").append(severity).
+            append(" msgID=").append(msgId).
+            append(" msg=").append(message);
 
-      this.writer.writeRecord(sb.toString());
+        this.writer.writeRecord(sb.toString());
+      }
     }
   }
 

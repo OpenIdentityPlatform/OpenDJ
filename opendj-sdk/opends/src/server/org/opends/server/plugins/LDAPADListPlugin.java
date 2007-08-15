@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins;
+import org.opends.messages.Message;
 
 
 import java.util.LinkedHashSet;
@@ -47,8 +48,8 @@ import org.opends.server.types.operation.PreParseSearchOperation;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.PluginMessages.*;
+import static org.opends.messages.PluginMessages.*;
+
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -96,9 +97,9 @@ public final class LDAPADListPlugin
     // The set of plugin types must contain only the pre-parse search element.
     if (pluginTypes.isEmpty())
     {
-      int    msgID   = MSGID_PLUGIN_ADLIST_NO_PLUGIN_TYPES;
-      String message = getMessage(msgID, String.valueOf(configuration.dn()));
-      throw new ConfigException(msgID, message);
+      Message message = ERR_PLUGIN_ADLIST_NO_PLUGIN_TYPES.get(
+          String.valueOf(configuration.dn()));
+      throw new ConfigException(message);
     }
     else
     {
@@ -106,11 +107,9 @@ public final class LDAPADListPlugin
       {
         if (t != PluginType.PRE_PARSE_SEARCH)
         {
-          int    msgID   = MSGID_PLUGIN_ADLIST_INVALID_PLUGIN_TYPE;
-          String message = getMessage(msgID,
-                                      String.valueOf(configuration.dn()),
-                                      String.valueOf(t));
-          throw new ConfigException(msgID, message);
+          Message message = ERR_PLUGIN_ADLIST_INVALID_PLUGIN_TYPE.get(
+              String.valueOf(configuration.dn()), String.valueOf(t));
+          throw new ConfigException(message);
         }
       }
     }
@@ -198,7 +197,7 @@ public final class LDAPADListPlugin
    */
   @Override()
   public boolean isConfigurationAcceptable(PluginCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
@@ -209,7 +208,7 @@ public final class LDAPADListPlugin
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(PluginCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -224,10 +223,9 @@ public final class LDAPADListPlugin
 
 
         default:
-          int    msgID   = MSGID_PLUGIN_ADLIST_INVALID_PLUGIN_TYPE;
-          String message = getMessage(msgID,
-                                      String.valueOf(configuration.dn()),
-                                      String.valueOf(pluginType));
+          Message message = ERR_PLUGIN_ADLIST_INVALID_PLUGIN_TYPE.get(
+                  String.valueOf(configuration.dn()),
+                  String.valueOf(pluginType));
           unacceptableReasons.add(message);
           configAcceptable = false;
       }

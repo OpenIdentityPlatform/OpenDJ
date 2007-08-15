@@ -27,8 +27,12 @@
 
 package org.opends.quicksetup.util;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.*;
-import org.opends.quicksetup.i18n.ResourceProvider;
+
 
 import java.io.*;
 import java.util.logging.Logger;
@@ -158,17 +162,15 @@ public class FileManager {
         if (target.exists()) {
           if (!target.delete()) {
             throw new ApplicationException(
-                ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
-                    getMsg("error-deleting-file",
-                            Utils.getPath(target)), null);
+                    ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+                    INFO_ERROR_DELETING_FILE.get(Utils.getPath(target)), null);
           }
         }
       }
       if (!fileToRename.renameTo(target)) {
         throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
-                getMsg("error-renaming-file",
-                        Utils.getPath(fileToRename),
+                ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+                INFO_ERROR_RENAMING_FILE.get(Utils.getPath(fileToRename),
                         Utils.getPath(target)), null);
       }
     }
@@ -295,8 +297,8 @@ public class FileManager {
    *
    * @param objectFile   the file to be copied.
    * @param destDir      the directory to copy the file to
-   * @return File representing the destination
    * @param overwrite    overwrite destination files.
+   * @return File representing the destination
    * @throws ApplicationException if something goes wrong.
    */
   public File copy(File objectFile, File destDir, boolean overwrite)
@@ -381,12 +383,9 @@ public class FileManager {
       }
     } else {
       // Just tell that the file/directory does not exist.
-      String[] arg = {file.toString()};
-
-
       if (application != null) {
         application.notifyListeners(application.getFormattedWarning(
-                getMsg("file-does-not-exist", arg)));
+                INFO_FILE_DOES_NOT_EXIST.get(String.valueOf(file))));
       }
       LOG.log(Level.INFO, "file '" + file.toString() + "' does not exist");
     }
@@ -472,12 +471,9 @@ public class FileManager {
      */
     public void apply() throws ApplicationException {
       File objectFile = getObjectFile();
-      String[] args = {objectFile.getAbsolutePath(),
-              destination.getAbsolutePath()};
-
       if (objectFile.isDirectory()) {
         if (!destination.exists()) {
-            destination.mkdirs();
+          destination.mkdirs();
         }
       } else {
 
@@ -490,7 +486,9 @@ public class FileManager {
           if (Utils.insureParentsExist(destination)) {
             if (application != null) {
               application.notifyListeners(application.getFormattedWithPoints(
-                      getMsg("progress-copying-file", args)));
+                      INFO_PROGRESS_COPYING_FILE.get(
+                              objectFile.getAbsolutePath(),
+                              destination.getAbsolutePath())));
             }
             LOG.log(Level.INFO, "copying file '" +
                     objectFile.getAbsolutePath() + "' to '" +
@@ -518,14 +516,16 @@ public class FileManager {
               }
 
               if (application != null) {
-                application.notifyListeners(application.getFormattedDone() +
-                        application.getLineBreak());
+                application.notifyListeners(
+                        application.getFormattedDoneWithLineBreak());
               }
 
             } catch (Exception e) {
-              String errMsg = getMsg("error-copying-file", args);
+              Message errMsg = INFO_ERROR_COPYING_FILE.get(
+                      objectFile.getAbsolutePath(),
+                      destination.getAbsolutePath());
               throw new ApplicationException(
-                  ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+                      ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
                       errMsg, null);
             } finally {
               if (fis != null) {
@@ -544,18 +544,25 @@ public class FileManager {
               }
             }
           } else {
-            String errMsg = getMsg("error-copying-file", args);
+            Message errMsg = INFO_ERROR_COPYING_FILE.get(
+                    objectFile.getAbsolutePath(),
+                    destination.getAbsolutePath());
             throw new ApplicationException(
-                ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
-                errMsg, null);
+                    ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+                    errMsg, null);
           }
         } else {
           LOG.log(Level.INFO, "Ignoring file '" +
                   objectFile.getAbsolutePath() + "' since '" +
                   destination.getAbsolutePath() + "' already exists");
           if (application != null) {
-            application.notifyListeners(getMsg("info-ignoring-file", args) +
-                    application.getLineBreak());
+            application.notifyListeners(
+                    new MessageBuilder(
+                            INFO_INFO_IGNORING_FILE.get(
+                                    objectFile.getAbsolutePath(),
+                                    destination.getAbsolutePath()))
+                            .append(application.getLineBreak())
+                            .toMessage());
           }
         }
       }
@@ -594,16 +601,16 @@ public class FileManager {
      */
     public void apply() throws ApplicationException {
       File file = getObjectFile();
-      String[] arg = {file.getAbsolutePath()};
       boolean isFile = file.isFile();
 
       if (application != null) {
         if (isFile) {
           application.notifyListeners(application.getFormattedWithPoints(
-                  getMsg("progress-deleting-file", arg)));
+                  INFO_PROGRESS_DELETING_FILE.get(file.getAbsolutePath())));
         } else {
           application.notifyListeners(application.getFormattedWithPoints(
-                  getMsg("progress-deleting-directory", arg)));
+                  INFO_PROGRESS_DELETING_DIRECTORY.get(
+                          file.getAbsolutePath())));
         }
       }
       LOG.log(Level.INFO, "deleting " +
@@ -640,20 +647,20 @@ public class FileManager {
       }
 
       if (!delete) {
-        String errMsg;
+        Message errMsg;
         if (isFile) {
-          errMsg = getMsg("error-deleting-file", arg);
+          errMsg = INFO_ERROR_DELETING_FILE.get(file.getAbsolutePath());
         } else {
-          errMsg = getMsg("error-deleting-directory", arg);
+          errMsg = INFO_ERROR_DELETING_DIRECTORY.get(file.getAbsolutePath());
         }
         throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
-            errMsg, null);
+                ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+                errMsg, null);
       }
 
       if (application != null) {
-        application.notifyListeners(application.getFormattedDone() +
-                application.getLineBreak());
+        application.notifyListeners(
+                application.getFormattedDoneWithLineBreak());
       }
     }
   }
@@ -692,20 +699,11 @@ public class FileManager {
       }
       if (!objectFile.renameTo(destination)) {
         throw ApplicationException.createFileSystemException(
-                getMsg("error-failed-moving-file",
-                        Utils.getPath(objectFile),
+                INFO_ERROR_FAILED_MOVING_FILE.get(Utils.getPath(objectFile),
                         Utils.getPath(destination)),
                 null);
       }
     }
-  }
-
-  private String getMsg(String key) {
-    return ResourceProvider.getInstance().getMsg(key);
-  }
-
-  private String getMsg(String key, String... args) {
-    return ResourceProvider.getInstance().getMsg(key, args);
   }
 
 }

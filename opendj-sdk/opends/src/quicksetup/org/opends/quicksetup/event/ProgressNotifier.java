@@ -27,6 +27,8 @@
 
 package org.opends.quicksetup.event;
 
+import org.opends.messages.Message;
+
 /**
  * Inteface for applications that advertise status to interested
  * listeners.
@@ -54,11 +56,11 @@ public interface ProgressNotifier {
    * @param ratio Integer specifying the percentage of the whole
    *        process that has been completed
    * @param currentPhaseSummary localized summary message for
-   *        the current installation progress in formatted
-   *        form
+ *        the current installation progress in formatted
+ *        form
    * @param newLogDetail new log messages in formatted form
    */
-  void notifyListeners(Integer ratio, String currentPhaseSummary,
-      String newLogDetail);
+  void notifyListeners(Integer ratio, Message currentPhaseSummary,
+      Message newLogDetail);
 
 }

@@ -37,6 +37,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.std.meta.DictionaryPasswordValidatorCfgDefn;
 import org.opends.server.admin.std.server.DictionaryPasswordValidatorCfg;
 import org.opends.server.admin.server.AdminTestCaseUtils;
@@ -500,7 +501,7 @@ public class DictionaryPasswordValidatorTestCase
                              new ArrayList<Control>(),
                              DN.decode("uid=test.user,o=test"), mods);
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertEquals(validator.passwordIsAcceptable(pwOS,
                               new HashSet<ByteString>(0), modifyOperation,
                               userEntry, invalidReason),

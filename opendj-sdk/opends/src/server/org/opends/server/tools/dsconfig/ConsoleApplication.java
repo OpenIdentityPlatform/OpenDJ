@@ -25,11 +25,11 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 
-
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -138,16 +138,18 @@ public abstract class ConsoleApplication {
    *           If the user's response could not be read from the
    *           console for some reason.
    */
-  public final boolean confirmAction(String prompt) throws ArgumentException {
+  public final boolean confirmAction(Message prompt) throws ArgumentException {
     if (!isInteractive()) {
       return true;
     }
 
-    final String yes = getMessage(MSGID_DSCFG_GENERAL_CONFIRM_YES);
-    final String no = getMessage(MSGID_DSCFG_GENERAL_CONFIRM_NO);
-    final String errMsg =
-      getMessage(MSGID_DSCFG_ERROR_GENERAL_CONFIRM, yes, no);
-    prompt = prompt + String.format(" (%s / %s): ", yes, no);
+    final Message yes = INFO_DSCFG_GENERAL_CONFIRM_YES.get();
+    final Message no = INFO_DSCFG_GENERAL_CONFIRM_NO.get();
+    final Message errMsg = ERR_DSCFG_ERROR_GENERAL_CONFIRM.get(yes, no);
+    MessageBuilder mb = new MessageBuilder();
+    mb.append(prompt);
+    mb.append(String.format(" (%s / %s): ", yes, no));
+    prompt = mb.toMessage();
 
     ValidationCallback<Boolean> validator = new ValidationCallback<Boolean>() {
 
@@ -157,9 +159,9 @@ public abstract class ConsoleApplication {
           // Empty input.
           app.println();
           app.printMessage(errMsg);
-        } else if (no.startsWith(ninput)) {
+        } else if (no.toString().startsWith(ninput)) {
           return false;
-        } else if (yes.startsWith(ninput)) {
+        } else if (yes.toString().startsWith(ninput)) {
           return true;
         } else {
           // Try again...
@@ -187,8 +189,8 @@ public abstract class ConsoleApplication {
    * @param msg
    *          The message.
    */
-  public final void printMessage(String msg) {
-    err.println(wrapText(msg, MAX_LINE_WIDTH));
+  public final void printMessage(Message msg) {
+    err.println(wrapText(msg.toString(), MAX_LINE_WIDTH));
   }
 
 
@@ -209,7 +211,7 @@ public abstract class ConsoleApplication {
    * @param msg
    *          The verbose message.
    */
-  public final void printVerboseMessage(String msg) {
+  public final void printVerboseMessage(Message msg) {
     if (isVerbose() || isInteractive()) {
       err.println(wrapText(msg, MAX_LINE_WIDTH));
     }
@@ -330,8 +332,9 @@ public abstract class ConsoleApplication {
    *           If the user input could not be retrieved for some
    *           reason.
    */
-  public final <T> T readChoice(final String prompt, List<String> descriptions,
-      List<T> values, final HelpCallback helpCallback)
+  public final <T> T readChoice(
+          final Message prompt, List<Message> descriptions,
+          List<T> values, final HelpCallback helpCallback)
       throws ArgumentException {
     Validator.ensureTrue(descriptions.size() == values.size());
 
@@ -356,11 +359,11 @@ public abstract class ConsoleApplication {
     builder.print(printer);
 
     // Get the user input.
-    String promptMsg;
+    Message promptMsg;
     if (helpCallback != null) {
-      promptMsg = getMessage(MSGID_DSCFG_GENERAL_CHOICE_PROMPT_HELP, size);
+      promptMsg = INFO_DSCFG_GENERAL_CHOICE_PROMPT_HELP.get(size);
     } else {
-      promptMsg = getMessage(MSGID_DSCFG_GENERAL_CHOICE_PROMPT_NOHELP, size);
+      promptMsg = INFO_DSCFG_GENERAL_CHOICE_PROMPT_NOHELP.get(size);
     }
 
     ValidationCallback<Integer> validator = new ValidationCallback<Integer>() {
@@ -388,7 +391,7 @@ public abstract class ConsoleApplication {
             return i;
           } catch (NumberFormatException e) {
             app.println();
-            String errMsg = getMessage(MSGID_DSCFG_ERROR_GENERAL_CHOICE, size);
+            Message errMsg = ERR_DSCFG_ERROR_GENERAL_CHOICE.get(size);
             app.printMessage(errMsg);
             return null;
           }
@@ -420,9 +423,9 @@ public abstract class ConsoleApplication {
    *           If the line of input could not be retrieved for some
    *           reason.
    */
-  public final String readLineOfInput(String prompt) throws ArgumentException {
+  public final String readLineOfInput(Message prompt) throws ArgumentException {
     err.println();
-    err.print(wrapText(prompt.trim() + " ", MAX_LINE_WIDTH));
+    err.print(wrapText(prompt.toString().trim() + " ", MAX_LINE_WIDTH));
     try {
       return in.readLine();
     } catch (IOException e) {
@@ -441,7 +444,7 @@ public abstract class ConsoleApplication {
    * @throws ArgumentException
    *           If the password could not be retrieved for some reason.
    */
-  public final String readPassword(String prompt) throws ArgumentException {
+  public final String readPassword(Message prompt) throws ArgumentException {
     err.print(wrapText(prompt + " ", MAX_LINE_WIDTH));
     char[] pwChars;
     try {
@@ -474,7 +477,7 @@ public abstract class ConsoleApplication {
    *           If an unexpected error occurred which prevented
    *           validation.
    */
-  public final <T> T readValidatedInput(String prompt,
+  public final <T> T readValidatedInput(Message prompt,
       ValidationCallback<T> validator) throws ArgumentException,
       ClientException {
     while (true) {

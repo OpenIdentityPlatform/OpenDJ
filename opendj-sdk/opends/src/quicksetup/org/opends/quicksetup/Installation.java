@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import java.io.*;
 import java.util.*;
 import java.util.logging.Level;
@@ -36,7 +39,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import org.opends.quicksetup.util.Utils;
-import org.opends.quicksetup.i18n.ResourceProvider;
 
 /**
  * This class represents the physical state of an OpenDS installation.
@@ -251,14 +253,14 @@ public class Installation {
    */
   static public void validateRootDirectory(File rootDirectory)
           throws IllegalArgumentException {
-    String failureReason = null;
+    Message failureReason = null;
     if (rootDirectory == null) {
-      failureReason = getMsg("error-install-root-dir-null");
+      failureReason = INFO_ERROR_INSTALL_ROOT_DIR_NULL.get();
     } else if (!rootDirectory.exists()) {
-      failureReason = getMsg("error-install-root-dir-no-exist",
+      failureReason = INFO_ERROR_INSTALL_ROOT_DIR_NO_EXIST.get(
               Utils.getPath(rootDirectory));
     } else if (!rootDirectory.isDirectory()) {
-      failureReason = getMsg("error-install-root-dir-not-dir",
+      failureReason = INFO_ERROR_INSTALL_ROOT_DIR_NOT_DIR.get(
               Utils.getPath(rootDirectory));
     } else {
       String[] children = rootDirectory.list();
@@ -266,17 +268,17 @@ public class Installation {
         Set<String> childrenSet = new HashSet<String>(Arrays.asList(children));
         for (String dir : REQUIRED_DIRECTORIES) {
           if (!childrenSet.contains(dir)) {
-            failureReason = getMsg("error-install-root-dir-no-dir",
+            failureReason = INFO_ERROR_INSTALL_ROOT_DIR_NO_DIR.get(
                     Utils.getPath(rootDirectory), dir);
           }
         }
       } else {
-        failureReason = getMsg("error-install-root-dir-empty",
-                    Utils.getPath(rootDirectory));
+        failureReason = INFO_ERROR_INSTALL_ROOT_DIR_EMPTY.get(
+                Utils.getPath(rootDirectory));
       }
     }
     if (failureReason != null) {
-      throw new IllegalArgumentException(failureReason);
+      throw new IllegalArgumentException(failureReason.toString());
     }
   }
 
@@ -789,14 +791,6 @@ public class Installation {
    */
   public String toString() {
     return Utils.getPath(rootDirectory);
-  }
-
-  static private String getMsg(String key) {
-    return ResourceProvider.getInstance().getMsg(key);
-  }
-
-  static private String getMsg(String key, String... args) {
-    return ResourceProvider.getInstance().getMsg(key, args);
   }
 
 }

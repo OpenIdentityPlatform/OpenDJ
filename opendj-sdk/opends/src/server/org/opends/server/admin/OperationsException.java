@@ -27,6 +27,7 @@
 
 package org.opends.server.admin;
 
+import org.opends.messages.Message;
 
 
 /**
@@ -71,7 +72,7 @@ public class OperationsException extends AdminException {
    * @param cause
    *          The cause.
    */
-  public OperationsException(String message, Throwable cause) {
+  public OperationsException(Message message, Throwable cause) {
     super(message, cause);
   }
 
@@ -83,7 +84,7 @@ public class OperationsException extends AdminException {
    * @param message
    *          The message.
    */
-  public OperationsException(String message) {
+  public OperationsException(Message message) {
     super(message);
   }
 }

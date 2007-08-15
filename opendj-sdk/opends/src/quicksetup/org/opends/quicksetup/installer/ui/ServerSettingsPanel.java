@@ -53,7 +53,10 @@ import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.SecurityOptions;
 import org.opends.quicksetup.UserData;
+
 import org.opends.server.util.CertificateManager;
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * This is the panel that contains the Server Settings: the port, the Directory
@@ -223,7 +226,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
       gbc.weightx = 0.0;
       gbc.insets.left = UIFactory.LEFT_INSET_SECONDARY_FIELD;
       auxPanel.add(UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-          File.separator, UIFactory.TextStyle.TEXTFIELD), gbc);
+          Message.raw(File.separator), UIFactory.TextStyle.TEXTFIELD), gbc);
 
       gbc.gridwidth = GridBagConstraints.REMAINDER;
       gbc.weightx = 0.3;
@@ -291,7 +294,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
         else
         {
           auxPanel.add(UIFactory.makeJLabel(UIFactory.IconType.WARNING,
-              getMsg("cannot-update-security-warning"),
+              INFO_CANNOT_UPDATE_SECURITY_WARNING.get(),
               UIFactory.TextStyle.SECONDARY_FIELD_VALID), gbc);
         }
       }
@@ -330,24 +333,24 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected String getInstructions()
+  protected Message getInstructions()
   {
     if (Utils.isWebStart())
     {
-      return getMsg("server-settings-panel-instructions-webstart");
+      return INFO_SERVER_SETTINGS_PANEL_INSTRUCTIONS_WEBSTART.get();
     }
     else
     {
-      return getMsg("server-settings-panel-instructions");
+      return INFO_SERVER_SETTINGS_PANEL_INSTRUCTIONS.get();
     }
   }
 
   /**
    * {@inheritDoc}
    */
-  protected String getTitle()
+  protected Message getTitle()
   {
-    return getMsg("server-settings-panel-title");
+    return INFO_SERVER_SETTINGS_PANEL_TITLE.get();
   }
 
   /**
@@ -426,36 +429,39 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
         new HashMap<FieldName, LabelFieldDescriptor>();
 
     hm.put(FieldName.HOST_NAME, new LabelFieldDescriptor(
-        getMsg("host-name-label"), getMsg("host-name-tooltip"),
+        INFO_HOST_NAME_LABEL.get(),
+        INFO_HOST_NAME_TOOLTIP.get(),
         LabelFieldDescriptor.FieldType.TEXTFIELD,
         LabelFieldDescriptor.LabelType.PRIMARY, UIFactory.HOST_FIELD_SIZE));
 
     hm.put(FieldName.SERVER_PORT, new LabelFieldDescriptor(
-        getMsg("server-port-label"), getMsg("server-port-tooltip"),
+        INFO_SERVER_PORT_LABEL.get(),
+        INFO_SERVER_PORT_TOOLTIP.get(),
         LabelFieldDescriptor.FieldType.TEXTFIELD,
         LabelFieldDescriptor.LabelType.PRIMARY, UIFactory.PORT_FIELD_SIZE));
 
     hm.put(FieldName.SECURITY_OPTIONS, new LabelFieldDescriptor(
-        getMsg("server-security-label"), getMsg("server-security-tooltip"),
+        INFO_SERVER_SECURITY_LABEL.get(),
+        INFO_SERVER_SECURITY_TOOLTIP.get(),
         LabelFieldDescriptor.FieldType.READ_ONLY,
         LabelFieldDescriptor.LabelType.PRIMARY, 0));
 
     hm.put(FieldName.DIRECTORY_MANAGER_DN, new LabelFieldDescriptor(
-        getMsg("server-directory-manager-dn-label"),
-        getMsg("server-directory-manager-dn-tooltip"),
+        INFO_SERVER_DIRECTORY_MANAGER_DN_LABEL.get(),
+        INFO_SERVER_DIRECTORY_MANAGER_DN_TOOLTIP.get(),
         LabelFieldDescriptor.FieldType.TEXTFIELD,
         LabelFieldDescriptor.LabelType.PRIMARY, UIFactory.DN_FIELD_SIZE));
 
     hm.put(FieldName.DIRECTORY_MANAGER_PWD, new LabelFieldDescriptor(
-        getMsg("server-directory-manager-pwd-label"),
-        getMsg("server-directory-manager-pwd-tooltip"),
+        INFO_SERVER_DIRECTORY_MANAGER_PWD_LABEL.get(),
+        INFO_SERVER_DIRECTORY_MANAGER_PWD_TOOLTIP.get(),
         LabelFieldDescriptor.FieldType.PASSWORD,
         LabelFieldDescriptor.LabelType.PRIMARY, UIFactory.PASSWORD_FIELD_SIZE));
 
     hm.put(FieldName.DIRECTORY_MANAGER_PWD_CONFIRM,
         new LabelFieldDescriptor(
-        getMsg("server-directory-manager-pwd-confirm-label"),
-        getMsg("server-directory-manager-pwd-confirm-tooltip"),
+        INFO_SERVER_DIRECTORY_MANAGER_PWD_CONFIRM_LABEL.get(),
+        INFO_SERVER_DIRECTORY_MANAGER_PWD_CONFIRM_TOOLTIP.get(),
         LabelFieldDescriptor.FieldType.PASSWORD,
         LabelFieldDescriptor.LabelType.PRIMARY,
         UIFactory.PASSWORD_FIELD_SIZE));
@@ -476,7 +482,8 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
       else
       {
         lSecurity = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-            defaultValue, UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+                Message.raw(defaultValue),
+                UIFactory.TextStyle.SECONDARY_FIELD_VALID);
       }
 
       hmLabels.put(fieldName, label);
@@ -484,8 +491,8 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
 
     /* Create the elements for the location */
     LabelFieldDescriptor desc =
-        new LabelFieldDescriptor(getMsg("server-location-label"),
-            getMsg("server-location-parent-tooltip"),
+        new LabelFieldDescriptor(INFO_SERVER_LOCATION_LABEL.get(),
+            INFO_SERVER_LOCATION_PARENT_TOOLTIP.get(),
             LabelFieldDescriptor.FieldType.TEXTFIELD,
             LabelFieldDescriptor.LabelType.PRIMARY, UIFactory.PATH_FIELD_SIZE);
     lServerLocation = UIFactory.makeJLabel(desc);
@@ -493,8 +500,8 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     lServerLocation.setLabelFor(tfServerLocationParent);
 
     desc =
-        new LabelFieldDescriptor(getMsg("server-location-label"),
-            getMsg("server-location-relative-tooltip"),
+        new LabelFieldDescriptor(INFO_SERVER_LOCATION_LABEL.get(),
+            INFO_SERVER_LOCATION_RELATIVE_TOOLTIP.get(),
             LabelFieldDescriptor.FieldType.TEXTFIELD,
             LabelFieldDescriptor.LabelType.PRIMARY,
             UIFactory.RELATIVE_PATH_FIELD_SIZE);
@@ -524,8 +531,8 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     if (browseButton == null)
     {
       browseButton =
-          UIFactory.makeJButton(getMsg("browse-button-label"),
-              getMsg("browse-button-tooltip"));
+          UIFactory.makeJButton(INFO_BROWSE_BUTTON_LABEL.get(),
+              INFO_BROWSE_BUTTON_TOOLTIP.get());
 
       BrowseActionListener l =
           new BrowseActionListener(tfServerLocationParent,
@@ -546,8 +553,8 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     if (secureAccessButton == null)
     {
       secureAccessButton =
-          UIFactory.makeJButton(getMsg("server-security-button-label"),
-              getMsg("server-security-button-tooltip"));
+          UIFactory.makeJButton(INFO_SERVER_SECURITY_BUTTON_LABEL.get(),
+              INFO_SERVER_SECURITY_BUTTON_TOOLTIP.get());
 
       secureAccessButton.addActionListener(new ActionListener()
       {
@@ -626,12 +633,12 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
    * @return the port help message that we display when we cannot use the
    * default port (389).
    */
-  private String getPortHelpMessage()
+  private Message getPortHelpMessage()
   {
-    String s = "";
+    Message s = Message.EMPTY;
     if (defaultUserData.getServerPort() != 389)
     {
-      s = getMsg("cannot-use-default-port");
+      s = INFO_CANNOT_USE_DEFAULT_PORT.get();
     }
     return s;
   }

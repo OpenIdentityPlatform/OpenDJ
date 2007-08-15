@@ -33,7 +33,6 @@ import java.awt.Window;
 
 import javax.swing.JPanel;
 
-import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.UserData;
 
 /**
@@ -118,47 +117,4 @@ abstract class QuickSetupPanel extends JPanel
     return application.getUserData();
   }
 
-  /**
-   * Returns a localized message for a key value.  In  the properties file we
-   * have something of type:
-   * key=value
-   *
-   * @see ResourceProvider#getMsg(String)
-   * @param key the key in the properties file.
-   * @return the value associated to the key in the properties file.
-   * properties file.
-   */
-  public String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  /**
-   * Returns a localized message for a key value.  In  the properties file we
-   * have something of type:
-   * key=value
-   *
-   * For instance if we pass as key "mykey" and as arguments {"value1"} and
-   * in the properties file we have:
-   * mykey=value with argument {0}.
-   *
-   * This method will return "value with argument value1".
-   * @see ResourceProvider#getMsg(String, String[])
-   * @param key the key in the properties file.
-   * @param args the arguments to be passed to generate the resulting value.
-   * @return the value associated to the key in the properties file.
-   */
-  public String getMsg(String key, String[] args)
-  {
-    return getI18n().getMsg(key, args);
-  }
-
-  /**
-   * Returns a ResourceProvider instance.
-   * @return a ResourceProvider instance.
-   */
-  public ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
-  }
 }

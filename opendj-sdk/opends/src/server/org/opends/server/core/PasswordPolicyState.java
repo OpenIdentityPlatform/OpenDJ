@@ -25,7 +25,8 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
-
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 
 import java.text.SimpleDateFormat;
@@ -64,8 +65,6 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.Operation;
@@ -74,10 +73,9 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import org.opends.server.loggers.ErrorLogger;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -322,11 +320,10 @@ public class PasswordPolicyState
                        stackTraceToSingleLineString(e));
           }
 
-          int    msgID   = MSGID_PWPSTATE_CANNOT_DECODE_SUBENTRY_VALUE_AS_DN;
-          String message = getMessage(msgID, v.getStringValue(), userDNString,
-                                      e.getMessage());
+          Message message = ERR_PWPSTATE_CANNOT_DECODE_SUBENTRY_VALUE_AS_DN.get(
+              v.getStringValue(), userDNString, e.getMessage());
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message,
-                                       msgID, e);
+                                       e);
         }
 
         PasswordPolicy policy = DirectoryServer.getPasswordPolicy(subentryDN);
@@ -339,12 +336,10 @@ public class PasswordPolicyState
                        String.valueOf(subentryDN), userDNString);
           }
 
-          int msgID = MSGID_PWPSTATE_NO_SUCH_POLICY;
-          String message = getMessage(msgID, userDNString,
-                                      String.valueOf(subentryDN));
+          Message message = ERR_PWPSTATE_NO_SUCH_POLICY.get(
+              userDNString, String.valueOf(subentryDN));
           throw new DirectoryException(
-               DirectoryServer.getServerErrorResultCode(), message,
-               msgID);
+               DirectoryServer.getServerErrorResultCode(), message);
         }
 
         if (debug)
@@ -470,12 +465,11 @@ public class PasswordPolicyState
                          userDNString, stackTraceToSingleLineString(e));
           }
 
-          int msgID = MSGID_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME;
-          String message = getMessage(msgID, v.getStringValue(),
-                                      attributeType.getNameOrOID(),
-                                      userDNString, String.valueOf(e));
+          Message message = ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME.
+              get(v.getStringValue(), attributeType.getNameOrOID(),
+                  userDNString, String.valueOf(e));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID, e);
+                                       message, e);
         }
         break ;
       }
@@ -545,12 +539,11 @@ public class PasswordPolicyState
                            userDNString, stackTraceToSingleLineString(e));
             }
 
-            int msgID = MSGID_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME;
-            String message = getMessage(msgID, v.getStringValue(),
-                                        attributeType.getNameOrOID(),
-                                        userDNString, String.valueOf(e));
+            Message message = ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME.
+                get(v.getStringValue(), attributeType.getNameOrOID(),
+                    userDNString, String.valueOf(e));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID, e);
+                                         message, e);
           }
         }
       }
@@ -637,12 +630,10 @@ public class PasswordPolicyState
                        userDNString);
         }
 
-        int msgID = MSGID_PWPSTATE_CANNOT_DECODE_BOOLEAN;
-        String message = getMessage(msgID, valueString,
-                                    attributeType.getNameOrOID(),
-                                    userDNString);
+        Message message = ERR_PWPSTATE_CANNOT_DECODE_BOOLEAN.get(
+            valueString, attributeType.getNameOrOID(), userDNString);
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -3678,7 +3669,7 @@ public class PasswordPolicyState
   public boolean passwordIsAcceptable(Operation operation, Entry userEntry,
                                       ByteString newPassword,
                                       Set<ByteString> currentPasswords,
-                                      StringBuilder invalidReason)
+                                      MessageBuilder invalidReason)
   {
     for (DN validatorDN : passwordPolicy.getPasswordValidators().keySet())
     {
@@ -4608,12 +4599,11 @@ public class PasswordPolicyState
    * @param  notificationType  The type for the account status notification.
    * @param  userDN            The DN of the user entry to which this
    *                           notification applies.
-   * @param  messageID         The unique ID for the notification.
    * @param  message           The human-readable message for the notification.
    */
   public void generateAccountStatusNotification(
-                   AccountStatusNotificationType notificationType,
-                   DN userDN, int messageID, String message)
+          AccountStatusNotificationType notificationType,
+          DN userDN, Message message)
   {
     Collection<AccountStatusNotificationHandler> handlers =
          passwordPolicy.getAccountStatusNotificationHandlers().values();
@@ -4624,8 +4614,8 @@ public class PasswordPolicyState
 
     for (AccountStatusNotificationHandler handler : handlers)
     {
-      handler.handleStatusNotification(notificationType, userDN, messageID,
-                                       message);
+      handler.handleStatusNotification(notificationType, userDN,
+              message);
     }
   }
 
@@ -4703,8 +4693,7 @@ public class PasswordPolicyState
     ResultCode resultCode = internalModify.getResultCode();
     if (resultCode != ResultCode.SUCCESS)
     {
-      int    msgID   = MSGID_PWPSTATE_CANNOT_UPDATE_USER_ENTRY;
-      String message = getMessage(msgID, userDNString,
+      Message message = ERR_PWPSTATE_CANNOT_UPDATE_USER_ENTRY.get(userDNString,
                             String.valueOf(internalModify.getErrorMessage()));
 
       // If this is a root user, or if the password policy says that we should
@@ -4714,12 +4703,11 @@ public class PasswordPolicyState
           (passwordPolicy.getStateUpdateFailurePolicy() ==
            PasswordPolicyCfgDefn.StateUpdateFailurePolicy.IGNORE)))
       {
-        logError(ErrorLogCategory.PASSWORD_POLICY,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+        ErrorLogger.logError(message);
       }
       else
       {
-        throw new DirectoryException(resultCode, message, msgID);
+        throw new DirectoryException(resultCode, message);
       }
     }
   }

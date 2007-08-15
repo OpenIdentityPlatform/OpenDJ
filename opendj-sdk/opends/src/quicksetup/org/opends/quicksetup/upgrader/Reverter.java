@@ -27,6 +27,10 @@
 
 package org.opends.quicksetup.upgrader;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.ApplicationReturnCode;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.UserData;
@@ -119,11 +123,11 @@ public class Reverter extends Application implements CliApplication {
 
           } else {
             throw new UserDataException(null,
-                    getMsg("revert-error-empty-history-dir"));
+                    INFO_REVERT_ERROR_EMPTY_HISTORY_DIR.get());
           }
         } else {
           throw new UserDataException(null,
-                  getMsg("revert-error-no-history-dir"));
+                  INFO_REVERT_ERROR_NO_HISTORY_DIR.get());
         }
       } else {
         filesDir = rl.getFilesDirectory();
@@ -146,7 +150,7 @@ public class Reverter extends Application implements CliApplication {
                   .append("/--")
                   .append(ReversionLauncher.MOST_RECENT_OPTION_LONG);
           throw new UserDataException(null,
-                  getMsg("revert-error-no-dir", sb.toString()));
+                  INFO_REVERT_ERROR_NO_DIR.get(sb.toString()));
         }
       }
       if (validateFilesDirectory(filesDir)) {
@@ -205,8 +209,8 @@ public class Reverter extends Application implements CliApplication {
    * {@inheritDoc}
    */
   public void notifyListeners(Integer ratio,
-                              String currentPhaseSummary,
-                              String newLogDetail) {
+                              Message currentPhaseSummary,
+                              Message newLogDetail) {
     listenerDelegate.notifyListeners(null,
             ratio,
             currentPhaseSummary,
@@ -254,8 +258,8 @@ public class Reverter extends Application implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  public String getSummary(ProgressStep step) {
-    String txt;
+  public Message getSummary(ProgressStep step) {
+    Message txt;
     if (step == ReversionProgressStep.FINISHED) {
       txt = getFinalSuccessMessage();
 //    } else if (step == ReversionProgressStep.FINISHED_CANCELED) {
@@ -266,7 +270,7 @@ public class Reverter extends Application implements CliApplication {
 //      txt = getFinalWarningMessage();
     }
     else {
-      txt = getMsg(((ReversionProgressStep) step).getSummaryMesssageKey());
+      txt = (((ReversionProgressStep) step).getSummaryMesssage());
     }
     return txt;
   }
@@ -324,27 +328,28 @@ public class Reverter extends Application implements CliApplication {
 
       UserInteraction ui = userInteraction();
       if (ui != null) {
-        String cont = "Continue";
-        String cancel = "Cancel";
+        Message cont = INFO_CONTINUE_BUTTON_LABEL.get();
+        Message cancel = INFO_CANCEL_BUTTON_LABEL.get();
 
         String toBuildString = null;
         BuildInformation toBi = getToBuildInformation();
         if (toBi != null) {
           toBuildString = toBi.toString();
         } else {
-          toBuildString = getMsg("upgrade-build-id-unknown");
+          toBuildString = INFO_UPGRADE_BUILD_ID_UNKNOWN.get().toString();
         }
-        if (cancel.equals(ui.confirm("Confirm Reversion",
-                "This installation will be reverted to version " +
+        if (cancel.equals(ui.confirm( // TODO: i18n
+                Message.raw("Confirm Reversion"),
+                Message.raw("This installation will be reverted to version " +
                         toBuildString +
-                        " using the files in " + getFilesDirectory() + ".",
-                "Confirm",
+                        " using the files in " + getFilesDirectory() + "."),
+                Message.raw("Confirm"),
                 UserInteraction.MessageType.WARNING,
-                new String[] { cont, cancel },
+                new Message[] { cont, cancel },
                 cont))) {
           throw new ApplicationException(
               ApplicationReturnCode.ReturnCode.CANCELLED,
-              getMsg("reversion-canceled"), null);
+              INFO_REVERSION_CANCELED.get(), null);
         }
       }
 
@@ -354,7 +359,7 @@ public class Reverter extends Application implements CliApplication {
       if (!(e instanceof ApplicationException)) {
         runError = new ApplicationException(
             ApplicationReturnCode.ReturnCode.BUG,
-                e.getLocalizedMessage(), e);
+                Message.raw(e.getLocalizedMessage()), e);
       } else {
         runError = (ApplicationException)e;
       }
@@ -366,7 +371,7 @@ public class Reverter extends Application implements CliApplication {
   private void setCurrentProgressStep(ReversionProgressStep step) {
     this.currentProgressStep = step;
     int progress = step.getProgress();
-    String msg = getSummary(step);
+    Message msg = getSummary(step);
     notifyListeners(progress, msg, formatter.getFormattedProgress(msg));
   }
 
@@ -408,7 +413,7 @@ public class Reverter extends Application implements CliApplication {
     } catch (Exception e) {
       throw new ApplicationException(
           ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
-              getMsg("error-backup-filesystem"),
+              INFO_ERROR_BACKUP_FILESYSTEM.get(),
               e);
     }
   }
@@ -434,7 +439,7 @@ public class Reverter extends Application implements CliApplication {
 
     } catch (IOException e) {
       throw ApplicationException.createFileSystemException(
-              getMsg("error-upgrading-components"), e);
+              INFO_ERROR_UPGRADING_COMPONENTS.get(), e);
     }
   }
 
@@ -448,13 +453,13 @@ public class Reverter extends Application implements CliApplication {
   {
     if (filesDir == null) {
       throw new UserDataException(null,
-              getMsg("revert-error-null-files-dir"));
+              INFO_REVERT_ERROR_NULL_FILES_DIR.get());
     } else if (!filesDir.isDirectory()) {
       throw new UserDataException(null,
-              getMsg("revert-error-not-dir-files-dir"));
+              INFO_REVERT_ERROR_NOT_DIR_FILES_DIR.get());
     } else if (!isFilesDirectory(filesDir)) {
       throw new UserDataException(null,
-              getMsg("revert-error-not-dir-files-dir"));
+              INFO_REVERT_ERROR_NOT_DIR_FILES_DIR.get());
     }
     return true;
   }
@@ -491,16 +496,14 @@ public class Reverter extends Application implements CliApplication {
         ProgressStep lastProgressStep = currentProgressStep;
         setCurrentProgressStep(ReversionProgressStep.ABORT);
         abort(lastProgressStep);
-        notifyListeners(formatter.getFormattedDone() +
-                formatter.getLineBreak());
+        notifyListeners(getFormattedDoneWithLineBreak());
         LOG.log(Level.INFO, "cancelation complete");
       }
 
       LOG.log(Level.INFO, "cleaning up after reversion");
       setCurrentProgressStep(ReversionProgressStep.CLEANUP);
       cleanup();
-      notifyListeners(formatter.getFormattedDone() +
-              formatter.getLineBreak());
+      notifyListeners(getFormattedDoneWithLineBreak());
       LOG.log(Level.INFO, "clean up complete");
 
 
@@ -513,15 +516,15 @@ public class Reverter extends Application implements CliApplication {
               status,
               note);
 
-      notifyListeners(formatter.getFormattedDone() +
-              formatter.getLineBreak());
+      notifyListeners(getFormattedDoneWithLineBreak());
       LOG.log(Level.INFO, "history recorded");
-      notifyListeners(getMsg("general-see-for-history",
-              Utils.getPath(getInstallation().getHistoryLogFile())) +
-              formatter.getLineBreak());
+      notifyListeners(
+              new MessageBuilder(
+                INFO_GENERAL_SEE_FOR_HISTORY.get(
+                     Utils.getPath(getInstallation().getHistoryLogFile())))
+              .append(getLineBreak()).toMessage());
     } catch (ApplicationException e) {
-      notifyListeners(formatter.getFormattedError() +
-              formatter.getLineBreak());
+      notifyListeners(getFormattedDoneWithLineBreak());
       LOG.log(Level.INFO, "Error cleaning up after upgrade.", e);
     }
 
@@ -539,21 +542,19 @@ public class Reverter extends Application implements CliApplication {
       setCurrentProgressStep(ReversionProgressStep.FINISHED_CANCELED);
     } else if (runError != null) {
       LOG.log(Level.INFO, "upgrade completed with errors", runError);
-      notifyListeners(formatter.getFormattedError(runError, true) +
-                      formatter.getLineBreak());
-      notifyListeners(formatter.getLineBreak());
+      notifyListeners(getFormattedErrorWithLineBreak(runError,true));
+      notifyListeners(getLineBreak());
       setCurrentProgressStep(ReversionProgressStep.FINISHED_WITH_ERRORS);
-      notifyListeners(formatter.getLineBreak());
+      notifyListeners(getLineBreak());
     } else if (runWarning != null) {
       LOG.log(Level.INFO, "upgrade completed with warnings");
-      String warningText = runWarning.getLocalizedMessage();
+      Message warningText = runWarning.getMessageObject();
 
       // By design, the warnings are written as errors to the details section
       // as errors.  Warning markup is used surrounding the main message
       // at the end of progress.
-      notifyListeners(formatter.getFormattedError(warningText, true) +
-                      formatter.getLineBreak());
-      notifyListeners(formatter.getLineBreak());
+      notifyListeners(getFormattedErrorWithLineBreak(warningText, true));
+      notifyListeners(getLineBreak());
       setCurrentProgressStep(ReversionProgressStep.FINISHED_WITH_WARNINGS);
       notifyListeners(formatter.getLineBreak());
 
@@ -606,8 +607,7 @@ public class Reverter extends Application implements CliApplication {
             fm.move(f, root, null);
           } catch (Throwable t) {
             restoreError = true;
-            notifyListeners(getMsg("error-restoring-file",
-                    Utils.getPath(f),
+            notifyListeners(INFO_ERROR_RESTORING_FILE.get(Utils.getPath(f),
                     Utils.getPath(root)));
           }
         }
@@ -686,8 +686,8 @@ public class Reverter extends Application implements CliApplication {
     return toBuildInfo;
   }
 
-  private String getFinalSuccessMessage() {
-    String txt;
+  private Message getFinalSuccessMessage() {
+    Message txt;
     String installPath = Utils.getPath(getInstallation().getRootDirectory());
     String newVersion;
     try {
@@ -695,15 +695,14 @@ public class Reverter extends Application implements CliApplication {
       if (bi != null) {
         newVersion = bi.toString();
       } else {
-        newVersion = getMsg("reversion-build-id-unknown");
+        newVersion = INFO_UPGRADE_BUILD_ID_UNKNOWN.get().toString();
       }
     } catch (ApplicationException e) {
-      newVersion = getMsg("reversion-build-id-unknown");
+      newVersion = INFO_UPGRADE_BUILD_ID_UNKNOWN.get().toString();
     }
-    String[] args = {
-            formatter.getFormattedText(installPath),
-            newVersion};
-    txt = getMsg("summary-revert-finished-successfully-cli", args);
+    txt = INFO_SUMMARY_REVERT_FINISHED_SUCCESSFULLY_CLI.get(
+            formatter.getFormattedText(Message.raw(installPath)),
+            newVersion);
     return txt;
   }
 

@@ -25,11 +25,11 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 
 import org.opends.server.admin.client.AuthenticationException;
@@ -123,7 +123,7 @@ public final class LDAPManagementContextFactory implements
         }
 
         try {
-          String prompt = getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT, bindDN);
+          Message prompt = INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDN);
           bindPassword = app.readPassword(prompt);
         } catch (Exception e) {
           throw ArgumentExceptionFactory.unableToReadBindPassword(e);
@@ -136,20 +136,18 @@ public final class LDAPManagementContextFactory implements
             portNumber, bindDN, bindPassword);
         context = LDAPManagementContext.createFromContext(conn);
       } catch (AuthenticationNotSupportedException e) {
-        int msgID = MSGID_DSCFG_ERROR_LDAP_SIMPLE_BIND_NOT_SUPPORTED;
-        String message = getMessage(msgID);
+        Message message = ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_NOT_SUPPORTED.get();
         throw new ClientException(LDAPResultCode.AUTH_METHOD_NOT_SUPPORTED,
-            msgID, message);
-      } catch (AuthenticationException e) {
-        int msgID = MSGID_DSCFG_ERROR_LDAP_SIMPLE_BIND_FAILED;
-        String message = getMessage(msgID, bindDN);
-        throw new ClientException(LDAPResultCode.INVALID_CREDENTIALS, msgID,
             message);
+      } catch (AuthenticationException e) {
+        Message message = ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_FAILED.get(bindDN);
+        throw new ClientException(LDAPResultCode.INVALID_CREDENTIALS, message);
       } catch (CommunicationException e) {
-        int msgID = MSGID_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT;
-        String message = getMessage(msgID, hostName, portNumber);
+        Message message =
+            ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
+                    hostName, String.valueOf(portNumber));
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
-            msgID, message);
+            message);
       }
     }
     return context;
@@ -165,24 +163,24 @@ public final class LDAPManagementContextFactory implements
     // Create the global arguments.
     hostArgument = new StringArgument("host", OPTION_SHORT_HOST,
         OPTION_LONG_HOST, false, false, true, OPTION_VALUE_HOST, "localhost",
-        null, MSGID_DESCRIPTION_HOST);
+        null, INFO_DESCRIPTION_HOST.get());
 
     portArgument = new IntegerArgument("port", OPTION_SHORT_PORT,
         OPTION_LONG_PORT, false, false, true, OPTION_VALUE_PORT, 389, null,
-        MSGID_DESCRIPTION_PORT);
+        INFO_DESCRIPTION_PORT.get());
 
     bindDNArgument = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
         OPTION_LONG_BINDDN, false, false, true, OPTION_VALUE_BINDDN,
-        DEFAULT_BIND_DN, null, MSGID_DESCRIPTION_BINDDN);
+        DEFAULT_BIND_DN, null, INFO_DESCRIPTION_BINDDN.get());
 
     bindPasswordArgument = new StringArgument("bindPassword",
         OPTION_SHORT_BINDPWD, OPTION_LONG_BINDPWD, false, false, true,
-        OPTION_VALUE_BINDPWD, null, null, MSGID_DESCRIPTION_BINDPASSWORD);
+        OPTION_VALUE_BINDPWD, null, null, INFO_DESCRIPTION_BINDPASSWORD.get());
 
     bindPasswordFileArgument = new FileBasedArgument("bindPasswordFile",
         OPTION_SHORT_BINDPWD_FILE, OPTION_LONG_BINDPWD_FILE, false, false,
         OPTION_VALUE_BINDPWD_FILE, null, null,
-        MSGID_DESCRIPTION_BINDPASSWORDFILE);
+        INFO_DESCRIPTION_BINDPASSWORDFILE.get());
 
     // Register the global arguments.
     parser.addGlobalArgument(hostArgument);
@@ -202,10 +200,10 @@ public final class LDAPManagementContextFactory implements
     // arguments.
     if (bindPasswordArgument.isPresent()
         && bindPasswordFileArgument.isPresent()) {
-      int msgID = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, bindPasswordArgument
-          .getLongIdentifier(), bindPasswordFileArgument.getLongIdentifier());
-      throw new ArgumentException(msgID, message);
+      Message message = ERR_TOOL_CONFLICTING_ARGS.
+          get(bindPasswordArgument.getLongIdentifier(),
+              bindPasswordFileArgument.getLongIdentifier());
+      throw new ArgumentException(message);
     }
   }
 

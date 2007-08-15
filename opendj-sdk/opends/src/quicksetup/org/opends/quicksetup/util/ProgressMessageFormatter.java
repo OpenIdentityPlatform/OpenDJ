@@ -27,6 +27,8 @@
 
 package org.opends.quicksetup.util;
 
+import org.opends.messages.Message;
+
 /**
  * This interface has been created in order to share the same formatting code
  * for both the Installer and the Uninstaller classes.   This way we have the
@@ -46,7 +48,7 @@ public interface ProgressMessageFormatter
    * representation
    * @return the formatted representation for the given text.
    */
-  public String getFormattedText(String text);
+  public Message getFormattedText(Message text);
 
   /**
    * Returns the formatted representation of the text that is the summary of the
@@ -56,7 +58,7 @@ public interface ProgressMessageFormatter
    * representation
    * @return the formatted representation of a summary for the given text.
    */
-  public String getFormattedSummary(String text);
+  public Message getFormattedSummary(Message text);
 
   /**
    * Returns the formatted representation of an error for a given text.
@@ -66,7 +68,7 @@ public interface ProgressMessageFormatter
    * resulting formatted text.
    * @return the formatted representation of an error for the given text.
    */
-  public String getFormattedError(String text, boolean applyMargin);
+  public Message getFormattedError(Message text, boolean applyMargin);
 
   /**
    * Returns the formatted representation of a warning for a given text.
@@ -76,7 +78,7 @@ public interface ProgressMessageFormatter
    * resulting formatted text.
    * @return the formatted representation of a warning for the given text.
    */
-  public String getFormattedWarning(String text, boolean applyMargin);
+  public Message getFormattedWarning(Message text, boolean applyMargin);
 
   /**
    * Returns the formatted representation of a success message for a given text.
@@ -85,7 +87,7 @@ public interface ProgressMessageFormatter
    * @return the formatted representation of a success message for the given
    * text.
    */
-  public String getFormattedSuccess(String text);
+  public Message getFormattedSuccess(Message text);
 
   /**
    * Returns the formatted representation of a log error message for a given
@@ -95,7 +97,7 @@ public interface ProgressMessageFormatter
    * @return the formatted representation of a log error message for the given
    * text.
    */
-  public String getFormattedLogError(String text);
+  public Message getFormattedLogError(Message text);
 
   /**
    * Returns the formatted representation of a log message for a given text.
@@ -103,19 +105,19 @@ public interface ProgressMessageFormatter
    * representation
    * @return the formatted representation of a log message for the given text.
    */
-  public String getFormattedLog(String text);
+  public Message getFormattedLog(Message text);
 
   /**
    * Returns the formatted representation of the 'Done' text string.
    * @return the formatted representation of the 'Done' text string.
    */
-  public String getFormattedDone();
+  public Message getFormattedDone();
 
   /**
    * Returns the formatted representation of the 'Error' text string.
    * @return the formatted representation of the 'Error' text string.
    */
-  public String getFormattedError();
+  public Message getFormattedError();
 
   /**
    * Returns the formatted representation of the argument text to which we add
@@ -124,7 +126,7 @@ public interface ProgressMessageFormatter
    * @param text the String to which add points.
    * @return the formatted representation of the '.....' text string.
    */
-  public String getFormattedWithPoints(String text);
+  public Message getFormattedWithPoints(Message text);
 
   /**
    * Returns the formatted representation of a progress message for a given
@@ -134,7 +136,7 @@ public interface ProgressMessageFormatter
    * @return the formatted representation of a progress message for the given
    * text.
    */
-  public String getFormattedProgress(String text);
+  public Message getFormattedProgress(Message text);
 
   /**
    * Returns the formatted representation of an error message for a given
@@ -147,25 +149,25 @@ public interface ProgressMessageFormatter
    * @return the formatted representation of an error message for the given
    * exception.
    */
-  public String getFormattedError(Throwable t, boolean applyMargin);
+  public Message getFormattedError(Throwable t, boolean applyMargin);
 
   /**
    * Returns the line break formatted.
    * @return the line break formatted.
    */
-  public String getLineBreak();
+  public Message getLineBreak();
 
   /**
    * Returns the tab formatted.
    * @return the tab formatted.
    */
-  public String getTab();
+  public Message getTab();
 
   /**
    * Returns the task separator formatted.
    * @return the task separator formatted.
    */
-  public String getTaskSeparator();
+  public Message getTaskSeparator();
 
   /**
    * Returns the log formatted representation after the user has clicked on a
@@ -177,5 +179,5 @@ public interface ProgressMessageFormatter
    * @return the formatted progress log representation after the user has
    * clicked on a url.
    */
-  public String getFormattedAfterUrlClick(String url, String lastText);
+  public Message getFormattedAfterUrlClick(String url, Message lastText);
 }

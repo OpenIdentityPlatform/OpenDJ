@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup.upgrader;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.WizardStep;
 
 /**
@@ -37,31 +40,31 @@ public enum UpgradeWizardStep implements WizardStep {
   /**
    * The welcome step.
    */
-  WELCOME("welcome-step"),
+  WELCOME(INFO_WELCOME_STEP.get()),
   /**
    * The welcome step.
    */
-  REVIEW("review-step"),
+  REVIEW(INFO_REVIEW_STEP.get()),
   /**
    * The progress step.
    */
-  PROGRESS("progress-step"),
+  PROGRESS(INFO_PROGRESS_STEP.get()),
   /**
    * The finished step.
    */
-  FINISHED("finished-step");
+  FINISHED(INFO_FINISHED_STEP.get());
 
-  private String msgKey;
+  private Message msg;
 
-  private UpgradeWizardStep(String msgKey) {
-    this.msgKey = msgKey;
+  private UpgradeWizardStep(Message msg) {
+    this.msg = msg;
   }
 
   /**
    * {@inheritDoc}
    */
-  public String getMessageKey() {
-    return msgKey;
+  public Message getDisplayMessage() {
+    return msg;
   }
 
   /**

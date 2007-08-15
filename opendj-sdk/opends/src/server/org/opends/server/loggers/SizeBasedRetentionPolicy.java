@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
+import org.opends.messages.Message;
 
 import org.opends.server.admin.std.server.SizeLimitLogRetentionPolicyCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -32,6 +33,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
+
 
 import java.io.File;
 import java.util.Arrays;
@@ -70,7 +72,7 @@ public class SizeBasedRetentionPolicy implements
    */
   public boolean isConfigurationChangeAcceptable(
       SizeLimitLogRetentionPolicyCfg config,
-      List<String> unacceptableReasons)
+      List<Message> unacceptableReasons)
   {
     // Changes should always be OK
     return true;
@@ -85,7 +87,7 @@ public class SizeBasedRetentionPolicy implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     size = config.getDiskSpaceUsed();
 

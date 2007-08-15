@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -46,8 +47,8 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -118,7 +119,7 @@ public class CharacterSetPasswordValidator
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
-                                      StringBuilder invalidReason)
+                                      MessageBuilder invalidReason)
   {
     // Get a handle to the current configuration.
     CharacterSetPasswordValidatorCfg config = currentConfig;
@@ -153,8 +154,8 @@ public class CharacterSetPasswordValidator
 
       if ((! found) && (! config.isAllowUnclassifiedCharacters()))
       {
-        int msgID = MSGID_CHARSET_VALIDATOR_ILLEGAL_CHARACTER;
-        invalidReason.append(getMessage(msgID, String.valueOf(c)));
+        invalidReason.append(ERR_CHARSET_VALIDATOR_ILLEGAL_CHARACTER.get(
+                String.valueOf(c)));
         return false;
       }
     }
@@ -165,8 +166,8 @@ public class CharacterSetPasswordValidator
       Integer passwordCount = counts.get(characterSet);
       if ((passwordCount == null) || (passwordCount < minimumCount))
       {
-        int msgID = MSGID_CHARSET_VALIDATOR_TOO_FEW_CHARS_FROM_SET;
-        invalidReason.append(getMessage(msgID, characterSet, minimumCount));
+        invalidReason.append(ERR_CHARSET_VALIDATOR_TOO_FEW_CHARS_FROM_SET.get(
+                characterSet, minimumCount));
         return false;
       }
     }
@@ -204,15 +205,13 @@ public class CharacterSetPasswordValidator
       int colonPos = definition.indexOf(':');
       if (colonPos <= 0)
       {
-        int    msgID   = MSGID_CHARSET_VALIDATOR_NO_COLON;
-        String message = getMessage(msgID, definition);
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CHARSET_VALIDATOR_NO_COLON.get(definition);
+        throw new ConfigException(message);
       }
       else if (colonPos == (definition.length() - 1))
       {
-        int    msgID   = MSGID_CHARSET_VALIDATOR_NO_CHARS;
-        String message = getMessage(msgID, definition);
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CHARSET_VALIDATOR_NO_CHARS.get(definition);
+        throw new ConfigException(message);
       }
 
       int minCount;
@@ -222,16 +221,14 @@ public class CharacterSetPasswordValidator
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CHARSET_VALIDATOR_INVALID_COUNT;
-        String message = getMessage(msgID, definition);
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CHARSET_VALIDATOR_INVALID_COUNT.get(definition);
+        throw new ConfigException(message);
       }
 
       if (minCount <= 0)
       {
-        int    msgID   = MSGID_CHARSET_VALIDATOR_INVALID_COUNT;
-        String message = getMessage(msgID, definition);
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CHARSET_VALIDATOR_INVALID_COUNT.get(definition);
+        throw new ConfigException(message);
       }
 
       String characterSet = definition.substring(colonPos+1);
@@ -240,9 +237,9 @@ public class CharacterSetPasswordValidator
         char c = characterSet.charAt(i);
         if (usedCharacters.contains(c))
         {
-          int    msgID   = MSGID_CHARSET_VALIDATOR_DUPLICATE_CHAR;
-          String message = getMessage(msgID, definition, String.valueOf(c));
-          throw new ConfigException(msgID, message);
+          Message message = ERR_CHARSET_VALIDATOR_DUPLICATE_CHAR.get(
+              definition, String.valueOf(c));
+          throw new ConfigException(message);
         }
 
         usedCharacters.add(c);
@@ -261,7 +258,7 @@ public class CharacterSetPasswordValidator
    */
   @Override()
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     CharacterSetPasswordValidatorCfg config =
          (CharacterSetPasswordValidatorCfg) configuration;
@@ -275,7 +272,7 @@ public class CharacterSetPasswordValidator
    */
   public boolean isConfigurationChangeAcceptable(
                       CharacterSetPasswordValidatorCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // Make sure that we can process the defined character sets.  If so, then
     // we'll accept the new configuration.
@@ -285,7 +282,7 @@ public class CharacterSetPasswordValidator
     }
     catch (ConfigException ce)
     {
-      unacceptableReasons.add(ce.getMessage());
+      unacceptableReasons.add(ce.getMessageObject());
       return false;
     }
 
@@ -300,9 +297,9 @@ public class CharacterSetPasswordValidator
   public ConfigChangeResult applyConfigurationChange(
                       CharacterSetPasswordValidatorCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ResultCode         resultCode          = ResultCode.SUCCESS;
+    boolean            adminActionRequired = false;
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Make sure that we can process the defined character sets.  If so, then

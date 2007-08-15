@@ -34,13 +34,11 @@ import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.util.StaticUtils;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.protocols.ldap.LDAPConnectionHandler;
 import org.opends.server.protocols.ldap.LDAPStatistics;
 import org.opends.server.types.Control;
 import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
 
 import static org.testng.Assert.*;
 

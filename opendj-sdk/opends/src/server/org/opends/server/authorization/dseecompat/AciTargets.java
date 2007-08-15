@@ -26,10 +26,10 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.AciMessages.*;
+import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.SearchScope;
@@ -252,26 +252,26 @@ public class AciTargets {
         while (targetMatcher.find())
         {
             if (targetMatcher.groupCount() != targetElementCount) {
-                int msgID = MSGID_ACI_SYNTAX_INVALID_TARGET_SYNTAX;
-                String message = getMessage(msgID, input);
-                throw new AciException(msgID, message);
+                Message message =
+                    WARN_ACI_SYNTAX_INVALID_TARGET_SYNTAX.get(input);
+                throw new AciException(message);
             }
             String keyword = targetMatcher.group(targetKeywordPos);
             EnumTargetKeyword targetKeyword  =
                 EnumTargetKeyword.createKeyword(keyword);
             if (targetKeyword == null) {
-                int msgID = MSGID_ACI_SYNTAX_INVALID_TARGET_KEYWORD;
-                String message = getMessage(msgID, keyword  );
-                throw new AciException(msgID, message);
+                Message message =
+                    WARN_ACI_SYNTAX_INVALID_TARGET_KEYWORD.get(keyword);
+                throw new AciException(message);
             }
             String operator =
                 targetMatcher.group(targetOperatorPos);
             EnumTargetOperator targetOperator =
                 EnumTargetOperator.createOperator(operator);
             if (targetOperator == null) {
-                int msgID = MSGID_ACI_SYNTAX_INVALID_TARGETS_OPERATOR;
-                String message = getMessage(msgID, operator);
-                throw new AciException(msgID, message);
+                Message message =
+                    WARN_ACI_SYNTAX_INVALID_TARGETS_OPERATOR.get(operator);
+                throw new AciException(message);
             }
             String expression = targetMatcher.group(targetExpressionPos);
             switch(targetKeyword)
@@ -283,11 +283,10 @@ public class AciTargets {
                 }
                 else
                 {
-                    int msgID =
-                        MSGID_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS;
-                    String message =
-                        getMessage(msgID, "target", input);
-                    throw new AciException(msgID, message);
+                  Message message =
+                          WARN_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS.
+                                  get("target", input);
+                  throw new AciException(message);
                 }
                 break;
             }
@@ -299,11 +298,10 @@ public class AciTargets {
               }
               else
               {
-                int msgID =
-                        MSGID_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS;
-                String message =
-                        getMessage(msgID, "targetcontrol", input);
-                throw new AciException(msgID, message);
+                Message message =
+                        WARN_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS.
+                                get("targetcontrol", input);
+                throw new AciException(message);
               }
               break;
             }
@@ -314,11 +312,10 @@ public class AciTargets {
               }
               else
               {
-                int msgID =
-                        MSGID_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS;
-                String message =
-                        getMessage(msgID, "extop", input);
-                throw new AciException(msgID, message);
+                Message message =
+                        WARN_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS.
+                                get("extop", input);
+                throw new AciException(message);
               }
               break;
             }
@@ -329,11 +326,10 @@ public class AciTargets {
                             expression);
                 }
                 else {
-                    int msgID =
-                        MSGID_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS;
-                    String message =
-                        getMessage(msgID, "targetattr", input);
-                    throw new AciException(msgID, message);
+                  Message message =
+                          WARN_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS.
+                                  get("targetattr", input);
+                  throw new AciException(message);
                 }
                 break;
             }
@@ -341,9 +337,10 @@ public class AciTargets {
             {
                 // Check the operator for the targetscope is EQUALITY
                 if (targetOperator == EnumTargetOperator.NOT_EQUALITY) {
-                    int msgID = MSGID_ACI_SYNTAX_INVALID_TARGET_NOT_OPERATOR;
-                    String message = getMessage(msgID, operator);
-                    throw new AciException(msgID, message);
+                    Message message =
+                            WARN_ACI_SYNTAX_INVALID_TARGET_NOT_OPERATOR.
+                              get(operator, targetKeyword.name());
+                    throw new AciException(message);
                 }
                 targetScope=createScope(expression);
                 break;
@@ -355,11 +352,10 @@ public class AciTargets {
                             expression);
                 }
                 else {
-                    int msgID =
-                            MSGID_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS;
-                    String message =
-                            getMessage(msgID, "targetfilter", input);
-                    throw new AciException(msgID, message);
+                  Message message =
+                          WARN_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS.
+                                  get("targetfilter", input);
+                  throw new AciException(message);
                 }
                 break;
             }
@@ -368,20 +364,19 @@ public class AciTargets {
                 if (targAttrFilters == null){
                     // Check the operator for the targattrfilters is EQUALITY
                     if (targetOperator == EnumTargetOperator.NOT_EQUALITY) {
-                        int msgID =
-                                MSGID_ACI_SYNTAX_INVALID_TARGET_NOT_OPERATOR;
-                        String message = getMessage(msgID, operator);
-                        throw new AciException(msgID, message);
+                      Message message =
+                              WARN_ACI_SYNTAX_INVALID_TARGET_NOT_OPERATOR.
+                                      get(operator, targetKeyword.name());
+                      throw new AciException(message);
                     }
                     targAttrFilters = TargAttrFilters.decode(targetOperator,
                             expression);
                 }
                 else {
-                    int msgID =
-                            MSGID_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS;
-                    String message =
-                            getMessage(msgID, "targattrfilters", input);
-                    throw new AciException(msgID, message);
+                  Message message =
+                          WARN_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS.
+                                  get("targattrfilters", input);
+                  throw new AciException(message);
                 }
                 break;
             }
@@ -411,10 +406,9 @@ public class AciTargets {
         else if(expression.equalsIgnoreCase("subordinate"))
             return SearchScope.SUBORDINATE_SUBTREE;
         else {
-            int msgID =
-                MSGID_ACI_SYNTAX_INVALID_TARGETSCOPE_EXPRESSION;
-            String message = getMessage(msgID, expression);
-            throw new AciException(msgID, message);
+            Message message =
+                WARN_ACI_SYNTAX_INVALID_TARGETSCOPE_EXPRESSION.get(expression);
+            throw new AciException(message);
         }
     }
 

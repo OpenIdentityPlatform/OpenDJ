@@ -26,6 +26,9 @@
  */
 package org.opends.server.core;
 
+import org.opends.messages.MessageBuilder;
+import org.opends.messages.Message;
+
 import java.util.List;
 import java.util.Map;
 
@@ -81,7 +84,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
-  public void appendAdditionalLogMessage(String message)
+  public void appendAdditionalLogMessage(Message message)
   {
     operation.appendAdditionalLogMessage(message);
   }
@@ -89,7 +92,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
-  public void appendErrorMessage(String message)
+  public void appendErrorMessage(Message message)
   {
     operation.appendErrorMessage(message);
   }
@@ -106,13 +109,13 @@ public class OperationWrapper implements Operation
    * {@inheritDoc}
    */
   public void disconnectClient(
-    DisconnectReason disconnectReason,
-    boolean sendNotification,
-    String message,
-    int messageID)
+          DisconnectReason disconnectReason,
+          boolean sendNotification,
+          Message message
+  )
   {
     operation.disconnectClient(
-      disconnectReason, sendNotification, message, messageID);
+      disconnectReason, sendNotification, message);
   }
 
   /**
@@ -126,7 +129,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
-  public StringBuilder getAdditionalLogMessage()
+  public MessageBuilder getAdditionalLogMessage()
   {
     return operation.getAdditionalLogMessage();
   }
@@ -206,7 +209,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
-  public StringBuilder getErrorMessage()
+  public MessageBuilder getErrorMessage()
   {
     return operation.getErrorMessage();
   }
@@ -374,7 +377,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
-  public void setAdditionalLogMessage(StringBuilder additionalLogMessage)
+  public void setAdditionalLogMessage(MessageBuilder additionalLogMessage)
   {
     operation.setAdditionalLogMessage(additionalLogMessage);
   }
@@ -430,7 +433,7 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
-  public void setErrorMessage(StringBuilder errorMessage)
+  public void setErrorMessage(MessageBuilder errorMessage)
   {
     operation.setErrorMessage(errorMessage);
   }

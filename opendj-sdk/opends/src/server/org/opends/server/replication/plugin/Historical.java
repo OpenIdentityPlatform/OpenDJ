@@ -25,10 +25,10 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
+import org.opends.messages.Message;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ReplicationMessages.*;
+import static org.opends.messages.ReplicationMessages.*;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -46,8 +46,6 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.operation.PreOperationAddOperation;
@@ -76,6 +74,12 @@ public class Historical
    * The name of the attribute used to store historical information.
    */
   public static final String HISTORICALATTRIBUTENAME = "ds-sync-hist";
+
+  /**
+   * Name used to store attachment of historical information in the
+   * operation.
+   */
+  public static final String HISTORICAL = "ds-synch-historical";
 
   /**
    * The AttributeType associated to the attribute used to store
@@ -410,11 +414,8 @@ public class Historical
       // Any exception happening here means that the coding of the hsitorical
       // information was wrong.
       // Log an error and continue with an empty historical.
-      int    msgID   = MSGID_BAD_HISTORICAL;
-      String message = getMessage(msgID, entry.getDN().toString());
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-               ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_BAD_HISTORICAL.get(entry.getDN().toString());
+      logError(message);
     }
 
     /* set the reference to the historical information in the entry */

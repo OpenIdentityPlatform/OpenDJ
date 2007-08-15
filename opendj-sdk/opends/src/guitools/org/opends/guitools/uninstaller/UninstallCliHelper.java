@@ -28,7 +28,6 @@
 package org.opends.guitools.uninstaller;
 
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.args.Argument;
@@ -40,6 +39,10 @@ import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.IOException;
+
+import org.opends.messages.Message;
+import static org.opends.messages.AdminToolMessages.*;
+
 
 /**
  * The class used to provide some CLI interface in the uninstall.
@@ -55,8 +58,6 @@ class UninstallCliHelper extends CliApplicationHelper {
 
   static private final Logger LOG =
           Logger.getLogger(UninstallCliHelper.class.getName());
-
-  static private String FORMAT_KEY = "cli-uninstall-confirm-prompt";
 
   /**
    * Creates a UserData based in the arguments provided.  It asks
@@ -91,7 +92,7 @@ class UninstallCliHelper extends CliApplicationHelper {
     }
     catch (ArgumentException ae)
     {
-      throw new UserDataException(null, ae.getLocalizedMessage());
+      throw new UserDataException(null, ae.getMessageObject());
     }
 
     Argument interactive = args.getArgumentForLongID(INTERACTIVE_OPTION_LONG);
@@ -158,15 +159,6 @@ class UninstallCliHelper extends CliApplicationHelper {
   }
 
   /**
-   * Gets the resource provider instance.
-   * @return ResourceProvider instance
-   */
-  protected ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
-  }
-
-  /**
    * Commodity method used to ask the user to confirm the deletion of certain
    * parts of the server.  It updates the provided UserData object
    * accordingly.  Returns <CODE>true</CODE> if the user cancels and <CODE>
@@ -183,11 +175,15 @@ class UninstallCliHelper extends CliApplicationHelper {
       Set<String> outsideDbs, Set<String> outsideLogs)
   {
     boolean cancelled = false;
-
-    String answer = promptConfirm(FORMAT_KEY,
-            getMsg("cli-uninstall-what-to-delete"),
-        "1", new String[] {"1", "2", "3"});
-    if ("3".equals(answer))
+    Message[] options = new Message[] {
+      Message.raw("1"),
+      Message.raw("2"),
+      Message.raw("3")
+    };
+    Message answer = promptConfirm(
+            INFO_CLI_UNINSTALL_WHAT_TO_DELETE.get(),
+            options[0], options);
+    if (options[2].equals(answer))
     {
       cancelled = true;
     }
@@ -209,20 +205,27 @@ class UninstallCliHelper extends CliApplicationHelper {
       while (!somethingSelected)
       {
 //      Ask for confirmation for the different items
-        String[] keys = {
-            "cli-uninstall-confirm-libraries-binaries",
-            "cli-uninstall-confirm-databases",
-            "cli-uninstall-confirm-logs",
-            "cli-uninstall-confirm-configuration-schema",
-            "cli-uninstall-confirm-backups",
-            "cli-uninstall-confirm-ldifs",
-            "cli-uninstall-confirm-outsidedbs",
-            "cli-uninstall-confirm-outsidelogs"
+        Message[] keys = {
+                INFO_CLI_UNINSTALL_CONFIRM_LIBRARIES_BINARIES.get(),
+                INFO_CLI_UNINSTALL_CONFIRM_DATABASES.get(),
+                INFO_CLI_UNINSTALL_CONFIRM_LOGS.get(),
+                INFO_CLI_UNINSTALL_CONFIRM_CONFIGURATION_SCHEMA.get(),
+                INFO_CLI_UNINSTALL_CONFIRM_BACKUPS.get(),
+                INFO_CLI_UNINSTALL_CONFIRM_LDIFS.get(),
+                INFO_CLI_UNINSTALL_CONFIRM_OUTSIDEDBS.get(
+                        Utils.getStringFromCollection(outsideDbs,
+                                Constants.LINE_SEPARATOR)),
+                INFO_CLI_UNINSTALL_CONFIRM_OUTSIDELOGS.get(
+                        Utils.getStringFromCollection(outsideLogs,
+                                Constants.LINE_SEPARATOR)
+                )
         };
 
-        String[] validValues = {
-            getMsg("cli-uninstall-yes-long"), getMsg("cli-uninstall-no-long"),
-            getMsg("cli-uninstall-yes-short"), getMsg("cli-uninstall-no-short")
+        Message[] validValues = {
+                INFO_CLI_UNINSTALL_YES_LONG.get(),
+                INFO_CLI_UNINSTALL_NO_LONG.get(),
+                INFO_CLI_UNINSTALL_YES_SHORT.get(),
+                INFO_CLI_UNINSTALL_NO_SHORT.get()
         };
         boolean[] answers = new boolean[keys.length];
         for (int i=0; i<keys.length; i++)
@@ -231,30 +234,16 @@ class UninstallCliHelper extends CliApplicationHelper {
           ((i == 7) && (outsideLogs.size() == 0));
           if (!ignore)
           {
-            String msg;
-            if (i == 6)
-            {
-              String[] arg = {Utils.getStringFromCollection(outsideDbs,
-                  Constants.LINE_SEPARATOR)};
-              msg = getMsg(keys[i], arg);
-            }
-            else if (i == 7)
-            {
-              String[] arg = {Utils.getStringFromCollection(outsideLogs,
-                  Constants.LINE_SEPARATOR)};
-              msg = getMsg(keys[i], arg);
-            }
-            else
-            {
-              msg = getMsg(keys[i]);
-            }
-            answer = promptConfirm(FORMAT_KEY,
-                msg, getMsg("cli-uninstall-yes-long"),
-                validValues);
+            Message msg = keys[i];
+            answer = promptConfirm(
+                    msg, INFO_CLI_UNINSTALL_YES_LONG.get(),
+                    validValues);
 
             answers[i] =
-                    getMsg("cli-uninstall-yes-long").equalsIgnoreCase(answer) ||
-                    getMsg("cli-uninstall-yes-short").equalsIgnoreCase(answer);
+                    INFO_CLI_UNINSTALL_YES_LONG.get().toString().
+                            equalsIgnoreCase(answer.toString()) ||
+                            INFO_CLI_UNINSTALL_YES_SHORT.get().toString().
+                                    equalsIgnoreCase(answer.toString());
           }
           else
           {
@@ -315,11 +304,8 @@ class UninstallCliHelper extends CliApplicationHelper {
             !userData.getRemoveLogs())
         {
           somethingSelected = false;
-          if (!userData.isSilent())
-          {
-            System.out.println(Constants.LINE_SEPARATOR+
-                getMsg("cli-uninstall-nothing-to-be-uninstalled"));
-          }
+          System.out.println(Constants.LINE_SEPARATOR+
+              INFO_CLI_UNINSTALL_NOTHING_TO_BE_UNINSTALLED.get());
         }
         else
         {
@@ -377,7 +363,6 @@ class UninstallCliHelper extends CliApplicationHelper {
     return cancelled;
   }
 
-
   /**
    *  Ask for confirmation to stop server.
    *  @return <CODE>true</CODE> if the user wants to continue and stop the
@@ -385,23 +370,7 @@ class UninstallCliHelper extends CliApplicationHelper {
    */
   private boolean confirmToStopServer()
   {
-    boolean confirm = true;
-    String[] validValues = {
-        getMsg("cli-uninstall-yes-short"),
-        getMsg("cli-uninstall-no-short"),
-        getMsg("cli-uninstall-yes-long"),
-        getMsg("cli-uninstall-no-long")
-    };
-    String answer = promptConfirm(FORMAT_KEY,
-        getMsg("cli-uninstall-confirm-stop"),
-        getMsg("cli-uninstall-yes-long"), validValues);
-
-    if (getMsg("cli-uninstall-no-short").equalsIgnoreCase(answer) ||
-        getMsg("cli-uninstall-no-long").equalsIgnoreCase(answer))
-    {
-      confirm = false;
-    }
-    return confirm;
+    return confirm(INFO_CLI_UNINSTALL_CONFIRM_STOP.get());
   }
 
   /**
@@ -411,19 +380,23 @@ class UninstallCliHelper extends CliApplicationHelper {
    */
   private boolean confirmDeleteFiles()
   {
-    boolean confirm = true;
-    String[] validValues = {
-        getMsg("cli-uninstall-yes-short"),
-        getMsg("cli-uninstall-no-short"),
-        getMsg("cli-uninstall-yes-long"),
-        getMsg("cli-uninstall-no-long")
-    };
-    String answer = promptConfirm(FORMAT_KEY,
-        getMsg("cli-uninstall-confirm-delete-files"),
-        getMsg("cli-uninstall-yes-long"), validValues);
+    return confirm(INFO_CLI_UNINSTALL_CONFIRM_DELETE_FILES.get());
+  }
 
-    if (getMsg("cli-uninstall-no-short").equalsIgnoreCase(answer) ||
-        getMsg("cli-uninstall-no-long").equalsIgnoreCase(answer))
+  private boolean confirm(Message msg) {
+    boolean confirm = true;
+    Message[] validValues = {
+        INFO_CLI_UNINSTALL_YES_SHORT.get(),
+        INFO_CLI_UNINSTALL_NO_SHORT.get(),
+        INFO_CLI_UNINSTALL_YES_LONG.get(),
+        INFO_CLI_UNINSTALL_NO_LONG.get(),
+    };
+    Message answer = promptConfirm(msg, validValues[2], validValues);
+
+    if (INFO_CLI_UNINSTALL_NO_SHORT.get().toString()
+            .equalsIgnoreCase(answer.toString()) ||
+        INFO_CLI_UNINSTALL_NO_LONG.get().toString()
+                .equalsIgnoreCase(answer.toString()))
     {
       confirm = false;
     }

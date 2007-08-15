@@ -37,6 +37,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.Attribute;
@@ -274,7 +275,7 @@ public final class TestLDIFWriter extends UtilTestCase {
     Writer writer = new Writer();
 
     LDIFWriter ldifWriter = writer.getLDIFWriter();
-    ldifWriter.writeComment(comment, wrapColumn);
+    ldifWriter.writeComment(Message.raw(comment), wrapColumn);
 
     checkLDIFOutput(writer, expectedLDIF);
   }

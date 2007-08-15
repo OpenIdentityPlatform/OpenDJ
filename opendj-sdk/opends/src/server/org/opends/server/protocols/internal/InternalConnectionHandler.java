@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.internal;
+import org.opends.messages.Message;
 
 
 
@@ -38,7 +39,6 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.HostPort;
-
 
 
 
@@ -140,7 +140,7 @@ public class InternalConnectionHandler
    *                           connection handler should also be
    *                           closed.
    */
-  public void finalizeConnectionHandler(String finalizeReason,
+  public void finalizeConnectionHandler(Message finalizeReason,
                                         boolean closeConnections)
   {
     // No implementation is required.

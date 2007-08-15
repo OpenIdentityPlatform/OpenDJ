@@ -35,6 +35,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringFactory;
+import org.opends.messages.MessageBuilder;
 
 import static org.testng.Assert.*;
 
@@ -136,9 +137,9 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
       "( testxapproxtype-oid NAME 'testXApproxType' " +
            "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 " +
            "X-APPROX 'equalLengthApproximateMatch' )");
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertTrue(attrTypeSyntax.valueIsAcceptable(definition, invalidReason),
-               invalidReason.toString());
+            invalidReason.toString());
 
 
     // Verify that we can decode the attribute type and that it has the

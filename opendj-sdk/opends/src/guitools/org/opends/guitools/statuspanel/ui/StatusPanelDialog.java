@@ -66,7 +66,6 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
-import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.guitools.statuspanel.BaseDNDescriptor;
 import org.opends.guitools.statuspanel.DatabaseDescriptor;
 import org.opends.guitools.statuspanel.ServerStatusDescriptor;
@@ -77,6 +76,9 @@ import org.opends.quicksetup.ui.Utilities;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 
+import org.opends.messages.Message;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * This panel is used to display basic information about the server status.
@@ -124,7 +126,7 @@ public class StatusPanelDialog extends JFrame
 
   private InstantaneousToolTipManager toolTipManager;
 
-  private final String NOT_AVAILABLE = getMsg("not-available-label");
+  private final Message NOT_AVAILABLE = INFO_NOT_AVAILABLE_LABEL.get();
 
   /**
    * ProgressDialog constructor.
@@ -132,7 +134,7 @@ public class StatusPanelDialog extends JFrame
   public StatusPanelDialog()
   {
     super();
-    setTitle(getMsg("statuspanel-dialog-title"));
+    setTitle(INFO_STATUSPANEL_DIALOG_TITLE.get().toString());
     createLayout();
 
     addWindowListener(new WindowAdapter()
@@ -310,7 +312,7 @@ public class StatusPanelDialog extends JFrame
     gbc.fill = GridBagConstraints.HORIZONTAL;
 
     gbc.insets.bottom = UIFactory.BOTTOM_INSET_PROGRESS_BAR;
-    lError = UIFactory.makeHtmlPane("", UIFactory.PROGRESS_FONT);
+    lError = UIFactory.makeHtmlPane(Message.EMPTY, UIFactory.PROGRESS_FONT);
     lError.setOpaque(false);
     lError.setEditable(false);
     inputPanel.add(lError, gbc);
@@ -344,8 +346,8 @@ public class StatusPanelDialog extends JFrame
     buttonsPanel.add(Box.createHorizontalGlue(), gbc);
 
     authenticateButton =
-      UIFactory.makeJButton(getMsg("authenticate-button-label"),
-          getMsg("authenticate-status-panel-button-tooltip"));
+      UIFactory.makeJButton(INFO_AUTHENTICATE_BUTTON_LABEL.get(),
+          INFO_AUTHENTICATE_STATUS_PANEL_BUTTON_TOOLTIP.get());
     gbc.fill = GridBagConstraints.NONE;
     gbc.weightx = 0.0;
     gbc.gridwidth = GridBagConstraints.RELATIVE;
@@ -359,8 +361,8 @@ public class StatusPanelDialog extends JFrame
     });
 
     quitButton =
-        UIFactory.makeJButton(getMsg("quit-button-label"),
-            getMsg("quit-status-panel-button-tooltip"));
+        UIFactory.makeJButton(INFO_QUIT_BUTTON_LABEL.get(),
+            INFO_QUIT_STATUS_PANEL_BUTTON_TOOLTIP.get());
     gbc.fill = GridBagConstraints.NONE;
     gbc.weightx = 0.0;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -475,7 +477,7 @@ public class StatusPanelDialog extends JFrame
    * surrounding the text.
    * @param title the title of the subsection.
    */
-  private JPanel createSubsectionTitle(String title)
+  private JPanel createSubsectionTitle(Message title)
   {
     JPanel p = new JPanel(new GridBagLayout());
     p.setOpaque(false);
@@ -518,14 +520,15 @@ public class StatusPanelDialog extends JFrame
     gbc.weightx = 1.0;
     gbc.insets = UIFactory.getEmptyInsets();
 
-    p.add(createSubsectionTitle(getMsg("server-status-title")), gbc);
+    p.add(createSubsectionTitle(INFO_SERVER_STATUS_TITLE.get()), gbc);
 
     JPanel auxPanel = new JPanel(new GridBagLayout());
     auxPanel.setOpaque(false);
     gbc.anchor = GridBagConstraints.WEST;
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     auxPanel.add(UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        getMsg("server-status-label"), UIFactory.TextStyle.PRIMARY_FIELD_VALID),
+        INFO_SERVER_STATUS_LABEL.get(),
+        UIFactory.TextStyle.PRIMARY_FIELD_VALID),
         gbc);
 
     JPanel statusPanel = new JPanel(new GridBagLayout());
@@ -538,8 +541,8 @@ public class StatusPanelDialog extends JFrame
     toolTipManager.registerComponent(lServerStatus);
     gbc.gridwidth--;
 
-    stopButton = UIFactory.makeJButton(getMsg("stop-button-label"),
-        getMsg("stop-button-tooltip"));
+    stopButton = UIFactory.makeJButton(INFO_STOP_BUTTON_LABEL.get(),
+        INFO_STOP_BUTTON_TOOLTIP.get());
     stopButton.addActionListener(new ActionListener()
     {
       public void actionPerformed(ActionEvent ev)
@@ -552,8 +555,8 @@ public class StatusPanelDialog extends JFrame
 
     gbc.gridwidth--;
     gbc.insets.left = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
-    startButton = UIFactory.makeJButton(getMsg("start-button-label"),
-        getMsg("start-button-tooltip"));
+    startButton = UIFactory.makeJButton(INFO_START_BUTTON_LABEL.get(),
+        INFO_START_BUTTON_TOOLTIP.get());
     statusPanel.add(startButton, gbc);
     startButton.addActionListener(new ActionListener()
     {
@@ -564,8 +567,8 @@ public class StatusPanelDialog extends JFrame
     });
 
     gbc.gridwidth--;
-    restartButton = UIFactory.makeJButton(getMsg("restart-button-label"),
-        getMsg("restart-button-tooltip"));
+    restartButton = UIFactory.makeJButton(INFO_RESTART_BUTTON_LABEL.get(),
+        INFO_RESTART_BUTTON_TOOLTIP.get());
     restartButton.addActionListener(new ActionListener()
     {
       public void actionPerformed(ActionEvent ev)
@@ -601,7 +604,7 @@ public class StatusPanelDialog extends JFrame
     gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     auxPanel.add(UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        getMsg("connections-label"), UIFactory.TextStyle.PRIMARY_FIELD_VALID),
+        INFO_CONNECTIONS_LABEL.get(), UIFactory.TextStyle.PRIMARY_FIELD_VALID),
         gbc);
     lCurrentConnections = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
         NOT_AVAILABLE, UIFactory.TextStyle.READ_ONLY);
@@ -633,7 +636,7 @@ public class StatusPanelDialog extends JFrame
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.weightx = 1.0;
 
-    p.add(createSubsectionTitle(getMsg("server-details-title")), gbc);
+    p.add(createSubsectionTitle(INFO_SERVER_DETAILS_TITLE.get()), gbc);
 
     JPanel auxPanel = new JPanel(new GridBagLayout());
     auxPanel.setOpaque(false);
@@ -642,16 +645,16 @@ public class StatusPanelDialog extends JFrame
     JLabel[] leftLabels =
       {
         UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-            getMsg("administrative-users-label"),
+            INFO_ADMINISTRATIVE_USERS_LABEL.get(),
             UIFactory.TextStyle.PRIMARY_FIELD_VALID),
         UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-            getMsg("installation-path-label"),
+            INFO_INSTALLATION_PATH_LABEL.get(),
             UIFactory.TextStyle.PRIMARY_FIELD_VALID),
         UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-            getMsg("opends-version-label"),
+            INFO_OPENDS_VERSION_LABEL.get(),
             UIFactory.TextStyle.PRIMARY_FIELD_VALID),
         UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-            getMsg("java-version-label"),
+            INFO_JAVA_VERSION_LABEL.get(),
             UIFactory.TextStyle.PRIMARY_FIELD_VALID)
       };
 
@@ -709,7 +712,7 @@ public class StatusPanelDialog extends JFrame
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
 
-    p.add(createSubsectionTitle(getMsg("listeners-title")), gbc);
+    p.add(createSubsectionTitle(INFO_LISTENERS_TITLE.get()), gbc);
 
     listenersTableModel = new ListenersTableModel();
     listenersTable = UIFactory.makeSortableTable(listenersTableModel,
@@ -725,7 +728,8 @@ public class StatusPanelDialog extends JFrame
     gbc.insets.top = 0;
     p.add(listenersTable, gbc);
 
-    lListenersTableEmpty = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, "",
+    lListenersTableEmpty = UIFactory.makeJLabel(
+        UIFactory.IconType.NO_ICON, Message.EMPTY,
         UIFactory.TextStyle.PRIMARY_FIELD_VALID);
     gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
     p.add(lListenersTableEmpty, gbc);
@@ -748,7 +752,7 @@ public class StatusPanelDialog extends JFrame
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
 
-    p.add(createSubsectionTitle(getMsg("databases-title")), gbc);
+    p.add(createSubsectionTitle(INFO_DATABASES_TITLE.get()), gbc);
 
     dbTableModelWithReplication = new DatabasesTableModel(true);
     dbTableModelWithoutReplication = new DatabasesTableModel(false);
@@ -783,8 +787,8 @@ public class StatusPanelDialog extends JFrame
     dbTableWithoutReplication.setVisible(false);
 
     gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
-    lDbTableEmpty = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, "",
-        UIFactory.TextStyle.PRIMARY_FIELD_VALID);
+    lDbTableEmpty = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
+            Message.EMPTY, UIFactory.TextStyle.PRIMARY_FIELD_VALID);
     p.add(lDbTableEmpty, gbc);
     lDbTableEmpty.setVisible(false);
     toolTipManager.registerComponent(lDbTableEmpty);
@@ -800,9 +804,9 @@ public class StatusPanelDialog extends JFrame
    */
   private void setNotAvailableBecauseServerIsDown(JLabel l)
   {
-    l.setText(NOT_AVAILABLE);
+    l.setText(NOT_AVAILABLE.toString());
     l.setIcon(UIFactory.getImageIcon(UIFactory.IconType.HELP_SMALL));
-    l.setToolTipText(getMsg("not-available-server-down-tooltip"));
+    l.setToolTipText(INFO_NOT_AVAILABLE_SERVER_DOWN_TOOLTIP.get().toString());
     l.setHorizontalTextPosition(SwingConstants.LEFT);
   }
 
@@ -814,9 +818,11 @@ public class StatusPanelDialog extends JFrame
    */
   private void setNotAvailableBecauseAuthenticationIsRequired(JLabel l)
   {
-    l.setText(NOT_AVAILABLE);
+    l.setText(NOT_AVAILABLE.toString());
     l.setIcon(UIFactory.getImageIcon(UIFactory.IconType.HELP_SMALL));
-    l.setToolTipText(getMsg("not-available-authentication-required-tooltip"));
+    l.setToolTipText(
+            INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_TOOLTIP.get()
+                    .toString());
     l.setHorizontalTextPosition(SwingConstants.LEFT);
   }
 
@@ -826,7 +832,7 @@ public class StatusPanelDialog extends JFrame
    */
   private void setNotAvailable(JLabel l)
   {
-    l.setText(NOT_AVAILABLE);
+    l.setText(NOT_AVAILABLE.toString());
     l.setIcon(null);
     l.setToolTipText(null);
   }
@@ -850,39 +856,39 @@ public class StatusPanelDialog extends JFrame
    */
   private void updateStatusContents(ServerStatusDescriptor desc)
   {
-    String status;
+    Message status;
     switch (desc.getStatus())
     {
     case STARTED:
-      status = getMsg("server-started-label");
+      status = INFO_SERVER_STARTED_LABEL.get();
       startButton.setVisible(false);
       restartButton.setVisible(true);
       stopButton.setVisible(true);
       break;
 
     case STOPPED:
-      status = getMsg("server-stopped-label");
+      status = INFO_SERVER_STOPPED_LABEL.get();
       startButton.setVisible(true);
       restartButton.setVisible(false);
       stopButton.setVisible(false);
       break;
 
     case STARTING:
-      status = getMsg("server-starting-label");
+      status = INFO_SERVER_STARTING_LABEL.get();
       startButton.setVisible(false);
       restartButton.setVisible(false);
       stopButton.setVisible(false);
       break;
 
     case STOPPING:
-      status = getMsg("server-stopping-label");
+      status = INFO_SERVER_STOPPING_LABEL.get();
       startButton.setVisible(false);
       restartButton.setVisible(false);
       stopButton.setVisible(false);
       break;
 
     case UNKNOWN:
-      status = getMsg("server-unknown-status-label");
+      status = INFO_SERVER_UNKNOWN_STATUS_LABEL.get();
       startButton.setVisible(false);
       restartButton.setVisible(true);
       stopButton.setVisible(true);
@@ -891,7 +897,7 @@ public class StatusPanelDialog extends JFrame
     default:
       throw new IllegalStateException("Unknown status: "+desc.getStatus());
     }
-    lServerStatus.setText(status);
+    lServerStatus.setText(status.toString());
 
     /* Enable authenticate button only if the server is started AND we have
      * no authentication (or the authentication we have does not seem to work
@@ -946,15 +952,15 @@ public class StatusPanelDialog extends JFrame
     Set<String> administrators = desc.getAdministrativeUsers();
     if (administrators.size() > 0)
     {
-      TreeSet<String> ordered = new TreeSet<String>();
+      TreeSet<Message> ordered = new TreeSet<Message>();
       for (String name: administrators)
       {
-        ordered.add(formatter.getFormattedText(name));
+        ordered.add(formatter.getFormattedText(Message.raw(name)));
       }
 
       setTextValue(lAdministrativeUsers,"<html>"+
           UIFactory.applyFontToHtml(
-              Utils.getStringFromCollection(ordered, "<br>"),
+              Utils.getMessageFromCollection(ordered, "<br>").toString(),
               UIFactory.READ_ONLY_FONT));
     }
     else
@@ -1058,12 +1064,14 @@ public class StatusPanelDialog extends JFrame
         }
         else
         {
-          setTextValue(lListenersTableEmpty, getMsg("no-listeners-found"));
+          setTextValue(lListenersTableEmpty,
+                  INFO_NO_LISTENERS_FOUND.get().toString());
         }
       }
       else
       {
-        setTextValue(lListenersTableEmpty, getMsg("no-listeners-found"));
+        setTextValue(lListenersTableEmpty,
+                INFO_NO_LISTENERS_FOUND.get().toString());
       }
     }
     else
@@ -1107,12 +1115,12 @@ public class StatusPanelDialog extends JFrame
         }
         else
         {
-          setTextValue(lDbTableEmpty, getMsg("no-dbs-found"));
+          setTextValue(lDbTableEmpty, INFO_NO_DBS_FOUND.get().toString());
         }
       }
       else
       {
-        setTextValue(lDbTableEmpty, getMsg("no-dbs-found"));
+        setTextValue(lDbTableEmpty, INFO_NO_DBS_FOUND.get().toString());
       }
     }
     else
@@ -1144,7 +1152,7 @@ public class StatusPanelDialog extends JFrame
    */
   private void updateErrorContents(ServerStatusDescriptor desc)
   {
-    String errorMsg = desc.getErrorMessage();
+    Message errorMsg = desc.getErrorMessage();
     if (errorMsg == null)
     {
       lError.setVisible(false);
@@ -1153,22 +1161,8 @@ public class StatusPanelDialog extends JFrame
     {
 
       lError.setVisible(true);
-      lError.setText(formatter.getFormattedError(errorMsg, false));
+      lError.setText(formatter.getFormattedError(errorMsg, false).toString());
     }
-  }
-
-  /**
-   * The following three methods are just commodity methods to get localized
-   * messages.
-   */
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
   }
 
   /**

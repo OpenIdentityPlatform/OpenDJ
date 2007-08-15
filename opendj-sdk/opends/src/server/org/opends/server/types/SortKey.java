@@ -30,10 +30,6 @@ package org.opends.server.types;
 
 import org.opends.server.api.OrderingMatchingRule;
 
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+import org.opends.messages.Message;
 
 
 
@@ -35,16 +36,12 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
-
+import org.opends.server.loggers.ErrorLogger;
 
 
 /**
@@ -154,17 +151,15 @@ public class UUIDOrderingMatchingRule
     byte[] valueBytes = value.value();
     if (valueBytes.length != 36)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_UUID_INVALID_LENGTH;
-      String message = getMessage(msgID, value.stringValue(),
-                                  valueBytes.length);
+      Message message = WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH.get(
+              value.stringValue(), valueBytes.length);
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
         case REJECT:
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         case WARN:
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.MILD_ERROR,
-                   message, msgID);
+          ErrorLogger.logError(message);
           return new ASN1OctetString(valueBytes);
         default:
           return new ASN1OctetString(valueBytes);
@@ -185,18 +180,15 @@ public class UUIDOrderingMatchingRule
         case 23:
           if (normBytes[i] != '-')
           {
-            int    msgID   = MSGID_ATTR_SYNTAX_UUID_EXPECTED_DASH;
-            String message = getMessage(msgID, value.stringValue(), i,
-                                        String.valueOf(normBytes[i]));
+            Message message = WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH.get(
+                    value.stringValue(), i, String.valueOf(normBytes[i]));
             switch (DirectoryServer.getSyntaxEnforcementPolicy())
             {
               case REJECT:
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               msgID);
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
               case WARN:
-                logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.MILD_ERROR,
-                         message, msgID);
+                ErrorLogger.logError(message);
                 return new ASN1OctetString(valueBytes);
               default:
                 return new ASN1OctetString(valueBytes);
@@ -243,18 +235,15 @@ public class UUIDOrderingMatchingRule
               normBytes[i] = 'f';
               break;
             default:
-              int    msgID   = MSGID_ATTR_SYNTAX_UUID_EXPECTED_HEX;
-              String message = getMessage(msgID, value.stringValue(), i,
-                                          String.valueOf(normBytes[i]));
+              Message message = WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX.get(
+                      value.stringValue(), i, String.valueOf(normBytes[i]));
               switch (DirectoryServer.getSyntaxEnforcementPolicy())
               {
                 case REJECT:
                   throw new DirectoryException(
-                                 ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                 msgID);
+                                 ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
                 case WARN:
-                  logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.MILD_ERROR,
-                           message, msgID);
+                  ErrorLogger.logError(message);
                   return new ASN1OctetString(valueBytes);
                 default:
                   return new ASN1OctetString(valueBytes);

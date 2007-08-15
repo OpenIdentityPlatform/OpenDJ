@@ -39,7 +39,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
-
+import org.opends.messages.Message;
 
 
 /**
@@ -277,7 +277,7 @@ public class TestASN1ReaderAndWriter
       ASN1Element e = reader.readElement();
       if (e.value().length <= 1)
       {
-        throw new ASN1Exception(-1, "Too small to trip the max element size");
+        throw new ASN1Exception(Message.raw("Too small to trip the max element size"));
       }
     }
     finally

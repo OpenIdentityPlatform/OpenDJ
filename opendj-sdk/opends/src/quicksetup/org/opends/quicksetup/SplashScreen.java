@@ -27,6 +27,8 @@
 
 package org.opends.quicksetup;
 
+import static org.opends.messages.QuickSetupMessages.*;
+
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics;
@@ -37,7 +39,6 @@ import java.awt.Window;
 
 import javax.swing.SwingUtilities;
 
-import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.ui.Utilities;
 
 /**
@@ -152,7 +153,7 @@ public class SplashScreen extends Window
    */
   private Image getSplashImage()
   {
-    String resource = ResourceProvider.getInstance().getMsg("splash-icon");
+    String resource = INFO_SPLASH_ICON.get().toString();
     resource = "org/opends/quicksetup/" + resource;
     return Toolkit.getDefaultToolkit().createImage(
         this.getClass().getClassLoader().getResource(resource));

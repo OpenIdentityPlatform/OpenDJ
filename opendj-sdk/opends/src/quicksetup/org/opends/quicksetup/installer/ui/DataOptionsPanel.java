@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup.installer.ui;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -309,17 +312,17 @@ public class DataOptionsPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected String getInstructions()
+  protected Message getInstructions()
   {
-    return getMsg("data-options-panel-instructions");
+    return INFO_DATA_OPTIONS_PANEL_INSTRUCTIONS.get();
   }
 
   /**
    * {@inheritDoc}
    */
-  protected String getTitle()
+  protected Message getTitle()
   {
-    return getMsg("data-options-panel-title");
+    return INFO_DATA_OPTIONS_PANEL_TITLE.get();
   }
 
   /**
@@ -401,17 +404,17 @@ public class DataOptionsPanel extends QuickSetupStepPanel
         new HashMap<FieldName, LabelFieldDescriptor>();
 
     hm.put(FieldName.DIRECTORY_BASE_DN, new LabelFieldDescriptor(
-        getMsg("base-dn-label"), getMsg("base-dn-tooltip"),
+        INFO_BASE_DN_LABEL.get(), INFO_BASE_DN_TOOLTIP.get(),
         LabelFieldDescriptor.FieldType.TEXTFIELD,
         LabelFieldDescriptor.LabelType.PRIMARY, UIFactory.DN_FIELD_SIZE));
 
     hm.put(FieldName.LDIF_PATH, new LabelFieldDescriptor(
-        getMsg("import-path-label"), getMsg("import-path-tooltip"),
+        INFO_IMPORT_PATH_LABEL.get(), INFO_IMPORT_PATH_TOOLTIP.get(),
         LabelFieldDescriptor.FieldType.TEXTFIELD,
         LabelFieldDescriptor.LabelType.SECONDARY, UIFactory.PATH_FIELD_SIZE));
 
     hm.put(FieldName.NUMBER_ENTRIES, new LabelFieldDescriptor(
-        getMsg("number-entries-label"), getMsg("number-entries-tooltip"),
+        INFO_NUMBER_ENTRIES_LABEL.get(), INFO_NUMBER_ENTRIES_TOOLTIP.get(),
         LabelFieldDescriptor.FieldType.TEXTFIELD,
         LabelFieldDescriptor.LabelType.SECONDARY,
         UIFactory.NUMBER_ENTRIES_FIELD_SIZE));
@@ -435,37 +438,36 @@ public class DataOptionsPanel extends QuickSetupStepPanel
 
     JLabel dataLabel =
         UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-            getMsg("directory-data-label"),
+            INFO_DIRECTORY_DATA_LABEL.get(),
             UIFactory.TextStyle.PRIMARY_FIELD_VALID);
 
     hmLabels.put(FieldName.DATA_OPTIONS, dataLabel);
 
-    String[] arg =
-      { getDefaultStringValue(FieldName.DIRECTORY_BASE_DN) };
     JRadioButton rb =
-        UIFactory.makeJRadioButton(getMsg("create-base-entry-label", arg),
-            getMsg("create-base-entry-tooltip"),
+        UIFactory.makeJRadioButton(INFO_CREATE_BASE_ENTRY_LABEL.get(
+                getDefaultStringValue(FieldName.DIRECTORY_BASE_DN)),
+            INFO_CREATE_BASE_ENTRY_TOOLTIP.get(),
             UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     hmRadioButtons.put(NewSuffixOptions.Type.CREATE_BASE_ENTRY, rb);
 
     dataLabel.setLabelFor(rb);
 
     rb =
-        UIFactory.makeJRadioButton(getMsg("leave-database-empty-label"),
-            getMsg("leave-database-empty-tooltip"),
+        UIFactory.makeJRadioButton(INFO_LEAVE_DATABASE_EMPTY_LABEL.get(),
+            INFO_LEAVE_DATABASE_EMPTY_TOOLTIP.get(),
             UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     hmRadioButtons.put(NewSuffixOptions.Type.LEAVE_DATABASE_EMPTY, rb);
 
     rb =
-        UIFactory.makeJRadioButton(getMsg("import-data-from-ldif-label"),
-            getMsg("import-data-from-ldif-tooltip"),
+        UIFactory.makeJRadioButton(INFO_IMPORT_DATA_FROM_LDIF_LABEL.get(),
+            INFO_IMPORT_DATA_FROM_LDIF_TOOLTIP.get(),
             UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     hmRadioButtons.put(NewSuffixOptions.Type.IMPORT_FROM_LDIF_FILE, rb);
 
     rb =
         UIFactory.makeJRadioButton(
-            getMsg("import-automatically-generated-label"),
-            getMsg("import-automatically-generated-tooltip"),
+            INFO_IMPORT_AUTOMATICALLY_GENERATED_LABEL.get(),
+            INFO_IMPORT_AUTOMATICALLY_GENERATED_TOOLTIP.get(),
             UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     hmRadioButtons
         .put(NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA, rb);
@@ -493,8 +495,8 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     if (ldifBrowseButton == null)
     {
       ldifBrowseButton =
-          UIFactory.makeJButton(getMsg("browse-button-label"),
-              getMsg("browse-button-tooltip"));
+          UIFactory.makeJButton(INFO_BROWSE_BUTTON_LABEL.get(),
+              INFO_BROWSE_BUTTON_TOOLTIP.get());
 
       BrowseActionListener l =
           new BrowseActionListener(getField(FieldName.LDIF_PATH),
@@ -515,13 +517,11 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     {
       public void changedUpdate(DocumentEvent ev)
       {
-        String[] arg =
-          { (String) getFieldValue(FieldName.DIRECTORY_BASE_DN) };
-
-        String newLabel = getMsg("create-base-entry-label", arg);
+        Message newLabel = INFO_CREATE_BASE_ENTRY_LABEL.get(
+                (String) getFieldValue(FieldName.DIRECTORY_BASE_DN));
         JRadioButton rb =
           getRadioButton(NewSuffixOptions.Type.CREATE_BASE_ENTRY);
-        rb.setText(newLabel);
+        rb.setText(newLabel.toString());
       }
 
       public void insertUpdate(DocumentEvent ev)

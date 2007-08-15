@@ -33,6 +33,8 @@ import org.opends.quicksetup.util.InProcessServerController;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.UserInteraction;
 import org.opends.quicksetup.webstart.WebStartDownloader;
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
 
 import javax.swing.*;
 import java.awt.event.WindowEvent;
@@ -74,7 +76,7 @@ public abstract class GuiApplication extends Application {
    * in some operating systems.
    * @return internationalized String representing the frame title
    */
-  abstract public String getFrameTitle();
+  abstract public Message getFrameTitle();
 
   /**
    * Returns the initial wizard step.
@@ -117,7 +119,7 @@ public abstract class GuiApplication extends Application {
    * Returns the tab formatted.
    * @return the tab formatted.
    */
-  protected String getTab()
+  protected Message getTab()
   {
     return formatter.getTab();
   }
@@ -152,8 +154,8 @@ public abstract class GuiApplication extends Application {
    */
   public boolean confirmCancel(QuickSetup qs) {
     return qs.displayConfirmation(
-          getMsg("confirm-cancel-prompt"),
-          getMsg("confirm-cancel-title"));
+          INFO_CONFIRM_CANCEL_PROMPT.get(),
+          INFO_CONFIRM_CANCEL_TITLE.get());
   }
 
   /**
@@ -388,32 +390,32 @@ public abstract class GuiApplication extends Application {
    * Gets the key for the close button's tool tip text.
    * @return String key of the text in the resource bundle
    */
-  public String getCloseButtonToolTipKey() {
-    return "close-button-tooltip";
+  public Message getCloseButtonToolTip() {
+    return INFO_CLOSE_BUTTON_TOOLTIP.get();
   }
 
   /**
    * Gets the key for the quit button's tool tip text.
    * @return String key of the text in the resource bundle
    */
-  public String getQuitButtonToolTipKey() {
-    return "quit-button-install-tooltip";
+  public Message getQuitButtonToolTip() {
+    return INFO_QUIT_BUTTON_INSTALL_TOOLTIP.get();
   }
 
   /**
    * Gets the key for the finish button's tool tip text.
    * @return String key of the text in the resource bundle
    */
-  public String getFinishButtonToolTipKey() {
-    return "finish-button-tooltip";
+  public Message getFinishButtonToolTip() {
+    return INFO_FINISH_BUTTON_TOOLTIP.get();
   }
 
   /**
    * Gets the key for the finish button's label.
    * @return String key of the text in the resource bundle
    */
-  public String getFinishButtonLabelKey() {
-    return "finish-button-label";
+  public Message getFinishButtonLabel() {
+    return INFO_FINISH_BUTTON_LABEL.get();
   }
 
   /**
@@ -501,27 +503,21 @@ public abstract class GuiApplication extends Application {
       {
         lastPercentage = perc;
         int ratio = (perc * maxRatio) / 100;
-        String summary;
+        Message summary;
         switch (downloadStatus)
         {
         case VALIDATING:
-          String[] argsValidating =
-            { String.valueOf(perc),
-              String.valueOf(loader.getCurrentValidatingPercentage())};
-
-          summary = getMsg("validating-ratio", argsValidating);
+          summary = INFO_VALIDATING_RATIO.get(
+                  String.valueOf(perc),
+                  String.valueOf(loader.getCurrentValidatingPercentage()));
           break;
         case UPGRADING:
-          String[] argsUpgrading =
-            { String.valueOf(perc),
-              String.valueOf(loader.getCurrentUpgradingPercentage())};
-          summary = getMsg("upgrading-ratio", argsUpgrading);
+          summary = INFO_UPGRADING_RATIO.get(
+                  String.valueOf(perc),
+                  String.valueOf(loader.getCurrentUpgradingPercentage()));
           break;
         default:
-          String[] arg =
-            { String.valueOf(perc) };
-
-          summary = getMsg("downloading-ratio", arg);
+          summary = INFO_DOWNLOADING_RATIO.get(String.valueOf(perc));
         }
         loader.setSummary(summary);
         notifyListeners(ratio, summary, null);
@@ -569,9 +565,9 @@ public abstract class GuiApplication extends Application {
       InProcessServerController.disableConnectionHandlers(true);
       ipsc.startServer();
     } catch (Throwable t) {
-      String msg = getMsg("error-starting-server-with-no-connection-handlers",
-          (t.getMessage() == null) ? t.toString() : t.getMessage());
-      LOG.log(Level.INFO, msg, t);
+      Message msg = INFO_ERROR_STARTING_SERVER_WITH_NO_CONNECTION_HANDLERS.get(
+              (t.getMessage() == null) ? t.toString() : t.getMessage());
+      LOG.log(Level.INFO, msg.toString(), t);
       throw new ApplicationException(
           ApplicationReturnCode.ReturnCode.IMPORT_ERROR, msg, t);
     }

@@ -37,12 +37,12 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
@@ -82,9 +82,8 @@ public class BitStringSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_BIT_STRING_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_BIT_STRING_OID, SYNTAX_BIT_STRING_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_BIT_STRING_OID, SYNTAX_BIT_STRING_NAME));
     }
   }
 
@@ -202,15 +201,15 @@ public class BitStringSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     String valueString = value.stringValue().toUpperCase();
 
     int length = valueString.length();
     if (length < 3)
     {
-      invalidReason.append(getMessage(MSGID_ATTR_SYNTAX_BIT_STRING_TOO_SHORT,
-                                      value.stringValue()));
+      invalidReason.append(
+              WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT.get(value.stringValue()));
       return false;
     }
 
@@ -219,8 +218,8 @@ public class BitStringSyntax
         (valueString.charAt(length-2) != '\'') ||
         (valueString.charAt(length-1) != 'B'))
     {
-      invalidReason.append(getMessage(MSGID_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED,
-                                      value.stringValue()));
+      invalidReason.append(
+              WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED.get(value.stringValue()));
       return false;
     }
 
@@ -234,10 +233,8 @@ public class BitStringSyntax
           // These characters are fine.
           break;
         default:
-          invalidReason.append(getMessage(
-                                    MSGID_ATTR_SYNTAX_BIT_STRING_INVALID_BIT,
-                                    value.stringValue(),
-                                    valueString.charAt(i)));
+          invalidReason.append(WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT.get(
+                  value.stringValue(), String.valueOf(valueString.charAt(i))));
           return false;
       }
     }

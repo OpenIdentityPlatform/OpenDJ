@@ -34,6 +34,7 @@ import org.opends.server.admin.std.server.AccessLogPublisherCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
+import org.opends.messages.Message;
 
 
 /**
@@ -106,7 +107,7 @@ public abstract class AccessLogPublisher
    */
   public boolean isConfigurationAcceptable(
                       AccessLogPublisherCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by access log publisher
@@ -150,7 +151,7 @@ public abstract class AccessLogPublisher
   public abstract void logDisconnect(
                             ClientConnection clientConnection,
                             DisconnectReason disconnectReason,
-                            String message);
+                            Message message);
 
 
 

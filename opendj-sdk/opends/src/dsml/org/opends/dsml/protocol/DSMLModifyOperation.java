@@ -32,10 +32,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.server.protocols.asn1.ASN1Element;
+import org.opends.messages.Message;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPModification;
@@ -137,10 +136,11 @@ public class DSMLModifyOperation
     ModifyResponseProtocolOp modOp =
          responseMessage.getModifyResponseProtocolOp();
     int resultCode = modOp.getResultCode();
-    String errorMessage = modOp.getErrorMessage();
+    Message errorMessage = modOp.getErrorMessage();
 
     // Set the result code and error message for the DSML response.
-    modResponse.setErrorMessage(errorMessage);
+    modResponse.setErrorMessage(
+            errorMessage != null ? errorMessage.toString() : null);
     ResultCode code = objFactory.createResultCode();
     code.setCode(resultCode);
     modResponse.setResultCode(code);

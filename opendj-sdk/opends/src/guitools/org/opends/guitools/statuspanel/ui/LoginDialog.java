@@ -54,7 +54,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.guitools.statuspanel.ConfigException;
 import org.opends.guitools.statuspanel.ConfigFromFile;
 import org.opends.guitools.statuspanel.ConnectionProtocolPolicy;
@@ -68,6 +67,9 @@ import org.opends.quicksetup.ui.Utilities;
 import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.Utils;
 
+import org.opends.messages.Message;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * This class is a dialog that appears when the user must provide authentication
@@ -113,7 +115,7 @@ public class LoginDialog extends JDialog
       ConnectionProtocolPolicy policy)
   {
     super(parent);
-    setTitle(getMsg("login-dialog-title"));
+    setTitle(INFO_LOGIN_DIALOG_TITLE.get().toString());
     this.parent = parent;
     getContentPane().add(createPanel());
     if (trustManager == null)
@@ -200,7 +202,7 @@ public class LoginDialog extends JDialog
     gbc.fill = GridBagConstraints.BOTH;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.insets.left = 0;
-    String msg = getMsg("login-dialog-msg");
+    Message msg = INFO_LOGIN_DIALOG_MSG.get();
 
     JTextComponent textPane =
       UIFactory.makeHtmlPane(msg, UIFactory.INSTRUCTIONS_FONT);
@@ -217,15 +219,16 @@ public class LoginDialog extends JDialog
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     lDn = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        getMsg("login-dn-label"),
+        INFO_LOGIN_DN_LABEL.get(),
         UIFactory.TextStyle.PRIMARY_FIELD_VALID);
     p2.add(lDn, gbc);
     gbc.weightx = 1.0;
     gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
-    tfDn = UIFactory.makeJTextField(getProposedAdministrativeUserDn(),
-        getMsg("login-dn-tooltip"),
-        UIFactory.DN_FIELD_SIZE, UIFactory.TextStyle.TEXTFIELD);
+    tfDn = UIFactory.makeJTextField(
+            Message.raw(getProposedAdministrativeUserDn()),
+            INFO_LOGIN_DN_TOOLTIP.get(),
+            UIFactory.DN_FIELD_SIZE, UIFactory.TextStyle.TEXTFIELD);
     p2.add(tfDn, gbc);
 
     gbc.insets.top = 0;
@@ -233,7 +236,7 @@ public class LoginDialog extends JDialog
     gbc.weightx = 0.0;
     gbc.insets.left = 0;
     lPwd = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        getMsg("login-pwd-label"),
+        INFO_LOGIN_PWD_LABEL.get(),
         UIFactory.TextStyle.PRIMARY_FIELD_VALID);
     p2.add(lPwd, gbc);
     gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
@@ -242,7 +245,7 @@ public class LoginDialog extends JDialog
     JPanel p3 = new JPanel(new GridBagLayout());
     p3.setOpaque(false);
     tfPwd = UIFactory.makeJPasswordField(null,
-        getMsg("login-pwd-tooltip"),
+        INFO_LOGIN_PWD_TOOLTIP.get(),
         UIFactory.PASSWORD_FIELD_SIZE, UIFactory.TextStyle.PASSWORD_FIELD);
     p2.add(p3, gbc);
     gbc.insets = UIFactory.getEmptyInsets();
@@ -278,8 +281,8 @@ public class LoginDialog extends JDialog
     gbc.fill = GridBagConstraints.NONE;
     gbc.weightx = 0.0;
     okButton =
-      UIFactory.makeJButton(getMsg("ok-button-label"),
-          getMsg("login-ok-button-tooltip"));
+      UIFactory.makeJButton(INFO_OK_BUTTON_LABEL.get(),
+          INFO_LOGIN_OK_BUTTON_TOOLTIP.get());
     buttonPanel.add(okButton, gbc);
     okButton.addActionListener(new ActionListener()
     {
@@ -292,8 +295,8 @@ public class LoginDialog extends JDialog
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.insets.left = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
     cancelButton =
-      UIFactory.makeJButton(getMsg("cancel-button-label"),
-          getMsg("login-cancel-button-tooltip"));
+      UIFactory.makeJButton(INFO_CANCEL_BUTTON_LABEL.get(),
+          INFO_LOGIN_CANCEL_BUTTON_TOOLTIP.get());
     buttonPanel.add(cancelButton, gbc);
     cancelButton.addActionListener(new ActionListener()
     {
@@ -377,7 +380,8 @@ public class LoginDialog extends JDialog
             }
             else
             {
-              throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+              throw new ConfigException(
+                      INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
             }
             break;
           case USE_LDAPS:
@@ -390,7 +394,8 @@ public class LoginDialog extends JDialog
             }
             else
             {
-              throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+              throw new ConfigException(
+                      INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
             }
             break;
           case USE_LDAP:
@@ -402,7 +407,8 @@ public class LoginDialog extends JDialog
             }
             else
             {
-              throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+              throw new ConfigException(
+                      INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
             }
             break;
           case USE_MOST_SECURE_AVAILABLE:
@@ -428,7 +434,8 @@ public class LoginDialog extends JDialog
             }
             else
             {
-              throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+              throw new ConfigException(
+                      INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
             }
             break;
           case USE_LESS_SECURE_AVAILABLE:
@@ -447,7 +454,8 @@ public class LoginDialog extends JDialog
             }
             else
             {
-              throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+              throw new ConfigException(
+                      INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
             }
             break;
             default:
@@ -522,9 +530,9 @@ public class LoginDialog extends JDialog
             }
             else
             {
-              String msg = Utils.getThrowableMsg(getI18n(),
-                  "error-connecting-to-local", null, throwable);
-              displayError(msg, getMsg("error-title"));
+              Message msg = Utils.getThrowableMsg(
+                  INFO_ERROR_CONNECTING_TO_LOCAL.get(), throwable);
+              displayError(msg, INFO_ERROR_TITLE.get());
             }
 
             if (excType != null)
@@ -541,13 +549,12 @@ public class LoginDialog extends JDialog
               {
                 LOG.log(Level.WARNING,
                     "Error parsing ldap url of ldap url.", t);
-                h = getMsg("not-available-label");
+                h = INFO_NOT_AVAILABLE_LABEL.get().toString();
                 p = -1;
               }
               UserDataCertificateException udce =
               new UserDataCertificateException(Step.REPLICATION_OPTIONS,
-                  getMsg("certificate-exception",
-                      new String[] {h, String.valueOf(p)}),
+                  INFO_CERTIFICATE_EXCEPTION.get(h, String.valueOf(p)),
                   throwable, h, p,
                   getTrustManager().getLastRefusedChain(),
                   getTrustManager().getLastRefusedAuthType(), excType);
@@ -561,16 +568,16 @@ public class LoginDialog extends JDialog
             boolean pwdInvalid = false;
 
             String dn = tfDn.getText();
-            ArrayList<String> possibleCauses = new ArrayList<String>();
+            ArrayList<Message> possibleCauses = new ArrayList<Message>();
             if ("".equals(dn.trim()))
             {
               dnInvalid = true;
-              possibleCauses.add(getMsg("empty-directory-manager-dn"));
+              possibleCauses.add(INFO_EMPTY_DIRECTORY_MANAGER_DN.get());
             }
             else if (!Utils.isDn(dn))
             {
               dnInvalid = true;
-              possibleCauses.add(getMsg("not-a-directory-manager-dn"));
+              possibleCauses.add(INFO_NOT_A_DIRECTORY_MANAGER_DN.get());
             }
             else
             {
@@ -583,14 +590,15 @@ public class LoginDialog extends JDialog
               if (!found)
               {
                 dnInvalid = true;
-                possibleCauses.add(getMsg("not-a-directory-manager-in-config"));
+                possibleCauses.add(
+                        INFO_NOT_A_DIRECTORY_MANAGER_IN_CONFIG.get());
               }
             }
 
             if ("".equals(tfPwd.getText()))
             {
               pwdInvalid = true;
-              possibleCauses.add(getMsg("empty-pwd"));
+              possibleCauses.add(INFO_EMPTY_PWD.get());
             }
             if (dnInvalid)
             {
@@ -615,33 +623,31 @@ public class LoginDialog extends JDialog
             }
             if (possibleCauses.size() > 0)
             {
-              // Message with causes
-              String[] arg = {
-                  Utils.getStringFromCollection(possibleCauses, "\n")
-              };
               displayError(
-                  getMsg("cannot-connect-to-login-with-cause", arg),
-                  getMsg("error-title"));
+                  INFO_CANNOT_CONNECT_TO_LOGIN_WITH_CAUSE.get(
+                          Utils.getMessageFromCollection(possibleCauses, "\n")),
+                  INFO_ERROR_TITLE.get());
             }
             else
             {
               // Generic message
               displayError(
-                  getMsg("cannot-connect-with-ads-credentials-without-cause"),
-                  getMsg("error-title"));
+                  INFO_CANNOT_CONNECT_WITH_ADS_CREDENTIALS_WITHOUT_CAUSE.get(),
+                  INFO_ERROR_TITLE.get());
             }
           }
           else if (throwable instanceof ConfigException)
           {
-            displayError(throwable.getMessage(), getMsg("error-title"));
+            displayError(((ConfigException)throwable).getMessageObject(),
+                    INFO_ERROR_TITLE.get());
           }
           else
           {
             // This is a bug
             throwable.printStackTrace();
             displayError(
-                Utils.getThrowableMsg(getI18n(), "bug-msg", null, throwable),
-                getMsg("error-title"));
+                Utils.getThrowableMsg(INFO_BUG_MSG.get(), throwable),
+                INFO_ERROR_TITLE.get());
           }
           cancelButton.setEnabled(true);
           okButton.setEnabled(true);
@@ -650,8 +656,8 @@ public class LoginDialog extends JDialog
           if (Boolean.FALSE.equals(returnValue))
           {
             displayInformationMessage(
-                getMsg("login-dialog-server-not-running-msg"),
-                getMsg("login-dialog-server-not-running-title"));
+                INFO_LOGIN_DIALOG_SERVER_NOT_RUNNING_MSG.get(),
+                INFO_LOGIN_DIALOG_SERVER_NOT_RUNNING_TITLE.get());
           }
           UIFactory.setTextStyle(lDn,
               UIFactory.TextStyle.PRIMARY_FIELD_VALID);
@@ -677,7 +683,7 @@ public class LoginDialog extends JDialog
    * @param title
    *          the title for the dialog.
    */
-  private void displayError(String msg, String title)
+  private void displayError(Message msg, Message title)
   {
     Utilities.displayError(parent, msg, title);
     toFront();
@@ -692,7 +698,7 @@ public class LoginDialog extends JDialog
    * @param title
    *          the title for the dialog.
    */
-  private void displayInformationMessage(String msg, String title)
+  private void displayInformationMessage(Message msg, Message title)
   {
     Utilities.displayInformationMessage(parent, msg, title);
     toFront();
@@ -731,23 +737,6 @@ public class LoginDialog extends JDialog
       conf.readConfiguration();
     }
     return conf;
-  }
-
-  /* The following three methods are just commodity methods to retrieve
-   * localized messages */
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  private String getMsg(String key, String[] args)
-  {
-    return getI18n().getMsg(key, args);
-  }
-
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
   }
 
   /**

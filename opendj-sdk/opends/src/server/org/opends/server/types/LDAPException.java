@@ -25,6 +25,8 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
+
 
 
 
@@ -49,15 +51,11 @@ public class LDAPException
   // The matched DN associated with this LDAP exception.
   private final DN matchedDN;
 
-  // The message ID for the message associated with this LDAP
-  // exception.
-  private final int messageID;
-
   // The LDAP result code associated with this exception.
   private final int resultCode;
 
   // The server-provided error message for this LDAP exception.
-  private final String errorMessage;
+  private final Message errorMessage;
 
 
 
@@ -66,17 +64,14 @@ public class LDAPException
    *
    * @param  resultCode  The LDAP result code associated with this
    *                     exception.
-   * @param  messageID   The unique identifier for the associated
-   *                     message.
    * @param  message     The message that explains the problem that
    *                     occurred.
    */
-  public LDAPException(int resultCode, int messageID, String message)
+  public LDAPException(int resultCode, Message message)
   {
     super(message);
 
     this.resultCode = resultCode;
-    this.messageID  = messageID;
 
     errorMessage = null;
     matchedDN    = null;
@@ -90,19 +85,16 @@ public class LDAPException
    * @param  resultCode    The LDAP result code associated with this
    *                       exception.
    * @param  errorMessage  The server-provided error message.
-   * @param  messageID     The unique identifier for the associated
-   *                       message.
    * @param  message       The message that explains the problem that
    *                       occurred.
    */
-  public LDAPException(int resultCode, String errorMessage,
-                       int messageID, String message)
+  public LDAPException(int resultCode, Message errorMessage,
+                       Message message)
   {
     super(message);
 
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
-    this.messageID    = messageID;
 
     matchedDN    = null;
   }
@@ -115,20 +107,17 @@ public class LDAPException
    *
    * @param  resultCode  The LDAP result code associated with this
    *                     exception.
-   * @param  messageID   The unique identifier for the associated
-   *                     message.
    * @param  message     The message that explains the problem that
    *                     occurred.
    * @param  cause       The exception that was caught to trigger this
    *                     exception.
    */
-  public LDAPException(int resultCode, int messageID, String message,
+  public LDAPException(int resultCode, Message message,
                        Throwable cause)
   {
     super(message, cause);
 
     this.resultCode = resultCode;
-    this.messageID  = messageID;
 
     errorMessage = null;
     matchedDN    = null;
@@ -143,21 +132,18 @@ public class LDAPException
    * @param  resultCode    The LDAP result code associated with this
    *                       exception.
    * @param  errorMessage  The server-provided error message.
-   * @param  messageID     The unique identifier for the associated
-   *                       message.
    * @param  message       The message that explains the problem that
    *                       occurred.
    * @param  cause         The exception that was caught to trigger
    *                       this exception.
    */
-  public LDAPException(int resultCode, String errorMessage,
-                       int messageID, String message, Throwable cause)
+  public LDAPException(int resultCode, Message errorMessage,
+                       Message message, Throwable cause)
   {
     super(message, cause);
 
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
-    this.messageID    = messageID;
 
     matchedDN    = null;
   }
@@ -171,23 +157,20 @@ public class LDAPException
    * @param  resultCode    The LDAP result code associated with this
    *                       exception.
    * @param  errorMessage  The server-provided error message.
-   * @param  messageID     The unique identifier for the associated
-   *                       message.
    * @param  message       The message that explains the problem that
    *                       occurred.
    * @param  matchedDN     The matched DN returned by the server.
    * @param  cause         The exception that was caught to trigger
    *                       this exception.
    */
-  public LDAPException(int resultCode, String errorMessage,
-                       int messageID, String message, DN matchedDN,
+  public LDAPException(int resultCode, Message errorMessage,
+                       Message message, DN matchedDN,
                        Throwable cause)
   {
     super(message, cause);
 
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
-    this.messageID    = messageID;
     this.matchedDN    = matchedDN;
   }
 
@@ -211,21 +194,9 @@ public class LDAPException
    * @return  The server-provided error message for this exception, or
    *          {@code null} if none was given.
    */
-  public String getErrorMessage()
+  public Message getErrorMessage()
   {
     return errorMessage;
-  }
-
-
-
-  /**
-   * Retrieves the unique identifier for the associated message.
-   *
-   * @return  The unique identifier for the associated message.
-   */
-  public int getMessageID()
-  {
-    return messageID;
   }
 
 

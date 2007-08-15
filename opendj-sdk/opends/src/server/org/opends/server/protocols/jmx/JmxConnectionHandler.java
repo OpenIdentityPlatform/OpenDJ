@@ -25,12 +25,13 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.jmx;
+import org.opends.messages.Message;
 
 
 
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
+
 import static org.opends.server.util.StaticUtils.*;
 
 import java.net.InetSocketAddress;
@@ -53,8 +54,8 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
@@ -122,7 +123,7 @@ public final class JmxConnectionHandler extends
       JMXConnectionHandlerCfg config) {
     // Create variables to include in the response.
     ResultCode resultCode = ResultCode.SUCCESS;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     // Determine whether or not the RMI connection needs restarting.
     boolean rmiConnectorRestart = false;
@@ -164,7 +165,7 @@ public final class JmxConnectionHandler extends
       catch (RuntimeException e)
       {
         resultCode = ResultCode.OPERATIONS_ERROR;
-        messages.add(e.getMessage());
+        messages.add(Message.raw(e.getMessage()));
       }
     }
 
@@ -187,7 +188,7 @@ public final class JmxConnectionHandler extends
    *          associated with the connection handler should also be
    *          closed.
    */
-  public void finalizeConnectionHandler(String finalizeReason,
+  public void finalizeConnectionHandler(Message finalizeReason,
       boolean closeConnections) {
     // Make sure that we don't get notified of any more changes.
     currentConfig.removeJMXChangeListener(this);
@@ -329,24 +330,19 @@ public final class JmxConnectionHandler extends
       KeyManagerProvider provider = DirectoryServer
           .getKeyManagerProvider(keyManagerProviderDN);
       if (provider == null) {
-        int msgID = MSGID_JMX_CONNHANDLER_INVALID_KEYMANAGER_DN;
-        String message = getMessage(msgID, String
-            .valueOf(config.dn()), String
-            .valueOf(keyManagerProviderDN));
-        throw new ConfigException(msgID, message);
+        Message message = ERR_JMX_CONNHANDLER_INVALID_KEYMANAGER_DN.get(
+            String.valueOf(config.dn()), String.valueOf(keyManagerProviderDN));
+        throw new ConfigException(message);
       }
     }
 
     // Issue warning if there is not key manager by SSL is enabled.
     if (config.isUseSSL() && keyManagerProviderDN == null) {
       // TODO: give a more useful feedback message.
-      logError(ErrorLogCategory.CONFIGURATION,
-          ErrorLogSeverity.SEVERE_WARNING,
-          MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_USE_SSL);
-      int msgID = MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_USE_SSL;
-      String message = getMessage(msgID,
+      Message message = ERR_JMX_CONNHANDLER_CANNOT_DETERMINE_USE_SSL.get(
           String.valueOf(currentConfig.dn()), "");
-      throw new ConfigException(msgID, message);
+      logError(message);
+      throw new ConfigException(message);
     }
 
     // Configuration is ok.
@@ -364,13 +360,11 @@ public final class JmxConnectionHandler extends
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_JMX_CONNHANDLER_CANNOT_BIND;
-      String message = getMessage(msgID, String.valueOf(config.dn()),
-                                  config.getListenPort(),
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.CONNECTION_HANDLING,
-               ErrorLogSeverity.SEVERE_ERROR, message, msgID);
-      throw new InitializationException(msgID, message);
+      Message message = ERR_JMX_CONNHANDLER_CANNOT_BIND.
+          get(String.valueOf(config.dn()), config.getListenPort(),
+              getExceptionMessage(e));
+      logError(message);
+      throw new InitializationException(message);
     }
     finally
     {
@@ -431,7 +425,7 @@ public final class JmxConnectionHandler extends
    */
   @Override()
   public boolean isConfigurationAcceptable(ConnectionHandlerCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     JMXConnectionHandlerCfg config = (JMXConnectionHandlerCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
@@ -444,7 +438,7 @@ public final class JmxConnectionHandler extends
    */
   public boolean isConfigurationChangeAcceptable(
       JMXConnectionHandlerCfg config,
-      List<String> unacceptableReasons) {
+      List<Message> unacceptableReasons) {
     boolean isAcceptable = true;
 
     //  Validate the key manager provider DN.
@@ -453,19 +447,19 @@ public final class JmxConnectionHandler extends
       KeyManagerProvider provider = DirectoryServer
           .getKeyManagerProvider(keyManagerProviderDN);
       if (provider == null) {
-        int msgID = MSGID_JMX_CONNHANDLER_INVALID_KEYMANAGER_DN;
-        unacceptableReasons.add(getMessage(msgID, String
-            .valueOf(config.dn()), String
-            .valueOf(keyManagerProviderDN)));
+
+        unacceptableReasons.add(ERR_JMX_CONNHANDLER_INVALID_KEYMANAGER_DN.get(
+                String.valueOf(config.dn()),
+                String.valueOf(keyManagerProviderDN)));
         isAcceptable = false;
       }
     }
 
     if (config.isUseSSL() && keyManagerProviderDN == null) {
       // TODO: give a more useful feedback message.
-      int msgID = MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_USE_SSL;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(config
-          .dn()), ""));
+
+      unacceptableReasons.add(ERR_JMX_CONNHANDLER_CANNOT_DETERMINE_USE_SSL.get(
+              String.valueOf(config.dn()), ""));
       isAcceptable = false;
     }
 
@@ -490,7 +484,7 @@ public final class JmxConnectionHandler extends
   /**
    * {@inheritDoc}
    */
-  public void processServerShutdown(String reason) {
+  public void processServerShutdown(Message reason) {
     // We should also close the RMI registry.
     rmiConnector.finalizeConnectionHandler(true, true);
   }

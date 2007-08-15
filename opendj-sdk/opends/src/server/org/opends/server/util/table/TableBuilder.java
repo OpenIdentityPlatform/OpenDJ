@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util.table;
+import org.opends.messages.Message;
 
 
 
@@ -50,7 +51,7 @@ public final class TableBuilder {
   private List<Integer> columnWidths = new ArrayList<Integer>();
 
   // The list of column headings.
-  private List<String> header = new ArrayList<String>();
+  private List<Message> header = new ArrayList<Message>();
 
   // The current number of rows in the table.
   private int height = 0;
@@ -242,7 +243,7 @@ public final class TableBuilder {
    * Appends a new blank column heading to the header row.
    */
   public void appendHeading() {
-    appendHeading("");
+    appendHeading(Message.EMPTY);
   }
 
 
@@ -253,7 +254,7 @@ public final class TableBuilder {
    * @param value
    *          The column heading value.
    */
-  public void appendHeading(String value) {
+  public void appendHeading(Message value) {
     header.add(value);
 
     // Update statistics.
@@ -343,8 +344,8 @@ public final class TableBuilder {
 
     // Column headings.
     serializer.startHeader();
-    for (String s : header) {
-      serializer.addHeading(s);
+    for (Message s : header) {
+      serializer.addHeading(s.toString());
     }
     serializer.endHeader();
 

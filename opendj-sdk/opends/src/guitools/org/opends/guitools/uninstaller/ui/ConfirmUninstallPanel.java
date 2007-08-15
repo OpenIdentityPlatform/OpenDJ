@@ -27,7 +27,6 @@
 
 package org.opends.guitools.uninstaller.ui;
 
-import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.Configuration;
@@ -46,6 +45,9 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.IOException;
+
+import org.opends.messages.Message;
+import static org.opends.messages.AdminToolMessages.*;
 
 /**
  * This is the panel displayed when the user is uninstalling Open DS.  It is
@@ -122,9 +124,9 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected String getTitle()
+  protected Message getTitle()
   {
-    return getMsg("confirm-uninstall-panel-title");
+    return INFO_CONFIRM_UNINSTALL_PANEL_TITLE.get();
   }
 
   /**
@@ -141,22 +143,22 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
         FieldName.REMOVE_LDIFS,
     };
 
-    String[] labels = {
-        getMsg("remove-libraries-and-tools-label"),
-        getMsg("remove-databases-label"),
-        getMsg("remove-logs-label"),
-        getMsg("remove-schema-and-configuration-label"),
-        getMsg("remove-backups-label"),
-        getMsg("remove-ldifs-label"),
+    Message[] labels = {
+        INFO_REMOVE_LIBRARIES_AND_TOOLS_LABEL.get(),
+        INFO_REMOVE_DATABASES_LABEL.get(),
+        INFO_REMOVE_LOGS_LABEL.get(),
+        INFO_REMOVE_SCHEMA_AND_CONFIGURATION_LABEL.get(),
+        INFO_REMOVE_BACKUPS_LABEL.get(),
+        INFO_REMOVE_LDIFS_LABEL.get()
     };
 
-    String[] tooltips = {
-        getMsg("remove-libraries-and-tools-tooltip"),
-        getMsg("remove-databases-tooltip"),
-        getMsg("remove-logs-tooltip"),
-        getMsg("remove-schema-and-configuration-tooltip"),
-        getMsg("remove-backups-tooltip"),
-        getMsg("remove-ldifs-tooltip"),
+    Message[] tooltips = {
+        INFO_REMOVE_LIBRARIES_AND_TOOLS_TOOLTIP.get(),
+        INFO_REMOVE_DATABASES_TOOLTIP.get(),
+        INFO_REMOVE_LOGS_TOOLTIP.get(),
+        INFO_REMOVE_SCHEMA_AND_CONFIGURATION_TOOLTIP.get(),
+        INFO_REMOVE_BACKUPS_TOOLTIP.get(),
+        INFO_REMOVE_LDIFS_TOOLTIP.get()
     };
 
     for (int i=0; i<fieldNames.length; i++)
@@ -180,12 +182,13 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     gbc.anchor = GridBagConstraints.WEST;
     p.add(UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        getMsg("server-path-label"),
+        INFO_SERVER_PATH_LABEL.get(),
         UIFactory.TextStyle.PRIMARY_FIELD_VALID), gbc);
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.insets.left = UIFactory.LEFT_INSET_SECONDARY_FIELD;
     p.add(UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        Utils.getInstallPathFromClasspath(), UIFactory.TextStyle.INSTRUCTIONS),
+        Message.raw(Utils.getInstallPathFromClasspath()),
+        UIFactory.TextStyle.INSTRUCTIONS),
         gbc);
 
     FieldName[] names = {
@@ -253,17 +256,9 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected String getInstructions()
+  protected Message getInstructions()
   {
-    return getMsg("confirm-uninstall-panel-instructions");
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
+    return INFO_CONFIRM_UNINSTALL_PANEL_INSTRUCTIONS.get();
   }
 
   /**
@@ -275,13 +270,14 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
   private JPanel createDbPanel()
   {
     JCheckBox cbOutsideDbs = UIFactory.makeJCheckBox(
-        getMsg("delete-outside-dbs-label"),
-        getMsg("delete-outside-dbs-tooltip"), UIFactory.TextStyle.INSTRUCTIONS);
+        INFO_DELETE_OUTSIDE_DBS_LABEL.get(),
+        INFO_DELETE_OUTSIDE_DBS_TOOLTIP.get(),
+            UIFactory.TextStyle.INSTRUCTIONS);
     cbOutsideDbs.setSelected(true);
     hmCbs.put(FieldName.EXTERNAL_DB_DIRECTORIES, cbOutsideDbs);
 
     return createOutsidePathPanel(cbOutsideDbs, outsideDbs,
-        "delete-outside-dbs-msg");
+        INFO_DELETE_OUTSIDE_DBS_MSG.get());
   }
 
   /**
@@ -293,18 +289,18 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
   private JPanel createLogPanel()
   {
     JCheckBox cbOutsideLogs = UIFactory.makeJCheckBox(
-        getMsg("delete-outside-logs-label"),
-        getMsg("delete-outside-logs-tooltip"),
+        INFO_DELETE_OUTSIDE_LOGS_LABEL.get(),
+        INFO_DELETE_OUTSIDE_LOGS_TOOLTIP.get(),
         UIFactory.TextStyle.INSTRUCTIONS);
     cbOutsideLogs.setSelected(true);
     hmCbs.put(FieldName.EXTERNAL_LOG_FILES, cbOutsideLogs);
 
     return createOutsidePathPanel(cbOutsideLogs, outsideLogs,
-        "delete-outside-logs-msg");
+        INFO_DELETE_OUTSIDE_LOGS_MSG.get());
   }
 
   private JPanel createOutsidePathPanel(JCheckBox cb, Set<String> paths,
-      String msgKey)
+      Message msg)
   {
     JPanel panel = new JPanel(new GridBagLayout());
     panel.setOpaque(false);
@@ -316,7 +312,7 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
 
-    panel.add(UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, getMsg(msgKey),
+    panel.add(UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, msg,
         UIFactory.TextStyle.INSTRUCTIONS), gbc);
     DefaultListModel listModel = new DefaultListModel();
     for (String path : paths)

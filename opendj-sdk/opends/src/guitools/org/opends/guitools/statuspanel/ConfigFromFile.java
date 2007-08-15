@@ -37,6 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.opends.server.core.DirectoryServer;
+import org.opends.messages.Message;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.types.Attribute;
@@ -45,9 +46,10 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ObjectClass;
-import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.Installation;
+
+import static org.opends.messages.AdminToolMessages.*;
 
 /**
  * This class is used to retrieve configuration information directly from the
@@ -79,7 +81,7 @@ public class ConfigFromFile
   private HashSet<DatabaseDescriptor> databases =
     new HashSet<DatabaseDescriptor>();
   private HashSet<String> administrativeUsers = new HashSet<String>();
-  private String errorMessage;
+  private Message errorMessage;
   private boolean replicationConfigured = false;
   private HashSet<String> replicatedSuffixes = new HashSet<String>();
 
@@ -126,22 +128,22 @@ public class ConfigFromFile
     catch (IOException ioe)
     {
       LOG.log(Level.SEVERE, "Error reading config file: "+ioe, ioe);
-      errorMessage = Utils.getThrowableMsg(getI18n(),
-          "error-reading-config-file", null, ioe);
+      errorMessage = Utils.getThrowableMsg(
+          INFO_ERROR_READING_CONFIG_FILE.get(), ioe);
     }
     catch (LDIFException le)
     {
       LOG.log(Level.SEVERE, "Error reading config file: "+le, le);
-      errorMessage = Utils.getThrowableMsg(getI18n(),
-          "error-reading-config-file", null, le);
+      errorMessage = Utils.getThrowableMsg(
+          INFO_ERROR_READING_CONFIG_FILE.get(), le);
     }
     catch (Throwable t)
     {
       LOG.log(Level.SEVERE, "Error reading config file: "+t, t);
       // Bug
       t.printStackTrace();
-      errorMessage = Utils.getThrowableMsg(getI18n(),
-          "error-reading-config-file", null, t);
+      errorMessage = Utils.getThrowableMsg(
+          INFO_ERROR_READING_CONFIG_FILE.get(), t);
     }
     finally
     {
@@ -197,7 +199,7 @@ public class ConfigFromFile
    * @return the error message that we got when retrieving the information
    * from the config.ldif file.
    */
-  public String getErrorMessage()
+  public Message getErrorMessage()
   {
     return errorMessage;
   }
@@ -375,7 +377,7 @@ public class ConfigFromFile
         getFirstValue(entry, "ds-cfg-use-ssl"));
 
     ListenerDescriptor.Protocol protocol;
-    String protocolDescription;
+    Message protocolDescription;
 
     ListenerDescriptor.State state;
     if (entry.hasObjectClass(ldapConnectionHandlerOc))
@@ -383,12 +385,12 @@ public class ConfigFromFile
       addressPort = address+":"+port;
       if (isSecure)
       {
-        protocolDescription = getMsg("ldaps-protocol-label");
+        protocolDescription = INFO_LDAPS_PROTOCOL_LABEL.get();
         protocol = ListenerDescriptor.Protocol.LDAPS;
       }
       else
       {
-        protocolDescription = getMsg("ldap-protocol-label");
+        protocolDescription = INFO_LDAP_PROTOCOL_LABEL.get();
         protocol = ListenerDescriptor.Protocol.LDAP;
       }
       boolean enabled = "true".equalsIgnoreCase(
@@ -407,12 +409,12 @@ public class ConfigFromFile
       addressPort = "0.0.0.0:"+port;
       if (isSecure)
       {
-        protocolDescription = getMsg("jmx-secure-protocol-label");
+        protocolDescription = INFO_JMX_SECURE_PROTOCOL_LABEL.get();
         protocol = ListenerDescriptor.Protocol.JMXS;
       }
       else
       {
-        protocolDescription = getMsg("jmx-protocol-label");
+        protocolDescription = INFO_JMX_PROTOCOL_LABEL.get();
         protocol = ListenerDescriptor.Protocol.JMX;
       }
       boolean enabled = "true".equalsIgnoreCase(
@@ -428,7 +430,7 @@ public class ConfigFromFile
     }
     else
     {
-      addressPort = getMsg("unknown-label");
+      addressPort = INFO_UNKNOWN_LABEL.get().toString();
       protocolDescription = null;
       protocol = ListenerDescriptor.Protocol.OTHER;
       /* Try to figure a name from the cn */
@@ -438,16 +440,16 @@ public class ConfigFromFile
         int index = cn.toLowerCase().indexOf("connection handler");
         if (index > 0)
         {
-          protocolDescription = cn.substring(0, index).trim();
+          protocolDescription = Message.raw(cn.substring(0, index).trim());
         }
         else
         {
-          protocolDescription = cn;
+          protocolDescription = Message.raw(cn);
         }
       }
       else
       {
-        protocolDescription = getMsg("undefined-protocol-label");
+        protocolDescription = INFO_UNDEFINED_PROTOCOL_LABEL.get();
       }
       state = ListenerDescriptor.State.UNKNOWN;
     }
@@ -582,20 +584,6 @@ public class ConfigFromFile
     {
       replicatedSuffixes.addAll(getValues(entry, "ds-cfg-replication-dn"));
     }
-  }
-
-  /**
-   * The following three methods are just commodity methods to get localized
-   * messages.
-   */
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
   }
 
   /*

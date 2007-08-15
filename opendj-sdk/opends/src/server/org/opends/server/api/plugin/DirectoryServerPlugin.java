@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api.plugin;
+import org.opends.messages.Message;
 
 
 
@@ -46,9 +47,7 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.operation.*;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.PluginMessages.*;
-
+import static org.opends.messages.PluginMessages.*;
 
 
 /**
@@ -100,7 +99,7 @@ public abstract class DirectoryServerPlugin
    *          for this plugin, or {@code false} if not.
    */
   public boolean isConfigurationAcceptable(PluginCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by plugin implementations
@@ -198,10 +197,9 @@ public abstract class DirectoryServerPlugin
    */
   public StartupPluginResult doStartup()
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                                PluginType.STARTUP.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        String.valueOf(pluginDN), PluginType.STARTUP.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -215,12 +213,11 @@ public abstract class DirectoryServerPlugin
    *
    * @param  reason  The human-readable reason for the shutdown.
    */
-  public void doShutdown(String reason)
+  public void doShutdown(Message reason)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                                PluginType.SHUTDOWN.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        String.valueOf(pluginDN), PluginType.SHUTDOWN.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -239,10 +236,9 @@ public abstract class DirectoryServerPlugin
   public PostConnectPluginResult doPostConnect(ClientConnection
                                                     clientConnection)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                                PluginType.POST_CONNECT.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        String.valueOf(pluginDN), PluginType.POST_CONNECT.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -255,9 +251,6 @@ public abstract class DirectoryServerPlugin
    * @param  clientConnection  The client connection that has been
    *                           closed.
    * @param  disconnectReason  The disconnect reason for the closure.
-   * @param  messageID         The message ID for an additional
-   *                           message for the closure, or a negative
-   *                           value if there was no closure message.
    * @param  message           A message providing additional
    *                           information about the closure, or
    *                           <CODE>null</CODE> if there is none.
@@ -267,12 +260,12 @@ public abstract class DirectoryServerPlugin
   public PostDisconnectPluginResult
               doPostDisconnect(ClientConnection clientConnection,
                                DisconnectReason disconnectReason,
-                               int messageID, String message)
+                               Message message)
   {
-    int    msgID = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String msg   = getMessage(msgID, String.valueOf(pluginDN),
-                              PluginType.POST_DISCONNECT.getName());
-    throw new UnsupportedOperationException(msg);
+    Message msg = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_DISCONNECT.getName());
+    throw new UnsupportedOperationException(msg.toString());
   }
 
 
@@ -292,10 +285,9 @@ public abstract class DirectoryServerPlugin
   public LDIFPluginResult doLDIFImport(LDIFImportConfig importConfig,
                                        Entry entry)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                                PluginType.LDIF_IMPORT.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        String.valueOf(pluginDN), PluginType.LDIF_IMPORT.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -313,10 +305,9 @@ public abstract class DirectoryServerPlugin
   public LDIFPluginResult doLDIFExport(LDIFExportConfig exportConfig,
                                        Entry entry)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                                PluginType.LDIF_EXPORT.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        String.valueOf(pluginDN), PluginType.LDIF_EXPORT.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -333,10 +324,10 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseAbandonOperation abandonOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.PRE_PARSE_ABANDON.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.PRE_PARSE_ABANDON.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -354,11 +345,10 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationAbandonOperation abandonOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message =
-         getMessage(msgID, String.valueOf(pluginDN),
-                    PluginType.POST_OPERATION_ABANDON.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_OPERATION_ABANDON.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -374,10 +364,9 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseAddOperation addOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                                PluginType.PRE_PARSE_ADD.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        String.valueOf(pluginDN), PluginType.PRE_PARSE_ADD.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -396,10 +385,10 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationAddOperation addOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.PRE_OPERATION_ADD.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.PRE_OPERATION_ADD.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -418,10 +407,10 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationAddOperation addOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.POST_OPERATION_ADD.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_OPERATION_ADD.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -440,10 +429,10 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseAddOperation addOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.POST_RESPONSE_ADD.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_RESPONSE_ADD.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -460,10 +449,10 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseBindOperation bindOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                                PluginType.PRE_PARSE_BIND.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.PRE_PARSE_BIND.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -480,10 +469,10 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationBindOperation bindOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.PRE_OPERATION_BIND.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.PRE_OPERATION_BIND.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -502,10 +491,10 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationBindOperation bindOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.POST_OPERATION_BIND.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_OPERATION_BIND.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -524,10 +513,10 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseBindOperation bindOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.POST_RESPONSE_BIND.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_RESPONSE_BIND.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -544,10 +533,10 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseCompareOperation compareOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.PRE_PARSE_COMPARE.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.PRE_PARSE_COMPARE.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -564,10 +553,10 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationCompareOperation compareOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.PRE_OPERATION_COMPARE.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.PRE_OPERATION_COMPARE.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -586,11 +575,10 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationCompareOperation compareOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message =
-         getMessage(msgID, String.valueOf(pluginDN),
-                    PluginType.POST_OPERATION_COMPARE.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_OPERATION_COMPARE.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -609,10 +597,10 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseCompareOperation compareOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.POST_RESPONSE_COMPARE.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_RESPONSE_COMPARE.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -629,10 +617,10 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseDeleteOperation deleteOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.PRE_PARSE_DELETE.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.PRE_PARSE_DELETE.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -651,10 +639,10 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationDeleteOperation deleteOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.PRE_OPERATION_DELETE.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.PRE_OPERATION_DELETE.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -673,10 +661,10 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationDeleteOperation deleteOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.POST_OPERATION_DELETE.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_OPERATION_DELETE.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -695,10 +683,10 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseDeleteOperation deleteOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.POST_RESPONSE_DELETE.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_RESPONSE_DELETE.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -715,10 +703,10 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseExtendedOperation extendedOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.PRE_PARSE_EXTENDED.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.PRE_PARSE_EXTENDED.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -736,11 +724,10 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationExtendedOperation extendedOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message =
-         getMessage(msgID, String.valueOf(pluginDN),
-                    PluginType.PRE_OPERATION_EXTENDED.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.PRE_OPERATION_EXTENDED.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -761,11 +748,10 @@ public abstract class DirectoryServerPlugin
        doPostOperation(PostOperationExtendedOperation
                             extendedOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message =
-         getMessage(msgID, String.valueOf(pluginDN),
-                    PluginType.POST_OPERATION_EXTENDED.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_OPERATION_EXTENDED.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -784,11 +770,10 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseExtendedOperation extendedOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message =
-         getMessage(msgID, String.valueOf(pluginDN),
-                    PluginType.POST_RESPONSE_EXTENDED.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_RESPONSE_EXTENDED.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -805,10 +790,10 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseModifyOperation modifyOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.PRE_PARSE_MODIFY.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.PRE_PARSE_MODIFY.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -827,10 +812,10 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationModifyOperation modifyOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.PRE_OPERATION_MODIFY.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.PRE_OPERATION_MODIFY.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -849,10 +834,10 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationModifyOperation modifyOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.POST_OPERATION_MODIFY.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_OPERATION_MODIFY.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -871,10 +856,10 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseModifyOperation modifyOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.POST_RESPONSE_MODIFY.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_RESPONSE_MODIFY.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -891,10 +876,10 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseModifyDNOperation modifyDNOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.PRE_PARSE_MODIFY_DN.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.PRE_PARSE_MODIFY_DN.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -914,11 +899,10 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message =
-         getMessage(msgID, String.valueOf(pluginDN),
-                    PluginType.PRE_OPERATION_MODIFY_DN.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.PRE_OPERATION_MODIFY_DN.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -955,11 +939,10 @@ public abstract class DirectoryServerPlugin
                                   Entry oldEntry, Entry newEntry,
                                   List<Modification> modifications)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message =
-         getMessage(msgID, String.valueOf(pluginDN),
-                    PluginType.SUBORDINATE_MODIFY_DN.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+            String.valueOf(pluginDN),
+            PluginType.SUBORDINATE_MODIFY_DN.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -979,11 +962,10 @@ public abstract class DirectoryServerPlugin
        doPostOperation(PostOperationModifyDNOperation
                             modifyDNOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message =
-         getMessage(msgID, String.valueOf(pluginDN),
-                    PluginType.POST_OPERATION_MODIFY_DN.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_OPERATION_MODIFY_DN.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -1002,11 +984,10 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseModifyDNOperation modifyDNOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message =
-         getMessage(msgID, String.valueOf(pluginDN),
-                    PluginType.POST_RESPONSE_MODIFY_DN.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_RESPONSE_MODIFY_DN.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -1023,10 +1004,10 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseSearchOperation searchOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.PRE_PARSE_SEARCH.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.PRE_PARSE_SEARCH.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -1043,10 +1024,10 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationSearchOperation searchOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.PRE_OPERATION_SEARCH.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.PRE_OPERATION_SEARCH.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -1071,10 +1052,10 @@ public abstract class DirectoryServerPlugin
        processSearchEntry(SearchEntrySearchOperation searchOperation,
                           SearchResultEntry searchEntry)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.SEARCH_RESULT_ENTRY.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.SEARCH_RESULT_ENTRY.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -1096,11 +1077,10 @@ public abstract class DirectoryServerPlugin
                                    searchOperation,
                               SearchResultReference searchReference)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message =
-         getMessage(msgID, String.valueOf(pluginDN),
-                    PluginType.SEARCH_RESULT_REFERENCE.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.SEARCH_RESULT_REFERENCE.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -1119,10 +1099,10 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationSearchOperation searchOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.POST_OPERATION_SEARCH.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_OPERATION_SEARCH.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -1141,10 +1121,10 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseSearchOperation searchOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.POST_RESPONSE_SEARCH.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_RESPONSE_SEARCH.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -1161,10 +1141,10 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseUnbindOperation unbindOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.PRE_PARSE_UNBIND.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.PRE_PARSE_UNBIND.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -1182,10 +1162,10 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationUnbindOperation unbindOperation)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.POST_OPERATION_UNBIND.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_OPERATION_UNBIND.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -1203,10 +1183,10 @@ public abstract class DirectoryServerPlugin
               processIntermediateResponse(
                    IntermediateResponse intermediateResponse)
   {
-    int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(pluginDN),
-                          PluginType.INTERMEDIATE_RESPONSE.getName());
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.INTERMEDIATE_RESPONSE.getName());
+    throw new UnsupportedOperationException(message.toString());
   }
 }
 

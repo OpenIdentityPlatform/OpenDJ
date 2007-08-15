@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
+import org.opends.messages.Message;
 
 
 
@@ -77,7 +78,7 @@ public abstract class Tag
    */
   public void initializeForBranch(TemplateFile templateFile, Branch branch,
                                   String[] arguments, int lineNumber,
-                                  List<String> warnings)
+                                  List<Message> warnings)
          throws InitializationException
   {
     // No implementation required by default.
@@ -103,7 +104,7 @@ public abstract class Tag
   public abstract void initializeForTemplate(TemplateFile templateFile,
                                              Template template,
                                              String[] arguments, int lineNumber,
-                                             List<String> warnings)
+                                             List<Message> warnings)
          throws InitializationException;
 
 

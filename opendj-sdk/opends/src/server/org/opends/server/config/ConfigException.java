@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.config;
+import org.opends.messages.Message;
 
 
 
@@ -50,23 +51,16 @@ public class ConfigException
 
 
 
-  // The unique message ID for the associated message.
-  private int messageID;
-
 
 
   /**
    * Creates a new configuration exception with the provided message.
    *
-   * @param  messageID  The unique message ID for the provided message.
    * @param  message    The message to use for this configuration exception.
    */
-  public ConfigException(int messageID, String message)
+  public ConfigException(Message message)
   {
     super(message);
-
-
-    this.messageID = messageID;
   }
 
 
@@ -75,29 +69,16 @@ public class ConfigException
    * Creates a new configuration exception with the provided message and
    * underlying cause.
    *
-   * @param  messageID  The unique message ID for the provided message.
    * @param  message    The message to use for this configuration exception.
    * @param  cause      The underlying cause that triggered this configuration
    *                    exception.
    */
-  public ConfigException(int messageID, String message, Throwable cause)
+  public ConfigException(Message message, Throwable cause)
   {
     super(message, cause);
-
-
-    this.messageID = messageID;
   }
 
 
 
-  /**
-   * Retrieves the message ID for this exception.
-   *
-   * @return  The message ID for this exception.
-   */
-  public int getMessageID()
-  {
-    return messageID;
-  }
 }
 

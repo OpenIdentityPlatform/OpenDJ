@@ -30,6 +30,7 @@ import java.util.ArrayList;
 
 import java.util.List;
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
@@ -43,8 +44,8 @@ import static org.testng.Assert.*;
 
 public class TestBindResponseProtocolOp  extends LdapTestCase {
 
-    private static String message = "This is a message";
-    private static String message2 = "This is a second message";
+    private static Message message = Message.raw("This is a message");
+    private static Message message2 = Message.raw("This is a second message");
     ResultCode        okCode          = ResultCode.SUCCESS;
     ResultCode  busyCode = ResultCode.BUSY;
     ResultCode invalidSyntaxCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;

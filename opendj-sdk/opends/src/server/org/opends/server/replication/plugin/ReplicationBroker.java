@@ -25,12 +25,13 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ReplicationMessages.*;
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.IOException;
@@ -64,8 +65,6 @@ import org.opends.server.replication.protocol.WindowMessage;
 import org.opends.server.replication.protocol.WindowProbe;
 import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
@@ -187,11 +186,8 @@ public class ReplicationBroker implements InternalSearchListener
     this.servers = servers;
     if (servers.size() < 1)
     {
-      int    msgID   = MSGID_NEED_MORE_THAN_ONE_CHANGELOG_SERVER;
-      String message = getMessage(msgID);
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-               ErrorLogSeverity.NOTICE,
-               message, msgID);
+      Message message = NOTE_NEED_MORE_THAN_ONE_CHANGELOG_SERVER.get();
+      logError(message);
     }
 
     this.rcvWindow = this.maxRcvWindow;
@@ -301,18 +297,16 @@ public class ReplicationBroker implements InternalSearchListener
                  * of our changes, we are going to try another server
                  * but before log a notice message
                  */
-                int    msgID   = MSGID_CHANGELOG_MISSING_CHANGES;
-                String message = getMessage(msgID, server);
-                logError(ErrorLogCategory.SYNCHRONIZATION,
-                    ErrorLogSeverity.NOTICE,
-                    message, msgID);
+                Message message = NOTE_CHANGELOG_MISSING_CHANGES.get(server);
+                logError(message);
               }
               else
               {
                 replayOperations.clear();
-                logError(ErrorLogCategory.SYNCHRONIZATION,
-                    ErrorLogSeverity.NOTICE,
-                    "going to search for changes", 1);
+
+                 // TODO: i18n
+                logError(Message.raw("going to search for changes"));
+
                 /*
                  * Get all the changes that have not been seen by this
                  * replicationServer and update it
@@ -339,11 +333,8 @@ public class ReplicationBroker implements InternalSearchListener
                    * TODO : REPAIR : log an error for the repair tool
                    * that will need to resynchronize the servers.
                    */
-                  int    msgID   = MSGID_CANNOT_RECOVER_CHANGES;
-                  String message = getMessage(msgID);
-                  logError(ErrorLogCategory.SYNCHRONIZATION,
-                      ErrorLogSeverity.FATAL_ERROR,
-                      message, msgID);
+                  Message message = NOTE_CANNOT_RECOVER_CHANGES.get();
+                  logError(message);
                 }
                 else
                 {
@@ -352,15 +343,11 @@ public class ReplicationBroker implements InternalSearchListener
                   connected = true;
                   for (FakeOperation replayOp : replayOperations)
                   {
-                    logError(ErrorLogCategory.SYNCHRONIZATION,
-                        ErrorLogSeverity.NOTICE,
-                        "sendingChange", 1);
+                    logError(Message.raw("sendingChange")); // TODO: i18n
                     session.publish(replayOp.generateMessage());
                   }
                   startHeartBeat();
-                  logError(ErrorLogCategory.SYNCHRONIZATION,
-                      ErrorLogSeverity.NOTICE,
-                      "changes sent", 1);
+                  logError(Message.raw("changes sent")); // TODO: i18n
                   break;
                 }
               }
@@ -376,20 +363,14 @@ public class ReplicationBroker implements InternalSearchListener
             {
               // the error message is only logged once to avoid overflowing
               // the error log
-              int    msgID   = MSGID_NO_CHANGELOG_SERVER_LISTENING;
-              String message = getMessage(msgID, server);
-              logError(ErrorLogCategory.SYNCHRONIZATION,
-                  ErrorLogSeverity.NOTICE,
-                  message, msgID);
+              Message message = NOTE_NO_CHANGELOG_SERVER_LISTENING.get(server);
+              logError(message);
             }
           }
           catch (Exception e)
           {
-            int    msgID   = MSGID_EXCEPTION_STARTING_SESSION;
-            String message = getMessage(msgID);
-            logError(ErrorLogCategory.SYNCHRONIZATION,
-                ErrorLogSeverity.SEVERE_ERROR,
-                message + stackTraceToSingleLineString(e), msgID);
+            Message message = NOTE_EXCEPTION_STARTING_SESSION.get();
+            logError(message);
           }
           finally
           {
@@ -417,11 +398,8 @@ public class ReplicationBroker implements InternalSearchListener
            * changes that this server has already processed, start again
            * the loop looking for any replicationServer.
            */
-          int    msgID   = MSGID_COULD_NOT_FIND_CHANGELOG_WITH_MY_CHANGES;
-          String message = getMessage(msgID);
-          logError(ErrorLogCategory.SYNCHRONIZATION,
-              ErrorLogSeverity.NOTICE,
-              message, msgID);
+          Message message = NOTE_COULD_NOT_FIND_CHANGELOG_WITH_MY_CHANGES.get();
+          logError(message);
           checkState = false;
         }
       }
@@ -438,11 +416,9 @@ public class ReplicationBroker implements InternalSearchListener
           sendWindow.release(Integer.MAX_VALUE);
         this.sendWindow = new Semaphore(maxSendWindow);
         connectPhaseLock.notify();
-        int    msgID   = MSGID_NOW_FOUND_CHANGELOG;
-        String message =
-          getMessage(msgID, replicationServer, baseDn.toString());
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-            ErrorLogSeverity.NOTICE, message, msgID);
+        Message message =
+            NOTE_NOW_FOUND_CHANGELOG.get(replicationServer, baseDn.toString());
+        logError(message);
       }
       else
       {
@@ -456,10 +432,9 @@ public class ReplicationBroker implements InternalSearchListener
           checkState = false;
           connectionError = true;
           connectPhaseLock.notify();
-          int    msgID   = MSGID_COULD_NOT_FIND_CHANGELOG;
-          String message = getMessage(msgID, baseDn.toString());
-          logError(ErrorLogCategory.SYNCHRONIZATION,
-              ErrorLogSeverity.NOTICE, message, msgID);
+          Message message =
+              NOTE_COULD_NOT_FIND_CHANGELOG.get(baseDn.toString());
+          logError(message);
         }
       }
     }
@@ -519,11 +494,10 @@ public class ReplicationBroker implements InternalSearchListener
         this.connect();
       } catch (Exception e)
       {
-        int    msgID   = MSGID_EXCEPTION_STARTING_SESSION;
-        String message = getMessage(msgID) + stackTraceToSingleLineString(e);
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-                 ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        MessageBuilder mb = new MessageBuilder();
+        mb.append(NOTE_EXCEPTION_STARTING_SESSION.get());
+        mb.append(stackTraceToSingleLineString(e));
+        logError(mb.toMessage());
       }
       if ((!connected) && (!shutdown))
       {
@@ -683,11 +657,9 @@ public class ReplicationBroker implements InternalSearchListener
       {
         if (shutdown == false)
         {
-          int    msgID   = MSGID_DISCONNECTED_FROM_CHANGELOG;
-          String message = getMessage(msgID, replicationServer);
-          logError(ErrorLogCategory.SYNCHRONIZATION,
-              ErrorLogSeverity.NOTICE,
-              message + " " + e.getMessage(), msgID);
+          Message message =
+              NOTE_DISCONNECTED_FROM_CHANGELOG.get(replicationServer);
+          logError(message);
           this.reStart(failingSession);
         }
       }

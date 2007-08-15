@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,8 +40,8 @@ import org.opends.server.types.ResultCode;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.CoreMessages.*;
+
 
 /**
  This class is the interface between the password policy configurable component
@@ -84,7 +85,7 @@ public class PasswordPolicyConfig
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-      PasswordPolicyCfg configuration, List<String> unacceptableReasons)
+      PasswordPolicyCfg configuration, List<Message> unacceptableReasons)
   {
     assert configuration.dn().equals(this.currentPolicy.getConfigEntryDN() )
             : "Internal Error: mismatch between DN of configuration entry and"
@@ -101,7 +102,7 @@ public class PasswordPolicyConfig
         TRACER.debugCaught(DebugLogLevel.ERROR, ce);
       }
 
-      unacceptableReasons.add(ce.getMessage());
+      unacceptableReasons.add(ce.getMessageObject());
       return false;
     }
     catch (InitializationException ie)
@@ -111,7 +112,7 @@ public class PasswordPolicyConfig
         TRACER.debugCaught(DebugLogLevel.ERROR, ie);
       }
 
-      unacceptableReasons.add(ie.getMessage());
+      unacceptableReasons.add(ie.getMessageObject());
       return false;
     }
 
@@ -143,8 +144,8 @@ public class PasswordPolicyConfig
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, ce);
       }
-      ArrayList<String> messages = new ArrayList<String>();
-      messages.add(ce.getMessage());
+      ArrayList<Message> messages = new ArrayList<Message>();
+      messages.add(ce.getMessageObject());
       return new ConfigChangeResult(
               DirectoryServer.getServerErrorResultCode(),
               /*adminActionRequired*/ true, messages);
@@ -155,8 +156,8 @@ public class PasswordPolicyConfig
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, ie);
       }
-      ArrayList<String> messages = new ArrayList<String>();
-      messages.add(ie.getMessage());
+      ArrayList<Message> messages = new ArrayList<Message>();
+      messages.add(ie.getMessageObject());
       return new ConfigChangeResult(
               DirectoryServer.getServerErrorResultCode(),
               /*adminActionRequired*/ true, messages);
@@ -164,10 +165,9 @@ public class PasswordPolicyConfig
 
     // If we've made it here, then everything is acceptable.  Apply the new
     // configuration.
-    ArrayList<String> messages = new ArrayList<String>();
-    int msgID = MSGID_PWPOLICY_UPDATED_POLICY;
-    messages.add(getMessage(msgID, String.valueOf(p.getConfigEntryDN())));
-
+    ArrayList<Message> messages = new ArrayList<Message>();
+    messages.add(INFO_PWPOLICY_UPDATED_POLICY.get(
+            String.valueOf(p.getConfigEntryDN())));
     this.currentPolicy = p;
 
     return new ConfigChangeResult(ResultCode.SUCCESS,

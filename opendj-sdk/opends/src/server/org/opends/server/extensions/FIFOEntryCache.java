@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -56,10 +57,9 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
+
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -859,7 +859,7 @@ public class FIFOEntryCache
    */
   @Override()
   public boolean isConfigurationAcceptable(EntryCacheCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     FIFOEntryCacheCfg config = (FIFOEntryCacheCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
@@ -872,7 +872,7 @@ public class FIFOEntryCache
    */
   public boolean isConfigurationChangeAcceptable(
       FIFOEntryCacheCfg configuration,
-      List<String>      unacceptableReasons
+      List<Message> unacceptableReasons
       )
   {
     // Make sure that we can process the defined character sets.  If so, then
@@ -901,7 +901,7 @@ public class FIFOEntryCache
     // Make sure that we can process the defined character sets.  If so, then
     // activate the new configuration.
     boolean applyChanges = false;
-    ArrayList<String> errorMessages = new ArrayList<String>();
+    ArrayList<Message> errorMessages = new ArrayList<Message>();
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
           EntryCacheCommon.ConfigPhase.PHASE_APPLY, null, errorMessages
@@ -960,9 +960,7 @@ public class FIFOEntryCache
       if (maxMemoryPercent != prevMaxMemoryPercent)
       {
         changeResult.addMessage(
-            getMessage(
-                MSGID_FIFOCACHE_UPDATED_MAX_MEMORY_PCT,
-                maxMemoryPercent,
+            INFO_FIFOCACHE_UPDATED_MAX_MEMORY_PCT.get(maxMemoryPercent,
                 maxAllowedMemory));
       }
 
@@ -970,25 +968,25 @@ public class FIFOEntryCache
       if (maxEntries != prevMaxEntries)
       {
         changeResult.addMessage(
-            getMessage (MSGID_FIFOCACHE_UPDATED_MAX_ENTRIES, maxEntries));
+            INFO_FIFOCACHE_UPDATED_MAX_ENTRIES.get(maxEntries));
       }
 
       if (lockTimeout != prevLockTimeout)
       {
         changeResult.addMessage(
-            getMessage (MSGID_FIFOCACHE_UPDATED_LOCK_TIMEOUT, lockTimeout));
+            INFO_FIFOCACHE_UPDATED_LOCK_TIMEOUT.get(lockTimeout));
       }
 
       if (!includeFilters.equals(prevIncludeFilters))
       {
         changeResult.addMessage(
-            getMessage (MSGID_FIFOCACHE_UPDATED_INCLUDE_FILTERS));
+            INFO_FIFOCACHE_UPDATED_INCLUDE_FILTERS.get());
       }
 
       if (!excludeFilters.equals(prevExcludeFilters))
       {
         changeResult.addMessage(
-            getMessage (MSGID_FIFOCACHE_UPDATED_EXCLUDE_FILTERS));
+            INFO_FIFOCACHE_UPDATED_EXCLUDE_FILTERS.get());
       }
     }
 
@@ -1038,15 +1036,15 @@ public class FIFOEntryCache
     case PHASE_INIT:
       newIncludeFilters = EntryCacheCommon.getFilters (
           configuration.getIncludeFilter(),
-          MSGID_FIFOCACHE_INVALID_INCLUDE_FILTER,
-          MSGID_FIFOCACHE_CANNOT_DECODE_ANY_INCLUDE_FILTERS,
+          ERR_FIFOCACHE_INVALID_INCLUDE_FILTER,
+          WARN_FIFOCACHE_CANNOT_DECODE_ANY_INCLUDE_FILTERS,
           errorHandler,
           newConfigEntryDN
           );
       newExcludeFilters = EntryCacheCommon.getFilters (
           configuration.getExcludeFilter(),
-          MSGID_FIFOCACHE_CANNOT_DECODE_EXCLUDE_FILTER,
-          MSGID_FIFOCACHE_CANNOT_DECODE_ANY_EXCLUDE_FILTERS,
+          WARN_FIFOCACHE_CANNOT_DECODE_EXCLUDE_FILTER,
+          WARN_FIFOCACHE_CANNOT_DECODE_ANY_EXCLUDE_FILTERS,
           errorHandler,
           newConfigEntryDN
           );
@@ -1055,15 +1053,15 @@ public class FIFOEntryCache
     case PHASE_APPLY:       // error ID codes
       newIncludeFilters = EntryCacheCommon.getFilters (
           configuration.getIncludeFilter(),
-          MSGID_FIFOCACHE_INVALID_INCLUDE_FILTER,
-          0,
+          ERR_FIFOCACHE_INVALID_INCLUDE_FILTER,
+          null,
           errorHandler,
           newConfigEntryDN
           );
       newExcludeFilters = EntryCacheCommon.getFilters (
           configuration.getExcludeFilter(),
-          MSGID_FIFOCACHE_INVALID_EXCLUDE_FILTER,
-          0,
+          ERR_FIFOCACHE_INVALID_EXCLUDE_FILTER,
+          null,
           errorHandler,
           newConfigEntryDN
           );

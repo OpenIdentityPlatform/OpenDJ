@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
+import org.opends.messages.Message;
 
 
 
@@ -33,8 +34,7 @@ import java.util.List;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 
 
 
@@ -103,7 +103,7 @@ public class DNTag
    */
   public void initializeForBranch(TemplateFile templateFile, Branch branch,
                                   String[] arguments, int lineNumber,
-                                  List<String> warnings)
+                                  List<Message> warnings)
          throws InitializationException
   {
     initializeInternal(templateFile, arguments, lineNumber);
@@ -128,7 +128,7 @@ public class DNTag
    */
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
-                                    int lineNumber, List<String> warnings)
+                                    int lineNumber, List<Message> warnings)
          throws InitializationException
   {
     initializeInternal(templateFile, arguments, lineNumber);
@@ -163,18 +163,16 @@ public class DNTag
       }
       catch (NumberFormatException nfe)
       {
-        int    msgID   = MSGID_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER;
-        String message = getMessage(msgID, arguments[0], getName(), lineNumber);
-        throw new InitializationException(msgID, message);
+        Message message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
+            arguments[0], getName(), lineNumber);
+        throw new InitializationException(message);
       }
     }
     else
     {
-      int    msgID   = MSGID_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT;
-      String message = getMessage(msgID, getName(), lineNumber, 0, 1,
-                                  arguments.length);
-
-      throw new InitializationException(msgID, message);
+      Message message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
+          getName(), lineNumber, 0, 1, arguments.length);
+      throw new InitializationException(message);
     }
   }
 

@@ -25,16 +25,13 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-
-
-
+import static org.opends.messages.CoreMessages.*;
 /**
  * This class defines a data structure that contains configuration
  * information about how an entry should be encoded.
@@ -220,11 +217,10 @@ public class EntryEncodeConfig
   {
     if (length != 1)
     {
-      int    msgID   = MSGID_ENTRYENCODECFG_INVALID_LENGTH;
-      String message = getMessage(msgID);
+      Message message = ERR_ENTRYENCODECFG_INVALID_LENGTH.get();
       throw new DirectoryException(
                      DirectoryServer.getServerErrorResultCode(),
-                     message, msgID);
+                     message);
     }
 
     boolean excludeDN = false;

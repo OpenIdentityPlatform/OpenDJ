@@ -25,7 +25,8 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
-
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 
 import static org.opends.server.core.CoreConstants.*;
@@ -38,7 +39,6 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.types.operation.PostResponseOperation;
 import org.opends.server.types.operation.PreParseOperation;
 import org.opends.server.core.DirectoryServer;
-
 
 
 /**
@@ -114,11 +114,11 @@ public abstract class AbstractOperation
 
   // Additional information that should be included in the log but
   // not sent to the client.
-  private StringBuilder additionalLogMessage;
+  private MessageBuilder additionalLogMessage;
 
   // The error message for this operation that should be included in
   // the log and in the response to the client.
-  private StringBuilder errorMessage;
+  private MessageBuilder errorMessage;
 
   // Indicates whether this operation nneds to be synchronized to
   // other copies of the data.
@@ -160,8 +160,8 @@ public abstract class AbstractOperation
     }
 
     resultCode                 = ResultCode.UNDEFINED;
-    additionalLogMessage       = new StringBuilder();
-    errorMessage               = new StringBuilder();
+    additionalLogMessage       = new MessageBuilder();
+    errorMessage               = new MessageBuilder();
     attachments                = new HashMap<String,Object>();
     matchedDN                  = null;
     referralURLs               = null;
@@ -183,9 +183,9 @@ public abstract class AbstractOperation
    * {@inheritDoc}
    */
   public abstract void disconnectClient(
-      DisconnectReason disconnectReason,
-      boolean sendNotification,
-      String message, int messageID);
+          DisconnectReason disconnectReason,
+          boolean sendNotification,
+          Message message);
 
   /**
    * {@inheritDoc}
@@ -307,7 +307,7 @@ public abstract class AbstractOperation
   /**
    * {@inheritDoc}
    */
-  public final StringBuilder getErrorMessage()
+  public final MessageBuilder getErrorMessage()
   {
     return errorMessage;
   }
@@ -315,11 +315,11 @@ public abstract class AbstractOperation
   /**
    * {@inheritDoc}
    */
-  public final void setErrorMessage(StringBuilder errorMessage)
+  public final void setErrorMessage(MessageBuilder errorMessage)
   {
     if (errorMessage == null)
     {
-      this.errorMessage = new StringBuilder();
+      this.errorMessage = new MessageBuilder();
     }
     else
     {
@@ -330,11 +330,11 @@ public abstract class AbstractOperation
   /**
    * {@inheritDoc}
    */
-  public final void appendErrorMessage(String message)
+  public final void appendErrorMessage(Message message)
   {
     if (errorMessage == null)
     {
-      errorMessage = new StringBuilder(message);
+      errorMessage = new MessageBuilder(message);
     }
     else
     {
@@ -350,7 +350,7 @@ public abstract class AbstractOperation
   /**
    * {@inheritDoc}
    */
-  public final StringBuilder getAdditionalLogMessage()
+  public final MessageBuilder getAdditionalLogMessage()
   {
     return additionalLogMessage;
   }
@@ -359,12 +359,12 @@ public abstract class AbstractOperation
   /**
    * {@inheritDoc}
    */
-  public final void setAdditionalLogMessage(StringBuilder
-      additionalLogMessage)
+  public final void setAdditionalLogMessage(MessageBuilder
+          additionalLogMessage)
   {
     if (additionalLogMessage == null)
     {
-      this.additionalLogMessage = new StringBuilder();
+      this.additionalLogMessage = new MessageBuilder();
     }
     else
     {
@@ -375,11 +375,11 @@ public abstract class AbstractOperation
   /**
    * {@inheritDoc}
    */
-  public final void appendAdditionalLogMessage(String message)
+  public final void appendAdditionalLogMessage(Message message)
   {
     if (additionalLogMessage == null)
     {
-      additionalLogMessage = new StringBuilder(message);
+      additionalLogMessage = new MessageBuilder(message);
     }
     else
     {
@@ -429,7 +429,7 @@ public abstract class AbstractOperation
     this.matchedDN    = directoryException.getMatchedDN();
     this.referralURLs = directoryException.getReferralURLs();
 
-    appendErrorMessage(directoryException.getErrorMessage());
+    appendErrorMessage(directoryException.getMessageObject());
   }
 
   /**
@@ -599,7 +599,7 @@ public abstract class AbstractOperation
     {
       setResultCode(ResultCode.CANCELED);
 
-      String cancelReason = cancelRequest.getCancelReason();
+      Message cancelReason = cancelRequest.getCancelReason();
       if (cancelReason != null)
       {
         appendErrorMessage(cancelReason);

@@ -25,7 +25,8 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.admin;
-
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 
 import java.text.NumberFormat;
@@ -45,7 +46,7 @@ public final class PropertyDefinitionUsageBuilder {
    * Underlying implementation.
    */
   private class MyPropertyDefinitionVisitor extends
-      PropertyDefinitionVisitor<String, Void> {
+      PropertyDefinitionVisitor<Message, Void> {
 
     // Flag indicating whether detailed syntax information will be
     // generated.
@@ -71,9 +72,9 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public String visitAttributeType(AttributeTypePropertyDefinition d,
+    public Message visitAttributeType(AttributeTypePropertyDefinition d,
         Void p) {
-      return "OID";
+      return Message.raw("OID");
     }
 
 
@@ -82,11 +83,11 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public String visitBoolean(BooleanPropertyDefinition d, Void p) {
+    public Message visitBoolean(BooleanPropertyDefinition d, Void p) {
       if (isDetailed) {
-        return "false | true";
+        return Message.raw("false | true");
       } else {
-        return "BOOLEAN";
+        return Message.raw("BOOLEAN");
       }
     }
 
@@ -96,11 +97,11 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public String visitClass(ClassPropertyDefinition d, Void p) {
+    public Message visitClass(ClassPropertyDefinition d, Void p) {
       if (isDetailed && !d.getInstanceOfInterface().isEmpty()) {
-        return "CLASS <= " + d.getInstanceOfInterface().get(0);
+        return Message.raw("CLASS <= " + d.getInstanceOfInterface().get(0));
       } else {
-        return "CLASS";
+        return Message.raw("CLASS");
       }
     }
 
@@ -110,11 +111,11 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public String visitDN(DNPropertyDefinition d, Void p) {
+    public Message visitDN(DNPropertyDefinition d, Void p) {
       if (isDetailed && d.getBaseDN() != null) {
-        return "DN <= " + d.getBaseDN();
+        return Message.raw("DN <= " + d.getBaseDN());
       } else {
-        return "DN";
+        return Message.raw("DN");
       }
     }
 
@@ -124,8 +125,8 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public String visitDuration(DurationPropertyDefinition d, Void p) {
-      StringBuilder builder = new StringBuilder();
+    public Message visitDuration(DurationPropertyDefinition d, Void p) {
+      MessageBuilder builder = new MessageBuilder();
       DurationUnit unit = d.getBaseUnit();
 
       if (isDetailed && d.getLowerLimit() > 0) {
@@ -135,7 +136,7 @@ public final class PropertyDefinitionUsageBuilder {
 
       builder.append("DURATION (");
       builder.append(unit.getShortName());
-      builder.append(')');
+      builder.append(")");
 
       if (isDetailed) {
         if (d.getUpperLimit() != null) {
@@ -148,7 +149,7 @@ public final class PropertyDefinitionUsageBuilder {
         }
       }
 
-      return builder.toString();
+      return builder.toMessage();
     }
 
 
@@ -157,16 +158,16 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public <E extends Enum<E>> String visitEnum(EnumPropertyDefinition<E> d,
+    public <E extends Enum<E>> Message visitEnum(EnumPropertyDefinition<E> d,
         Void p) {
       if (!isDetailed) {
         // Use the last word in the property name.
         String name = d.getName();
         int i = name.lastIndexOf('-');
         if (i == -1 || i == (name.length() - 1)) {
-          return name.toUpperCase();
+          return Message.raw(name.toUpperCase());
         } else {
-          return name.substring(i + 1).toUpperCase();
+          return Message.raw(name.substring(i + 1).toUpperCase());
         }
       } else {
         Set<String> values = new TreeSet<String>();
@@ -176,7 +177,7 @@ public final class PropertyDefinitionUsageBuilder {
         }
 
         boolean isFirst = true;
-        StringBuilder builder = new StringBuilder();
+        MessageBuilder builder = new MessageBuilder();
         for (String s : values) {
           if (!isFirst) {
             builder.append(" | ");
@@ -185,7 +186,7 @@ public final class PropertyDefinitionUsageBuilder {
           isFirst = false;
         }
 
-        return builder.toString();
+        return builder.toMessage();
       }
     }
 
@@ -195,11 +196,11 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public String visitInteger(IntegerPropertyDefinition d, Void p) {
-      StringBuilder builder = new StringBuilder();
+    public Message visitInteger(IntegerPropertyDefinition d, Void p) {
+      MessageBuilder builder = new MessageBuilder();
 
       if (isDetailed) {
-        builder.append(d.getLowerLimit());
+        builder.append(String.valueOf(d.getLowerLimit()));
         builder.append(" <= ");
       }
 
@@ -208,13 +209,13 @@ public final class PropertyDefinitionUsageBuilder {
       if (isDetailed) {
         if (d.getUpperLimit() != null) {
           builder.append(" <= ");
-          builder.append(d.getUpperLimit());
+          builder.append(String.valueOf(d.getUpperLimit()));
         } else if (d.isAllowUnlimited()) {
           builder.append(" | unlimited");
         }
       }
 
-      return builder.toString();
+      return builder.toMessage();
     }
 
 
@@ -223,8 +224,8 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public String visitIPAddress(IPAddressPropertyDefinition d, Void p) {
-      return "HOST_NAME";
+    public Message visitIPAddress(IPAddressPropertyDefinition d, Void p) {
+      return Message.raw("HOST_NAME");
     }
 
 
@@ -233,9 +234,9 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public String visitIPAddressMask(IPAddressMaskPropertyDefinition d,
+    public Message visitIPAddressMask(IPAddressMaskPropertyDefinition d,
         Void p) {
-      return "IP_ADDRESS_MASK";
+      return Message.raw("IP_ADDRESS_MASK");
     }
 
 
@@ -244,8 +245,8 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public String visitSize(SizePropertyDefinition d, Void p) {
-      StringBuilder builder = new StringBuilder();
+    public Message visitSize(SizePropertyDefinition d, Void p) {
+      MessageBuilder builder = new MessageBuilder();
 
       if (isDetailed && d.getLowerLimit() > 0) {
         SizeUnit unit = SizeUnit.getBestFitUnitExact(d.getLowerLimit());
@@ -288,7 +289,7 @@ public final class PropertyDefinitionUsageBuilder {
         }
       }
 
-      return builder.toString();
+      return builder.toMessage();
     }
 
 
@@ -297,11 +298,11 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public String visitString(StringPropertyDefinition d, Void p) {
+    public Message visitString(StringPropertyDefinition d, Void p) {
       if (d.getPattern() != null) {
-        return d.getPatternUsage();
+        return Message.raw(d.getPatternUsage());
       } else {
-        return "STRING";
+        return Message.raw("STRING");
       }
     }
 
@@ -311,9 +312,9 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public String visitUnknown(PropertyDefinition<?> d, Void p)
+    public Message visitUnknown(PropertyDefinition<?> d, Void p)
         throws UnknownPropertyDefinitionException {
-      return "?";
+      return Message.raw("?");
     }
   }
 
@@ -344,7 +345,7 @@ public final class PropertyDefinitionUsageBuilder {
    * @return Returns the usage information for the provided property
    *         definition.
    */
-  public String getUsage(PropertyDefinition<?> pd) {
+  public Message getUsage(PropertyDefinition<?> pd) {
     return pd.accept(pimpl, null);
   };
 

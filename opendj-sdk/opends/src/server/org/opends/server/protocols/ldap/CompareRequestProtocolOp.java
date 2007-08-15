@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
+import org.opends.messages.Message;
 
 
 
@@ -38,8 +39,7 @@ import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -229,18 +229,18 @@ public class CompareRequestProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_COMPARE_REQUEST_DECODE_SEQUENCE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_COMPARE_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
     int numElements = elements.size();
     if (numElements != 2)
     {
-      int    msgID   = MSGID_LDAP_COMPARE_REQUEST_DECODE_INVALID_ELEMENT_COUNT;
-      String message = getMessage(msgID, numElements);
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_LDAP_COMPARE_REQUEST_DECODE_INVALID_ELEMENT_COUNT.
+          get(numElements);
+      throw new LDAPException(PROTOCOL_ERROR, message);
     }
 
 
@@ -256,9 +256,9 @@ public class CompareRequestProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_COMPARE_REQUEST_DECODE_DN;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_COMPARE_REQUEST_DECODE_DN.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -274,18 +274,18 @@ public class CompareRequestProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_COMPARE_REQUEST_DECODE_AVA;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_COMPARE_REQUEST_DECODE_AVA.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
     numElements = avaElements.size();
     if (numElements != 2)
     {
-      int    msgID   = MSGID_LDAP_COMPARE_REQUEST_DECODE_AVA_COUNT;
-      String message = getMessage(msgID, numElements);
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message);
+      Message message =
+          ERR_LDAP_COMPARE_REQUEST_DECODE_AVA_COUNT.get(numElements);
+      throw new LDAPException(PROTOCOL_ERROR, message);
     }
 
 
@@ -301,9 +301,9 @@ public class CompareRequestProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_COMPARE_REQUEST_DECODE_TYPE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_COMPARE_REQUEST_DECODE_TYPE.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -319,9 +319,9 @@ public class CompareRequestProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_COMPARE_REQUEST_DECODE_VALUE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_COMPARE_REQUEST_DECODE_VALUE.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 

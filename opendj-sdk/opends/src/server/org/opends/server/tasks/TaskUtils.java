@@ -29,10 +29,10 @@ package org.opends.server.tasks;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.messages.ToolMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ConfigMessages.
-     MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.ConfigMessages.
+     INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID;
 import static org.opends.server.util.StaticUtils.*;
 
 import org.opends.server.api.Backend;
@@ -41,9 +41,10 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.messages.TaskMessages;
+
+import org.opends.messages.TaskMessages;
+import org.opends.messages.Message;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
@@ -52,8 +53,6 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
@@ -90,33 +89,28 @@ public class TaskUtils
   {
     try
     {
-      int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID;
+
       StringConfigAttribute idStub =
-           new StringConfigAttribute(ATTR_BACKEND_ID,
-                                     getMessage(msgID),
-                                     true, false, true);
+           new StringConfigAttribute(
+                   ATTR_BACKEND_ID,
+                   INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID.get(),
+                   true, false, true);
       StringConfigAttribute idAttr =
            (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
       return idAttr.activeValue();
     }
     catch (ConfigException ce)
     {
-      int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
-      String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                  ce.getMessage());
-      ErrorLogger.logError(ErrorLogCategory.BACKEND,
-                           ErrorLogSeverity.SEVERE_ERROR,
-                           message, msgID);
+      Message message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(
+          String.valueOf(configEntry.getDN()), ce.getMessage());
+      logError(message);
       return null;
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
-      String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                  getExceptionMessage(e));
-      ErrorLogger.logError(ErrorLogCategory.BACKEND,
-                           ErrorLogSeverity.SEVERE_ERROR,
-                           message, msgID);
+      Message message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(
+          String.valueOf(configEntry.getDN()), getExceptionMessage(e));
+      logError(message);
       return null;
     }
   }
@@ -140,21 +134,16 @@ public class TaskUtils
     }
     catch (DirectoryException de)
     {
-      int    msgID   = MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
-      String message = getMessage(msgID, DN_BACKEND_BASE, de.getErrorMessage());
-      ErrorLogger.logError(ErrorLogCategory.BACKEND,
-                           ErrorLogSeverity.SEVERE_ERROR,
-                           message, msgID);
+      Message message = ERR_CANNOT_DECODE_BACKEND_BASE_DN.get(
+          DN_BACKEND_BASE, de.getMessageObject());
+      logError(message);
       return configEntries;
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
-      String message = getMessage(msgID, DN_BACKEND_BASE,
-                                  getExceptionMessage(e));
-      ErrorLogger.logError(ErrorLogCategory.BACKEND,
-                           ErrorLogSeverity.SEVERE_ERROR,
-                           message, msgID);
+      Message message = ERR_CANNOT_DECODE_BACKEND_BASE_DN.get(
+          DN_BACKEND_BASE, getExceptionMessage(e));
+      logError(message);
       return configEntries;
     }
 
@@ -165,21 +154,16 @@ public class TaskUtils
     }
     catch (ConfigException ce)
     {
-      int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
-      String message = getMessage(msgID, DN_BACKEND_BASE, ce.getMessage());
-      ErrorLogger.logError(ErrorLogCategory.BACKEND,
-                           ErrorLogSeverity.SEVERE_ERROR,
-                           message, msgID);
+      Message message = ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY.get(
+          DN_BACKEND_BASE, ce.getMessage());
+      logError(message);
       return configEntries;
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
-      String message = getMessage(msgID, DN_BACKEND_BASE,
-                                  getExceptionMessage(e));
-      ErrorLogger.logError(ErrorLogCategory.BACKEND,
-                           ErrorLogSeverity.SEVERE_ERROR,
-                           message, msgID);
+      Message message = ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY.get(
+          DN_BACKEND_BASE, getExceptionMessage(e));
+      logError(message);
       return configEntries;
     }
 
@@ -193,10 +177,12 @@ public class TaskUtils
       String backendID;
       try
       {
-        int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID;
+
         StringConfigAttribute idStub =
-             new StringConfigAttribute(ATTR_BACKEND_ID, getMessage(msgID),
-                                       true, false, true);
+             new StringConfigAttribute(
+                     ATTR_BACKEND_ID,
+                     INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID.get(),
+                     true, false, true);
         StringConfigAttribute idAttr =
              (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
         if (idAttr == null)
@@ -210,22 +196,16 @@ public class TaskUtils
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    ce.getMessage());
-        ErrorLogger.logError(ErrorLogCategory.BACKEND,
-                             ErrorLogSeverity.SEVERE_ERROR,
-                             message, msgID);
+        Message message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(
+            String.valueOf(configEntry.getDN()), ce.getMessage());
+        logError(message);
         continue;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    getExceptionMessage(e));
-        ErrorLogger.logError(ErrorLogCategory.BACKEND,
-                             ErrorLogSeverity.SEVERE_ERROR,
-                             message, msgID);
+        Message message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(
+            String.valueOf(configEntry.getDN()), getExceptionMessage(e));
+        logError(message);
         continue;
       }
 
@@ -278,7 +258,7 @@ public class TaskUtils
     catch (ConfigException e)
     {
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessage(), e.getMessageID(), e);
+                                   e.getMessageObject(), e);
     }
 
     ArrayList<ASN1OctetString> valueList = new ArrayList<ASN1OctetString>(1);
@@ -300,10 +280,9 @@ public class TaskUtils
     ResultCode resultCode = internalModify.getResultCode();
     if (resultCode != ResultCode.SUCCESS)
     {
-      int msgID;
-      msgID = TaskMessages.MSGID_TASK_CANNOT_ENABLE_BACKEND;
-      String message = getMessage(msgID, backendDNString);
-      throw new DirectoryException(resultCode, message, msgID);
+      Message message =
+          TaskMessages.ERR_TASK_CANNOT_ENABLE_BACKEND.get(backendDNString);
+      throw new DirectoryException(resultCode, message);
     }
   }
 
@@ -329,7 +308,7 @@ public class TaskUtils
     catch (ConfigException e)
     {
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessage(), e.getMessageID(), e);
+                                   e.getMessageObject(), e);
     }
 
     ArrayList<ASN1OctetString> valueList = new ArrayList<ASN1OctetString>(1);
@@ -351,10 +330,9 @@ public class TaskUtils
     ResultCode resultCode = internalModify.getResultCode();
     if (resultCode != ResultCode.SUCCESS)
     {
-      int msgID;
-      msgID = TaskMessages.MSGID_TASK_CANNOT_DISABLE_BACKEND;
-      String message = getMessage(msgID, backendDNString);
-      throw new DirectoryException(resultCode, message, msgID);
+      Message message =
+          TaskMessages.ERR_TASK_CANNOT_DISABLE_BACKEND.get(backendDNString);
+      throw new DirectoryException(resultCode, message);
     }
   }
 

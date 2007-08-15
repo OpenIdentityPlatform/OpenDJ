@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
+import org.opends.messages.Message;
 
 
 
@@ -32,8 +33,7 @@ import java.util.List;
 
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 
 
 
@@ -102,18 +102,16 @@ public class FirstNameTag
    */
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
-                                    int lineNumber, List<String> warnings)
+                                    int lineNumber, List<Message> warnings)
          throws InitializationException
   {
     this.templateFile = templateFile;
 
     if (arguments.length != 0)
     {
-      int    msgID   = MSGID_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT;
-      String message = getMessage(msgID, getName(), lineNumber, 0,
-                                  arguments.length);
-
-      throw new InitializationException(msgID, message);
+      Message message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(
+          getName(), lineNumber, 0, arguments.length);
+      throw new InitializationException(message);
     }
   }
 

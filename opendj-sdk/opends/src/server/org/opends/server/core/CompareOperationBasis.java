@@ -25,14 +25,14 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.AccessLogger.logCompareRequest;
 import static org.opends.server.loggers.AccessLogger.logCompareResponse;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
-
+import static org.opends.messages.CoreMessages.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -288,16 +288,16 @@ public class CompareOperationBasis
    */
   @Override()
   public final void disconnectClient(DisconnectReason disconnectReason,
-                                     boolean sendNotification, String message,
-                                     int messageID)
+                                     boolean sendNotification, Message message
+  )
   {
     // Before calling clientConnection.disconnect, we need to mark this
     // operation as cancelled so that the attempt to cancel it later won't cause
     // an unnecessary delay.
     setCancelResult(CancelResult.CANCELED);
 
-    clientConnection.disconnect(disconnectReason, sendNotification, message,
-                                messageID);
+    clientConnection.disconnect(disconnectReason, sendNotification,
+            message);
   }
 
 
@@ -332,7 +332,7 @@ public class CompareOperationBasis
     String resultCode = String.valueOf(getResultCode().getIntValue());
 
     String errorMessage;
-    StringBuilder errorMessageBuffer = getErrorMessage();
+    MessageBuilder errorMessageBuffer = getErrorMessage();
     if (errorMessageBuffer == null)
     {
       errorMessage = null;
@@ -489,8 +489,7 @@ compareProcessing:
         // result and return.
         setResultCode(ResultCode.CANCELED);
 
-        int msgID = MSGID_CANCELED_BY_PREPARSE_DISCONNECT;
-        appendErrorMessage(getMessage(msgID));
+        appendErrorMessage(ERR_CANCELED_BY_PREPARSE_DISCONNECT.get());
 
         setProcessingStopTime();
 
@@ -538,7 +537,7 @@ compareProcessing:
         }
 
         setResultCode(de.getResultCode());
-        appendErrorMessage(de.getErrorMessage());
+        appendErrorMessage(de.getMessageObject());
 
         break compareProcessing;
       }
@@ -660,7 +659,7 @@ compareProcessing:
   {
     setResultCode(ResultCode.NO_SUCH_OBJECT);
     appendErrorMessage(
-      getMessage(MSGID_COMPARE_NO_SUCH_ENTRY, String.valueOf(getEntryDN())));
+      ERR_COMPARE_NO_SUCH_ENTRY.get(String.valueOf(getEntryDN())));
   }
 
 

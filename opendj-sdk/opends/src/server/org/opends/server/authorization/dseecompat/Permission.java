@@ -26,9 +26,9 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.AciMessages.*;
+import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import java.util.regex.Pattern;
 
@@ -74,14 +74,13 @@ public class Permission {
     throws AciException {
         if ((this.accessType =
             EnumAccessType.decode(accessType)) == null){
-            int msgID = MSGID_ACI_SYNTAX_INVALID_ACCESS_TYPE_VERSION;
-            String message = getMessage(msgID, accessType);
-            throw new AciException(msgID, message);
+            Message message =
+                WARN_ACI_SYNTAX_INVALID_ACCESS_TYPE_VERSION.get(accessType);
+            throw new AciException(message);
         }
         if (!Pattern.matches(rightsRegex, rights)){
-            int msgID = MSGID_ACI_SYNTAX_INVALID_RIGHTS_SYNTAX;
-            String message = getMessage(msgID, rights);
-            throw new AciException(msgID, message);
+            Message message = WARN_ACI_SYNTAX_INVALID_RIGHTS_SYNTAX.get(rights);
+            throw new AciException(message);
         }
         else {
             Pattern separatorPattern = Pattern.compile(separatorToken);
@@ -92,9 +91,9 @@ public class Permission {
                 if (right != null)
                     this.rights|= EnumRight.getMask(right);
                 else {
-                    int msgID = MSGID_ACI_SYNTAX_INVALID_RIGHTS_KEYWORD;
-                    String message = getMessage(msgID, rights);
-                    throw new AciException(msgID, message);
+                    Message message =
+                        WARN_ACI_SYNTAX_INVALID_RIGHTS_KEYWORD.get(rights);
+                    throw new AciException(message);
                 }
             }
         }

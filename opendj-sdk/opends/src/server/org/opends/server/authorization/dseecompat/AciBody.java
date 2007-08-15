@@ -26,10 +26,10 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.AciMessages.*;
+import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -187,9 +187,8 @@ public class AciBody {
             startPos=bodyMatcher.start();
             version  = bodyMatcher.group(VERSION);
             if (!version.equalsIgnoreCase(supportedVersion)) {
-                int msgID = MSGID_ACI_SYNTAX_INVAILD_VERSION;
-                String message = getMessage(msgID, version);
-                throw new AciException(msgID, message);
+                Message message = WARN_ACI_SYNTAX_INVAILD_VERSION.get(version);
+                throw new AciException(message);
             }
             name = bodyMatcher.group(NAME);
         }

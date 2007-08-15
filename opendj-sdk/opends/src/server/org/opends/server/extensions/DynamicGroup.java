@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -45,8 +46,6 @@ import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.MemberList;
@@ -55,11 +54,10 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import org.opends.server.loggers.ErrorLogger;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.Validator.*;
 
@@ -169,12 +167,10 @@ public class DynamicGroup
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            int    msgID   = MSGID_DYNAMICGROUP_CANNOT_DECODE_MEMBERURL;
-            String message = getMessage(msgID, v.getStringValue(),
-                                        String.valueOf(groupEntry.getDN()),
-                                        de.getErrorMessage());
-            logError(ErrorLogCategory.EXTENSIONS, ErrorLogSeverity.MILD_ERROR,
-                     message, msgID);
+            Message message = ERR_DYNAMICGROUP_CANNOT_DECODE_MEMBERURL.
+                get(v.getStringValue(), String.valueOf(groupEntry.getDN()),
+                    de.getMessageObject());
+            ErrorLogger.logError(message);
           }
         }
       }
@@ -273,9 +269,8 @@ public class DynamicGroup
          throws UnsupportedOperationException, DirectoryException
   {
     // Dynamic groups don't support nesting.
-    int    msgID   = MSGID_DYNAMICGROUP_NESTING_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_DYNAMICGROUP_NESTING_NOT_SUPPORTED.get();
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -288,9 +283,8 @@ public class DynamicGroup
          throws UnsupportedOperationException, DirectoryException
   {
     // Dynamic groups don't support nesting.
-    int    msgID   = MSGID_DYNAMICGROUP_NESTING_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_DYNAMICGROUP_NESTING_NOT_SUPPORTED.get();
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -397,9 +391,8 @@ public class DynamicGroup
          throws UnsupportedOperationException, DirectoryException
   {
     // Dynamic groups don't support altering the member list.
-    int    msgID   = MSGID_DYNAMICGROUP_ALTERING_MEMBERS_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_DYNAMICGROUP_ALTERING_MEMBERS_NOT_SUPPORTED.get();
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -412,9 +405,8 @@ public class DynamicGroup
          throws UnsupportedOperationException, DirectoryException
   {
     // Dynamic groups don't support altering the member list.
-    int    msgID   = MSGID_DYNAMICGROUP_ALTERING_MEMBERS_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_DYNAMICGROUP_ALTERING_MEMBERS_NOT_SUPPORTED.get();
+    throw new UnsupportedOperationException(message.toString());
   }
 
 

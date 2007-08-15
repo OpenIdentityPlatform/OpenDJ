@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
@@ -36,8 +37,9 @@ import org.opends.server.types.*;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.AccessLogger;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+
 import org.opends.server.admin.std.server.*;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -104,9 +106,9 @@ public class LoggerConfigManager implements
       }
       else
       {
-        int    msgID   = MSGID_CONFIG_LOGGER_INVALID_OBJECTCLASS;
-        String message = getMessage(msgID, String.valueOf(config.dn()));
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CONFIG_LOGGER_INVALID_OBJECTCLASS.get(
+            String.valueOf(config.dn()));
+        throw new ConfigException(message);
       }
     }
 
@@ -114,15 +116,11 @@ public class LoggerConfigManager implements
     // message.
     if (accessPublisherCfgs.isEmpty())
     {
-      ErrorLogger.logError(ErrorLogCategory.CONFIGURATION,
-                           ErrorLogSeverity.SEVERE_WARNING,
-                           MSGID_CONFIG_LOGGER_NO_ACTIVE_ACCESS_LOGGERS);
+      logError(WARN_CONFIG_LOGGER_NO_ACTIVE_ACCESS_LOGGERS.get());
     }
     if (errorPublisherCfgs.isEmpty())
     {
-      ErrorLogger.logError(ErrorLogCategory.CONFIGURATION,
-                           ErrorLogSeverity.SEVERE_WARNING,
-                           MSGID_CONFIG_LOGGER_NO_ACTIVE_ERROR_LOGGERS);
+      logError(WARN_CONFIG_LOGGER_NO_ACTIVE_ERROR_LOGGERS.get());
     }
 
     DebugLogger.getInstance().initializeDebugLogger(debugPublisherCfgs);
@@ -134,7 +132,7 @@ public class LoggerConfigManager implements
    * {@inheritDoc}
    */
   public boolean isConfigurationAddAcceptable(LogPublisherCfg config,
-                                              List<String> unacceptableReasons)
+                                              List<Message> unacceptableReasons)
   {
     if(config instanceof DebugLogPublisherCfg)
     {
@@ -153,8 +151,9 @@ public class LoggerConfigManager implements
    }
     else
     {
-      int    msgID   = MSGID_CONFIG_LOGGER_INVALID_OBJECTCLASS;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(config.dn())));
+
+      unacceptableReasons.add(ERR_CONFIG_LOGGER_INVALID_OBJECTCLASS.get(
+              String.valueOf(config.dn())));
       return false;
     }
   }
@@ -181,10 +180,10 @@ public class LoggerConfigManager implements
    }
     else
     {
-      int    msgID   = MSGID_CONFIG_LOGGER_INVALID_OBJECTCLASS;
-      ArrayList<String> messages            = new ArrayList<String>();
+      ArrayList<Message> messages            = new ArrayList<Message>();
+      messages.add(ERR_CONFIG_LOGGER_INVALID_OBJECTCLASS.
+              get(String.valueOf(config.dn())));
       boolean           adminActionRequired = false;
-      messages.add(getMessage(msgID, String.valueOf(config.dn())));
       ResultCode resultCode = ResultCode.UNWILLING_TO_PERFORM;
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
@@ -194,7 +193,7 @@ public class LoggerConfigManager implements
    * {@inheritDoc}
    */
   public boolean isConfigurationDeleteAcceptable(LogPublisherCfg config,
-                                               List<String> unacceptableReasons)
+                                              List<Message> unacceptableReasons)
   {
     if(config instanceof DebugLogPublisherCfg)
     {
@@ -213,8 +212,8 @@ public class LoggerConfigManager implements
    }
     else
     {
-      int    msgID   = MSGID_CONFIG_LOGGER_INVALID_OBJECTCLASS;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(config.dn())));
+      unacceptableReasons.add(ERR_CONFIG_LOGGER_INVALID_OBJECTCLASS.get(
+              String.valueOf(config.dn())));
       return false;
     }
   }
@@ -241,10 +240,10 @@ public class LoggerConfigManager implements
    }
     else
     {
-      int    msgID   = MSGID_CONFIG_LOGGER_INVALID_OBJECTCLASS;
-      ArrayList<String> messages            = new ArrayList<String>();
+      ArrayList<Message> messages            = new ArrayList<Message>();
+      messages.add(ERR_CONFIG_LOGGER_INVALID_OBJECTCLASS.get(
+              String.valueOf(config.dn())));
       boolean           adminActionRequired = false;
-      messages.add(getMessage(msgID, String.valueOf(config.dn())));
       ResultCode resultCode = ResultCode.UNWILLING_TO_PERFORM;
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }

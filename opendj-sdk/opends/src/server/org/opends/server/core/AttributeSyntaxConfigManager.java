@@ -44,18 +44,18 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.config.ConfigException;
+import org.opends.messages.Message;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -138,20 +138,15 @@ public class AttributeSyntaxConfigManager
           }
           catch (DirectoryException de)
           {
-            int    msgID   = MSGID_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX;
-            String message = getMessage(msgID,
-                                  String.valueOf(syntaxConfiguration.dn()),
-                                  de.getErrorMessage());
-            logError(ErrorLogCategory.CONFIGURATION,
-                     ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+            Message message = WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
+               String.valueOf(syntaxConfiguration.dn()), de.getMessageObject());
+            logError(message);
             continue;
           }
         }
         catch (InitializationException ie)
         {
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_ERROR,
-                   ie.getMessage(), ie.getMessageID());
+          logError(ie.getMessageObject());
           continue;
         }
       }
@@ -165,7 +160,7 @@ public class AttributeSyntaxConfigManager
    */
   public boolean isConfigurationAddAcceptable(
                       AttributeSyntaxCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -178,7 +173,7 @@ public class AttributeSyntaxConfigManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add(ie.getMessage());
+        unacceptableReasons.add(ie.getMessageObject());
         return false;
       }
     }
@@ -195,9 +190,9 @@ public class AttributeSyntaxConfigManager
   public ConfigChangeResult applyConfigurationAdd(
                                  AttributeSyntaxCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ResultCode         resultCode          = ResultCode.SUCCESS;
+    boolean            adminActionRequired = false;
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     configuration.addChangeListener(this);
 
@@ -222,9 +217,8 @@ public class AttributeSyntaxConfigManager
       }
       catch (DirectoryException de)
       {
-        int    msgID   = MSGID_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX;
-        String message = getMessage(msgID, String.valueOf(configuration.dn()),
-                                    de.getErrorMessage());
+        Message message = WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
+                String.valueOf(configuration.dn()), de.getMessageObject());
         messages.add(message);
 
         if (resultCode == ResultCode.SUCCESS)
@@ -240,7 +234,7 @@ public class AttributeSyntaxConfigManager
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
 
-      messages.add(ie.getMessage());
+      messages.add(ie.getMessageObject());
     }
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
@@ -253,7 +247,7 @@ public class AttributeSyntaxConfigManager
    */
   public boolean isConfigurationDeleteAcceptable(
                       AttributeSyntaxCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // If the syntax is enabled, then check to see if there are any defined
     // attribute types that use the syntax.  If so, then don't allow it to be
@@ -267,9 +261,8 @@ public class AttributeSyntaxConfigManager
       {
         if (oid.equals(at.getSyntaxOID()))
         {
-          int msgID = MSGID_CONFIG_SCHEMA_CANNOT_DELETE_SYNTAX_IN_USE;
-          String message = getMessage(msgID, syntax.getSyntaxName(),
-                                      at.getNameOrOID());
+          Message message = WARN_CONFIG_SCHEMA_CANNOT_DELETE_SYNTAX_IN_USE.get(
+                  syntax.getSyntaxName(), at.getNameOrOID());
           unacceptableReasons.add(message);
 
           configAcceptable = false;
@@ -290,7 +283,7 @@ public class AttributeSyntaxConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     AttributeSyntax syntax = syntaxes.remove(configuration.dn());
     if (syntax != null)
@@ -309,7 +302,7 @@ public class AttributeSyntaxConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
                       AttributeSyntaxCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -322,7 +315,7 @@ public class AttributeSyntaxConfigManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add(ie.getMessage());
+        unacceptableReasons.add(ie.getMessageObject());
         return false;
       }
     }
@@ -338,9 +331,10 @@ public class AttributeSyntaxConfigManager
         {
           if (oid.equals(at.getSyntaxOID()))
           {
-            int msgID = MSGID_CONFIG_SCHEMA_CANNOT_DISABLE_SYNTAX_IN_USE;
-            String message = getMessage(msgID, syntax.getSyntaxName(),
-                                        at.getNameOrOID());
+            Message message =
+                    WARN_CONFIG_SCHEMA_CANNOT_DISABLE_SYNTAX_IN_USE.get(
+                            syntax.getSyntaxName(),
+                            at.getNameOrOID());
             unacceptableReasons.add(message);
             return false;
           }
@@ -362,7 +356,7 @@ public class AttributeSyntaxConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Get the existing syntax if it's already enabled.
@@ -416,9 +410,9 @@ public class AttributeSyntaxConfigManager
       }
       catch (DirectoryException de)
       {
-        int    msgID   = MSGID_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX;
-        String message = getMessage(msgID, String.valueOf(configuration.dn()),
-                                    de.getErrorMessage());
+        Message message = WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
+                String.valueOf(configuration.dn()),
+                de.getMessageObject());
         messages.add(message);
 
         if (resultCode == ResultCode.SUCCESS)
@@ -434,7 +428,7 @@ public class AttributeSyntaxConfigManager
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
 
-      messages.add(ie.getMessage());
+      messages.add(ie.getMessageObject());
     }
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
@@ -486,7 +480,7 @@ public class AttributeSyntaxConfigManager
                                                     AttributeSyntaxCfg.class,
                                                     List.class);
 
-        List<String> unacceptableReasons = new ArrayList<String>();
+        List<Message> unacceptableReasons = new ArrayList<Message>();
         Boolean acceptable = (Boolean) method.invoke(syntax, configuration,
                                                      unacceptableReasons);
         if (! acceptable)
@@ -494,7 +488,7 @@ public class AttributeSyntaxConfigManager
           StringBuilder buffer = new StringBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<String> iterator = unacceptableReasons.iterator();
+            Iterator<Message> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -503,10 +497,9 @@ public class AttributeSyntaxConfigManager
             }
           }
 
-          int    msgID   = MSGID_CONFIG_SCHEMA_SYNTAX_CONFIG_NOT_ACCEPTABLE;
-          String message = getMessage(msgID, String.valueOf(configuration.dn()),
-                                      buffer.toString());
-          throw new InitializationException(msgID, message);
+          Message message = ERR_CONFIG_SCHEMA_SYNTAX_CONFIG_NOT_ACCEPTABLE.get(
+              String.valueOf(configuration.dn()), buffer.toString());
+          throw new InitializationException(message);
         }
       }
 
@@ -514,11 +507,10 @@ public class AttributeSyntaxConfigManager
     }
     catch (Exception e)
     {
-      int msgID = MSGID_CONFIG_SCHEMA_SYNTAX_CANNOT_INITIALIZE;
-      String message = getMessage(msgID, className,
-                                  String.valueOf(configuration.dn()),
-                                  stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_SCHEMA_SYNTAX_CANNOT_INITIALIZE.
+          get(className, String.valueOf(configuration.dn()),
+              stackTraceToSingleLineString(e));
+      throw new InitializationException(message, e);
     }
   }
 }

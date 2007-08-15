@@ -37,14 +37,13 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
-
 
 
 /**
@@ -85,18 +84,16 @@ public class UUIDSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_UUID_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_UUID_OID, SYNTAX_UUID_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_UUID_OID, SYNTAX_UUID_NAME));
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_UUID_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-               OMR_UUID_OID, SYNTAX_UUID_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+          OMR_UUID_OID, SYNTAX_UUID_NAME));
     }
   }
 
@@ -213,7 +210,7 @@ public class UUIDSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // We will only accept values that look like valid UUIDs.  This means that
     // all values must be in the form HHHHHHHH-HHHH-HHHH-HHHH-HHHHHHHHHHHH,
@@ -222,8 +219,8 @@ public class UUIDSyntax
     String valueString = value.stringValue();
     if (valueString.length() != 36)
     {
-      int msgID = MSGID_ATTR_SYNTAX_UUID_INVALID_LENGTH;
-      invalidReason.append(getMessage(msgID, valueString,
+
+      invalidReason.append(WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH.get(valueString,
                                       valueString.length()));
       return false;
     }
@@ -240,9 +237,9 @@ public class UUIDSyntax
         case 23:
           if (valueString.charAt(i) != '-')
           {
-            int msgID = MSGID_ATTR_SYNTAX_UUID_EXPECTED_DASH;
-            invalidReason.append(getMessage(msgID, valueString, i,
-                                            valueString.charAt(i)));
+
+            invalidReason.append(WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH.get(
+                    valueString, i, String.valueOf(valueString.charAt(i))));
             return false;
           }
           break;
@@ -273,9 +270,9 @@ public class UUIDSyntax
             case 'F':
               break;
             default:
-              int msgID = MSGID_ATTR_SYNTAX_UUID_EXPECTED_HEX;
-              invalidReason.append(getMessage(msgID, valueString, i,
-                                              valueString.charAt(i)));
+
+              invalidReason.append(WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX.get(
+                      valueString, i, String.valueOf(valueString.charAt(i))));
               return false;
           }
       }

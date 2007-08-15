@@ -49,21 +49,22 @@ import javax.swing.table.TableModel;
 
 import org.opends.admin.ads.util.ApplicationKeyManager;
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.guitools.statuspanel.ui.DatabasesTableModel;
 import org.opends.guitools.statuspanel.ui.ListenersTableModel;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.QuickSetupLog;
-import org.opends.quicksetup.util.Utils;
+import static org.opends.quicksetup.util.Utils.*;
 
 import org.opends.server.core.DirectoryServer;
 
 
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ToolMessages.*;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.QuickSetupMessages.*;
 
-import org.opends.server.messages.MessageHandler;
 import org.opends.server.util.PasswordReader;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.ServerConstants;
@@ -89,20 +90,6 @@ class StatusCli
   private boolean displayMustAuthenticateLegend;
   private boolean displayMustStartLegend;
 
-  /**
-   * The 'binDN' global argument.
-   */
-  private StringArgument bindDnArg = null;
-
-  /**
-   * The 'bindPasswordFile' global argument.
-   */
-  private FileBasedArgument bindPasswordFileArg = null;
-
-  /**
-   * The 'bindPassword' global argument.
-   */
-  private StringArgument bindPasswordArg = null;
   /**
    * The 'trustAllArg' global argument.
    */
@@ -205,15 +192,15 @@ class StatusCli
   {
     int returnValue = SUCCESSFUL;
 
-    ArrayList<String> errors = new ArrayList<String>();
+    ArrayList<Message> errors = new ArrayList<Message>();
 
     String directoryManagerPwd = null;
     String directoryManagerPwdFile = null;
     String directoryManagerDn = null;
 
     ArgumentParser argParser =
-        new ArgumentParser(StatusPanelLauncher.class.getName(),
-          getI18n().getMsg("status-cli-usage-description"), false);
+            new ArgumentParser(StatusPanelLauncher.class.getName(),
+                    INFO_STATUS_CLI_USAGE_DESCRIPTION.get(), false);
     BooleanArgument showUsage;
     BooleanArgument useSSLArg;
     BooleanArgument startTLSArg;
@@ -222,7 +209,7 @@ class StatusCli
     FileBasedArgument bindPWFile;
 
     String scriptName;
-    if (Utils.isWindows()) {
+    if (isWindows()) {
       scriptName = Installation.WINDOWS_STATUSCLI_FILE_NAME;
     } else {
       scriptName = Installation.UNIX_STATUSCLI_FILE_NAME;
@@ -231,25 +218,25 @@ class StatusCli
     try
     {
       useSSLArg = new BooleanArgument("useSSL", OPTION_SHORT_USE_SSL,
-          OPTION_LONG_USE_SSL, MSGID_DESCRIPTION_USE_SSL);
+          OPTION_LONG_USE_SSL, INFO_DESCRIPTION_USE_SSL.get());
       argParser.addArgument(useSSLArg);
 
       startTLSArg = new BooleanArgument("startTLS", OPTION_SHORT_START_TLS,
           OPTION_LONG_START_TLS,
-          MSGID_DESCRIPTION_START_TLS);
+          INFO_DESCRIPTION_START_TLS.get());
       argParser.addArgument(startTLSArg);
 
       bindDN = new StringArgument("binddn", OPTION_SHORT_BINDDN,
           OPTION_LONG_BINDDN, false, false, true,
           OPTION_VALUE_BINDDN, "cn=Directory Manager", null,
-          MSGID_STOPDS_DESCRIPTION_BINDDN);
+          INFO_STOPDS_DESCRIPTION_BINDDN.get());
       argParser.addArgument(bindDN);
 
       bindPW = new StringArgument("bindpw", OPTION_SHORT_BINDPWD,
           OPTION_LONG_BINDPWD, false, false,
           true,
           OPTION_VALUE_BINDPWD, null, null,
-          MSGID_STOPDS_DESCRIPTION_BINDPW);
+          INFO_STOPDS_DESCRIPTION_BINDPW.get());
       argParser.addArgument(bindPW);
 
       bindPWFile = new FileBasedArgument("bindpwfile",
@@ -258,65 +245,64 @@ class StatusCli
           false, false,
           OPTION_VALUE_BINDPWD_FILE,
           null, null,
-          MSGID_STOPDS_DESCRIPTION_BINDPWFILE);
+          INFO_STOPDS_DESCRIPTION_BINDPWFILE.get());
       argParser.addArgument(bindPWFile);
 
       trustAllArg = new BooleanArgument("trustAll", 'X', "trustAll",
-          MSGID_DESCRIPTION_TRUSTALL);
+          INFO_DESCRIPTION_TRUSTALL.get());
       argParser.addArgument(trustAllArg);
 
       trustStorePathArg = new StringArgument("trustStorePath",
           OPTION_SHORT_TRUSTSTOREPATH, OPTION_LONG_TRUSTSTOREPATH, false,
           false, true, OPTION_VALUE_TRUSTSTOREPATH, null, null,
-          MSGID_DESCRIPTION_TRUSTSTOREPATH);
+          INFO_DESCRIPTION_TRUSTSTOREPATH.get());
       argParser.addArgument(trustStorePathArg);
 
       trustStorePasswordArg = new StringArgument("trustStorePassword", null,
           OPTION_LONG_TRUSTSTORE_PWD, false, false, true,
           OPTION_VALUE_TRUSTSTORE_PWD, null, null,
-          MSGID_DESCRIPTION_TRUSTSTOREPASSWORD);
+          INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get());
       argParser.addArgument(trustStorePasswordArg);
 
       trustStorePasswordFileArg =
         new FileBasedArgument("truststorepasswordfile",
           OPTION_SHORT_TRUSTSTORE_PWD_FILE, OPTION_LONG_TRUSTSTORE_PWD_FILE,
           false, false, OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
-          MSGID_DESCRIPTION_TRUSTSTOREPASSWORD_FILE);
+          INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get());
       argParser.addArgument(trustStorePasswordFileArg);
 
       keyStorePathArg = new StringArgument("keyStorePath",
           OPTION_SHORT_KEYSTOREPATH, OPTION_LONG_KEYSTOREPATH, false, false,
           true, OPTION_VALUE_KEYSTOREPATH, null, null,
-          MSGID_DESCRIPTION_KEYSTOREPATH);
+          INFO_DESCRIPTION_KEYSTOREPATH.get());
       argParser.addArgument(keyStorePathArg);
 
       keyStorePasswordArg = new StringArgument("keyStorePassword", null,
           OPTION_LONG_KEYSTORE_PWD, false, false, true,
           OPTION_VALUE_KEYSTORE_PWD, null, null,
-          MSGID_DESCRIPTION_KEYSTOREPASSWORD);
+          INFO_DESCRIPTION_KEYSTOREPASSWORD.get());
       argParser.addArgument(keyStorePasswordArg);
 
       keyStorePasswordFileArg = new FileBasedArgument("keystorepasswordfile",
           OPTION_SHORT_KEYSTORE_PWD_FILE, OPTION_LONG_KEYSTORE_PWD_FILE, false,
           false, OPTION_VALUE_KEYSTORE_PWD_FILE, null, null,
-          MSGID_DESCRIPTION_KEYSTOREPASSWORD_FILE);
+          INFO_DESCRIPTION_KEYSTOREPASSWORD_FILE.get());
       argParser.addArgument(keyStorePasswordFileArg);
 
       certNicknameArg = new StringArgument("certnickname", 'N', "certNickname",
           false, false, true, "{nickname}", null, null,
-          MSGID_DESCRIPTION_CERT_NICKNAME);
+          INFO_DESCRIPTION_CERT_NICKNAME.get());
       argParser.addArgument(certNicknameArg);
 
       showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
           OPTION_LONG_HELP,
-          MSGID_DESCRIPTION_USAGE);
+          INFO_DESCRIPTION_USAGE.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = MessageHandler.getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       System.err.println(wrap(message));
       return BUG;
     }
@@ -330,8 +316,7 @@ class StatusCli
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ERROR_PARSING_ARGS;
-      String message = MessageHandler.getMessage(msgID, ae.getMessage());
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       System.err.println(wrap(message));
       System.err.println(argParser.getUsage());
@@ -347,7 +332,7 @@ class StatusCli
 
     if ((directoryManagerPwdFile != null) && (directoryManagerPwd != null))
     {
-      errors.add(getMsg("cli-status-pwd-and-pwd-file-provided", true));
+      errors.add(wrap(INFO_CLI_STATUS_PWD_AND_PWD_FILE_PROVIDED.get()));
     }
     else
     {
@@ -356,13 +341,13 @@ class StatusCli
         // read the password from stdin.
         try
         {
-          System.out.print(getMsg("cli-status-ldapauth-password-prompt",
-              new String[] {directoryManagerDn}, false));
+          System.out.print(INFO_CLI_STATUS_LDAPAUTH_PASSWORD_PROMPT.get(
+                  directoryManagerDn));
           char[] pwChars = PasswordReader.readPassword();
           directoryManagerPwd = new String(pwChars);
         } catch(Exception ex)
         {
-          errors.add(ex.getMessage());
+          errors.add(Message.raw(ex.getMessage()));
         }
       }
       if (directoryManagerPwdFile != null)
@@ -370,8 +355,8 @@ class StatusCli
         directoryManagerPwd = readPwdFromFile(directoryManagerPwdFile);
         if (directoryManagerPwd == null)
         {
-          String[] arg = {directoryManagerPwdFile};
-          errors.add(getMsg("cli-status-error-reading-pwd-file", arg, true));
+          errors.add(wrap(INFO_CLI_STATUS_ERROR_READING_PWD_FILE.get(
+                  directoryManagerPwdFile)));
         }
       }
     }
@@ -380,20 +365,17 @@ class StatusCli
     // trustStore related arg
     if (trustAllArg.isPresent() && trustStorePathArg.isPresent())
     {
-      int msgID = MSGID_TOOL_CONFLICTING_ARGS;
-      errors.add(getMessage(msgID, trustAllArg.getLongIdentifier(),
+      errors.add(ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(),
           trustStorePathArg.getLongIdentifier()));
     }
     if (trustAllArg.isPresent() && trustStorePasswordArg.isPresent())
     {
-      int msgID = MSGID_TOOL_CONFLICTING_ARGS;
-      errors.add(getMessage(msgID, trustAllArg.getLongIdentifier(),
+      errors.add(ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(),
           trustStorePasswordArg.getLongIdentifier()));
     }
     if (trustAllArg.isPresent() && trustStorePasswordFileArg.isPresent())
     {
-      int msgID = MSGID_TOOL_CONFLICTING_ARGS;
-      errors.add(getMessage(msgID, trustAllArg.getLongIdentifier(),
+      errors.add(ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(),
           trustStorePasswordFileArg.getLongIdentifier()));
     }
 
@@ -402,8 +384,7 @@ class StatusCli
     if (trustStorePasswordArg.isPresent()
         && trustStorePasswordFileArg.isPresent())
     {
-      int msgID = MSGID_TOOL_CONFLICTING_ARGS;
-      errors.add(getMessage(msgID, trustStorePasswordArg
+      errors.add(ERR_TOOL_CONFLICTING_ARGS.get(trustStorePasswordArg
           .getLongIdentifier(), trustStorePasswordFileArg.getLongIdentifier()));
     }
 
@@ -412,14 +393,13 @@ class StatusCli
     if (startTLSArg.isPresent()
         && useSSLArg.isPresent())
     {
-      int msgID = MSGID_TOOL_CONFLICTING_ARGS;
-      errors.add(getMessage(msgID, startTLSArg.getLongIdentifier(),
+      errors.add(ERR_TOOL_CONFLICTING_ARGS.get(startTLSArg.getLongIdentifier(),
           useSSLArg.getLongIdentifier()));
     }
     if (errors.size() > 0)
     {
-      System.err.println(Utils.getStringFromCollection(errors,
-          LINE_SEPARATOR+LINE_SEPARATOR));
+      System.err.println(getMessageFromCollection(errors,
+          LINE_SEPARATOR+LINE_SEPARATOR).toString());
       System.err.println();
       System.err.println(argParser.getUsage());
       returnValue = USER_DATA_ERROR;
@@ -478,7 +458,7 @@ class StatusCli
       }
       catch (ConfigException ce)
       {
-        System.err.println(wrap(ce.getMessage()));
+        System.err.println(wrap(ce.getMessageObject()));
       }
     }
 
@@ -517,35 +497,6 @@ class StatusCli
     return pwd;
   }
 
-  /**
-   * The following three methods are just commodity methods to get localized
-   * messages.
-   */
-  private String getMsg(String key, boolean wrap)
-  {
-    String t = getI18n().getMsg(key);
-    if (wrap)
-    {
-      t= wrap(t);
-    }
-    return t;
-  }
-
-  private String getMsg(String key, String[] args, boolean wrap)
-  {
-    String t = getI18n().getMsg(key, args);
-    if (wrap)
-    {
-      t= wrap(t);
-    }
-    return t;
-  }
-
-  private static ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
-  }
-
   private ServerStatusDescriptor createServerStatusDescriptor(String dn,
       String pwd)
   {
@@ -561,7 +512,7 @@ class StatusCli
       desc.setStatus(ServerStatusDescriptor.ServerStatus.STOPPED);
     }
 
-    desc.setInstallPath(new File(Utils.getInstallPathFromClasspath()));
+    desc.setInstallPath(new File(getInstallPathFromClasspath()));
 
     desc.setOpenDSVersion(
         org.opends.server.util.DynamicConstants.FULL_VERSION_STRING);
@@ -605,14 +556,14 @@ class StatusCli
 
   private void writeStatus(ServerStatusDescriptor desc)
   {
-    String[] labels =
+    Message[] labels =
       {
-        getMsg("server-status-label", false),
-        getMsg("connections-label", false),
-        getMsg("administrative-users-label", false),
-        getMsg("installation-path-label", false),
-        getMsg("opends-version-label", false),
-        getMsg("java-version-label", false)
+        INFO_SERVER_STATUS_LABEL.get(),
+        INFO_CONNECTIONS_LABEL.get(),
+        INFO_ADMINISTRATIVE_USERS_LABEL.get(),
+        INFO_INSTALLATION_PATH_LABEL.get(),
+        INFO_OPENDS_VERSION_LABEL.get(),
+        INFO_JAVA_VERSION_LABEL.get()
       };
     int labelWidth = 0;
     for (int i=0; i<labels.length; i++)
@@ -620,13 +571,13 @@ class StatusCli
       labelWidth = Math.max(labelWidth, labels[i].length());
     }
     System.out.println();
-    String title = getMsg("server-status-title", false);
+    Message title = INFO_SERVER_STATUS_TITLE.get();
     System.out.println(centerTitle(title));
     writeStatusContents(desc, labelWidth);
     writeCurrentConnectionContents(desc, labelWidth);
     System.out.println();
 
-    title = getMsg("server-details-title", false);
+    title = INFO_SERVER_DETAILS_TITLE.get();
     System.out.println(centerTitle(title));
     writeAdministrativeUserContents(desc, labelWidth);
     writeInstallPathContents(desc, labelWidth);
@@ -644,13 +595,13 @@ class StatusCli
     if (displayMustStartLegend)
     {
       System.out.println();
-      System.out.println(getMsg("not-available-server-down-cli-legend", true));
+      System.out.println(wrap(INFO_NOT_AVAILABLE_SERVER_DOWN_CLI_LEGEND.get()));
     }
     else if (displayMustAuthenticateLegend)
     {
       System.out.println();
       System.out.println(
-          getMsg("not-available-authentication-required-cli-legend", true));
+          wrap(INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LEGEND.get()));
     }
     System.out.println();
   }
@@ -663,33 +614,33 @@ class StatusCli
   private void writeStatusContents(ServerStatusDescriptor desc,
       int maxLabelWidth)
   {
-    String status;
+    Message status;
     switch (desc.getStatus())
     {
     case STARTED:
-      status = getMsg("server-started-label", false);
+      status = INFO_SERVER_STARTED_LABEL.get();
       break;
 
     case STOPPED:
-      status = getMsg("server-stopped-label", false);
+      status = INFO_SERVER_STOPPED_LABEL.get();
       break;
 
     case STARTING:
-      status = getMsg("server-starting-label", false);
+      status = INFO_SERVER_STARTING_LABEL.get();
       break;
 
     case STOPPING:
-      status = getMsg("server-stopping-label", false);
+      status = INFO_SERVER_STOPPING_LABEL.get();
       break;
 
     case UNKNOWN:
-      status = getMsg("server-unknown-status-label", false);
+      status = INFO_SERVER_UNKNOWN_STATUS_LABEL.get();
       break;
 
     default:
       throw new IllegalStateException("Unknown status: "+desc.getStatus());
     }
-    writeLabelValue(getMsg("server-status-label", false), status,
+    writeLabelValue(INFO_SERVER_STATUS_LABEL.get(), status,
         maxLabelWidth);
   }
 
@@ -701,13 +652,13 @@ class StatusCli
   private void writeCurrentConnectionContents(ServerStatusDescriptor desc,
       int maxLabelWidth)
   {
-    String text;
+    Message text;
     if (desc.getStatus() == ServerStatusDescriptor.ServerStatus.STARTED)
     {
       int nConn = desc.getOpenConnections();
       if (nConn >= 0)
       {
-        text = String.valueOf(nConn);
+        text = Message.raw(String.valueOf(nConn));
       }
       else
       {
@@ -726,7 +677,7 @@ class StatusCli
       text = getNotAvailableBecauseServerIsDownText();
     }
 
-    writeLabelValue(getMsg("connections-label", false), text, maxLabelWidth);
+    writeLabelValue(INFO_CONNECTIONS_LABEL.get(), text, maxLabelWidth);
   }
 
   /**
@@ -738,23 +689,27 @@ class StatusCli
       int maxLabelWidth)
   {
     Set<String> administrators = desc.getAdministrativeUsers();
-    String text;
+    Message text;
     if (administrators.size() > 0)
     {
       TreeSet<String> ordered = new TreeSet<String>();
       ordered.addAll(administrators);
 
       String first = ordered.iterator().next();
-      writeLabelValue(getMsg("administrative-users-label", false), first,
-          maxLabelWidth);
+      writeLabelValue(
+              INFO_ADMINISTRATIVE_USERS_LABEL.get(),
+              Message.raw(first),
+              maxLabelWidth);
 
       Iterator<String> it = ordered.iterator();
       // First one already printed
       it.next();
       while (it.hasNext())
       {
-        writeLabelValue(getMsg("administrative-users-label", false), it.next(),
-            maxLabelWidth);
+        writeLabelValue(
+                INFO_ADMINISTRATIVE_USERS_LABEL.get(),
+                Message.raw(it.next()),
+                maxLabelWidth);
       }
     }
     else
@@ -774,7 +729,7 @@ class StatusCli
       {
         text = getNotAvailableText();
       }
-      writeLabelValue(getMsg("administrative-users-label", false), text,
+      writeLabelValue(INFO_ADMINISTRATIVE_USERS_LABEL.get(), text,
           maxLabelWidth);
     }
   }
@@ -788,8 +743,9 @@ class StatusCli
       int maxLabelWidth)
   {
     File path = desc.getInstallPath();
-    writeLabelValue(getMsg("installation-path-label", false), path.toString(),
-        maxLabelWidth);
+    writeLabelValue(INFO_INSTALLATION_PATH_LABEL.get(),
+            Message.raw(path.toString()),
+            maxLabelWidth);
   }
 
   /**
@@ -802,8 +758,9 @@ class StatusCli
       int maxLabelWidth)
   {
     String openDSVersion = desc.getOpenDSVersion();
-    writeLabelValue(getMsg("opends-version-label", false), openDSVersion,
-        maxLabelWidth);
+    writeLabelValue(INFO_OPENDS_VERSION_LABEL.get(),
+            Message.raw(openDSVersion),
+            maxLabelWidth);
   }
 
   /**
@@ -815,10 +772,10 @@ class StatusCli
   private void writeJavaVersionContents(ServerStatusDescriptor desc,
       int maxLabelWidth)
   {
-    String text;
+    Message text;
     if (desc.getStatus() == ServerStatusDescriptor.ServerStatus.STARTED)
     {
-      text = desc.getJavaVersion();
+      text = Message.raw(desc.getJavaVersion());
       if (text == null)
       {
         if (!desc.isAuthenticated())
@@ -835,7 +792,7 @@ class StatusCli
     {
       text = getNotAvailableBecauseServerIsDownText();
     }
-    writeLabelValue(getMsg("java-version-label", false), text, maxLabelWidth);
+    writeLabelValue(INFO_JAVA_VERSION_LABEL.get(), text, maxLabelWidth);
   }
 
   /**
@@ -845,7 +802,7 @@ class StatusCli
    */
   private void writeListenerContents(ServerStatusDescriptor desc)
   {
-    String title = getMsg("listeners-title", false);
+    Message title = INFO_LISTENERS_TITLE.get();
     System.out.println(centerTitle(title));
 
     Set<ListenerDescriptor> listeners = desc.getListeners();
@@ -857,16 +814,16 @@ class StatusCli
         if (!desc.isAuthenticated())
         {
           System.out.println(
-              getMsg("not-available-authentication-required-cli-label", true));
+              wrap(INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get()));
         }
         else
         {
-          System.out.println(getMsg("no-listeners-found", true));
+          System.out.println(wrap(INFO_NO_LISTENERS_FOUND.get()));
         }
       }
       else
       {
-        System.out.println(getMsg("no-listeners-found", true));
+        System.out.println(wrap(INFO_NO_LISTENERS_FOUND.get()));
       }
     }
     else
@@ -884,7 +841,7 @@ class StatusCli
    */
   private void writeDatabaseContents(ServerStatusDescriptor desc)
   {
-    String title = getMsg("databases-title", false);
+    Message title = INFO_DATABASES_TITLE.get();
     System.out.println(centerTitle(title));
 
     Set<DatabaseDescriptor> databases = desc.getDatabases();
@@ -896,16 +853,16 @@ class StatusCli
         if (!desc.isAuthenticated())
         {
           System.out.println(
-              getMsg("not-available-authentication-required-cli-label", true));
+              wrap(INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get()));
         }
         else
         {
-          System.out.println(getMsg("no-dbs-found", true));
+          System.out.println(wrap(INFO_NO_DBS_FOUND.get()));
         }
       }
       else
       {
-        System.out.println(getMsg("no-dbs-found", true));
+        System.out.println(wrap(INFO_NO_DBS_FOUND.get()));
       }
     }
     else
@@ -930,7 +887,7 @@ class StatusCli
    */
   private void writeErrorContents(ServerStatusDescriptor desc)
   {
-    String errorMsg = desc.getErrorMessage();
+    Message errorMsg = desc.getErrorMessage();
     if (errorMsg != null)
     {
       System.out.println();
@@ -943,10 +900,10 @@ class StatusCli
    * because the server is down.
    * @return the text.
    */
-  private String getNotAvailableBecauseServerIsDownText()
+  private Message getNotAvailableBecauseServerIsDownText()
   {
     displayMustStartLegend = true;
-    return getMsg("not-available-server-down-cli-label", false);
+    return INFO_NOT_AVAILABLE_SERVER_DOWN_CLI_LABEL.get();
   }
 
   /**
@@ -954,19 +911,19 @@ class StatusCli
    * because authentication is required.
    * @return the text.
    */
-  private String getNotAvailableBecauseAuthenticationIsRequiredText()
+  private Message getNotAvailableBecauseAuthenticationIsRequiredText()
   {
     displayMustAuthenticateLegend = true;
-    return getMsg("not-available-authentication-required-cli-label", false);
+    return INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get();
   }
 
   /**
    * Returns the not available text explaining that the data is not available.
    * @return the text.
    */
-  private String getNotAvailableText()
+  private Message getNotAvailableText()
   {
-    return getMsg("not-available-label", false);
+    return INFO_NOT_AVAILABLE_LABEL.get();
   }
 
   /**
@@ -997,11 +954,11 @@ class StatusCli
           }
           else if (v instanceof Integer)
           {
-            String text;
+            Message text;
             int nEntries = ((Integer)v).intValue();
             if (nEntries >= 0)
             {
-              text = String.valueOf(nEntries);
+              text = Message.raw(String.valueOf(nEntries));
             }
             else
             {
@@ -1034,7 +991,7 @@ class StatusCli
       totalWidth += maxWidths[i];
     }
 
-    StringBuilder headerLine = new StringBuilder();
+    MessageBuilder headerLine = new MessageBuilder();
     for (int i=0; i<maxWidths.length; i++)
     {
       String header = tableModel.getColumnName(i);
@@ -1045,17 +1002,17 @@ class StatusCli
         headerLine.append(" ");
       }
     }
-    System.out.println(wrap(headerLine.toString()));
-    StringBuilder t = new StringBuilder();
+    System.out.println(wrap(headerLine.toMessage()));
+    MessageBuilder t = new MessageBuilder();
     for (int i=0; i<headerLine.length(); i++)
     {
       t.append("=");
     }
-    System.out.println(wrap(t.toString()));
+    System.out.println(wrap(t.toMessage()));
 
     for (int i=0; i<tableModel.getRowCount(); i++)
     {
-      StringBuilder line = new StringBuilder();
+      MessageBuilder line = new MessageBuilder();
       for (int j=0; j<tableModel.getColumnCount(); j++)
       {
         int extra = maxWidths[j];
@@ -1064,7 +1021,7 @@ class StatusCli
         {
           if (v instanceof String)
           {
-            line.append(v);
+            line.append((String)v);
             extra -= ((String)v).length();
           }
           else if (v instanceof Integer)
@@ -1098,7 +1055,7 @@ class StatusCli
           line.append(" ");
         }
       }
-      System.out.println(wrap(line.toString()));
+      System.out.println(wrap(line.toMessage()));
     }
   }
 
@@ -1115,23 +1072,23 @@ class StatusCli
       desc.getStatus() == ServerStatusDescriptor.ServerStatus.STARTED;
 
     int labelWidth = 0;
-    String[] labels = new String[tableModel.getColumnCount()];
+    Message[] labels = new Message[tableModel.getColumnCount()];
     for (int i=0; i<tableModel.getColumnCount(); i++)
     {
-      String header;
+      Message header;
       if (i == 5)
       {
-        header = getMsg("age-of-oldest-missing-change-column-cli", false);
+        header = INFO_AGE_OF_OLDEST_MISSING_CHANGE_COLUMN_CLI.get();
       }
       else
       {
-        header = tableModel.getColumnName(i);
+        header = Message.raw(tableModel.getColumnName(i));
       }
-      labels[i] = header+":";
+      labels[i] = new MessageBuilder(header).append(":").toMessage();
       labelWidth = Math.max(labelWidth, labels[i].length());
     }
 
-    String replicatedLabel = getMsg("suffix-replicated-label", false);
+    Message replicatedLabel = INFO_SUFFIX_REPLICATED_LABEL.get();
     for (int i=0; i<tableModel.getRowCount(); i++)
     {
       if (i > 0)
@@ -1140,20 +1097,20 @@ class StatusCli
       }
       for (int j=0; j<tableModel.getColumnCount(); j++)
       {
-        String value;
+        Message value;
         Object v = tableModel.getValueAt(i, j);
         if (v != null)
         {
           if (v instanceof String)
           {
-            value = (String)v;
+            value = Message.raw((String)v);
           }
           else if (v instanceof Integer)
           {
             int nEntries = ((Integer)v).intValue();
             if (nEntries >= 0)
             {
-              value = String.valueOf(nEntries);
+              value = Message.raw(String.valueOf(nEntries));
             }
             else
             {
@@ -1178,7 +1135,7 @@ class StatusCli
         }
         else
         {
-          value = "";
+          value = Message.EMPTY;
         }
 
         if (value.equals(getNotAvailableText()))
@@ -1211,9 +1168,9 @@ class StatusCli
     }
   }
 
-  private void writeLabelValue(String label, String value, int maxLabelWidth)
+  private void writeLabelValue(Message label, Message value, int maxLabelWidth)
   {
-    StringBuilder buf = new StringBuilder();
+    MessageBuilder buf = new MessageBuilder();
     buf.append(label);
 
     int extra = maxLabelWidth - label.length();
@@ -1221,31 +1178,25 @@ class StatusCli
     {
       buf.append(" ");
     }
-    buf.append(" "+value);
-    System.out.println(wrap(buf.toString()));
+    buf.append(" ").append(String.valueOf(value));
+    System.out.println(wrap(buf.toMessage()));
 
   }
 
-  private String wrap(String text)
+  private Message centerTitle(Message text)
   {
-    return org.opends.server.util.StaticUtils.wrapText(text,
-        Utils.getCommandLineMaxLineWidth());
-  }
-
-  private String centerTitle(String text)
-  {
-    String centered;
-    if (text.length() <= Utils.getCommandLineMaxLineWidth() - 8)
+    Message centered;
+    if (text.length() <= getCommandLineMaxLineWidth() - 8)
     {
-      StringBuilder buf = new StringBuilder();
+      MessageBuilder buf = new MessageBuilder();
       int extra = Math.min(10,
-          (Utils.getCommandLineMaxLineWidth() - 8 - text.length()) / 2);
+          (getCommandLineMaxLineWidth() - 8 - text.length()) / 2);
       for (int i=0; i<extra; i++)
       {
         buf.append(" ");
       }
       buf.append("--- "+text+" ---");
-      centered = buf.toString();
+      centered = buf.toMessage();
     }
     else
     {

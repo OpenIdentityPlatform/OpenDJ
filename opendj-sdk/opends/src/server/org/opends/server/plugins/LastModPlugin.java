@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins;
+import org.opends.messages.Message;
 
 
 
@@ -57,8 +58,8 @@ import org.opends.server.types.operation.PreOperationModifyDNOperation;
 
 import static org.opends.server.config.ConfigConstants.*;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.PluginMessages.*;
+import static org.opends.messages.PluginMessages.*;
+
 import static org.opends.server.util.TimeThread.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -142,9 +143,9 @@ public final class LastModPlugin
 
 
         default:
-          int msgID = MSGID_PLUGIN_LASTMOD_INVALID_PLUGIN_TYPE;
-          String message = getMessage(msgID, t.toString());
-          throw new ConfigException(msgID, message);
+          Message message =
+              ERR_PLUGIN_LASTMOD_INVALID_PLUGIN_TYPE.get(t.toString());
+          throw new ConfigException(message);
       }
     }
   }
@@ -239,7 +240,7 @@ public final class LastModPlugin
 
       // This should never happen.
       modifyOperation.setResultCode(DirectoryConfig.getServerErrorResultCode());
-      modifyOperation.appendErrorMessage(de.getErrorMessage());
+      modifyOperation.appendErrorMessage(de.getMessageObject());
       return new PreOperationPluginResult(false, false, true);
     }
 
@@ -266,7 +267,7 @@ public final class LastModPlugin
 
       // This should never happen.
       modifyOperation.setResultCode(DirectoryConfig.getServerErrorResultCode());
-      modifyOperation.appendErrorMessage(de.getErrorMessage());
+      modifyOperation.appendErrorMessage(de.getMessageObject());
       return new PreOperationPluginResult(false, false, true);
     }
 
@@ -329,7 +330,7 @@ public final class LastModPlugin
    */
   @Override()
   public boolean isConfigurationAcceptable(PluginCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
@@ -340,7 +341,7 @@ public final class LastModPlugin
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(PluginCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -358,8 +359,8 @@ public final class LastModPlugin
 
 
         default:
-          int msgID = MSGID_PLUGIN_LASTMOD_INVALID_PLUGIN_TYPE;
-          String message = getMessage(msgID, pluginType.toString());
+          Message message = ERR_PLUGIN_LASTMOD_INVALID_PLUGIN_TYPE.get(
+                  pluginType.toString());
           unacceptableReasons.add(message);
           configAcceptable = false;
       }

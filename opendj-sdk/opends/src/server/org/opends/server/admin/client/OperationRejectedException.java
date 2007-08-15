@@ -26,6 +26,8 @@
  */
 
 package org.opends.server.admin.client;
+import org.opends.messages.Message;
+
 
 
 
@@ -76,7 +78,7 @@ public class OperationRejectedException extends AdminClientException {
    * @param cause
    *          The cause.
    */
-  public OperationRejectedException(String message, Throwable cause) {
+  public OperationRejectedException(Message message, Throwable cause) {
     super(message, cause);
   }
 
@@ -88,7 +90,7 @@ public class OperationRejectedException extends AdminClientException {
    * @param message
    *          The message.
    */
-  public OperationRejectedException(String message) {
+  public OperationRejectedException(Message message) {
     super(message);
   }
 }

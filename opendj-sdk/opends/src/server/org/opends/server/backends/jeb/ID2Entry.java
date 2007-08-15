@@ -25,11 +25,11 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
+import org.opends.messages.Message;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.JebMessages.*;
+import static org.opends.messages.JebMessages.*;
 
 import com.sleepycat.je.*;
 
@@ -246,18 +246,17 @@ public class ID2Entry extends DatabaseContainer
         }
         catch (Exception e)
         {
-          int msgID = MSGID_JEB_ENTRY_DATABASE_CORRUPT;
-          String message = getMessage(msgID, id.toString());
-          throw new JebException(msgID, message);
+          Message message = ERR_JEB_ENTRY_DATABASE_CORRUPT.get(id.toString());
+          throw new JebException(message);
         }
         break;
 
       //case 0x00                     :
       //  Call upgrade method? Call 0x00 decode method?
       default   :
-        int msgID = MSGID_JEB_INCOMPATIBLE_ENTRY_VERSION;
-        String message = getMessage(msgID, id.toString(), entryVersion);
-        throw new JebException(msgID, message);
+        Message message =
+            ERR_JEB_INCOMPATIBLE_ENTRY_VERSION.get(id.toString(), entryVersion);
+        throw new JebException(message);
     }
 
     if (entry != null)

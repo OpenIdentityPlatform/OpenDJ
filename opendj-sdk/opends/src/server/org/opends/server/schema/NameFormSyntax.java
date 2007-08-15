@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+import org.opends.messages.Message;
 
 
 
@@ -54,8 +55,8 @@ import org.opends.server.types.Schema;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -110,30 +111,27 @@ public class NameFormSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE;
-      String message = getMessage(msgID, EMR_CASE_IGNORE_OID,
-                                  SYNTAX_NAME_FORM_NAME);
-      throw new InitializationException(msgID, message);
+      Message message = ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_CASE_IGNORE_OID, SYNTAX_NAME_FORM_NAME);
+      throw new InitializationException(message);
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE;
-      String message = getMessage(msgID, OMR_CASE_IGNORE_OID,
-                                  SYNTAX_NAME_FORM_NAME);
-      throw new InitializationException(msgID, message);
+      Message message = ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+          OMR_CASE_IGNORE_OID, SYNTAX_NAME_FORM_NAME);
+      throw new InitializationException(message);
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE;
-      String message = getMessage(msgID, SMR_CASE_IGNORE_OID,
-                                  SYNTAX_NAME_FORM_NAME);
-      throw new InitializationException(msgID, message);
+      Message message = ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_CASE_IGNORE_OID, SYNTAX_NAME_FORM_NAME);
+      throw new InitializationException(message);
     }
   }
 
@@ -214,7 +212,7 @@ public class NameFormSyntax
    * {@inheritDoc}
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // We'll use the decodeNameForm method to determine if the value is
     // acceptable.
@@ -230,7 +228,7 @@ public class NameFormSyntax
         TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
-      invalidReason.append(de.getErrorMessage());
+      invalidReason.append(de.getMessageObject());
       return false;
     }
   }
@@ -283,10 +281,9 @@ public class NameFormSyntax
     {
       // This means that the value was empty or contained only whitespace.  That
       // is illegal.
-      int    msgID   = MSGID_ATTR_SYNTAX_NAME_FORM_EMPTY_VALUE;
-      String message = getMessage(msgID);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_NAME_FORM_EMPTY_VALUE.get();
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -295,10 +292,10 @@ public class NameFormSyntax
     char c = valueStr.charAt(pos++);
     if (c != '(')
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_NAME_FORM_EXPECTED_OPEN_PARENTHESIS;
-      String message = getMessage(msgID, valueStr, (pos-1), c);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_NAME_FORM_EXPECTED_OPEN_PARENTHESIS.get(
+          valueStr, (pos-1), c);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -312,10 +309,9 @@ public class NameFormSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      int    msgID   = MSGID_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -335,11 +331,11 @@ public class NameFormSyntax
         {
           if (lastWasPeriod)
           {
-            int msgID =
-                 MSGID_ATTR_SYNTAX_NAME_FORM_DOUBLE_PERIOD_IN_NUMERIC_OID;
-            String message = getMessage(msgID, valueStr, (pos-1));
+            Message message =
+                ERR_ATTR_SYNTAX_NAME_FORM_DOUBLE_PERIOD_IN_NUMERIC_OID.
+                  get(valueStr, (pos-1));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
           else
           {
@@ -349,10 +345,11 @@ public class NameFormSyntax
         else if (! isDigit(c))
         {
           // This must have been an illegal character.
-          int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR_IN_NUMERIC_OID;
-          String message = getMessage(msgID, valueStr, c, (pos-1));
+          Message message =
+              ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR_IN_NUMERIC_OID.
+                get(valueStr, c, (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
         else
         {
@@ -374,10 +371,11 @@ public class NameFormSyntax
         else
         {
           // This must have been an illegal character.
-          int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR_IN_STRING_OID;
-          String message = getMessage(msgID, valueStr, c, (pos-1));
+          Message message =
+              ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR_IN_STRING_OID.
+                get(valueStr, c, (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
     }
@@ -388,10 +386,9 @@ public class NameFormSyntax
     String oid;
     if (pos >= length)
     {
-      int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
     else
     {
@@ -409,10 +406,9 @@ public class NameFormSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      int    msgID   = MSGID_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -446,10 +442,11 @@ public class NameFormSyntax
         // We must be at the end of the value.  If not, then that's a problem.
         if (pos < length)
         {
-          int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_UNEXPECTED_CLOSE_PARENTHESIS;
-          String message = getMessage(msgID, valueStr, (pos-1));
+          Message message =
+              ERR_ATTR_SYNTAX_NAME_FORM_UNEXPECTED_CLOSE_PARENTHESIS.
+                get(valueStr, (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
         break;
@@ -504,10 +501,10 @@ public class NameFormSyntax
         else
         {
           // This is an illegal character.
-          int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR;
-          String message = getMessage(msgID, valueStr, c, (pos-1));
+          Message message =
+              ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
       else if (lowerTokenName.equals("desc"))
@@ -542,11 +539,11 @@ public class NameFormSyntax
           }
           else
           {
-            int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS;
-            String message = getMessage(msgID, String.valueOf(oid),
-                                        String.valueOf(woidBuffer));
+            Message message =
+                ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS.
+                  get(String.valueOf(oid), String.valueOf(woidBuffer));
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message, msgID);
+                                         message);
           }
         }
         else if (structuralClass.getObjectClassType() !=
@@ -554,15 +551,13 @@ public class NameFormSyntax
         {
           // This is bad because the associated structural class type is not
           // structural.
-          int msgID =
-               MSGID_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL;
-          String message =
-               getMessage(msgID, String.valueOf(oid),
-                          String.valueOf(woidBuffer),
-                          structuralClass.getNameOrOID(),
-                          String.valueOf(structuralClass.getObjectClassType()));
-          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                       msgID);
+          Message message =
+              ERR_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL.
+                get(String.valueOf(oid), String.valueOf(woidBuffer),
+                    structuralClass.getNameOrOID(),
+                    String.valueOf(structuralClass.getObjectClassType()));
+          throw new DirectoryException(
+                  ResultCode.CONSTRAINT_VIOLATION, message);
         }
       }
       else if (lowerTokenName.equals("must"))
@@ -593,10 +588,11 @@ public class NameFormSyntax
               }
               else
               {
-                int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR;
-                String message = getMessage(msgID, oid, woidBuffer.toString());
+                Message message =
+                    ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR.
+                      get(oid, woidBuffer.toString());
                 throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                             message, msgID);
+                                             message);
               }
             }
 
@@ -613,10 +609,10 @@ public class NameFormSyntax
             }
             else if (c != '$')
             {
-              int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR;
-              String message = getMessage(msgID, valueStr, c, (pos-1));
+              Message message = ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR.get(
+                  valueStr, c, (pos-1));
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                           message, msgID);
+                                           message);
             }
           }
         }
@@ -637,10 +633,10 @@ public class NameFormSyntax
             }
             else
             {
-              int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR;
-              String message = getMessage(msgID, oid, woidBuffer.toString());
+              Message message = ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR.
+                  get(oid, woidBuffer.toString());
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                           message, msgID);
+                                           message);
             }
           }
 
@@ -677,10 +673,11 @@ public class NameFormSyntax
               }
               else
               {
-                int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR;
-                String message = getMessage(msgID, oid, woidBuffer.toString());
+                Message message =
+                    ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR.
+                      get(oid, woidBuffer.toString());
                 throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                             message, msgID);
+                                             message);
               }
             }
 
@@ -697,10 +694,10 @@ public class NameFormSyntax
             }
             else if (c != '$')
             {
-              int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR;
-              String message = getMessage(msgID, valueStr, c, (pos-1));
+              Message message = ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR.get(
+                  valueStr, c, (pos-1));
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                           message, msgID);
+                                           message);
             }
           }
         }
@@ -721,10 +718,10 @@ public class NameFormSyntax
             }
             else
             {
-              int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR;
-              String message = getMessage(msgID, oid, woidBuffer.toString());
+              Message message = ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR.
+                  get(oid, woidBuffer.toString());
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                           message, msgID);
+                                           message);
             }
           }
 
@@ -750,10 +747,10 @@ public class NameFormSyntax
     // be valid.
     if (structuralClass == null)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_NAME_FORM_NO_STRUCTURAL_CLASS;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message =
+          ERR_ATTR_SYNTAX_NAME_FORM_NO_STRUCTURAL_CLASS.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -793,10 +790,9 @@ public class NameFormSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -852,20 +848,19 @@ public class NameFormSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
     // The next character must be a single quote.
     if (c != '\'')
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_NAME_FORM_EXPECTED_QUOTE_AT_POS;
-      String message = getMessage(msgID, valueStr, startPos, c);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_NAME_FORM_EXPECTED_QUOTE_AT_POS.get(
+          valueStr, startPos, c);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -889,10 +884,9 @@ public class NameFormSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -939,20 +933,19 @@ public class NameFormSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE;
-      String message = getMessage(msgID, lowerStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE.get(lowerStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
     // The next character must be a single quote.
     if (c != '\'')
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_NAME_FORM_EXPECTED_QUOTE_AT_POS;
-      String message = getMessage(msgID, valueStr, startPos, c);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_NAME_FORM_EXPECTED_QUOTE_AT_POS.get(
+          valueStr, startPos, c);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -977,10 +970,9 @@ public class NameFormSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE;
-      String message = getMessage(msgID, lowerStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE.get(lowerStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1020,10 +1012,9 @@ public class NameFormSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE;
-      String message = getMessage(msgID, lowerStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE.get(lowerStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1040,11 +1031,11 @@ public class NameFormSyntax
         {
           if (lastWasPeriod)
           {
-            int msgID =
-                 MSGID_ATTR_SYNTAX_NAME_FORM_DOUBLE_PERIOD_IN_NUMERIC_OID;
-            String message = getMessage(msgID, lowerStr, (startPos-1));
+            Message message =
+                ERR_ATTR_SYNTAX_NAME_FORM_DOUBLE_PERIOD_IN_NUMERIC_OID.
+                  get(lowerStr, (startPos-1));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
           else
           {
@@ -1066,10 +1057,11 @@ public class NameFormSyntax
           }
 
           // This must have been an illegal character.
-          int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR_IN_NUMERIC_OID;
-          String message = getMessage(msgID, lowerStr, c, (startPos-1));
+          Message message =
+              ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR_IN_NUMERIC_OID.
+                get(lowerStr, c, (startPos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
         else
         {
@@ -1103,19 +1095,20 @@ public class NameFormSyntax
           }
 
           // This must have been an illegal character.
-          int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR_IN_STRING_OID;
-          String message = getMessage(msgID, lowerStr, c, (startPos-1));
+          Message message =
+              ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR_IN_STRING_OID.
+                get(lowerStr, c, (startPos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
     }
     else
     {
-      int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR;
-      String message = getMessage(msgID, lowerStr, c, startPos);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message =
+          ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR.get(lowerStr, c, startPos);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1129,10 +1122,9 @@ public class NameFormSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE;
-      String message = getMessage(msgID, lowerStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE.get(lowerStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1172,10 +1164,9 @@ public class NameFormSyntax
 
     if (startPos >= length)
     {
-      int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1207,10 +1198,10 @@ public class NameFormSyntax
 
         if (startPos >= length)
         {
-          int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE;
-          String message = getMessage(msgID, valueStr);
+          Message message =
+              ERR_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE.get(valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
 
@@ -1222,10 +1213,10 @@ public class NameFormSyntax
         else if (c == '(')
         {
           // This is an illegal character.
-          int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR;
-          String message = getMessage(msgID, valueStr, c, startPos);
+          Message message =
+              ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR.get(valueStr, c, startPos);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
         else
         {
@@ -1256,10 +1247,9 @@ public class NameFormSyntax
 
     if (startPos >= length)
     {
-      int msgID = MSGID_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 

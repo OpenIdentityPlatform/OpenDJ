@@ -25,11 +25,11 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 
 import java.util.List;
 
@@ -150,10 +150,10 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
 
     // Create the sub-command.
     String name = "delete-" + r.getName();
-    String ufpn = r.getChildDefinition().getUserFriendlyPluralName();
-    int descriptionID = MSGID_DSCFG_DESCRIPTION_SUBCMD_DELETE;
+    Message ufpn = r.getChildDefinition().getUserFriendlyPluralName();
+    Message description = INFO_DSCFG_DESCRIPTION_SUBCMD_DELETE.get(ufpn);
     this.subCommand = new SubCommand(parser, name, false, 0, 0, null,
-        descriptionID, ufpn);
+        description);
 
     // Create the naming arguments.
     this.namingArgs = createNamingArgs(subCommand, c, false);
@@ -161,7 +161,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
     // Create the --force argument which is used to force deletion.
     this.forceArgument = new BooleanArgument(OPTION_DSCFG_LONG_FORCE,
         OPTION_DSCFG_SHORT_FORCE, OPTION_DSCFG_LONG_FORCE,
-        MSGID_DSCFG_DESCRIPTION_FORCE, ufpn);
+        INFO_DSCFG_DESCRIPTION_FORCE.get(ufpn));
     subCommand.addArgument(forceArgument);
 
     // Register the tags associated with the child managed objects.
@@ -193,38 +193,33 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
     try {
       parent = getManagedObject(path, names);
     } catch (AuthorizationException e) {
-      int msgID = MSGID_DSCFG_ERROR_DELETE_AUTHZ;
-      String msg = getMessage(msgID, relation.getUserFriendlyName());
+      Message msg =
+          ERR_DSCFG_ERROR_DELETE_AUTHZ.get(relation.getUserFriendlyName());
       throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-          msgID, msg);
-    } catch (DefinitionDecodingException e) {
-      int msgID = MSGID_DSCFG_ERROR_GET_PARENT_DDE;
-      String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn, ufn, ufn);
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msgID, msg);
-    } catch (ManagedObjectDecodingException e) {
-      int msgID = MSGID_DSCFG_ERROR_GET_PARENT_MODE;
-      String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn);
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msgID, msg);
-    } catch (CommunicationException e) {
-      int msgID = MSGID_DSCFG_ERROR_DELETE_CE;
-      String msg = getMessage(msgID, relation.getUserFriendlyName(), e
-          .getMessage());
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
           msg);
+    } catch (DefinitionDecodingException e) {
+      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(ufn, ufn, ufn);
+      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+    } catch (ManagedObjectDecodingException e) {
+      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(ufn);
+      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+    } catch (CommunicationException e) {
+      Message msg = ERR_DSCFG_ERROR_DELETE_CE.get(
+          relation.getUserFriendlyName(), e.getMessage());
+      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
     } catch (ConcurrentModificationException e) {
-      int msgID = MSGID_DSCFG_ERROR_DELETE_CME;
-      String msg = getMessage(msgID, relation.getUserFriendlyName());
+      Message msg =
+          ERR_DSCFG_ERROR_DELETE_CME.get(relation.getUserFriendlyName());
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
-          msgID, msg);
+          msg);
     } catch (ManagedObjectNotFoundException e) {
       // Ignore the error if the deletion is being forced.
       if (!forceArgument.isPresent()) {
-        int msgID = MSGID_DSCFG_ERROR_GET_PARENT_MONFE;
-        String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-        String msg = getMessage(msgID, ufn);
-        throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msgID, msg);
+        Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
+        Message msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(ufn);
+        throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
       }
     }
 
@@ -254,40 +249,36 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
           }
         }
       } catch (AuthorizationException e) {
-        int msgID = MSGID_DSCFG_ERROR_DELETE_AUTHZ;
-        String msg = getMessage(msgID, relation.getUserFriendlyName());
+        Message msg =
+            ERR_DSCFG_ERROR_DELETE_AUTHZ.get(relation.getUserFriendlyName());
         throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-            msgID, msg);
-      } catch (OperationRejectedException e) {
-        int msgID = MSGID_DSCFG_ERROR_DELETE_ORE;
-        String msg = getMessage(msgID, relation.getUserFriendlyName(), e
-            .getMessage());
-        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msgID,
             msg);
+      } catch (OperationRejectedException e) {
+        Message msg = ERR_DSCFG_ERROR_DELETE_ORE.get(
+            relation.getUserFriendlyName(), e.getMessage());
+        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
       } catch (ManagedObjectNotFoundException e) {
         // Ignore the error if the deletion is being forced.
         if (!forceArgument.isPresent()) {
-          int msgID = MSGID_DSCFG_ERROR_DELETE_MONFE;
-          String msg = getMessage(msgID, relation.getUserFriendlyName());
-          throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msgID, msg);
+          Message msg =
+              ERR_DSCFG_ERROR_DELETE_MONFE.get(relation.getUserFriendlyName());
+          throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
         }
       } catch (ConcurrentModificationException e) {
-        int msgID = MSGID_DSCFG_ERROR_DELETE_CME;
-        String msg = getMessage(msgID, relation.getUserFriendlyName());
-        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msgID,
-            msg);
+        Message msg =
+            ERR_DSCFG_ERROR_DELETE_CME.get(relation.getUserFriendlyName());
+        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
       } catch (CommunicationException e) {
-        int msgID = MSGID_DSCFG_ERROR_DELETE_CE;
-        String msg = getMessage(msgID, relation.getUserFriendlyName(), e
-            .getMessage());
+        Message msg = ERR_DSCFG_ERROR_DELETE_CE.get(
+            relation.getUserFriendlyName(), e.getMessage());
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
-            msgID, msg);
+            msg);
       }
     }
 
     // Output success message.
-    String msg = getMessage(MSGID_DSCFG_CONFIRM_DELETE_SUCCESS, relation
-        .getUserFriendlyName());
+    Message msg =
+        INFO_DSCFG_CONFIRM_DELETE_SUCCESS.get(relation.getUserFriendlyName());
     getConsoleApplication().printVerboseMessage(msg);
 
     return 0;
@@ -297,12 +288,12 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
 
   // Confirm deletion.
   private boolean confirmDeletion() throws ArgumentException {
-    String prompt = getMessage(MSGID_DSCFG_CONFIRM_DELETE, relation
-        .getUserFriendlyName());
+    Message prompt =
+        INFO_DSCFG_CONFIRM_DELETE.get(relation.getUserFriendlyName());
     if (!getConsoleApplication().confirmAction(prompt)) {
       // Output failure message.
-      String msg = getMessage(MSGID_DSCFG_CONFIRM_DELETE_FAIL, relation
-          .getUserFriendlyName());
+      Message msg =
+          INFO_DSCFG_CONFIRM_DELETE_FAIL.get(relation.getUserFriendlyName());
       getConsoleApplication().printVerboseMessage(msg);
       return false;
     } else {

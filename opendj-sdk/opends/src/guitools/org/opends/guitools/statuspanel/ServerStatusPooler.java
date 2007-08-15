@@ -33,7 +33,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.guitools.statuspanel.event.ServerStatusChangeEvent;
 import org.opends.guitools.statuspanel.event.ServerStatusChangeListener;
 import org.opends.quicksetup.Installation;
@@ -423,20 +422,11 @@ public class ServerStatusPooler
         }
         catch (ConfigException ce)
         {
-          desc.setErrorMessage(ce.getMessage());
+          desc.setErrorMessage(ce.getMessageObject());
         }
         nTriesWithErrorOnline = 0;
       }
     }
   }
 
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
-  }
 }

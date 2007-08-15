@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types.operation;
+import org.opends.messages.Message;
 
 
 
@@ -82,14 +83,10 @@ public interface PluginOperation
    * @param  message           The message to send to the client.  It
    *                           may be <CODE>null</CODE> if no
    *                           notification is to be sent.
-   * @param  messageID         The unique identifier associated with
-   *                           the message to send to the client.  It
-   *                           may be -1 if no notification is to be
-   *                           sent.
    */
   public void disconnectClient(DisconnectReason disconnectReason,
                                boolean sendNotification,
-                               String message, int messageID);
+                               Message message);
 
 
 

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.jmx;
+import org.opends.messages.Message;
 
 import java.util.*;
 
@@ -35,7 +36,7 @@ import org.opends.server.api.plugin.PostConnectPluginResult;
 import org.opends.server.core.BindOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
-import org.opends.server.messages.CoreMessages;
+import org.opends.messages.CoreMessages;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
@@ -47,8 +48,7 @@ import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
@@ -247,7 +247,7 @@ public class RmiAuthenticator implements JMXAuthenticator
     {
       LDAPException ldapEx = new LDAPException(
           LDAPResultCode.INVALID_CREDENTIALS,
-          CoreMessages.MSGID_RESULT_INVALID_CREDENTIALS, null);
+          CoreMessages.INFO_RESULT_INVALID_CREDENTIALS.get());
       SecurityException se = new SecurityException();
       se.initCause(ldapEx);
       throw se;
@@ -286,14 +286,12 @@ public class RmiAuthenticator implements JMXAuthenticator
       // Check JMX_READ privilege.
       if (! jmxClientConnection.hasPrivilege(Privilege.JMX_READ, null))
       {
-        int msgID = MSGID_JMX_INSUFFICIENT_PRIVILEGES;
-        String message = getMessage(msgID);
+        Message message = ERR_JMX_INSUFFICIENT_PRIVILEGES.get();
 
         jmxClientConnection.disconnect(DisconnectReason.CONNECTION_REJECTED,
-            false, msgID);
+            false, message);
 
-        SecurityException se = new SecurityException(message);
-        throw se;
+        throw new SecurityException(message.toString());
       }
       return jmxClientConnection;
     }
@@ -303,7 +301,7 @@ public class RmiAuthenticator implements JMXAuthenticator
       // Set the initcause.
       LDAPException ldapEx = new LDAPException(
           LDAPResultCode.INVALID_CREDENTIALS,
-          CoreMessages.MSGID_RESULT_INVALID_CREDENTIALS, null);
+          CoreMessages.INFO_RESULT_INVALID_CREDENTIALS.get());
       SecurityException se = new SecurityException("return code: "
           + bindOp.getResultCode());
       se.initCause(ldapEx);

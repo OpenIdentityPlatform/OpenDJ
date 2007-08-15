@@ -34,6 +34,7 @@ import org.opends.server.admin.std.server.EqualityMatchingRuleCfg;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
@@ -41,12 +42,9 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.Message;
 import static org.opends.server.schema.SchemaConstants.*;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
-
 
 
 /**
@@ -148,17 +146,16 @@ public class BitStringEqualityMatchingRule
     int length = valueString.length();
     if (length < 3)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_BIT_STRING_TOO_SHORT;
-      String message = getMessage(msgID, value.stringValue());
 
+      Message message = WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT.get(
+              value.stringValue());
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
         case REJECT:
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         case WARN:
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                   message, msgID);
+          logError(message);
           return new ASN1OctetString(valueString);
         default:
           return new ASN1OctetString(valueString);
@@ -170,17 +167,18 @@ public class BitStringEqualityMatchingRule
         (valueString.charAt(length-2) != '\'') ||
         (valueString.charAt(length-1) != 'B'))
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED;
-      String message = getMessage(msgID, value.stringValue());
+
+      Message message = WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED.get(
+              value.stringValue());
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
         case REJECT:
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         case WARN:
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                   message, msgID);
+          logError(
+                  message);
           return new ASN1OctetString(valueString);
         default:
           return new ASN1OctetString(valueString);
@@ -197,18 +195,17 @@ public class BitStringEqualityMatchingRule
           // These characters are fine.
           break;
         default:
-          int    msgID   = MSGID_ATTR_SYNTAX_BIT_STRING_INVALID_BIT;
-          String message = getMessage(msgID, value.stringValue(),
-                                      valueString.charAt(i));
+
+          Message message = WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT.get(
+                  value.stringValue(), String.valueOf(valueString.charAt(i)));
 
         switch (DirectoryServer.getSyntaxEnforcementPolicy())
         {
           case REJECT:
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
           case WARN:
-            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                     message, msgID);
+            logError(message);
             return new ASN1OctetString(valueString);
           default:
             return new ASN1OctetString(valueString);

@@ -46,7 +46,7 @@ import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.ProgressDescriptor;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
-
+import org.opends.messages.Message;
 /**
  * This class represents the dialog used by quicksetup applications.
  *
@@ -104,7 +104,7 @@ public class QuickSetupDialog
     this.application = app;
     this.installStatus = installStatus;
     this.quickSetup = qs;
-    frame = new JFrame(application.getFrameTitle());
+    frame = new JFrame(String.valueOf(application.getFrameTitle()));
     frame.getContentPane().add(getFramePanel());
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
@@ -207,7 +207,7 @@ public class QuickSetupDialog
    * @param title
    *          the title for the dialog.
    */
-  public void displayError(String msg, String title)
+  public void displayError(Message msg, Message title)
   {
     Utilities.displayError(getFrame(), msg, title);
   }
@@ -222,7 +222,7 @@ public class QuickSetupDialog
    * @return <CODE>true</CODE> if the user confirms the message, or
    * <CODE>false</CODE> if not.
    */
-  public boolean displayConfirmation(String msg, String title)
+  public boolean displayConfirmation(Message msg, Message title)
   {
     return Utilities.displayConfirmation(getFrame(), msg, title);
   }

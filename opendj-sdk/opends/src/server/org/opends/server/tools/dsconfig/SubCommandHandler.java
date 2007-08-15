@@ -25,11 +25,11 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -453,17 +453,18 @@ abstract class SubCommandHandler {
               new PropertyDefinitionUsageBuilder(false);
             String usage = "{" + b.getUsage(pd) + "}";
             arg = new StringArgument(argName, null, argName, false, true,
-                usage, MSGID_DSCFG_DESCRIPTION_NAME_CREATE_EXT, d
-                    .getUserFriendlyName(), pd.getName(), pd.getSynopsis());
+                usage, INFO_DSCFG_DESCRIPTION_NAME_CREATE_EXT.get(d
+                    .getUserFriendlyName(), pd.getName(), pd.getSynopsis()));
           } else {
             arg = new StringArgument(argName, null, argName, false, true,
-                "{NAME}", MSGID_DSCFG_DESCRIPTION_NAME_CREATE, d
-                    .getUserFriendlyName());
+                "{NAME}", INFO_DSCFG_DESCRIPTION_NAME_CREATE.get(d
+                    .getUserFriendlyName()));
           }
         } else {
           // A normal naming argument.
           arg = new StringArgument(argName, null, argName, false, true,
-              "{NAME}", MSGID_DSCFG_DESCRIPTION_NAME, d.getUserFriendlyName());
+              "{NAME}", INFO_DSCFG_DESCRIPTION_NAME.get(
+                  d.getUserFriendlyName()));
         }
         subCommand.addArgument(arg);
         arguments.add(arg);
@@ -818,9 +819,8 @@ abstract class SubCommandHandler {
         try {
           return SizeUnit.getUnit(value);
         } catch (IllegalArgumentException e) {
-          int msgID = MSGID_DSCFG_ERROR_SIZE_UNIT_UNRECOGNIZED;
-          String msg = getMessage(msgID, value);
-          throw new ArgumentException(msgID, msg);
+          Message msg = INFO_DSCFG_ERROR_SIZE_UNIT_UNRECOGNIZED.get(value);
+          throw new ArgumentException(msg);
         }
       }
     }
@@ -846,9 +846,8 @@ abstract class SubCommandHandler {
         try {
           return DurationUnit.getUnit(value);
         } catch (IllegalArgumentException e) {
-          int msgID = MSGID_DSCFG_ERROR_TIME_UNIT_UNRECOGNIZED;
-          String msg = getMessage(msgID, value);
-          throw new ArgumentException(msgID, msg);
+          Message msg = INFO_DSCFG_ERROR_TIME_UNIT_UNRECOGNIZED.get(value);
+          throw new ArgumentException(msg);
         }
       }
     }
@@ -936,30 +935,34 @@ abstract class SubCommandHandler {
     switch (children.length) {
     case 0: {
       // No options available - abort.
-      int msgID = MSGID_DSCFG_ERROR_FINDER_NO_CHILDREN;
-      String msg = getMessage(msgID, d.getUserFriendlyPluralName());
-      throw new ArgumentException(msgID, msg);
+      Message msg =
+          ERR_DSCFG_ERROR_FINDER_NO_CHILDREN.get(d.getUserFriendlyPluralName());
+      throw new ArgumentException(msg);
     }
     case 1: {
       // Only one option available so confirm that the user wishes to
       // access it.
-      int msgID = MSGID_DSCFG_FINDER_PROMPT_SINGLE;
-      String msg = getMessage(msgID, d.getUserFriendlyName(), children[0]);
+      Message msg = INFO_DSCFG_FINDER_PROMPT_SINGLE.get(
+              d.getUserFriendlyName(), children[0]);
       if (getConsoleApplication().confirmAction(msg)) {
         return children[0];
       } else {
-        msgID = MSGID_DSCFG_ERROR_FINDER_SINGLE_CHILD_REJECTED;
-        msg = getMessage(msgID, d.getUserFriendlyName());
-        throw new ArgumentException(msgID, msg);
+        msg = ERR_DSCFG_ERROR_FINDER_SINGLE_CHILD_REJECTED.get(
+            d.getUserFriendlyName());
+        throw new ArgumentException(msg);
       }
     }
     default: {
       // Display a menu.
       Arrays.sort(children, String.CASE_INSENSITIVE_ORDER);
-      List<String> choices = Arrays.asList(children);
-      int msgID = MSGID_DSCFG_FINDER_PROMPT_MANY;
-      String msg = getMessage(msgID, d.getUserFriendlyName());
-      return getConsoleApplication().readChoice(msg, choices, choices, null);
+      ArrayList<Message> desc = new ArrayList<Message>();
+      for (String s : Arrays.asList(children)) {
+        desc.add(Message.raw(s));
+      }
+      Message prompt = INFO_DSCFG_FINDER_PROMPT_MANY.get(
+              d.getUserFriendlyName());
+      return getConsoleApplication().readChoice(
+              prompt, desc, Arrays.asList(children), null);
     }
     }
   }
@@ -971,19 +974,18 @@ abstract class SubCommandHandler {
    *
    * @param subCommand
    *          The sub-command.
-   * @param descriptionID
-   *          The usage description message ID to be used for the
+   * @param description
+   *          The usage description message to be used for the
    *          argument.
-   * @param args
-   *          The arguments for the usage description.
    * @throws ArgumentException
    *           If the advanced mode argument could not be registered.
    */
   protected final void registerAdvancedModeArgument(SubCommand subCommand,
-      int descriptionID, String... args) throws ArgumentException {
+                                                    Message description)
+          throws ArgumentException
+  {
     this.advancedModeArgument = new BooleanArgument(OPTION_DSCFG_LONG_ADVANCED,
-        OPTION_DSCFG_SHORT_ADVANCED, OPTION_DSCFG_LONG_ADVANCED, descriptionID,
-        (Object[]) args);
+        OPTION_DSCFG_SHORT_ADVANCED, OPTION_DSCFG_LONG_ADVANCED, description);
     subCommand.addArgument(advancedModeArgument);
   }
 
@@ -1001,7 +1003,7 @@ abstract class SubCommandHandler {
       throws ArgumentException {
     this.propertyArgument = new StringArgument(OPTION_DSCFG_LONG_PROPERTY,
         OPTION_DSCFG_SHORT_PROPERTY, OPTION_DSCFG_LONG_PROPERTY, false, true,
-        true, "{PROP}", null, null, MSGID_DSCFG_DESCRIPTION_PROP);
+        true, "{PROP}", null, null, INFO_DSCFG_DESCRIPTION_PROP.get());
     subCommand.addArgument(propertyArgument);
   }
 
@@ -1019,7 +1021,7 @@ abstract class SubCommandHandler {
       throws ArgumentException {
     this.recordModeArgument = new BooleanArgument(OPTION_DSCFG_LONG_RECORD,
         OPTION_DSCFG_SHORT_RECORD, OPTION_DSCFG_LONG_RECORD,
-        MSGID_DSCFG_DESCRIPTION_RECORD);
+        INFO_DSCFG_DESCRIPTION_RECORD.get());
     subCommand.addArgument(recordModeArgument);
   }
 
@@ -1037,7 +1039,7 @@ abstract class SubCommandHandler {
       throws ArgumentException {
     this.unitSizeArgument = new StringArgument(OPTION_DSCFG_LONG_UNIT_SIZE,
         OPTION_DSCFG_SHORT_UNIT_SIZE, OPTION_DSCFG_LONG_UNIT_SIZE, false, true,
-        "{UNIT}", MSGID_DSCFG_DESCRIPTION_UNIT_SIZE);
+        "{UNIT}", INFO_DSCFG_DESCRIPTION_UNIT_SIZE.get());
 
     subCommand.addArgument(unitSizeArgument);
   }
@@ -1056,7 +1058,7 @@ abstract class SubCommandHandler {
       throws ArgumentException {
     this.unitTimeArgument = new StringArgument(OPTION_DSCFG_LONG_UNIT_TIME,
         OPTION_DSCFG_SHORT_UNIT_TIME, OPTION_DSCFG_LONG_UNIT_TIME, false, true,
-        "{UNIT}", MSGID_DSCFG_DESCRIPTION_UNIT_TIME);
+        "{UNIT}", INFO_DSCFG_DESCRIPTION_UNIT_TIME.get());
 
     subCommand.addArgument(unitTimeArgument);
   }

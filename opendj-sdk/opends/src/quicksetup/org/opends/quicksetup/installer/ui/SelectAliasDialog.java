@@ -45,9 +45,10 @@ import javax.swing.JPanel;
 import javax.swing.text.JTextComponent;
 
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
-import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.ui.Utilities;
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * This class is a dialog that appears when the user must choose the alias to
@@ -68,7 +69,7 @@ public class SelectAliasDialog extends JDialog
   public SelectAliasDialog(JDialog parent)
   {
     super(parent);
-    setTitle(getMsg("select-alias-title"));
+    setTitle(INFO_SELECT_ALIAS_TITLE.get().toString());
     getContentPane().add(createPanel());
     pack();
     int minWidth = (int) getPreferredSize().getWidth();
@@ -135,18 +136,6 @@ public class SelectAliasDialog extends JDialog
     return (String) comboAliases.getSelectedItem();
   }
 
-  /* The following three methods are just commodity methods to retrieve
-   * localized messages */
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
-  }
-
   /**
    * Creates and returns the panel of the dialog.
    * @return the panel of the dialog.
@@ -170,7 +159,7 @@ public class SelectAliasDialog extends JDialog
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.insets.left = UIFactory.LEFT_INSET_SECONDARY_FIELD;
     gbc.fill = GridBagConstraints.BOTH;
-    String msg = getMsg("select-alias-msg");
+    Message msg = INFO_SELECT_ALIAS_MSG.get();
     JTextComponent tf = UIFactory.makeHtmlPane(msg,
             UIFactory.INSTRUCTIONS_FONT);
     tf.setOpaque(false);
@@ -196,8 +185,8 @@ public class SelectAliasDialog extends JDialog
     gbc.weightx = 1.0;
     gbc.gridwidth = 3;
     p2.add(Box.createHorizontalGlue(), gbc);
-    okButton = UIFactory.makeJButton(getMsg("ok-button-label"),
-          getMsg("select-alias-ok-button-tooltip"));
+    okButton = UIFactory.makeJButton(INFO_OK_BUTTON_LABEL.get(),
+          INFO_SELECT_ALIAS_OK_BUTTON_TOOLTIP.get());
     okButton.addActionListener(new ActionListener()
     {
       public void actionPerformed(ActionEvent ev)
@@ -209,8 +198,8 @@ public class SelectAliasDialog extends JDialog
     gbc.weightx = 0.0;
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     p2.add(okButton, gbc);
-    JButton cancelButton = UIFactory.makeJButton(getMsg("cancel-button-label"),
-            getMsg("select-alias-cancel-button-tooltip"));
+    JButton cancelButton = UIFactory.makeJButton(INFO_CANCEL_BUTTON_LABEL.get(),
+            INFO_SELECT_ALIAS_CANCEL_BUTTON_TOOLTIP.get());
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.insets.left = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
     p2.add(cancelButton, gbc);

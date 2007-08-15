@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
+import org.opends.messages.Message;
 
 
 
@@ -34,10 +35,12 @@ import java.util.List;
 
 import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
 import org.opends.server.config.ConfigException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.DN;
+import org.opends.messages.Severity;
+import org.opends.messages.Category;
 
 
 /**
@@ -54,9 +57,9 @@ public abstract class ErrorLogPublisher
    * The hash map that will be used to define specific log severities
    * for the various categories.
    */
-  protected HashMap<ErrorLogCategory,HashSet<ErrorLogSeverity>>
+  protected HashMap<Category,HashSet<Severity>>
       definedSeverities =
-           new HashMap<ErrorLogCategory, HashSet<ErrorLogSeverity>>();
+           new HashMap<Category, HashSet<Severity>>();
 
 
 
@@ -64,8 +67,8 @@ public abstract class ErrorLogPublisher
    * The set of default log severities that will be used if no custom
    * severities have been defined for the associated category.
    */
-  protected HashSet<ErrorLogSeverity>
-       defaultSeverities = new HashSet<ErrorLogSeverity>();
+  protected HashSet<Severity>
+       defaultSeverities = new HashSet<Severity>();
 
 
 
@@ -115,7 +118,7 @@ public abstract class ErrorLogPublisher
    */
   public boolean isConfigurationAcceptable(
                       ErrorLogPublisherCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by error log publisher
@@ -134,19 +137,12 @@ public abstract class ErrorLogPublisher
 
   /**
    * Writes a message to the error log using the provided information.
+   * The message's category and severity information will be used to
+   * determine whether to actually log this message.
    *
-   * @param  category  The category that may be used to determine
-   *                   whether to actually log this message.
-   * @param  severity  The severity that may be used to determine
-   *                   whether to actually log this message.
    * @param  message   The message to be logged.
-   * @param  errorID   The error ID that uniquely identifies the
-   *                   format string used to generate the provided
-   *                   message.
    */
-  public abstract void logError(ErrorLogCategory category,
-                                ErrorLogSeverity severity,
-                                String message, int errorID);
+  public abstract void logError(Message message);
 
   /**
    * Gets the DN of the configuration entry for this error log

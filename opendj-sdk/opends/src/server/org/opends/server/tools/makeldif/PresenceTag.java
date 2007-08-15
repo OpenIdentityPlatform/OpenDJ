@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
+import org.opends.messages.Message;
 
 
 
@@ -33,8 +34,7 @@ import java.util.Random;
 
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 
 
 
@@ -106,7 +106,7 @@ public class PresenceTag
    */
   public void initializeForBranch(TemplateFile templateFile, Branch branch,
                                   String[] arguments, int lineNumber,
-                                  List<String> warnings)
+                                  List<Message> warnings)
          throws InitializationException
   {
     initializeInternal(templateFile, arguments,  lineNumber);
@@ -131,7 +131,7 @@ public class PresenceTag
    */
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
-                                    int lineNumber, List<String> warnings)
+                                    int lineNumber, List<Message> warnings)
          throws InitializationException
   {
     initializeInternal(templateFile, arguments,  lineNumber);
@@ -158,11 +158,9 @@ public class PresenceTag
 
     if (arguments.length != 1)
     {
-      int    msgID   = MSGID_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT;
-      String message = getMessage(msgID, getName(), lineNumber, 1,
-                                  arguments.length);
-
-      throw new InitializationException(msgID, message);
+      Message message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(
+          getName(), lineNumber, 1, arguments.length);
+      throw new InitializationException(message);
     }
 
     try
@@ -171,22 +169,22 @@ public class PresenceTag
 
       if (percentage < 0)
       {
-        int    msgID   = MSGID_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND;
-        String message = getMessage(percentage, 0, getName(), lineNumber);
-        throw new InitializationException(msgID, message);
+        Message message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
+            percentage, 0, getName(), lineNumber);
+        throw new InitializationException(message);
       }
       else if (percentage > 100)
       {
-        int    msgID   = MSGID_MAKELDIF_TAG_INTEGER_ABOVE_UPPER_BOUND;
-        String message = getMessage(percentage, 100, getName(), lineNumber);
-        throw new InitializationException(msgID, message);
+        Message message = ERR_MAKELDIF_TAG_INTEGER_ABOVE_UPPER_BOUND.get(
+            percentage, 100, getName(), lineNumber);
+        throw new InitializationException(message);
       }
     }
     catch (NumberFormatException nfe)
     {
-      int    msgID   = MSGID_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER;
-      String message = getMessage(msgID, arguments[0], getName(), lineNumber);
-      throw new InitializationException(msgID, message);
+      Message message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
+          arguments[0], getName(), lineNumber);
+      throw new InitializationException(message);
     }
   }
 

@@ -25,10 +25,11 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.client.cli;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
-import static org.opends.server.messages.AdminMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.AdminMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 
 import java.io.OutputStream;
@@ -64,20 +65,20 @@ import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
 {
   // Strings used in property help.
-  private final static String DESCRIPTION_OPTIONS_TITLE =
-    getMessage(MSGID_DSCFG_HELP_DESCRIPTION_OPTION);
+  private final static Message DESCRIPTION_OPTIONS_TITLE =
+    INFO_DSCFG_HELP_DESCRIPTION_OPTION.get();
 
-  private final static String DESCRIPTION_OPTIONS_READ =
-    getMessage(MSGID_DSCFG_HELP_DESCRIPTION_READ);
+  private final static Message DESCRIPTION_OPTIONS_READ =
+    INFO_DSCFG_HELP_DESCRIPTION_READ.get();
 
-  private final static String DESCRIPTION_OPTIONS_WRITE =
-    getMessage(MSGID_DSCFG_HELP_DESCRIPTION_WRITE);
+  private final static Message DESCRIPTION_OPTIONS_WRITE =
+    INFO_DSCFG_HELP_DESCRIPTION_WRITE.get();
 
-  private final static String DESCRIPTION_OPTIONS_MANDATORY =
-    getMessage(MSGID_DSCFG_HELP_DESCRIPTION_MANDATORY);
+  private final static Message DESCRIPTION_OPTIONS_MANDATORY =
+    INFO_DSCFG_HELP_DESCRIPTION_MANDATORY.get();
 
-  private final static String DESCRIPTION_OPTIONS_SINGLE =
-    getMessage(MSGID_DSCFG_HELP_DESCRIPTION_SINGLE_VALUED);
+  private final static Message DESCRIPTION_OPTIONS_SINGLE =
+    INFO_DSCFG_HELP_DESCRIPTION_SINGLE_VALUED.get();
 
   /**
    * The subcommand Parser.
@@ -286,68 +287,68 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
     // create-admin-user subcommand.
     createAdminUserSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.CREATE_ADMIN_USER.toString(),
-        MSGID_ADMIN_SUBCMD_CREATE_ADMIN_USER_DESCRIPTION);
+        INFO_ADMIN_SUBCMD_CREATE_ADMIN_USER_DESCRIPTION.get());
     subCommands.add(createAdminUserSubCmd);
 
     createAdminUserUserIdArg = new StringArgument("userID", null,
         OPTION_LONG_USERID, false, true, OPTION_VALUE_USERID,
-        MSGID_ADMIN_ARG_USERID_DESCRIPTION);
+        INFO_ADMIN_ARG_USERID_DESCRIPTION.get());
     createAdminUserSubCmd.addArgument(createAdminUserUserIdArg);
 
     createAdminUserSetArg = new StringArgument(OPTION_LONG_SET,
         OPTION_SHORT_SET, OPTION_LONG_SET, false, true, true,
-        OPTION_VALUE_SET, null, null, MSGID_DSCFG_DESCRIPTION_PROP_VAL);
+        OPTION_VALUE_SET, null, null, INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
     createAdminUserSubCmd.addArgument(createAdminUserSetArg);
 
     // delete-admin-user subcommand.
     deleteAdminUserSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.DELETE_ADMIN_USER.toString(),
-        MSGID_ADMIN_SUBCMD_DELETE_ADMIN_USER_DESCRIPTION);
+        INFO_ADMIN_SUBCMD_DELETE_ADMIN_USER_DESCRIPTION.get());
     subCommands.add(deleteAdminUserSubCmd);
 
     deleteAdminUserUserIdArg = new StringArgument("userID", null,
         OPTION_LONG_USERID, false, true, OPTION_VALUE_USERID,
-        MSGID_ADMIN_ARG_USERID_DESCRIPTION);
+        INFO_ADMIN_ARG_USERID_DESCRIPTION.get());
     deleteAdminUserSubCmd.addArgument(deleteAdminUserUserIdArg);
 
     // list-admin-user subcommand.
     listAdminUserSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.LIST_ADMIN_USER.toString(),
-        MSGID_ADMIN_SUBCMD_LIST_ADMIN_USER_DESCRIPTION);
+        INFO_ADMIN_SUBCMD_LIST_ADMIN_USER_DESCRIPTION.get());
     subCommands.add(listAdminUserSubCmd);
 
     // get-admin-user-properties subcommand.
     getAdminUserPropertiesSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.GET_ADMIN_USER_PROPERTIES.toString(),
-        MSGID_ADMIN_SUBCMD_GET_ADMIN_USER_PROPERTIES_DESCRIPTION);
+        INFO_ADMIN_SUBCMD_GET_ADMIN_USER_PROPERTIES_DESCRIPTION.get());
     subCommands.add(getAdminUserPropertiesSubCmd);
 
     getAdminUserPropertiesUserIdArg = new StringArgument("userID", null,
         OPTION_LONG_USERID, false, true, OPTION_VALUE_USERID,
-        MSGID_ADMIN_ARG_USERID_DESCRIPTION);
+        INFO_ADMIN_ARG_USERID_DESCRIPTION.get());
     getAdminUserPropertiesUserIdArg.setMultiValued(true);
     getAdminUserPropertiesSubCmd.addArgument(getAdminUserPropertiesUserIdArg);
 
     // set-admin-user-properties subcommand.
     setAdminUserPropertiesSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.SET_ADMIN_USER_PROPERTIES.toString(),
-        MSGID_ADMIN_SUBCMD_SET_ADMIN_USER_PROPERTIES_DESCRIPTION);
+        INFO_ADMIN_SUBCMD_SET_ADMIN_USER_PROPERTIES_DESCRIPTION.get());
     subCommands.add(setAdminUserPropertiesSubCmd);
 
     setAdminUserPropertiesUserIdArg = new StringArgument("userID", null,
         OPTION_LONG_USERID, false, true, OPTION_VALUE_USERID,
-        MSGID_ADMIN_ARG_USERID_DESCRIPTION);
+        INFO_ADMIN_ARG_USERID_DESCRIPTION.get());
     setAdminUserPropertiesSubCmd.addArgument(setAdminUserPropertiesUserIdArg);
 
     setAdminUserPropertiesSetArg = new StringArgument(OPTION_LONG_SET,
         OPTION_SHORT_SET, OPTION_LONG_SET, false, true, true,
-        OPTION_VALUE_SET, null, null, MSGID_DSCFG_DESCRIPTION_PROP_VAL);
+        OPTION_VALUE_SET, null, null, INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
     setAdminUserPropertiesSubCmd.addArgument(setAdminUserPropertiesSetArg);
 
     // list-admin-user-properties subcommand.
     listAdminUserPropertiesSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.LIST_ADMIN_USER_PROPERTIES.toString(),
-        MSGID_ADMIN_SUBCMD_LIST_ADMIN_USER_PROPERTIES_DESCRIPTION);
+        INFO_ADMIN_SUBCMD_LIST_ADMIN_USER_PROPERTIES_DESCRIPTION.get());
     subCommands.add(listAdminUserPropertiesSubCmd);
 
     // Create association between ADSContext enum and server
@@ -363,7 +364,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       AdministratorProperty prop = AdministratorProperty.UID;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          prop.getAttributeName(), false, false, true, "", null, null, -1);
+          prop.getAttributeName(), false, false, true, "", null, null, null);
       userAdminProperties.put(prop, arg);
     }
 
@@ -375,7 +376,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       AdministratorProperty prop = AdministratorProperty.PASSWORD;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          prop.getAttributeName(), false, false, true, "", null, null, -1);
+          prop.getAttributeName(), false, false, true, "", null, null, null);
       userAdminProperties.put(prop, arg);
     }
 
@@ -386,7 +387,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       AdministratorProperty prop = AdministratorProperty.DESCRIPTION;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          prop.getAttributeName(), false, false, true, "", null, null, -1);
+          prop.getAttributeName(), false, false, true, "", null, null, null);
       userAdminProperties.put(prop, arg);
     }
 
@@ -397,7 +398,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       AdministratorProperty prop = AdministratorProperty.ADMINISTRATOR_DN;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          prop.getAttributeName(), false, false, true, "", null, null, -1);
+          prop.getAttributeName(), false, false, true, "", null, null, null);
       userAdminProperties.put(prop, arg);
       readonlyadminUserProperties.add(prop);
     }
@@ -577,11 +578,10 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
         out.println();
 
         TableBuilder table = new TableBuilder();
-        table.appendHeading(getMessage(MSGID_DSCFG_HEADING_PROPERTY_NAME));
-        table.appendHeading(getMessage(MSGID_DSCFG_HEADING_PROPERTY_OPTIONS));
-        table.appendHeading(getMessage(MSGID_DSCFG_HEADING_PROPERTY_SYNTAX));
-        table.appendHeading(getMessage(
-            MSGID_CLI_HEADING_PROPERTY_DEFAULT_VALUE));
+        table.appendHeading(INFO_DSCFG_HEADING_PROPERTY_NAME.get());
+        table.appendHeading(INFO_DSCFG_HEADING_PROPERTY_OPTIONS.get());
+        table.appendHeading(INFO_DSCFG_HEADING_PROPERTY_SYNTAX.get());
+        table.appendHeading(INFO_CLI_HEADING_PROPERTY_DEFAULT_VALUE.get());
         for (AdministratorProperty adminUserProp : userAdminProperties.keySet())
         {
           if (userAdminProperties.get(adminUserProp).isHidden())
@@ -693,27 +693,25 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
           .getAdminUSerPropFromName(propertyName);
       if (adminUserProperty == null)
       {
-        int msgID = MSGID_CLI_ERROR_PROPERTY_UNRECOGNIZED;
-        String message = getMessage(msgID, propertyName);
-        throw new ArgumentException(msgID, message);
+        Message message = ERR_CLI_ERROR_PROPERTY_UNRECOGNIZED.get(propertyName);
+        throw new ArgumentException(message);
       }
 
       // Check that propName is not hidden.
       if (userAdminProperties.get(adminUserProperty).isHidden())
       {
-        int msgID = MSGID_CLI_ERROR_PROPERTY_UNRECOGNIZED;
-        String message = getMessage(msgID, propertyName);
-        throw new ArgumentException(msgID, message);
+        Message message = ERR_CLI_ERROR_PROPERTY_UNRECOGNIZED.get(propertyName);
+        throw new ArgumentException(message);
       }
 
       // Check the property Syntax.
-      StringBuilder invalidReason = new StringBuilder();
+      MessageBuilder invalidReason = new MessageBuilder();
       Argument arg = userAdminProperties.get(adminUserProperty) ;
       if ( ! arg.valueIsAcceptable(value, invalidReason))
       {
-        int msgID = MSGID_CLI_ERROR_INVALID_PROPERTY_VALUE;
-        String message = getMessage(msgID, propertyName, value);
-        throw new ArgumentException(msgID, message);
+        Message message =
+            ERR_CLI_ERROR_INVALID_PROPERTY_VALUE.get(propertyName, value);
+        throw new ArgumentException(message);
       }
       userAdminProperties.get(adminUserProperty).addValue(value);
 
@@ -747,9 +745,9 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       // but not yet is the map. Check if we have a default value.
       if (arg.getDefaultValue() == null)
       {
-        int msgID = MSGID_CLI_ERROR_MISSING_PROPERTY;
-        String message = getMessage(msgID, s.getAttributeName());
-        throw new ArgumentException(msgID, message);
+        Message message =
+            ERR_CLI_ERROR_MISSING_PROPERTY.get(s.getAttributeName());
+        throw new ArgumentException(message);
       }
       else
       {

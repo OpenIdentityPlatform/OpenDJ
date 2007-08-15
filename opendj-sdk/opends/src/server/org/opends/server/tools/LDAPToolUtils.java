@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,8 +37,7 @@ import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.DN;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -256,8 +256,8 @@ public class LDAPToolUtils
    * @param  matchedDN     The matched DN returned from the server, or
    *                       {@code null} if there was none.
    */
-  public static void printErrorMessage(PrintStream err, String explanation,
-                                       int resultCode, String errorMessage,
+  public static void printErrorMessage(PrintStream err, Message explanation,
+                                       int resultCode, Message errorMessage,
                                        DN matchedDN)
   {
     if ((explanation != null) && (explanation.length() > 0))
@@ -267,18 +267,18 @@ public class LDAPToolUtils
 
     if (resultCode >= 0)
     {
-      err.println(getMessage(MSGID_TOOL_RESULT_CODE, resultCode,
+      err.println(ERR_TOOL_RESULT_CODE.get(resultCode,
                              LDAPResultCode.toString(resultCode)));
     }
 
     if ((errorMessage != null) && (errorMessage.length() > 0))
     {
-      err.println(getMessage(MSGID_TOOL_ERROR_MESSAGE, errorMessage));
+      err.println(ERR_TOOL_ERROR_MESSAGE.get(errorMessage));
     }
 
     if (matchedDN != null)
     {
-      err.println(getMessage(MSGID_TOOL_MATCHED_DN, matchedDN.toString()));
+      err.println(ERR_TOOL_MATCHED_DN.get(matchedDN.toString()));
     }
   }
 }

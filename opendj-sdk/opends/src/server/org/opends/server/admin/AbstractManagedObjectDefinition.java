@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.admin;
+import org.opends.messages.Message;
 
 
 
@@ -269,7 +270,7 @@ public abstract class AbstractManagedObjectDefinition
    *         in the default locale, or <code>null</code> if there is
    *         no description.
    */
-  public final String getDescription() {
+  public final Message getDescription() {
     return getDescription(Locale.getDefault());
   }
 
@@ -285,7 +286,7 @@ public abstract class AbstractManagedObjectDefinition
    *         in the specified locale, or <code>null</code> if there
    *         is no description.
    */
-  public final String getDescription(Locale locale) {
+  public final Message getDescription(Locale locale) {
     try {
       return ManagedObjectDefinitionI18NResource.getInstance()
           .getMessage(this, "description", locale);
@@ -419,7 +420,7 @@ public abstract class AbstractManagedObjectDefinition
    * @return Returns the synopsis of this managed object definition in
    *         the default locale.
    */
-  public final String getSynopsis() {
+  public final Message getSynopsis() {
     return getSynopsis(Locale.getDefault());
   }
 
@@ -434,7 +435,7 @@ public abstract class AbstractManagedObjectDefinition
    * @return Returns the synopsis of this managed object definition in
    *         the specified locale.
    */
-  public final String getSynopsis(Locale locale) {
+  public final Message getSynopsis(Locale locale) {
     return ManagedObjectDefinitionI18NResource.getInstance()
         .getMessage(this, "synopsis", locale);
   }
@@ -448,7 +449,7 @@ public abstract class AbstractManagedObjectDefinition
    * @return Returns the user friendly name of this managed object
    *         definition in the default locale.
    */
-  public final String getUserFriendlyName() {
+  public final Message getUserFriendlyName() {
     return getUserFriendlyName(Locale.getDefault());
   }
 
@@ -463,9 +464,10 @@ public abstract class AbstractManagedObjectDefinition
    * @return Returns the user friendly name of this managed object
    *         definition in the specified locale.
    */
-  public final String getUserFriendlyName(Locale locale) {
-    return ManagedObjectDefinitionI18NResource.getInstance()
-        .getMessage(this, "user-friendly-name", locale);
+  public final Message getUserFriendlyName(Locale locale) {
+    // TODO: have admin framework getMessage return a Message
+    return Message.raw(ManagedObjectDefinitionI18NResource.getInstance()
+        .getMessage(this, "user-friendly-name", locale));
   }
 
 
@@ -477,7 +479,7 @@ public abstract class AbstractManagedObjectDefinition
    * @return Returns the user friendly plural name of this managed
    *         object definition in the default locale.
    */
-  public final String getUserFriendlyPluralName() {
+  public final Message getUserFriendlyPluralName() {
     return getUserFriendlyPluralName(Locale.getDefault());
   }
 
@@ -492,7 +494,7 @@ public abstract class AbstractManagedObjectDefinition
    * @return Returns the user friendly plural name of this managed
    *         object definition in the specified locale.
    */
-  public final String getUserFriendlyPluralName(Locale locale) {
+  public final Message getUserFriendlyPluralName(Locale locale) {
     return ManagedObjectDefinitionI18NResource.getInstance()
         .getMessage(this, "user-friendly-plural-name", locale);
   }

@@ -27,8 +27,11 @@
 
 package org.opends.quicksetup;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.util.Utils;
-import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
@@ -50,6 +53,9 @@ public class CliApplicationHelper {
 
   static private final Logger LOG =
           Logger.getLogger(CliApplication.class.getName());
+
+  /** Format string used for deriving the console prompt. */
+  static public final String PROMPT_FORMAT = "%s%n[%s]:";
 
   /** Short form of the option for specifying a noninteractive session. */
   static public final Character SILENT_OPTION_SHORT = 's';
@@ -74,38 +80,37 @@ public class CliApplicationHelper {
    * message until the user provides one of the values in the validValues
    * parameter.
    *
-   * @param  formatKey     Key for access the prompts format string from the
-   *                       bundle
    * @param  prompt        The prompt to present to the user.
    * @param  defaultValue  The default value returned if the user clicks enter.
    * @param  validValues   The valid values that can be accepted as user input.
    *
    * @return The string value read from the user.
    */
-  protected String promptConfirm(String formatKey, String prompt,
-                                 String defaultValue,
-                                 String[] validValues) {
+  protected Message promptConfirm(Message prompt,
+                                  Message defaultValue,
+                                  Message[] validValues) {
 
     System.out.println();
 
     boolean isValid = false;
-    String response = null;
+    Message response = null;
     while (!isValid)
     {
-      String msg = getMsg(formatKey,
-          new String[] {prompt, defaultValue});
+
+      Message msg = Message.raw(PROMPT_FORMAT, prompt, defaultValue);
 
       System.out.print(msg);
       System.out.flush();
 
-      response = readLine();
+      response = Message.raw(readLine());
       if (response.equals(""))
       {
         response = defaultValue;
       }
       for (int i=0; i<validValues.length && !isValid; i++)
       {
-        isValid = validValues[i].equalsIgnoreCase(response);
+        isValid = validValues[i].toString().
+                equalsIgnoreCase(response.toString());
       }
     }
     return response;
@@ -124,7 +129,7 @@ public class CliApplicationHelper {
    *
    * @return  The string value read from the user.
    */
-  protected String promptForString(String prompt, String defaultValue) {
+  protected String promptForString(Message prompt, String defaultValue) {
     System.out.println();
     String wrappedPrompt = StaticUtils.wrapText(prompt,
             Utils.getCommandLineMaxLineWidth());
@@ -145,7 +150,7 @@ public class CliApplicationHelper {
       String response = readLine();
       if (response.equals("")) {
         if (defaultValue == null) {
-          String message = getMsg("error-empty-response");
+          Message message = INFO_ERROR_EMPTY_RESPONSE.get();
           System.err.println(StaticUtils.wrapText(message,
                   Utils.getCommandLineMaxLineWidth()));
         } else {
@@ -212,8 +217,7 @@ public class CliApplicationHelper {
     }
     catch (Exception e)
     {
-      err.println(getMsg("cli-uninstall-error-reading-stdin"));
-
+      err.println(INFO_CLI_ERROR_READING_STDIN.get());
       return null;
     }
   }
@@ -252,22 +256,25 @@ public class CliApplicationHelper {
                                  String[] args,
                                  Set<String> validArgs) throws UserDataException
   {
-    ArrayList<String> errors = new ArrayList<String>();
+    ArrayList<Message> errors = new ArrayList<Message>();
 
     for (String arg1 : args) {
       if (validArgs.contains(arg1)) {
         // Ignore
       } else {
-        String[] arg = {arg1};
-        errors.add(getMsg("cli-uninstall-unknown-argument", arg));
+        errors.add(INFO_CLI_UNKNOWN_ARGUMENT.get(arg1));
       }
     }
 
     if (errors.size() > 0)
     {
-      String msg = Utils.getStringFromCollection(errors,
-          Constants.LINE_SEPARATOR+Constants.LINE_SEPARATOR);
-      throw new UserDataException(null, msg);
+      MessageBuilder mb = new MessageBuilder();
+      for (Message error : errors) {
+        mb.append(error);
+        mb.append(Constants.LINE_SEPARATOR);
+        mb.append(Constants.LINE_SEPARATOR);
+      }
+      throw new UserDataException(null, mb.toMessage());
     }
   }
 
@@ -301,11 +308,11 @@ public class CliApplicationHelper {
    * @param description localized description of the tool
    * @param caseSensitive whether long args are case sensitive
    * @return ArgumentParser ready for app specific customization
-   * @see org.opends.server.util.args.ArgumentParser#ArgumentParser(
-          String, String, boolean)
+   * @see org.opends.server.util.args.ArgumentParser#ArgumentParser(String,
+   *      Message,boolean)
    */
   protected ArgumentParser createArgumentParser(String mainClass,
-                                                String description,
+                                                Message description,
                                                 boolean caseSensitive) {
 
     // TODO: get rid of this method and user launcher.getArgumentParser
@@ -321,14 +328,14 @@ public class CliApplicationHelper {
            new BooleanArgument("noninteractive session",
                    INTERACTIVE_OPTION_SHORT,
                    INTERACTIVE_OPTION_LONG,
-                   0);
+                   null);
       argParser.addArgument(interactiveArg);
 
       silentArg =
            new BooleanArgument("silent session",
                    SILENT_OPTION_SHORT,
                    SILENT_OPTION_LONG,
-                   0);
+                   null);
       argParser.addArgument(silentArg);
 
     } catch (ArgumentException e) {
@@ -338,37 +345,4 @@ public class CliApplicationHelper {
     return argParser;
   }
 
-  /**
-   * The following three methods are just commodity methods to get localized
-   * messages.
-   * @param key String key
-   * @return String message
-   */
-  protected String getMsg(String key)
-  {
-    return org.opends.server.util.StaticUtils.wrapText(getI18n().getMsg(key),
-        Utils.getCommandLineMaxLineWidth());
-  }
-
-  /**
-   * The following three methods are just commodity methods to get localized
-   * messages.
-   * @param key String key
-   * @param args String[] args
-   * @return String message
-   */
-  protected String getMsg(String key, String... args)
-  {
-    return org.opends.server.util.StaticUtils.wrapText(
-        getI18n().getMsg(key, args), Utils.getCommandLineMaxLineWidth());
-  }
-
-  /**
-   * Gets the resource provider instance.
-   * @return ResourceProvider instance
-   */
-  protected ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
-  }
 }

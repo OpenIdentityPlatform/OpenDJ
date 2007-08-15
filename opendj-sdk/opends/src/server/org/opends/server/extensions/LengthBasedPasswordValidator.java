@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -43,9 +44,8 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-
+import static org.opends.messages.ExtensionMessages.*;
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -92,9 +92,9 @@ public class LengthBasedPasswordValidator extends
     int minLength = configuration.getMinimumPasswordLength();
     if ((maxLength > 0) && (minLength > 0) && (minLength > maxLength))
     {
-      int    msgID   = MSGID_PWLENGTHVALIDATOR_MIN_GREATER_THAN_MAX;
-      String message = getMessage(msgID, minLength, maxLength);
-      throw new ConfigException(msgID, message);
+      Message message =
+          ERR_PWLENGTHVALIDATOR_MIN_GREATER_THAN_MAX.get(minLength, maxLength);
+      throw new ConfigException(message);
     }
   }
 
@@ -118,7 +118,7 @@ public class LengthBasedPasswordValidator extends
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
-                                      StringBuilder invalidReason)
+                                      MessageBuilder invalidReason)
   {
     LengthBasedPasswordValidatorCfg config = currentConfig;
 
@@ -127,16 +127,14 @@ public class LengthBasedPasswordValidator extends
     int minLength = config.getMinimumPasswordLength();
     if ((minLength > 0) && (numChars < minLength))
     {
-      invalidReason.append(getMessage(MSGID_PWLENGTHVALIDATOR_TOO_SHORT,
-                                      minLength));
+      invalidReason.append(ERR_PWLENGTHVALIDATOR_TOO_SHORT.get(minLength));
       return false;
     }
 
     int maxLength = config.getMaximumPasswordLength();
     if ((maxLength > 0) && (numChars > maxLength))
     {
-      invalidReason.append(getMessage(MSGID_PWLENGTHVALIDATOR_TOO_LONG,
-                                      minLength));
+      invalidReason.append(ERR_PWLENGTHVALIDATOR_TOO_LONG.get(minLength));
       return false;
     }
 
@@ -150,7 +148,7 @@ public class LengthBasedPasswordValidator extends
    */
   @Override()
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     LengthBasedPasswordValidatorCfg config =
          (LengthBasedPasswordValidatorCfg) configuration;
@@ -164,7 +162,7 @@ public class LengthBasedPasswordValidator extends
    */
   public boolean isConfigurationChangeAcceptable(
                       LengthBasedPasswordValidatorCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // Make sure that if both the maximum and minimum lengths are set, the
     // maximum length is greater than or equal to the minimum length.
@@ -172,8 +170,8 @@ public class LengthBasedPasswordValidator extends
     int minLength = configuration.getMinimumPasswordLength();
     if ((maxLength > 0) && (minLength > 0) && (minLength > maxLength))
     {
-      int    msgID   = MSGID_PWLENGTHVALIDATOR_MIN_GREATER_THAN_MAX;
-      String message = getMessage(msgID, minLength, maxLength);
+      Message message = ERR_PWLENGTHVALIDATOR_MIN_GREATER_THAN_MAX.get(
+              minLength, maxLength);
       unacceptableReasons.add(message);
       return false;
     }

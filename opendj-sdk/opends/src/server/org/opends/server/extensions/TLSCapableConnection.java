@@ -25,7 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
-
+import org.opends.messages.MessageBuilder;
 
 
 import org.opends.server.types.DirectoryException;
@@ -55,7 +55,7 @@ public interface TLSCapableConnection
    * @return  <CODE>true</CODE> if TLS is available on the underlying client
    *          connection, or <CODE>false</CODE> if it is not.
    */
-  public boolean tlsProtectionAvailable(StringBuilder unavailableReason);
+  public boolean tlsProtectionAvailable(MessageBuilder unavailableReason);
 
 
 

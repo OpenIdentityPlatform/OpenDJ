@@ -27,12 +27,16 @@
 
 package org.opends.quicksetup.upgrader;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.ApplicationReturnCode;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserInteraction;
 import org.opends.quicksetup.Constants;
-import org.opends.quicksetup.i18n.ResourceProvider;
+
 import org.opends.quicksetup.util.ExternalTools;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.OperationOutput;
@@ -117,7 +121,7 @@ public class MigrationManager {
         throw ae;
       } catch (Exception e) {
         throw ApplicationException.createFileSystemException(
-                getMsg("error-determining-custom-schema"), e);
+                INFO_ERROR_DETERMINING_CUSTOM_SCHEMA.get(), e);
       }
     } else {
       LOG.log(Level.INFO, "No schema customizations to migrate");
@@ -146,14 +150,14 @@ public class MigrationManager {
           throw ae;
         } catch (Exception e) {
           throw ApplicationException.createFileSystemException(
-                  getMsg("error-determining-custom-config"), e);
+                  INFO_ERROR_DETERMINING_CUSTOM_CONFIG.get(), e);
         }
       } else {
         LOG.log(Level.INFO, "No configuration customizations to migrate");
       }
     } catch (IOException e) {
       throw ApplicationException.createFileSystemException(
-              getMsg("error-determining-custom-config"), e);
+              INFO_ERROR_DETERMINING_CUSTOM_CONFIG.get(), e);
     }
   }
 
@@ -172,8 +176,8 @@ public class MigrationManager {
     } catch (ApplicationException ae) {
       throw ae;
     } catch (Exception e) {
-      String msg = getMsg("error-applying-custom-config");
-      LOG.log(Level.INFO, msg, e);
+      Message msg = INFO_ERROR_APPLYING_CUSTOM_CONFIG.get();
+      LOG.log(Level.INFO, msg.toString(), e);
       throw new ApplicationException(
           ApplicationReturnCode.ReturnCode.IMPORT_ERROR, msg, e);
     }
@@ -194,8 +198,8 @@ public class MigrationManager {
     } catch (ApplicationException ae) {
       throw ae;
     } catch (Exception e) {
-      String msg = getMsg("error-applying-custom-schema");
-      LOG.log(Level.INFO, msg, e);
+      Message msg = INFO_ERROR_APPLYING_CUSTOM_SCHEMA.get();
+      LOG.log(Level.INFO, msg.toString(), e);
       throw new ApplicationException(
           ApplicationReturnCode.ReturnCode.IMPORT_ERROR, msg, e);
     }
@@ -253,16 +257,16 @@ public class MigrationManager {
         cre = ldifReader.readChangeRecord(false);
       } catch (Exception e) {
         if (ui != null) {
-          String cancel = getMsg("cancel-button-label");
-          String cont = getMsg("continue-button-label");
-          String retry = getMsg("retry-button-label");
+          Message cancel = INFO_CANCEL_BUTTON_LABEL.get();
+          Message cont = INFO_CONTINUE_BUTTON_LABEL.get();
+          Message retry = INFO_RETRY_BUTTON_LABEL.get();
           Object r = ui.confirm(
                   getModificationErrorSummary(component),
                   getModificationErrorMessage(cre),
-                  e.getLocalizedMessage(),
-                  getMsg("error-upgrade-migration"),
+                  Message.raw(e.getLocalizedMessage()),
+                  INFO_ERROR_UPGRADE_MIGRATION.get(),
                   UserInteraction.MessageType.ERROR,
-                  new String[]{cancel, cont, retry},
+                  new Message[]{cancel, cont, retry},
                   cancel, null);
           if (cont.equals(r)) {
             cre = ldifReader.readChangeRecord(false);
@@ -271,7 +275,7 @@ public class MigrationManager {
           } else {
             throw new ApplicationException(
                 ApplicationReturnCode.ReturnCode.CANCELLED,
-                getMsg("upgrade-canceled"), e);
+                INFO_UPGRADE_CANCELED.get(), e);
           }
         } else {
           throw e;
@@ -280,51 +284,50 @@ public class MigrationManager {
     }
   }
 
-  private String getModificationErrorSummary(Component c) {
-    String summary;
+  private Message getModificationErrorSummary(Component c) {
+    Message summary;
     switch(c) {
       case SCHEMA:
-        summary = getMsg("error-upgrade-migration-schema");
+        summary = INFO_ERROR_UPGRADE_MIGRATION_SCHEMA.get();
         break;
       case CONFIGURATION:
-        summary = getMsg("error-upgrade-migration-config");
+        summary = INFO_ERROR_UPGRADE_MIGRATION_CONFIG.get();
         break;
       default:
-        summary = "";
+        summary = Message.EMPTY;
     }
     return summary;
   }
 
-  private String getModificationErrorMessage(ChangeRecordEntry cre) {
-    StringBuilder msg = new StringBuilder();
+  private Message getModificationErrorMessage(ChangeRecordEntry cre) {
+    MessageBuilder msg = new MessageBuilder();
     msg.append(Constants.HTML_LINE_BREAK);
     if (cre != null) {
       switch (cre.getChangeOperationType()) {
         case MODIFY:
-          msg.append(getMsg("error-upgrade-migration-modify",
+          msg.append(INFO_ERROR_UPGRADE_MIGRATION_MODIFY.get(
                   cre.getDN().toNormalizedString()));
           break;
         case ADD:
-          msg.append(getMsg("error-upgrade-migration-add",
+          msg.append(INFO_ERROR_UPGRADE_MIGRATION_ADD.get(
                   cre.getDN().toNormalizedString()));
           break;
         case DELETE:
-          msg.append(getMsg("error-upgrade-migration-delete",
+          msg.append(INFO_ERROR_UPGRADE_MIGRATION_DELETE.get(
                   cre.getDN().toNormalizedString()));
           break;
         default:
           LOG.log(Level.INFO, "Unexpected change operation type " +
                 cre.getChangeOperationType());
-          msg.append(getMsg("error-upgrade-migration-unexpected",
+          msg.append(INFO_ERROR_UPGRADE_MIGRATION_UNEXPECTED.get(
                   cre.getDN().toNormalizedString()));
           break;
       }
     }
     msg.append(Constants.HTML_LINE_BREAK);
     msg.append(Constants.HTML_LINE_BREAK);
-    msg.append(getMsg("error-upgrade-migration-note",
-            Utils.getPath(backupDir)));
-    return msg.toString();
+    msg.append(INFO_ERROR_UPGRADE_MIGRATION_NOTE.get(Utils.getPath(backupDir)));
+    return msg.toMessage();
   }
 
   private void ldifDiff(File source, File target, File output)
@@ -339,8 +342,7 @@ public class MigrationManager {
     if (ret != 0) {
       throw new ApplicationException(
           ApplicationReturnCode.ReturnCode.TOOL_ERROR,
-              getMsg("error-ldif-diff-tool-return-code",
-                      Integer.toString(ret)),
+              INFO_ERROR_LDIF_DIFF_TOOL_RETURN_CODE.get(Integer.toString(ret)),
               null);
     }
   }
@@ -351,10 +353,6 @@ public class MigrationManager {
 
   private File getCustomSchemaDiffFile() throws IOException {
     return new File(backupDir, "schema.custom.diff");
-  }
-
-  static private String getMsg(String key, String... args) {
-    return ResourceProvider.getInstance().getMsg(key, args);
   }
 
 }

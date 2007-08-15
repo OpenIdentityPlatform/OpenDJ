@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup.upgrader;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.ProgressStep;
 
 /**
@@ -34,35 +37,36 @@ import org.opends.quicksetup.ProgressStep;
  */
 enum ReversionProgressStep implements ProgressStep {
 
-  NOT_STARTED("summary-revert-not-started", 0),
+  NOT_STARTED(INFO_SUMMARY_REVERT_NOT_STARTED.get(), 0),
 
-  INITIALIZING("summary-revert-initializing", 20),
+  INITIALIZING(INFO_SUMMARY_REVERT_INITIALIZING.get(), 20),
 
-  STOPPING_SERVER("summary-stopping", 40),
+  STOPPING_SERVER(INFO_SUMMARY_STOPPING.get(), 40),
 
-  REVERTING_FILESYSTEM("summary-revert-reverting-components", 60),
+  REVERTING_FILESYSTEM(INFO_SUMMARY_REVERT_REVERTING_COMPONENTS.get(), 60),
 
-  VERIFYING("summary-revert-verifying", 80),
+  VERIFYING(INFO_SUMMARY_REVERT_VERIFYING.get(), 80),
 
-  RECORDING_HISTORY("summary-revert-history", 90),
+  RECORDING_HISTORY(INFO_SUMMARY_REVERT_HISTORY.get(), 90),
 
-  CLEANUP("summary-revert-cleanup", 95),
+  CLEANUP(INFO_SUMMARY_REVERT_CLEANUP.get(), 95),
 
-  ABORT("summary-revert-abort", 99),
+  ABORT(INFO_SUMMARY_REVERT_ABORT.get(), 99),
 
-  FINISHED_WITH_ERRORS("summary-revert-finished-with-errors-cli", 100),
+  FINISHED_WITH_ERRORS(INFO_SUMMARY_REVERT_FINISHED_WITH_ERRORS_CLI.get(), 100),
 
-  FINISHED_WITH_WARNINGS("summary-revert-finished-with-warnings-cli", 100),
+  FINISHED_WITH_WARNINGS(
+          INFO_SUMMARY_REVERT_FINISHED_WITH_WARNINGS_CLI.get(), 100),
 
-  FINISHED_CANCELED("summary-revert-finished-canceled-cli", 100),
+  FINISHED_CANCELED(INFO_SUMMARY_REVERT_FINISHED_CANCELED_CLI.get(), 100),
 
-  FINISHED("summary-revert-finished-successfully-cli", 100);
+  FINISHED(INFO_SUMMARY_REVERT_FINISHED_SUCCESSFULLY_CLI.get("",""), 100);
 
-  private String summaryMsgKey;
+  private Message summaryMsg;
   private int progress;
 
-  private ReversionProgressStep(String summaryMsgKey, int progress) {
-    this.summaryMsgKey = summaryMsgKey;
+  private ReversionProgressStep(Message summaryMsgKey, int progress) {
+    this.summaryMsg = summaryMsg;
     this.progress = progress;
   }
 
@@ -71,8 +75,8 @@ enum ReversionProgressStep implements ProgressStep {
    *
    * @return String representing key for access summary in resource bundle
    */
-  public String getSummaryMesssageKey() {
-    return summaryMsgKey;
+  public Message getSummaryMesssage() {
+    return summaryMsg;
   }
 
   /**

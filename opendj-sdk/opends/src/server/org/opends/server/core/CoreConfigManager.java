@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
@@ -49,8 +50,8 @@ import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.WritabilityMode;
 
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ConfigMessages.*;
+
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -110,9 +111,8 @@ public class CoreConfigManager
         int colonPos = server.indexOf(':');
         if ((colonPos == 0) || (colonPos == (server.length()-1)))
         {
-          int    msgID   = MSGID_CONFIG_CORE_INVALID_SMTP_SERVER;
-          String message = getMessage(msgID, server);
-          throw new ConfigException(msgID, message);
+          Message message = ERR_CONFIG_CORE_INVALID_SMTP_SERVER.get(server);
+          throw new ConfigException(message);
         }
         else if (colonPos > 0)
         {
@@ -121,16 +121,14 @@ public class CoreConfigManager
             int port = Integer.parseInt(server.substring(colonPos+1));
             if ((port < 1) || (port > 65535))
             {
-              int    msgID   = MSGID_CONFIG_CORE_INVALID_SMTP_SERVER;
-              String message = getMessage(msgID, server);
-              throw new ConfigException(msgID, message);
+              Message message = ERR_CONFIG_CORE_INVALID_SMTP_SERVER.get(server);
+              throw new ConfigException(message);
             }
           }
           catch (Exception e)
           {
-            int    msgID   = MSGID_CONFIG_CORE_INVALID_SMTP_SERVER;
-            String message = getMessage(msgID, server);
-            throw new ConfigException(msgID, message, e);
+            Message message = ERR_CONFIG_CORE_INVALID_SMTP_SERVER.get(server);
+            throw new ConfigException(message, e);
           }
         }
       }
@@ -347,7 +345,7 @@ public class CoreConfigManager
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(GlobalCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -356,8 +354,8 @@ public class CoreConfigManager
     PasswordPolicy policy = DirectoryServer.getPasswordPolicy(policyDN);
     if (policy == null)
     {
-      int    msgID   = MSGID_CONFIG_CORE_NO_SUCH_PWPOLICY;
-      String message = getMessage(msgID, String.valueOf(policyDN));
+      Message message = ERR_CONFIG_CORE_NO_SUCH_PWPOLICY.get(
+              String.valueOf(policyDN));
       unacceptableReasons.add(message);
 
       configAcceptable = false;
@@ -368,9 +366,9 @@ public class CoreConfigManager
     IdentityMapper mapper = DirectoryServer.getIdentityMapper(mapperDN);
     if (mapper == null)
     {
-      int    msgID   = MSGID_CONFIG_CORE_NO_PROXY_MAPPER_FOR_DN;
-      String message = getMessage(msgID, String.valueOf(mapperDN),
-                                  String.valueOf(configuration.dn()));
+      Message message = ERR_CONFIG_CORE_NO_PROXY_MAPPER_FOR_DN.get(
+              String.valueOf(mapperDN),
+              String.valueOf(configuration.dn()));
       unacceptableReasons.add(message);
 
       configAcceptable = false;
@@ -384,8 +382,7 @@ public class CoreConfigManager
         int colonPos = server.indexOf(':');
         if ((colonPos == 0) || (colonPos == (server.length()-1)))
         {
-          int    msgID   = MSGID_CONFIG_CORE_INVALID_SMTP_SERVER;
-          String message = getMessage(msgID, server);
+          Message message = ERR_CONFIG_CORE_INVALID_SMTP_SERVER.get(server);
           unacceptableReasons.add(message);
           configAcceptable = false;
         }
@@ -396,16 +393,14 @@ public class CoreConfigManager
             int port = Integer.parseInt(server.substring(colonPos+1));
             if ((port < 1) || (port > 65535))
             {
-              int    msgID   = MSGID_CONFIG_CORE_INVALID_SMTP_SERVER;
-              String message = getMessage(msgID, server);
+              Message message = ERR_CONFIG_CORE_INVALID_SMTP_SERVER.get(server);
               unacceptableReasons.add(message);
               configAcceptable = false;
             }
           }
           catch (Exception e)
           {
-            int    msgID   = MSGID_CONFIG_CORE_INVALID_SMTP_SERVER;
-            String message = getMessage(msgID, server);
+            Message message = ERR_CONFIG_CORE_INVALID_SMTP_SERVER.get(server);
             unacceptableReasons.add(message);
             configAcceptable = false;
           }
@@ -423,9 +418,9 @@ public class CoreConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(GlobalCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ResultCode         resultCode          = ResultCode.SUCCESS;
+    boolean            adminActionRequired = false;
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     applyGlobalConfiguration(configuration);
 

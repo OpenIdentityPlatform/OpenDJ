@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
+import org.opends.messages.Message;
 
 
 
@@ -91,7 +92,7 @@ public abstract class MatchingRule<T extends MatchingRuleCfg>
    */
   public boolean isConfigurationAcceptable(
                       MatchingRuleCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by matching rule

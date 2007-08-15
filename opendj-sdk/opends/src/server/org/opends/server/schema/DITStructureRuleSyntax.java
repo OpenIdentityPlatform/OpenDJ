@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+import org.opends.messages.Message;
 
 
 
@@ -52,8 +53,8 @@ import org.opends.server.types.Schema;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -109,30 +110,27 @@ public class DITStructureRuleSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE;
-      String message = getMessage(msgID, EMR_CASE_IGNORE_OID,
-                                  SYNTAX_DIT_STRUCTURE_RULE_NAME);
-      throw new InitializationException(msgID, message);
+      Message message = ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_CASE_IGNORE_OID, SYNTAX_DIT_STRUCTURE_RULE_NAME);
+      throw new InitializationException(message);
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE;
-      String message = getMessage(msgID, OMR_CASE_IGNORE_OID,
-                                  SYNTAX_DIT_STRUCTURE_RULE_NAME);
-      throw new InitializationException(msgID, message);
+      Message message = ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+          OMR_CASE_IGNORE_OID, SYNTAX_DIT_STRUCTURE_RULE_NAME);
+      throw new InitializationException(message);
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE;
-      String message = getMessage(msgID, SMR_CASE_IGNORE_OID,
-                                  SYNTAX_DIT_STRUCTURE_RULE_NAME);
-      throw new InitializationException(msgID, message);
+      Message message = ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_CASE_IGNORE_OID, SYNTAX_DIT_STRUCTURE_RULE_NAME);
+      throw new InitializationException(message);
     }
   }
 
@@ -213,7 +211,7 @@ public class DITStructureRuleSyntax
    * {@inheritDoc}
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // We'll use the decodeDITStructureRule method to determine if the value is
     // acceptable.
@@ -229,7 +227,7 @@ public class DITStructureRuleSyntax
         TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
-      invalidReason.append(de.getErrorMessage());
+      invalidReason.append(de.getMessageObject());
       return false;
     }
   }
@@ -283,10 +281,9 @@ public class DITStructureRuleSyntax
     {
       // This means that the value was empty or contained only whitespace.  That
       // is illegal.
-      int    msgID   = MSGID_ATTR_SYNTAX_DSR_EMPTY_VALUE;
-      String message = getMessage(msgID);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE.get();
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -295,10 +292,10 @@ public class DITStructureRuleSyntax
     char c = valueStr.charAt(pos++);
     if (c != '(')
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS;
-      String message = getMessage(msgID, valueStr, (pos-1), c);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS.get(
+          valueStr, (pos-1), String.valueOf(c));
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -312,10 +309,9 @@ public class DITStructureRuleSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -325,10 +321,10 @@ public class DITStructureRuleSyntax
     {
       if (! isDigit(c))
       {
-        int    msgID   = MSGID_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_RULE_ID;
-        String message = getMessage(msgID, valueStr, c, (pos-1));
+        Message message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_RULE_ID.get(
+            valueStr, String.valueOf(c), (pos-1));
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -337,10 +333,9 @@ public class DITStructureRuleSyntax
     int ruleID;
     if (pos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
     else
     {
@@ -358,10 +353,9 @@ public class DITStructureRuleSyntax
     {
       // This means that the end of the value was reached before we could find
       // the rule ID.  Ths is illegal.
-      int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -393,10 +387,10 @@ public class DITStructureRuleSyntax
         // We must be at the end of the value.  If not, then that's a problem.
         if (pos < length)
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_DSR_UNEXPECTED_CLOSE_PARENTHESIS;
-          String message = getMessage(msgID, valueStr, (pos-1));
+          Message message = ERR_ATTR_SYNTAX_DSR_UNEXPECTED_CLOSE_PARENTHESIS.
+              get(valueStr, (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
         break;
@@ -451,10 +445,11 @@ public class DITStructureRuleSyntax
         else
         {
           // This is an illegal character.
-          int    msgID   = MSGID_ATTR_SYNTAX_DSR_ILLEGAL_CHAR;
-          String message = getMessage(msgID, valueStr, c, (pos-1));
+          Message message =
+              ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR.get(
+                      valueStr, String.valueOf(c), (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
       else if (lowerTokenName.equals("desc"))
@@ -481,10 +476,10 @@ public class DITStructureRuleSyntax
         nameForm = schema.getNameForm(woidBuffer.toString());
         if ((nameForm == null) && (! allowUnknownElements))
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM;
-          String message = getMessage(msgID, valueStr, woidBuffer.toString());
+          Message message = ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM.get(
+              valueStr, woidBuffer.toString());
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
       else if (lowerTokenName.equals("sup"))
@@ -508,10 +503,10 @@ public class DITStructureRuleSyntax
 
             if (pos >= length)
             {
-              int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-              String message = getMessage(msgID, lowerStr);
+              Message message =
+                  ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                           message, msgID);
+                                           message);
             }
 
             // Read the next integer value.
@@ -520,11 +515,10 @@ public class DITStructureRuleSyntax
             {
               if (! isDigit(c))
               {
-                int    msgID   = MSGID_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_RULE_ID;
-                String message = getMessage(msgID, valueStr, c, (pos-1));
+                Message message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_RULE_ID.
+                    get(valueStr, String.valueOf(c), (pos-1));
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               msgID);
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
               }
             }
 
@@ -533,10 +527,10 @@ public class DITStructureRuleSyntax
             int supRuleID;
             if (pos >= length)
             {
-              int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-              String message = getMessage(msgID, valueStr);
+              Message message =
+                  ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                           message, msgID);
+                                           message);
             }
             else
             {
@@ -552,11 +546,10 @@ public class DITStructureRuleSyntax
             {
               if (! allowUnknownElements)
               {
-                int    msgID   = MSGID_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID;
-                String message = getMessage(msgID, valueStr, supRuleID);
+                Message message = ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID.get(
+                    valueStr, supRuleID);
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               msgID);
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
               }
             }
             else
@@ -573,10 +566,10 @@ public class DITStructureRuleSyntax
 
             if (pos >= length)
             {
-              int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-              String message = getMessage(msgID, lowerStr);
+              Message message =
+                  ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                           message, msgID);
+                                           message);
             }
 
 
@@ -592,11 +585,10 @@ public class DITStructureRuleSyntax
 
               if (pos >= length)
               {
-                int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-                String message = getMessage(msgID, lowerStr);
+                Message message =
+                    ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               msgID);
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
               }
 
               break;
@@ -607,10 +599,9 @@ public class DITStructureRuleSyntax
         {
           if (pos >= length)
           {
-            int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-            String message = getMessage(msgID, lowerStr);
+            Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
 
           // Read the next integer value.
@@ -619,10 +610,10 @@ public class DITStructureRuleSyntax
           {
             if (! isDigit(c))
             {
-              int    msgID   = MSGID_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_RULE_ID;
-              String message = getMessage(msgID, valueStr, c, (pos-1));
+              Message message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_RULE_ID.get(
+                  valueStr, String.valueOf(c), (pos-1));
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                           message, msgID);
+                                           message);
             }
           }
 
@@ -631,10 +622,9 @@ public class DITStructureRuleSyntax
           int supRuleID;
           if (pos >= length)
           {
-            int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-            String message = getMessage(msgID, valueStr);
+            Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
           else
           {
@@ -649,10 +639,10 @@ public class DITStructureRuleSyntax
           {
             if (! allowUnknownElements)
             {
-              int    msgID   = MSGID_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID;
-              String message = getMessage(msgID, valueStr, supRuleID);
+              Message message =
+                  ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID.get(valueStr, supRuleID);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                           message, msgID);
+                                           message);
             }
           }
           else
@@ -669,10 +659,9 @@ public class DITStructureRuleSyntax
 
           if (pos >= length)
           {
-            int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-            String message = getMessage(msgID, lowerStr);
+            Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
         }
 
@@ -694,10 +683,9 @@ public class DITStructureRuleSyntax
 
     if ((nameForm == null) && (! nameFormGiven))
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_DSR_NO_NAME_FORM;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -738,10 +726,9 @@ public class DITStructureRuleSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -797,20 +784,20 @@ public class DITStructureRuleSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
     // The next character must be a single quote.
     if (c != '\'')
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_DSR_EXPECTED_QUOTE_AT_POS;
-      String message = getMessage(msgID, valueStr, startPos, c);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message =
+          ERR_ATTR_SYNTAX_DSR_EXPECTED_QUOTE_AT_POS.get(
+                  valueStr, startPos, String.valueOf(c));
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -834,10 +821,9 @@ public class DITStructureRuleSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -884,20 +870,20 @@ public class DITStructureRuleSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-      String message = getMessage(msgID, lowerStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
     // The next character must be a single quote.
     if (c != '\'')
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_DSR_EXPECTED_QUOTE_AT_POS;
-      String message = getMessage(msgID, valueStr, startPos, c);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message =
+          ERR_ATTR_SYNTAX_DSR_EXPECTED_QUOTE_AT_POS.get(
+                  valueStr, startPos, String.valueOf(c));
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -922,10 +908,9 @@ public class DITStructureRuleSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-      String message = getMessage(msgID, lowerStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -965,10 +950,9 @@ public class DITStructureRuleSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-      String message = getMessage(msgID, lowerStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -985,10 +969,10 @@ public class DITStructureRuleSyntax
         {
           if (lastWasPeriod)
           {
-            int    msgID   = MSGID_ATTR_SYNTAX_DSR_DOUBLE_PERIOD_IN_NUMERIC_OID;
-            String message = getMessage(msgID, lowerStr, (startPos-1));
+            Message message = ERR_ATTR_SYNTAX_DSR_DOUBLE_PERIOD_IN_NUMERIC_OID.
+                get(lowerStr, (startPos-1));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
           else
           {
@@ -1010,10 +994,10 @@ public class DITStructureRuleSyntax
           }
 
           // This must have been an illegal character.
-          int    msgID   = MSGID_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_NUMERIC_OID;
-          String message = getMessage(msgID, lowerStr, c, (startPos-1));
+          Message message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_NUMERIC_OID.get(
+              lowerStr, String.valueOf(c), (startPos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
         else
         {
@@ -1048,19 +1032,20 @@ public class DITStructureRuleSyntax
           }
 
           // This must have been an illegal character.
-          int    msgID   = MSGID_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_STRING_OID;
-          String message = getMessage(msgID, lowerStr, c, (startPos-1));
+          Message message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_STRING_OID.get(
+              lowerStr, String.valueOf(c), (startPos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
     }
     else
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_DSR_ILLEGAL_CHAR;
-      String message = getMessage(msgID, lowerStr, c, startPos);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message =
+          ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR.get(
+                  lowerStr, String.valueOf(c), startPos);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1074,10 +1059,9 @@ public class DITStructureRuleSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-      String message = getMessage(msgID, lowerStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(lowerStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1117,10 +1101,9 @@ public class DITStructureRuleSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1152,10 +1135,9 @@ public class DITStructureRuleSyntax
 
         if (startPos >= length)
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-          String message = getMessage(msgID, valueStr);
+          Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
 
@@ -1167,10 +1149,11 @@ public class DITStructureRuleSyntax
         else if (c == '(')
         {
           // This is an illegal character.
-          int    msgID   = MSGID_ATTR_SYNTAX_DSR_ILLEGAL_CHAR;
-          String message = getMessage(msgID, valueStr, c, startPos);
+          Message message =
+              ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR.get(
+                      valueStr, String.valueOf(c), startPos);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
         else
         {
@@ -1201,10 +1184,9 @@ public class DITStructureRuleSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 

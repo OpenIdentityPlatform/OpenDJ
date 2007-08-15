@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 
 
@@ -44,12 +45,9 @@ import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.ThreadFilterTextErrorLogPublisher;
 import org.opends.server.loggers.TextWriter;
-import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
@@ -61,9 +59,8 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
@@ -91,7 +88,7 @@ public class ExportLDIF
 
     if(errorLogPublisher != null)
     {
-      ErrorLogger.removeErrorLogPublisher(errorLogPublisher);
+      removeErrorLogPublisher(errorLogPublisher);
     }
 
     if(retCode != 0)
@@ -170,7 +167,7 @@ public class ExportLDIF
 
 
     // Create the command-line argument parser for use with this program.
-    String toolDescription = getMessage(MSGID_LDIFEXPORT_TOOL_DESCRIPTION);
+    Message toolDescription = INFO_LDIFEXPORT_TOOL_DESCRIPTION.get();
     ArgumentParser argParser =
          new ArgumentParser("org.opends.server.tools.ExportLDIF",
                             toolDescription, false);
@@ -185,7 +182,7 @@ public class ExportLDIF
                               OPTION_LONG_CONFIG_CLASS, true, false,
                               true, OPTION_VALUE_CONFIG_CLASS,
                               ConfigFileHandler.class.getName(), null,
-                              MSGID_DESCRIPTION_CONFIG_CLASS);
+                              INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
@@ -193,7 +190,7 @@ public class ExportLDIF
       configFile =
            new StringArgument("configfile", 'f', "configFile", true, false,
                               true, "{configFile}", null, null,
-                              MSGID_DESCRIPTION_CONFIG_FILE);
+                              INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
@@ -202,108 +199,109 @@ public class ExportLDIF
            new StringArgument("ldiffile", OPTION_SHORT_LDIF_FILE,
                               OPTION_LONG_LDIF_FILE,true, false, true,
                               OPTION_VALUE_LDIF_FILE, null, null,
-                              MSGID_LDIFEXPORT_DESCRIPTION_LDIF_FILE);
+                              INFO_LDIFEXPORT_DESCRIPTION_LDIF_FILE.get());
       argParser.addArgument(ldifFile);
 
 
-      appendToLDIF =
-           new BooleanArgument("appendldif", 'a', "appendToLDIF",
-                               MSGID_LDIFEXPORT_DESCRIPTION_APPEND_TO_LDIF);
+      appendToLDIF = new BooleanArgument(
+                   "appendldif", 'a', "appendToLDIF",
+                   INFO_LDIFEXPORT_DESCRIPTION_APPEND_TO_LDIF.get());
       argParser.addArgument(appendToLDIF);
 
 
       backendID =
            new StringArgument("backendid", 'n', "backendID", true, false, true,
                               "{backendID}", null, null,
-                              MSGID_LDIFEXPORT_DESCRIPTION_BACKEND_ID);
+                              INFO_LDIFEXPORT_DESCRIPTION_BACKEND_ID.get());
       argParser.addArgument(backendID);
 
 
       includeBranchStrings =
            new StringArgument("includebranch", 'b', "includeBranch", false,
                               true, true, "{branchDN}", null, null,
-                              MSGID_LDIFEXPORT_DESCRIPTION_INCLUDE_BRANCH);
+                              INFO_LDIFEXPORT_DESCRIPTION_INCLUDE_BRANCH.get());
       argParser.addArgument(includeBranchStrings);
 
 
       excludeBranchStrings =
            new StringArgument("excludebranch", 'B', "excludeBranch", false,
                               true, true, "{branchDN}", null, null,
-                              MSGID_LDIFEXPORT_DESCRIPTION_EXCLUDE_BRANCH);
+                              INFO_LDIFEXPORT_DESCRIPTION_EXCLUDE_BRANCH.get());
       argParser.addArgument(excludeBranchStrings);
 
 
       includeAttributeStrings =
-           new StringArgument("includeattribute", 'i', "includeAttribute",
-                              false, true, true, "{attribute}", null, null,
-                              MSGID_LDIFEXPORT_DESCRIPTION_INCLUDE_ATTRIBUTE);
+           new StringArgument(
+                   "includeattribute", 'i', "includeAttribute",
+                   false, true, true, "{attribute}", null, null,
+                   INFO_LDIFEXPORT_DESCRIPTION_INCLUDE_ATTRIBUTE.get());
       argParser.addArgument(includeAttributeStrings);
 
 
       excludeAttributeStrings =
-           new StringArgument("excludeattribute", 'e', "excludeAttribute",
-                              false, true, true, "{attribute}", null, null,
-                              MSGID_LDIFEXPORT_DESCRIPTION_EXCLUDE_ATTRIBUTE);
+           new StringArgument(
+                   "excludeattribute", 'e', "excludeAttribute",
+                   false, true, true, "{attribute}", null, null,
+                   INFO_LDIFEXPORT_DESCRIPTION_EXCLUDE_ATTRIBUTE.get());
       argParser.addArgument(excludeAttributeStrings);
 
 
       includeFilterStrings =
            new StringArgument("includefilter", 'I', "includeFilter",
                               false, true, true, "{filter}", null, null,
-                              MSGID_LDIFEXPORT_DESCRIPTION_INCLUDE_FILTER);
+                              INFO_LDIFEXPORT_DESCRIPTION_INCLUDE_FILTER.get());
       argParser.addArgument(includeFilterStrings);
 
 
       excludeFilterStrings =
            new StringArgument("excludefilter", 'E', "excludeFilter",
                               false, true, true, "{filter}", null, null,
-                              MSGID_LDIFEXPORT_DESCRIPTION_EXCLUDE_FILTER);
+                              INFO_LDIFEXPORT_DESCRIPTION_EXCLUDE_FILTER.get());
       argParser.addArgument(excludeFilterStrings);
 
 
       excludeOperationalAttrs =
            new BooleanArgument("excludeoperational", 'O', "excludeOperational",
-                    MSGID_LDIFEXPORT_DESCRIPTION_EXCLUDE_OPERATIONAL);
+                    INFO_LDIFEXPORT_DESCRIPTION_EXCLUDE_OPERATIONAL.get());
       argParser.addArgument(excludeOperationalAttrs);
 
 
       wrapColumn =
            new IntegerArgument("wrapcolumn", 'w', "wrapColumn", false, false,
                                true, "{wrapColumn}", 0, null, true, 0, false, 0,
-                               MSGID_LDIFEXPORT_DESCRIPTION_WRAP_COLUMN);
+                               INFO_LDIFEXPORT_DESCRIPTION_WRAP_COLUMN.get());
       argParser.addArgument(wrapColumn);
 
 
       compressLDIF =
            new BooleanArgument("compressldif", OPTION_SHORT_COMPRESS,
                                OPTION_LONG_COMPRESS,
-                               MSGID_LDIFEXPORT_DESCRIPTION_COMPRESS_LDIF);
+                               INFO_LDIFEXPORT_DESCRIPTION_COMPRESS_LDIF.get());
       argParser.addArgument(compressLDIF);
 
 
       encryptLDIF =
            new BooleanArgument("encryptldif", 'y', "encryptLDIF",
-                               MSGID_LDIFEXPORT_DESCRIPTION_ENCRYPT_LDIF);
+                               INFO_LDIFEXPORT_DESCRIPTION_ENCRYPT_LDIF.get());
       argParser.addArgument(encryptLDIF);
 
 
       signHash =
            new BooleanArgument("signhash", 's', "signHash",
-                               MSGID_LDIFEXPORT_DESCRIPTION_SIGN_HASH);
+                               INFO_LDIFEXPORT_DESCRIPTION_SIGN_HASH.get());
       argParser.addArgument(signHash);
 
 
       displayUsage =
            new BooleanArgument("help", OPTION_SHORT_HELP,
                                OPTION_LONG_HELP,
-                               MSGID_DESCRIPTION_USAGE);
+                               INFO_DESCRIPTION_USAGE.get());
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
@@ -317,8 +315,7 @@ public class ExportLDIF
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -346,8 +343,8 @@ public class ExportLDIF
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_SERVER_BOOTSTRAP_ERROR;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message =
+                ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -359,15 +356,13 @@ public class ExportLDIF
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
-        String message = getMessage(msgID, ie.getMessage());
+        Message message = ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -381,22 +376,19 @@ public class ExportLDIF
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-        String message = getMessage(msgID, ce.getMessage());
+        Message message = ERR_CANNOT_LOAD_SCHEMA.get(ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-        String message = getMessage(msgID, ie.getMessage());
+        Message message = ERR_CANNOT_LOAD_SCHEMA.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -410,22 +402,22 @@ public class ExportLDIF
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
-        String message = getMessage(msgID, ce.getMessage());
+        Message message =
+                ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
-        String message = getMessage(msgID, ie.getMessage());
+        Message message =
+                ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message =
+                ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -438,22 +430,23 @@ public class ExportLDIF
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-        String message = getMessage(msgID, ce.getMessage());
+        Message message =
+                ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-        String message = getMessage(msgID, ie.getMessage());
+        Message message =
+                ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message =
+                ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+                        getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -466,7 +459,7 @@ public class ExportLDIF
         errorLogPublisher =
             new ThreadFilterTextErrorLogPublisher(Thread.currentThread(),
                                                   new TextWriter.STREAM(out));
-        ErrorLogger.addErrorLogPublisher(errorLogPublisher);
+        addErrorLogPublisher(errorLogPublisher);
 
       }
       catch(Exception e)
@@ -486,22 +479,23 @@ public class ExportLDIF
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_LDIFEXPORT_CANNOT_INITIALIZE_PLUGINS;
-        String message = getMessage(msgID, ce.getMessage());
+        Message message =
+                ERR_LDIFEXPORT_CANNOT_INITIALIZE_PLUGINS.get(ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_LDIFEXPORT_CANNOT_INITIALIZE_PLUGINS;
-        String message = getMessage(msgID, ie.getMessage());
+        Message message =
+                ERR_LDIFEXPORT_CANNOT_INITIALIZE_PLUGINS.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDIFEXPORT_CANNOT_INITIALIZE_PLUGINS;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message =
+                ERR_LDIFEXPORT_CANNOT_INITIALIZE_PLUGINS.get(
+                        getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -568,20 +562,16 @@ public class ExportLDIF
         }
         catch (DirectoryException de)
         {
-          int    msgID   = MSGID_LDIFEXPORT_CANNOT_PARSE_EXCLUDE_FILTER;
-          String message = getMessage(msgID, filterString,
-                                      de.getErrorMessage());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_LDIFEXPORT_CANNOT_PARSE_EXCLUDE_FILTER.get(
+              filterString, de.getMessageObject());
+          logError(message);
           return 1;
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_LDIFEXPORT_CANNOT_PARSE_EXCLUDE_FILTER;
-          String message = getMessage(msgID, filterString,
-                                      getExceptionMessage(e));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_LDIFEXPORT_CANNOT_PARSE_EXCLUDE_FILTER.get(
+              filterString, getExceptionMessage(e));
+          logError(message);
           return 1;
         }
       }
@@ -603,20 +593,16 @@ public class ExportLDIF
         }
         catch (DirectoryException de)
         {
-          int    msgID   = MSGID_LDIFEXPORT_CANNOT_PARSE_INCLUDE_FILTER;
-          String message = getMessage(msgID, filterString,
-                                      de.getErrorMessage());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_LDIFEXPORT_CANNOT_PARSE_INCLUDE_FILTER.get(
+              filterString, de.getMessageObject());
+          logError(message);
           return 1;
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_LDIFEXPORT_CANNOT_PARSE_INCLUDE_FILTER;
-          String message = getMessage(msgID, filterString,
-                                      getExceptionMessage(e));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_LDIFEXPORT_CANNOT_PARSE_INCLUDE_FILTER.get(
+              filterString, getExceptionMessage(e));
+          logError(message);
           return 1;
         }
       }
@@ -654,28 +640,25 @@ public class ExportLDIF
       }
       else
       {
-        int    msgID   = MSGID_LDIFEXPORT_MULTIPLE_BACKENDS_FOR_ID;
-        String message = getMessage(msgID, backendID.getValue());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message =
+            ERR_LDIFEXPORT_MULTIPLE_BACKENDS_FOR_ID.get(backendID.getValue());
+        logError(message);
         return 1;
       }
     }
 
     if (backend == null)
     {
-      int    msgID   = MSGID_LDIFEXPORT_NO_BACKENDS_FOR_ID;
-      String message = getMessage(msgID, backendID.getValue());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message =
+          ERR_LDIFEXPORT_NO_BACKENDS_FOR_ID.get(backendID.getValue());
+      logError(message);
       return 1;
     }
     else if (! backend.supportsLDIFExport())
     {
-      int    msgID   = MSGID_LDIFEXPORT_CANNOT_EXPORT_BACKEND;
-      String message = getMessage(msgID, backendID.getValue());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message =
+          ERR_LDIFEXPORT_CANNOT_EXPORT_BACKEND.get(backendID.getValue());
+      logError(message);
       return 1;
     }
 
@@ -691,18 +674,16 @@ public class ExportLDIF
         }
         catch (DirectoryException de)
         {
-          int    msgID   = MSGID_LDIFEXPORT_CANNOT_DECODE_EXCLUDE_BASE;
-          String message = getMessage(msgID, s, de.getErrorMessage());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_LDIFEXPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
+              s, de.getMessageObject());
+          logError(message);
           return 1;
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_LDIFEXPORT_CANNOT_DECODE_EXCLUDE_BASE;
-          String message = getMessage(msgID, s, getExceptionMessage(e));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_LDIFEXPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
+              s, getExceptionMessage(e));
+          logError(message);
           return 1;
         }
 
@@ -727,28 +708,25 @@ public class ExportLDIF
         }
         catch (DirectoryException de)
         {
-          int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE;
-          String message = getMessage(msgID, s, de.getErrorMessage());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
+              s, de.getMessageObject());
+          logError(message);
           return 1;
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE;
-          String message = getMessage(msgID, s, getExceptionMessage(e));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
+              s, getExceptionMessage(e));
+          logError(message);
           return 1;
         }
 
         if (! Backend.handlesEntry(includeBranch, defaultIncludeBranches,
                                    excludeBranches))
         {
-          int    msgID   = MSGID_LDIFEXPORT_INVALID_INCLUDE_BASE;
-          String message = getMessage(msgID, s, backendID.getValue());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message =
+              ERR_LDIFEXPORT_INVALID_INCLUDE_BASE.get(s, backendID.getValue());
+          logError(message);
           return 1;
         }
 
@@ -795,10 +773,9 @@ public class ExportLDIF
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_LDIFEXPORT_CANNOT_DECODE_WRAP_COLUMN_AS_INTEGER;
-      String message = getMessage(msgID, wrapColumn.getValue());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_LDIFEXPORT_CANNOT_DECODE_WRAP_COLUMN_AS_INTEGER.get(
+          wrapColumn.getValue());
+      logError(message);
       return 1;
     }
 
@@ -815,21 +792,17 @@ public class ExportLDIF
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        int    msgID   = MSGID_LDIFEXPORT_CANNOT_LOCK_BACKEND;
-        String message = getMessage(msgID, backend.getBackendID(),
-                                    String.valueOf(failureReason));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
+            backend.getBackendID(), String.valueOf(failureReason));
+        logError(message);
         return 0;
       }
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDIFEXPORT_CANNOT_LOCK_BACKEND;
-      String message = getMessage(msgID, backend.getBackendID(),
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
+          backend.getBackendID(), getExceptionMessage(e));
+      logError(message);
       return 0;
     }
 
@@ -841,17 +814,15 @@ public class ExportLDIF
     }
     catch (DirectoryException de)
     {
-      int    msgID   = MSGID_LDIFEXPORT_ERROR_DURING_EXPORT;
-      String message = getMessage(msgID, de.getErrorMessage());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message =
+          ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(de.getMessageObject());
+      logError(message);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDIFEXPORT_ERROR_DURING_EXPORT;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message =
+          ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(getExceptionMessage(e));
+      logError(message);
     }
 
 
@@ -862,20 +833,16 @@ public class ExportLDIF
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        int    msgID   = MSGID_LDIFEXPORT_CANNOT_UNLOCK_BACKEND;
-        String message = getMessage(msgID, backend.getBackendID(),
-                                    String.valueOf(failureReason));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-                 message, msgID);
+        Message message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
+            backend.getBackendID(), String.valueOf(failureReason));
+        logError(message);
       }
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDIFEXPORT_CANNOT_UNLOCK_BACKEND;
-      String message = getMessage(msgID, backend.getBackendID(),
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-               message, msgID);
+      Message message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
+          backend.getBackendID(), getExceptionMessage(e));
+      logError(message);
     }
 
 

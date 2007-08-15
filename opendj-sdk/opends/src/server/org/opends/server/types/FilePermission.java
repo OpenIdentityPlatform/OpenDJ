@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 
@@ -37,8 +38,7 @@ import org.opends.server.core.DirectoryServer;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
+import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -528,9 +528,9 @@ public class FilePermission
   {
     if (! f.exists())
     {
-      int    msgID   = MSGID_FILEPERM_SET_NO_SUCH_FILE;
-      String message = getMessage(msgID, f.getAbsolutePath());
-      throw new FileNotFoundException(message);
+      Message message =
+          ERR_FILEPERM_SET_NO_SUCH_FILE.get(f.getAbsolutePath());
+      throw new FileNotFoundException(message.toString());
     }
 
 
@@ -593,11 +593,9 @@ public class FilePermission
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_FILEPERM_CANNOT_EXEC_CHMOD;
-      String message = getMessage(msgID, f.getAbsolutePath(),
-                                  String.valueOf(e));
-      throw new DirectoryException(ResultCode.OTHER, message, msgID,
-                                   e);
+      Message message = ERR_FILEPERM_CANNOT_EXEC_CHMOD.get(
+          f.getAbsolutePath(), String.valueOf(e));
+      throw new DirectoryException(ResultCode.OTHER, message, e);
     }
 
     return (exitCode == 0);
@@ -832,28 +830,25 @@ public class FilePermission
     {
       // If an exception was thrown, we can't be sure whether or not
       // any permissions were updated.
-      int    msgID   = MSGID_FILEPERM_SET_JAVA_EXCEPTION;
-      String message = getMessage(msgID, f.getAbsolutePath());
-      throw new DirectoryException(ResultCode.OTHER, message,
-                                   msgID);
+      Message message =
+          ERR_FILEPERM_SET_JAVA_EXCEPTION.get(f.getAbsolutePath());
+      throw new DirectoryException(ResultCode.OTHER, message);
     }
     else if (anyFailed)
     {
       if (anySuccessful)
       {
         // Some of the file permissions may have been altered.
-        int    msgID   = MSGID_FILEPERM_SET_JAVA_FAILED_ALTERED;
-        String message = getMessage(msgID, f.getAbsolutePath());
-        throw new DirectoryException(ResultCode.OTHER, message,
-                                     msgID);
+        Message message = ERR_FILEPERM_SET_JAVA_FAILED_ALTERED.get(
+            f.getAbsolutePath());
+        throw new DirectoryException(ResultCode.OTHER, message);
       }
       else
       {
         // The file permissions should have been left intact.
-        int    msgID   = MSGID_FILEPERM_SET_JAVA_FAILED_UNALTERED;
-        String message = getMessage(msgID, f.getAbsolutePath());
-        throw new DirectoryException(ResultCode.OTHER, message,
-                                     msgID);
+        Message message = ERR_FILEPERM_SET_JAVA_FAILED_UNALTERED.get(
+            f.getAbsolutePath());
+        throw new DirectoryException(ResultCode.OTHER, message);
       }
     }
     else
@@ -961,9 +956,9 @@ public class FilePermission
   {
     if ((modeString == null) || (modeString.length() != 3))
     {
-      int    msgID   = MSGID_FILEPERM_INVALID_UNIX_MODE_STRING;
-      String message = getMessage(msgID, String.valueOf(modeString));
-      throw new DirectoryException(ResultCode.OTHER, message, msgID);
+      Message message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(
+          String.valueOf(modeString));
+      throw new DirectoryException(ResultCode.OTHER, message);
     }
 
     int encodedPermission = 0x0000;
@@ -994,9 +989,9 @@ public class FilePermission
                              OWNER_EXECUTABLE;
         break;
       default:
-      int    msgID   = MSGID_FILEPERM_INVALID_UNIX_MODE_STRING;
-      String message = getMessage(msgID, String.valueOf(modeString));
-      throw new DirectoryException(ResultCode.OTHER, message, msgID);
+      Message message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(
+          String.valueOf(modeString));
+      throw new DirectoryException(ResultCode.OTHER, message);
     }
 
     switch (modeString.charAt(1))
@@ -1026,9 +1021,9 @@ public class FilePermission
                              GROUP_EXECUTABLE;
         break;
       default:
-      int    msgID   = MSGID_FILEPERM_INVALID_UNIX_MODE_STRING;
-      String message = getMessage(msgID, String.valueOf(modeString));
-      throw new DirectoryException(ResultCode.OTHER, message, msgID);
+      Message message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(
+          String.valueOf(modeString));
+      throw new DirectoryException(ResultCode.OTHER, message);
     }
 
     switch (modeString.charAt(2))
@@ -1058,9 +1053,9 @@ public class FilePermission
                              OTHER_EXECUTABLE;
         break;
       default:
-      int    msgID   = MSGID_FILEPERM_INVALID_UNIX_MODE_STRING;
-      String message = getMessage(msgID, String.valueOf(modeString));
-      throw new DirectoryException(ResultCode.OTHER, message, msgID);
+      Message message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(
+          String.valueOf(modeString));
+      throw new DirectoryException(ResultCode.OTHER, message);
     }
 
     return new FilePermission(encodedPermission);

@@ -25,14 +25,11 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-
-
-
+import static org.opends.messages.CoreMessages.*;
 /**
  * This class defines a set of constants that correspond to the result codes
  * defined in the LDAP protocol.  Note that many (but not all) of the result
@@ -606,211 +603,211 @@ public class LDAPResultCode
    */
   public static String toString(int resultCode)
   {
-    int msgID;
+    Message message;
 
     switch (resultCode)
     {
       case SUCCESS:
-        msgID = MSGID_RESULT_SUCCESS;
+        message = INFO_RESULT_SUCCESS.get();
         break;
       case OPERATIONS_ERROR:
-        msgID = MSGID_RESULT_OPERATIONS_ERROR;
+        message = INFO_RESULT_OPERATIONS_ERROR.get();
         break;
       case PROTOCOL_ERROR:
-        msgID = MSGID_RESULT_PROTOCOL_ERROR;
+        message = INFO_RESULT_PROTOCOL_ERROR.get();
         break;
       case TIME_LIMIT_EXCEEDED:
-        msgID = MSGID_RESULT_TIME_LIMIT_EXCEEDED;
+        message = INFO_RESULT_TIME_LIMIT_EXCEEDED.get();
         break;
       case SIZE_LIMIT_EXCEEDED:
-        msgID = MSGID_RESULT_SIZE_LIMIT_EXCEEDED;
+        message = INFO_RESULT_SIZE_LIMIT_EXCEEDED.get();
         break;
       case COMPARE_FALSE:
-        msgID = MSGID_RESULT_COMPARE_FALSE;
+        message = INFO_RESULT_COMPARE_FALSE.get();
         break;
       case COMPARE_TRUE:
-        msgID = MSGID_RESULT_COMPARE_TRUE;
+        message = INFO_RESULT_COMPARE_TRUE.get();
         break;
       case AUTH_METHOD_NOT_SUPPORTED:
-        msgID = MSGID_RESULT_AUTH_METHOD_NOT_SUPPORTED;
+        message = INFO_RESULT_AUTH_METHOD_NOT_SUPPORTED.get();
         break;
       case STRONG_AUTH_REQUIRED:
-        msgID = MSGID_RESULT_STRONG_AUTH_REQUIRED;
+        message = INFO_RESULT_STRONG_AUTH_REQUIRED.get();
         break;
       case REFERRAL:
-        msgID = MSGID_RESULT_REFERRAL;
+        message = INFO_RESULT_REFERRAL.get();
         break;
       case ADMIN_LIMIT_EXCEEDED:
-        msgID = MSGID_RESULT_ADMIN_LIMIT_EXCEEDED;
+        message = INFO_RESULT_ADMIN_LIMIT_EXCEEDED.get();
         break;
       case UNAVAILABLE_CRITICAL_EXTENSION:
-        msgID = MSGID_RESULT_UNAVAILABLE_CRITICAL_EXTENSION;
+        message = INFO_RESULT_UNAVAILABLE_CRITICAL_EXTENSION.get();
         break;
       case CONFIDENTIALITY_REQUIRED:
-        msgID = MSGID_RESULT_CONFIDENTIALITY_REQUIRED;
+        message = INFO_RESULT_CONFIDENTIALITY_REQUIRED.get();
         break;
       case SASL_BIND_IN_PROGRESS:
-        msgID = MSGID_RESULT_SASL_BIND_IN_PROGRESS;
+        message = INFO_RESULT_SASL_BIND_IN_PROGRESS.get();
         break;
       case NO_SUCH_ATTRIBUTE:
-        msgID = MSGID_RESULT_NO_SUCH_ATTRIBUTE;
+        message = INFO_RESULT_NO_SUCH_ATTRIBUTE.get();
         break;
       case UNDEFINED_ATTRIBUTE_TYPE:
-        msgID = MSGID_RESULT_UNDEFINED_ATTRIBUTE_TYPE;
+        message = INFO_RESULT_UNDEFINED_ATTRIBUTE_TYPE.get();
         break;
       case INAPPROPRIATE_MATCHING:
-        msgID = MSGID_RESULT_INAPPROPRIATE_MATCHING;
+        message = INFO_RESULT_INAPPROPRIATE_MATCHING.get();
         break;
       case CONSTRAINT_VIOLATION:
-        msgID = MSGID_RESULT_CONSTRAINT_VIOLATION;
+        message = INFO_RESULT_CONSTRAINT_VIOLATION.get();
         break;
       case ATTRIBUTE_OR_VALUE_EXISTS:
-        msgID = MSGID_RESULT_ATTRIBUTE_OR_VALUE_EXISTS;
+        message = INFO_RESULT_ATTRIBUTE_OR_VALUE_EXISTS.get();
         break;
       case INVALID_ATTRIBUTE_SYNTAX:
-        msgID = MSGID_RESULT_INVALID_ATTRIBUTE_SYNTAX;
+        message = INFO_RESULT_INVALID_ATTRIBUTE_SYNTAX.get();
         break;
       case NO_SUCH_OBJECT:
-        msgID = MSGID_RESULT_NO_SUCH_OBJECT;
+        message = INFO_RESULT_NO_SUCH_OBJECT.get();
         break;
       case ALIAS_PROBLEM:
-        msgID = MSGID_RESULT_ALIAS_PROBLEM;
+        message = INFO_RESULT_ALIAS_PROBLEM.get();
         break;
       case INVALID_DN_SYNTAX:
-        msgID = MSGID_RESULT_INVALID_DN_SYNTAX;
+        message = INFO_RESULT_INVALID_DN_SYNTAX.get();
         break;
       case ALIAS_DEREFERENCING_PROBLEM:
-        msgID = MSGID_RESULT_ALIAS_DEREFERENCING_PROBLEM;
+        message = INFO_RESULT_ALIAS_DEREFERENCING_PROBLEM.get();
         break;
       case INAPPROPRIATE_AUTHENTICATION:
-        msgID = MSGID_RESULT_INAPPROPRIATE_AUTHENTICATION;
+        message = INFO_RESULT_INAPPROPRIATE_AUTHENTICATION.get();
         break;
       case INVALID_CREDENTIALS:
-        msgID = MSGID_RESULT_INVALID_CREDENTIALS;
+        message = INFO_RESULT_INVALID_CREDENTIALS.get();
         break;
       case INSUFFICIENT_ACCESS_RIGHTS:
-        msgID = MSGID_RESULT_INSUFFICIENT_ACCESS_RIGHTS;
+        message = INFO_RESULT_INSUFFICIENT_ACCESS_RIGHTS.get();
         break;
       case BUSY:
-        msgID = MSGID_RESULT_BUSY;
+        message = INFO_RESULT_BUSY.get();
         break;
       case UNAVAILABLE:
-        msgID = MSGID_RESULT_UNAVAILABLE;
+        message = INFO_RESULT_UNAVAILABLE.get();
         break;
       case UNWILLING_TO_PERFORM:
-        msgID = MSGID_RESULT_UNWILLING_TO_PERFORM;
+        message = INFO_RESULT_UNWILLING_TO_PERFORM.get();
         break;
       case LOOP_DETECT:
-        msgID = MSGID_RESULT_LOOP_DETECT;
+        message = INFO_RESULT_LOOP_DETECT.get();
         break;
       case SORT_CONTROL_MISSING:
-        msgID = MSGID_RESULT_SORT_CONTROL_MISSING;
+        message = INFO_RESULT_SORT_CONTROL_MISSING.get();
         break;
       case OFFSET_RANGE_ERROR:
-        msgID = MSGID_RESULT_OFFSET_RANGE_ERROR;
+        message = INFO_RESULT_OFFSET_RANGE_ERROR.get();
         break;
       case NAMING_VIOLATION:
-        msgID = MSGID_RESULT_NAMING_VIOLATION;
+        message = INFO_RESULT_NAMING_VIOLATION.get();
         break;
       case OBJECTCLASS_VIOLATION:
-        msgID = MSGID_RESULT_OBJECTCLASS_VIOLATION;
+        message = INFO_RESULT_OBJECTCLASS_VIOLATION.get();
         break;
       case NOT_ALLOWED_ON_NONLEAF:
-        msgID = MSGID_RESULT_NOT_ALLOWED_ON_NONLEAF;
+        message = INFO_RESULT_NOT_ALLOWED_ON_NONLEAF.get();
         break;
       case NOT_ALLOWED_ON_RDN:
-        msgID = MSGID_RESULT_NOT_ALLOWED_ON_RDN;
+        message = INFO_RESULT_NOT_ALLOWED_ON_RDN.get();
         break;
       case ENTRY_ALREADY_EXISTS:
-        msgID = MSGID_RESULT_ENTRY_ALREADY_EXISTS;
+        message = INFO_RESULT_ENTRY_ALREADY_EXISTS.get();
         break;
       case OBJECTCLASS_MODS_PROHIBITED:
-        msgID = MSGID_RESULT_OBJECTCLASS_MODS_PROHIBITED;
+        message = INFO_RESULT_OBJECTCLASS_MODS_PROHIBITED.get();
         break;
       case AFFECTS_MULTIPLE_DSAS:
-        msgID = MSGID_RESULT_AFFECTS_MULTIPLE_DSAS;
+        message = INFO_RESULT_AFFECTS_MULTIPLE_DSAS.get();
         break;
       case VIRTUAL_LIST_VIEW_ERROR:
-        msgID = MSGID_RESULT_VIRTUAL_LIST_VIEW_ERROR;
+        message = INFO_RESULT_VIRTUAL_LIST_VIEW_ERROR.get();
         break;
       case CLIENT_SIDE_SERVER_DOWN:
-        msgID = MSGID_RESULT_CLIENT_SIDE_SERVER_DOWN;
+        message = INFO_RESULT_CLIENT_SIDE_SERVER_DOWN.get();
         break;
       case CLIENT_SIDE_LOCAL_ERROR:
-        msgID = MSGID_RESULT_CLIENT_SIDE_LOCAL_ERROR;
+        message = INFO_RESULT_CLIENT_SIDE_LOCAL_ERROR.get();
         break;
       case CLIENT_SIDE_ENCODING_ERROR:
-        msgID = MSGID_RESULT_CLIENT_SIDE_ENCODING_ERROR;
+        message = INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get();
         break;
       case CLIENT_SIDE_DECODING_ERROR:
-        msgID = MSGID_RESULT_CLIENT_SIDE_DECODING_ERROR;
+        message = INFO_RESULT_CLIENT_SIDE_DECODING_ERROR.get();
         break;
       case CLIENT_SIDE_TIMEOUT:
-        msgID = MSGID_RESULT_CLIENT_SIDE_TIMEOUT;
+        message = INFO_RESULT_CLIENT_SIDE_TIMEOUT.get();
         break;
       case CLIENT_SIDE_AUTH_UNKNOWN:
-        msgID = MSGID_RESULT_CLIENT_SIDE_AUTH_UNKNOWN;
+        message = INFO_RESULT_CLIENT_SIDE_AUTH_UNKNOWN.get();
         break;
       case CLIENT_SIDE_FILTER_ERROR:
-        msgID = MSGID_RESULT_CLIENT_SIDE_FILTER_ERROR;
+        message = INFO_RESULT_CLIENT_SIDE_FILTER_ERROR.get();
         break;
       case CLIENT_SIDE_USER_CANCELLED:
-        msgID = MSGID_RESULT_CLIENT_SIDE_USER_CANCELLED;
+        message = INFO_RESULT_CLIENT_SIDE_USER_CANCELLED.get();
         break;
       case CLIENT_SIDE_PARAM_ERROR:
-        msgID = MSGID_RESULT_CLIENT_SIDE_PARAM_ERROR;
+        message = INFO_RESULT_CLIENT_SIDE_PARAM_ERROR.get();
         break;
       case CLIENT_SIDE_NO_MEMORY:
-        msgID = MSGID_RESULT_CLIENT_SIDE_NO_MEMORY;
+        message = INFO_RESULT_CLIENT_SIDE_NO_MEMORY.get();
         break;
       case CLIENT_SIDE_CONNECT_ERROR:
-        msgID = MSGID_RESULT_CLIENT_SIDE_CONNECT_ERROR;
+        message = INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get();
         break;
       case CLIENT_SIDE_NOT_SUPPORTED:
-        msgID = MSGID_RESULT_CLIENT_SIDE_NOT_SUPPORTED;
+        message = INFO_RESULT_CLIENT_SIDE_NOT_SUPPORTED.get();
         break;
       case CLIENT_SIDE_CONTROL_NOT_FOUND:
-        msgID = MSGID_RESULT_CLIENT_SIDE_CONTROL_NOT_FOUND;
+        message = INFO_RESULT_CLIENT_SIDE_CONTROL_NOT_FOUND.get();
         break;
       case CLIENT_SIDE_NO_RESULTS_RETURNED:
-        msgID = MSGID_RESULT_CLIENT_SIDE_NO_RESULTS_RETURNED;
+        message = INFO_RESULT_CLIENT_SIDE_NO_RESULTS_RETURNED.get();
         break;
       case CLIENT_SIDE_MORE_RESULTS_TO_RETURN:
-        msgID = MSGID_RESULT_CLIENT_SIDE_MORE_RESULTS_TO_RETURN;
+        message = INFO_RESULT_CLIENT_SIDE_MORE_RESULTS_TO_RETURN.get();
         break;
       case CLIENT_SIDE_CLIENT_LOOP:
-        msgID = MSGID_RESULT_CLIENT_SIDE_CLIENT_LOOP;
+        message = INFO_RESULT_CLIENT_SIDE_CLIENT_LOOP.get();
         break;
       case CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED:
-        msgID = MSGID_RESULT_CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED;
+        message = INFO_RESULT_CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED.get();
         break;
       case CANCELED:
-        msgID = MSGID_RESULT_CANCELED;
+        message = INFO_RESULT_CANCELED.get();
         break;
       case NO_SUCH_OPERATION:
-        msgID = MSGID_RESULT_NO_SUCH_OPERATION;
+        message = INFO_RESULT_NO_SUCH_OPERATION.get();
         break;
       case TOO_LATE:
-        msgID = MSGID_RESULT_TOO_LATE;
+        message = INFO_RESULT_TOO_LATE.get();
         break;
       case CANNOT_CANCEL:
-        msgID = MSGID_RESULT_CANNOT_CANCEL;
+        message = INFO_RESULT_CANNOT_CANCEL.get();
         break;
       case ASSERTION_FAILED:
-        msgID = MSGID_RESULT_ASSERTION_FAILED;
+        message = INFO_RESULT_ASSERTION_FAILED.get();
         break;
       case AUTHORIZATION_DENIED:
-        msgID = MSGID_RESULT_AUTHORIZATION_DENIED;
+        message = INFO_RESULT_AUTHORIZATION_DENIED.get();
         break;
       case NO_OPERATION:
-        msgID = MSGID_RESULT_NO_OPERATION;
+        message = INFO_RESULT_NO_OPERATION.get();
         break;
       default:
-        msgID = MSGID_RESULT_OTHER;
+        message = INFO_RESULT_OTHER.get();
         break;
     }
 
-    return getMessage(msgID);
+    return message.toString();
   }
 }
 

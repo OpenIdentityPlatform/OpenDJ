@@ -42,8 +42,9 @@ import javax.swing.JPanel;
 import javax.swing.text.JTextComponent;
 
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
-import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.WebBrowserException;
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * This class is a dialog that appears when we could not launch the user web
@@ -71,7 +72,7 @@ public class WebBrowserErrorDialog extends JDialog
   public WebBrowserErrorDialog(JFrame parent, WebBrowserException ex)
   {
     super(parent);
-    setTitle(getMsg("error-browser-display-title"));
+    setTitle(INFO_ERROR_BROWSER_DISPLAY_TITLE.get().toString());
     this.parent = parent;
     this.url = ex.getUrl();
     getContentPane().add(createPanel());
@@ -90,23 +91,6 @@ public class WebBrowserErrorDialog extends JDialog
         minWidth, minHeight));
     Utilities.centerOnComponent(this, parent);
     setVisible(true);
-  }
-
-  /* The following three methods are just commodity methods to retrieve
-   * localized messages */
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  private String getMsg(String key, String[] args)
-  {
-    return getI18n().getMsg(key, args);
-  }
-
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
   }
 
   /**
@@ -129,8 +113,7 @@ public class WebBrowserErrorDialog extends JDialog
     Insets pInsets = UIFactory.getCurrentStepPanelInsets();
     gbc.insets.left = 0;
     gbc.fill = GridBagConstraints.BOTH;
-    String msg = getMsg("error-browser-display-msg", new String[]
-      { url });
+    Message msg = INFO_ERROR_BROWSER_DISPLAY_MSG.get(url);
     JTextComponent tf =
         UIFactory.makeHtmlPane(msg,
             UIFactory.ERROR_DIALOG_FONT);
@@ -141,8 +124,8 @@ public class WebBrowserErrorDialog extends JDialog
     gbc.weightx = 0.0;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     JButton copyButton =
-        UIFactory.makeJButton(getMsg("error-browser-copy-button-label"),
-            getMsg("error-browser-copy-button-tooltip"));
+        UIFactory.makeJButton(INFO_ERROR_BROWSER_COPY_BUTTON_LABEL.get(),
+            INFO_ERROR_BROWSER_COPY_BUTTON_TOOLTIP.get());
     copyButton.addActionListener(new ActionListener()
     {
       public void actionPerformed(ActionEvent ev)
@@ -167,8 +150,8 @@ public class WebBrowserErrorDialog extends JDialog
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     p2.add(Box.createHorizontalGlue(), gbc);
     JButton closeButton =
-        UIFactory.makeJButton(getMsg("close-button-label"),
-            getMsg("error-browser-close-button-tooltip"));
+        UIFactory.makeJButton(INFO_CLOSE_BUTTON_LABEL.get(),
+            INFO_ERROR_BROWSER_CLOSE_BUTTON_TOOLTIP.get());
     gbc.fill = GridBagConstraints.NONE;
     gbc.weightx = 0.0;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -206,7 +189,8 @@ public class WebBrowserErrorDialog extends JDialog
       // UIFactory.initialize();
       WebBrowserErrorDialog dlg =
           new WebBrowserErrorDialog(new JFrame(),
-              new WebBrowserException("http://www.yahoo.com", "toto", null));
+              new WebBrowserException("http://www.yahoo.com",
+                      Message.raw("toto"), null));
       dlg.packAndShow();
     } catch (Exception ex)
     {

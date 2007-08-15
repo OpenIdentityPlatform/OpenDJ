@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 import java.util.List;
 import java.util.Set;
@@ -42,8 +43,8 @@ import org.opends.server.util.LevenshteinDistance;
 import org.opends.server.admin.std.server.SimilarityBasedPasswordValidatorCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -102,7 +103,7 @@ public class SimilarityBasedPasswordValidator extends
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
-                                      StringBuilder invalidReason)  {
+                                      MessageBuilder invalidReason)  {
 
     int minDifference = currentConfig.getMinimumPasswordDifference();
     ByteString passwd = newPassword == null
@@ -126,8 +127,8 @@ public class SimilarityBasedPasswordValidator extends
         int ldistance = LevenshteinDistance.calculate(passwd.stringValue(),
                                                       bs.stringValue());
         if (ldistance < minDifference) {
-          invalidReason.append(getMessage(MSGID_PWDIFFERENCEVALIDATOR_TOO_SMALL,
-                                          minDifference));
+          invalidReason.append(ERR_PWDIFFERENCEVALIDATOR_TOO_SMALL.get(
+                  minDifference));
           return false;
         }
     }
@@ -140,7 +141,7 @@ public class SimilarityBasedPasswordValidator extends
    */
   public boolean isConfigurationChangeAcceptable(
                       SimilarityBasedPasswordValidatorCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     return true;
   }

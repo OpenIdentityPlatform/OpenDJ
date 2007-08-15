@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -46,8 +47,7 @@ import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -209,8 +209,8 @@ public class SubschemaSubentryVirtualAttributeProvider
   {
     searchOperation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-    int    msgID   = MSGID_SUBSCHEMASUBENTRY_VATTR_NOT_SEARCHABLE;
-    String message = getMessage(msgID, rule.getAttributeType().getNameOrOID());
+    Message message = ERR_SUBSCHEMASUBENTRY_VATTR_NOT_SEARCHABLE.get(
+            rule.getAttributeType().getNameOrOID());
     searchOperation.appendErrorMessage(message);
   }
 }

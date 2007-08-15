@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.admin.server;
+import org.opends.messages.Message;
 
 
 
@@ -93,13 +94,13 @@ public class ServerManagedObjectDecodingException extends DecodingException {
    * {@inheritDoc}
    */
   @Override
-  public String getMessage() {
+  public Message getMessageObject() {
     StringBuilder builder = new StringBuilder();
     builder.append("The managed object could not be decoded due"
         + " to the following property exceptions: ");
     // FIXME: better formatting.
     builder.append(causes.toString());
-    return builder.toString();
+    return Message.raw(builder.toString());  // TODO: i18n?
   }
 
 

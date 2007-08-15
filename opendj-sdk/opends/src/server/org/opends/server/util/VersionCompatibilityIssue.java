@@ -26,9 +26,9 @@
  */
 
 package org.opends.server.util;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.VersionMessages.*;
+import static org.opends.messages.VersionMessages.*;
 
 import java.util.Set;
 import java.util.List;
@@ -218,8 +218,8 @@ public class VersionCompatibilityIssue {
      */
     DB_FORMAT_CHANGE_2(
             3, // Unique ID.  See javadoc for more information.
-            getMessage(MSGID_2049_UPGRADE),
-            getMessage(MSGID_2049_REVERSION),
+            INFO_2049_UPGRADE.get(),
+            INFO_2049_REVERSION.get(),
             Effect.REVERSION_DATA_EXPORT_AND_REIMPORT_REQUIRED,
             Effect.UPGRADE_SHOW_WARNING_MESSAGE),
 
@@ -229,8 +229,8 @@ public class VersionCompatibilityIssue {
      */
     DB_FORMAT_CHANGE_1(
             2,  // Unique ID.  See javadoc for more information.
-            getMessage(MSGID_1582_UPGRADE),
-            getMessage(MSGID_1582_REVERSION),
+            INFO_1582_UPGRADE.get(),
+            INFO_1582_REVERSION.get(),
             Effect.REVERSION_DATA_EXPORT_AND_REIMPORT_REQUIRED,
             Effect.UPGRADE_SHOW_WARNING_MESSAGE),
 
@@ -240,8 +240,8 @@ public class VersionCompatibilityIssue {
      */
     BERKLEY_UPGRADE_1(
             1,  // Unique ID.  See javadoc for more information.
-            getMessage(MSGID_890_UPGRADE),
-            getMessage(MSGID_890_REVERSION),
+            INFO_890_UPGRADE.get(),
+            INFO_890_REVERSION.get(),
             Effect.REVERSION_DATA_EXPORT_AND_REIMPORT_REQUIRED,
             Effect.UPGRADE_SHOW_WARNING_MESSAGE);
 
@@ -265,8 +265,8 @@ public class VersionCompatibilityIssue {
 
     private int id;
     private Set<Effect> effects = new HashSet<Effect>();
-    private String upgradeMsg;
-    private String reversionMsg;
+    private Message upgradeMsg;
+    private Message reversionMsg;
 
     /**
      * Creates a parameterized instance.
@@ -324,7 +324,7 @@ public class VersionCompatibilityIssue {
      * @param effects of this cause which cause the upgrade/reversion tools
      *        to behave in particular ways
      */
-    private Cause(int id, String upgradeMessage, String reversionMessage,
+    private Cause(int id, Message upgradeMessage, Message reversionMessage,
           Effect... effects) {
       this.id = id;
       this.upgradeMsg = upgradeMessage;
@@ -366,7 +366,7 @@ public class VersionCompatibilityIssue {
      *         user useful information (when used with
      *         <code>UPGRADE_SHOW_INFO_MESSAGE</code>)
      */
-    public String getLocalizedUpgradeMessage() {
+    public Message getLocalizedUpgradeMessage() {
       return upgradeMsg;
     }
 
@@ -382,7 +382,7 @@ public class VersionCompatibilityIssue {
      *         user useful information (when used with
      *         <code>REVERSION_SHOW_INFO_MESSAGE</code>)
      */
-    public String getLocalizedReversionMessage() {
+    public Message getLocalizedReversionMessage() {
       return reversionMsg;
     }
 

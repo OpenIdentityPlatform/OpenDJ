@@ -27,8 +27,12 @@
 
 package org.opends.quicksetup.util;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.*;
-import org.opends.quicksetup.i18n.ResourceProvider;
+
 import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.TextErrorLogPublisher;
@@ -137,7 +141,7 @@ public class InProcessServerController {
                      OperationOutput output) {
       LOG.log(Level.INFO, "server start (debug log): " +
               record);
-      output.addDebugMessage(record);
+      output.addDebugMessage(Message.raw(record));
     }};
 
   static private ServerControllerTextWriter errorWriter =
@@ -146,7 +150,7 @@ public class InProcessServerController {
                      OperationOutput output) {
       LOG.log(Level.INFO, "server start (error log): " +
               record);
-      output.addErrorMessage(record);
+      output.addErrorMessage(Message.raw(record));
     }
   };
 
@@ -156,7 +160,7 @@ public class InProcessServerController {
                      OperationOutput output) {
       LOG.log(Level.INFO, "server start (access log): " +
               record);
-      output.addAccessMessage(record);
+      output.addAccessMessage(Message.raw(record));
     }
   };
 
@@ -255,7 +259,7 @@ public class InProcessServerController {
     StandardOutputSuppressor.suppress();
     try {
       DirectoryServer.shutDown(getClass().getName(),
-              "quicksetup requests shutdown");
+              Message.raw("quicksetup requests shutdown")); // TODO: i18n
 
       // Note:  this should not be necessary in the future when a
       // the shutdown method will not return until everything is
@@ -399,10 +403,10 @@ public class InProcessServerController {
                   modListToString(op.getModifications()));
         } else {
           // report the error to the user
-          StringBuilder error = op.getErrorMessage();
+          MessageBuilder error = op.getErrorMessage();
           throw new ApplicationException(
               ApplicationReturnCode.ReturnCode.IMPORT_ERROR,
-                  getMsg("error-apply-ldif-modify", dnByteString.toString(),
+                  INFO_ERROR_APPLY_LDIF_MODIFY.get(dnByteString.toString(),
                           error != null ? error.toString() : ""),
                   null);
         }
@@ -422,10 +426,10 @@ public class InProcessServerController {
           LOG.log(Level.INFO, "processed server add " + addOp.getEntryDN());
         } else {
           // report the error to the user
-          StringBuilder error = addOp.getErrorMessage();
+          MessageBuilder error = addOp.getErrorMessage();
           throw new ApplicationException(
               ApplicationReturnCode.ReturnCode.IMPORT_ERROR,
-                  getMsg("error-apply-ldif-add", dnByteString.toString(),
+                  INFO_ERROR_APPLY_LDIF_ADD.get(dnByteString.toString(),
                           error != null ? error.toString() : ""),
                   null);
         }
@@ -439,10 +443,10 @@ public class InProcessServerController {
                   delOp.getEntryDN());
         } else {
           // report the error to the user
-          StringBuilder error = delOp.getErrorMessage();
+          MessageBuilder error = delOp.getErrorMessage();
           throw new ApplicationException(
               ApplicationReturnCode.ReturnCode.IMPORT_ERROR,
-                  getMsg("error-apply-ldif-delete", dnByteString.toString(),
+                  INFO_ERROR_APPLY_LDIF_DELETE.get(dnByteString.toString(),
                           error != null ? error.toString() : ""),
                   null);
         }
@@ -450,7 +454,7 @@ public class InProcessServerController {
       default:
         LOG.log(Level.SEVERE, "Unexpected record type " + cre.getClass());
         throw new ApplicationException(ApplicationReturnCode.ReturnCode.BUG,
-                getMsg("bug-msg"),
+                INFO_BUG_MSG.get(),
                 null);
     }
   }
@@ -498,10 +502,6 @@ public class InProcessServerController {
     DebugLogger.removeDebugLogPublisher(startupDebugPublisher);
     ErrorLogger.removeErrorLogPublisher(startupErrorPublisher);
     AccessLogger.removeAccessLogPublisher(startupAccessPublisher);
-  }
-
-  static private String getMsg(String key, String... args) {
-    return ResourceProvider.getInstance().getMsg(key, args);
   }
 
 }

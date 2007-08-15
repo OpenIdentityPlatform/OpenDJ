@@ -25,11 +25,13 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
+import org.opends.messages.MessageDescriptor;
+
+import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -46,7 +48,7 @@ public enum AccountStatusNotificationType
    * many failed attempts.
    */
   ACCOUNT_TEMPORARILY_LOCKED(
-       MSGID_ACCTNOTTYPE_ACCOUNT_TEMPORARILY_LOCKED),
+       INFO_ACCTNOTTYPE_ACCOUNT_TEMPORARILY_LOCKED.get()),
 
 
 
@@ -56,7 +58,7 @@ public enum AccountStatusNotificationType
    * many failed attempts.
    */
   ACCOUNT_PERMANENTLY_LOCKED(
-       MSGID_ACCTNOTTYPE_ACCOUNT_PERMANENTLY_LOCKED),
+       INFO_ACCTNOTTYPE_ACCOUNT_PERMANENTLY_LOCKED.get()),
 
 
 
@@ -64,7 +66,7 @@ public enum AccountStatusNotificationType
    * Indicates that an account status message should be generated
    * whenever a user account has been unlocked by an administrator.
    */
-  ACCOUNT_UNLOCKED(MSGID_ACCTNOTTYPE_ACCOUNT_UNLOCKED),
+  ACCOUNT_UNLOCKED(INFO_ACCTNOTTYPE_ACCOUNT_UNLOCKED.get()),
 
 
 
@@ -73,7 +75,7 @@ public enum AccountStatusNotificationType
    * whenever a user account has been locked because it was idle for
    * too long.
    */
-  ACCOUNT_IDLE_LOCKED(MSGID_ACCTNOTTYPE_ACCOUNT_IDLE_LOCKED),
+  ACCOUNT_IDLE_LOCKED(INFO_ACCTNOTTYPE_ACCOUNT_IDLE_LOCKED.get()),
 
 
 
@@ -83,7 +85,7 @@ public enum AccountStatusNotificationType
    * had been reset by an administrator but not changed by the user
    * within the required interval.
    */
-  ACCOUNT_RESET_LOCKED(MSGID_ACCTNOTTYPE_ACCOUNT_RESET_LOCKED),
+  ACCOUNT_RESET_LOCKED(INFO_ACCTNOTTYPE_ACCOUNT_RESET_LOCKED.get()),
 
 
 
@@ -91,7 +93,7 @@ public enum AccountStatusNotificationType
    * Indicates that an account status message should be generated
    * whenever a user account has been disabled by an administrator.
    */
-  ACCOUNT_DISABLED(MSGID_ACCTNOTTYPE_ACCOUNT_DISABLED),
+  ACCOUNT_DISABLED(INFO_ACCTNOTTYPE_ACCOUNT_DISABLED.get()),
 
 
 
@@ -99,7 +101,7 @@ public enum AccountStatusNotificationType
    * Indicates that an account status message should be generated
    * whenever a user account has been enabled by an administrator.
    */
-  ACCOUNT_ENABLED(MSGID_ACCTNOTTYPE_ACCOUNT_ENABLED),
+  ACCOUNT_ENABLED(INFO_ACCTNOTTYPE_ACCOUNT_ENABLED.get()),
 
 
 
@@ -108,7 +110,7 @@ public enum AccountStatusNotificationType
    * whenever a user authentication has failed because the account
    * has expired.
    */
-  ACCOUNT_EXPIRED(MSGID_ACCTNOTTYPE_ACCOUNT_EXPIRED),
+  ACCOUNT_EXPIRED(INFO_ACCTNOTTYPE_ACCOUNT_EXPIRED.get()),
 
 
 
@@ -117,7 +119,7 @@ public enum AccountStatusNotificationType
    * generated whenever a user authentication has failed because the
    * password has expired.
    */
-  PASSWORD_EXPIRED(MSGID_ACCTNOTTYPE_PASSWORD_EXPIRED),
+  PASSWORD_EXPIRED(INFO_ACCTNOTTYPE_PASSWORD_EXPIRED.get()),
 
 
 
@@ -127,7 +129,7 @@ public enum AccountStatusNotificationType
    * generated the first time that a password expiration warning is
    * encountered for a user password.
    */
-  PASSWORD_EXPIRING(MSGID_ACCTNOTTYPE_PASSWORD_EXPIRING),
+  PASSWORD_EXPIRING(INFO_ACCTNOTTYPE_PASSWORD_EXPIRING.get()),
 
 
 
@@ -136,7 +138,7 @@ public enum AccountStatusNotificationType
    * generated whenever a user's password is reset by an
    * administrator.
    */
-  PASSWORD_RESET(MSGID_ACCTNOTTYPE_PASSWORD_RESET),
+  PASSWORD_RESET(INFO_ACCTNOTTYPE_PASSWORD_RESET.get()),
 
 
 
@@ -144,12 +146,12 @@ public enum AccountStatusNotificationType
    * Indicates whether an account status notification message should
    * be generated whenever a user changes his/her own password.
    */
-  PASSWORD_CHANGED(MSGID_ACCTNOTTYPE_PASSWORD_CHANGED);
+  PASSWORD_CHANGED(INFO_ACCTNOTTYPE_PASSWORD_CHANGED.get());
 
 
 
-  // The notification type identifier.
-  private int notificationTypeID;
+  // The notification type message.
+  private Message notificationName;
 
 
 
@@ -157,12 +159,12 @@ public enum AccountStatusNotificationType
    * Creates a new account status notification type with the provided
    * notification type ID.
    *
-   * @param  notificationTypeID  The notification type identifier for
-   *                             this account status notification.
+   * @param  notification      The notification message for
+   *                           this account status notification.
    */
-  private AccountStatusNotificationType(int notificationTypeID)
+  private AccountStatusNotificationType(Message notification)
   {
-    this.notificationTypeID = notificationTypeID;
+    this.notificationName = notification;
   }
 
 
@@ -171,44 +173,44 @@ public enum AccountStatusNotificationType
    * Retrieves the account status notification type with the specified
    * notification type identifier.
    *
-   * @param  notificationTypeID  The notification type identifier for
-   *                             the notification type to retrieve.
+   * @param  notification    The notification type message for
+   *                         the notification type to retrieve.
    *
    * @return  The requested account status notification type, or
    *          <CODE>null</CODE> if there is no type for the given
    *          notification type identifier.
    */
   public static AccountStatusNotificationType
-                     typeForID(int notificationTypeID)
+                     typeForMessage(Message notification)
   {
-    switch(notificationTypeID)
-    {
-      case MSGID_ACCTNOTTYPE_ACCOUNT_TEMPORARILY_LOCKED:
-        return ACCOUNT_TEMPORARILY_LOCKED;
-      case MSGID_ACCTNOTTYPE_ACCOUNT_PERMANENTLY_LOCKED:
-        return ACCOUNT_PERMANENTLY_LOCKED;
-      case MSGID_ACCTNOTTYPE_ACCOUNT_UNLOCKED:
-        return ACCOUNT_UNLOCKED;
-      case MSGID_ACCTNOTTYPE_ACCOUNT_IDLE_LOCKED:
-        return ACCOUNT_IDLE_LOCKED;
-      case MSGID_ACCTNOTTYPE_ACCOUNT_RESET_LOCKED:
-        return ACCOUNT_RESET_LOCKED;
-      case MSGID_ACCTNOTTYPE_ACCOUNT_DISABLED:
-        return ACCOUNT_DISABLED;
-      case MSGID_ACCTNOTTYPE_ACCOUNT_ENABLED:
-        return ACCOUNT_ENABLED;
-      case MSGID_ACCTNOTTYPE_ACCOUNT_EXPIRED:
-        return ACCOUNT_EXPIRED;
-      case MSGID_ACCTNOTTYPE_PASSWORD_EXPIRED:
-        return PASSWORD_EXPIRED;
-      case MSGID_ACCTNOTTYPE_PASSWORD_EXPIRING:
-        return PASSWORD_EXPIRING;
-      case MSGID_ACCTNOTTYPE_PASSWORD_RESET:
-        return PASSWORD_RESET;
-      case MSGID_ACCTNOTTYPE_PASSWORD_CHANGED:
-        return PASSWORD_CHANGED;
-      default:
-        return null;
+    MessageDescriptor md = notification.getDescriptor();
+    if (INFO_ACCTNOTTYPE_ACCOUNT_TEMPORARILY_LOCKED.equals(md)) {
+      return ACCOUNT_TEMPORARILY_LOCKED;
+    } else if (INFO_ACCTNOTTYPE_ACCOUNT_PERMANENTLY_LOCKED
+            .equals(md)) {
+      return ACCOUNT_PERMANENTLY_LOCKED;
+    } else if (INFO_ACCTNOTTYPE_ACCOUNT_UNLOCKED.equals(md)) {
+      return ACCOUNT_UNLOCKED;
+    } else if (INFO_ACCTNOTTYPE_ACCOUNT_IDLE_LOCKED.equals(md)) {
+      return ACCOUNT_IDLE_LOCKED;
+    } else if (INFO_ACCTNOTTYPE_ACCOUNT_RESET_LOCKED.equals(md)) {
+      return ACCOUNT_RESET_LOCKED;
+    } else if (INFO_ACCTNOTTYPE_ACCOUNT_DISABLED.equals(md)) {
+      return ACCOUNT_DISABLED;
+    } else if (INFO_ACCTNOTTYPE_ACCOUNT_ENABLED.equals(md)) {
+      return ACCOUNT_ENABLED;
+    } else if (INFO_ACCTNOTTYPE_ACCOUNT_EXPIRED.equals(md)) {
+      return ACCOUNT_EXPIRED;
+    } else if (INFO_ACCTNOTTYPE_PASSWORD_EXPIRED.equals(md)) {
+      return PASSWORD_EXPIRED;
+    } else if (INFO_ACCTNOTTYPE_PASSWORD_EXPIRING.equals(md)) {
+      return PASSWORD_EXPIRING;
+    } else if (INFO_ACCTNOTTYPE_PASSWORD_RESET.equals(md)) {
+      return PASSWORD_RESET;
+    } else if (INFO_ACCTNOTTYPE_PASSWORD_CHANGED.equals(md)) {
+      return PASSWORD_CHANGED;
+    } else {
+      return null;
     }
   }
 
@@ -227,65 +229,65 @@ public enum AccountStatusNotificationType
    */
   public static AccountStatusNotificationType typeForName(String name)
   {
-    String lowerName = toLowerCase(name);
+    Message lowerName = Message.raw(toLowerCase(name));
 
-    if (lowerName.equals(getMessage(
-             MSGID_ACCTNOTTYPE_ACCOUNT_TEMPORARILY_LOCKED)))
+    if (lowerName.equals(
+            INFO_ACCTNOTTYPE_ACCOUNT_TEMPORARILY_LOCKED.get()))
     {
       return ACCOUNT_TEMPORARILY_LOCKED;
     }
-    else if (lowerName.equals(getMessage(
-                  MSGID_ACCTNOTTYPE_ACCOUNT_PERMANENTLY_LOCKED)))
+    else if (lowerName.equals(
+            INFO_ACCTNOTTYPE_ACCOUNT_PERMANENTLY_LOCKED.get()))
     {
       return ACCOUNT_PERMANENTLY_LOCKED;
     }
-    else if (lowerName.equals(getMessage(
-                  MSGID_ACCTNOTTYPE_ACCOUNT_UNLOCKED)))
+    else if (lowerName.equals(
+            INFO_ACCTNOTTYPE_ACCOUNT_UNLOCKED.get()))
     {
       return ACCOUNT_UNLOCKED;
     }
-    else if (lowerName.equals(getMessage(
-                  MSGID_ACCTNOTTYPE_ACCOUNT_IDLE_LOCKED)))
+    else if (lowerName.equals(
+            INFO_ACCTNOTTYPE_ACCOUNT_IDLE_LOCKED.get()))
     {
       return ACCOUNT_IDLE_LOCKED;
     }
-    else if (lowerName.equals(getMessage(
-                  MSGID_ACCTNOTTYPE_ACCOUNT_RESET_LOCKED)))
+    else if (lowerName.equals(
+            INFO_ACCTNOTTYPE_ACCOUNT_RESET_LOCKED.get()))
     {
       return ACCOUNT_RESET_LOCKED;
     }
-    else if (lowerName.equals(getMessage(
-                  MSGID_ACCTNOTTYPE_ACCOUNT_DISABLED)))
+    else if (lowerName.equals(
+            INFO_ACCTNOTTYPE_ACCOUNT_DISABLED.get()))
     {
       return ACCOUNT_DISABLED;
     }
-    else if (lowerName.equals(getMessage(
-                  MSGID_ACCTNOTTYPE_ACCOUNT_ENABLED)))
+    else if (lowerName.equals(
+            INFO_ACCTNOTTYPE_ACCOUNT_ENABLED.get()))
     {
       return ACCOUNT_ENABLED;
     }
-    else if (lowerName.equals(getMessage(
-                  MSGID_ACCTNOTTYPE_ACCOUNT_EXPIRED)))
+    else if (lowerName.equals(
+            INFO_ACCTNOTTYPE_ACCOUNT_EXPIRED.get()))
     {
       return ACCOUNT_EXPIRED;
     }
-    else if (lowerName.equals(getMessage(
-                  MSGID_ACCTNOTTYPE_PASSWORD_EXPIRED)))
+    else if (lowerName.equals(
+            INFO_ACCTNOTTYPE_PASSWORD_EXPIRED.get()))
     {
       return PASSWORD_EXPIRED;
     }
-    else if (lowerName.equals(getMessage(
-                  MSGID_ACCTNOTTYPE_PASSWORD_EXPIRING)))
+    else if (lowerName.equals(
+            INFO_ACCTNOTTYPE_PASSWORD_EXPIRING.get()))
     {
       return PASSWORD_EXPIRING;
     }
-    else if (lowerName.equals(getMessage(
-                  MSGID_ACCTNOTTYPE_PASSWORD_RESET)))
+    else if (lowerName.equals(
+            INFO_ACCTNOTTYPE_PASSWORD_RESET.get()))
     {
       return PASSWORD_RESET;
     }
-    else if (lowerName.equals(getMessage(
-                  MSGID_ACCTNOTTYPE_PASSWORD_CHANGED)))
+    else if (lowerName.equals(
+            INFO_ACCTNOTTYPE_PASSWORD_CHANGED.get()))
     {
       return PASSWORD_CHANGED;
     }
@@ -298,27 +300,13 @@ public enum AccountStatusNotificationType
 
 
   /**
-   * Retrieves the notification type identifier for this account
-   * status notification type.
-   *
-   * @return  The notification type identifier for this account
-   *          status notification type.
-   */
-  public int getNotificationTypeID()
-  {
-    return notificationTypeID;
-  }
-
-
-
-  /**
    * Retrieves the name for this account status notification type.
    *
    * @return  The name for this account status notification type.
    */
-  public String getNotificationTypeName()
+  public Message getNotificationName()
   {
-    return getMessage(notificationTypeID);
+    return notificationName;
   }
 
 
@@ -332,7 +320,7 @@ public enum AccountStatusNotificationType
    */
   public String toString()
   {
-    return getMessage(notificationTypeID);
+    return String.valueOf(getNotificationName());
   }
 }
 

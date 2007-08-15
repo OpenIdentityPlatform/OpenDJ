@@ -80,6 +80,7 @@ import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
+import org.opends.messages.Message;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -663,7 +664,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   @Test()
   public void errorMessageTest() throws Exception
   {
-    ErrorMessage msg = new ErrorMessage((short)1, (short)2, 12, "details");
+    ErrorMessage msg = new ErrorMessage((short)1, (short)2, Message.raw("details"));
     ErrorMessage newMsg = new ErrorMessage(msg.getBytes());
     assertEquals(msg.getsenderID(), newMsg.getsenderID());
     assertEquals(msg.getDestination(), newMsg.getDestination());

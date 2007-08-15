@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 /**
@@ -53,39 +54,22 @@ public class MembershipException
 
 
 
-  /**
-   * The unique identifier for the error message.
-   */
-  private final int errorMessageID;
-
-
-
-  /**
-   * The error message for this membership exception.
-   */
-  private final String errorMessage;
-
 
 
   /**
    * Creates a new membership exception with the provided information.
    *
-   * @param  errorMessageID     The unique identifier for the error
-   *                            message.
    * @param  errorMessage       The error message for this membership
    *                            exception.
    * @param  continueIterating  Indicates whether it is possible to
    *                            continue iterating through the list of
    *                            group members.
    */
-  public MembershipException(int errorMessageID, String errorMessage,
+  public MembershipException(Message errorMessage,
                              boolean continueIterating)
   {
     super(errorMessage);
 
-
-    this.errorMessageID    = errorMessageID;
-    this.errorMessage      = errorMessage;
     this.continueIterating = continueIterating;
   }
 
@@ -94,8 +78,6 @@ public class MembershipException
   /**
    * Creates a new membership exception with the provided information.
    *
-   * @param  errorMessageID     The unique identifier for the error
-   *                            message.
    * @param  errorMessage       The error message for this membership
    *                            exception.
    * @param  continueIterating  Indicates whether it is possible to
@@ -104,28 +86,14 @@ public class MembershipException
    * @param  cause              The underlying cause for this
    *                            membership exception.
    */
-  public MembershipException(int errorMessageID, String errorMessage,
+  public MembershipException(Message errorMessage,
                              boolean continueIterating,
                              Throwable cause)
   {
     super(errorMessage, cause);
 
 
-    this.errorMessageID    = errorMessageID;
-    this.errorMessage      = errorMessage;
     this.continueIterating = continueIterating;
-  }
-
-
-
-  /**
-   * Retrieves the unique identifier for the error message.
-   *
-   * @return  The unique identifier for the error message.
-   */
-  public final int getMessageID()
-  {
-    return errorMessageID;
   }
 
 
@@ -135,9 +103,9 @@ public class MembershipException
    *
    * @return  The error message for this membership exception.
    */
-  public final String getErrorMessage()
+  public final Message getErrorMessage()
   {
-    return errorMessage;
+    return getMessageObject();
   }
 
 

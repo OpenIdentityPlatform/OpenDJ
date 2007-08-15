@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
+import org.opends.messages.Message;
 
 
 
@@ -57,8 +58,8 @@ import org.opends.server.types.LockManager;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.WritabilityMode;
 
-import static org.opends.server.messages.BackendMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.BackendMessages.*;
+
 
 
 /**
@@ -142,7 +143,7 @@ public abstract class Backend
    */
   public boolean isConfigurationAcceptable(
                       Configuration configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by backend implementations
@@ -262,11 +263,11 @@ public abstract class Backend
 
     if (lock == null)
     {
-      int    msgID   = MSGID_BACKEND_CANNOT_LOCK_ENTRY;
-      String message = getMessage(msgID, String.valueOf(entryDN));
+      Message message =
+          ERR_BACKEND_CANNOT_LOCK_ENTRY.get(String.valueOf(entryDN));
       throw new DirectoryException(
                      DirectoryServer.getServerErrorResultCode(),
-                     message, msgID);
+                     message);
     }
 
     try
@@ -879,11 +880,11 @@ public abstract class Backend
           {
             if (subBaseDNs.length > 1)
             {
-              int msgID =
-                   MSGID_BACKEND_CANNOT_REMOVE_MULTIBASE_SUB_SUFFIX;
-              String message = getMessage(msgID,
-                                    String.valueOf(subSuffixDN));
-              throw new ConfigException(msgID, message);
+              Message message =
+                      ERR_BACKEND_CANNOT_REMOVE_MULTIBASE_SUB_SUFFIX.
+                              get(String.valueOf(subSuffixDN),
+                                      String.valueOf(parentDN));
+              throw new ConfigException(message);
             }
 
             thisMatches = true;

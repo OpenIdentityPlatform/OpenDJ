@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
@@ -44,11 +45,7 @@ import org.opends.server.types.operation.PostOperationUnbindOperation;
 import org.opends.server.types.operation.PreParseUnbindOperation;
 
 import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-
-
-
+import static org.opends.messages.CoreMessages.*;
 /**
  * This class defines an operation that may be used to close the connection
  * between the client and the Directory Server.
@@ -104,13 +101,12 @@ public class UnbindOperationBasis
    */
   @Override()
   public final void disconnectClient(DisconnectReason disconnectReason,
-                                     boolean sendNotification, String message,
-                                     int messageID)
+                                     boolean sendNotification, Message message)
   {
     // Since unbind operations can't be cancelled, we don't need to do anything
     // but forward the request on to the client connection.
-    clientConnection.disconnect(disconnectReason, sendNotification, message,
-                                messageID);
+    clientConnection.disconnect(disconnectReason, sendNotification,
+            message);
   }
 
 
@@ -212,7 +208,7 @@ public class UnbindOperationBasis
 
 
     // Disconnect the client.
-    getClientConnection().disconnect(DisconnectReason.UNBIND, false, null, -1);
+    getClientConnection().disconnect(DisconnectReason.UNBIND, false, null);
 
 
     // Invoke the post-operation unbind plugins.
@@ -229,7 +225,7 @@ public class UnbindOperationBasis
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-    cancelRequest.addResponseMessage(getMessage(MSGID_CANNOT_CANCEL_UNBIND));
+    cancelRequest.addResponseMessage(ERR_CANNOT_CANCEL_UNBIND.get());
     return CancelResult.CANNOT_CANCEL;
   }
 

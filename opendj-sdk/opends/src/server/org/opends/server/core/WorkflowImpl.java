@@ -26,9 +26,8 @@
  */
 package org.opends.server.core;
 
-
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.CoreMessages.*;
+import org.opends.messages.Message;
 import static org.opends.server.util.Validator.ensureNotNull;
 
 import java.util.TreeMap;
@@ -174,10 +173,10 @@ public class WorkflowImpl implements Workflow
       // The workflow must not be already registered
       if (registeredWorkflows.containsKey(workflowID))
       {
-        int msgID = MSGID_REGISTER_WORKFLOW_ALREADY_EXISTS;
-        String message = getMessage(msgID, workflowID);
+        Message message =
+                ERR_REGISTER_WORKFLOW_ALREADY_EXISTS.get(workflowID);
         throw new DirectoryException(
-            ResultCode.UNWILLING_TO_PERFORM, message, msgID);
+            ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
       TreeMap<String, Workflow> newRegisteredWorkflows =

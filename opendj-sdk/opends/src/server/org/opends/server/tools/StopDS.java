@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 
 
@@ -66,8 +67,7 @@ import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
@@ -195,7 +195,7 @@ public class StopDS
 
 
     // Define all the arguments that may be used with this program.
-    String toolDescription = getMessage(MSGID_STOPDS_TOOL_DESCRIPTION);
+    Message toolDescription = INFO_STOPDS_TOOL_DESCRIPTION.get();
     ArgumentParser    argParser = new ArgumentParser(CLASS_NAME,
                                                      toolDescription, false);
     BooleanArgument   checkStoppability;
@@ -227,90 +227,96 @@ public class StopDS
       host = new StringArgument("host", OPTION_SHORT_HOST,
                                 OPTION_LONG_HOST, false, false, true,
                                 OPTION_VALUE_HOST, "127.0.0.1", null,
-                                MSGID_STOPDS_DESCRIPTION_HOST);
+                                INFO_STOPDS_DESCRIPTION_HOST.get());
       argParser.addArgument(host);
 
-      port = new IntegerArgument("port", OPTION_SHORT_PORT,
-                                 OPTION_LONG_PORT, false, false, true,
-                                 OPTION_VALUE_PORT, 389, null, true, 1,
-                                 true, 65535, MSGID_STOPDS_DESCRIPTION_PORT);
+      port = new IntegerArgument(
+              "port", OPTION_SHORT_PORT,
+              OPTION_LONG_PORT, false, false, true,
+              OPTION_VALUE_PORT, 389, null, true, 1,
+              true, 65535, INFO_STOPDS_DESCRIPTION_PORT.get());
       argParser.addArgument(port);
 
       useSSL = new BooleanArgument("usessl", OPTION_SHORT_USE_SSL,
                                    OPTION_LONG_USE_SSL,
-                                   MSGID_STOPDS_DESCRIPTION_USESSL);
+                                   INFO_STOPDS_DESCRIPTION_USESSL.get());
       argParser.addArgument(useSSL);
 
-      useStartTLS = new BooleanArgument("usestarttls", OPTION_SHORT_START_TLS,
-                                        OPTION_LONG_START_TLS,
-                                        MSGID_STOPDS_DESCRIPTION_USESTARTTLS);
+      useStartTLS = new BooleanArgument(
+              "usestarttls", OPTION_SHORT_START_TLS,
+              OPTION_LONG_START_TLS,
+              INFO_STOPDS_DESCRIPTION_USESTARTTLS.get());
       argParser.addArgument(useStartTLS);
 
       bindDN = new StringArgument("binddn", OPTION_SHORT_BINDDN,
                                   OPTION_LONG_BINDDN, false, false, true,
                                   OPTION_VALUE_BINDDN, null, null,
-                                  MSGID_STOPDS_DESCRIPTION_BINDDN);
+                                  INFO_STOPDS_DESCRIPTION_BINDDN.get());
       argParser.addArgument(bindDN);
 
       bindPW = new StringArgument("bindpw", OPTION_SHORT_BINDPWD,
                                   OPTION_LONG_BINDPWD, false, false,
                                   true,
                                   OPTION_VALUE_BINDPWD, null, null,
-                                  MSGID_STOPDS_DESCRIPTION_BINDPW);
+                                  INFO_STOPDS_DESCRIPTION_BINDPW.get());
       argParser.addArgument(bindPW);
 
-      bindPWFile = new FileBasedArgument("bindpwfile",
-                                         OPTION_SHORT_BINDPWD_FILE,
-                                         OPTION_LONG_BINDPWD_FILE,
-                                         false, false,
-                                         OPTION_VALUE_BINDPWD_FILE,
-                                         null, null,
-                                         MSGID_STOPDS_DESCRIPTION_BINDPWFILE);
+      bindPWFile = new FileBasedArgument(
+              "bindpwfile",
+              OPTION_SHORT_BINDPWD_FILE,
+              OPTION_LONG_BINDPWD_FILE,
+              false, false,
+              OPTION_VALUE_BINDPWD_FILE,
+              null, null,
+              INFO_STOPDS_DESCRIPTION_BINDPWFILE.get());
       argParser.addArgument(bindPWFile);
 
-      saslOption = new StringArgument("sasloption", OPTION_SHORT_SASLOPTION,
-                                      OPTION_LONG_SASLOPTION, false,
-                                      true, true,
-                                      OPTION_VALUE_SASLOPTION, null, null,
-                                      MSGID_STOPDS_DESCRIPTION_SASLOPTIONS);
+      saslOption = new StringArgument(
+              "sasloption", OPTION_SHORT_SASLOPTION,
+              OPTION_LONG_SASLOPTION, false,
+              true, true,
+              OPTION_VALUE_SASLOPTION, null, null,
+              INFO_STOPDS_DESCRIPTION_SASLOPTIONS.get());
       argParser.addArgument(saslOption);
 
-      proxyAuthzID = new StringArgument("proxyauthzid",
-                                        OPTION_SHORT_PROXYAUTHID,
-                                        OPTION_LONG_PROXYAUTHID, false,
-                                        false, true,
-                                        OPTION_VALUE_PROXYAUTHID, null,
-                                        null,
-                                        MSGID_STOPDS_DESCRIPTION_PROXYAUTHZID);
+      proxyAuthzID = new StringArgument(
+              "proxyauthzid",
+              OPTION_SHORT_PROXYAUTHID,
+              OPTION_LONG_PROXYAUTHID, false,
+              false, true,
+              OPTION_VALUE_PROXYAUTHID, null,
+              null,
+              INFO_STOPDS_DESCRIPTION_PROXYAUTHZID.get());
       argParser.addArgument(proxyAuthzID);
 
-      stopReason = new StringArgument("stopreason", 'r', "stopReason", false,
-                                      false, true, "{stopReason}", null, null,
-                                      MSGID_STOPDS_DESCRIPTION_STOP_REASON);
+      stopReason = new StringArgument(
+              "stopreason", 'r', "stopReason", false,
+              false, true, "{stopReason}", null, null,
+              INFO_STOPDS_DESCRIPTION_STOP_REASON.get());
       argParser.addArgument(stopReason);
 
       checkStoppability = new BooleanArgument("checkstoppability", null,
               "checkStoppability",
-              MSGID_STOPDS_CHECK_STOPPABILITY);
+              INFO_STOPDS_CHECK_STOPPABILITY.get());
       checkStoppability.setHidden(true);
       argParser.addArgument(checkStoppability);
 
       windowsNetStop = new BooleanArgument("windowsnetstop", null,
-          "windowsNetStop", MSGID_STOPDS_DESCRIPTION_WINDOWS_NET_STOP);
+          "windowsNetStop", INFO_STOPDS_DESCRIPTION_WINDOWS_NET_STOP.get());
       windowsNetStop.setHidden(true);
       argParser.addArgument(windowsNetStop);
 
       restart = new BooleanArgument("restart", 'R', "restart",
-                                    MSGID_STOPDS_DESCRIPTION_RESTART);
+                                    INFO_STOPDS_DESCRIPTION_RESTART.get());
       argParser.addArgument(restart);
 
       stopTimeStr = new StringArgument("stoptime", 't', "stopTime", false,
                                        false, true, "{stopTime}", null, null,
-                                       MSGID_STOPDS_DESCRIPTION_STOP_TIME);
+                                       INFO_STOPDS_DESCRIPTION_STOP_TIME.get());
       argParser.addArgument(stopTimeStr);
 
       trustAll = new BooleanArgument("trustall", 'X', "trustAll",
-                                     MSGID_STOPDS_DESCRIPTION_TRUST_ALL);
+                                     INFO_STOPDS_DESCRIPTION_TRUST_ALL.get());
       argParser.addArgument(trustAll);
 
       keyStoreFile = new StringArgument("keystorefile",
@@ -319,7 +325,7 @@ public class StopDS
                                         false, false, true,
                                         OPTION_VALUE_KEYSTOREPATH,
                                         null, null,
-                                        MSGID_STOPDS_DESCRIPTION_KSFILE);
+                                        INFO_STOPDS_DESCRIPTION_KSFILE.get());
       argParser.addArgument(keyStoreFile);
 
       keyStorePW = new StringArgument("keystorepw", OPTION_SHORT_KEYSTORE_PWD,
@@ -327,21 +333,23 @@ public class StopDS
                                       false, false, true,
                                       OPTION_VALUE_KEYSTORE_PWD,
                                       null, null,
-                                      MSGID_STOPDS_DESCRIPTION_KSPW);
+                                      INFO_STOPDS_DESCRIPTION_KSPW.get());
       argParser.addArgument(keyStorePW);
 
-      keyStorePWFile = new FileBasedArgument("keystorepwfile",
-                                             OPTION_SHORT_KEYSTORE_PWD_FILE,
-                                             OPTION_LONG_KEYSTORE_PWD_FILE,
-                                             false, false,
-                                             OPTION_VALUE_KEYSTORE_PWD_FILE,
-                                             null, null,
-                                             MSGID_STOPDS_DESCRIPTION_KSPWFILE);
+      keyStorePWFile = new FileBasedArgument(
+              "keystorepwfile",
+              OPTION_SHORT_KEYSTORE_PWD_FILE,
+              OPTION_LONG_KEYSTORE_PWD_FILE,
+              false, false,
+              OPTION_VALUE_KEYSTORE_PWD_FILE,
+              null, null,
+              INFO_STOPDS_DESCRIPTION_KSPWFILE.get());
       argParser.addArgument(keyStorePWFile);
 
-      certNickname = new StringArgument("certnickname", 'N', "certNickname",
-                                        false, false, true, "{nickname}", null,
-                                        null, MSGID_DESCRIPTION_CERT_NICKNAME);
+      certNickname = new StringArgument(
+              "certnickname", 'N', "certNickname",
+              false, false, true, "{nickname}", null,
+              null, INFO_DESCRIPTION_CERT_NICKNAME.get());
       argParser.addArgument(certNickname);
 
       trustStoreFile = new StringArgument("truststorefile",
@@ -350,14 +358,15 @@ public class StopDS
                                           false, false, true,
                                           OPTION_VALUE_TRUSTSTOREPATH,
                                           null, null,
-                                          MSGID_STOPDS_DESCRIPTION_TSFILE);
+                                          INFO_STOPDS_DESCRIPTION_TSFILE.get());
       argParser.addArgument(trustStoreFile);
 
-      trustStorePW = new StringArgument("truststorepw", 'T',
-                                        OPTION_LONG_TRUSTSTORE_PWD,
-                                        false, false,
-                                        true, OPTION_VALUE_TRUSTSTORE_PWD, null,
-                                        null, MSGID_STOPDS_DESCRIPTION_TSPW);
+      trustStorePW = new StringArgument(
+              "truststorepw", 'T',
+              OPTION_LONG_TRUSTSTORE_PWD,
+              false, false,
+              true, OPTION_VALUE_TRUSTSTORE_PWD, null,
+              null, INFO_STOPDS_DESCRIPTION_TSPW.get());
       argParser.addArgument(trustStorePW);
 
       trustStorePWFile = new FileBasedArgument("truststorepwfile",
@@ -365,19 +374,18 @@ public class StopDS
                                   OPTION_LONG_TRUSTSTORE_PWD_FILE,
                                   false, false,
                                   OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
-                                  MSGID_STOPDS_DESCRIPTION_TSPWFILE);
+                                  INFO_STOPDS_DESCRIPTION_TSPWFILE.get());
       argParser.addArgument(trustStorePWFile);
 
       showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
                                       OPTION_LONG_HELP,
-                                      MSGID_STOPDS_DESCRIPTION_SHOWUSAGE);
+                                      INFO_STOPDS_DESCRIPTION_SHOWUSAGE.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
@@ -391,8 +399,7 @@ public class StopDS
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -416,9 +423,9 @@ public class StopDS
     // an error.
     if (bindPW.isPresent() && bindPWFile.isPresent())
     {
-      int    msgID   = MSGID_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS;
-      String message = getMessage(msgID, bindPW.getLongIdentifier(),
-                                  bindPWFile.getLongIdentifier());
+      Message message = ERR_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+              bindPW.getLongIdentifier(),
+              bindPWFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
@@ -428,9 +435,9 @@ public class StopDS
     // then return an error.
     if (keyStorePW.isPresent() && keyStorePWFile.isPresent())
     {
-      int    msgID   = MSGID_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS;
-      String message = getMessage(msgID, keyStorePW.getLongIdentifier(),
-                                  keyStorePWFile.getLongIdentifier());
+      Message message = ERR_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+              keyStorePW.getLongIdentifier(),
+              keyStorePWFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
@@ -440,9 +447,9 @@ public class StopDS
     // provided, then return an error.
     if (trustStorePW.isPresent() && trustStorePWFile.isPresent())
     {
-      int    msgID   = MSGID_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS;
-      String message = getMessage(msgID, trustStorePW.getLongIdentifier(),
-                                  trustStorePWFile.getLongIdentifier());
+      Message message = ERR_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+              trustStorePW.getLongIdentifier(),
+              trustStorePWFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
@@ -466,8 +473,7 @@ public class StopDS
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_STOPDS_CANNOT_DECODE_STOP_TIME;
-          String message = getMessage(msgID);
+          Message message = ERR_STOPDS_CANNOT_DECODE_STOP_TIME.get();
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
         }
@@ -484,8 +490,7 @@ public class StopDS
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_STOPDS_CANNOT_DECODE_STOP_TIME;
-          String message = getMessage(msgID);
+          Message message = ERR_STOPDS_CANNOT_DECODE_STOP_TIME.get();
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
         }
@@ -506,9 +511,9 @@ public class StopDS
     {
       if (useStartTLS.isPresent())
       {
-        int    msgID   = MSGID_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS;
-        String message = getMessage(msgID, useSSL.getLongIdentifier(),
-                                    useStartTLS.getLongIdentifier());
+        Message message = ERR_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+                useSSL.getLongIdentifier(),
+                useStartTLS.getLongIdentifier());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
       }
@@ -549,8 +554,8 @@ public class StopDS
       }
       catch (SSLConnectionException sce)
       {
-        int    msgID   = MSGID_STOPDS_CANNOT_INITIALIZE_SSL;
-        String message = getMessage(msgID, sce.getMessage());
+        Message message =
+                ERR_STOPDS_CANNOT_INITIALIZE_SSL.get(sce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
       }
@@ -569,8 +574,7 @@ public class StopDS
         int equalPos = s.indexOf('=');
         if (equalPos <= 0)
         {
-          int    msgID   = MSGID_STOPDS_CANNOT_PARSE_SASL_OPTION;
-          String message = getMessage(msgID, s);
+          Message message = ERR_STOPDS_CANNOT_PARSE_SASL_OPTION.get(s);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
         }
@@ -591,8 +595,7 @@ public class StopDS
 
       if (mechanism == null)
       {
-        int    msgID   = MSGID_STOPDS_NO_SASL_MECHANISM;
-        String message = getMessage(msgID);
+        Message message = ERR_STOPDS_NO_SASL_MECHANISM.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
       }
@@ -618,16 +621,15 @@ public class StopDS
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_STOPDS_CANNOT_DETERMINE_PORT;
-      String message = getMessage(msgID, port.getLongIdentifier(),
-                                  ae.getMessage());
+      Message message = ERR_STOPDS_CANNOT_DETERMINE_PORT.get(
+              port.getLongIdentifier(),
+              ae.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
     catch (LDAPConnectionException lce)
     {
-      int    msgID   = MSGID_STOPDS_CANNOT_CONNECT;
-      String message = getMessage(msgID, lce.getMessage());
+      Message message = ERR_STOPDS_CANNOT_CONNECT.get(lce.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
     }
@@ -710,30 +712,26 @@ public class StopDS
       responseMessage = reader.readMessage();
       if (responseMessage == null)
       {
-        int    msgID   = MSGID_STOPDS_UNEXPECTED_CONNECTION_CLOSURE;
-        String message = getMessage(msgID);
+        Message message = ERR_STOPDS_UNEXPECTED_CONNECTION_CLOSURE.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
       }
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_STOPDS_IO_ERROR;
-      String message = getMessage(msgID, String.valueOf(ioe));
+      Message message = ERR_STOPDS_IO_ERROR.get(String.valueOf(ioe));
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
     }
     catch (ASN1Exception ae)
     {
-      int    msgID   = MSGID_STOPDS_DECODE_ERROR;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_STOPDS_DECODE_ERROR.get(ae.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_DECODING_ERROR;
     }
     catch (LDAPException le)
     {
-      int    msgID   = MSGID_STOPDS_DECODE_ERROR;
-      String message = getMessage(msgID, le.getMessage());
+      Message message = ERR_STOPDS_DECODE_ERROR.get(le.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_DECODING_ERROR;
     }
@@ -753,7 +751,7 @@ public class StopDS
         if ((responseOID != null) &&
             (responseOID.equals(LDAPConstants.OID_NOTICE_OF_DISCONNECTION)))
         {
-          String message = extendedResponse.getErrorMessage();
+          Message message = extendedResponse.getErrorMessage();
           if (message != null)
           {
             err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -764,8 +762,8 @@ public class StopDS
       }
 
 
-      int    msgID   = MSGID_STOPDS_INVALID_RESPONSE_TYPE;
-      String message = getMessage(msgID, responseMessage.getProtocolOpName());
+      Message message = ERR_STOPDS_INVALID_RESPONSE_TYPE.get(
+              responseMessage.getProtocolOpName());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
     }
@@ -773,7 +771,7 @@ public class StopDS
 
     AddResponseProtocolOp addResponse =
          responseMessage.getAddResponseProtocolOp();
-    String errorMessage = addResponse.getErrorMessage();
+    Message errorMessage = addResponse.getErrorMessage();
     if (errorMessage != null)
     {
       err.println(wrapText(errorMessage, MAX_LINE_WIDTH));
@@ -831,8 +829,7 @@ public class StopDS
         {
           // The server is not running: write a message informing of that
           // in the standard out (this is not an error message).
-          int    msgID   = MSGID_STOPDS_SERVER_ALREADY_STOPPED;
-          String message = getMessage(msgID, null, null);
+          Message message = INFO_STOPDS_SERVER_ALREADY_STOPPED.get();
           System.out.println(message);
           LockFileManager.releaseLock(lockFile, failureReason);
           isServerRunning = false;
@@ -903,16 +900,16 @@ public class StopDS
               returnValue = STOP_AS_WINDOW_SERVICE;
             }
             // Display a message informing that we are going to the server.
-            int    msgID   = MSGID_STOPDS_GOING_TO_STOP;
-            String message = getMessage(msgID, null, null);
+
+            Message message = INFO_STOPDS_GOING_TO_STOP.get();
             System.out.println(message);
           }
         }
         else
         {
           // Display a message informing that we are going to the server.
-          int    msgID   = MSGID_STOPDS_GOING_TO_STOP;
-          String message = getMessage(msgID, null, null);
+
+          Message message = INFO_STOPDS_GOING_TO_STOP.get();
           System.out.println(message);
 
           if (restartPresent)

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
+import org.opends.messages.Message;
 
 
 
@@ -47,11 +48,11 @@ import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.config.ConfigException;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ConfigMessages.
-    MSGID_CONFIG_LOGGER_CANNOT_CREATE_LOGGER;
-import static org.opends.server.messages.ConfigMessages.
-    MSGID_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.ConfigMessages.
+    ERR_CONFIG_LOGGER_CANNOT_CREATE_LOGGER;
+import static org.opends.messages.ConfigMessages.
+    ERR_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS;
+
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 
@@ -162,8 +163,9 @@ public class AccessLogger implements
   /**
    * {@inheritDoc}
    */
-   public boolean isConfigurationAddAcceptable(AccessLogPublisherCfg config,
-                                               List<String> unacceptableReasons)
+   public boolean isConfigurationAddAcceptable(
+          AccessLogPublisherCfg config,
+          List<Message> unacceptableReasons)
    {
      return !config.isEnabled() ||
          isJavaClassAcceptable(config, unacceptableReasons);
@@ -172,8 +174,9 @@ public class AccessLogger implements
   /**
    * {@inheritDoc}
    */
-   public boolean isConfigurationChangeAcceptable(AccessLogPublisherCfg config,
-                                               List<String> unacceptableReasons)
+   public boolean isConfigurationChangeAcceptable(
+          AccessLogPublisherCfg config,
+          List<Message> unacceptableReasons)
    {
      return !config.isEnabled() ||
          isJavaClassAcceptable(config, unacceptableReasons);
@@ -187,7 +190,7 @@ public class AccessLogger implements
      // Default result code.
      ResultCode resultCode = ResultCode.SUCCESS;
      boolean adminActionRequired = false;
-     ArrayList<String> messages = new ArrayList<String>();
+     ArrayList<Message> messages = new ArrayList<Message>();
 
      config.addAccessChangeListener(this);
 
@@ -205,7 +208,7 @@ public class AccessLogger implements
          {
            TRACER.debugCaught(DebugLogLevel.ERROR, e);
          }
-         messages.add(e.getMessage());
+         messages.add(e.getMessageObject());
          resultCode = DirectoryServer.getServerErrorResultCode();
        }
        catch (Exception e)
@@ -214,9 +217,10 @@ public class AccessLogger implements
          {
            TRACER.debugCaught(DebugLogLevel.ERROR, e);
          }
-         int msgID = MSGID_CONFIG_LOGGER_CANNOT_CREATE_LOGGER;
-         messages.add(getMessage(msgID, String.valueOf(config.dn().toString()),
-                                 stackTraceToSingleLineString(e)));
+
+         messages.add(ERR_CONFIG_LOGGER_CANNOT_CREATE_LOGGER.get(
+                 String.valueOf(config.dn().toString()),
+                 stackTraceToSingleLineString(e)));
          resultCode = DirectoryServer.getServerErrorResultCode();
        }
      }
@@ -232,7 +236,7 @@ public class AccessLogger implements
      // Default result code.
      ResultCode resultCode = ResultCode.SUCCESS;
      boolean adminActionRequired = false;
-     ArrayList<String> messages = new ArrayList<String>();
+     ArrayList<Message> messages = new ArrayList<Message>();
 
      DN dn = config.dn();
 
@@ -282,8 +286,9 @@ public class AccessLogger implements
   /**
    * {@inheritDoc}
    */
-   public boolean isConfigurationDeleteAcceptable(AccessLogPublisherCfg config,
-                                               List<String> unacceptableReasons)
+   public boolean isConfigurationDeleteAcceptable(
+          AccessLogPublisherCfg config,
+          List<Message> unacceptableReasons)
    {
      DN dn = config.dn();
 
@@ -334,7 +339,7 @@ public class AccessLogger implements
   }
 
    private boolean isJavaClassAcceptable(AccessLogPublisherCfg config,
-                                         List<String> unacceptableReasons)
+                                         List<Message> unacceptableReasons)
    {
      String className = config.getJavaImplementationClass();
      AccessLogPublisherCfgDefn d = AccessLogPublisherCfgDefn.getInstance();
@@ -347,10 +352,10 @@ public class AccessLogger implements
        theClass = pd.loadClass(className, AccessLogPublisher.class);
        publisher = theClass.newInstance();
      } catch (Exception e) {
-       int    msgID   = MSGID_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS;
-       String message = getMessage(msgID, className,
-                                   config.dn().toString(),
-                                   String.valueOf(e));
+       Message message = ERR_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS.get(
+               className,
+               config.dn().toString(),
+               String.valueOf(e));
        unacceptableReasons.add(message);
        return false;
      }
@@ -370,10 +375,10 @@ public class AccessLogger implements
          return false;
        }
      } catch (Exception e) {
-       int    msgID   = MSGID_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS;
-       String message = getMessage(msgID, className,
-                                   config.dn().toString(),
-                                   String.valueOf(e));
+       Message message = ERR_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS.get(
+               className,
+               config.dn().toString(),
+               String.valueOf(e));
        unacceptableReasons.add(message);
        return false;
      }
@@ -405,19 +410,15 @@ public class AccessLogger implements
      {
        // Rethrow the exceptions thrown be the invoked method.
        Throwable e = ite.getTargetException();
-       int    msgID   = MSGID_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS;
-       String message = getMessage(msgID, className,
-                                   config.dn().toString(),
-                                   stackTraceToSingleLineString(e));
-       throw new ConfigException(msgID, message, e);
+       Message message = ERR_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS.get(
+           className, config.dn().toString(), stackTraceToSingleLineString(e));
+       throw new ConfigException(message, e);
      }
      catch (Exception e)
      {
-       int    msgID   = MSGID_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS;
-       String message = getMessage(msgID, className,
-                                   config.dn().toString(),
-                                   String.valueOf(e));
-       throw new ConfigException(msgID, message, e);
+       Message message = ERR_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS.get(
+           className, config.dn().toString(), String.valueOf(e));
+       throw new ConfigException(message, e);
      }
 
      // The access publisher has been successfully initialized.
@@ -456,7 +457,7 @@ public class AccessLogger implements
    */
   public static void logDisconnect(ClientConnection clientConnection,
                                    DisconnectReason disconnectReason,
-                                   String message)
+                                   Message message)
   {
     for (AccessLogPublisher publisher : accessPublishers)
     {

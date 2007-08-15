@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -58,8 +59,7 @@ import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -182,8 +182,9 @@ public class LDAPDelete
     ASN1OctetString asn1OctetStr = new ASN1OctetString(line);
 
     protocolOp = new DeleteRequestProtocolOp(asn1OctetStr);
-    int msgID = MSGID_PROCESSING_OPERATION;
-    out.println(getMessage(msgID, "DELETE", asn1OctetStr));
+
+    out.println(INFO_PROCESSING_OPERATION.get(
+            "DELETE", String.valueOf(asn1OctetStr)));
     if(!deleteOptions.showOperations())
     {
       LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),
@@ -205,8 +206,8 @@ public class LDAPDelete
         }
         else
         {
-          msgID = MSGID_OPERATION_FAILED;
-          String msg = getMessage(msgID, "DELETE");
+
+          Message msg = INFO_OPERATION_FAILED.get("DELETE");
           err.println(wrapText(msg, MAX_LINE_WIDTH));
           err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
           return;
@@ -216,26 +217,25 @@ public class LDAPDelete
       DeleteResponseProtocolOp op =
            responseMessage.getDeleteResponseProtocolOp();
       int resultCode = op.getResultCode();
-      String errorMessage = op.getErrorMessage();
+      Message errorMessage = op.getErrorMessage();
       if(resultCode != SUCCESS && resultCode != REFERRAL &&
          !deleteOptions.continueOnError())
       {
-        msgID = MSGID_OPERATION_FAILED;
-        String msg = getMessage(msgID, "DELETE");
-        throw new LDAPException(resultCode, errorMessage, msgID, msg,
+        Message msg = INFO_OPERATION_FAILED.get("DELETE");
+        throw new LDAPException(resultCode, errorMessage, msg,
                                 op.getMatchedDN(), null);
       } else
       {
         if(resultCode != SUCCESS && resultCode != REFERRAL)
         {
-          msgID = MSGID_OPERATION_FAILED;
-          String msg = getMessage(msgID, "DELETE");
+
+          Message msg = INFO_OPERATION_FAILED.get("DELETE");
           LDAPToolUtils.printErrorMessage(err, msg, resultCode, errorMessage,
                                           op.getMatchedDN());
         } else
         {
-          msgID = MSGID_OPERATION_SUCCESSFUL;
-          String msg = getMessage(msgID, "DELETE", line);
+
+          Message msg = INFO_OPERATION_SUCCESSFUL.get("DELETE", line);
           out.println(msg);
         }
       }
@@ -348,7 +348,7 @@ public class LDAPDelete
     ArrayList<String> dnStrings = new ArrayList<String> ();
 
     // Create the command-line argument parser for use with this program.
-    String toolDescription = getMessage(MSGID_LDAPDELETE_TOOL_DESCRIPTION);
+    Message toolDescription = INFO_LDAPDELETE_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false, true, 0, 1, "\"DN\"");
     try
@@ -356,29 +356,29 @@ public class LDAPDelete
       hostName = new StringArgument("host", OPTION_SHORT_HOST,
                                     OPTION_LONG_HOST, false, false, true,
                                     OPTION_VALUE_HOST, "localhost", null,
-                                    MSGID_DESCRIPTION_HOST);
+                                    INFO_DESCRIPTION_HOST.get());
       argParser.addArgument(hostName);
 
       port = new IntegerArgument("port", OPTION_SHORT_PORT,
                                  OPTION_LONG_PORT, false, false, true,
                                  OPTION_VALUE_PORT, 389, null,
-                                 MSGID_DESCRIPTION_PORT);
+                                 INFO_DESCRIPTION_PORT.get());
       argParser.addArgument(port);
 
       useSSL = new BooleanArgument("useSSL", OPTION_SHORT_USE_SSL,
                                    OPTION_LONG_USE_SSL,
-                                   MSGID_DESCRIPTION_USE_SSL);
+                                   INFO_DESCRIPTION_USE_SSL.get());
       argParser.addArgument(useSSL);
 
       startTLS = new BooleanArgument("startTLS", OPTION_SHORT_START_TLS,
                                      OPTION_LONG_START_TLS,
-                                     MSGID_DESCRIPTION_START_TLS);
+                                     INFO_DESCRIPTION_START_TLS.get());
       argParser.addArgument(startTLS);
 
       bindDN = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
                                   OPTION_LONG_BINDDN, false, false, true,
                                   OPTION_VALUE_BINDDN, null, null,
-                                  MSGID_DESCRIPTION_BINDDN);
+                                  INFO_DESCRIPTION_BINDDN.get());
       argParser.addArgument(bindDN);
 
       bindPassword = new StringArgument("bindPassword", OPTION_SHORT_BINDPWD,
@@ -386,7 +386,7 @@ public class LDAPDelete
                                         false, false, true,
                                         OPTION_VALUE_BINDPWD,
                                         null, null,
-                                        MSGID_DESCRIPTION_BINDPASSWORD);
+                                        INFO_DESCRIPTION_BINDPASSWORD.get());
       argParser.addArgument(bindPassword);
 
       bindPasswordFile =
@@ -394,29 +394,31 @@ public class LDAPDelete
                                  OPTION_LONG_BINDPWD_FILE,
                                  false, false,
                                  OPTION_VALUE_BINDPWD_FILE, null,
-                                 null, MSGID_DESCRIPTION_BINDPASSWORDFILE);
+                                 null, INFO_DESCRIPTION_BINDPASSWORDFILE.get());
       argParser.addArgument(bindPasswordFile);
 
       filename = new StringArgument("filename", OPTION_SHORT_FILENAME,
                                     OPTION_LONG_FILENAME, false, false,
                                     true, OPTION_VALUE_FILENAME, null, null,
-                                    MSGID_DELETE_DESCRIPTION_FILENAME);
+                                    INFO_DELETE_DESCRIPTION_FILENAME.get());
       argParser.addArgument(filename);
 
-      saslExternal = new BooleanArgument("useSASLExternal", 'r',
-                                         "useSASLExternal",
-                                         MSGID_DESCRIPTION_USE_SASL_EXTERNAL);
+      saslExternal =
+              new BooleanArgument("useSASLExternal", 'r',
+                                  "useSASLExternal",
+                                  INFO_DESCRIPTION_USE_SASL_EXTERNAL.get());
       argParser.addArgument(saslExternal);
 
-      saslOptions = new StringArgument("saslOption", OPTION_SHORT_SASLOPTION,
-                                       OPTION_LONG_SASLOPTION,
-                                       false, true, true,
-                                       OPTION_VALUE_SASLOPTION, null,
-                                       null, MSGID_DESCRIPTION_SASL_PROPERTIES);
+      saslOptions = new StringArgument(
+              "saslOption", OPTION_SHORT_SASLOPTION,
+              OPTION_LONG_SASLOPTION,
+              false, true, true,
+              OPTION_VALUE_SASLOPTION, null,
+              null, INFO_DESCRIPTION_SASL_PROPERTIES.get());
       argParser.addArgument(saslOptions);
 
       trustAll = new BooleanArgument("trustAll", 'X', "trustAll",
-                                     MSGID_DESCRIPTION_TRUSTALL);
+                                     INFO_DESCRIPTION_TRUSTALL.get());
       argParser.addArgument(trustAll);
 
       keyStorePath = new StringArgument("keyStorePath",
@@ -425,16 +427,17 @@ public class LDAPDelete
                                         false, false, true,
                                         OPTION_VALUE_KEYSTOREPATH,
                                         null, null,
-                                        MSGID_DESCRIPTION_KEYSTOREPATH);
+                                        INFO_DESCRIPTION_KEYSTOREPATH.get());
       argParser.addArgument(keyStorePath);
 
-      keyStorePassword = new StringArgument("keyStorePassword",
-                                            OPTION_SHORT_KEYSTORE_PWD,
-                                            OPTION_LONG_KEYSTORE_PWD,
-                                            false, false,
-                                            true, OPTION_VALUE_KEYSTORE_PWD,
-                                            null, null,
-                                            MSGID_DESCRIPTION_KEYSTOREPASSWORD);
+      keyStorePassword =
+              new StringArgument("keyStorePassword",
+                                 OPTION_SHORT_KEYSTORE_PWD,
+                                 OPTION_LONG_KEYSTORE_PWD,
+                                 false, false,
+                                 true, OPTION_VALUE_KEYSTORE_PWD,
+                                 null, null,
+                                 INFO_DESCRIPTION_KEYSTOREPASSWORD.get());
       argParser.addArgument(keyStorePassword);
 
       keyStorePasswordFile =
@@ -444,21 +447,23 @@ public class LDAPDelete
                                  false, false,
                                  OPTION_VALUE_KEYSTORE_PWD_FILE,
                                  null, null,
-                                 MSGID_DESCRIPTION_KEYSTOREPASSWORD_FILE);
+                                 INFO_DESCRIPTION_KEYSTOREPASSWORD_FILE.get());
       argParser.addArgument(keyStorePasswordFile);
 
-      certNickname = new StringArgument("certnickname", 'N', "certNickname",
-                                        false, false, true, "{nickname}", null,
-                                        null, MSGID_DESCRIPTION_CERT_NICKNAME);
+      certNickname = new StringArgument(
+              "certnickname", 'N', "certNickname",
+              false, false, true, "{nickname}", null,
+              null, INFO_DESCRIPTION_CERT_NICKNAME.get());
       argParser.addArgument(certNickname);
 
-      trustStorePath = new StringArgument("trustStorePath",
-                                          OPTION_SHORT_TRUSTSTOREPATH,
-                                          OPTION_LONG_TRUSTSTOREPATH,
-                                          false, false, true,
-                                          OPTION_VALUE_TRUSTSTOREPATH,
-                                          null, null,
-                                          MSGID_DESCRIPTION_TRUSTSTOREPATH);
+      trustStorePath = new StringArgument(
+              "trustStorePath",
+              OPTION_SHORT_TRUSTSTOREPATH,
+              OPTION_LONG_TRUSTSTOREPATH,
+              false, false, true,
+              OPTION_VALUE_TRUSTSTOREPATH,
+              null, null,
+              INFO_DESCRIPTION_TRUSTSTOREPATH.get());
       argParser.addArgument(trustStorePath);
 
       trustStorePassword =
@@ -466,61 +471,61 @@ public class LDAPDelete
                               OPTION_LONG_TRUSTSTORE_PWD,
                               false, false, true,
                               OPTION_VALUE_TRUSTSTORE_PWD, null,
-                              null, MSGID_DESCRIPTION_TRUSTSTOREPASSWORD);
+                              null, INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get());
       argParser.addArgument(trustStorePassword);
 
       trustStorePasswordFile =
-           new FileBasedArgument("trustStorePasswordFile",
-                                 OPTION_SHORT_TRUSTSTORE_PWD_FILE,
-                                 OPTION_LONG_TRUSTSTORE_PWD_FILE, false, false,
-                                 OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
-                                 MSGID_DESCRIPTION_TRUSTSTOREPASSWORD_FILE);
+           new FileBasedArgument(
+                   "trustStorePasswordFile",
+                   OPTION_SHORT_TRUSTSTORE_PWD_FILE,
+                   OPTION_LONG_TRUSTSTORE_PWD_FILE, false, false,
+                   OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
+                   INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get());
       argParser.addArgument(trustStorePasswordFile);
 
       deleteSubtree =
            new BooleanArgument("deleteSubtree", 'x', "deleteSubtree",
-                               MSGID_DELETE_DESCRIPTION_DELETE_SUBTREE);
+                               INFO_DELETE_DESCRIPTION_DELETE_SUBTREE.get());
       argParser.addArgument(deleteSubtree);
 
       controlStr =
            new StringArgument("control", 'J', "control", false, true, true,
                     "{controloid[:criticality[:value|::b64value|:<fileurl]]}",
-                    null, null, MSGID_DESCRIPTION_CONTROLS);
+                    null, null, INFO_DESCRIPTION_CONTROLS.get());
       argParser.addArgument(controlStr);
 
       version = new IntegerArgument("version", OPTION_SHORT_PROTOCOL_VERSION,
                                     OPTION_LONG_PROTOCOL_VERSION, false, false,
                                     true, OPTION_VALUE_PROTOCOL_VERSION, 3,
-                                    null, MSGID_DESCRIPTION_VERSION);
+                                    null, INFO_DESCRIPTION_VERSION.get());
       argParser.addArgument(version);
 
       encodingStr = new StringArgument("encoding", 'i', "encoding", false,
                                        false, true, "{encoding}", null,  null,
-                                       MSGID_DESCRIPTION_ENCODING);
+                                       INFO_DESCRIPTION_ENCODING.get());
       argParser.addArgument(encodingStr);
 
       continueOnError =
            new BooleanArgument("continueOnError", 'c', "continueOnError",
-                               MSGID_DESCRIPTION_CONTINUE_ON_ERROR);
+                               INFO_DESCRIPTION_CONTINUE_ON_ERROR.get());
       argParser.addArgument(continueOnError);
 
       noop = new BooleanArgument("no-op", OPTION_SHORT_DRYRUN,
-          OPTION_LONG_DRYRUN, MSGID_DESCRIPTION_NOOP);
+          OPTION_LONG_DRYRUN, INFO_DESCRIPTION_NOOP.get());
       argParser.addArgument(noop);
 
       verbose = new BooleanArgument("verbose", 'v', "verbose",
-                                    MSGID_DESCRIPTION_VERBOSE);
+                                    INFO_DESCRIPTION_VERBOSE.get());
       argParser.addArgument(verbose);
 
       showUsage = new BooleanArgument("showUsage", OPTION_SHORT_HELP,
                                       OPTION_LONG_HELP,
-                                      MSGID_DESCRIPTION_SHOWUSAGE);
+                                      INFO_DESCRIPTION_SHOWUSAGE.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);
     } catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
@@ -533,8 +538,7 @@ public class LDAPDelete
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -550,9 +554,9 @@ public class LDAPDelete
 
     if(bindPassword.isPresent() && bindPasswordFile.isPresent())
     {
-      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, bindPassword.getLongIdentifier(),
-                                  bindPasswordFile.getLongIdentifier());
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+              bindPassword.getLongIdentifier(),
+              bindPasswordFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -577,8 +581,9 @@ public class LDAPDelete
       int versionNumber = version.getIntValue();
       if(versionNumber != 2 && versionNumber != 3)
       {
-        int msgID = MSGID_DESCRIPTION_INVALID_VERSION;
-        err.println(wrapText(getMessage(msgID, versionNumber), MAX_LINE_WIDTH));
+
+        err.println(wrapText(ERR_DESCRIPTION_INVALID_VERSION.get(
+                String.valueOf(versionNumber)), MAX_LINE_WIDTH));
         return 1;
       }
       connectionOptions.setVersionNumber(versionNumber);
@@ -600,7 +605,7 @@ public class LDAPDelete
       // read the password from the stdin.
       try
       {
-        out.print(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT, bindDNValue));
+        out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDNValue));
         char[] pwChars = PasswordReader.readPassword();
         bindPasswordValue = new String(pwChars);
       } catch(Exception ex)
@@ -654,8 +659,7 @@ public class LDAPDelete
         LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
         if(ctrl == null)
         {
-          int    msgID   = MSGID_TOOL_INVALID_CONTROL_STRING;
-          String message = getMessage(msgID, ctrlString);
+          Message message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           err.println(argParser.getUsage());
           return 1;
@@ -708,15 +712,13 @@ public class LDAPDelete
     {
       if(!connectionOptions.useSSL() && !connectionOptions.useStartTLS())
       {
-        int    msgID   = MSGID_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS;
-        String message = getMessage(msgID);
+        Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       if(keyStorePathValue == null)
       {
-        int    msgID   = MSGID_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE;
-        String message = getMessage(msgID);
+        Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -780,8 +782,10 @@ public class LDAPDelete
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, le);
       }
-      LDAPToolUtils.printErrorMessage(err, le.getMessage(), le.getResultCode(),
-                                      le.getErrorMessage(), le.getMatchedDN());
+      LDAPToolUtils.printErrorMessage(err, le.getMessageObject(),
+                                      le.getResultCode(),
+                                      le.getErrorMessage(),
+                                      le.getMatchedDN());
       int code = le.getResultCode();
       return code;
     } catch(LDAPConnectionException lce)
@@ -790,7 +794,7 @@ public class LDAPDelete
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, lce);
       }
-      LDAPToolUtils.printErrorMessage(err, lce.getMessage(),
+      LDAPToolUtils.printErrorMessage(err, lce.getMessageObject(),
                                       lce.getResultCode(),
                                       lce.getErrorMessage(),
                                       lce.getMatchedDN());

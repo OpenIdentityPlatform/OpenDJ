@@ -36,6 +36,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.Attribute;
@@ -655,10 +656,10 @@ public final class TestLDIFReader extends UtilTestCase {
       reader.readChangeRecord(false);
 
       reader.readChangeRecord(false);
-      reader.rejectLastEntry("Rejected");
+      reader.rejectLastEntry(Message.raw("Rejected"));
 
       reader.readChangeRecord(false);
-      reader.rejectLastEntry("Rejected");
+      reader.rejectLastEntry(Message.raw("Rejected"));
 
       reader.readChangeRecord(false);
       reader.readChangeRecord(false);

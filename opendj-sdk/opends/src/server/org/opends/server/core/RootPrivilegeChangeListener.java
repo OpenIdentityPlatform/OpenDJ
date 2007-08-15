@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
@@ -67,7 +68,7 @@ public class RootPrivilegeChangeListener
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(RootDNCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // No special validation is required.
     return true;

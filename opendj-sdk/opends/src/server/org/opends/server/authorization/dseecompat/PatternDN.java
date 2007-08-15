@@ -26,11 +26,11 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
 import org.opends.server.types.*;
-import static org.opends.server.messages.SchemaMessages.*;
-import static org.opends.server.messages.AciMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.messages.AccessControlMessages.*;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import static org.opends.server.util.StaticUtils.isDigit;
 import static org.opends.server.util.StaticUtils.isHexDigit;
@@ -427,11 +427,10 @@ public class PatternDN
       }
       else
       {
-        int    msgID   = MSGID_ATTR_SYNTAX_DN_NO_EQUAL;
-        String message = getMessage(msgID, dnString,
-                                    attributeName.toString(), c);
+        Message message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(
+            dnString, attributeName.toString(), c);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
 
       // Skip over any spaces after the equal sign.
@@ -494,10 +493,9 @@ public class PatternDN
       {
         // This should not happen.  At any rate, it's an illegal
         // character, so throw an exception.
-        int    msgID   = MSGID_ATTR_SYNTAX_DN_INVALID_CHAR;
-        String message = getMessage(msgID, dnString, c, pos);
+        Message message = ERR_ATTR_SYNTAX_DN_INVALID_CHAR.get(dnString, c, pos);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
 
 
@@ -524,11 +522,10 @@ public class PatternDN
         // because that would be invalid.
         if (pos >= length)
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME;
-          String message = getMessage(msgID, dnString,
-                                      attributeName.toString());
+          Message message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(
+              dnString, attributeName.toString());
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
 
@@ -545,10 +542,10 @@ public class PatternDN
             // This means that we hit the end of the value before
             // finding a '='.  This is illegal because there is no
             // attribute-value separator.
-            int    msgID   = MSGID_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME;
-            String message = getMessage(msgID, dnString, name);
+            Message message =
+                ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(dnString, name);
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
           else
           {
@@ -565,10 +562,9 @@ public class PatternDN
         }
         else
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_NO_EQUAL;
-          String message = getMessage(msgID, dnString, name, c);
+          Message message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(dnString, name, c);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
 
@@ -634,10 +630,10 @@ public class PatternDN
         {
           // This should not happen.  At any rate, it's an illegal
           // character, so throw an exception.
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_INVALID_CHAR;
-          String message = getMessage(msgID, dnString, c, pos);
+          Message message =
+              ERR_ATTR_SYNTAX_DN_INVALID_CHAR.get(dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
     }
@@ -729,10 +725,9 @@ public class PatternDN
           // know that there is at least one RDN component, and
           // therefore the last non-space character of the DN must
           // have been a comma. This is not acceptable.
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_END_WITH_COMMA;
-          String message = getMessage(msgID, dnString);
+          Message message = ERR_ATTR_SYNTAX_DN_END_WITH_COMMA.get(dnString);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
     }
@@ -765,10 +760,10 @@ public class PatternDN
         case ')':
           // None of these are allowed in an attribute name or any
           // character immediately following it.
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          String message = getMessage(msgID, dnString, c, pos);
+          Message message =
+              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
 
 
         case '*':
@@ -779,10 +774,10 @@ public class PatternDN
         case '+':
           // None of these are allowed in an attribute name or any
           // character immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, dnString, c, pos);
+          message =
+              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
 
 
         case ',':
@@ -799,10 +794,10 @@ public class PatternDN
           }
           else
           {
-            msgID = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_DASH;
-            message = getMessage(msgID, dnString, c);
+            message =
+                ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_DASH.get(dnString);
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
           break;
 
@@ -819,10 +814,10 @@ public class PatternDN
         case '/':
           // This is not allowed in an attribute name or any character
           // immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, dnString, c, pos);
+          message =
+              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
 
 
         case '0':
@@ -847,10 +842,10 @@ public class PatternDN
         case ':':
           // Not allowed in an attribute name or any
           // character immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, dnString, c, pos);
+          message =
+              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
 
 
         case ';': // NOTE:  attribute options are not allowed in a DN.
@@ -861,10 +856,10 @@ public class PatternDN
         case '<':
           // None of these are allowed in an attribute name or any
           // character immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, dnString, c, pos);
+          message =
+              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
 
 
         case '=':
@@ -878,10 +873,10 @@ public class PatternDN
         case '@':
           // None of these are allowed in an attribute name or any
           // character immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, dnString, c, pos);
+          message =
+              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
 
 
         case 'A':
@@ -921,10 +916,10 @@ public class PatternDN
         case '^':
           // None of these are allowed in an attribute name or any
           // character immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, dnString, c, pos);
+          message =
+              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
 
 
         case '_':
@@ -935,10 +930,10 @@ public class PatternDN
         case '`':
           // This is not allowed in an attribute name or any character
           // immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, dnString, c, pos);
+          message =
+              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
 
 
         case 'a':
@@ -975,10 +970,10 @@ public class PatternDN
         default:
           // This is not allowed in an attribute name or any character
           // immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, dnString, c, pos);
+          message =
+              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
       }
 
 
@@ -997,10 +992,9 @@ public class PatternDN
     // have at least one character.
     if (attributeName.length() == 0)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_NO_NAME;
-      String message = getMessage(msgID, dnString);
+      Message message = ERR_ATTR_SYNTAX_DN_ATTR_NO_NAME.get(dnString);
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message, msgID);
+                                   message);
     }
     else if (checkForOID)
     {
@@ -1073,11 +1067,10 @@ public class PatternDN
 
       if (! validOID)
       {
-        int    msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_PERIOD;
-        String message = getMessage(msgID, dnString,
-                                    attributeName.toString());
+        Message message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_PERIOD.get(
+            dnString, attributeName.toString());
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -1128,10 +1121,9 @@ public class PatternDN
       StringBuilder hexString = new StringBuilder();
       if ((pos+2) > length)
       {
-        int    msgID   = MSGID_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT;
-        String message = getMessage(msgID, dnString);
+        Message message = ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(dnString);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
 
       for (int i=0; i < 2; i++)
@@ -1143,10 +1135,10 @@ public class PatternDN
         }
         else
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT;
-          String message = getMessage(msgID, dnString, c);
+          Message message =
+              ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(dnString, c);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
 
@@ -1170,19 +1162,18 @@ public class PatternDN
             }
             else
             {
-              int    msgID   = MSGID_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT;
-              String message = getMessage(msgID, dnString, c);
+              Message message =
+                  ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(dnString, c);
               throw new DirectoryException(
-                             ResultCode.INVALID_DN_SYNTAX, message,
-                             msgID);
+                             ResultCode.INVALID_DN_SYNTAX, message);
             }
           }
           else
           {
-            int    msgID   = MSGID_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT;
-            String message = getMessage(msgID, dnString);
+            Message message =
+                ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(dnString);
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
         }
         else if ((c == ' ') || (c == ',') || (c == ';'))
@@ -1193,10 +1184,10 @@ public class PatternDN
         }
         else
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT;
-          String message = getMessage(msgID, dnString, c);
+          Message message =
+              ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(dnString, c);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
 
@@ -1217,11 +1208,10 @@ public class PatternDN
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE;
-        String message = getMessage(msgID, dnString,
-                                    String.valueOf(e));
+        Message message = ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(
+            dnString, String.valueOf(e));
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -1240,10 +1230,9 @@ public class PatternDN
         {
           // We hit the end of the DN before the closing quote.
           // That's an error.
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_UNMATCHED_QUOTE;
-          String message = getMessage(msgID, dnString);
+          Message message = ERR_ATTR_SYNTAX_DN_UNMATCHED_QUOTE.get(dnString);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
         c = dnString.charAt(pos++);
@@ -1334,12 +1323,10 @@ public class PatternDN
             // value.
             if (pos >= length)
             {
-              int    msgID   =
-                   MSGID_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID;
-              String message = getMessage(msgID, dnString);
+              Message message =
+                  ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.get(dnString);
               throw new DirectoryException(
-                             ResultCode.INVALID_DN_SYNTAX, message,
-                             msgID);
+                             ResultCode.INVALID_DN_SYNTAX, message);
             }
             else
             {
@@ -1351,12 +1338,10 @@ public class PatternDN
               }
               else
               {
-                int    msgID   =
-                     MSGID_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID;
-                String message = getMessage(msgID, dnString);
+                Message message =
+                    ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.get(dnString);
                 throw new DirectoryException(
-                               ResultCode.INVALID_DN_SYNTAX, message,
-                               msgID);
+                               ResultCode.INVALID_DN_SYNTAX, message);
               }
             }
           }
@@ -1389,10 +1374,10 @@ public class PatternDN
           appendHexChars(dnString, valueString, hexChars);
           if (valueString.length() == 0)
           {
-            int    msgID   = MSGID_PATTERN_DN_CONSECUTIVE_WILDCARDS_IN_VALUE;
-            String message = getMessage(msgID, dnString);
+            Message message =
+                WARN_PATTERN_DN_CONSECUTIVE_WILDCARDS_IN_VALUE.get(dnString);
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
           attributeValues.add(new ASN1OctetString(valueString.toString()));
           valueString = new StringBuilder();
@@ -1467,10 +1452,10 @@ public class PatternDN
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE;
-      String message = getMessage(msgID, dnString, String.valueOf(e));
+      Message message = ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(
+          dnString, String.valueOf(e));
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message, msgID);
+                                   message);
     }
   }
 }

@@ -34,10 +34,6 @@ import org.opends.server.types.ModificationType;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 
 

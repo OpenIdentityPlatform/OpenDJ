@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -53,8 +54,7 @@ import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -164,8 +164,9 @@ public class WhoAmIExtendedOperation
           if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH,
                                               operation))
           {
-            int msgID = MSGID_EXTOP_WHOAMI_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
-            operation.appendErrorMessage(getMessage(msgID));
+
+            operation.appendErrorMessage(
+                    ERR_EXTOP_WHOAMI_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
             operation.setResultCode(ResultCode.AUTHORIZATION_DENIED);
             return;
           }
@@ -190,7 +191,7 @@ public class WhoAmIExtendedOperation
               }
 
               operation.setResultCode(ResultCode.valueOf(le.getResultCode()));
-              operation.appendErrorMessage(le.getMessage());
+              operation.appendErrorMessage(le.getMessageObject());
               return;
             }
           }
@@ -209,7 +210,7 @@ public class WhoAmIExtendedOperation
             }
 
             operation.setResultCode(de.getResultCode());
-            operation.appendErrorMessage(de.getErrorMessage());
+            operation.appendErrorMessage(de.getMessageObject());
             return;
           }
 
@@ -222,8 +223,9 @@ public class WhoAmIExtendedOperation
           if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH,
                                               operation))
           {
-            int msgID = MSGID_EXTOP_WHOAMI_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
-            operation.appendErrorMessage(getMessage(msgID));
+
+            operation.appendErrorMessage(
+                    ERR_EXTOP_WHOAMI_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
             operation.setResultCode(ResultCode.AUTHORIZATION_DENIED);
             return;
           }
@@ -248,7 +250,7 @@ public class WhoAmIExtendedOperation
               }
 
               operation.setResultCode(ResultCode.valueOf(le.getResultCode()));
-              operation.appendErrorMessage(le.getMessage());
+              operation.appendErrorMessage(le.getMessageObject());
               return;
             }
           }
@@ -267,7 +269,7 @@ public class WhoAmIExtendedOperation
             }
 
             operation.setResultCode(de.getResultCode());
-            operation.appendErrorMessage(de.getErrorMessage());
+            operation.appendErrorMessage(de.getMessageObject());
             return;
           }
 
@@ -291,7 +293,8 @@ public class WhoAmIExtendedOperation
     }
 
     operation.setResponseValue(new ASN1OctetString(authzID));
-    operation.appendAdditionalLogMessage("authzID=\"" + authzID + "\"");
+    operation.appendAdditionalLogMessage(
+            Message.raw("authzID=\"" + authzID + "\""));
     operation.setResultCode(ResultCode.SUCCESS);
   }
 }

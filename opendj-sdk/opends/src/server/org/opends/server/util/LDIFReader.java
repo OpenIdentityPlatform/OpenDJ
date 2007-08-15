@@ -25,14 +25,14 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
-
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.UtilityMessages.*;
+import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 import static org.opends.server.util.Validator.*;
 
@@ -62,8 +62,8 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ObjectClass;
@@ -224,9 +224,7 @@ public final class LDIFReader
                     entryDN);
         }
         entriesRead++;
-        int    msgID   = MSGID_LDIF_SKIP;
-        String message = getMessage(msgID, String.valueOf(entryDN),
-            lastEntryLineNumber);
+        Message message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
         logToSkipWriter(lines, message);
         entriesIgnored++;
         continue;
@@ -273,9 +271,7 @@ public final class LDIFReader
                 "that should be included based on the include and exclude " +
                 "filters.", entryDN);
           }
-          int    msgID   = MSGID_LDIF_SKIP;
-          String message = getMessage(msgID, String.valueOf(entryDN),
-              lastEntryLineNumber);
+          Message message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
           logToSkipWriter(lines, message);
           entriesIgnored++;
           continue;
@@ -288,10 +284,10 @@ public final class LDIFReader
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT;
-        String message = getMessage(msgID, String.valueOf(entry.getDN()),
-                                    lastEntryLineNumber, String.valueOf(e));
-        throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
+        Message message = ERR_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT.
+            get(String.valueOf(entry.getDN()), lastEntryLineNumber,
+                String.valueOf(e));
+        throw new LDIFException(message, lastEntryLineNumber, true, e);
       }
 
 
@@ -302,9 +298,7 @@ public final class LDIFReader
              pluginConfigManager.invokeLDIFImportPlugins(importConfig, entry);
         if (! pluginResult.continueEntryProcessing())
         {
-          int    msgID   = MSGID_LDIF_SKIP;
-          String message = getMessage(msgID, String.valueOf(entryDN),
-              lastEntryLineNumber);
+          Message message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
           logToSkipWriter(lines, message);
           entriesIgnored++;
           continue;
@@ -316,16 +310,16 @@ public final class LDIFReader
       // appropriate to do so.
       if (checkSchema)
       {
-        StringBuilder invalidReason = new StringBuilder();
+        MessageBuilder invalidReason = new MessageBuilder();
         if (! entry.conformsToSchema(null, false, true, false, invalidReason))
         {
-          int    msgID   = MSGID_LDIF_SCHEMA_VIOLATION;
-          String message = getMessage(msgID, String.valueOf(entryDN),
-                                      lastEntryLineNumber,
-                                      invalidReason.toString());
+          Message message = ERR_LDIF_SCHEMA_VIOLATION.get(
+                  String.valueOf(entryDN),
+                  lastEntryLineNumber,
+                  invalidReason.toString());
           logToRejectWriter(lines, message);
           entriesRejected++;
-          throw new LDIFException(msgID, message, lastEntryLineNumber, true);
+          throw new LDIFException(message, lastEntryLineNumber, true);
         }
       }
 
@@ -396,10 +390,9 @@ public final class LDIFReader
           entry = parseModifyDNChangeRecordEntry(entryDN, lines);
         } else
         {
-          int msgID = MSGID_LDIF_INVALID_CHANGETYPE_ATTRIBUTE;
-          String message = getMessage(msgID, changeType,
-            "add, delete, modify, moddn, modrdn");
-          throw new LDIFException(msgID, message, lastEntryLineNumber, false);
+          Message message = ERR_LDIF_INVALID_CHANGETYPE_ATTRIBUTE.get(
+              changeType, "add, delete, modify, moddn, modrdn");
+          throw new LDIFException(message, lastEntryLineNumber, false);
         }
       } else
       {
@@ -409,10 +402,9 @@ public final class LDIFReader
           entry = parseAddChangeRecordEntry(entryDN, lines);
         } else
         {
-          int msgID = MSGID_LDIF_INVALID_CHANGETYPE_ATTRIBUTE;
-          String message = getMessage(msgID, null,
-            "add, delete, modify, moddn, modrdn");
-          throw new LDIFException(msgID, message, lastEntryLineNumber, false);
+          Message message = ERR_LDIF_INVALID_CHANGETYPE_ATTRIBUTE.get(
+              null, "add, delete, modify, moddn, modrdn");
+          throw new LDIFException(message, lastEntryLineNumber, false);
         }
       }
 
@@ -497,10 +489,10 @@ public final class LDIFReader
         }
         else
         {
-          int    msgID   = MSGID_LDIF_INVALID_LEADING_SPACE;
-          String message = getMessage(msgID, lineNumber, line);
+          Message message =
+                  ERR_LDIF_INVALID_LEADING_SPACE.get(lineNumber, line);
           logToRejectWriter(lines, message);
-          throw new LDIFException(msgID, message, lineNumber, false);
+          throw new LDIFException(message, lineNumber, false);
         }
       }
       else
@@ -550,12 +542,12 @@ public final class LDIFReader
     int colonPos = line.indexOf(":");
     if (colonPos <= 0)
     {
-      int    msgID   = MSGID_LDIF_NO_ATTR_NAME;
-      String message = getMessage(msgID, lastEntryLineNumber, line.toString());
+      Message message =
+              ERR_LDIF_NO_ATTR_NAME.get(lastEntryLineNumber, line.toString());
 
       logToRejectWriter(lines, message);
 
-      throw new LDIFException(msgID, message, lastEntryLineNumber, true);
+      throw new LDIFException(message, lastEntryLineNumber, true);
     }
 
     String attrName = toLowerCase(line.substring(0, colonPos));
@@ -566,12 +558,12 @@ public final class LDIFReader
     }
     else if (! attrName.equals("dn"))
     {
-      int    msgID   = MSGID_LDIF_NO_DN;
-      String message = getMessage(msgID, lastEntryLineNumber, line.toString());
+      Message message =
+              ERR_LDIF_NO_DN.get(lastEntryLineNumber, line.toString());
 
       logToRejectWriter(lines, message);
 
-      throw new LDIFException(msgID, message, lastEntryLineNumber, true);
+      throw new LDIFException(message, lastEntryLineNumber, true);
     }
 
 
@@ -609,13 +601,14 @@ public final class LDIFReader
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_LDIF_COULD_NOT_BASE64_DECODE_DN;
-        String message = getMessage(msgID, lastEntryLineNumber, line,
-                                    String.valueOf(e));
+        Message message =
+                ERR_LDIF_COULD_NOT_BASE64_DECODE_DN.get(
+                        lastEntryLineNumber, line,
+                        String.valueOf(e));
 
         logToRejectWriter(lines, message);
 
-        throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
+        throw new LDIFException(message, lastEntryLineNumber, true, e);
       }
 
       try
@@ -629,13 +622,13 @@ public final class LDIFReader
           TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
-        int    msgID   = MSGID_LDIF_INVALID_DN;
-        String message = getMessage(msgID, lastEntryLineNumber, line.toString(),
-                                    de.getErrorMessage());
+        Message message = ERR_LDIF_INVALID_DN.get(
+                lastEntryLineNumber, line.toString(),
+                de.getMessageObject());
 
         logToRejectWriter(lines, message);
 
-        throw new LDIFException(msgID, message, lastEntryLineNumber, true, de);
+        throw new LDIFException(message, lastEntryLineNumber, true, de);
       }
       catch (Exception e)
       {
@@ -644,13 +637,13 @@ public final class LDIFReader
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_LDIF_INVALID_DN;
-        String message = getMessage(msgID, lastEntryLineNumber, line.toString(),
-                                    String.valueOf(e));
+        Message message = ERR_LDIF_INVALID_DN.get(
+                lastEntryLineNumber, line.toString(),
+                String.valueOf(e));
 
         logToRejectWriter(lines, message);
 
-        throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
+        throw new LDIFException(message, lastEntryLineNumber, true, e);
       }
     }
     else
@@ -676,13 +669,12 @@ public final class LDIFReader
           TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
-        int    msgID   = MSGID_LDIF_INVALID_DN;
-        String message = getMessage(msgID, lastEntryLineNumber, line.toString(),
-                                    de.getErrorMessage());
+        Message message = ERR_LDIF_INVALID_DN.get(
+                lastEntryLineNumber, line.toString(), de.getMessageObject());
 
         logToRejectWriter(lines, message);
 
-        throw new LDIFException(msgID, message, lastEntryLineNumber, true, de);
+        throw new LDIFException(message, lastEntryLineNumber, true, de);
       }
       catch (Exception e)
       {
@@ -691,13 +683,13 @@ public final class LDIFReader
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_LDIF_INVALID_DN;
-        String message = getMessage(msgID, lastEntryLineNumber, line.toString(),
-                                    String.valueOf(e));
+        Message message = ERR_LDIF_INVALID_DN.get(
+                lastEntryLineNumber, line.toString(),
+                String.valueOf(e));
 
         logToRejectWriter(lines, message);
 
-        throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
+        throw new LDIFException(message, lastEntryLineNumber, true, e);
       }
     }
   }
@@ -730,10 +722,10 @@ public final class LDIFReader
     int colonPos = line.indexOf(":");
     if (colonPos <= 0)
     {
-      int    msgID   = MSGID_LDIF_NO_ATTR_NAME;
-      String message = getMessage(msgID, lastEntryLineNumber, line.toString());
+      Message message = ERR_LDIF_NO_ATTR_NAME.get(
+              lastEntryLineNumber, line.toString());
       logToRejectWriter(lines, message);
-      throw new LDIFException(msgID, message, lastEntryLineNumber, true);
+      throw new LDIFException(message, lastEntryLineNumber, true);
     }
 
     String attrName = toLowerCase(line.substring(0, colonPos));
@@ -753,10 +745,9 @@ public final class LDIFReader
     int length = line.length();
     if (colonPos == (length-1))
     {
-      int msgID = MSGID_LDIF_INVALID_CHANGETYPE_ATTRIBUTE;
-      String message = getMessage(msgID, null,
-        "add, delete, modify, moddn, modrdn");
-      throw new LDIFException(msgID, message, lastEntryLineNumber, false );
+      Message message = ERR_LDIF_INVALID_CHANGETYPE_ATTRIBUTE.get(
+          null, "add, delete, modify, moddn, modrdn");
+      throw new LDIFException(message, lastEntryLineNumber, false );
     }
 
     if (line.charAt(colonPos+1) == ':')
@@ -786,11 +777,11 @@ public final class LDIFReader
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_LDIF_COULD_NOT_BASE64_DECODE_DN;
-        String message = getMessage(msgID, lastEntryLineNumber, line,
-                                    String.valueOf(e));
+        Message message = ERR_LDIF_COULD_NOT_BASE64_DECODE_DN.get(
+                lastEntryLineNumber, line,
+                String.valueOf(e));
         logToRejectWriter(lines, message);
-        throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
+        throw new LDIFException(message, lastEntryLineNumber, true, e);
       }
 
       return changeTypeStr;
@@ -878,9 +869,8 @@ public final class LDIFReader
 
       if (objectClasses.containsKey(objectClass))
       {
-        logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.MILD_WARNING,
-                 MSGID_LDIF_DUPLICATE_OBJECTCLASS, String.valueOf(entryDN),
-                 lastEntryLineNumber, ocName);
+        logError(WARN_LDIF_DUPLICATE_OBJECTCLASS.get(
+            String.valueOf(entryDN), lastEntryLineNumber, ocName));
       }
       else
       {
@@ -910,23 +900,22 @@ public final class LDIFReader
           (DirectoryServer.getSyntaxEnforcementPolicy() !=
                AcceptRejectWarn.ACCEPT))
       {
-        StringBuilder invalidReason = new StringBuilder(0);
+        MessageBuilder invalidReason = new MessageBuilder();
         if (! attrType.getSyntax().valueIsAcceptable(value, invalidReason))
         {
-          int    msgID   = MSGID_LDIF_VALUE_VIOLATES_SYNTAX;
-          String message = getMessage(msgID, String.valueOf(entryDN),
-                                      lastEntryLineNumber, value.stringValue(),
-                                      attrName, invalidReason.toString());
+          Message message = WARN_LDIF_VALUE_VIOLATES_SYNTAX.get(
+                  String.valueOf(entryDN),
+                  lastEntryLineNumber, value.stringValue(),
+                  attrName, invalidReason.toString());
           if (DirectoryServer.getSyntaxEnforcementPolicy() ==
                    AcceptRejectWarn.WARN)
           {
-            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.MILD_WARNING,
-                     message, msgID);
+            logError(message);
           }
           else
           {
             logToRejectWriter(lines, message);
-            throw new LDIFException(msgID, message, lastEntryLineNumber,
+            throw new LDIFException(message, lastEntryLineNumber,
                                     true);
           }
         }
@@ -986,35 +975,35 @@ public final class LDIFReader
               {
                 if (v.getValue().equals(attributeValue.getValue()))
                 {
-                  int    msgID   = MSGID_LDIF_DUPLICATE_ATTR;
-                  String message = getMessage(msgID, String.valueOf(entryDN),
-                                              lastEntryLineNumber, attrName,
-                                              value.stringValue());
+                  Message message = WARN_LDIF_DUPLICATE_ATTR.get(
+                          String.valueOf(entryDN),
+                          lastEntryLineNumber, attrName,
+                          value.stringValue());
                   logToRejectWriter(lines, message);
-                  throw new LDIFException(msgID, message, lastEntryLineNumber,
+                  throw new LDIFException(message, lastEntryLineNumber,
                                           true);
                 }
               }
             }
             else
             {
-              int    msgID   = MSGID_LDIF_DUPLICATE_ATTR;
-              String message = getMessage(msgID, String.valueOf(entryDN),
-                                          lastEntryLineNumber, attrName,
-                                          value.stringValue());
+              Message message = WARN_LDIF_DUPLICATE_ATTR.get(
+                      String.valueOf(entryDN),
+                      lastEntryLineNumber, attrName,
+                      value.stringValue());
               logToRejectWriter(lines, message);
-              throw new LDIFException(msgID, message, lastEntryLineNumber,
+              throw new LDIFException(message, lastEntryLineNumber,
                                       true);
             }
           }
 
           if (attrType.isSingleValue() && (! valueSet.isEmpty()) && checkSchema)
           {
-            int    msgID   = MSGID_LDIF_MULTIPLE_VALUES_FOR_SINGLE_VALUED_ATTR;
-            String message = getMessage(msgID, String.valueOf(entryDN),
-                                        lastEntryLineNumber, attrName);
+            Message message = ERR_LDIF_MULTIPLE_VALUES_FOR_SINGLE_VALUED_ATTR
+                    .get(String.valueOf(entryDN),
+                         lastEntryLineNumber, attrName);
             logToRejectWriter(lines, message);
-            throw new LDIFException(msgID, message, lastEntryLineNumber, true);
+            throw new LDIFException(message, lastEntryLineNumber, true);
           }
 
           valueSet.add(attributeValue);
@@ -1068,9 +1057,9 @@ public final class LDIFReader
 
       if (!attribute.equals(expectedAttr))
       {
-        int msgID = MSGID_LDIF_INVALID_CHANGERECORD_ATTRIBUTE;
-        String message = getMessage(msgID, attrDescr, attributeName);
-        throw new LDIFException(msgID, message, lastEntryLineNumber, false);
+        Message message = ERR_LDIF_INVALID_CHANGERECORD_ATTRIBUTE.get(
+            attrDescr, attributeName);
+        throw new LDIFException(message, lastEntryLineNumber, false);
       }
     }
 
@@ -1109,7 +1098,7 @@ public final class LDIFReader
    * @param  message  A human-readable message providing the reason that the
    *                  last entry read was not acceptable.
    */
-  public void rejectLastEntry(String message)
+  public void rejectLastEntry(Message message)
   {
     entriesRejected++;
 
@@ -1121,7 +1110,7 @@ public final class LDIFReader
         if ((message != null) && (message.length() > 0))
         {
           rejectWriter.write("# ");
-          rejectWriter.write(message);
+          rejectWriter.write(message.toString());
           rejectWriter.newLine();
         }
 
@@ -1275,9 +1264,8 @@ public final class LDIFReader
 
     if(lines.isEmpty())
     {
-      int msgID = MSGID_LDIF_NO_MOD_DN_ATTRIBUTES;
-      String message = getMessage(msgID);
-      throw new LDIFException(msgID, message, lineNumber, true);
+      Message message = ERR_LDIF_NO_MOD_DN_ATTRIBUTES.get();
+      throw new LDIFException(message, lineNumber, true);
     }
 
     StringBuilder line = lines.remove();
@@ -1292,27 +1280,24 @@ public final class LDIFReader
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
-      int    msgID   = MSGID_LDIF_INVALID_DN;
-      String message = getMessage(msgID, lineNumber, line.toString(),
-          de.getErrorMessage());
-      throw new LDIFException(msgID, message, lineNumber, true);
+      Message message = ERR_LDIF_INVALID_DN.get(
+          lineNumber, line.toString(), de.getMessageObject());
+      throw new LDIFException(message, lineNumber, true);
     } catch (Exception e)
     {
       if (debugEnabled())
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      int    msgID   = MSGID_LDIF_INVALID_DN;
-      String message = getMessage(msgID, lineNumber, line.toString(),
-          e.getMessage());
-      throw new LDIFException(msgID, message, lineNumber, true);
+      Message message =
+          ERR_LDIF_INVALID_DN.get(lineNumber, line.toString(), e.getMessage());
+      throw new LDIFException(message, lineNumber, true);
     }
 
     if(lines.isEmpty())
     {
-      int msgID = MSGID_LDIF_NO_DELETE_OLDRDN_ATTRIBUTE;
-      String message = getMessage(msgID);
-      throw new LDIFException(msgID, message, lineNumber, true);
+      Message message = ERR_LDIF_NO_DELETE_OLDRDN_ATTRIBUTE.get();
+      throw new LDIFException(message, lineNumber, true);
     }
     lineNumber++;
 
@@ -1332,9 +1317,8 @@ public final class LDIFReader
       deleteOldRDN = true;
     } else
     {
-      int msgID = MSGID_LDIF_INVALID_DELETE_OLDRDN_ATTRIBUTE;
-      String message = getMessage(msgID, delStr);
-      throw new LDIFException(msgID, message, lineNumber, true);
+      Message message = ERR_LDIF_INVALID_DELETE_OLDRDN_ATTRIBUTE.get(delStr);
+      throw new LDIFException(message, lineNumber, true);
     }
 
     if(!lines.isEmpty())
@@ -1354,20 +1338,18 @@ public final class LDIFReader
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
-        int    msgID   = MSGID_LDIF_INVALID_DN;
-        String message = getMessage(msgID, lineNumber, line.toString(),
-            de.getErrorMessage());
-        throw new LDIFException(msgID, message, lineNumber, true);
+        Message message = ERR_LDIF_INVALID_DN.get(
+            lineNumber, line.toString(), de.getMessageObject());
+        throw new LDIFException(message, lineNumber, true);
       } catch (Exception e)
       {
         if (debugEnabled())
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-        int    msgID   = MSGID_LDIF_INVALID_DN;
-        String message = getMessage(msgID, lineNumber, line.toString(),
-            e.getMessage());
-        throw new LDIFException(msgID, message, lineNumber, true);
+        Message message = ERR_LDIF_INVALID_DN.get(
+            lineNumber, line.toString(), e.getMessage());
+        throw new LDIFException(message, lineNumber, true);
       }
     }
 
@@ -1455,10 +1437,9 @@ public final class LDIFReader
       } else
       {
         // Invalid attribute name.
-        int msgID = MSGID_LDIF_INVALID_MODIFY_ATTRIBUTE;
-        String message = getMessage(msgID, name,
-            "add, delete, replace, increment");
-        throw new LDIFException(msgID, message, lineNumber, true);
+        Message message = ERR_LDIF_INVALID_MODIFY_ATTRIBUTE.get(
+            name, "add, delete, replace, increment");
+        throw new LDIFException(message, lineNumber, true);
       }
 
       // Now go through the rest of the attributes till the "-" line is
@@ -1502,10 +1483,8 @@ public final class LDIFReader
 
     if (!lines.isEmpty())
     {
-      int msgID = MSGID_LDIF_INVALID_DELETE_ATTRIBUTES;
-      String message = getMessage(msgID);
-
-      throw new LDIFException(msgID, message, lineNumber, true);
+      Message message = ERR_LDIF_INVALID_DELETE_ATTRIBUTES.get();
+      throw new LDIFException(message, lineNumber, true);
     }
 
     return new DeleteChangeRecordEntry(entryDN);
@@ -1572,10 +1551,10 @@ public final class LDIFReader
     int colonPos = line.indexOf(":");
     if (colonPos <= 0)
     {
-      int    msgID   = MSGID_LDIF_NO_ATTR_NAME;
-      String message = getMessage(msgID, lastEntryLineNumber, line.toString());
+      Message message = ERR_LDIF_NO_ATTR_NAME.get(
+              lastEntryLineNumber, line.toString());
       logToRejectWriter(lines, message);
-      throw new LDIFException(msgID, message, lastEntryLineNumber, true);
+      throw new LDIFException(message, lastEntryLineNumber, true);
     }
     return colonPos;
   }
@@ -1641,12 +1620,12 @@ public final class LDIFReader
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_LDIF_COULD_NOT_BASE64_DECODE_ATTR;
-          String message = getMessage(msgID, String.valueOf(entryDN),
-                                      lastEntryLineNumber, line,
-                                      String.valueOf(e));
+          Message message = ERR_LDIF_COULD_NOT_BASE64_DECODE_ATTR.get(
+                  String.valueOf(entryDN),
+                  lastEntryLineNumber, line,
+                  String.valueOf(e));
           logToRejectWriter(lines, message);
-          throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
+          throw new LDIFException(message, lastEntryLineNumber, true, e);
         }
       }
       else if (c == '<')
@@ -1672,13 +1651,12 @@ public final class LDIFReader
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_LDIF_INVALID_URL;
-          String message = getMessage(msgID, String.valueOf(entryDN),
+          Message message = ERR_LDIF_INVALID_URL.get(String.valueOf(entryDN),
                                       lastEntryLineNumber,
                                       String.valueOf(attrName),
                                       String.valueOf(e));
           logToRejectWriter(lines, message);
-          throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
+          throw new LDIFException(message, lastEntryLineNumber, true, e);
         }
 
 
@@ -1706,14 +1684,13 @@ public final class LDIFReader
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int msgID = MSGID_LDIF_URL_IO_ERROR;
-          String message = getMessage(msgID, String.valueOf(entryDN),
+          Message message = ERR_LDIF_URL_IO_ERROR.get(String.valueOf(entryDN),
                                       lastEntryLineNumber,
                                       String.valueOf(attrName),
                                       String.valueOf(contentURL),
                                       String.valueOf(e));
           logToRejectWriter(lines, message);
-          throw new LDIFException(msgID, message, lastEntryLineNumber, true, e);
+          throw new LDIFException(message, lastEntryLineNumber, true, e);
         }
         finally
         {
@@ -1759,7 +1736,7 @@ public final class LDIFReader
    *          The associated error message.
    */
   private void logToRejectWriter(LinkedList<StringBuilder> lines,
-      String message) {
+      Message message) {
 
     BufferedWriter rejectWriter = importConfig.getRejectWriter();
     if (rejectWriter != null)
@@ -1777,7 +1754,7 @@ public final class LDIFReader
    *          The associated error message.
    */
   private void logToSkipWriter(LinkedList<StringBuilder> lines,
-      String message) {
+      Message message) {
 
     BufferedWriter skipWriter = importConfig.getSkipWriter();
     if (skipWriter != null)
@@ -1792,20 +1769,20 @@ public final class LDIFReader
    * @param writer
    *          The writer to write to.
    * @param lines
-   *          The set of rejected lines.
+ *          The set of rejected lines.
    * @param message
    *          The associated error message.
    */
   private void logToWriter(BufferedWriter writer,
       LinkedList<StringBuilder> lines,
-      String message)
+      Message message)
   {
     if (writer != null)
     {
       try
       {
         writer.write("# ");
-        writer.write(message);
+        writer.write(String.valueOf(message));
         writer.newLine();
         for (StringBuilder sb : lines)
         {

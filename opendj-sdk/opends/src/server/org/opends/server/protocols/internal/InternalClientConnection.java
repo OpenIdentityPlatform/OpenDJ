@@ -25,13 +25,15 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.internal;
+import org.opends.messages.Message;
 
 
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
+
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 
@@ -69,8 +71,8 @@ import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
@@ -241,10 +243,8 @@ public class InternalClientConnection
         TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
-      logError(ErrorLogCategory.CONNECTION_HANDLING,
-               ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_INTERNAL_CANNOT_DECODE_DN, fullDNString,
-               getExceptionMessage(de));
+      logError(ERR_INTERNAL_CANNOT_DECODE_DN.get(
+          fullDNString, getExceptionMessage(de)));
     }
 
     connectionID  = nextConnectionID.getAndDecrement();
@@ -1370,7 +1370,7 @@ public class InternalClientConnection
     {
       throw new DirectoryException(
                      ResultCode.valueOf(le.getResultCode()),
-                     le.getErrorMessage(), le.getMessageID(), le);
+                     le.getErrorMessage(), le);
     }
 
     return processSearch(new ASN1OctetString(rawBaseDN), scope,
@@ -1420,7 +1420,7 @@ public class InternalClientConnection
     {
       throw new DirectoryException(
                      ResultCode.valueOf(le.getResultCode()),
-                     le.getErrorMessage(), le.getMessageID(), le);
+                     le.getErrorMessage(), le);
     }
 
     return processSearch(new ASN1OctetString(rawBaseDN), scope,
@@ -1475,7 +1475,7 @@ public class InternalClientConnection
     {
       throw new DirectoryException(
                      ResultCode.valueOf(le.getResultCode()),
-                     le.getErrorMessage(), le.getMessageID(), le);
+                     le.getErrorMessage(), le);
     }
 
     return processSearch(new ASN1OctetString(rawBaseDN), scope,
@@ -1798,14 +1798,10 @@ public class InternalClientConnection
    * @param  message           The message to send to the client.  It
    *                           may be <CODE>null</CODE> if no
    *                           notification is to be sent.
-   * @param  messageID         The unique identifier associated with
-   *                           the message to send to the client.  It
-   *                           may be -1 if no notification is to be
-   *                           sent.
    */
   public void disconnect(DisconnectReason disconnectReason,
-                         boolean sendNotification, String message,
-                         int messageID)
+                         boolean sendNotification,
+                         Message message)
   {
     // No implementation is required since there is nothing to
     // disconnect.  Further, since there is no real disconnect, we can

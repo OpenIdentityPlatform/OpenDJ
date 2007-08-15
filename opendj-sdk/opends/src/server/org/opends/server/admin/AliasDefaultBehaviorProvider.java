@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.admin;
+import org.opends.messages.Message;
 
 import java.util.Locale;
 
@@ -88,7 +89,7 @@ public final class AliasDefaultBehaviorProvider<T> implements
    * @return Returns the synopsis of this alias default behavior in
    *         the default locale.
    */
-  public final String getSynopsis() {
+  public final Message getSynopsis() {
     return getSynopsis(Locale.getDefault());
   }
 
@@ -103,7 +104,7 @@ public final class AliasDefaultBehaviorProvider<T> implements
    * @return Returns the synopsis of this alias default behavior in
    *         the specified locale.
    */
-  public final String getSynopsis(Locale locale) {
+  public final Message getSynopsis(Locale locale) {
     ManagedObjectDefinitionI18NResource resource =
       ManagedObjectDefinitionI18NResource.getInstance();
     String property = "property." + propertyName

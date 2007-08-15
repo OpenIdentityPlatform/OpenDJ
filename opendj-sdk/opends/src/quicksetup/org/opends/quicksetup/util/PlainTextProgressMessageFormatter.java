@@ -26,9 +26,13 @@
  */
 
 package org.opends.quicksetup.util;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
-import org.opends.quicksetup.i18n.ResourceProvider;
+
 import org.opends.quicksetup.Constants;
+
+import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * This is an implementation of the ProgressMessageFormatter class that
@@ -38,8 +42,8 @@ import org.opends.quicksetup.Constants;
 public class PlainTextProgressMessageFormatter
 implements ProgressMessageFormatter
 {
-  private String doneText;
-  private String errorText;
+  private Message doneText;
+  private Message errorText;
 
   /**
    * The space in plain text.
@@ -52,7 +56,7 @@ implements ProgressMessageFormatter
    * representation
    * @return the text representation for the given text.
    */
-  public String getFormattedText(String text)
+  public Message getFormattedText(Message text)
   {
     return text;
   }
@@ -65,7 +69,7 @@ implements ProgressMessageFormatter
    * representation
    * @return the text representation of the summary for the given text.
    */
-  public String getFormattedSummary(String text)
+  public Message getFormattedSummary(Message text)
   {
     return text;
   }
@@ -78,12 +82,13 @@ implements ProgressMessageFormatter
    * resulting formatted text.
    * @return the plain text representation of an error for the given text.
    */
-  public String getFormattedError(String text, boolean applyMargin)
+  public Message getFormattedError(Message text, boolean applyMargin)
   {
-    String result;
+    Message result;
     if (applyMargin)
     {
-      result = Constants.LINE_SEPARATOR+text;
+      result = new MessageBuilder().append(Constants.LINE_SEPARATOR)
+              .append(text).toMessage();
     } else
     {
       result = text;
@@ -99,12 +104,13 @@ implements ProgressMessageFormatter
    * resulting formatted text.
    * @return the plain text representation of a warning for the given text.
    */
-  public String getFormattedWarning(String text, boolean applyMargin)
+  public Message getFormattedWarning(Message text, boolean applyMargin)
   {
-    String result;
+    Message result;
     if (applyMargin)
     {
-      result = Constants.LINE_SEPARATOR+text;
+      result = new MessageBuilder(Constants.LINE_SEPARATOR)
+              .append(text).toMessage();
     } else
     {
       result = text;
@@ -120,7 +126,7 @@ implements ProgressMessageFormatter
    * @return the plain text representation of a success message for the given
    * text.
    */
-  public String getFormattedSuccess(String text)
+  public Message getFormattedSuccess(Message text)
   {
     return text;
   }
@@ -133,7 +139,7 @@ implements ProgressMessageFormatter
    * @return the plain text representation of a log error message for the given
    * text.
    */
-  public String getFormattedLogError(String text)
+  public Message getFormattedLogError(Message text)
   {
     return text;
   }
@@ -145,7 +151,7 @@ implements ProgressMessageFormatter
    * representation
    * @return the plain text representation of a log message for the given text.
    */
-  public String getFormattedLog(String text)
+  public Message getFormattedLog(Message text)
   {
     return text;
   }
@@ -154,11 +160,11 @@ implements ProgressMessageFormatter
    * Returns the plain text representation of the 'Done' text string.
    * @return the plain text representation of the 'Done' text string.
    */
-  public String getFormattedDone()
+  public Message getFormattedDone()
   {
     if (doneText == null)
     {
-      doneText = getMsg("progress-done");
+      doneText = INFO_PROGRESS_DONE.get();
     }
     return doneText;
   }
@@ -167,11 +173,11 @@ implements ProgressMessageFormatter
    * Returns the plain text representation of the 'Error' text string.
    * @return the plain text representation of the 'Error' text string.
    */
-  public String getFormattedError()
+  public Message getFormattedError()
   {
     if (errorText == null)
     {
-      errorText = getMsg("progress-error");
+      errorText = INFO_PROGRESS_ERROR.get();
     }
     return errorText;
   }
@@ -183,9 +189,10 @@ implements ProgressMessageFormatter
    * @param text the String to which add points.
    * @return the plain text representation of the '.....' text string.
    */
-  public String getFormattedWithPoints(String text)
+  public Message getFormattedWithPoints(Message text)
   {
-    return text + SPACE + getMsg("progress-points");
+    return new MessageBuilder(text).append(SPACE)
+            .append(INFO_PROGRESS_POINTS.get()).toMessage();
   }
 
   /**
@@ -196,7 +203,7 @@ implements ProgressMessageFormatter
    * @return the formatted representation of a progress message for the given
    * text.
    */
-  public String getFormattedProgress(String text)
+  public Message getFormattedProgress(Message text)
   {
     return text;
   }
@@ -212,7 +219,7 @@ implements ProgressMessageFormatter
    * @return the plain text representation of an error message for the given
    * exception.
    */
-  public String getFormattedError(Throwable t, boolean applyMargin)
+  public Message getFormattedError(Throwable t, boolean applyMargin)
   {
     String msg = t.getMessage();
     if (msg == null)
@@ -227,68 +234,46 @@ implements ProgressMessageFormatter
     {
       result = msg;
     }
-    return result;
+    return Message.raw(result);
   }
 
   /**
    * Returns the line break in plain text.
    * @return the line break in plain text.
    */
-  public String getLineBreak()
+  public Message getLineBreak()
   {
-    return Constants.LINE_SEPARATOR;
+    return Message.raw(Constants.LINE_SEPARATOR);
   }
 
   /**
    * Returns the tab in plain text.
    * @return the tab in plain text.
    */
-  public String getTab()
+  public Message getTab()
   {
-    return "     ";
+    return Message.raw("     ");
   }
 
   /**
    * Returns the task separator in plain text.
    * @return the task separator in plain text.
    */
-  public String getTaskSeparator()
+  public Message getTaskSeparator()
   {
-    return
-    "\n\n-----------------------------------------------------------------\n\n";
+    return Message.raw(
+    "\n\n-----------------------------------------------------------------\n\n"
+            );
   }
 
   /**
    * {@inheritDoc}
    */
-  public String getFormattedAfterUrlClick(String url, String lastText)
+  public Message getFormattedAfterUrlClick(String url, Message lastText)
   {
     throw new IllegalStateException(
         "PlainTextProgressMessageFormatter.getFormattedAfterUrlClick must not "+
         "be called");
   }
 
-  /**
-   * Returns a localized message for a key value.  In  the properties file we
-   * have something of type:
-   * key=value
-   *
-   * @see ResourceProvider#getMsg(String key)
-   * @param key the key in the properties file.
-   * @return the value associated to the key in the properties file.
-   * properties file.
-   */
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  /**
-   * Returns a ResourceProvider instance.
-   * @return a ResourceProvider instance.
-   */
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
-  }
 }

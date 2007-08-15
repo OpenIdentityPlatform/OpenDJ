@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
+import org.opends.messages.Message;
 
 
 
@@ -47,8 +48,7 @@ import org.opends.server.types.ResultCode;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
@@ -138,17 +138,14 @@ public class ProxiedAuthV2Control
 
     if (! control.isCritical())
     {
-      int    msgID   = MSGID_PROXYAUTH2_CONTROL_NOT_CRITICAL;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                              message);
+      Message message = ERR_PROXYAUTH2_CONTROL_NOT_CRITICAL.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
     if (! control.hasValue())
     {
-      int    msgID   = MSGID_PROXYAUTH2_NO_CONTROL_VALUE;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_PROXYAUTH2_NO_CONTROL_VALUE.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
     ASN1OctetString authorizationID;
@@ -171,9 +168,9 @@ public class ProxiedAuthV2Control
           TRACER.debugCaught(DebugLogLevel.ERROR, ae);
         }
 
-        int    msgID   = MSGID_PROXYAUTH2_CANNOT_DECODE_VALUE;
-        String message = getMessage(msgID, getExceptionMessage(ae));
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message,
+        Message message =
+            ERR_PROXYAUTH2_CANNOT_DECODE_VALUE.get(getExceptionMessage(ae));
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message,
                                 ae);
       }
     }
@@ -184,9 +181,9 @@ public class ProxiedAuthV2Control
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_PROXYAUTH2_CANNOT_DECODE_VALUE;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_PROXYAUTH2_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message, e);
     }
 
     return new ProxiedAuthV2Control(control.getOID(), control.isCritical(),
@@ -288,10 +285,10 @@ public class ProxiedAuthV2Control
 
         if (entryLock == null)
         {
-          int    msgID   = MSGID_PROXYAUTH2_CANNOT_LOCK_USER;
-          String message = getMessage(msgID, String.valueOf(authzDN));
-          throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message,
-                                       msgID);
+          Message message =
+              ERR_PROXYAUTH2_CANNOT_LOCK_USER.get(String.valueOf(authzDN));
+          throw new DirectoryException(
+                  ResultCode.AUTHORIZATION_DENIED, message);
         }
 
         try
@@ -300,10 +297,9 @@ public class ProxiedAuthV2Control
           if (userEntry == null)
           {
             // The requested user does not exist.
-            int    msgID   = MSGID_PROXYAUTH2_NO_SUCH_USER;
-            String message = getMessage(msgID, authzID);
+            Message message = ERR_PROXYAUTH2_NO_SUCH_USER.get(authzID);
             throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
-                                         message, msgID);
+                                         message);
           }
 
           // FIXME -- We should provide some mechanism for enabling debug
@@ -316,10 +312,10 @@ public class ProxiedAuthV2Control
               pwpState.lockedDueToMaximumResetAge() ||
               pwpState.isPasswordExpired())
           {
-            int    msgID   = MSGID_PROXYAUTH2_UNUSABLE_ACCOUNT;
-            String message = getMessage(msgID, String.valueOf(authzDN));
+            Message message =
+                ERR_PROXYAUTH2_UNUSABLE_ACCOUNT.get(String.valueOf(authzDN));
             throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
-                                         message, msgID);
+                                         message);
           }
 
 
@@ -347,19 +343,15 @@ public class ProxiedAuthV2Control
            DirectoryServer.getProxiedAuthorizationIdentityMapper();
       if (proxyMapper == null)
       {
-        int    msgID   = MSGID_PROXYAUTH2_NO_IDENTITY_MAPPER;
-        String message = getMessage(msgID);
-        throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message,
-                                     msgID);
+        Message message = ERR_PROXYAUTH2_NO_IDENTITY_MAPPER.get();
+        throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
       }
 
       Entry userEntry = proxyMapper.getEntryForID(authzID.substring(2));
       if (userEntry == null)
       {
-        int    msgID   = MSGID_PROXYAUTH2_NO_SUCH_USER;
-        String message = getMessage(msgID, authzID);
-        throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message,
-                                     msgID);
+        Message message = ERR_PROXYAUTH2_NO_SUCH_USER.get(authzID);
+        throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
       }
       else
       {
@@ -373,10 +365,10 @@ public class ProxiedAuthV2Control
             pwpState.lockedDueToMaximumResetAge() ||
             pwpState.isPasswordExpired())
         {
-          int    msgID   = MSGID_PROXYAUTH2_UNUSABLE_ACCOUNT;
-          String message = getMessage(msgID, String.valueOf(userEntry.getDN()));
+          Message message = ERR_PROXYAUTH2_UNUSABLE_ACCOUNT.get(
+              String.valueOf(userEntry.getDN()));
           throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
-                                       message, msgID);
+                                       message);
         }
 
         return userEntry;
@@ -384,9 +376,8 @@ public class ProxiedAuthV2Control
     }
     else
     {
-      int    msgID   = MSGID_PROXYAUTH2_INVALID_AUTHZID;
-      String message = getMessage(msgID, authzID);
-      throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, msgID);
+      Message message = ERR_PROXYAUTH2_INVALID_AUTHZID.get(authzID);
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
   }
 

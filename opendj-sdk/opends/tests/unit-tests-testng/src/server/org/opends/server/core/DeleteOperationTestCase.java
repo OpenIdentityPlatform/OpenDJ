@@ -37,6 +37,7 @@ import org.testng.annotations.Test;
 import org.testng.annotations.AfterMethod;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
@@ -812,7 +813,7 @@ public class DeleteOperationTestCase
                              null, new ASN1OctetString("o=test"));
 
     CancelRequest cancelRequest = new CancelRequest(false,
-                                                    "testCancelBeforeStartup");
+                                                    Message.raw("testCancelBeforeStartup"));
     deleteOperation.setCancelRequest(cancelRequest);
     deleteOperation.run();
     assertEquals(deleteOperation.getResultCode(), ResultCode.CANCELED);

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
+import org.opends.messages.Message;
 
 
 
@@ -40,8 +41,7 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -121,7 +121,7 @@ public class Branch
     // Get the RDN template lines based just on the entry DN.
     Entry entry = createEntry(branchDN);
 
-    ArrayList<String>       warnings = new ArrayList<String>();
+    ArrayList<Message>       warnings = new ArrayList<Message>();
     ArrayList<TemplateLine> lineList = new ArrayList<TemplateLine>();
 
     for (String ocName : entry.getObjectClasses().values())
@@ -227,10 +227,9 @@ public class Branch
              templates.get(toLowerCase(subordinateTemplateNames[i]));
         if (subordinateTemplates[i] == null)
         {
-          int    msgID   = MSGID_MAKELDIF_UNDEFINED_BRANCH_SUBORDINATE;
-          String message = getMessage(msgID, subordinateTemplateNames[i],
-                                      branchDN.toString());
-          throw new MakeLDIFException(msgID, message);
+          Message message = ERR_MAKELDIF_UNDEFINED_BRANCH_SUBORDINATE.get(
+              subordinateTemplateNames[i], branchDN.toString());
+          throw new MakeLDIFException(message);
         }
       }
     }

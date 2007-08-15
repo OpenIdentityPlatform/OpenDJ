@@ -26,6 +26,7 @@
  */
 
 package org.opends.admin.ads;
+import org.opends.server.types.OpenDsException;
 
 import javax.naming.NamingException;
 
@@ -35,8 +36,8 @@ import org.opends.admin.ads.util.ApplicationTrustManager;
  * This class represents the Exception that can occur while reading server
  * configuration through the TopologyCache class.
  */
-public class TopologyCacheException extends Exception
-{
+public class TopologyCacheException extends OpenDsException {
+
   private static final long serialVersionUID = 1709535837273360382L;
   private Type type;
   private String ldapUrl;

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -40,19 +41,16 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.Base64;
 
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import org.opends.server.loggers.ErrorLogger;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -138,10 +136,9 @@ public class SaltedSHA384PasswordStorageScheme
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST;
-      String message = getMessage(msgID, MESSAGE_DIGEST_ALGORITHM_SHA_384,
-                                  String.valueOf(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST.get(
+          MESSAGE_DIGEST_ALGORITHM_SHA_384, String.valueOf(e));
+      throw new InitializationException(message, e);
     }
 
 
@@ -196,11 +193,10 @@ public class SaltedSHA384PasswordStorageScheme
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_PWSCHEME_CANNOT_ENCODE_PASSWORD;
-      String message = getMessage(msgID, CLASS_NAME, getExceptionMessage(e));
-
+      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+          CLASS_NAME, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
     finally
     {
@@ -258,11 +254,10 @@ public class SaltedSHA384PasswordStorageScheme
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_PWSCHEME_CANNOT_ENCODE_PASSWORD;
-      String message = getMessage(msgID, CLASS_NAME, getExceptionMessage(e));
-
+      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+          CLASS_NAME, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
     finally
     {
@@ -309,11 +304,9 @@ public class SaltedSHA384PasswordStorageScheme
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD;
-      String message = getMessage(msgID, storedPassword.stringValue(),
-                                  String.valueOf(e));
-      logError(ErrorLogCategory.EXTENSIONS, ErrorLogSeverity.MILD_ERROR,
-               message, msgID);
+      Message message = ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(
+          storedPassword.stringValue(), String.valueOf(e));
+      ErrorLogger.logError(message);
       return false;
     }
 
@@ -409,11 +402,10 @@ public class SaltedSHA384PasswordStorageScheme
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_PWSCHEME_CANNOT_ENCODE_PASSWORD;
-      String message = getMessage(msgID, CLASS_NAME, getExceptionMessage(e));
-
+      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+          CLASS_NAME, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
     finally
     {
@@ -498,10 +490,9 @@ public class SaltedSHA384PasswordStorageScheme
   public ByteString getPlaintextValue(ByteString storedPassword)
          throws DirectoryException
   {
-    int msgID = MSGID_PWSCHEME_NOT_REVERSIBLE;
-    String message = getMessage(msgID, STORAGE_SCHEME_NAME_SALTED_SHA_384);
-    throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                 msgID);
+    Message message =
+        ERR_PWSCHEME_NOT_REVERSIBLE.get(STORAGE_SCHEME_NAME_SALTED_SHA_384);
+    throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
 
 
@@ -514,11 +505,9 @@ public class SaltedSHA384PasswordStorageScheme
                                                   String authValue)
          throws DirectoryException
   {
-    int msgID = MSGID_PWSCHEME_NOT_REVERSIBLE;
-    String message = getMessage(msgID,
-                                AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_384);
-    throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                 msgID);
+    Message message = ERR_PWSCHEME_NOT_REVERSIBLE.get(
+        AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_384);
+    throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
 
 

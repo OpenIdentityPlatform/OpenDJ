@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.config;
+import org.opends.messages.Message;
 
 
 
@@ -49,8 +50,7 @@ import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -375,10 +375,9 @@ public class ConfigEntry
 
     if (conflictingChild != null)
     {
-      int    msgID   = MSGID_CONFIG_ENTRY_CONFLICTING_CHILD;
-      String message = getMessage(msgID, conflictingChild.getDN().toString(),
-                                  entry.getDN().toString());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ENTRY_CONFLICTING_CHILD.get(
+          conflictingChild.getDN().toString(), entry.getDN().toString());
+      throw new ConfigException(message);
     }
   }
 
@@ -408,18 +407,16 @@ public class ConfigEntry
       ConfigEntry childEntry = children.get(childDN);
       if (childEntry == null)
       {
-        int    msgID   = MSGID_CONFIG_ENTRY_NO_SUCH_CHILD;
-        String message = getMessage(msgID, childDN.toString(),
-                                    entry.getDN().toString());
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CONFIG_ENTRY_NO_SUCH_CHILD.get(
+            childDN.toString(), entry.getDN().toString());
+        throw new ConfigException(message);
       }
 
       if (childEntry.hasChildren())
       {
-        int    msgID   = MSGID_CONFIG_ENTRY_CANNOT_REMOVE_NONLEAF;
-        String message = getMessage(msgID, childDN.toString(),
-                                    entry.getDN().toString());
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CONFIG_ENTRY_CANNOT_REMOVE_NONLEAF.get(
+            childDN.toString(), entry.getDN().toString());
+        throw new ConfigException(message);
       }
 
       children.remove(childDN);
@@ -436,12 +433,10 @@ public class ConfigEntry
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_ENTRY_CANNOT_REMOVE_CHILD;
-      String message = getMessage(msgID, String.valueOf(childDN),
-                                  String.valueOf(entry.getDN()),
-                                  stackTraceToSingleLineString(e));
-
-      throw new ConfigException(msgID, message, e);
+      Message message = ERR_CONFIG_ENTRY_CANNOT_REMOVE_CHILD.
+          get(String.valueOf(childDN), String.valueOf(entry.getDN()),
+              stackTraceToSingleLineString(e));
+      throw new ConfigException(message, e);
     }
     finally
     {

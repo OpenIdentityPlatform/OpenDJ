@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.admin.client;
+import org.opends.messages.Message;
 
 
 
@@ -103,7 +104,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
    * {@inheritDoc}
    */
   @Override
-  public String getMessage() {
+  public Message getMessageObject() {
     StringBuilder builder = new StringBuilder();
     builder.append("The following properties are mandatory: ");
     boolean isFirst = true;
@@ -114,7 +115,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
       builder.append(e.getPropertyDefinition().getName());
       isFirst = false;
     }
-    return builder.toString();
+    return Message.raw(builder.toString());
   }
 
 }

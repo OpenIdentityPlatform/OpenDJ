@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup.upgrader;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.ProgressStep;
 
 /**
@@ -34,61 +37,63 @@ import org.opends.quicksetup.ProgressStep;
  */
 enum UpgradeProgressStep implements ProgressStep {
 
-  NOT_STARTED("summary-upgrade-not-started", 0),
+  NOT_STARTED(INFO_SUMMARY_UPGRADE_NOT_STARTED.get(), 0),
 
-  DOWNLOADING("summary-upgrade-downloading", 10),
+  DOWNLOADING(INFO_SUMMARY_UPGRADE_DOWNLOADING.get(), 10),
 
-  EXTRACTING("summary-upgrade-extracting", 20),
+  EXTRACTING(INFO_SUMMARY_UPGRADE_EXTRACTING.get(), 20),
 
-  INITIALIZING("summary-upgrade-initializing", 30),
+  INITIALIZING(INFO_SUMMARY_UPGRADE_INITIALIZING.get(), 30),
 
-  CHECK_SERVER_HEALTH("summary-upgrade-check-server-health", 35),
+  CHECK_SERVER_HEALTH(INFO_SUMMARY_UPGRADE_CHECK_SERVER_HEALTH.get(), 35),
 
   CALCULATING_SCHEMA_CUSTOMIZATIONS(
-          "summary-upgrade-calculating-schema-customization", 40),
+          INFO_SUMMARY_UPGRADE_CALCULATING_SCHEMA_CUSTOMIZATION.get(), 40),
 
   CALCULATING_CONFIGURATION_CUSTOMIZATIONS(
-          "summary-upgrade-calculating-config-customization", 48),
+          INFO_SUMMARY_UPGRADE_CALCULATING_CONFIG_CUSTOMIZATION.get(), 48),
 
-  BACKING_UP_DATABASES("summary-upgrade-backing-up-db", 50),
+  BACKING_UP_DATABASES(INFO_SUMMARY_UPGRADE_BACKING_UP_DB.get(), 50),
 
-  BACKING_UP_FILESYSTEM("summary-upgrade-backing-up-files",52),
+  BACKING_UP_FILESYSTEM(INFO_SUMMARY_UPGRADE_BACKING_UP_FILES.get(), 52),
 
-  UPGRADING_COMPONENTS("summary-upgrade-upgrading-components", 60),
+  UPGRADING_COMPONENTS(INFO_SUMMARY_UPGRADE_UPGRADING_COMPONENTS.get(), 60),
 
-  PREPARING_CUSTOMIZATIONS("summary-upgrade-preparing-customizations", 65),
+  PREPARING_CUSTOMIZATIONS(
+          INFO_SUMMARY_UPGRADE_PREPARING_CUSTOMIZATIONS.get(), 65),
 
   APPLYING_SCHEMA_CUSTOMIZATIONS(
-          "summary-upgrade-applying-schema-customization", 70),
+          INFO_SUMMARY_UPGRADE_APPLYING_SCHEMA_CUSTOMIZATION.get(), 70),
 
   APPLYING_CONFIGURATION_CUSTOMIZATIONS(
-          "summary-upgrade-applying-config-customization", 75),
+          INFO_SUMMARY_UPGRADE_APPLYING_CONFIG_CUSTOMIZATION.get(), 75),
 
-  VERIFYING("summary-upgrade-verifying", 80),
+  VERIFYING(INFO_SUMMARY_UPGRADE_VERIFYING.get(), 80),
 
-  STARTING_SERVER("summary-starting", 90),
+  STARTING_SERVER(INFO_SUMMARY_STARTING.get(), 90),
 
-  STOPPING_SERVER("summary-stopping", 90),
+  STOPPING_SERVER(INFO_SUMMARY_STOPPING.get(), 90),
 
-  RECORDING_HISTORY("summary-upgrade-history", 97),
+  RECORDING_HISTORY(INFO_SUMMARY_UPGRADE_HISTORY.get(), 97),
 
-  CLEANUP("summary-upgrade-cleanup", 99),
+  CLEANUP(INFO_SUMMARY_UPGRADE_CLEANUP.get(), 99),
 
-  ABORT("summary-upgrade-abort", 99),
+  ABORT(INFO_SUMMARY_UPGRADE_ABORT.get(), 99),
 
-  FINISHED_WITH_ERRORS("summary-upgrade-finished-with-errors", 100),
+  FINISHED_WITH_ERRORS(INFO_SUMMARY_UPGRADE_FINISHED_WITH_ERRORS.get(), 100),
 
-  FINISHED_WITH_WARNINGS("summary-upgrade-finished-with-warnings", 100),
+  FINISHED_WITH_WARNINGS(
+          INFO_SUMMARY_UPGRADE_FINISHED_WITH_WARNINGS.get(), 100),
 
-  FINISHED_CANCELED("summary-upgrade-finished-canceled", 100),
+  FINISHED_CANCELED(INFO_SUMMARY_UPGRADE_FINISHED_CANCELED.get(), 100),
 
-  FINISHED("summary-upgrade-finished-successfully", 100);
+  FINISHED(INFO_SUMMARY_UPGRADE_FINISHED_SUCCESSFULLY.get("",""), 100);
 
-  private String summaryMsgKey;
+  private Message summaryMsg;
   private int progress;
 
-  private UpgradeProgressStep(String summaryMsgKey, int progress) {
-    this.summaryMsgKey = summaryMsgKey;
+  private UpgradeProgressStep(Message summaryMsg, int progress) {
+    this.summaryMsg = summaryMsg;
     this.progress = progress;
   }
 
@@ -97,8 +102,8 @@ enum UpgradeProgressStep implements ProgressStep {
    *
    * @return String representing key for access summary in resource bundle
    */
-  public String getSummaryMesssageKey() {
-    return summaryMsgKey;
+  public Message getSummaryMesssage() {
+    return summaryMsg;
   }
 
   /**

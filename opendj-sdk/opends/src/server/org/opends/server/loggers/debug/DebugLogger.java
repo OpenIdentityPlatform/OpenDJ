@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.loggers.debug;
+import org.opends.messages.Message;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -45,8 +46,8 @@ import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ConfigMessages.*;
+import static org.opends.messages.ConfigMessages.*;
+
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -182,7 +183,7 @@ public class DebugLogger implements
    * {@inheritDoc}
    */
   public boolean isConfigurationAddAcceptable(DebugLogPublisherCfg config,
-                                              List<String> unacceptableReasons)
+                                              List<Message> unacceptableReasons)
   {
     return !config.isEnabled() ||
         isJavaClassAcceptable(config, unacceptableReasons);
@@ -192,7 +193,7 @@ public class DebugLogger implements
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(DebugLogPublisherCfg config,
-                                               List<String> unacceptableReasons)
+                                              List<Message> unacceptableReasons)
   {
     return !config.isEnabled() ||
         isJavaClassAcceptable(config, unacceptableReasons);
@@ -206,7 +207,7 @@ public class DebugLogger implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     config.addDebugChangeListener(this);
 
@@ -221,14 +222,15 @@ public class DebugLogger implements
       }
       catch(ConfigException e)
       {
-        messages.add(e.getMessage());
+        messages.add(e.getMessageObject());
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
       catch (Exception e)
       {
-        int msgID = MSGID_CONFIG_LOGGER_CANNOT_CREATE_LOGGER;
-        messages.add(getMessage(msgID, String.valueOf(config.dn().toString()),
-                                stackTraceToSingleLineString(e)));
+
+        messages.add(ERR_CONFIG_LOGGER_CANNOT_CREATE_LOGGER.get(
+                String.valueOf(config.dn().toString()),
+                stackTraceToSingleLineString(e)));
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
     }
@@ -244,7 +246,7 @@ public class DebugLogger implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     DN dn = config.dn();
 
@@ -294,7 +296,7 @@ public class DebugLogger implements
    * {@inheritDoc}
    */
   public boolean isConfigurationDeleteAcceptable(DebugLogPublisherCfg config,
-                                               List<String> unacceptableReasons)
+                                             List<Message> unacceptableReasons)
   {
     DN dn = config.dn();
 
@@ -343,7 +345,7 @@ public class DebugLogger implements
   }
 
   private boolean isJavaClassAcceptable(DebugLogPublisherCfg config,
-                                        List<String> unacceptableReasons)
+                                        List<Message> unacceptableReasons)
   {
     String className = config.getJavaImplementationClass();
     DebugLogPublisherCfgDefn d = DebugLogPublisherCfgDefn.getInstance();
@@ -356,10 +358,10 @@ public class DebugLogger implements
       theClass = pd.loadClass(className, DebugLogPublisher.class);
       publisher = theClass.newInstance();
     } catch (Exception e) {
-      int    msgID   = MSGID_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS;
-      String message = getMessage(msgID, className,
-                                  config.dn().toString(),
-                                  String.valueOf(e));
+      Message message = ERR_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS.get(
+              className,
+              config.dn().toString(),
+              String.valueOf(e));
       unacceptableReasons.add(message);
       return false;
     }
@@ -379,10 +381,10 @@ public class DebugLogger implements
         return false;
       }
     } catch (Exception e) {
-      int    msgID   = MSGID_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS;
-      String message = getMessage(msgID, className,
-                                  config.dn().toString(),
-                                  String.valueOf(e));
+      Message message = ERR_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS.get(
+              className,
+              config.dn().toString(),
+              String.valueOf(e));
       unacceptableReasons.add(message);
       return false;
     }
@@ -414,19 +416,15 @@ public class DebugLogger implements
     {
       // Rethrow the exceptions thrown be the invoked method.
       Throwable e = ite.getTargetException();
-      int    msgID   = MSGID_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS;
-      String message = getMessage(msgID, className,
-                                  config.dn().toString(),
-                                  stackTraceToSingleLineString(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = ERR_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS.get(
+          className, config.dn().toString(), stackTraceToSingleLineString(e));
+      throw new ConfigException(message, e);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS;
-      String message = getMessage(msgID, className,
-                                  config.dn().toString(),
-                                  String.valueOf(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = ERR_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS.get(
+          className, config.dn().toString(), String.valueOf(e));
+      throw new ConfigException(message, e);
     }
 
     // The debug publisher has been successfully initialized.

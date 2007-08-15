@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.dsml.protocol;
+import org.opends.messages.Message;
 
 
 
@@ -169,7 +170,7 @@ public class DSMLSearchOperation
         do
         {
           int resultCode = 0;
-          String errorMessage = null;
+          Message errorMessage = null;
           LDAPMessage responseMessage =
                connection.getLDAPReader().readMessage();
 
@@ -224,7 +225,8 @@ public class DSMLSearchOperation
               ResultCode code = objFactory.createResultCode();
               code.setCode(resultCode);
               result.setResultCode(code);
-              result.setErrorMessage(errorMessage);
+              result.setErrorMessage(
+                      errorMessage != null ? errorMessage.toString() : null);
               if(searchOp.getMatchedDN() != null)
               {
                  result.setMatchedDN(searchOp.getMatchedDN().toString());
@@ -242,9 +244,8 @@ public class DSMLSearchOperation
              org.opends.server.types.ResultCode rc =
                   org.opends.server.types.ResultCode.valueOf(resultCode);
 
-             // FIXME.
-             int msgID = 0;
-             throw new LDAPException(resultCode, msgID, rc.toString());
+             // TODO:  FIXME - null message
+             throw new LDAPException(resultCode, null, rc.getResultCodeName());
            }
 
         } while(opType != LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE);

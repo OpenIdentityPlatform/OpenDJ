@@ -37,15 +37,16 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import org.opends.server.authorization.dseecompat.Aci;
 import org.opends.server.authorization.dseecompat.AciException;
@@ -105,9 +106,8 @@ public class AciSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_IA5_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_CASE_IGNORE_IA5_OID, SYNTAX_ACI_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_CASE_IGNORE_IA5_OID, SYNTAX_ACI_NAME));
     }
 
     // We don't need an ordering matching rule.
@@ -117,9 +117,8 @@ public class AciSyntax
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_IA5_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_CASE_IGNORE_IA5_OID, SYNTAX_ACI_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_CASE_IGNORE_IA5_OID, SYNTAX_ACI_NAME));
     }
   }
 
@@ -234,7 +233,7 @@ public class AciSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     try
     {
@@ -247,10 +246,8 @@ public class AciSyntax
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      logError(ErrorLogCategory.ACCESS_CONTROL,
-               ErrorLogSeverity.SEVERE_WARNING,
-               e.getMessage(), e.getMessageID());
-      invalidReason.append(e.getMessage());
+      logError(e.getMessageObject());
+      invalidReason.append(e.getMessageObject());
       return false;
     }
     return true;

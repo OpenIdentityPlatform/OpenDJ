@@ -25,11 +25,11 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 
 import java.io.PrintStream;
 import java.util.Collection;
@@ -168,9 +168,9 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
     // Create the sub-command.
     String name = "get-" + r.getName() + "-prop";
-    int descriptionID = MSGID_DSCFG_DESCRIPTION_SUBCMD_GETPROP;
-    this.subCommand = new SubCommand(parser, name, false, 0, 0, null,
-        descriptionID, r.getChildDefinition().getUserFriendlyName());
+    Message message = INFO_DSCFG_DESCRIPTION_SUBCMD_GETPROP.get(
+            r.getChildDefinition().getUserFriendlyName());
+    this.subCommand = new SubCommand(parser, name, false, 0, 0, null, message);
 
     // Create the naming arguments.
     this.namingArgs = createNamingArgs(subCommand, path, false);
@@ -178,7 +178,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
     // Register common arguments.
     registerPropertyNameArgument(this.subCommand);
     registerAdvancedModeArgument(this.subCommand,
-        MSGID_DSCFG_DESCRIPTION_ADVANCED_GET, r.getUserFriendlyName());
+        INFO_DSCFG_DESCRIPTION_ADVANCED_GET.get(r.getUserFriendlyName()));
     registerRecordModeArgument(this.subCommand);
     registerUnitSizeArgument(this.subCommand);
     registerUnitTimeArgument(this.subCommand);
@@ -217,38 +217,30 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
     try {
       child = getManagedObject(path, names);
     } catch (AuthorizationException e) {
-      int msgID = MSGID_DSCFG_ERROR_GET_CHILD_AUTHZ;
-      String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn);
+      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_GET_CHILD_AUTHZ.get(ufn);
       throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-          msgID, msg);
+          msg);
     } catch (DefinitionDecodingException e) {
-      int msgID = MSGID_DSCFG_ERROR_GET_CHILD_DDE;
-      String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn, ufn, ufn);
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msgID, msg);
+      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_GET_CHILD_DDE.get(ufn, ufn, ufn);
+      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
     } catch (ManagedObjectDecodingException e) {
-      int msgID = MSGID_DSCFG_ERROR_GET_CHILD_MODE;
-      String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn);
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msgID, msg);
+      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(ufn);
+      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
     } catch (CommunicationException e) {
-      int msgID = MSGID_DSCFG_ERROR_GET_CHILD_CE;
-      String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn, e.getMessage());
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-          msg);
+      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_GET_CHILD_CE.get(ufn, e.getMessage());
+      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
     } catch (ConcurrentModificationException e) {
-      int msgID = MSGID_DSCFG_ERROR_GET_CHILD_CME;
-      String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn);
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msgID,
-          msg);
+      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_GET_CHILD_CME.get(ufn);
+      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (ManagedObjectNotFoundException e) {
-      int msgID = MSGID_DSCFG_ERROR_GET_CHILD_MONFE;
-      String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn);
-      throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msgID, msg);
+      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_GET_CHILD_MONFE.get(ufn);
+      throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
     }
 
     // Validate the property names.
@@ -269,8 +261,8 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
     // Now output its properties.
     TableBuilder builder = new TableBuilder();
-    builder.appendHeading(getMessage(MSGID_DSCFG_HEADING_PROPERTY_NAME));
-    builder.appendHeading(getMessage(MSGID_DSCFG_HEADING_PROPERTY_VALUE));
+    builder.appendHeading(INFO_DSCFG_HEADING_PROPERTY_NAME.get());
+    builder.appendHeading(INFO_DSCFG_HEADING_PROPERTY_VALUE.get());
     builder.addSortKey(0);
     for (PropertyDefinition<?> pd : pdList) {
       if (pd.hasOption(PropertyOption.HIDDEN)) {
@@ -309,10 +301,10 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
     if (values.isEmpty()) {
       // There are no values or default values. Display the default
       // behavior for alias values.
-      DefaultBehaviorProviderVisitor<T, String, Void> visitor =
-        new DefaultBehaviorProviderVisitor<T, String, Void>() {
+      DefaultBehaviorProviderVisitor<T, Message, Void> visitor =
+        new DefaultBehaviorProviderVisitor<T, Message, Void>() {
 
-        public String visitAbsoluteInherited(
+        public Message visitAbsoluteInherited(
             AbsoluteInheritedDefaultBehaviorProvider<T> d, Void p) {
           // Should not happen - inherited default values are
           // displayed as normal values.
@@ -321,7 +313,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
 
 
-        public String visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
+        public Message visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
           if (getConsoleApplication().isVerbose()) {
             return d.getSynopsis();
           } else {
@@ -331,7 +323,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
 
 
-        public String visitDefined(DefinedDefaultBehaviorProvider<T> d,
+        public Message visitDefined(DefinedDefaultBehaviorProvider<T> d,
             Void p) {
           // Should not happen - real default values are displayed as
           // normal values.
@@ -340,7 +332,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
 
 
-        public String visitRelativeInherited(
+        public Message visitRelativeInherited(
             RelativeInheritedDefaultBehaviorProvider<T> d, Void p) {
           // Should not happen - inherited default values are
           // displayed as normal values.
@@ -349,7 +341,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
 
 
-        public String visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
+        public Message visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
             Void p) {
           return null;
         }
@@ -358,7 +350,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
       builder.startRow();
       builder.appendCell(pd.getName());
 
-      String content = pd.getDefaultBehaviorProvider().accept(visitor, null);
+      Message content = pd.getDefaultBehaviorProvider().accept(visitor, null);
       if (content == null) {
         if (getConsoleApplication().isScriptFriendly()) {
           builder.appendCell();

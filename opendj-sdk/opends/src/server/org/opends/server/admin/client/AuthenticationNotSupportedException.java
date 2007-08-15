@@ -26,6 +26,8 @@
  */
 
 package org.opends.server.admin.client;
+import org.opends.messages.Message;
+
 
 
 
@@ -73,7 +75,7 @@ public class AuthenticationNotSupportedException
    * @param cause
    *          The cause.
    */
-  public AuthenticationNotSupportedException(String message, Throwable cause) {
+  public AuthenticationNotSupportedException(Message message, Throwable cause) {
     super(message, cause);
   }
 
@@ -85,7 +87,7 @@ public class AuthenticationNotSupportedException
    * @param message
    *          The message.
    */
-  public AuthenticationNotSupportedException(String message) {
+  public AuthenticationNotSupportedException(Message message) {
     super(message);
   }
 }

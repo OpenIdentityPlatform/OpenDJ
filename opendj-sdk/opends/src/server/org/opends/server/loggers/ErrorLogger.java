@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
+import org.opends.messages.Message;
 
 
 
@@ -38,7 +39,7 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.backends.task.Task;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.messages.MessageHandler;
+
 import org.opends.server.types.*;
 import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
 import org.opends.server.admin.std.meta.ErrorLogPublisherCfgDefn;
@@ -50,10 +51,8 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.ConfigMessages.*;
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
-
 /**
  * This class defines the wrapper that will invoke all registered error loggers
  * for each type of request received or response sent. If no error log
@@ -162,7 +161,7 @@ public class ErrorLogger implements
    * {@inheritDoc}
    */
   public boolean isConfigurationAddAcceptable(ErrorLogPublisherCfg config,
-                                              List<String> unacceptableReasons)
+                                              List<Message> unacceptableReasons)
   {
     return !config.isEnabled() ||
         isJavaClassAcceptable(config, unacceptableReasons);
@@ -171,8 +170,9 @@ public class ErrorLogger implements
   /**
    * {@inheritDoc}
    */
-  public boolean isConfigurationChangeAcceptable(ErrorLogPublisherCfg config,
-                                               List<String> unacceptableReasons)
+  public boolean isConfigurationChangeAcceptable(
+          ErrorLogPublisherCfg config,
+          List<Message> unacceptableReasons)
   {
     return !config.isEnabled() ||
         isJavaClassAcceptable(config, unacceptableReasons);
@@ -186,7 +186,7 @@ public class ErrorLogger implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     config.addErrorChangeListener(this);
 
@@ -204,7 +204,7 @@ public class ErrorLogger implements
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-        messages.add(e.getMessage());
+        messages.add(e.getMessageObject());
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
       catch (Exception e)
@@ -213,9 +213,9 @@ public class ErrorLogger implements
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-        int msgID = MSGID_CONFIG_LOGGER_CANNOT_CREATE_LOGGER;
-        messages.add(getMessage(msgID, String.valueOf(config.dn().toString()),
-                                stackTraceToSingleLineString(e)));
+        messages.add(ERR_CONFIG_LOGGER_CANNOT_CREATE_LOGGER.get(
+                String.valueOf(config.dn().toString()),
+                stackTraceToSingleLineString(e)));
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
     }
@@ -231,7 +231,7 @@ public class ErrorLogger implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     DN dn = config.dn();
 
@@ -281,8 +281,9 @@ public class ErrorLogger implements
   /**
    * {@inheritDoc}
    */
-  public boolean isConfigurationDeleteAcceptable(ErrorLogPublisherCfg config,
-                                               List<String> unacceptableReasons)
+  public boolean isConfigurationDeleteAcceptable(
+          ErrorLogPublisherCfg config,
+          List<Message> unacceptableReasons)
   {
     DN dn = config.dn();
 
@@ -332,7 +333,7 @@ public class ErrorLogger implements
   }
 
   private boolean isJavaClassAcceptable(ErrorLogPublisherCfg config,
-                                        List<String> unacceptableReasons)
+                                        List<Message> unacceptableReasons)
   {
     String className = config.getJavaImplementationClass();
     ErrorLogPublisherCfgDefn d = ErrorLogPublisherCfgDefn.getInstance();
@@ -345,10 +346,10 @@ public class ErrorLogger implements
       theClass = pd.loadClass(className, ErrorLogPublisher.class);
       publisher = theClass.newInstance();
     } catch (Exception e) {
-      int    msgID   = MSGID_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS;
-      String message = getMessage(msgID, className,
-                                  config.dn().toString(),
-                                  String.valueOf(e));
+      Message message = ERR_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS.get(
+              className,
+              config.dn().toString(),
+              String.valueOf(e));
       unacceptableReasons.add(message);
       return false;
     }
@@ -368,10 +369,10 @@ public class ErrorLogger implements
         return false;
       }
     } catch (Exception e) {
-      int    msgID   = MSGID_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS;
-      String message = getMessage(msgID, className,
-                                  config.dn().toString(),
-                                  String.valueOf(e));
+      Message message = ERR_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS.get(
+              className,
+              config.dn().toString(),
+              String.valueOf(e));
       unacceptableReasons.add(message);
       return false;
     }
@@ -403,19 +404,15 @@ public class ErrorLogger implements
     {
       // Rethrow the exceptions thrown be the invoked method.
       Throwable e = ite.getTargetException();
-      int    msgID   = MSGID_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS;
-      String message = getMessage(msgID, className,
-                                  config.dn().toString(),
-                                  stackTraceToSingleLineString(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = ERR_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS.get(
+          className, config.dn().toString(), stackTraceToSingleLineString(e));
+      throw new ConfigException(message, e);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS;
-      String message = getMessage(msgID, className,
-                                  config.dn().toString(),
-                                  String.valueOf(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = ERR_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS.get(
+          className, config.dn().toString(), String.valueOf(e));
+      throw new ConfigException(message, e);
     }
 
     // The error publisher has been successfully initialized.
@@ -427,90 +424,13 @@ public class ErrorLogger implements
   /**
    * Writes a message to the error log using the provided information.
    *
-   * @param  category  The category that may be used to determine whether to
-   *                   actually log this message.
-   * @param  severity  The severity that may be used to determine whether to
-   *                   actually log this message.
-   * @param  errorID   The error ID that uniquely identifies the provided format
-   *                   string.
-   */
-  public static void logError(ErrorLogCategory category,
-                              ErrorLogSeverity severity, int errorID)
-  {
-    String message = MessageHandler.getMessage(errorID);
-
-    for (ErrorLogPublisher publisher : errorPublishers)
-    {
-      publisher.logError(category, severity, message, errorID);
-    }
-
-    if (Thread.currentThread() instanceof DirectoryThread)
-    {
-      DirectoryThread thread = (DirectoryThread) Thread.currentThread();
-      Task task = thread.getAssociatedTask();
-      if (task != null)
-      {
-        task.addLogMessage(severity, errorID, message);
-      }
-    }
-  }
-
-
-
-  /**
-   * Writes a message to the error log using the provided information.
-   *
-   * @param  category  The category that may be used to determine whether to
-   *                   actually log this message.
-   * @param  severity  The severity that may be used to determine whether to
-   *                   actually log this message.
-   * @param  errorID   The error ID that uniquely identifies the provided format
-   *                   string.
-   * @param  args      The set of arguments to use for the provided format
-   *                   string.
-   */
-  public static void logError(ErrorLogCategory category,
-                              ErrorLogSeverity severity, int errorID,
-                              Object... args)
-  {
-    String message = MessageHandler.getMessage(errorID, args);
-
-    for (ErrorLogPublisher publisher : errorPublishers)
-    {
-      publisher.logError(category, severity, message, errorID);
-    }
-
-    if (Thread.currentThread() instanceof DirectoryThread)
-    {
-      DirectoryThread thread = (DirectoryThread) Thread.currentThread();
-      Task task = thread.getAssociatedTask();
-      if (task != null)
-      {
-        task.addLogMessage(severity, errorID, message);
-      }
-    }
-  }
-
-
-
-  /**
-   * Writes a message to the error log using the provided information.
-   *
-   * @param  category  The category that may be used to determine whether to
-   *                   actually log this message.
-   * @param  severity  The severity that may be used to determine whether to
-   *                   actually log this message.
    * @param  message   The message to be logged.
-   * @param  errorID   The error ID that uniquely identifies the format string
-   *                   used to generate the provided message.
    */
-  public static void logError(ErrorLogCategory category,
-                              ErrorLogSeverity severity, String message,
-                              int errorID)
+  public static void logError(Message message)
   {
     for (ErrorLogPublisher publisher : errorPublishers)
     {
-      publisher.logError(category, severity, message, errorID);
+      publisher.logError(message);
     }
 
     if (Thread.currentThread() instanceof DirectoryThread)
@@ -519,7 +439,7 @@ public class ErrorLogger implements
       Task task = thread.getAssociatedTask();
       if (task != null)
       {
-        task.addLogMessage(severity, errorID, message);
+        task.addLogMessage(message);
       }
     }
   }

@@ -26,6 +26,7 @@
  */
 package org.opends.server.loggers;
 
+
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
@@ -38,9 +39,8 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.LoggerMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.messages.LoggerMessages.*;
+import org.opends.messages.Message;
 
 import java.io.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -198,23 +198,17 @@ public class MultifileTextWriter
       {
         if(!FilePermission.setPermissions(file, filePermissions))
         {
-          int msgID = MSGID_LOGGER_UNABLE_SET_PERMISSIONS;
-          String message = getMessage(msgID, filePermissions.toString(),
-                                      file.toString());
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.MILD_WARNING,
-                   message, msgID);
+          Message message = WARN_LOGGER_UNABLE_SET_PERMISSIONS.get(
+              filePermissions.toString(), file.toString());
+          ErrorLogger.logError(message);
         }
       }
       catch(Exception e)
       {
         // Log an warning that the permissions were not set.
-        int msgID = MSGID_LOGGER_SET_PERMISSION_FAILED;
-        String message = getMessage(msgID, file.toString(),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.SEVERE_WARNING,
-                 message, msgID);
+        Message message = WARN_LOGGER_SET_PERMISSION_FAILED.get(
+            file.toString(), stackTraceToSingleLineString(e));
+        ErrorLogger.logError(message);
       }
     }
   }
@@ -355,7 +349,7 @@ public class MultifileTextWriter
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-      SizeLimitLogRotationPolicyCfg config, List<String> unacceptableReasons)
+      SizeLimitLogRotationPolicyCfg config, List<Message> unacceptableReasons)
   {
     // This should always be ok
     return true;
@@ -373,7 +367,7 @@ public class MultifileTextWriter
     }
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false,
-                                  new ArrayList<String>());
+                                  new ArrayList<Message>());
   }
 
   /**
@@ -461,7 +455,7 @@ public class MultifileTextWriter
    *
    * @param  reason  The human-readable reason for the shutdown.
    */
-  public void processServerShutdown(String reason)
+  public void processServerShutdown(Message reason)
   {
     stopRequested = true;
 

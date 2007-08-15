@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
@@ -58,8 +59,8 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
@@ -70,11 +71,10 @@ import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.messages.ConfigMessages.*;
+
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -178,9 +178,7 @@ public class GroupManager
         }
         catch (InitializationException ie)
         {
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_ERROR,
-                   ie.getMessage(), ie.getMessageID());
+          logError(ie.getMessageObject());
           continue;
         }
       }
@@ -194,7 +192,7 @@ public class GroupManager
    */
   public boolean isConfigurationAddAcceptable(
                       GroupImplementationCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -207,7 +205,7 @@ public class GroupManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add(ie.getMessage());
+        unacceptableReasons.add(ie.getMessageObject());
         return false;
       }
     }
@@ -226,7 +224,7 @@ public class GroupManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     configuration.addChangeListener(this);
 
@@ -251,7 +249,7 @@ public class GroupManager
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
 
-      messages.add(ie.getMessage());
+      messages.add(ie.getMessageObject());
     }
 
     if (resultCode == ResultCode.SUCCESS)
@@ -272,7 +270,7 @@ public class GroupManager
    */
   public boolean isConfigurationDeleteAcceptable(
                       GroupImplementationCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // FIXME -- We should try to perform some check to determine whether the
     // group implementation is in use.
@@ -289,7 +287,7 @@ public class GroupManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     Group group = groupImplementations.remove(configuration.dn());
     if (group != null)
@@ -317,7 +315,7 @@ public class GroupManager
    */
   public boolean isConfigurationChangeAcceptable(
                       GroupImplementationCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -330,7 +328,7 @@ public class GroupManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add(ie.getMessage());
+        unacceptableReasons.add(ie.getMessageObject());
         return false;
       }
     }
@@ -349,7 +347,7 @@ public class GroupManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Get the existing group implementation if it's already enabled.
@@ -411,7 +409,7 @@ public class GroupManager
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
 
-      messages.add(ie.getMessage());
+      messages.add(ie.getMessageObject());
     }
 
     if (resultCode == ResultCode.SUCCESS)
@@ -471,7 +469,7 @@ public class GroupManager
                                                    GroupImplementationCfg.class,
                                                    List.class);
 
-        List<String> unacceptableReasons = new ArrayList<String>();
+        List<Message> unacceptableReasons = new ArrayList<Message>();
         Boolean acceptable = (Boolean) method.invoke(group, configuration,
                                                      unacceptableReasons);
         if (! acceptable)
@@ -479,7 +477,7 @@ public class GroupManager
           StringBuilder buffer = new StringBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<String> iterator = unacceptableReasons.iterator();
+            Iterator<Message> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -488,10 +486,9 @@ public class GroupManager
             }
           }
 
-          int    msgID   = MSGID_CONFIG_GROUP_CONFIG_NOT_ACCEPTABLE;
-          String message = getMessage(msgID, String.valueOf(configuration.dn()),
-                                      buffer.toString());
-          throw new InitializationException(msgID, message);
+          Message message = ERR_CONFIG_GROUP_CONFIG_NOT_ACCEPTABLE.get(
+              String.valueOf(configuration.dn()), buffer.toString());
+          throw new InitializationException(message);
         }
       }
 
@@ -499,11 +496,10 @@ public class GroupManager
     }
     catch (Exception e)
     {
-      int msgID = MSGID_CONFIG_GROUP_INITIALIZATION_FAILED;
-      String message = getMessage(msgID, className,
-                                  String.valueOf(configuration.dn()),
-                                  stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_GROUP_INITIALIZATION_FAILED.
+          get(className, String.valueOf(configuration.dn()),
+              stackTraceToSingleLineString(e));
+      throw new InitializationException(message, e);
     }
   }
 

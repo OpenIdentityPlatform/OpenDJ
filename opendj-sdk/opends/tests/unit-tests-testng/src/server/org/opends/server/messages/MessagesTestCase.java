@@ -24,7 +24,7 @@
  *
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
-package org.opends.server.messages;
+package org.opends.messages;
 
 
 

@@ -25,10 +25,10 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
+import org.opends.messages.Message;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ReplicationMessages.*;
+import static org.opends.messages.ReplicationMessages.*;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -51,8 +51,6 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.RawModification;
@@ -147,13 +145,10 @@ public class PersistentServerState extends ServerState
     if (((search.getResultCode() != ResultCode.SUCCESS)) &&
         ((search.getResultCode() != ResultCode.NO_SUCH_OBJECT)))
     {
-      int msgID = MSGID_ERROR_SEARCHING_RUV;
-      String message = getMessage(msgID,
-          search.getResultCode().getResultCodeName(),
-          search.toString(), search.getErrorMessage(),
-          baseDn.toString());
-      logError(ErrorLogCategory.SYNCHRONIZATION, ErrorLogSeverity.SEVERE_ERROR,
-          message, msgID);
+      Message message = ERR_ERROR_SEARCHING_RUV.
+          get(search.getResultCode().getResultCodeName(), search.toString(),
+              search.getErrorMessage(), baseDn.toString());
+      logError(message);
     }
 
     SearchResultEntry resultEntry = null;
@@ -231,12 +226,12 @@ public class PersistentServerState extends ServerState
     ResultCode result = op.getResultCode();
     if (result != ResultCode.SUCCESS)
     {
-      int msgID = MSGID_ERROR_UPDATING_RUV;
-      String message = getMessage(msgID, op.getResultCode().getResultCodeName(),
-          op.toString(), op.getErrorMessage(), baseDn.toString(),
-          Thread.currentThread().getStackTrace());
-      logError(ErrorLogCategory.SYNCHRONIZATION, ErrorLogSeverity.SEVERE_ERROR,
-          message, msgID);
+      Message message = ERR_ERROR_UPDATING_RUV.get(
+              op.getResultCode().getResultCodeName().toString(),
+              op.toString(),
+              op.getErrorMessage().toString(),
+              baseDn.toString());
+      logError(message);
     }
     return result;
   }

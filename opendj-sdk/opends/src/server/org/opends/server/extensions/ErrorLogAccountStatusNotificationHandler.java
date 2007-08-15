@@ -25,12 +25,13 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.messages.ExtensionsMessages.*;
+import static org.opends.messages.ExtensionMessages.*;
+
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -47,8 +48,8 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.AccountStatusNotificationType;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
@@ -71,15 +72,15 @@ public class ErrorLogAccountStatusNotificationHandler
    * The set of names for the account status notification types that may be
    * logged by this notification handler.
    */
-  private static final HashSet<String> NOTIFICATION_TYPE_NAMES =
-       new HashSet<String>();
+  private static final HashSet<Message> NOTIFICATION_TYPE_NAMES =
+       new HashSet<Message>();
 
   static
   {
     for (AccountStatusNotificationType t :
          AccountStatusNotificationType.values())
     {
-      NOTIFICATION_TYPE_NAMES.add(t.getNotificationTypeName());
+      NOTIFICATION_TYPE_NAMES.add(t.getNotificationName());
     }
   }
 
@@ -114,15 +115,15 @@ public class ErrorLogAccountStatusNotificationHandler
    * {@inheritDoc}
    */
   public void handleStatusNotification(AccountStatusNotificationType
-                                            notificationType,
-                                       DN userDN, int messageID, String message)
+          notificationType,
+                                       DN userDN, Message message)
   {
     if (notificationTypes.contains(notificationType))
     {
-      int msgID = MSGID_ERRORLOG_ACCTNOTHANDLER_NOTIFICATION;
-      logError(ErrorLogCategory.PASSWORD_POLICY, ErrorLogSeverity.NOTICE,
-               msgID, notificationType.getNotificationTypeName(),
-               String.valueOf(userDN), messageID, message);
+      logError(NOTE_ERRORLOG_ACCTNOTHANDLER_NOTIFICATION.get(
+                notificationType.getNotificationName(),
+                String.valueOf(userDN),
+                message.getDescriptor().getId(), message));
     }
   }
 
@@ -134,7 +135,7 @@ public class ErrorLogAccountStatusNotificationHandler
   @Override()
   public boolean isConfigurationAcceptable(
                       AccountStatusNotificationHandlerCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     ErrorLogAccountStatusNotificationHandlerCfg config =
          (ErrorLogAccountStatusNotificationHandlerCfg) configuration;
@@ -148,7 +149,7 @@ public class ErrorLogAccountStatusNotificationHandler
    */
   public boolean isConfigurationChangeAcceptable(
       ErrorLogAccountStatusNotificationHandlerCfg configuration,
-      List<String> unacceptableReasons
+      List<Message> unacceptableReasons
       )
   {
     // Make sure that we can process the defined notification handler.
@@ -199,7 +200,7 @@ public class ErrorLogAccountStatusNotificationHandler
   {
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
     ConfigChangeResult changeResult = new ConfigChangeResult(
         resultCode, adminActionRequired, messages
         );
@@ -258,8 +259,9 @@ public class ErrorLogAccountStatusNotificationHandler
    * Gets the OpenDS notification type object that corresponds to the
    * configuration counterpart.
    *
-   * @param  notificationType  The configuration notification type for which
-   *                           to retrieve the OpenDS notification type.
+   * @param  configNotificationType  The configuration notification type for
+   *                                 which  to retrieve the OpenDS notification
+   *                                 type.
    */
   private AccountStatusNotificationType getNotificationType(
       ErrorLogAccountStatusNotificationHandlerCfgDefn.

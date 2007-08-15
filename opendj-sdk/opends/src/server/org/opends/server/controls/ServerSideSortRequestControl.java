@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
+import org.opends.messages.Message;
 
 
 
@@ -44,8 +45,7 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.types.SortKey;
 import org.opends.server.types.SortOrder;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -231,10 +231,9 @@ public class ServerSideSortRequestControl
       {
         if (token.length() == 0)
         {
-          int    msgID   = MSGID_SORTREQ_CONTROL_NO_ATTR_NAME;
-          String message = getMessage(msgID, sortOrderString);
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                  message);
+          Message message =
+              INFO_SORTREQ_CONTROL_NO_ATTR_NAME.get(sortOrderString);
+          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
         }
 
         if (reverseOrder)
@@ -253,17 +252,15 @@ public class ServerSideSortRequestControl
       }
       else if (colonPos == 0)
       {
-        int    msgID   = MSGID_SORTREQ_CONTROL_NO_ATTR_NAME;
-        String message = getMessage(msgID, sortOrderString);
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                message);
+        Message message =
+            INFO_SORTREQ_CONTROL_NO_ATTR_NAME.get(sortOrderString);
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
       else if (colonPos == (token.length() - 1))
       {
-        int    msgID   = MSGID_SORTREQ_CONTROL_NO_MATCHING_RULE;
-        String message = getMessage(msgID, sortOrderString);
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                message);
+        Message message =
+            INFO_SORTREQ_CONTROL_NO_MATCHING_RULE.get(sortOrderString);
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
       else
       {
@@ -290,9 +287,8 @@ public class ServerSideSortRequestControl
 
     if (keyList.isEmpty())
     {
-      int    msgID   = MSGID_SORTREQ_CONTROL_NO_SORT_KEYS;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = INFO_SORTREQ_CONTROL_NO_SORT_KEYS.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
     return new ASN1OctetString(new ASN1Sequence(keyList).encode());
@@ -320,9 +316,8 @@ public class ServerSideSortRequestControl
     ASN1OctetString controlValue = control.getValue();
     if (controlValue == null)
     {
-      int    msgID   = MSGID_SORTREQ_CONTROL_NO_VALUE;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = INFO_SORTREQ_CONTROL_NO_VALUE.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
     try
@@ -333,9 +328,8 @@ public class ServerSideSortRequestControl
       SortKey[] sortKeys = new SortKey[orderElements.size()];
       if (sortKeys.length == 0)
       {
-        int    msgID   = MSGID_SORTREQ_CONTROL_NO_SORT_KEYS;
-        String message = getMessage(msgID);
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+        Message message = INFO_SORTREQ_CONTROL_NO_SORT_KEYS.get();
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
 
       for (int i=0; i < sortKeys.length; i++)
@@ -350,10 +344,8 @@ public class ServerSideSortRequestControl
                                                                   false);
         if (attrType == null)
         {
-          int    msgID   = MSGID_SORTREQ_CONTROL_UNDEFINED_ATTR;
-          String message = getMessage(msgID, attrName);
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                  message);
+          Message message = INFO_SORTREQ_CONTROL_UNDEFINED_ATTR.get(attrName);
+          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
         }
 
         OrderingMatchingRule orderingRule = null;
@@ -371,10 +363,9 @@ public class ServerSideSortRequestControl
                    DirectoryServer.getOrderingMatchingRule(orderingRuleID);
               if (orderingRule == null)
               {
-                int    msgID   = MSGID_SORTREQ_CONTROL_UNDEFINED_ORDERING_RULE;
-                String message = getMessage(msgID, orderingRuleID);
-                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                        message);
+                Message message = INFO_SORTREQ_CONTROL_UNDEFINED_ORDERING_RULE.
+                    get(orderingRuleID);
+                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
               }
               break;
 
@@ -383,20 +374,18 @@ public class ServerSideSortRequestControl
               break;
 
             default:
-              int    msgID   = MSGID_SORTREQ_CONTROL_INVALID_SEQ_ELEMENT_TYPE;
-              String message = getMessage(msgID, byteToHex(e.getType()));
-              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                      message);
+              Message message = INFO_SORTREQ_CONTROL_INVALID_SEQ_ELEMENT_TYPE.
+                  get(byteToHex(e.getType()));
+              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
           }
         }
 
         if ((orderingRule == null) &&
             (attrType.getOrderingMatchingRule() == null))
         {
-          int    msgID   = MSGID_SORTREQ_CONTROL_NO_ORDERING_RULE_FOR_ATTR;
-          String message = getMessage(msgID, attrName);
-          throw new LDAPException(LDAPResultCode.CONSTRAINT_VIOLATION, msgID,
-                                  message);
+          Message message =
+              INFO_SORTREQ_CONTROL_NO_ORDERING_RULE_FOR_ATTR.get(attrName);
+          throw new LDAPException(LDAPResultCode.CONSTRAINT_VIOLATION, message);
         }
 
         sortKeys[i] = new SortKey(attrType, ascending, orderingRule);
@@ -413,9 +402,9 @@ public class ServerSideSortRequestControl
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_SORTREQ_CONTROL_CANNOT_DECODE_VALUE;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          INFO_SORTREQ_CONTROL_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message, e);
     }
   }
 

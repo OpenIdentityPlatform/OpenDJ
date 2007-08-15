@@ -25,16 +25,15 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
+import org.opends.messages.Message;
 
 import com.sleepycat.je.*;
 
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.messages.JebMessages;
+import org.opends.messages.JebMessages;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.ResultCode;
@@ -50,15 +49,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_IMPORT_ENTRY_EXISTS;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_IMPORT_PARENT_NOT_FOUND;
+import static org.opends.messages.JebMessages.
+    WARN_JEB_IMPORT_ENTRY_EXISTS;
+import static org.opends.messages.JebMessages.
+    ERR_JEB_IMPORT_PARENT_NOT_FOUND;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.JebMessages.*;
+import static org.opends.messages.JebMessages.*;
 import org.opends.server.admin.std.server.JEBackendCfg;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.config.ConfigException;
@@ -180,8 +178,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       importPassSize = Integer.MAX_VALUE;
     }
 
-    int msgID;
-    String message;
+    Message message;
     long startTime;
 
     try
@@ -192,21 +189,17 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       long bufferSize = config.getBackendImportBufferSize() /
           (importThreadCount*rootContainer.getBaseDNs().size());
 
-      msgID = MSGID_JEB_IMPORT_THREAD_COUNT;
-      message = getMessage(msgID, importThreadCount);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-               message, msgID);
+      message = INFO_JEB_IMPORT_THREAD_COUNT.get(importThreadCount);
+      logError(message);
 
       if (debugEnabled())
       {
-        msgID = MSGID_JEB_IMPORT_BUFFER_SIZE;
-        message = getMessage(msgID, bufferSize);
-        TRACER.debugInfo(message);
 
-        msgID = MSGID_JEB_IMPORT_ENVIRONMENT_CONFIG;
-        message = getMessage(msgID,
-                             rootContainer.getEnvironmentConfig().toString());
-        TRACER.debugInfo(message);
+        message = INFO_JEB_IMPORT_BUFFER_SIZE.get(bufferSize);
+        TRACER.debugInfo(message.toString());
+        message = INFO_JEB_IMPORT_ENVIRONMENT_CONFIG.get(
+                rootContainer.getEnvironmentConfig().toString());
+        TRACER.debugInfo(message.toString());
       }
 
       for (EntryContainer entryContainer : rootContainer.getEntryContainers())
@@ -227,9 +220,9 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       File tempDir = getFileForPath(config.getBackendImportTempDirectory());
       if(!tempDir.exists() && !tempDir.mkdir())
       {
-        msgID = MSGID_JEB_IMPORT_CREATE_TMPDIR_ERROR;
-        String msg = getMessage(msgID, tempDir);
-        throw new IOException(msg);
+        Message msg = ERR_JEB_IMPORT_CREATE_TMPDIR_ERROR.get(
+                String.valueOf(tempDir));
+        throw new IOException(msg.toString());
       }
 
       if (tempDir.listFiles() != null)
@@ -307,19 +300,15 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       rate = 1000f*importedCount / importTime;
     }
 
-    msgID = MSGID_JEB_IMPORT_FINAL_STATUS;
-    message = getMessage(msgID, reader.getEntriesRead(),
-                         importedCount - migratedCount,
-                         reader.getEntriesIgnored(),
-                         reader.getEntriesRejected(),
-                         migratedCount, importTime/1000, rate);
-    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-             message, msgID);
+    message = INFO_JEB_IMPORT_FINAL_STATUS.
+        get(reader.getEntriesRead(), importedCount - migratedCount,
+            reader.getEntriesIgnored(), reader.getEntriesRejected(),
+            migratedCount, importTime/1000, rate);
+    logError(message);
 
-    msgID = MSGID_JEB_IMPORT_ENTRY_LIMIT_EXCEEDED_COUNT;
-    message = getMessage(msgID, getEntryLimitExceededCount());
-    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-             message, msgID);
+    message = INFO_JEB_IMPORT_ENTRY_LIMIT_EXCEEDED_COUNT.get(
+        getEntryLimitExceededCount());
+    logError(message);
 
     return new LDIFImportResult(reader.getEntriesRead(),
                                 reader.getEntriesRejected(),
@@ -341,17 +330,14 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
     {
       if (moreData)
       {
-        int msgID = MSGID_JEB_IMPORT_BEGINNING_INTERMEDIATE_MERGE;
-        String message = getMessage(msgID, mergePassNumber++);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                 message, msgID);
+        Message message =
+            INFO_JEB_IMPORT_BEGINNING_INTERMEDIATE_MERGE.get(mergePassNumber++);
+        logError(message);
       }
       else
       {
-        int msgID = MSGID_JEB_IMPORT_BEGINNING_FINAL_MERGE;
-        String message = getMessage(msgID);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                 message, msgID);
+        Message message = INFO_JEB_IMPORT_BEGINNING_FINAL_MERGE.get();
+        logError(message);
       }
 
 
@@ -495,19 +481,15 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
 
       if (moreData)
       {
-        int msgID = MSGID_JEB_IMPORT_RESUMING_LDIF_PROCESSING;
-        String message =
-            getMessage(msgID, ((mergeEndTime-mergeStartTime)/1000));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                 message, msgID);
+        Message message = INFO_JEB_IMPORT_RESUMING_LDIF_PROCESSING.get(
+            ((mergeEndTime-mergeStartTime)/1000));
+        logError(message);
       }
       else
       {
-        int msgID = MSGID_JEB_IMPORT_FINAL_MERGE_COMPLETED;
-        String message =
-            getMessage(msgID, ((mergeEndTime-mergeStartTime)/1000));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                 message, msgID);
+        Message message = INFO_JEB_IMPORT_FINAL_MERGE_COMPLETED.get(
+            ((mergeEndTime-mergeStartTime)/1000));
+        logError(message);
       }
     }
     finally
@@ -603,18 +585,15 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
   private void processLDIF()
       throws JebException, DatabaseException, IOException
   {
-    int msgID = MSGID_JEB_IMPORT_LDIF_START;
-    String message = getMessage(msgID);
-    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-             message, msgID);
+    Message message = INFO_JEB_IMPORT_LDIF_START.get();
+    logError(message);
 
     do
     {
       if(threads.size() <= 0)
       {
-        msgID = MSGID_JEB_IMPORT_NO_WORKER_THREADS;
-        message = getMessage(msgID);
-        throw new JebException(msgID, message);
+        message = ERR_JEB_IMPORT_NO_WORKER_THREADS.get();
+        throw new JebException(message);
       }
       try
       {
@@ -624,10 +603,8 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
         // Check for end of file.
         if (entry == null)
         {
-          msgID = MSGID_JEB_IMPORT_LDIF_END;
-          message = getMessage(msgID);
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                   message, msgID);
+          message = INFO_JEB_IMPORT_LDIF_END.get();
+          logError(message);
 
           break;
         }
@@ -675,11 +652,9 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
         LockMode lockMode = LockMode.DEFAULT;
         OperationStatus status;
 
-        int msgID = MSGID_JEB_IMPORT_MIGRATION_START;
-        String message = getMessage(msgID, "existing",
-                                    importContext.getBaseDN());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                 message, msgID);
+        Message message = INFO_JEB_IMPORT_MIGRATION_START.get(
+            "existing", String.valueOf(importContext.getBaseDN()));
+        logError(message);
 
         Cursor cursor =
             srcEntryContainer.getDN2ID().openCursor(null,
@@ -692,9 +667,8 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
           {
             if(threads.size() <= 0)
             {
-              msgID = MSGID_JEB_IMPORT_NO_WORKER_THREADS;
-              message = getMessage(msgID);
-              throw new JebException(msgID, message);
+              message = ERR_JEB_IMPORT_NO_WORKER_THREADS.get();
+              throw new JebException(message);
             }
 
             DN dn = DN.decode(new ASN1OctetString(key.getData()));
@@ -757,11 +731,9 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
         LockMode lockMode = LockMode.DEFAULT;
         OperationStatus status;
 
-        int msgID = MSGID_JEB_IMPORT_MIGRATION_START;
-        String message = getMessage(msgID, "excluded",
-                                    importContext.getBaseDN());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                 message, msgID);
+        Message message = INFO_JEB_IMPORT_MIGRATION_START.get(
+            "excluded", String.valueOf(importContext.getBaseDN()));
+        logError(message);
 
         Cursor cursor =
             srcEntryContainer.getDN2ID().openCursor(null,
@@ -793,9 +765,8 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
               {
                 if(threads.size() <= 0)
                 {
-                  msgID = MSGID_JEB_IMPORT_NO_WORKER_THREADS;
-                  message = getMessage(msgID);
-                  throw new JebException(msgID, message);
+                  message = ERR_JEB_IMPORT_NO_WORKER_THREADS.get();
+                  throw new JebException(message);
                 }
 
                 EntryID id = new EntryID(data);
@@ -882,8 +853,8 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
         else
         {
           // Reject the entry.
-          int msgID = MSGID_JEB_IMPORT_ENTRY_EXISTS;
-          String msg = getMessage(msgID);
+
+          Message msg = WARN_JEB_IMPORT_ENTRY_EXISTS.get();
           importContext.getLDIFReader().rejectLastEntry(msg);
           return;
         }
@@ -900,8 +871,8 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
           if (parentID == null)
           {
             // Reject the entry.
-            int msgID = MSGID_JEB_IMPORT_PARENT_NOT_FOUND;
-            String msg = getMessage(msgID, parentDN.toString());
+            Message msg =
+                    ERR_JEB_IMPORT_PARENT_NOT_FOUND.get(parentDN.toString());
             importContext.getLDIFReader().rejectLastEntry(msg);
             return;
           }
@@ -1005,11 +976,9 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
   public void uncaughtException(Thread t, Throwable e)
   {
     threads.remove(t);
-    int msgID = MSGID_JEB_IMPORT_THREAD_EXCEPTION;
-    String msg = getMessage(msgID, t.getName(),
-                        StaticUtils.stackTraceToSingleLineString(e.getCause()));
-    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, msg,
-             msgID);
+    Message msg = ERR_JEB_IMPORT_THREAD_EXCEPTION.get(
+        t.getName(), StaticUtils.stackTraceToSingleLineString(e.getCause()));
+    logError(msg);
   }
 
   /**
@@ -1037,10 +1006,9 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
     if (nodeDN == null)
     {
       // The entry should not have been given to this backend.
-      String message = getMessage(JebMessages.MSGID_JEB_INCORRECT_ROUTING,
-                                  String.valueOf(dn));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
-                                   JebMessages.MSGID_JEB_INCORRECT_ROUTING);
+      Message message =
+              JebMessages.ERR_JEB_INCORRECT_ROUTING.get(String.valueOf(dn));
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
 
     return importContext;
@@ -1234,11 +1202,9 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       long numRejected = reader.getEntriesRejected();
       float rate = 1000f*deltaCount / deltaTime;
 
-      int msgID = MSGID_JEB_IMPORT_PROGRESS_REPORT;
-      String message = getMessage(msgID, numRead, numIgnored, numRejected,
-                                  migratedCount, rate);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-               message, msgID);
+      Message message = INFO_JEB_IMPORT_PROGRESS_REPORT.get(
+          numRead, numIgnored, numRejected, migratedCount, rate);
+      logError(message);
 
       try
       {
@@ -1256,10 +1222,9 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
           cacheMissRate = nCacheMiss/(float)deltaCount;
         }
 
-        msgID = MSGID_JEB_IMPORT_CACHE_AND_MEMORY_REPORT;
-        message = getMessage(msgID, freeMemory, cacheMissRate);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                 message, msgID);
+        message = INFO_JEB_IMPORT_CACHE_AND_MEMORY_REPORT.get(
+            freeMemory, cacheMissRate);
+        logError(message);
 
         prevEnvStats = envStats;
       }

@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
@@ -49,18 +50,18 @@ import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.VirtualAttributeRule;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import org.opends.server.loggers.ErrorLogger;
+import static org.opends.messages.ConfigMessages.*;
+
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -158,11 +159,10 @@ public class VirtualAttributeConfigManager
                 TRACER.debugCaught(DebugLogLevel.ERROR, de);
               }
 
-              int    msgID   = MSGID_CONFIG_VATTR_INVALID_SEARCH_FILTER;
-              String message = getMessage(msgID, filterString,
-                                          String.valueOf(cfg.dn()),
-                                          de.getErrorMessage());
-              throw new ConfigException(msgID, message, de);
+              Message message = ERR_CONFIG_VATTR_INVALID_SEARCH_FILTER.get(
+                      filterString, String.valueOf(cfg.dn()),
+                      de.getMessageObject());
+              throw new ConfigException(message, de);
             }
           }
 
@@ -170,20 +170,19 @@ public class VirtualAttributeConfigManager
           {
             if (provider.isMultiValued())
             {
-              int    msgID   = MSGID_CONFIG_VATTR_SV_TYPE_WITH_MV_PROVIDER;
-              String message = getMessage(msgID, String.valueOf(cfg.dn()),
-                                          cfg.getAttributeType().getNameOrOID(),
-                                          className);
-              throw new ConfigException(msgID, message);
+              Message message = ERR_CONFIG_VATTR_SV_TYPE_WITH_MV_PROVIDER.
+                  get(String.valueOf(cfg.dn()),
+                      cfg.getAttributeType().getNameOrOID(), className);
+              throw new ConfigException(message);
             }
             else if (cfg.getConflictBehavior() ==
                      VirtualAttributeCfgDefn.ConflictBehavior.
                           MERGE_REAL_AND_VIRTUAL)
             {
-              int    msgID   = MSGID_CONFIG_VATTR_SV_TYPE_WITH_MERGE_VALUES;
-              String message = getMessage(msgID, String.valueOf(cfg.dn()),
-                                    cfg.getAttributeType().getNameOrOID());
-              throw new ConfigException(msgID, message);
+              Message message = ERR_CONFIG_VATTR_SV_TYPE_WITH_MERGE_VALUES.
+                  get(String.valueOf(cfg.dn()),
+                      cfg.getAttributeType().getNameOrOID());
+              throw new ConfigException(message);
             }
           }
 
@@ -196,9 +195,7 @@ public class VirtualAttributeConfigManager
         }
         catch (InitializationException ie)
         {
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_ERROR,
-                   ie.getMessage(), ie.getMessageID());
+          ErrorLogger.logError(ie.getMessageObject());
           continue;
         }
       }
@@ -212,7 +209,7 @@ public class VirtualAttributeConfigManager
    */
   public boolean isConfigurationAddAcceptable(
                       VirtualAttributeCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -225,7 +222,7 @@ public class VirtualAttributeConfigManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add(ie.getMessage());
+        unacceptableReasons.add(ie.getMessageObject());
         return false;
       }
     }
@@ -245,10 +242,10 @@ public class VirtualAttributeConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
-        int    msgID   = MSGID_CONFIG_VATTR_INVALID_SEARCH_FILTER;
-        String message = getMessage(msgID, filterString,
-                                    String.valueOf(configuration.dn()),
-                                    de.getErrorMessage());
+        Message message = ERR_CONFIG_VATTR_INVALID_SEARCH_FILTER.get(
+                filterString,
+                String.valueOf(configuration.dn()),
+                de.getMessageObject());
         unacceptableReasons.add(message);
         return false;
       }
@@ -268,7 +265,7 @@ public class VirtualAttributeConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     configuration.addChangeListener(this);
 
@@ -298,10 +295,10 @@ public class VirtualAttributeConfigManager
           resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
         }
 
-        int    msgID   = MSGID_CONFIG_VATTR_INVALID_SEARCH_FILTER;
-        String message = getMessage(msgID, filterString,
-                                    String.valueOf(configuration.dn()),
-                                    de.getErrorMessage());
+        Message message = ERR_CONFIG_VATTR_INVALID_SEARCH_FILTER.get(
+                filterString,
+                String.valueOf(configuration.dn()),
+                de.getMessageObject());
         messages.add(message);
       }
     }
@@ -319,7 +316,7 @@ public class VirtualAttributeConfigManager
       catch (InitializationException ie)
       {
         resultCode = DirectoryServer.getServerErrorResultCode();
-        messages.add(ie.getMessage());
+        messages.add(ie.getMessageObject());
       }
     }
 
@@ -346,7 +343,7 @@ public class VirtualAttributeConfigManager
    */
   public boolean isConfigurationDeleteAcceptable(
                       VirtualAttributeCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // We will always allow getting rid of a virtual attribute rule.
     return true;
@@ -362,7 +359,7 @@ public class VirtualAttributeConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     VirtualAttributeRule rule = rules.remove(configuration.dn());
     if (rule != null)
@@ -381,7 +378,7 @@ public class VirtualAttributeConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
                       VirtualAttributeCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -394,7 +391,7 @@ public class VirtualAttributeConfigManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add(ie.getMessage());
+        unacceptableReasons.add(ie.getMessageObject());
         return false;
       }
     }
@@ -414,10 +411,10 @@ public class VirtualAttributeConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
-        int    msgID   = MSGID_CONFIG_VATTR_INVALID_SEARCH_FILTER;
-        String message = getMessage(msgID, filterString,
-                                    String.valueOf(configuration.dn()),
-                                    de.getErrorMessage());
+        Message message = ERR_CONFIG_VATTR_INVALID_SEARCH_FILTER.get(
+                filterString,
+                String.valueOf(configuration.dn()),
+                de.getMessageObject());
         unacceptableReasons.add(message);
         return false;
       }
@@ -437,7 +434,7 @@ public class VirtualAttributeConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Get the existing rule if it's already enabled.
@@ -479,10 +476,10 @@ public class VirtualAttributeConfigManager
           resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
         }
 
-        int    msgID   = MSGID_CONFIG_VATTR_INVALID_SEARCH_FILTER;
-        String message = getMessage(msgID, filterString,
-                                    String.valueOf(configuration.dn()),
-                                    de.getErrorMessage());
+        Message message = ERR_CONFIG_VATTR_INVALID_SEARCH_FILTER.get(
+                filterString,
+                String.valueOf(configuration.dn()),
+                de.getMessageObject());
         messages.add(message);
       }
     }
@@ -500,7 +497,7 @@ public class VirtualAttributeConfigManager
       catch (InitializationException ie)
       {
         resultCode = DirectoryServer.getServerErrorResultCode();
-        messages.add(ie.getMessage());
+        messages.add(ie.getMessageObject());
       }
     }
 
@@ -579,7 +576,7 @@ public class VirtualAttributeConfigManager
                                            VirtualAttributeCfg.class,
                                            List.class);
 
-        List<String> unacceptableReasons = new ArrayList<String>();
+        List<Message> unacceptableReasons = new ArrayList<Message>();
         Boolean acceptable = (Boolean) method.invoke(provider, configuration,
                                                      unacceptableReasons);
         if (! acceptable)
@@ -587,7 +584,7 @@ public class VirtualAttributeConfigManager
           StringBuilder buffer = new StringBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<String> iterator = unacceptableReasons.iterator();
+            Iterator<Message> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -596,10 +593,9 @@ public class VirtualAttributeConfigManager
             }
           }
 
-          int    msgID   = MSGID_CONFIG_VATTR_CONFIG_NOT_ACCEPTABLE;
-          String message = getMessage(msgID, String.valueOf(configuration.dn()),
-                                      buffer.toString());
-          throw new InitializationException(msgID, message);
+          Message message = ERR_CONFIG_VATTR_CONFIG_NOT_ACCEPTABLE.get(
+              String.valueOf(configuration.dn()), buffer.toString());
+          throw new InitializationException(message);
         }
       }
 
@@ -607,11 +603,10 @@ public class VirtualAttributeConfigManager
     }
     catch (Exception e)
     {
-      int msgID = MSGID_CONFIG_VATTR_INITIALIZATION_FAILED;
-      String message = getMessage(msgID, className,
-                                  String.valueOf(configuration.dn()),
-                                  stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_VATTR_INITIALIZATION_FAILED.
+          get(className, String.valueOf(configuration.dn()),
+              stackTraceToSingleLineString(e));
+      throw new InitializationException(message, e);
     }
   }
 }

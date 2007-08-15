@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.admin.client;
+import org.opends.messages.Message;
 
 
 
@@ -67,7 +68,7 @@ public class AdminClientException extends AdminException {
    *          The cause.
    */
   public AdminClientException(Throwable cause) {
-    super(cause.getMessage(), cause);
+    super(cause);
   }
 
 
@@ -81,7 +82,7 @@ public class AdminClientException extends AdminException {
    * @param cause
    *          The cause.
    */
-  public AdminClientException(String message, Throwable cause) {
+  public AdminClientException(Message message, Throwable cause) {
     super(message, cause);
   }
 
@@ -93,7 +94,7 @@ public class AdminClientException extends AdminException {
    * @param message
    *          The message.
    */
-  public AdminClientException(String message) {
+  public AdminClientException(Message message) {
     super(message);
   }
 }

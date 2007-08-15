@@ -26,9 +26,9 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.AciMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.AccessControlMessages.*;
 import java.util.regex.Pattern;
 import java.util.*;
 import java.net.InetAddress;
@@ -88,9 +88,9 @@ public class IP implements KeywordBindRule {
         List<PatternIP> patternIPList= new LinkedList<PatternIP>();
         for (String ipStr : ipStrs) {
             if (!Pattern.matches(ipRegEx, ipStr)) {
-                int msgID = MSGID_ACI_SYNTAX_INVALID_IP_EXPRESSION;
-                String message = getMessage(msgID, expr);
-                throw new AciException(msgID, message);
+                Message message =
+                    WARN_ACI_SYNTAX_INVALID_IP_EXPRESSION.get(expr);
+                throw new AciException(message);
             }
             PatternIP ipPattern = PatternIP.decode(ipStr);
             patternIPList.add(ipPattern);

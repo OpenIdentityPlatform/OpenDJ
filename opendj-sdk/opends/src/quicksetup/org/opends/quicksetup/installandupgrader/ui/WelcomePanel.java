@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup.installandupgrader.ui;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.UserData;
@@ -121,22 +124,21 @@ public class WelcomePanel extends QuickSetupStepPanel {
   /**
    * {@inheritDoc}
    */
-  protected String getTitle() {
-    return getMsg("installandupgrade-welcome-panel-title");
+  protected Message getTitle() {
+    return INFO_INSTALLANDUPGRADE_WELCOME_PANEL_TITLE.get();
   }
 
   /**
    * {@inheritDoc}
    */
-  protected String getInstructions() {
+  protected Message getInstructions() {
     /*
      * We can use org.opends.server.util.DynamicConstants without problems as it
      * has been added to quicksetup.jar during build time.
      */
-    return getMsg("installandupgrade-welcome-panel-instructions",
-            new String[] {
+    return INFO_INSTALLANDUPGRADE_WELCOME_PANEL_INSTRUCTIONS.get(
                     DynamicConstants.COMPACT_VERSION_STRING,
-                    DynamicConstants.BUILD_ID});
+                    DynamicConstants.BUILD_ID);
   }
 
   /**
@@ -148,12 +150,12 @@ public class WelcomePanel extends QuickSetupStepPanel {
     p.setLayout(new GridBagLayout());
 
     rbInstall = UIFactory.makeJRadioButton(
-        getMsg("installandupgrader-rbinstall-label"),
-        getMsg("installandupgrader-rbinstall-tooltip"),
+        INFO_INSTALLANDUPGRADER_RBINSTALL_LABEL.get(),
+        INFO_INSTALLANDUPGRADER_RBINSTALL_TOOLTIP.get(),
         UIFactory.TextStyle.PRIMARY_FIELD_VALID);
     rbUpgrade = UIFactory.makeJRadioButton(
-        getMsg("installandupgrader-rbupgrade-label"),
-        getMsg("installandupgrader-rbupgrade-tooltip"),
+        INFO_INSTALLANDUPGRADER_RBUPGRADE_LABEL.get(),
+        INFO_INSTALLANDUPGRADER_RBUPGRADE_TOOLTIP.get(),
         UIFactory.TextStyle.PRIMARY_FIELD_VALID);
     ButtonGroup group = new ButtonGroup();
     group.add(rbInstall);
@@ -215,8 +217,8 @@ public class WelcomePanel extends QuickSetupStepPanel {
     Component c;
 
     LabelFieldDescriptor serverLocationDescriptor =
-            new LabelFieldDescriptor(getMsg("upgrade-location-label"),
-                    getMsg("upgrade-location-tooltip"),
+            new LabelFieldDescriptor(INFO_UPGRADE_LOCATION_LABEL.get(),
+                    INFO_UPGRADE_LOCATION_TOOLTIP.get(),
                     LabelFieldDescriptor.FieldType.TEXTFIELD,
                     LabelFieldDescriptor.LabelType.PRIMARY,
                     UIFactory.PATH_FIELD_SIZE);
@@ -234,8 +236,8 @@ public class WelcomePanel extends QuickSetupStepPanel {
           userData.getServerLocation());
 
     butBrowse =
-      UIFactory.makeJButton(getMsg("browse-button-label"),
-          getMsg("browse-button-tooltip"));
+      UIFactory.makeJButton(INFO_BROWSE_BUTTON_LABEL.get(),
+          INFO_BROWSE_BUTTON_TOOLTIP.get());
 
     BrowseActionListener l =
       new BrowseActionListener(tcServerLocation,

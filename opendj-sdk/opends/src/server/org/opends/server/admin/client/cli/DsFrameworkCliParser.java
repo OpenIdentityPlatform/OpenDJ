@@ -27,9 +27,9 @@
 package org.opends.server.admin.client.cli;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.AdminMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.AdminMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import org.opends.messages.Message;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
 import static org.opends.server.util.StaticUtils.wrapText;
@@ -93,7 +93,7 @@ public class DsFrameworkCliParser extends SecureConnectionCliParser
    *          Indicates whether subcommand and long argument names
    *          should be treated in a case-sensitive manner.
    */
-  public DsFrameworkCliParser(String mainClassName, String toolDescription,
+  public DsFrameworkCliParser(String mainClassName, Message toolDescription,
       boolean longArgumentsCaseSensitive)
   {
     super(mainClassName, toolDescription, longArgumentsCaseSensitive);
@@ -148,7 +148,7 @@ public class DsFrameworkCliParser extends SecureConnectionCliParser
       String grpName = oneCli.getGroupName();
       String option = OPTION_LONG_HELP + "-" + grpName;
       BooleanArgument arg = new BooleanArgument(option, null, option,
-          MSGID_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE, grpName);
+          INFO_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE.get(grpName));
       addGlobalArgument(arg);
       arg.setHidden(oneCli.isHidden());
       TreeSet<SubCommand> subCmds = new TreeSet<SubCommand>(c);
@@ -159,7 +159,7 @@ public class DsFrameworkCliParser extends SecureConnectionCliParser
     // Register the --help-all argument.
     String option = OPTION_LONG_HELP + "-all";
     BooleanArgument arg = new BooleanArgument(option, null, option,
-        MSGID_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_ALL);
+        INFO_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_ALL.get());
 
     addGlobalArgument(arg);
     setUsageGroupArgument(arg, allSubCommands);
@@ -235,9 +235,7 @@ public class DsFrameworkCliParser extends SecureConnectionCliParser
       }
       catch (NamingException e)
       {
-        int msgID = MSGID_ADMIN_CANNOT_CONNECT_TO_ADS;
-        String message = getMessage(msgID, host);
-
+        Message message = ERR_ADMIN_CANNOT_CONNECT_TO_ADS.get(host);
         try
         {
           err.write(wrapText(message, MAX_LINE_WIDTH).getBytes());
@@ -260,9 +258,7 @@ public class DsFrameworkCliParser extends SecureConnectionCliParser
       }
       catch (NamingException e)
       {
-        int msgID = MSGID_ADMIN_CANNOT_CONNECT_TO_ADS;
-        String message = getMessage(msgID, host);
-
+        Message message = ERR_ADMIN_CANNOT_CONNECT_TO_ADS.get(host);
         try
         {
           err.write(wrapText(message, MAX_LINE_WIDTH).getBytes());
@@ -284,9 +280,7 @@ public class DsFrameworkCliParser extends SecureConnectionCliParser
       }
       catch (NamingException e)
       {
-        int msgID = MSGID_ADMIN_CANNOT_CONNECT_TO_ADS;
-        String message = getMessage(msgID, host);
-
+        Message message = ERR_ADMIN_CANNOT_CONNECT_TO_ADS.get(host);
         try
         {
           err.write(wrapText(message, MAX_LINE_WIDTH).getBytes());

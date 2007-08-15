@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.admin.client;
+import org.opends.messages.Message;
 
 
 
@@ -117,11 +118,11 @@ public class IllegalManagedObjectNameException extends OperationsException {
    * {@inheritDoc}
    */
   @Override
-  public String getMessage() {
+  public Message getMessageObject() {
     if (illegalName.length() == 0) {
-      return "Empty managed object names are not permitted";
+      return Message.raw("Empty managed object names are not permitted");
     } else if (illegalName.trim().length() == 0) {
-      return "Blank managed object names are not permitted";
+      return Message.raw("Blank managed object names are not permitted");
     } else if (namingPropertyDefinition != null) {
       try {
         namingPropertyDefinition.decodeValue(illegalName);
@@ -131,12 +132,14 @@ public class IllegalManagedObjectNameException extends OperationsException {
             + "syntax: %s";
         PropertyDefinitionUsageBuilder builder =
           new PropertyDefinitionUsageBuilder(true);
-        return String.format(msg, illegalName, namingPropertyDefinition
-            .getName(), builder.getUsage(namingPropertyDefinition));
+        return Message.raw(String.format(msg, illegalName,
+                namingPropertyDefinition.getName(),
+                builder.getUsage(namingPropertyDefinition)));
       }
     }
 
-    return "The managed object name \"" + illegalName + "\" is not permitted";
+    return Message.raw("The managed object name \"" + illegalName +
+            "\" is not permitted");
   }
 
 }

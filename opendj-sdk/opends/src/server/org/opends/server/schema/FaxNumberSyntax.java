@@ -39,12 +39,12 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -122,27 +122,24 @@ public class FaxNumberSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_CASE_IGNORE_OID, SYNTAX_FAXNUMBER_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_CASE_IGNORE_OID, SYNTAX_FAXNUMBER_NAME));
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-               OMR_CASE_IGNORE_OID, SYNTAX_FAXNUMBER_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+          OMR_CASE_IGNORE_OID, SYNTAX_FAXNUMBER_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_CASE_IGNORE_OID, SYNTAX_FAXNUMBER_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_CASE_IGNORE_OID, SYNTAX_FAXNUMBER_NAME));
     }
   }
 
@@ -258,7 +255,7 @@ public class FaxNumberSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // Get a lowercase string representation of the value and find its length.
     String valueString = toLowerCase(value.stringValue());
@@ -268,8 +265,8 @@ public class FaxNumberSyntax
     // The value must contain at least one character.
     if (valueLength == 0)
     {
-      int msgID = MSGID_ATTR_SYNTAX_FAXNUMBER_EMPTY;
-      invalidReason.append(getMessage(msgID));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_EMPTY.get());
       return false;
     }
 
@@ -278,8 +275,9 @@ public class FaxNumberSyntax
     char c = valueString.charAt(0);
     if (! PrintableString.isPrintableCharacter(c))
     {
-      int msgID = MSGID_ATTR_SYNTAX_FAXNUMBER_NOT_PRINTABLE;
-      invalidReason.append(getMessage(msgID, valueString, c, 0));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_NOT_PRINTABLE.get(
+              valueString, String.valueOf(c), 0));
       return false;
     }
 
@@ -299,8 +297,9 @@ public class FaxNumberSyntax
       {
         if (! PrintableString.isPrintableCharacter(c))
         {
-          int msgID = MSGID_ATTR_SYNTAX_FAXNUMBER_NOT_PRINTABLE;
-          invalidReason.append(getMessage(msgID, valueString, c, pos));
+
+          invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_NOT_PRINTABLE.get(
+                  valueString, String.valueOf(c), pos));
         }
       }
     }
@@ -311,8 +310,9 @@ public class FaxNumberSyntax
       // character was a dollar sign.
       if (c == '$')
       {
-        int msgID = MSGID_ATTR_SYNTAX_FAXNUMBER_END_WITH_DOLLAR;
-        invalidReason.append(getMessage(msgID, valueString));
+
+        invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_END_WITH_DOLLAR.get(
+                valueString));
         return false;
       }
       else
@@ -333,9 +333,9 @@ public class FaxNumberSyntax
         String paramStr = valueString.substring(paramStartPos, pos);
         if (! ALLOWED_FAX_PARAMETERS.contains(paramStr))
         {
-          int msgID = MSGID_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER;
-          invalidReason.append(getMessage(msgID, valueString, paramStr,
-                                          paramStartPos, (pos-1)));
+
+          invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER.get(
+                  valueString, paramStr, paramStartPos, (pos-1)));
           return false;
         }
 
@@ -349,9 +349,8 @@ public class FaxNumberSyntax
     String paramStr = valueString.substring(paramStartPos);
     if (! ALLOWED_FAX_PARAMETERS.contains(paramStr))
     {
-      int msgID = MSGID_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER;
-      invalidReason.append(getMessage(msgID, valueString, paramStr,
-                                      paramStartPos, (pos-1)));
+      invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER.get(
+              valueString, paramStr, paramStartPos, (pos-1)));
       return false;
     }
 

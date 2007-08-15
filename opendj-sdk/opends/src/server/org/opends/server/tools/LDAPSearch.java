@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -75,8 +76,7 @@ import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -188,7 +188,7 @@ public class LDAPSearch
           do
           {
             int resultCode = 0;
-            String errorMessage = null;
+            Message errorMessage = null;
             DN matchedDN = null;
             LDAPMessage responseMessage =
                  connection.getLDAPReader().readMessage();
@@ -208,14 +208,15 @@ public class LDAPSearch
                       EntryChangeNotificationControl ecn =
                            EntryChangeNotificationControl.decodeControl(
                                 c.getControl());
-                      int msgID = MSGID_LDAPSEARCH_PSEARCH_CHANGE_TYPE;
-                      out.println(getMessage(msgID,
-                                             ecn.getChangeType().toString()));
+
+                      out.println(INFO_LDAPSEARCH_PSEARCH_CHANGE_TYPE.get(
+                              ecn.getChangeType().toString()));
                       DN previousDN = ecn.getPreviousDN();
                       if (previousDN != null)
                       {
-                        msgID = MSGID_LDAPSEARCH_PSEARCH_PREVIOUS_DN;
-                        out.println(getMessage(msgID, previousDN.toString()));
+
+                        out.println(INFO_LDAPSEARCH_PSEARCH_PREVIOUS_DN.get(
+                                previousDN.toString()));
                       }
                     } catch (Exception e) {}
                   }
@@ -226,59 +227,65 @@ public class LDAPSearch
                       AccountUsableResponseControl acrc =
                            AccountUsableResponseControl.decodeControl(
                                 c.getControl());
-                      int msgID = MSGID_LDAPSEARCH_ACCTUSABLE_HEADER;
-                      out.println(getMessage(msgID));
+
+                      out.println(INFO_LDAPSEARCH_ACCTUSABLE_HEADER.get());
                       if (acrc.isUsable())
                       {
-                        msgID = MSGID_LDAPSEARCH_ACCTUSABLE_IS_USABLE;
-                        out.println(getMessage(msgID));
+
+                        out.println(INFO_LDAPSEARCH_ACCTUSABLE_IS_USABLE.get());
                         if (acrc.getSecondsBeforeExpiration() > 0)
                         {
                           int timeToExp = acrc.getSecondsBeforeExpiration();
-                          String timeToExpStr = secondsToTimeString(timeToExp);
-                          msgID =
-                             MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_EXPIRATION;
-                          out.println(getMessage(msgID, timeToExpStr));
+                          Message timeToExpStr = secondsToTimeString(timeToExp);
+
+                          out.println(
+                               INFO_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_EXPIRATION.
+                                       get(timeToExpStr));
                         }
                       }
                       else
                       {
-                        msgID = MSGID_LDAPSEARCH_ACCTUSABLE_NOT_USABLE;
-                        out.println(getMessage(msgID));
+
+                        out.println(
+                                INFO_LDAPSEARCH_ACCTUSABLE_NOT_USABLE.get());
                         if (acrc.isInactive())
                         {
-                          msgID = MSGID_LDAPSEARCH_ACCTUSABLE_ACCT_INACTIVE;
-                          out.println(getMessage(msgID));
+
+                          out.println(
+                               INFO_LDAPSEARCH_ACCTUSABLE_ACCT_INACTIVE.get());
                         }
                         if (acrc.isReset())
                         {
-                          msgID = MSGID_LDAPSEARCH_ACCTUSABLE_PW_RESET;
-                          out.println(getMessage(msgID));
+                          out.println(
+                                  INFO_LDAPSEARCH_ACCTUSABLE_PW_RESET.get());
                         }
                         if (acrc.isExpired())
                         {
-                          msgID = MSGID_LDAPSEARCH_ACCTUSABLE_PW_EXPIRED;
-                          out.println(getMessage(msgID));
+
+                          out.println(
+                                  INFO_LDAPSEARCH_ACCTUSABLE_PW_EXPIRED.get());
 
                           if (acrc.getRemainingGraceLogins() > 0)
                           {
-                            msgID = MSGID_LDAPSEARCH_ACCTUSABLE_REMAINING_GRACE;
-                            out.println(getMessage(msgID,
-                                             acrc.getRemainingGraceLogins()));
+
+                            out.println(
+                                    INFO_LDAPSEARCH_ACCTUSABLE_REMAINING_GRACE
+                                         .get(acrc.getRemainingGraceLogins()));
                           }
                         }
                         if (acrc.isLocked())
                         {
-                          msgID = MSGID_LDAPSEARCH_ACCTUSABLE_LOCKED;
-                          out.println(getMessage(msgID));
+
+                          out.println(INFO_LDAPSEARCH_ACCTUSABLE_LOCKED.get());
                           if (acrc.getSecondsBeforeUnlock() > 0)
                           {
                             int timeToUnlock = acrc.getSecondsBeforeUnlock();
-                            String timeToUnlockStr =
+                            Message timeToUnlockStr =
                                         secondsToTimeString(timeToUnlock);
-                            msgID =
-                                 MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_UNLOCK;
-                            out.println(getMessage(msgID, timeToUnlockStr));
+
+                            out.println(
+                                    INFO_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_UNLOCK
+                                            .get(timeToUnlockStr));
                           }
                         }
                       }
@@ -319,16 +326,16 @@ public class LDAPSearch
                       int rc = sortResponse.getResultCode();
                       if (rc != LDAPResultCode.SUCCESS)
                       {
-                        int    msgID = MSGID_LDAPSEARCH_SORT_ERROR;
-                        String msg   = getMessage(msgID,
-                                                  LDAPResultCode.toString(rc));
+                        Message msg   = WARN_LDAPSEARCH_SORT_ERROR.get(
+                                LDAPResultCode.toString(rc));
                         err.println(msg);
                       }
                     }
                     catch (Exception e)
                     {
-                      int msgID = MSGID_LDAPSEARCH_CANNOT_DECODE_SORT_RESPONSE;
-                      String msg   = getMessage(msgID, getExceptionMessage(e));
+                      Message msg   =
+                              WARN_LDAPSEARCH_CANNOT_DECODE_SORT_RESPONSE.get(
+                                      getExceptionMessage(e));
                       err.println(msg);
                     }
                   }
@@ -341,27 +348,27 @@ public class LDAPSearch
                       int rc = vlvResponse.getVLVResultCode();
                       if (rc == LDAPResultCode.SUCCESS)
                       {
-                        int msgID = MSGID_LDAPSEARCH_VLV_TARGET_OFFSET;
-                        String msg = getMessage(msgID,
-                                          vlvResponse.getTargetPosition());
+                        Message msg = INFO_LDAPSEARCH_VLV_TARGET_OFFSET.get(
+                                vlvResponse.getTargetPosition());
                         out.println(msg);
 
-                        msgID = MSGID_LDAPSEARCH_VLV_CONTENT_COUNT;
-                        msg = getMessage(msgID, vlvResponse.getContentCount());
+
+                        msg = INFO_LDAPSEARCH_VLV_CONTENT_COUNT.get(
+                                vlvResponse.getContentCount());
                         out.println(msg);
                       }
                       else
                       {
-                        int msgID = MSGID_LDAPSEARCH_VLV_ERROR;
-                        String msg = getMessage(msgID,
-                                                LDAPResultCode.toString(rc));
+                        Message msg = WARN_LDAPSEARCH_VLV_ERROR.get(
+                                LDAPResultCode.toString(rc));
                         err.println(msg);
                       }
                     }
                     catch (Exception e)
                     {
-                      int msgID = MSGID_LDAPSEARCH_CANNOT_DECODE_VLV_RESPONSE;
-                      String msg   = getMessage(msgID, getExceptionMessage(e));
+                      Message msg   =
+                              WARN_LDAPSEARCH_CANNOT_DECODE_VLV_RESPONSE.get(
+                                      getExceptionMessage(e));
                       err.println(msg);
                     }
                   }
@@ -370,17 +377,16 @@ public class LDAPSearch
                 break;
               default:
                 // FIXME - throw exception?
-                int msgID = MSGID_SEARCH_OPERATION_INVALID_PROTOCOL;
-                String msg = getMessage(msgID, opType);
+                Message msg = INFO_SEARCH_OPERATION_INVALID_PROTOCOL.get(
+                        String.valueOf(opType));
                 err.println(wrapText(msg, MAX_LINE_WIDTH));
                 break;
             }
 
             if(resultCode != SUCCESS && resultCode != REFERRAL)
             {
-              int msgID = MSGID_OPERATION_FAILED;
-              String msg = getMessage(msgID, "SEARCH");
-              throw new LDAPException(resultCode, errorMessage, msgID, msg,
+              Message msg = INFO_OPERATION_FAILED.get("SEARCH");
+              throw new LDAPException(resultCode, errorMessage, msg,
                                       matchedDN, null);
             }
             else if (errorMessage != null)
@@ -404,8 +410,8 @@ public class LDAPSearch
 
     if (searchOptions.countMatchingEntries())
     {
-      int    msgID   = MSGID_LDAPSEARCH_MATCHING_ENTRY_COUNT;
-      String message = getMessage(msgID, matchingEntries);
+      Message message =
+              INFO_LDAPSEARCH_MATCHING_ENTRY_COUNT.get(matchingEntries);
       out.println(message);
       out.println();
     }
@@ -678,7 +684,7 @@ public class LDAPSearch
 
 
     // Create the command-line argument parser for use with this program.
-    String toolDescription = getMessage(MSGID_LDAPSEARCH_TOOL_DESCRIPTION);
+    Message toolDescription = INFO_LDAPSEARCH_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false, true, 0, 0,
                                                   "[filter] [attributes ...]");
@@ -688,29 +694,29 @@ public class LDAPSearch
       hostName = new StringArgument("host", OPTION_SHORT_HOST,
                                     OPTION_LONG_HOST, false, false, true,
                                     OPTION_VALUE_HOST, "localhost", null,
-                                    MSGID_DESCRIPTION_HOST);
+                                    INFO_DESCRIPTION_HOST.get());
       argParser.addArgument(hostName);
 
       port = new IntegerArgument("port", OPTION_SHORT_PORT,
                                  OPTION_LONG_PORT, false, false, true,
                                  OPTION_VALUE_PORT, 389, null,
-                                 MSGID_DESCRIPTION_PORT);
+                                 INFO_DESCRIPTION_PORT.get());
       argParser.addArgument(port);
 
       useSSL = new BooleanArgument("useSSL", OPTION_SHORT_USE_SSL,
                                    OPTION_LONG_USE_SSL,
-                                   MSGID_DESCRIPTION_USE_SSL);
+                                   INFO_DESCRIPTION_USE_SSL.get());
       argParser.addArgument(useSSL);
 
       startTLS = new BooleanArgument("startTLS", OPTION_SHORT_START_TLS,
                                     OPTION_LONG_START_TLS,
-                                    MSGID_DESCRIPTION_START_TLS);
+                                    INFO_DESCRIPTION_START_TLS.get());
       argParser.addArgument(startTLS);
 
       bindDN = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
                                   OPTION_LONG_BINDDN, false, false, true,
                                   OPTION_VALUE_BINDDN, null, null,
-                                  MSGID_DESCRIPTION_BINDDN);
+                                  INFO_DESCRIPTION_BINDDN.get());
       argParser.addArgument(bindDN);
 
       bindPassword = new StringArgument("bindPassword", OPTION_SHORT_BINDPWD,
@@ -718,7 +724,7 @@ public class LDAPSearch
                                         false, false, true,
                                         OPTION_VALUE_BINDPWD,
                                         null, null,
-                                        MSGID_DESCRIPTION_BINDPASSWORD);
+                                        INFO_DESCRIPTION_BINDPASSWORD.get());
       argParser.addArgument(bindPassword);
 
       bindPasswordFile =
@@ -726,54 +732,56 @@ public class LDAPSearch
                                  OPTION_LONG_BINDPWD_FILE,
                                  false, false,
                                  OPTION_VALUE_BINDPWD_FILE, null,
-                                 null, MSGID_DESCRIPTION_BINDPASSWORDFILE);
+                                 null, INFO_DESCRIPTION_BINDPASSWORDFILE.get());
       argParser.addArgument(bindPasswordFile);
 
       baseDN = new StringArgument("baseDN", OPTION_SHORT_BASEDN,
                                   OPTION_LONG_BASEDN, true, false, true,
                                   OPTION_VALUE_BASEDN, null, null,
-                                  MSGID_SEARCH_DESCRIPTION_BASEDN);
+                                  INFO_SEARCH_DESCRIPTION_BASEDN.get());
       argParser.addArgument(baseDN);
 
-      searchScope = new StringArgument("searchScope", 's', "searchScope", false,
-                                       false, true, "{searchScope}", null, null,
-                                       MSGID_SEARCH_DESCRIPTION_SEARCH_SCOPE);
+      searchScope = new StringArgument(
+              "searchScope", 's', "searchScope", false,
+              false, true, "{searchScope}", null, null,
+              INFO_SEARCH_DESCRIPTION_SEARCH_SCOPE.get());
       argParser.addArgument(searchScope);
 
       filename = new StringArgument("filename", OPTION_SHORT_FILENAME,
                                     OPTION_LONG_FILENAME, false, false,
                                     true, OPTION_VALUE_FILENAME, null, null,
-                                    MSGID_SEARCH_DESCRIPTION_FILENAME);
+                                    INFO_SEARCH_DESCRIPTION_FILENAME.get());
       argParser.addArgument(filename);
 
-      saslExternal = new BooleanArgument("useSASLExternal", 'r',
-                                         "useSASLExternal",
-                                         MSGID_DESCRIPTION_USE_SASL_EXTERNAL);
+      saslExternal = new BooleanArgument(
+              "useSASLExternal", 'r',
+              "useSASLExternal",
+              INFO_DESCRIPTION_USE_SASL_EXTERNAL.get());
       argParser.addArgument(saslExternal);
 
       saslOptions = new StringArgument("saslOption", OPTION_SHORT_SASLOPTION,
                                        OPTION_LONG_SASLOPTION, false,
                                        true, true,
                                        OPTION_VALUE_SASLOPTION, null, null,
-                                       MSGID_DESCRIPTION_SASL_PROPERTIES);
+                                       INFO_DESCRIPTION_SASL_PROPERTIES.get());
       argParser.addArgument(saslOptions);
 
       trustAll = new BooleanArgument("trustAll", 'X', "trustAll",
-                                    MSGID_DESCRIPTION_TRUSTALL);
+                                    INFO_DESCRIPTION_TRUSTALL.get());
       argParser.addArgument(trustAll);
 
       keyStorePath = new StringArgument("keyStorePath",
                                   OPTION_SHORT_KEYSTOREPATH,
                                   OPTION_LONG_KEYSTOREPATH, false, false, true,
                                   OPTION_VALUE_KEYSTOREPATH, null, null,
-                                  MSGID_DESCRIPTION_KEYSTOREPATH);
+                                  INFO_DESCRIPTION_KEYSTOREPATH.get());
       argParser.addArgument(keyStorePath);
 
       keyStorePassword = new StringArgument("keyStorePassword",
                                   OPTION_SHORT_KEYSTORE_PWD,
                                   OPTION_LONG_KEYSTORE_PWD, false, false,
                                   true, OPTION_VALUE_KEYSTORE_PWD, null, null,
-                                  MSGID_DESCRIPTION_KEYSTOREPASSWORD);
+                                  INFO_DESCRIPTION_KEYSTOREPASSWORD.get());
       argParser.addArgument(keyStorePassword);
 
       keyStorePasswordFile =
@@ -783,12 +791,13 @@ public class LDAPSearch
                                  false, false,
                                  OPTION_VALUE_KEYSTORE_PWD_FILE,
                                  null, null,
-                                 MSGID_DESCRIPTION_KEYSTOREPASSWORD_FILE);
+                                 INFO_DESCRIPTION_KEYSTOREPASSWORD_FILE.get());
       argParser.addArgument(keyStorePasswordFile);
 
-      certNickname = new StringArgument("certnickname", 'N', "certNickname",
-                                        false, false, true, "{nickname}", null,
-                                        null, MSGID_DESCRIPTION_CERT_NICKNAME);
+      certNickname = new StringArgument(
+              "certnickname", 'N', "certNickname",
+              false, false, true, "{nickname}", null,
+              null, INFO_DESCRIPTION_CERT_NICKNAME.get());
       argParser.addArgument(certNickname);
 
       trustStorePath = new StringArgument("trustStorePath",
@@ -796,7 +805,7 @@ public class LDAPSearch
                                   OPTION_LONG_TRUSTSTOREPATH,
                                   false, false, true,
                                   OPTION_VALUE_TRUSTSTOREPATH, null, null,
-                                  MSGID_DESCRIPTION_TRUSTSTOREPATH);
+                                  INFO_DESCRIPTION_TRUSTSTOREPATH.get());
       argParser.addArgument(trustStorePath);
 
       trustStorePassword =
@@ -804,15 +813,16 @@ public class LDAPSearch
                               OPTION_LONG_TRUSTSTORE_PWD,
                               false, false, true, OPTION_VALUE_TRUSTSTORE_PWD,
                               null,
-                              null, MSGID_DESCRIPTION_TRUSTSTOREPASSWORD);
+                              null, INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get());
       argParser.addArgument(trustStorePassword);
 
       trustStorePasswordFile =
-           new FileBasedArgument("truststorepasswordfile",
-                                 OPTION_SHORT_TRUSTSTORE_PWD_FILE,
-                                 OPTION_LONG_TRUSTSTORE_PWD_FILE, false, false,
-                                 OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
-                                 MSGID_DESCRIPTION_TRUSTSTOREPASSWORD_FILE);
+           new FileBasedArgument(
+                   "truststorepasswordfile",
+                   OPTION_SHORT_TRUSTSTORE_PWD_FILE,
+                   OPTION_LONG_TRUSTSTORE_PWD_FILE, false, false,
+                   OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
+                   INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get());
       argParser.addArgument(trustStorePasswordFile);
 
       proxyAuthzID = new StringArgument("proxy_authzid",
@@ -820,68 +830,75 @@ public class LDAPSearch
                                         OPTION_LONG_PROXYAUTHID, false,
                                         false, true,
                                         OPTION_VALUE_PROXYAUTHID, null, null,
-                                        MSGID_DESCRIPTION_PROXY_AUTHZID);
+                                        INFO_DESCRIPTION_PROXY_AUTHZID.get());
       argParser.addArgument(proxyAuthzID);
 
-      reportAuthzID = new BooleanArgument("reportauthzid", 'E', "reportAuthzID",
-                                          MSGID_DESCRIPTION_REPORT_AUTHZID);
+      reportAuthzID = new BooleanArgument(
+              "reportauthzid", 'E', "reportAuthzID",
+              INFO_DESCRIPTION_REPORT_AUTHZID.get());
       argParser.addArgument(reportAuthzID);
 
-      usePasswordPolicyControl = new BooleanArgument("usepwpolicycontrol", null,
-                                          "usePasswordPolicyControl",
-                                          MSGID_DESCRIPTION_USE_PWP_CONTROL);
+      usePasswordPolicyControl = new BooleanArgument(
+              "usepwpolicycontrol", null,
+              "usePasswordPolicyControl",
+              INFO_DESCRIPTION_USE_PWP_CONTROL.get());
       argParser.addArgument(usePasswordPolicyControl);
 
       pSearchInfo = new StringArgument("psearchinfo", 'C', "persistentSearch",
                              false, false, true,
                              "ps[:changetype[:changesonly[:entrychgcontrols]]]",
-                              null, null, MSGID_DESCRIPTION_PSEARCH_INFO);
+                              null, null, INFO_DESCRIPTION_PSEARCH_INFO.get());
       argParser.addArgument(pSearchInfo);
 
-      simplePageSize = new IntegerArgument("simplepagesize", null,
-                                           "simplePageSize", false, false, true,
-                                           "{numEntries}", 1000, null, true, 1,
-                                           false, 0,
-                                           MSGID_DESCRIPTION_SIMPLE_PAGE_SIZE);
+      simplePageSize = new IntegerArgument(
+              "simplepagesize", null,
+              "simplePageSize", false, false, true,
+              "{numEntries}", 1000, null, true, 1,
+              false, 0,
+              INFO_DESCRIPTION_SIMPLE_PAGE_SIZE.get());
       argParser.addArgument(simplePageSize);
 
-      assertionFilter = new StringArgument("assertionfilter", null,
-                                           OPTION_LONG_ASSERTION_FILE,
-                                           false, false,
-                                           true, OPTION_VALUE_ASSERTION_FILE,
-                                           null, null,
-                                           MSGID_DESCRIPTION_ASSERTION_FILTER);
+      assertionFilter = new StringArgument(
+              "assertionfilter", null,
+              OPTION_LONG_ASSERTION_FILE,
+              false, false,
+              true, OPTION_VALUE_ASSERTION_FILE,
+              null, null,
+              INFO_DESCRIPTION_ASSERTION_FILTER.get());
       argParser.addArgument(assertionFilter);
 
-      matchedValuesFilter = new StringArgument("matchedvalues", null,
-                                     "matchedValuesFilter", false, true, true,
-                                     "{filter}", null, null,
-                                     MSGID_DESCRIPTION_MATCHED_VALUES_FILTER);
+      matchedValuesFilter = new StringArgument(
+              "matchedvalues", null,
+              "matchedValuesFilter", false, true, true,
+              "{filter}", null, null,
+              INFO_DESCRIPTION_MATCHED_VALUES_FILTER.get());
       argParser.addArgument(matchedValuesFilter);
 
-      sortOrder = new StringArgument("sortorder", 'S', "sortOrder", false,
-                                     false, true, "{sortOrder}", null, null,
-                                     MSGID_DESCRIPTION_SORT_ORDER);
+      sortOrder = new StringArgument(
+              "sortorder", 'S', "sortOrder", false,
+              false, true, "{sortOrder}", null, null,
+              INFO_DESCRIPTION_SORT_ORDER.get());
       argParser.addArgument(sortOrder);
 
       vlvDescriptor =
-           new StringArgument("vlvdescriptor", 'G', "virtualListView", false,
-                              false, true,
-                              "{before:after:index:count | before:after:value}",
-                              null, null, MSGID_DESCRIPTION_VLV);
+           new StringArgument(
+                   "vlvdescriptor", 'G', "virtualListView", false,
+                   false, true,
+                   "{before:after:index:count | before:after:value}",
+                   null, null, INFO_DESCRIPTION_VLV.get());
       argParser.addArgument(vlvDescriptor);
 
       controlStr =
            new StringArgument("control", 'J', "control", false, true, true,
                     "{controloid[:criticality[:value|::b64value|:<fileurl]]}",
-                    null, null, MSGID_DESCRIPTION_CONTROLS);
+                    null, null, INFO_DESCRIPTION_CONTROLS.get());
       argParser.addArgument(controlStr);
       effectiveRightsUser =
               new StringArgument("effectiveRightsUser",
                       OPTION_SHORT_EFFECTIVERIGHTSUSER,
                       OPTION_LONG_EFFECTIVERIGHTSUSER, false, false, true,
                       "{authzid}", null, null,
-                      MSGID_DESCRIPTION_EFFECTIVERIGHTS_USER );
+                      INFO_DESCRIPTION_EFFECTIVERIGHTS_USER.get( ));
       argParser.addArgument(effectiveRightsUser);
 
       effectiveRightsAttrs =
@@ -889,70 +906,70 @@ public class LDAPSearch
                       OPTION_SHORT_EFFECTIVERIGHTSATTR,
                       OPTION_LONG_EFFECTIVERIGHTSATTR, false, true, true,
                       "{attribute}", null, null,
-                      MSGID_DESCRIPTION_EFFECTIVERIGHTS_ATTR );
+                      INFO_DESCRIPTION_EFFECTIVERIGHTS_ATTR.get( ));
       argParser.addArgument(effectiveRightsAttrs);
 
       version = new IntegerArgument("version", OPTION_SHORT_PROTOCOL_VERSION,
                                     OPTION_LONG_PROTOCOL_VERSION, false, false,
                                     true, OPTION_VALUE_PROTOCOL_VERSION, 3,
-                                    null, MSGID_DESCRIPTION_VERSION);
+                                    null, INFO_DESCRIPTION_VERSION.get());
       argParser.addArgument(version);
 
       encodingStr = new StringArgument("encoding", 'i', "encoding", false,
                                        false, true, "{encoding}", null, null,
-                                       MSGID_DESCRIPTION_ENCODING);
+                                       INFO_DESCRIPTION_ENCODING.get());
       argParser.addArgument(encodingStr);
 
       dereferencePolicy =
            new StringArgument("derefpolicy", 'a', "dereferencePolicy", false,
                               false, true, "{dereferencePolicy}", null,  null,
-                              MSGID_SEARCH_DESCRIPTION_DEREFERENCE_POLICY);
+                              INFO_SEARCH_DESCRIPTION_DEREFERENCE_POLICY.get());
       argParser.addArgument(dereferencePolicy);
 
       typesOnly = new BooleanArgument("typesOnly", 'A', "typesOnly",
-                                      MSGID_DESCRIPTION_TYPES_ONLY);
+                                      INFO_DESCRIPTION_TYPES_ONLY.get());
       argParser.addArgument(typesOnly);
 
       sizeLimit = new IntegerArgument("sizeLimit", 'z', "sizeLimit", false,
                                       false, true, "{sizeLimit}", 0, null,
-                                      MSGID_SEARCH_DESCRIPTION_SIZE_LIMIT);
+                                      INFO_SEARCH_DESCRIPTION_SIZE_LIMIT.get());
       argParser.addArgument(sizeLimit);
 
       timeLimit = new IntegerArgument("timeLimit", 'l', "timeLimit", false,
                                       false, true, "{timeLimit}", 0, null,
-                                      MSGID_SEARCH_DESCRIPTION_TIME_LIMIT);
+                                      INFO_SEARCH_DESCRIPTION_TIME_LIMIT.get());
       argParser.addArgument(timeLimit);
 
       dontWrap = new BooleanArgument("dontwrap", 'T', "dontWrap",
-                                     MSGID_DESCRIPTION_DONT_WRAP);
+                                     INFO_DESCRIPTION_DONT_WRAP.get());
       argParser.addArgument(dontWrap);
 
       countEntries = new BooleanArgument("countentries", null, "countEntries",
-                                         MSGID_DESCRIPTION_COUNT_ENTRIES);
+                                         INFO_DESCRIPTION_COUNT_ENTRIES.get());
       argParser.addArgument(countEntries);
 
       continueOnError =
            new BooleanArgument("continueOnError", 'c', "continueOnError",
-                               MSGID_DESCRIPTION_CONTINUE_ON_ERROR);
+                               INFO_DESCRIPTION_CONTINUE_ON_ERROR.get());
       argParser.addArgument(continueOnError);
 
       noop = new BooleanArgument("noop", OPTION_SHORT_DRYRUN,
-          OPTION_LONG_DRYRUN, MSGID_DESCRIPTION_NOOP);
+          OPTION_LONG_DRYRUN, INFO_DESCRIPTION_NOOP.get());
       argParser.addArgument(noop);
 
       verbose = new BooleanArgument("verbose", 'v', "verbose",
-                                    MSGID_DESCRIPTION_VERBOSE);
+                                    INFO_DESCRIPTION_VERBOSE.get());
       argParser.addArgument(verbose);
 
       showUsage = new BooleanArgument("showUsage", OPTION_SHORT_HELP,
                                     OPTION_LONG_HELP,
-                                    MSGID_DESCRIPTION_SHOWUSAGE);
+                                    INFO_DESCRIPTION_SHOWUSAGE.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);
     } catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
@@ -965,8 +982,8 @@ public class LDAPSearch
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -1007,36 +1024,37 @@ public class LDAPSearch
 
     if(bindPassword.isPresent() && bindPasswordFile.isPresent())
     {
-      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, bindPassword.getLongIdentifier(),
-                                  bindPasswordFile.getLongIdentifier());
+      Message message =
+              ERR_TOOL_CONFLICTING_ARGS.get(
+                      bindPassword.getLongIdentifier(),
+                      bindPasswordFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
     if (useSSL.isPresent() && startTLS.isPresent())
     {
-      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, useSSL.getLongIdentifier(),
-                                  startTLS.getLongIdentifier());
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+              useSSL.getLongIdentifier(),
+              startTLS.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
     if (keyStorePassword.isPresent() && keyStorePasswordFile.isPresent())
     {
-      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, keyStorePassword.getLongIdentifier(),
-                                  keyStorePasswordFile.getLongIdentifier());
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+              keyStorePassword.getLongIdentifier(),
+              keyStorePasswordFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
     if (trustStorePassword.isPresent() && trustStorePasswordFile.isPresent())
     {
-      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, trustStorePassword.getLongIdentifier(),
-                                  trustStorePasswordFile.getLongIdentifier());
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+              trustStorePassword.getLongIdentifier(),
+              trustStorePasswordFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -1062,8 +1080,9 @@ public class LDAPSearch
       int versionNumber = version.getIntValue();
       if(versionNumber != 2 && versionNumber != 3)
       {
-        int msgID = MSGID_DESCRIPTION_INVALID_VERSION;
-        err.println(wrapText(getMessage(msgID, versionNumber), MAX_LINE_WIDTH));
+
+        err.println(wrapText(ERR_DESCRIPTION_INVALID_VERSION.get(
+                String.valueOf(versionNumber)), MAX_LINE_WIDTH));
         return 1;
       }
       connectionOptions.setVersionNumber(versionNumber);
@@ -1094,7 +1113,7 @@ public class LDAPSearch
       // read the password from the stdin.
       try
       {
-        out.print(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT, bindDNValue));
+        out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDNValue));
         char[] pwChars = PasswordReader.readPassword();
         bindPasswordValue = new String(pwChars);
       } catch(Exception ex)
@@ -1169,8 +1188,7 @@ public class LDAPSearch
         LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
         if(ctrl == null)
         {
-          int    msgID   = MSGID_TOOL_INVALID_CONTROL_STRING;
-          String message = getMessage(msgID, ctrlString);
+          Message message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           err.println(argParser.getUsage());
           return 1;
@@ -1182,8 +1200,7 @@ public class LDAPSearch
     if(effectiveRightsUser.isPresent()) {
       String authzID=effectiveRightsUser.getValue();
       if (!authzID.startsWith("dn:")) {
-        int  msgID   = MSGID_EFFECTIVERIGHTS_INVALID_AUTHZID;
-        String message = getMessage(msgID, authzID);
+        Message message = ERR_EFFECTIVERIGHTS_INVALID_AUTHZID.get(authzID);
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
         return 1;
@@ -1228,8 +1245,7 @@ public class LDAPSearch
 
       if (! tokenizer.hasMoreTokens())
       {
-        int    msgID   = MSGID_PSEARCH_MISSING_DESCRIPTOR;
-        String message = getMessage(msgID);
+        Message message = ERR_PSEARCH_MISSING_DESCRIPTOR.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -1238,8 +1254,8 @@ public class LDAPSearch
         String token = tokenizer.nextToken();
         if (! token.equals("ps"))
         {
-          int    msgID   = MSGID_PSEARCH_DOESNT_START_WITH_PS;
-          String message = getMessage(msgID, String.valueOf(infoString));
+          Message message = ERR_PSEARCH_DOESNT_START_WITH_PS.get(
+                  String.valueOf(infoString));
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -1277,8 +1293,8 @@ public class LDAPSearch
           }
           else
           {
-            int    msgID   = MSGID_PSEARCH_INVALID_CHANGE_TYPE;
-            String message = getMessage(msgID, String.valueOf(token));
+            Message message =
+                    ERR_PSEARCH_INVALID_CHANGE_TYPE.get(String.valueOf(token));
             err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
@@ -1307,8 +1323,8 @@ public class LDAPSearch
         }
         else
         {
-          int    msgID   = MSGID_PSEARCH_INVALID_CHANGESONLY;
-          String message = getMessage(msgID, String.valueOf(token));
+          Message message = ERR_PSEARCH_INVALID_CHANGESONLY.get(
+                  String.valueOf(token));
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -1328,8 +1344,8 @@ public class LDAPSearch
         }
         else
         {
-          int    msgID   = MSGID_PSEARCH_INVALID_RETURN_ECS;
-          String message = getMessage(msgID, String.valueOf(token));
+          Message message = ERR_PSEARCH_INVALID_RETURN_ECS.get(
+                  String.valueOf(token));
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -1357,8 +1373,8 @@ public class LDAPSearch
       }
       catch (LDAPException le)
       {
-        int    msgID   = MSGID_LDAP_ASSERTION_INVALID_FILTER;
-        String message = getMessage(msgID, le.getMessage());
+        Message message = ERR_LDAP_ASSERTION_INVALID_FILTER.get(
+                le.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -1378,8 +1394,8 @@ public class LDAPSearch
         }
         catch (LDAPException le)
         {
-          int    msgID   = MSGID_LDAP_MATCHEDVALUES_INVALID_FILTER;
-          String message = getMessage(msgID, le.getMessage());
+          Message message = ERR_LDAP_MATCHEDVALUES_INVALID_FILTER.get(
+                  le.getMessage());
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -1399,8 +1415,8 @@ public class LDAPSearch
       }
       catch (LDAPException le)
       {
-        int    msgID   = MSGID_LDAP_SORTCONTROL_INVALID_ORDER;
-        String message = getMessage(msgID, le.getErrorMessage());
+        Message message = ERR_LDAP_SORTCONTROL_INVALID_ORDER.get(
+                le.getErrorMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -1410,9 +1426,9 @@ public class LDAPSearch
     {
       if (! sortOrder.isPresent())
       {
-        int    msgID   = MSGID_LDAPSEARCH_VLV_REQUIRES_SORT;
-        String message = getMessage(msgID, vlvDescriptor.getLongIdentifier(),
-                                    sortOrder.getLongIdentifier());
+        Message message = ERR_LDAPSEARCH_VLV_REQUIRES_SORT.get(
+                vlvDescriptor.getLongIdentifier(),
+                sortOrder.getLongIdentifier());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -1434,8 +1450,7 @@ public class LDAPSearch
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_LDAPSEARCH_VLV_INVALID_DESCRIPTOR;
-          String message = getMessage(msgID);
+          Message message = ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get();
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -1454,16 +1469,14 @@ public class LDAPSearch
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_LDAPSEARCH_VLV_INVALID_DESCRIPTOR;
-          String message = getMessage(msgID);
+          Message message = ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get();
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
       else
       {
-        int    msgID   = MSGID_LDAPSEARCH_VLV_INVALID_DESCRIPTOR;
-        String message = getMessage(msgID);
+        Message message = ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -1500,15 +1513,13 @@ public class LDAPSearch
     {
       if(!connectionOptions.useSSL() && !connectionOptions.useStartTLS())
       {
-        int    msgID   = MSGID_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS;
-        String message = getMessage(msgID);
+        Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       if(keyStorePathValue == null)
       {
-        int    msgID   = MSGID_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE;
-        String message = getMessage(msgID);
+        Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -1559,8 +1570,8 @@ public class LDAPSearch
 
     if(filters.isEmpty())
     {
-      int msgid = MSGID_SEARCH_NO_FILTERS;
-      err.println(wrapText(getMessage(msgid), MAX_LINE_WIDTH));
+
+      err.println(wrapText(ERR_SEARCH_NO_FILTERS.get(), MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
       return 1;
     }
@@ -1621,9 +1632,8 @@ public class LDAPSearch
       {
         if (filters.size() > 1)
         {
-          int    msgID   = MSGID_PAGED_RESULTS_REQUIRES_SINGLE_FILTER;
-          String message = getMessage(msgID);
-          throw new LDAPException(CLIENT_SIDE_PARAM_ERROR, msgID, message);
+          Message message = ERR_PAGED_RESULTS_REQUIRES_SINGLE_FILTER.get();
+          throw new LDAPException(CLIENT_SIDE_PARAM_ERROR, message);
         }
 
         int pageSize = simplePageSize.getIntValue();
@@ -1662,20 +1672,18 @@ public class LDAPSearch
               }
               catch (LDAPException le)
               {
-                int    msgID   = MSGID_PAGED_RESULTS_CANNOT_DECODE;
-                String message = getMessage(msgID, le.getMessage());
-                throw new LDAPException(CLIENT_SIDE_DECODING_ERROR, msgID,
-                                        message, le);
+                Message message =
+                    ERR_PAGED_RESULTS_CANNOT_DECODE.get(le.getMessage());
+                throw new LDAPException(
+                        CLIENT_SIDE_DECODING_ERROR, message, le);
               }
             }
           }
 
           if (! responseFound)
           {
-            int msgID = MSGID_PAGED_RESULTS_RESPONSE_NOT_FOUND;
-            String message = getMessage(msgID);
-            throw new LDAPException(CLIENT_SIDE_CONTROL_NOT_FOUND, msgID,
-                                    message);
+            Message message = ERR_PAGED_RESULTS_RESPONSE_NOT_FOUND.get();
+            throw new LDAPException(CLIENT_SIDE_CONTROL_NOT_FOUND, message);
           }
           else if (cookieValue.value().length == 0)
           {
@@ -1707,8 +1715,11 @@ public class LDAPSearch
         TRACER.debugCaught(DebugLogLevel.ERROR, le);
       }
 
-      LDAPToolUtils.printErrorMessage(err, le.getMessage(), le.getResultCode(),
-                                      le.getErrorMessage(), le.getMatchedDN());
+      LDAPToolUtils.printErrorMessage(err,
+                                      le.getMessageObject(),
+                                      le.getResultCode(),
+                                      le.getErrorMessage(),
+                                      le.getMatchedDN());
       int code = le.getResultCode();
       return code;
     } catch(LDAPConnectionException lce)
@@ -1717,7 +1728,8 @@ public class LDAPSearch
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, lce);
       }
-      LDAPToolUtils.printErrorMessage(err, lce.getMessage(),
+      LDAPToolUtils.printErrorMessage(err,
+                                      lce.getMessageObject(),
                                       lce.getResultCode(),
                                       lce.getErrorMessage(),
                                       lce.getMatchedDN());

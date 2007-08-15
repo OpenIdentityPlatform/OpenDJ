@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util.args;
+import org.opends.messages.Message;
 
 
 
@@ -38,12 +39,13 @@ import java.util.Properties;
 
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
+import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
+
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -102,7 +104,7 @@ public class ArgumentParser
 
   // A human-readable description for the tool, which will be included when
   // displaying usage information.
-  private String toolDescription;
+  private Message toolDescription;
 
   // The display name that will be used for the trailing arguments in the usage
   // information.
@@ -127,7 +129,7 @@ public class ArgumentParser
    * @param  longArgumentsCaseSensitive  Indicates whether long arguments should
    *                                     be treated in a case-sensitive manner.
    */
-  public ArgumentParser(String mainClassName, String toolDescription,
+  public ArgumentParser(String mainClassName, Message toolDescription,
                         boolean longArgumentsCaseSensitive)
   {
     this.mainClassName              = mainClassName;
@@ -182,7 +184,7 @@ public class ArgumentParser
    *                                     arguments in the generated usage
    *                                     information.
    */
-  public ArgumentParser(String mainClassName, String toolDescription,
+  public ArgumentParser(String mainClassName, Message toolDescription,
                         boolean longArgumentsCaseSensitive,
                         boolean allowsTrailingArguments,
                         int minTrailingArguments, int maxTrailingArguments,
@@ -231,7 +233,7 @@ public class ArgumentParser
    * @return  A human-readable description for this tool, or {@code null} if
    *          none is available.
    */
-  public String getToolDescription()
+  public Message getToolDescription()
   {
     return toolDescription;
   }
@@ -417,10 +419,9 @@ public class ArgumentParser
     {
       String conflictingName = shortIDMap.get(shortID).getName();
 
-      int msgID = MSGID_ARGPARSER_DUPLICATE_SHORT_ID;
-      String message = getMessage(msgID, argument.getName(),
-                                  String.valueOf(shortID), conflictingName);
-      throw new ArgumentException(msgID, message);
+      Message message = ERR_ARGPARSER_DUPLICATE_SHORT_ID.get(
+          argument.getName(), String.valueOf(shortID), conflictingName);
+      throw new ArgumentException(message);
     }
 
     String longID = argument.getLongIdentifier();
@@ -434,10 +435,9 @@ public class ArgumentParser
       {
         String conflictingName = longIDMap.get(longID).getName();
 
-        int msgID = MSGID_ARGPARSER_DUPLICATE_LONG_ID;
-        String message = getMessage(msgID, argument.getName(),
-                                    String.valueOf(longID), conflictingName);
-        throw new ArgumentException(msgID, message);
+        Message message = ERR_ARGPARSER_DUPLICATE_LONG_ID.get(
+            argument.getName(), String.valueOf(longID), conflictingName);
+        throw new ArgumentException(message);
       }
     }
 
@@ -556,10 +556,9 @@ public class ArgumentParser
     {
       if (requirePropertiesFile)
       {
-        int    msgID   = MSGID_ARGPARSER_CANNOT_READ_PROPERTIES_FILE;
-        String message = getMessage(msgID, String.valueOf(propertiesFile),
-                                    getExceptionMessage(e));
-        throw new ArgumentException(msgID, message, e);
+        Message message = ERR_ARGPARSER_CANNOT_READ_PROPERTIES_FILE.get(
+            String.valueOf(propertiesFile), getExceptionMessage(e));
+        throw new ArgumentException(message, e);
       }
     }
 
@@ -600,9 +599,9 @@ public class ArgumentParser
         if ((maxTrailingArguments > 0) &&
             (trailingArguments.size() > maxTrailingArguments))
         {
-          int    msgID   = MSGID_ARGPARSER_TOO_MANY_TRAILING_ARGS;
-          String message = getMessage(msgID, maxTrailingArguments);
-          throw new ArgumentException(msgID, message);
+          Message message =
+              ERR_ARGPARSER_TOO_MANY_TRAILING_ARGS.get(maxTrailingArguments);
+          throw new ArgumentException(message);
         }
 
         continue;
@@ -633,9 +632,8 @@ public class ArgumentParser
         else if (equalPos == 0)
         {
           // The argument starts with "--=", which is not acceptable.
-          int    msgID   = MSGID_ARGPARSER_LONG_ARG_WITHOUT_NAME;
-          String message = getMessage(msgID, arg);
-          throw new ArgumentException(msgID, message);
+          Message message = ERR_ARGPARSER_LONG_ARG_WITHOUT_NAME.get(arg);
+          throw new ArgumentException(message);
         }
         else
         {
@@ -681,9 +679,9 @@ public class ArgumentParser
           else
           {
             // There is no such argument registered.
-            int    msgID   = MSGID_ARGPARSER_NO_ARGUMENT_WITH_LONG_ID;
-            String message = getMessage(msgID, argName);
-            throw new ArgumentException(msgID, message);
+            Message message =
+                ERR_ARGPARSER_NO_ARGUMENT_WITH_LONG_ID.get(argName);
+            throw new ArgumentException(message);
           }
         }
         else
@@ -712,30 +710,29 @@ public class ArgumentParser
           {
             if ((i+1) == numArguments)
             {
-              int msgID = MSGID_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_LONG_ID;
-              String message = getMessage(msgID, argName);
-              throw new ArgumentException(msgID, message);
+              Message message =
+                  ERR_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_LONG_ID.get(argName);
+              throw new ArgumentException(message);
             }
 
             argValue = rawArguments[++i];
           }
 
-          StringBuilder invalidReason = new StringBuilder();
+          MessageBuilder invalidReason = new MessageBuilder();
           if (! a.valueIsAcceptable(argValue, invalidReason))
           {
-            int    msgID   = MSGID_ARGPARSER_VALUE_UNACCEPTABLE_FOR_LONG_ID;
-            String message = getMessage(msgID, argValue, argName,
-                                        invalidReason.toString());
-            throw new ArgumentException(msgID, message);
+            Message message = ERR_ARGPARSER_VALUE_UNACCEPTABLE_FOR_LONG_ID.get(
+                argValue, argName, invalidReason.toString());
+            throw new ArgumentException(message);
           }
 
           // If the argument already has a value, then make sure it is
           // acceptable to have more than one.
           if (a.hasValue() && (! a.isMultiValued()))
           {
-            int    msgID   = MSGID_ARGPARSER_NOT_MULTIVALUED_FOR_LONG_ID;
-            String message = getMessage(msgID, argName);
-            throw new ArgumentException(msgID, message);
+            Message message =
+                ERR_ARGPARSER_NOT_MULTIVALUED_FOR_LONG_ID.get(argName);
+            throw new ArgumentException(message);
           }
 
           a.addValue(argValue);
@@ -744,9 +741,9 @@ public class ArgumentParser
         {
           if (argValue != null)
           {
-            int    msgID   = MSGID_ARGPARSER_ARG_FOR_LONG_ID_DOESNT_TAKE_VALUE;
-            String message = getMessage(msgID, argName);
-            throw new ArgumentException(msgID, message);
+            Message message =
+                ERR_ARGPARSER_ARG_FOR_LONG_ID_DOESNT_TAKE_VALUE.get(argName);
+            throw new ArgumentException(message);
           }
         }
       }
@@ -759,9 +756,8 @@ public class ArgumentParser
         // -n value
         if (arg.equals("-"))
         {
-          int    msgID   = MSGID_ARGPARSER_INVALID_DASH_AS_ARGUMENT;
-          String message = getMessage(msgID);
-          throw new ArgumentException(msgID, message);
+          Message message = ERR_ARGPARSER_INVALID_DASH_AS_ARGUMENT.get();
+          throw new ArgumentException(message);
         }
 
         char argCharacter = arg.charAt(1);
@@ -808,9 +804,9 @@ public class ArgumentParser
           else
           {
             // There is no such argument registered.
-            int    msgID   = MSGID_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID;
-            String message = getMessage(msgID, String.valueOf(argCharacter));
-            throw new ArgumentException(msgID, message);
+            Message message = ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID.get(
+                String.valueOf(argCharacter));
+            throw new ArgumentException(message);
           }
         }
         else
@@ -839,31 +835,31 @@ public class ArgumentParser
           {
             if ((i+1) == numArguments)
             {
-              int msgID = MSGID_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_SHORT_ID;
-              String message = getMessage(msgID, String.valueOf(argCharacter));
-              throw new ArgumentException(msgID, message);
+              Message message =
+                  ERR_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_SHORT_ID.
+                    get(String.valueOf(argCharacter));
+              throw new ArgumentException(message);
             }
 
             argValue = rawArguments[++i];
           }
 
-          StringBuilder invalidReason = new StringBuilder();
+          MessageBuilder invalidReason = new MessageBuilder();
           if (! a.valueIsAcceptable(argValue, invalidReason))
           {
-            int    msgID   = MSGID_ARGPARSER_VALUE_UNACCEPTABLE_FOR_SHORT_ID;
-            String message = getMessage(msgID, argValue,
-                                        String.valueOf(argCharacter),
-                                        invalidReason.toString());
-            throw new ArgumentException(msgID, message);
+            Message message = ERR_ARGPARSER_VALUE_UNACCEPTABLE_FOR_SHORT_ID.
+                get(argValue, String.valueOf(argCharacter),
+                    invalidReason.toString());
+            throw new ArgumentException(message);
           }
 
           // If the argument already has a value, then make sure it is
           // acceptable to have more than one.
           if (a.hasValue() && (! a.isMultiValued()))
           {
-            int    msgID   = MSGID_ARGPARSER_NOT_MULTIVALUED_FOR_SHORT_ID;
-            String message = getMessage(msgID, String.valueOf(argCharacter));
-            throw new ArgumentException(msgID, message);
+            Message message = ERR_ARGPARSER_NOT_MULTIVALUED_FOR_SHORT_ID.get(
+                String.valueOf(argCharacter));
+            throw new ArgumentException(message);
           }
 
           a.addValue(argValue);
@@ -885,19 +881,17 @@ public class ArgumentParser
               if (b == null)
               {
                 // There is no such argument registered.
-                int    msgID   = MSGID_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID;
-                String message = getMessage(msgID,
-                                            String.valueOf(argCharacter));
-                throw new ArgumentException(msgID, message);
+                Message message = ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID.get(
+                    String.valueOf(argCharacter));
+                throw new ArgumentException(message);
               }
               else if (b.needsValue())
               {
                 // This means we're in a scenario like "-abc" where b is a
                 // valid argument that takes a value.  We don't support that.
-                int msgID = MSGID_ARGPARSER_CANT_MIX_ARGS_WITH_VALUES;
-                String message = getMessage(msgID, String.valueOf(argCharacter),
-                                            argValue, String.valueOf(c));
-                throw new ArgumentException(msgID, message);
+                Message message = ERR_ARGPARSER_CANT_MIX_ARGS_WITH_VALUES.get(
+                    String.valueOf(argCharacter), argValue, String.valueOf(c));
+                throw new ArgumentException(message);
               }
               else
               {
@@ -931,9 +925,8 @@ public class ArgumentParser
       {
         // It doesn't start with a dash and we don't allow trailing arguments,
         // so this is illegal.
-        int    msgID   = MSGID_ARGPARSER_DISALLOWED_TRAILING_ARGUMENT;
-        String message = getMessage(msgID, arg);
-        throw new ArgumentException(msgID, message);
+        Message message = ERR_ARGPARSER_DISALLOWED_TRAILING_ARGUMENT.get(arg);
+        throw new ArgumentException(message);
       }
     }
 
@@ -944,9 +937,9 @@ public class ArgumentParser
     {
       if (trailingArguments.size() < minTrailingArguments)
       {
-        int    msgID   = MSGID_ARGPARSER_TOO_FEW_TRAILING_ARGUMENTS;
-        String message = getMessage(msgID, minTrailingArguments);
-        throw new ArgumentException(msgID, message);
+        Message message =
+            ERR_ARGPARSER_TOO_FEW_TRAILING_ARGUMENTS.get(minTrailingArguments);
+        throw new ArgumentException(message);
       }
     }
 
@@ -982,9 +975,9 @@ public class ArgumentParser
         // a problem.
         if ((! valueSet) && a.isRequired())
         {
-          int    msgID = MSGID_ARGPARSER_NO_VALUE_FOR_REQUIRED_ARG;
-          String message = getMessage(msgID, a.getName());
-          throw new ArgumentException(msgID, message);
+          Message message =
+              ERR_ARGPARSER_NO_VALUE_FOR_REQUIRED_ARG.get(a.getName());
+          throw new ArgumentException(message);
         }
       }
     }
@@ -1004,7 +997,7 @@ public class ArgumentParser
     usageOrVersionDisplayed = true;
     if ((toolDescription != null) && (toolDescription.length() > 0))
     {
-      buffer.append(wrapText(toolDescription, 79));
+      buffer.append(wrapText(toolDescription.toString(), 79));
       buffer.append(EOL);
     }
 
@@ -1047,7 +1040,7 @@ public class ArgumentParser
     buffer.append("--" + OPTION_LONG_PRODUCT_VERSION);
     buffer.append(EOL);
     buffer.append("    ");
-    buffer.append( getMessage(MSGID_DESCRIPTION_PRODUCT_VERSION));
+    buffer.append( INFO_DESCRIPTION_PRODUCT_VERSION.get());
     buffer.append(EOL);
 
     Argument helpArgument = null ;
@@ -1220,7 +1213,7 @@ public class ArgumentParser
     // indent the description five characters and try our best to wrap
     // at or
     // before column 79 so it will be friendly to 80-column displays.
-    String description = a.getDescription();
+    Message description = a.getDescription();
     if (description.length() <= 75)
     {
       buffer.append("    ");
@@ -1229,7 +1222,7 @@ public class ArgumentParser
     }
     else
     {
-      String s = description;
+      String s = description.toString();
       while (s.length() > 75)
       {
         int spacePos = s.lastIndexOf(' ', 75);

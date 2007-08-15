@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 
 
@@ -51,8 +52,6 @@ import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.BackupInfo;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.RestoreConfig;
@@ -62,8 +61,7 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
@@ -160,7 +158,7 @@ public class RestoreDB
 
 
     // Create the command-line argument parser for use with this program.
-    String toolDescription = getMessage(MSGID_RESTOREDB_TOOL_DESCRIPTION);
+    Message toolDescription = INFO_RESTOREDB_TOOL_DESCRIPTION.get();
     ArgumentParser argParser =
          new ArgumentParser("org.opends.server.tools.RestoreDB",
                             toolDescription, false);
@@ -175,7 +173,7 @@ public class RestoreDB
                               OPTION_LONG_CONFIG_CLASS, true, false,
                               true, OPTION_VALUE_CONFIG_CLASS,
                               ConfigFileHandler.class.getName(), null,
-                              MSGID_DESCRIPTION_CONFIG_CLASS);
+                              INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
@@ -183,7 +181,7 @@ public class RestoreDB
       configFile =
            new StringArgument("configfile", 'f', "configFile", true, false,
                               true, "{configFile}", null, null,
-                              MSGID_DESCRIPTION_CONFIG_FILE);
+                              INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
@@ -191,38 +189,39 @@ public class RestoreDB
       backupIDString =
            new StringArgument("backupid", 'I', "backupID", false, false, true,
                               "{backupID}", null, null,
-                              MSGID_RESTOREDB_DESCRIPTION_BACKUP_ID);
+                              INFO_RESTOREDB_DESCRIPTION_BACKUP_ID.get());
       argParser.addArgument(backupIDString);
 
 
       backupDirectory =
            new StringArgument("backupdirectory", 'd', "backupDirectory", true,
                               false, true, "{backupDir}", null, null,
-                              MSGID_RESTOREDB_DESCRIPTION_BACKUP_DIR);
+                              INFO_RESTOREDB_DESCRIPTION_BACKUP_DIR.get());
       argParser.addArgument(backupDirectory);
 
 
-      listBackups = new BooleanArgument("listbackups", 'l', "listBackups",
-                                     MSGID_RESTOREDB_DESCRIPTION_LIST_BACKUPS);
+      listBackups = new BooleanArgument(
+              "listbackups", 'l', "listBackups",
+              INFO_RESTOREDB_DESCRIPTION_LIST_BACKUPS.get());
       argParser.addArgument(listBackups);
 
 
-      verifyOnly = new BooleanArgument("verifyonly", OPTION_SHORT_DRYRUN,
-                                       OPTION_LONG_DRYRUN,
-                                       MSGID_RESTOREDB_DESCRIPTION_VERIFY_ONLY);
+      verifyOnly = new BooleanArgument(
+              "verifyonly", OPTION_SHORT_DRYRUN,
+              OPTION_LONG_DRYRUN,
+              INFO_RESTOREDB_DESCRIPTION_VERIFY_ONLY.get());
       argParser.addArgument(verifyOnly);
 
 
       displayUsage =
            new BooleanArgument("help", OPTION_SHORT_HELP, OPTION_LONG_HELP,
-                               MSGID_DESCRIPTION_USAGE);
+                               INFO_DESCRIPTION_USAGE.get());
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
@@ -236,8 +235,7 @@ public class RestoreDB
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -265,8 +263,8 @@ public class RestoreDB
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_SERVER_BOOTSTRAP_ERROR;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_SERVER_BOOTSTRAP_ERROR.get(
+                getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -278,15 +276,13 @@ public class RestoreDB
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
-        String message = getMessage(msgID, ie.getMessage());
+        Message message = ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -300,22 +296,19 @@ public class RestoreDB
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-        String message = getMessage(msgID, ce.getMessage());
+        Message message = ERR_CANNOT_LOAD_SCHEMA.get(ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-        String message = getMessage(msgID, ie.getMessage());
+        Message message = ERR_CANNOT_LOAD_SCHEMA.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -329,22 +322,22 @@ public class RestoreDB
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
-        String message = getMessage(msgID, ce.getMessage());
+        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+                ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
-        String message = getMessage(msgID, ie.getMessage());
+        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+                ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+                getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -357,22 +350,22 @@ public class RestoreDB
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-        String message = getMessage(msgID, ce.getMessage());
+        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+                ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-        String message = getMessage(msgID, ie.getMessage());
+        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+                ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+                getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -405,11 +398,9 @@ public class RestoreDB
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY;
-      String message = getMessage(msgID, backupDirectory.getValue(),
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY.get(
+          backupDirectory.getValue(), getExceptionMessage(e));
+      logError(message);
       return 1;
     }
 
@@ -420,35 +411,40 @@ public class RestoreDB
     {
       for (BackupInfo backupInfo : backupDir.getBackups().values())
       {
-        int    msgID   = MSGID_RESTOREDB_LIST_BACKUP_ID;
-        String message = getMessage(msgID, backupInfo.getBackupID());
+        Message message = INFO_RESTOREDB_LIST_BACKUP_ID.get(
+                backupInfo.getBackupID());
         out.println(message);
 
-        msgID   = MSGID_RESTOREDB_LIST_BACKUP_DATE;
-        message = getMessage(msgID,
-                             dateFormat.format(backupInfo.getBackupDate()));
+
+        message = INFO_RESTOREDB_LIST_BACKUP_DATE.get(
+                dateFormat.format(backupInfo.getBackupDate()));
         out.println(message);
 
-        msgID   = MSGID_RESTOREDB_LIST_INCREMENTAL;
-        message = getMessage(msgID, String.valueOf(backupInfo.isIncremental()));
+
+        message = INFO_RESTOREDB_LIST_INCREMENTAL.get(
+                String.valueOf(backupInfo.isIncremental()));
         out.println(message);
 
-        msgID   = MSGID_RESTOREDB_LIST_COMPRESSED;
-        message = getMessage(msgID, String.valueOf(backupInfo.isCompressed()));
+
+        message = INFO_RESTOREDB_LIST_COMPRESSED.get(
+                String.valueOf(backupInfo.isCompressed()));
         out.println(message);
 
-        msgID   = MSGID_RESTOREDB_LIST_ENCRYPTED;
-        message = getMessage(msgID, String.valueOf(backupInfo.isEncrypted()));
+
+        message = INFO_RESTOREDB_LIST_ENCRYPTED.get(
+                String.valueOf(backupInfo.isEncrypted()));
         out.println(message);
 
         byte[] hash = backupInfo.getUnsignedHash();
-        msgID   = MSGID_RESTOREDB_LIST_HASHED;
-        message = getMessage(msgID, String.valueOf(hash != null));
+
+        message = INFO_RESTOREDB_LIST_HASHED.get(
+                String.valueOf(hash != null));
         out.println(message);
 
         byte[] signature = backupInfo.getSignedHash();
-        msgID   = MSGID_RESTOREDB_LIST_SIGNED;
-        message = getMessage(msgID, String.valueOf(signature != null));
+
+        message = INFO_RESTOREDB_LIST_SIGNED.get(
+                String.valueOf(signature != null));
         out.println(message);
 
         StringBuilder dependencyList = new StringBuilder();
@@ -469,8 +465,9 @@ public class RestoreDB
           dependencyList.append("none");
         }
 
-        msgID   = MSGID_RESTOREDB_LIST_DEPENDENCIES;
-        message = getMessage(msgID, dependencyList.toString());
+
+        message = INFO_RESTOREDB_LIST_DEPENDENCIES.get(
+                dependencyList.toString());
         out.println(message);
 
         out.println();
@@ -489,11 +486,9 @@ public class RestoreDB
       BackupInfo backupInfo = backupDir.getBackupInfo(backupID);
       if (backupInfo == null)
       {
-        int    msgID   = MSGID_RESTOREDB_INVALID_BACKUP_ID;
-        String message = getMessage(msgID, backupID,
-                                    backupDirectory.getValue());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_RESTOREDB_INVALID_BACKUP_ID.get(
+            backupID, backupDirectory.getValue());
+        logError(message);
         return 1;
       }
     }
@@ -502,10 +497,9 @@ public class RestoreDB
       BackupInfo latestBackup = backupDir.getLatestBackup();
       if (latestBackup == null)
       {
-        int    msgID   = MSGID_RESTOREDB_NO_BACKUPS_IN_DIRECTORY;
-        String message = getMessage(msgID, backupDirectory.getValue());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_RESTOREDB_NO_BACKUPS_IN_DIRECTORY.get(
+            backupDirectory.getValue());
+        logError(message);
         return 1;
       }
       else
@@ -543,19 +537,16 @@ public class RestoreDB
 
     if (backend == null)
     {
-      int    msgID   = MSGID_RESTOREDB_NO_BACKENDS_FOR_DN;
-      String message = getMessage(msgID, backupDirectory.getValue(),
-                                  configEntryDN.toString());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_RESTOREDB_NO_BACKENDS_FOR_DN.get(
+          backupDirectory.getValue(), configEntryDN.toString());
+      logError(message);
       return 1;
     }
     else if (! backend.supportsRestore())
     {
-      int    msgID   = MSGID_RESTOREDB_CANNOT_RESTORE;
-      String message = getMessage(msgID, backend.getBackendID());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message =
+          ERR_RESTOREDB_CANNOT_RESTORE.get(backend.getBackendID());
+      logError(message);
       return 1;
     }
 
@@ -572,21 +563,17 @@ public class RestoreDB
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_LOCK_BACKEND;
-        String message = getMessage(msgID, backend.getBackendID(),
-                                    String.valueOf(failureReason));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_RESTOREDB_CANNOT_LOCK_BACKEND.get(
+            backend.getBackendID(), String.valueOf(failureReason));
+        logError(message);
         return 0;
       }
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_RESTOREDB_CANNOT_LOCK_BACKEND;
-      String message = getMessage(msgID, backend.getBackendID(),
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_RESTOREDB_CANNOT_LOCK_BACKEND.get(
+          backend.getBackendID(), getExceptionMessage(e));
+      logError(message);
       return 0;
     }
 
@@ -598,19 +585,15 @@ public class RestoreDB
     }
     catch (DirectoryException de)
     {
-      int    msgID   = MSGID_RESTOREDB_ERROR_DURING_BACKUP;
-      String message = getMessage(msgID, backupID, backupDir.getPath(),
-                                  de.getErrorMessage());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_RESTOREDB_ERROR_DURING_BACKUP.get(
+          backupID, backupDir.getPath(), de.getMessageObject());
+      logError(message);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_RESTOREDB_ERROR_DURING_BACKUP;
-      String message = getMessage(msgID, backupID, backupDir.getPath(),
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_RESTOREDB_ERROR_DURING_BACKUP.get(
+          backupID, backupDir.getPath(), getExceptionMessage(e));
+      logError(message);
     }
 
 
@@ -621,20 +604,16 @@ public class RestoreDB
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_UNLOCK_BACKEND;
-        String message = getMessage(msgID, backend.getBackendID(),
-                                    String.valueOf(failureReason));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-                 message, msgID);
+        Message message = WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND.get(
+            backend.getBackendID(), String.valueOf(failureReason));
+        logError(message);
       }
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_RESTOREDB_CANNOT_UNLOCK_BACKEND;
-      String message = getMessage(msgID, backend.getBackendID(),
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-               message, msgID);
+      Message message = WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND.get(
+          backend.getBackendID(), getExceptionMessage(e));
+      logError(message);
     }
     return 0;
   }

@@ -27,13 +27,16 @@
 
 package org.opends.quicksetup;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -55,7 +58,7 @@ public class CurrentInstallStatus
 
   private boolean canOverwriteCurrentInstall;
 
-  private String installationMsg;
+  private Message installationMsg;
 
   /**
    * The constructor of a CurrentInstallStatus object.
@@ -70,47 +73,48 @@ public class CurrentInstallStatus
     {
       Installation installation = Installation.getLocal();
       boolean dbFileExists = false;
-      ArrayList<String> msgs = new ArrayList<String>();
+      ArrayList<Message> msgs = new ArrayList<Message>();
 
       if (installation.getStatus().isServerRunning())
       {
-        msgs.add(getMsg("installstatus-serverrunning", new String[]
-            { String.valueOf(getPort()) }));
+        msgs.add(INFO_INSTALLSTATUS_SERVERRUNNING.get(
+                String.valueOf(getPort())));
       }
 
       if (dbFilesExist())
       {
         dbFileExists = true;
-        msgs.add(getMsg("installstatus-dbfileexist"));
+        msgs.add(INFO_INSTALLSTATUS_DBFILEEXIST.get());
       }
 
       if (isConfigFileModified())
       {
-        msgs.add(getMsg("installstatus-configfilemodified"));
+        msgs.add(INFO_INSTALLSTATUS_CONFIGFILEMODIFIED.get());
       }
       canOverwriteCurrentInstall = (msgs.size() == 1) && dbFileExists;
       isInstalled = msgs.size() > 0;
       if (canOverwriteCurrentInstall)
       {
         installationMsg =
-          getMsg("installstatus-canoverwritecurrentinstall-msg");
+          INFO_INSTALLSTATUS_CANOVERWRITECURRENTINSTALL_MSG.get();
       }
       else if (isInstalled)
       {
-        StringBuilder buf = new StringBuilder();
+        MessageBuilder buf = new MessageBuilder();
         buf.append("<ul>");
-        for (String msg : msgs)
+        for (Message msg : msgs)
         {
-          buf.append("\n<li>").append(msg).append("</li>");
+          buf.append("\n<li>");
+          buf.append(msg);
+          buf.append("</li>");
         }
         buf.append("</ul>");
-        installationMsg = getMsg("installstatus-installed", new String[]
-          { buf.toString() });
+        installationMsg = INFO_INSTALLSTATUS_INSTALLED.get( buf.toString() );
       }
     }
     if (!isInstalled)
     {
-      installationMsg = getMsg("installstatus-not-installed");
+      installationMsg = INFO_INSTALLSTATUS_NOT_INSTALLED.get();
     }
   }
 
@@ -143,7 +147,7 @@ public class CurrentInstallStatus
    *
    * @return an String in HTML format describing the status of the installation.
    */
-  public String getInstallationMsg()
+  public Message getInstallationMsg()
   {
     return installationMsg;
   }
@@ -197,21 +201,6 @@ public class CurrentInstallStatus
       LOG.log(Level.INFO, "failed to determine if config modified", ioe);
     }
     return mod;
-  }
-
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  private String getMsg(String key, String[] args)
-  {
-    return getI18n().getMsg(key, args);
-  }
-
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
   }
 
 }

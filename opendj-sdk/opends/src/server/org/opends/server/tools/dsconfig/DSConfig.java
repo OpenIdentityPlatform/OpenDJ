@@ -25,12 +25,12 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
+import org.opends.messages.Message;
 
 
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -125,7 +125,7 @@ public final class DSConfig extends ConsoleApplication {
         app.initializeClientEnvironment();
       } catch (InitializationException e) {
         // TODO: is this ok as an error message?
-        app.printMessage(e.getMessage());
+        app.printMessage(e.getMessageObject());
         return 1;
       }
     }
@@ -194,7 +194,7 @@ public final class DSConfig extends ConsoleApplication {
     super(in, out, err);
 
     this.parser = new SubCommandArgumentParser(this.getClass().getName(),
-        getMessage(MSGID_CONFIGDS_TOOL_DESCRIPTION), false);
+        INFO_CONFIGDS_TOOL_DESCRIPTION.get(), false);
 
     this.factory = factory;
   }
@@ -275,9 +275,9 @@ public final class DSConfig extends ConsoleApplication {
 
 
   // Displays the provided message followed by a help usage reference.
-  private void displayMessageAndUsageReference(String message) {
+  private void displayMessageAndUsageReference(Message message) {
     printMessage(message);
-    printMessage("");
+    printMessage(Message.EMPTY);
     printMessage(parser.getHelpUsageReference());
   }
 
@@ -292,19 +292,20 @@ public final class DSConfig extends ConsoleApplication {
   private void initializeGlobalArguments() throws ArgumentException {
     if (globalArgumentsInitialized == false) {
       verboseArgument = new BooleanArgument("verbose", 'v', "verbose",
-          MSGID_DESCRIPTION_VERBOSE);
+          INFO_DESCRIPTION_VERBOSE.get());
 
       quietArgument = new BooleanArgument("quiet", 'q', "quiet",
-          MSGID_DESCRIPTION_QUIET);
+          INFO_DESCRIPTION_QUIET.get());
 
       scriptFriendlyArgument = new BooleanArgument("script-friendly", 's',
-          "script-friendly", MSGID_DESCRIPTION_SCRIPT_FRIENDLY);
+          "script-friendly", INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
 
       interactiveArgument = new BooleanArgument("interactive", 'i',
-          "interactive", MSGID_DESCRIPTION_INTERACTIVE);
+          "interactive", INFO_DESCRIPTION_INTERACTIVE.get());
 
       showUsageArgument = new BooleanArgument("showUsage", OPTION_SHORT_HELP,
-          OPTION_LONG_HELP, MSGID_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_SUMMARY);
+              OPTION_LONG_HELP,
+              INFO_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_SUMMARY.get());
 
       // Register the global arguments.
       parser.addGlobalArgument(showUsageArgument);
@@ -369,9 +370,9 @@ public final class DSConfig extends ConsoleApplication {
         SortedSet<SubCommand> subCommands = group.getValue();
 
         String option = OPTION_LONG_HELP + "-" + tag.getName();
-        String synopsis = tag.getSynopsis().toLowerCase();
+        String synopsis = tag.getSynopsis().toString().toLowerCase();
         BooleanArgument arg = new BooleanArgument(option, null, option,
-            MSGID_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE, synopsis);
+            INFO_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE.get(synopsis));
 
         parser.addGlobalArgument(arg);
         parser.setUsageGroupArgument(arg, subCommands);
@@ -380,7 +381,7 @@ public final class DSConfig extends ConsoleApplication {
       // Register the --help-all argument.
       String option = OPTION_LONG_HELP + "-all";
       BooleanArgument arg = new BooleanArgument(option, null, option,
-          MSGID_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_ALL);
+          INFO_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_ALL.get());
 
       parser.addGlobalArgument(arg);
       parser.setUsageGroupArgument(arg, allSubCommands);
@@ -407,8 +408,7 @@ public final class DSConfig extends ConsoleApplication {
       initializeGlobalArguments();
       initializeSubCommands();
     } catch (ArgumentException e) {
-      int msgID = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, e.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(e.getMessage());
       printMessage(message);
       return 1;
     }
@@ -417,8 +417,7 @@ public final class DSConfig extends ConsoleApplication {
     try {
       parser.parseArguments(args);
     } catch (ArgumentException ae) {
-      int msgID = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
       displayMessageAndUsageReference(message);
       return 1;
     }
@@ -431,32 +430,30 @@ public final class DSConfig extends ConsoleApplication {
 
     // Make sure that we have a sub-command.
     if (parser.getSubCommand() == null) {
-      int msgID = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID,
-          getMessage(MSGID_DSCFG_ERROR_MISSING_SUBCOMMAND));
+      Message message = ERR_ERROR_PARSING_ARGS.get(
+              ERR_DSCFG_ERROR_MISSING_SUBCOMMAND.get());
       displayMessageAndUsageReference(message);
       return 1;
     }
 
     if (quietArgument.isPresent() && verboseArgument.isPresent()) {
-      int msgID = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, quietArgument.getLongIdentifier(),
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+              quietArgument.getLongIdentifier(),
           verboseArgument.getLongIdentifier());
       displayMessageAndUsageReference(message);
       return 1;
     }
 
     if (quietArgument.isPresent() && interactiveArgument.isPresent()) {
-      int msgID = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, quietArgument.getLongIdentifier(),
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+              quietArgument.getLongIdentifier(),
           interactiveArgument.getLongIdentifier());
       displayMessageAndUsageReference(message);
       return 1;
     }
 
     if (scriptFriendlyArgument.isPresent() && verboseArgument.isPresent()) {
-      int msgID = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, scriptFriendlyArgument
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(scriptFriendlyArgument
           .getLongIdentifier(), verboseArgument.getLongIdentifier());
       displayMessageAndUsageReference(message);
       return 1;
@@ -466,7 +463,7 @@ public final class DSConfig extends ConsoleApplication {
     try {
       factory.validateGlobalArguments();
     } catch (ArgumentException e) {
-      printMessage(e.getMessage());
+      printMessage(e.getMessageObject());
       return 1;
     }
 
@@ -475,19 +472,19 @@ public final class DSConfig extends ConsoleApplication {
     try {
       return handler.run();
     } catch (ArgumentException e) {
-      printMessage(e.getMessage());
+      printMessage(e.getMessageObject());
       return 1;
     } catch (ClientException e) {
       // If the client exception was caused by a decoding exception
       // then we should display the causes.
-      printMessage(e.getMessage());
+      printMessage(e.getMessageObject());
 
       Throwable cause = e.getCause();
       if (cause instanceof ManagedObjectDecodingException) {
         ManagedObjectDecodingException de =
           (ManagedObjectDecodingException) cause;
 
-        printMessage("");
+        printMessage(Message.EMPTY);
         TableBuilder builder = new TableBuilder();
         for (PropertyException pe : de.getCauses()) {
           AbstractManagedObjectDefinition<?, ?> d = de
@@ -503,7 +500,7 @@ public final class DSConfig extends ConsoleApplication {
         printer.setDisplayHeadings(false);
         printer.setColumnWidth(1, 0);
         builder.print(printer);
-        printMessage("");
+        printMessage(Message.EMPTY);
       }
 
       return 1;
@@ -511,7 +508,7 @@ public final class DSConfig extends ConsoleApplication {
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      printMessage(StaticUtils.stackTraceToString(e));
+      printMessage(Message.raw(StaticUtils.stackTraceToString(e)));
       return 1;
     }
   }

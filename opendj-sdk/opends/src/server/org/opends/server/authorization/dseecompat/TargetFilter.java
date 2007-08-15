@@ -26,9 +26,9 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.AciMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.AccessControlMessages.*;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchFilter;
@@ -72,10 +72,10 @@ public class TargetFilter {
         try {
             filter = SearchFilter.createFilterFromString(expr);
         } catch (DirectoryException ex) {
-            int msgID =
-                MSGID_ACI_SYNTAX_INVALID_TARGETFILTERKEYWORD_EXPRESSION;
-            String message = getMessage(msgID, expr);
-            throw new AciException(msgID, message);
+            Message message =
+                WARN_ACI_SYNTAX_INVALID_TARGETFILTERKEYWORD_EXPRESSION.
+                  get(expr);
+            throw new AciException(message);
         }
         return new TargetFilter(op, filter);
     }

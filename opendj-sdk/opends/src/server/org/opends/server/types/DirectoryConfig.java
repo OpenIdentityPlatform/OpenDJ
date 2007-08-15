@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 
@@ -50,7 +51,6 @@ import org.opends.server.core.DirectoryServer;
 
 
 
-
 /**
  * This interface defines a set of methods that may be used by
  * third-party code to obtatin information about the core Directory
@@ -71,7 +71,7 @@ public final class DirectoryConfig
    *
    * @return  A reference to the Directory Server crypto manager.
    */
-  public static final CryptoManager getCryptoManager()
+  public static CryptoManager getCryptoManager()
   {
     return DirectoryServer.getCryptoManager();
   }
@@ -85,7 +85,7 @@ public final class DirectoryConfig
    * @return  The operating system on which the Directory Server is
    *          running.
    */
-  public static final OperatingSystem getOperatingSystem()
+  public static OperatingSystem getOperatingSystem()
   {
     return DirectoryServer.getOperatingSystem();
   }
@@ -99,7 +99,7 @@ public final class DirectoryConfig
    * @return  A reference to the Directory Server configuration
    *          handler.
    */
-  public static final ConfigHandler getConfigHandler()
+  public static ConfigHandler getConfigHandler()
   {
     return DirectoryServer.getConfigHandler();
   }
@@ -118,7 +118,7 @@ public final class DirectoryConfig
    * @throws  ConfigException  If a problem occurs while trying to
    *                           retrieve the requested entry.
    */
-  public static final ConfigEntry getConfigEntry(DN entryDN)
+  public static ConfigEntry getConfigEntry(DN entryDN)
          throws ConfigException
   {
     return DirectoryServer.getConfigEntry(entryDN);
@@ -133,7 +133,7 @@ public final class DirectoryConfig
    * @return  The path to the root directory for this instance of the
    *          Directory Server.
   */
-  public static final String getServerRoot()
+  public static String getServerRoot()
   {
     return DirectoryServer.getServerRoot();
   }
@@ -147,7 +147,7 @@ public final class DirectoryConfig
    * @return  The time that the Directory Server was started, in
    *          milliseconds since the epoch.
    */
-  public static final long getStartTime()
+  public static long getStartTime()
   {
     return DirectoryServer.getStartTime();
   }
@@ -161,7 +161,7 @@ public final class DirectoryConfig
    * @return  The time that the Directory Server was started,
    *          formatted in UTC.
    */
-  public static final String getStartTimeUTC()
+  public static String getStartTimeUTC()
   {
     return DirectoryServer.getStartTimeUTC();
   }
@@ -173,7 +173,7 @@ public final class DirectoryConfig
    *
    * @return  A reference to the Directory Server schema.
    */
-  public static final Schema getSchema()
+  public static Schema getSchema()
   {
     return DirectoryServer.getSchema();
   }
@@ -207,7 +207,7 @@ public final class DirectoryConfig
    * @return  The requested matching rule, or <CODE>null</CODE> if no
    *          such matching rule has been defined in the server.
    */
-  public static final MatchingRule getMatchingRule(String lowerName)
+  public static MatchingRule getMatchingRule(String lowerName)
   {
     return DirectoryServer.getMatchingRule(lowerName);
   }
@@ -225,7 +225,7 @@ public final class DirectoryConfig
    *          <CODE>null</CODE> if no such matching rule has been
    *          defined in the server.
    */
-  public static final ApproximateMatchingRule
+  public static ApproximateMatchingRule
        getApproximateMatchingRule(String lowerName)
   {
     return DirectoryServer.getApproximateMatchingRule(lowerName);
@@ -244,7 +244,7 @@ public final class DirectoryConfig
    *          <CODE>null</CODE> if no such matching rule has been
    *          defined in the server.
    */
-  public static final EqualityMatchingRule
+  public static EqualityMatchingRule
        getEqualityMatchingRule(String lowerName)
   {
     return DirectoryServer.getEqualityMatchingRule(lowerName);
@@ -263,7 +263,7 @@ public final class DirectoryConfig
    *          <CODE>null</CODE> if no such matching rule has been
    *          defined in the server.
    */
-  public static final OrderingMatchingRule
+  public static OrderingMatchingRule
        getOrderingMatchingRule(String lowerName)
   {
     return DirectoryServer.getOrderingMatchingRule(lowerName);
@@ -282,7 +282,7 @@ public final class DirectoryConfig
    *          <CODE>null</CODE> if no such matching rule has been
    *          defined in the server.
    */
-  public static final SubstringMatchingRule
+  public static SubstringMatchingRule
        getSubstringMatchingRule(String lowerName)
   {
     return DirectoryServer.getSubstringMatchingRule(lowerName);
@@ -301,7 +301,7 @@ public final class DirectoryConfig
    * @return  The set of objectclasses defined in the Directory
    *          Server.
    */
-  public static final Map<String,ObjectClass> getObjectClasses()
+  public static Map<String,ObjectClass> getObjectClasses()
   {
     return DirectoryServer.getObjectClasses();
   }
@@ -324,7 +324,7 @@ public final class DirectoryConfig
    *          the server schema and a default class should not be
    *          returned.
    */
-  public static final ObjectClass
+  public static ObjectClass
        getObjectClass(String lowerName, boolean returnDefault)
   {
     return DirectoryServer.getObjectClass(lowerName, returnDefault);
@@ -339,7 +339,7 @@ public final class DirectoryConfig
    *
    * @return  The "top" objectClass.
    */
-  public static final ObjectClass getTopObjectClass()
+  public static ObjectClass getTopObjectClass()
   {
     return DirectoryServer.getTopObjectClass();
   }
@@ -357,7 +357,7 @@ public final class DirectoryConfig
    * @return The set of attribute type definitions that have been
    *         defined in the Directory Server.
    */
-  public static final Map<String,AttributeType> getAttributeTypes()
+  public static Map<String,AttributeType> getAttributeTypes()
   {
     return DirectoryServer.getAttributeTypes();
   }
@@ -380,7 +380,7 @@ public final class DirectoryConfig
    *          the server schema and a default type should not be
    *          returned.
    */
-  public static final AttributeType
+  public static AttributeType
        getAttributeType(String lowerName, boolean returnDefault)
   {
     return DirectoryServer.getAttributeType(lowerName, returnDefault);
@@ -393,7 +393,7 @@ public final class DirectoryConfig
    *
    * @return  The attribute type for the "objectClass" attribute.
    */
-  public static final AttributeType getObjectClassAttributeType()
+  public static AttributeType getObjectClassAttributeType()
   {
     return DirectoryServer.getObjectClassAttributeType();
   }
@@ -409,7 +409,7 @@ public final class DirectoryConfig
    * @return  The set of attribute syntaxes defined in the Directory
    *          Server.
    */
-  public static final Map<String,AttributeSyntax>
+  public static Map<String,AttributeSyntax>
        getAttributeSyntaxes()
   {
     return DirectoryServer.getAttributeSyntaxes();
@@ -430,7 +430,7 @@ public final class DirectoryConfig
    *          indicated that the default is acceptable, or
    *          <CODE>null</CODE> otherwise.
    */
-  public static final AttributeSyntax
+  public static AttributeSyntax
        getAttributeSyntax(String oid, boolean allowDefault)
   {
     return DirectoryServer.getAttributeSyntax(oid, allowDefault);
@@ -445,7 +445,7 @@ public final class DirectoryConfig
    * @return  The default attribute syntax that should be used for
    *          attributes that are not defined in the server schema.
    */
-  public static final AttributeSyntax getDefaultAttributeSyntax()
+  public static AttributeSyntax getDefaultAttributeSyntax()
   {
     return DirectoryServer.getDefaultAttributeSyntax();
   }
@@ -461,7 +461,7 @@ public final class DirectoryConfig
    *          attributes that are not defined in the server schema and
    *          are meant to store binary values.
    */
-  public static final AttributeSyntax getDefaultBinarySyntax()
+  public static AttributeSyntax getDefaultBinarySyntax()
   {
     return DirectoryServer.getDefaultBinarySyntax();
   }
@@ -477,7 +477,7 @@ public final class DirectoryConfig
    *          attributes that are not defined in the server schema and
    *          are meant to store Boolean values.
    */
-  public static final AttributeSyntax getDefaultBooleanSyntax()
+  public static AttributeSyntax getDefaultBooleanSyntax()
   {
     return DirectoryServer.getDefaultBooleanSyntax();
   }
@@ -493,7 +493,7 @@ public final class DirectoryConfig
    *          attributes that are not defined in the server schema and
    *          are meant to store DN values.
    */
-  public static final AttributeSyntax getDefaultDNSyntax()
+  public static AttributeSyntax getDefaultDNSyntax()
   {
     return DirectoryServer.getDefaultDNSyntax();
   }
@@ -509,7 +509,7 @@ public final class DirectoryConfig
    *          attributes that are not defined in the server schema and
    *          are meant to store integer values.
    */
-  public static final AttributeSyntax getDefaultIntegerSyntax()
+  public static AttributeSyntax getDefaultIntegerSyntax()
   {
     return DirectoryServer.getDefaultIntegerSyntax();
   }
@@ -525,7 +525,7 @@ public final class DirectoryConfig
    *          attributes that are not defined in the server schema and
    *          are meant to store string values.
    */
-  public static final AttributeSyntax getDefaultStringSyntax()
+  public static AttributeSyntax getDefaultStringSyntax()
   {
     return DirectoryServer.getDefaultStringSyntax();
   }
@@ -541,7 +541,7 @@ public final class DirectoryConfig
    * @return  The set of matching rule uses defined in the Directory
    *          Server.
    */
-  public static final Map<MatchingRule,MatchingRuleUse>
+  public static Map<MatchingRule,MatchingRuleUse>
        getMatchingRuleUses()
   {
     return DirectoryServer.getMatchingRuleUses();
@@ -559,7 +559,7 @@ public final class DirectoryConfig
    * @return  The matching rule use for the provided matching rule, or
    *          <CODE>null</CODE> if none is defined.
    */
-  public static final MatchingRuleUse
+  public static MatchingRuleUse
        getMatchingRuleUse(MatchingRule matchingRule)
   {
     return DirectoryServer.getMatchingRuleUse(matchingRule);
@@ -576,7 +576,7 @@ public final class DirectoryConfig
    * @return  The set of DIT content rules defined in the Directory
    *          Server.
    */
-  public static final Map<ObjectClass,DITContentRule>
+  public static Map<ObjectClass,DITContentRule>
        getDITContentRules()
   {
     return DirectoryServer.getDITContentRules();
@@ -594,7 +594,7 @@ public final class DirectoryConfig
    * @return  The requested DIT content rule, or <CODE>null</CODE> if
    *          no such rule is defined in the schema.
    */
-  public static final DITContentRule
+  public static DITContentRule
        getDITContentRule(ObjectClass objectClass)
   {
     return DirectoryServer.getDITContentRule(objectClass);
@@ -611,7 +611,7 @@ public final class DirectoryConfig
    * @return  The set of DIT structure rules defined in the Directory
    *          Server.
    */
-  public static final Map<NameForm,DITStructureRule>
+  public static Map<NameForm,DITStructureRule>
        getDITStructureRules()
   {
     return DirectoryServer.getDITStructureRules();
@@ -629,7 +629,7 @@ public final class DirectoryConfig
    * @return  The requested DIT structure rule, or <CODE>null</CODE>
    *          if no such rule is defined.
    */
-  public static final DITStructureRule getDITStructureRule(int ruleID)
+  public static DITStructureRule getDITStructureRule(int ruleID)
   {
     return DirectoryServer.getDITStructureRule(ruleID);
   }
@@ -646,7 +646,7 @@ public final class DirectoryConfig
    * @return  The requested DIT structure rule, or <CODE>null</CODE>
    *          if no such rule is defined.
    */
-  public static final DITStructureRule
+  public static DITStructureRule
        getDITStructureRule(NameForm nameForm)
   {
     return DirectoryServer.getDITStructureRule(nameForm);
@@ -662,7 +662,7 @@ public final class DirectoryConfig
    *
    * @return  The set of name forms defined in the Directory Server.
    */
-  public static final Map<ObjectClass,NameForm> getNameForms()
+  public static Map<ObjectClass,NameForm> getNameForms()
   {
     return DirectoryServer.getNameForms();
   }
@@ -679,7 +679,7 @@ public final class DirectoryConfig
    * @return  The requested name form, or <CODE>null</CODE> if no such
    *          name form is defined in the schema.
    */
-  public static final NameForm getNameForm(ObjectClass objectClass)
+  public static NameForm getNameForm(ObjectClass objectClass)
   {
     return DirectoryServer.getNameForm(objectClass);
   }
@@ -696,7 +696,7 @@ public final class DirectoryConfig
    * @return  The requested name form, or <CODE>null</CODE> if no such
    *          name form is defined in the schema.
    */
-  public static final NameForm getNameForm(String lowerName)
+  public static NameForm getNameForm(String lowerName)
   {
     return DirectoryServer.getNameForm(lowerName);
   }
@@ -709,7 +709,7 @@ public final class DirectoryConfig
    *
    * @param  component  The invokable component to register.
    */
-  public static final void registerInvokableComponent(
+  public static void registerInvokableComponent(
                                 InvokableComponent component)
   {
     DirectoryServer.registerInvokableComponent(component);
@@ -723,7 +723,7 @@ public final class DirectoryConfig
    *
    * @param  component  The invokable component to deregister.
    */
-  public static final void deregisterInvokableComponent(
+  public static void deregisterInvokableComponent(
                                 InvokableComponent component)
   {
     DirectoryServer.deregisterInvokableComponent(component);
@@ -736,7 +736,7 @@ public final class DirectoryConfig
    *
    * @param  alertGenerator  The alert generator to register.
    */
-  public static final void registerAlertGenerator(
+  public static void registerAlertGenerator(
                                 AlertGenerator alertGenerator)
   {
     DirectoryServer.registerAlertGenerator(alertGenerator);
@@ -750,7 +750,7 @@ public final class DirectoryConfig
    *
    * @param  alertGenerator  The alert generator to deregister.
    */
-  public static final void deregisterAlertGenerator(
+  public static void deregisterAlertGenerator(
                                 AlertGenerator alertGenerator)
   {
     DirectoryServer.deregisterAlertGenerator(alertGenerator);
@@ -763,19 +763,17 @@ public final class DirectoryConfig
    *
    * @param  generator     The alert generator that created the alert.
    * @param  alertType     The alert type name for this alert.
-   * @param  alertID       The alert ID that uniquely identifies the
-   *                       type of alert.
    * @param  alertMessage  A message (possibly <CODE>null</CODE>) that
    *                       can provide more information about this
    *                       alert.
    */
-  public static final void
+  public static void
        sendAlertNotification(AlertGenerator generator,
-                             String alertType, int alertID,
-                             String alertMessage)
+                             String alertType,
+                             Message alertMessage)
   {
     DirectoryServer.sendAlertNotification(generator, alertType,
-                                          alertID, alertMessage);
+            alertMessage);
   }
 
 
@@ -787,7 +785,7 @@ public final class DirectoryConfig
    * @return  The result code that should be used when the Directory
    *          Server encounters an internal server error.
    */
-  public static final ResultCode getServerErrorResultCode()
+  public static ResultCode getServerErrorResultCode()
   {
     return DirectoryServer.getServerErrorResultCode();
   }
@@ -808,7 +806,7 @@ public final class DirectoryConfig
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to retrieve the entry.
    */
-  public static final Entry getEntry(DN entryDN)
+  public static Entry getEntry(DN entryDN)
          throws DirectoryException
   {
     return DirectoryServer.getEntry(entryDN);
@@ -830,7 +828,7 @@ public final class DirectoryConfig
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to make the determination.
    */
-  public static final boolean entryExists(DN entryDN)
+  public static boolean entryExists(DN entryDN)
          throws DirectoryException
   {
     return DirectoryServer.entryExists(entryDN);
@@ -845,7 +843,7 @@ public final class DirectoryConfig
    * @return  The set of OIDS for the supported controls registered
    *          with the Directory Server.
    */
-  public static final Set<String> getSupportedControls()
+  public static Set<String> getSupportedControls()
   {
     return DirectoryServer.getSupportedControls();
   }
@@ -863,7 +861,7 @@ public final class DirectoryConfig
    *          with the server as a supported control, or
    *          <CODE>false</CODE> if not.
    */
-  public static final boolean isSupportedControl(String controlOID)
+  public static boolean isSupportedControl(String controlOID)
   {
     return DirectoryServer.isSupportedControl(controlOID);
   }
@@ -878,7 +876,7 @@ public final class DirectoryConfig
    * @param  controlOID  The OID of the control to register as a
    *                     supported control.
    */
-  public static final void registerSupportedControl(String controlOID)
+  public static void registerSupportedControl(String controlOID)
   {
     DirectoryServer.registerSupportedControl(controlOID);
   }
@@ -893,7 +891,7 @@ public final class DirectoryConfig
    * @param  controlOID  The OID of the control to deregister as a
    *                     supported control.
    */
-  public static final void
+  public static void
        deregisterSupportedControl(String controlOID)
   {
     DirectoryServer.deregisterSupportedControl(controlOID);
@@ -908,7 +906,7 @@ public final class DirectoryConfig
    * @return  The set of OIDs for the supported features registered
    *          with the Directory Server.
    */
-  public static final Set<String> getSupportedFeatures()
+  public static Set<String> getSupportedFeatures()
   {
     return DirectoryServer.getSupportedFeatures();
   }
@@ -926,7 +924,7 @@ public final class DirectoryConfig
    *          with the server as a supported feature, or
    *          <CODE>false</CODE> if not.
    */
-  public static final boolean isSupportedFeature(String featureOID)
+  public static boolean isSupportedFeature(String featureOID)
   {
     return DirectoryServer.isSupportedFeature(featureOID);
   }
@@ -941,7 +939,7 @@ public final class DirectoryConfig
    * @param  featureOID  The OID of the feature to register as a
    *                     supported feature.
    */
-  public static final void registerSupportedFeature(String featureOID)
+  public static void registerSupportedFeature(String featureOID)
   {
     DirectoryServer.registerSupportedFeature(featureOID);
   }
@@ -956,7 +954,7 @@ public final class DirectoryConfig
    * @param  featureOID  The OID of the feature to deregister as a
    *                     supported feature.
    */
-  public static final void
+  public static void
        deregisterSupportedFeature(String featureOID)
   {
     DirectoryServer.deregisterSupportedFeature(featureOID);
@@ -974,7 +972,7 @@ public final class DirectoryConfig
    * @return  The set of extended operations that may be processed by
    *          the Directory Server.
    */
-  public static final Map<String,ExtendedOperationHandler>
+  public static Map<String,ExtendedOperationHandler>
                      getSupportedExtensions()
   {
     return DirectoryServer.getSupportedExtensions();
@@ -991,7 +989,7 @@ public final class DirectoryConfig
    * @return  The handler for the specified extended operation, or
    *          <CODE>null</CODE> if there is none.
    */
-  public static final ExtendedOperationHandler
+  public static ExtendedOperationHandler
        getExtendedOperationHandler(String oid)
   {
     return DirectoryServer.getExtendedOperationHandler(oid);
@@ -1007,7 +1005,7 @@ public final class DirectoryConfig
    * @param  handler  The extended operation handler to register with
    *                  the Directory Server.
    */
-  public static final void registerSupportedExtension(String oid,
+  public static void registerSupportedExtension(String oid,
                           ExtendedOperationHandler handler)
   {
     DirectoryServer.registerSupportedExtension(oid, handler);
@@ -1021,7 +1019,7 @@ public final class DirectoryConfig
    *
    * @param  oid  The OID for the extended operation to deregister.
    */
-  public static final void deregisterSupportedExtension(String oid)
+  public static void deregisterSupportedExtension(String oid)
   {
     DirectoryServer.deregisterSupportedExtension(oid);
   }
@@ -1037,7 +1035,7 @@ public final class DirectoryConfig
    * @return  The set of SASL mechanisms that are supported by the
    *          Directory Server.
    */
-  public static final Map<String,SASLMechanismHandler>
+  public static Map<String,SASLMechanismHandler>
                      getSupportedSASLMechanisms()
   {
     return DirectoryServer.getSupportedSASLMechanisms();
@@ -1053,7 +1051,7 @@ public final class DirectoryConfig
    * @return  The handler for the specified SASL mechanism, or
    *          <CODE>null</CODE> if there is none.
    */
-  public static final SASLMechanismHandler
+  public static SASLMechanismHandler
        getSASLMechanismHandler(String name)
   {
     return DirectoryServer.getSASLMechanismHandler(name);
@@ -1069,7 +1067,7 @@ public final class DirectoryConfig
    * @param  handler  The SASL mechanism handler to register with the
    *                  Directory Server.
    */
-  public static final void
+  public static void
        registerSASLMechanismHandler(String name,
                                     SASLMechanismHandler handler)
   {
@@ -1084,7 +1082,7 @@ public final class DirectoryConfig
    *
    * @param  name  The name of the SASL mechanism to be deregistered.
    */
-  public static final void deregisterSASLMechanismHandler(String name)
+  public static void deregisterSASLMechanismHandler(String name)
   {
     DirectoryServer.deregisterSASLMechanismHandler(name);
   }
@@ -1099,7 +1097,7 @@ public final class DirectoryConfig
    * @param  changeListener  The change notification listener to
    *                         register with the Directory Server.
    */
-  public static final void
+  public static void
        registerChangeNotificationListener(
             ChangeNotificationListener changeListener)
   {
@@ -1117,7 +1115,7 @@ public final class DirectoryConfig
    * @param  changeListener  The change notification listener to
    *                         deregister with the Directory Server.
    */
-  public static final void deregisterChangeNotificationListener(
+  public static void deregisterChangeNotificationListener(
                           ChangeNotificationListener changeListener)
   {
     DirectoryServer.deregisterChangeNotificationListener(
@@ -1133,7 +1131,7 @@ public final class DirectoryConfig
    * @param  listener  The shutdown listener to register with the
    *                   Directory Server.
    */
-  public static final void
+  public static void
        registerShutdownListener(ServerShutdownListener listener)
   {
     DirectoryServer.registerShutdownListener(listener);
@@ -1148,7 +1146,7 @@ public final class DirectoryConfig
    * @param  listener  The shutdown listener to deregister with the
    *                   Directory Server.
    */
-  public static final void
+  public static void
        deregisterShutdownListener(ServerShutdownListener listener)
   {
     DirectoryServer.deregisterShutdownListener(listener);
@@ -1161,7 +1159,7 @@ public final class DirectoryConfig
    *
    * @return  The full version string for the Directory Server.
    */
-  public static final String getVersionString()
+  public static String getVersionString()
   {
     return DirectoryServer.getVersionString();
   }

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types.operation;
+import org.opends.messages.Message;
 
 
 
@@ -170,11 +171,9 @@ public interface PreParseBindOperation
   /**
    * Specifies the reason that the authentication failed.
    *
-   * @param  id      The unique identifier for the authentication
-   *                 failure reason.
    * @param  reason  A human-readable message providing the reason
    *                 that the authentication failed.
    */
-  public void setAuthFailureReason(int id, String reason);
+  public void setAuthFailureReason(Message reason);
 }
 

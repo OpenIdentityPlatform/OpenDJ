@@ -46,7 +46,7 @@ import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Control;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.operation.*;
-
+import org.opends.messages.Message;
 
 
 /**
@@ -143,8 +143,8 @@ public class DisconnectClientPlugin
           // This is fine.
           break;
         default:
-          throw new ConfigException(-1, "Invalid plugin type " + t +
-                                    " for the disconnect plugin.");
+          throw new ConfigException(Message.raw("Invalid plugin type " + t +
+                                    " for the disconnect plugin."));
       }
     }
   }
@@ -856,8 +856,8 @@ public class DisconnectClientPlugin
           if (c.getValue().stringValue().equalsIgnoreCase(section))
           {
             operation.disconnectClient(DisconnectReason.CLOSED_BY_PLUGIN, true,
-                 "Closed by disconnect client plugin (section " + section + ")",
-                 -1);
+                 Message.raw("Closed by disconnect client plugin (section " +
+                         section + ")"));
 
             return true;
           }

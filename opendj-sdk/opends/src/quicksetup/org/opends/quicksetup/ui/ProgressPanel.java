@@ -43,6 +43,8 @@ import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.ProgressDescriptor;
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * This panel is used to show the progress of the application.
@@ -60,7 +62,7 @@ public class ProgressPanel extends QuickSetupStepPanel
 
   private JEditorPane detailsTextArea;
 
-  private String lastText;
+  private Message lastText;
 
   private Component lastFocusComponent;
 
@@ -90,7 +92,8 @@ public class ProgressPanel extends QuickSetupStepPanel
     gbc.fill = GridBagConstraints.HORIZONTAL;
 
     progressBarLabel = UIFactory.makeHtmlPane(
-        getMsg("progressbar-initial-label"), UIFactory.PROGRESS_FONT);
+            INFO_PROGRESSBAR_INITIAL_LABEL.get(),
+            UIFactory.PROGRESS_FONT);
     progressBarLabel.setOpaque(false);
     progressBarLabel.setEditable(false);
     progressBarLabel.setFocusable(false);
@@ -113,11 +116,11 @@ public class ProgressPanel extends QuickSetupStepPanel
     gbc.insets.top = UIFactory.TOP_INSET_PROGRESS_BAR;
     gbc.insets.bottom = UIFactory.BOTTOM_INSET_PROGRESS_BAR;
     panel.add(createProgressBarPanel(), gbc);
-    progressBar.setToolTipText(getMsg("progressbar-tooltip"));
+    progressBar.setToolTipText(INFO_PROGRESSBAR_TOOLTIP.get().toString());
 
     JLabel l =
         UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-            getMsg("progress-details-label"),
+            INFO_PROGRESS_DETAILS_LABEL.get(),
             UIFactory.TextStyle.SECONDARY_FIELD_VALID);
 
     gbc.insets = UIFactory.getEmptyInsets();
@@ -136,7 +139,7 @@ public class ProgressPanel extends QuickSetupStepPanel
           String url = e.getURL().toString();
           lastText = getFormatter().getFormattedAfterUrlClick(url,
               lastText);
-          detailsTextArea.setText(lastText);
+          detailsTextArea.setText(lastText.toString());
         }
       }
     });
@@ -159,7 +162,7 @@ public class ProgressPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected String getInstructions()
+  protected Message getInstructions()
   {
     return null;
   }
@@ -167,9 +170,9 @@ public class ProgressPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected String getTitle()
+  protected Message getTitle()
   {
-    return getMsg("progress-panel-title");
+    return INFO_PROGRESS_PANEL_TITLE.get();
   }
 
   /**
@@ -189,8 +192,9 @@ public class ProgressPanel extends QuickSetupStepPanel
   public void displayProgress(ProgressDescriptor descriptor)
   {
     ProgressStep status = descriptor.getProgressStep();
-    String summaryText = UIFactory.applyFontToHtml(descriptor
-        .getProgressBarMsg(), UIFactory.PROGRESS_FONT);
+    String summaryText = UIFactory.applyFontToHtml(
+            String.valueOf(descriptor.getProgressBarMsg()),
+            UIFactory.PROGRESS_FONT);
 
     if (status.isLast()) {
       progressBar.setVisible(false);
@@ -209,7 +213,7 @@ public class ProgressPanel extends QuickSetupStepPanel
       progressBar.setValue(v);
     }
     lastText = descriptor.getDetailsMsg();
-    detailsTextArea.setText(lastText);
+    detailsTextArea.setText(lastText.toString());
   }
 
   /**
@@ -225,8 +229,8 @@ public class ProgressPanel extends QuickSetupStepPanel
     gbc.fill = GridBagConstraints.HORIZONTAL;
 
     btnCancel = UIFactory.makeJButton(
-                    getMsg("cancel-button-label"),
-                    getMsg("cancel-button-tooltip"));
+                    INFO_CANCEL_BUTTON_LABEL.get(),
+                    INFO_CANCEL_BUTTON_TOOLTIP.get());
     btnCancel.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         GuiApplication app = getApplication();

@@ -42,6 +42,9 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
+import org.opends.messages.Category;
+import org.opends.messages.Severity;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
@@ -69,8 +72,6 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
@@ -294,9 +295,8 @@ public class UpdateOperationTest extends ReplicationTestCase
   @Test(enabled=false)
   public void toggleReceiveStatus() throws Exception
   {
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.NOTICE,
-        "Starting synchronization test : toggleReceiveStatus" , 1);
+    logError(Message.raw("Starting synchronization test : toggleReceiveStatus",
+            Category.SYNC, Severity.INFORMATION));
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
@@ -375,9 +375,8 @@ public class UpdateOperationTest extends ReplicationTestCase
   @Test(groups = "slow")
   public void lostHeartbeatFailover() throws Exception
   {
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.NOTICE,
-        "Starting replication test : lostHeartbeatFailover" , 1);
+    logError(Message.raw("Starting replication test : lostHeartbeatFailover",
+            Category.SYNC, Severity.INFORMATION));
 
     cleanRealEntries();
 
@@ -605,9 +604,8 @@ public class UpdateOperationTest extends ReplicationTestCase
   @Test(enabled=true, groups="slow")
   public void namingConflicts() throws Exception
   {
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.NOTICE,
-        "Starting replication test : namingConflicts" , 1);
+    logError(Message.raw("Starting replication test : namingConflicts",
+            Category.SYNC, Severity.INFORMATION));
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
     String resolvedMonitorAttr = "resolved-naming-conflicts";
@@ -1139,9 +1137,9 @@ public class UpdateOperationTest extends ReplicationTestCase
   @Test(enabled=false, dataProvider="assured")
   public void updateOperations(boolean assured) throws Exception
   {
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.NOTICE,
-        "Starting replication test : updateOperations " + assured , 1);
+    logError(Message.raw(
+            "Starting replication test : updateOperations " + assured,
+            Category.SYNC, Severity.INFORMATION));
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
@@ -1403,9 +1401,8 @@ public class UpdateOperationTest extends ReplicationTestCase
   @Test(enabled=true)
   public void deleteNoSuchObject() throws Exception
   {
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.NOTICE,
-        "Starting replication test : deleteNoSuchObject" , 1);
+    logError(Message.raw("Starting replication test : deleteNoSuchObject",
+            Category.SYNC, Severity.INFORMATION));
 
     DN dn = DN.decode("cn=No Such Object,ou=People,dc=example,dc=com");
     DeleteOperationBasis op =
@@ -1425,9 +1422,8 @@ public class UpdateOperationTest extends ReplicationTestCase
   @Test(enabled=false)
   public void infiniteReplayLoop() throws Exception
   {
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.NOTICE,
-        "Starting replication test : infiniteReplayLoop" , 1);
+    logError(Message.raw("Starting replication test : infiniteReplayLoop",
+            Category.SYNC, Severity.INFORMATION));
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 

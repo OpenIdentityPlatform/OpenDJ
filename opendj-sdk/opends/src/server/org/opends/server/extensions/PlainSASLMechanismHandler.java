@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -57,8 +58,8 @@ import org.opends.server.types.ResultCode;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
+
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -127,10 +128,9 @@ public class PlainSASLMechanismHandler
     identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
     if (identityMapper == null)
     {
-      int    msgID   = MSGID_SASLPLAIN_NO_SUCH_IDENTITY_MAPPER;
-      String message = getMessage(msgID, String.valueOf(identityMapperDN),
-                                  String.valueOf(configEntryDN));
-      throw new ConfigException(msgID, message);
+      Message message = ERR_SASLPLAIN_NO_SUCH_IDENTITY_MAPPER.get(
+          String.valueOf(identityMapperDN), String.valueOf(configEntryDN));
+      throw new ConfigException(message);
     }
 
 
@@ -170,9 +170,8 @@ public class PlainSASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLPLAIN_NO_SASL_CREDENTIALS;
-      String message = getMessage(msgID);
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLPLAIN_NO_SASL_CREDENTIALS.get();
+      bindOperation.setAuthFailureReason(message);
       return;
     }
 
@@ -183,9 +182,8 @@ public class PlainSASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLPLAIN_NO_NULLS_IN_CREDENTIALS;
-      String message = getMessage(msgID);
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLPLAIN_NO_NULLS_IN_CREDENTIALS.get();
+      bindOperation.setAuthFailureReason(message);
       return;
     }
 
@@ -200,9 +198,8 @@ public class PlainSASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLPLAIN_NO_SECOND_NULL;
-      String message = getMessage(msgID);
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLPLAIN_NO_SECOND_NULL.get();
+      bindOperation.setAuthFailureReason(message);
       return;
     }
 
@@ -210,9 +207,8 @@ public class PlainSASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLPLAIN_ZERO_LENGTH_AUTHCID;
-      String message = getMessage(msgID);
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLPLAIN_ZERO_LENGTH_AUTHCID.get();
+      bindOperation.setAuthFailureReason(message);
       return;
     }
 
@@ -220,9 +216,8 @@ public class PlainSASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLPLAIN_ZERO_LENGTH_PASSWORD;
-      String message = getMessage(msgID);
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLPLAIN_ZERO_LENGTH_PASSWORD.get();
+      bindOperation.setAuthFailureReason(message);
       return;
     }
 
@@ -252,9 +247,9 @@ public class PlainSASLMechanismHandler
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int    msgID   = MSGID_SASLPLAIN_CANNOT_DECODE_AUTHCID_AS_DN;
-        String message = getMessage(msgID, authcID, de.getErrorMessage());
-        bindOperation.setAuthFailureReason(msgID, message);
+        Message message = ERR_SASLPLAIN_CANNOT_DECODE_AUTHCID_AS_DN.get(
+                authcID, de.getMessageObject());
+        bindOperation.setAuthFailureReason(message);
         return;
       }
 
@@ -262,9 +257,8 @@ public class PlainSASLMechanismHandler
       {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int    msgID   = MSGID_SASLPLAIN_AUTHCID_IS_NULL_DN;
-        String message = getMessage(msgID);
-        bindOperation.setAuthFailureReason(msgID, message);
+        Message message = ERR_SASLPLAIN_AUTHCID_IS_NULL_DN.get();
+        bindOperation.setAuthFailureReason(message);
         return;
       }
 
@@ -290,9 +284,9 @@ public class PlainSASLMechanismHandler
       {
         bindOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
 
-        int    msgID   = MSGID_SASLPLAIN_CANNOT_LOCK_ENTRY;
-        String message = getMessage(msgID, String.valueOf(userDN));
-        bindOperation.setAuthFailureReason(msgID, message);
+        Message message = INFO_SASLPLAIN_CANNOT_LOCK_ENTRY.get(String.valueOf(
+                userDN));
+        bindOperation.setAuthFailureReason(message);
         return;
       }
 
@@ -309,10 +303,10 @@ public class PlainSASLMechanismHandler
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int    msgID   = MSGID_SASLPLAIN_CANNOT_GET_ENTRY_BY_DN;
-        String message = getMessage(msgID, String.valueOf(userDN),
-                                    de.getErrorMessage());
-        bindOperation.setAuthFailureReason(msgID, message);
+        Message message = ERR_SASLPLAIN_CANNOT_GET_ENTRY_BY_DN.get(
+                String.valueOf(userDN),
+                de.getMessageObject());
+        bindOperation.setAuthFailureReason(message);
         return;
       }
       finally
@@ -341,10 +335,10 @@ public class PlainSASLMechanismHandler
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int    msgID   = MSGID_SASLPLAIN_CANNOT_MAP_USERNAME;
-        String message = getMessage(msgID, String.valueOf(authcID),
-                                    de.getErrorMessage());
-        bindOperation.setAuthFailureReason(msgID, message);
+        Message message = ERR_SASLPLAIN_CANNOT_MAP_USERNAME.get(
+                String.valueOf(authcID),
+                de.getMessageObject());
+        bindOperation.setAuthFailureReason(message);
         return;
       }
     }
@@ -355,9 +349,8 @@ public class PlainSASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLPLAIN_NO_MATCHING_ENTRIES;
-      String message = getMessage(msgID, authcID);
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLPLAIN_NO_MATCHING_ENTRIES.get(authcID);
+      bindOperation.setAuthFailureReason(message);
       return;
     }
     else
@@ -388,9 +381,9 @@ public class PlainSASLMechanismHandler
 
           bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-          int    msgID   = MSGID_SASLPLAIN_AUTHZID_INVALID_DN;
-          String message = getMessage(msgID, authzID, de.getErrorMessage());
-          bindOperation.setAuthFailureReason(msgID, message);
+          Message message = ERR_SASLPLAIN_AUTHZID_INVALID_DN.get(
+                  authzID, de.getMessageObject());
+          bindOperation.setAuthFailureReason(message);
           return;
         }
 
@@ -411,10 +404,9 @@ public class PlainSASLMechanismHandler
           {
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-            int msgID = MSGID_SASLPLAIN_AUTHZID_INSUFFICIENT_PRIVILEGES;
-            String message = getMessage(msgID,
-                                        String.valueOf(userEntry.getDN()));
-            bindOperation.setAuthFailureReason(msgID, message);
+            Message message = ERR_SASLPLAIN_AUTHZID_INSUFFICIENT_PRIVILEGES.get(
+                    String.valueOf(userEntry.getDN()));
+            bindOperation.setAuthFailureReason(message);
             return;
           }
 
@@ -431,9 +423,9 @@ public class PlainSASLMechanismHandler
               {
                 bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-                int msgID = MSGID_SASLPLAIN_AUTHZID_NO_SUCH_ENTRY;
-                String message = getMessage(msgID, String.valueOf(authzDN));
-                bindOperation.setAuthFailureReason(msgID, message);
+                Message message = ERR_SASLPLAIN_AUTHZID_NO_SUCH_ENTRY.get(
+                        String.valueOf(authzDN));
+                bindOperation.setAuthFailureReason(message);
                 return;
               }
             }
@@ -446,10 +438,10 @@ public class PlainSASLMechanismHandler
 
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              int msgID = MSGID_SASLPLAIN_AUTHZID_CANNOT_GET_ENTRY;
-              String message = getMessage(msgID, String.valueOf(authzDN),
-                                          de.getErrorMessage());
-              bindOperation.setAuthFailureReason(msgID, message);
+              Message message = ERR_SASLPLAIN_AUTHZID_CANNOT_GET_ENTRY.get(
+                      String.valueOf(authzDN),
+                      de.getMessageObject());
+              bindOperation.setAuthFailureReason(message);
               return;
             }
           }
@@ -480,9 +472,9 @@ public class PlainSASLMechanismHandler
             {
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              int    msgID   = MSGID_SASLPLAIN_AUTHZID_NO_MAPPED_ENTRY;
-              String message = getMessage(msgID, authzID);
-              bindOperation.setAuthFailureReason(msgID, message);
+              Message message = ERR_SASLPLAIN_AUTHZID_NO_MAPPED_ENTRY.get(
+                      authzID);
+              bindOperation.setAuthFailureReason(message);
               return;
             }
           }
@@ -495,9 +487,9 @@ public class PlainSASLMechanismHandler
 
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-            int    msgID   = MSGID_SASLPLAIN_AUTHZID_CANNOT_MAP_AUTHZID;
-            String message = getMessage(msgID, authzID, de.getErrorMessage());
-            bindOperation.setAuthFailureReason(msgID, message);
+            Message message = ERR_SASLPLAIN_AUTHZID_CANNOT_MAP_AUTHZID.get(
+                    authzID, de.getMessageObject());
+            bindOperation.setAuthFailureReason(message);
             return;
           }
         }
@@ -514,10 +506,9 @@ public class PlainSASLMechanismHandler
           {
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-            int msgID = MSGID_SASLPLAIN_AUTHZID_INSUFFICIENT_PRIVILEGES;
-            String message = getMessage(msgID,
-                                        String.valueOf(userEntry.getDN()));
-            bindOperation.setAuthFailureReason(msgID, message);
+            Message message = ERR_SASLPLAIN_AUTHZID_INSUFFICIENT_PRIVILEGES.get(
+                    String.valueOf(userEntry.getDN()));
+            bindOperation.setAuthFailureReason(message);
             return;
           }
         }
@@ -535,9 +526,8 @@ public class PlainSASLMechanismHandler
       {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int    msgID   = MSGID_SASLPLAIN_INVALID_PASSWORD;
-        String message = getMessage(msgID);
-        bindOperation.setAuthFailureReason(msgID, message);
+        Message message = ERR_SASLPLAIN_INVALID_PASSWORD.get();
+        bindOperation.setAuthFailureReason(message);
         return;
       }
     }
@@ -550,10 +540,10 @@ public class PlainSASLMechanismHandler
 
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLPLAIN_CANNOT_CHECK_PASSWORD_VALIDITY;
-      String message = getMessage(msgID, String.valueOf(userEntry.getDN()),
-                                  String.valueOf(e));
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLPLAIN_CANNOT_CHECK_PASSWORD_VALIDITY.get(
+              String.valueOf(userEntry.getDN()),
+              String.valueOf(e));
+      bindOperation.setAuthFailureReason(message);
       return;
     }
 
@@ -600,7 +590,7 @@ public class PlainSASLMechanismHandler
   @Override()
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     PlainSASLMechanismHandlerCfg config =
          (PlainSASLMechanismHandlerCfg) configuration;
@@ -614,7 +604,7 @@ public class PlainSASLMechanismHandler
    */
   public boolean isConfigurationChangeAcceptable(
                       PlainSASLMechanismHandlerCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
     DN cfgEntryDN = configuration.dn();
@@ -625,10 +615,9 @@ public class PlainSASLMechanismHandler
          DirectoryServer.getIdentityMapper(identityMapperDN);
     if (newIdentityMapper == null)
     {
-      int msgID = MSGID_SASLPLAIN_NO_SUCH_IDENTITY_MAPPER;
-      unacceptableReasons.add(getMessage(msgID,
-                                         String.valueOf(identityMapperDN),
-                                         String.valueOf(cfgEntryDN)));
+      unacceptableReasons.add(ERR_SASLPLAIN_NO_SUCH_IDENTITY_MAPPER.get(
+              String.valueOf(identityMapperDN),
+              String.valueOf(cfgEntryDN)));
       configAcceptable = false;
     }
 
@@ -646,7 +635,7 @@ public class PlainSASLMechanismHandler
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Get the identity mapper that should be used to find users.
@@ -660,9 +649,9 @@ public class PlainSASLMechanismHandler
         resultCode = ResultCode.CONSTRAINT_VIOLATION;
       }
 
-      int msgID = MSGID_SASLPLAIN_NO_SUCH_IDENTITY_MAPPER;
-      messages.add(getMessage(msgID, String.valueOf(identityMapperDN),
-                              String.valueOf(configEntryDN)));
+      messages.add(ERR_SASLPLAIN_NO_SUCH_IDENTITY_MAPPER.get(
+              String.valueOf(identityMapperDN),
+              String.valueOf(configEntryDN)));
     }
 
 

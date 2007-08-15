@@ -43,9 +43,8 @@ import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ExtensionsMessages.*;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-
 
 
 /**
@@ -292,7 +291,7 @@ public class NullConnectionSecurityProvider
           // The connection has been closed by the client.  Disconnect and
           // return.
           clientConnection.disconnect(DisconnectReason.CLIENT_DISCONNECT, false,
-                                      -1);
+                                      null);
           return false;
         }
         else if (bytesRead == 0)
@@ -321,7 +320,7 @@ public class NullConnectionSecurityProvider
 
         // An error occurred while trying to read data from the client.
         // Disconnect and return.
-        clientConnection.disconnect(DisconnectReason.IO_ERROR, false, -1);
+        clientConnection.disconnect(DisconnectReason.IO_ERROR, false, null);
         return false;
       }
       catch (Exception e)
@@ -333,8 +332,8 @@ public class NullConnectionSecurityProvider
 
         // An unexpected error occurred.  Disconnect and return.
         clientConnection.disconnect(DisconnectReason.SERVER_ERROR, true,
-                                    MSGID_NULL_SECURITY_PROVIDER_READ_ERROR,
-                                    getExceptionMessage(e));
+                                    ERR_NULL_SECURITY_PROVIDER_READ_ERROR.get(
+                                      getExceptionMessage(e)));
         return false;
       }
     }
@@ -374,7 +373,7 @@ public class NullConnectionSecurityProvider
         {
           // The client connection has been closed.  Disconnect and return.
           clientConnection.disconnect(DisconnectReason.CLIENT_DISCONNECT, false,
-                                      -1);
+                                      null);
           return false;
         }
       }
@@ -390,7 +389,7 @@ public class NullConnectionSecurityProvider
 
       // An error occurred while trying to write data to the client.  Disconnect
       // and return.
-      clientConnection.disconnect(DisconnectReason.IO_ERROR, false, -1);
+      clientConnection.disconnect(DisconnectReason.IO_ERROR, false, null);
       return false;
     }
     catch (Exception e)
@@ -402,8 +401,8 @@ public class NullConnectionSecurityProvider
 
       // An unexpected error occurred.  Disconnect and return.
       clientConnection.disconnect(DisconnectReason.SERVER_ERROR, true,
-                                  MSGID_NULL_SECURITY_PROVIDER_WRITE_ERROR,
-                                  getExceptionMessage(e));
+                                  ERR_NULL_SECURITY_PROVIDER_WRITE_ERROR.get(
+                                  getExceptionMessage(e)));
       return false;
     }
     finally

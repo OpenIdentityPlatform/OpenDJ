@@ -737,7 +737,7 @@ public class ServerDescriptor
    * Returns the number of entries in a given backend using the provided
    * InitialLdapContext.
    * @param ctx the InitialLdapContext to use to update the configuration.
-   * @param backenID the id of the backend.
+   * @param backendID the id of the backend.
    * @return the number of entries in the backend.
    * @throws NamingException if there was an error.
    */

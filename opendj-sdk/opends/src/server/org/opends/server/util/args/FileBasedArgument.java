@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util.args;
+import org.opends.messages.Message;
 
 
 
@@ -33,8 +34,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.LinkedHashMap;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
+import static org.opends.messages.UtilityMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -78,22 +79,20 @@ public class FileBasedArgument
    *                           be displayed in usage information, or
    *                           <CODE>null</CODE> if this argument does not
    *                           require a value.
-   * @param  descriptionID     The unique ID of the description for this
+   * @param  description       Message for the description of this
    *                           argument.
-   * @param  descriptionArgs   The arguments that are to be used when generating
-   *                           the description for this argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
    *                             parameters used to create this argument.
    */
   public FileBasedArgument(String name, Character shortIdentifier,
                            String longIdentifier, boolean isRequired,
-                           String valuePlaceholder, int descriptionID,
-                           Object... descriptionArgs)
+                           String valuePlaceholder,
+                           Message description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, false, true,
-          valuePlaceholder, null, null, descriptionID, descriptionArgs);
+          valuePlaceholder, null, null, description);
 
 
     namesToValues = new LinkedHashMap<String,String>();
@@ -125,10 +124,8 @@ public class FileBasedArgument
    * @param  propertyName      The name of the property in a property file that
    *                           may be used to override the default value but
    *                           will be overridden by a command-line argument.
-   * @param  descriptionID     The unique ID of the description for this
+   * @param  description       Message for the description of this
    *                           argument.
-   * @param  descriptionArgs   The arguments that are to be used when generating
-   *                           the description for this argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
    *                             parameters used to create this argument.
@@ -137,12 +134,12 @@ public class FileBasedArgument
                            String longIdentifier, boolean isRequired,
                            boolean isMultiValued, String valuePlaceholder,
                            String defaultValue, String propertyName,
-                           int descriptionID, Object... descriptionArgs)
+                           Message description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, isMultiValued,
           true, valuePlaceholder, defaultValue, propertyName,
-          descriptionID, descriptionArgs);
+          description);
 
     namesToValues = new LinkedHashMap<String,String>();
   }
@@ -175,7 +172,7 @@ public class FileBasedArgument
    *          <CODE>false</CODE> if it is not.
    */
   public boolean valueIsAcceptable(String valueString,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // First, make sure that the specified file exists.
     File valueFile;
@@ -184,16 +181,16 @@ public class FileBasedArgument
       valueFile = new File(valueString);
       if (! valueFile.exists())
       {
-        int msgID = MSGID_FILEARG_NO_SUCH_FILE;
-        invalidReason.append(getMessage(msgID, valueString, getName()));
+        invalidReason.append(ERR_FILEARG_NO_SUCH_FILE.get(
+                valueString, getName()));
         return false;
       }
     }
     catch (Exception e)
     {
-      int msgID = MSGID_FILEARG_CANNOT_VERIFY_FILE_EXISTENCE;
-      invalidReason.append(getMessage(msgID, valueString, getName(),
-                                      getExceptionMessage(e)));
+      invalidReason.append(ERR_FILEARG_CANNOT_VERIFY_FILE_EXISTENCE.get(
+              valueString, getName(),
+              getExceptionMessage(e)));
       return false;
     }
 
@@ -206,9 +203,9 @@ public class FileBasedArgument
     }
     catch (Exception e)
     {
-      int msgID = MSGID_FILEARG_CANNOT_OPEN_FILE;
-      invalidReason.append(getMessage(msgID, valueString, getName(),
-                                      getExceptionMessage(e)));
+      invalidReason.append(ERR_FILEARG_CANNOT_OPEN_FILE.get(
+              valueString, getName(),
+              getExceptionMessage(e)));
       return false;
     }
 
@@ -221,9 +218,9 @@ public class FileBasedArgument
     }
     catch (Exception e)
     {
-      int msgID = MSGID_FILEARG_CANNOT_READ_FILE;
-      invalidReason.append(getMessage(msgID, valueString, getName(),
-                                      getExceptionMessage(e)));
+      invalidReason.append(ERR_FILEARG_CANNOT_READ_FILE.get(
+              valueString, getName(),
+              getExceptionMessage(e)));
       return false;
     }
     finally
@@ -238,8 +235,8 @@ public class FileBasedArgument
     // If the line read is null, then that means the file was empty.
     if (line == null)
     {
-      int msgID = MSGID_FILEARG_EMPTY_FILE;
-      invalidReason.append(getMessage(msgID, valueString, getName()));
+
+      invalidReason.append(ERR_FILEARG_EMPTY_FILE.get(valueString, getName()));
       return false;
     }
 

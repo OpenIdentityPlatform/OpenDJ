@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -44,8 +45,7 @@ import org.opends.server.types.SearchScope;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.Validator.*;
 
 
@@ -199,11 +199,10 @@ public class FilteredStaticGroupMemberList
         Entry memberEntry = DirectoryConfig.getEntry(nextDN);
         if (memberEntry == null)
         {
-          int    msgID   = MSGID_STATICMEMBERS_NO_SUCH_ENTRY;
-          String message = getMessage(msgID, String.valueOf(nextDN),
-                                      String.valueOf(groupDN));
+          Message message = ERR_STATICMEMBERS_NO_SUCH_ENTRY.get(
+              String.valueOf(nextDN), String.valueOf(groupDN));
           nextMembershipException =
-               new MembershipException(msgID, message, true);
+               new MembershipException(message, true);
           return;
         }
 
@@ -232,12 +231,11 @@ public class FilteredStaticGroupMemberList
           TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
-        int    msgID   = MSGID_STATICMEMBERS_CANNOT_GET_ENTRY;
-        String message = getMessage(msgID, String.valueOf(nextDN),
-                                    String.valueOf(groupDN),
-                                    String.valueOf(de.getErrorMessage()));
+        Message message = ERR_STATICMEMBERS_CANNOT_GET_ENTRY.
+            get(String.valueOf(nextDN), String.valueOf(groupDN),
+                String.valueOf(de.getMessageObject()));
         nextMembershipException =
-             new MembershipException(msgID, message, true, de);
+             new MembershipException(message, true, de);
         return;
       }
     }

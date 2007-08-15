@@ -37,14 +37,13 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
-
 
 
 /**
@@ -90,27 +89,24 @@ public class SubstringAssertionSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_CASE_IGNORE_OID, SYNTAX_SUBSTRING_ASSERTION_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_CASE_IGNORE_OID, SYNTAX_SUBSTRING_ASSERTION_NAME));
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-               OMR_CASE_IGNORE_OID, SYNTAX_SUBSTRING_ASSERTION_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+          OMR_CASE_IGNORE_OID, SYNTAX_SUBSTRING_ASSERTION_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_CASE_IGNORE_OID, SYNTAX_SUBSTRING_ASSERTION_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_CASE_IGNORE_OID, SYNTAX_SUBSTRING_ASSERTION_NAME));
     }
   }
 
@@ -226,7 +222,7 @@ public class SubstringAssertionSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // Get the string representation of the value and check its length.  A
     // zero-length value is acceptable.  A one-length value is acceptable as
@@ -242,8 +238,7 @@ public class SubstringAssertionSyntax
     {
       if (valueString.charAt(0) == '*')
       {
-        int msgID = MSGID_ATTR_SYNTAX_SUBSTRING_ONLY_WILDCARD;
-        invalidReason.append(getMessage(msgID));
+        invalidReason.append(WARN_ATTR_SYNTAX_SUBSTRING_ONLY_WILDCARD.get());
 
         return false;
       }
@@ -258,9 +253,9 @@ public class SubstringAssertionSyntax
       {
         if ((valueString.charAt(i) == '*') && (valueString.charAt(i-1) == '*'))
         {
-          int msgID = MSGID_ATTR_SYNTAX_SUBSTRING_CONSECUTIVE_WILDCARDS;
-          invalidReason.append(getMessage(msgID));
-
+          invalidReason.append(
+                  WARN_ATTR_SYNTAX_SUBSTRING_CONSECUTIVE_WILDCARDS.get(
+                          valueString, i));
           return false;
         }
       }

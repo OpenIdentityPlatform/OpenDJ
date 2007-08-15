@@ -26,6 +26,8 @@
  */
 
 package org.opends.server.admin.client;
+import org.opends.messages.Message;
+
 
 
 
@@ -72,7 +74,7 @@ public class AuthenticationException extends AdminSecurityException {
    * @param cause
    *          The cause.
    */
-  public AuthenticationException(String message, Throwable cause) {
+  public AuthenticationException(Message message, Throwable cause) {
     super(message, cause);
   }
 
@@ -84,7 +86,7 @@ public class AuthenticationException extends AdminSecurityException {
    * @param message
    *          The message.
    */
-  public AuthenticationException(String message) {
+  public AuthenticationException(Message message) {
     super(message);
   }
 }

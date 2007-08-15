@@ -37,18 +37,17 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
-
-/**
+/**                                               O
  * This class implements the numeric string attribute syntax, which may be hold
  * one or more numeric digits and/or spaces.  Equality, ordering, and substring
  * matching will be allowed by default.
@@ -90,27 +89,24 @@ public class NumericStringSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_NUMERIC_STRING_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_NUMERIC_STRING_OID, SYNTAX_NUMERIC_STRING_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_NUMERIC_STRING_OID, SYNTAX_NUMERIC_STRING_NAME));
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_NUMERIC_STRING_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-               OMR_NUMERIC_STRING_OID, SYNTAX_NUMERIC_STRING_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+          OMR_NUMERIC_STRING_OID, SYNTAX_NUMERIC_STRING_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_EXACT_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_NUMERIC_STRING_OID, SYNTAX_NUMERIC_STRING_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_NUMERIC_STRING_OID, SYNTAX_NUMERIC_STRING_NAME));
     }
   }
 
@@ -226,7 +222,7 @@ public class NumericStringSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     String valueString = value.stringValue();
     int    length      = valueString.length();
@@ -235,8 +231,8 @@ public class NumericStringSyntax
     // It must have at least one digit or space.
     if (length == 0)
     {
-      int msgID = MSGID_ATTR_SYNTAX_NUMERIC_STRING_EMPTY_VALUE;
-      invalidReason.append(getMessage(msgID));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_NUMERIC_STRING_EMPTY_VALUE.get());
       return false;
     }
 
@@ -248,8 +244,9 @@ public class NumericStringSyntax
       char c = valueString.charAt(i);
       if (! (isDigit(c) || (c == ' ')))
       {
-        int msgID = MSGID_ATTR_SYNTAX_NUMERIC_STRING_ILLEGAL_CHAR;
-        invalidReason.append(getMessage(msgID, valueString, c, i));
+
+        invalidReason.append(WARN_ATTR_SYNTAX_NUMERIC_STRING_ILLEGAL_CHAR.get(
+                valueString, String.valueOf(c), i));
         return false;
       }
     }

@@ -25,13 +25,13 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
+import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ReplicationMessages.*;
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.IOException;
@@ -67,8 +67,6 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.TimeThread;
 
@@ -360,12 +358,10 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
     catch (Exception e)
     {
       // some problem happened, reject the connection
-      int    msgID   = MSGID_CHANGELOG_CONNECTION_ERROR;
-      String message = getMessage(msgID, this.toString())
-                                  + stackTraceToSingleLineString(e);
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-               ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(ERR_CHANGELOG_CONNECTION_ERROR.get(this.toString()));
+      mb.append(stackTraceToSingleLineString(e));
+      logError(mb.toMessage());
       try
       {
         session.close();

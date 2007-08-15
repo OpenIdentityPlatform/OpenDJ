@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+import org.opends.messages.Message;
 
 
 
@@ -38,16 +39,15 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
 
 
 /**
@@ -94,9 +94,8 @@ public class UserPasswordSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_USER_PASSWORD_EXACT_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_USER_PASSWORD_EXACT_NAME, SYNTAX_USER_PASSWORD_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_USER_PASSWORD_EXACT_NAME, SYNTAX_USER_PASSWORD_NAME));
     }
   }
 
@@ -214,7 +213,7 @@ public class UserPasswordSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // We have to accept any value here because in many cases the value will not
     // have been encoded by the time this method is called.
@@ -241,20 +240,18 @@ public class UserPasswordSyntax
     // Make sure that there actually is a value to decode.
     if ((userPasswordValue == null) || (userPasswordValue.length() == 0))
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_USERPW_NO_VALUE;
-      String message = getMessage(msgID);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_USERPW_NO_VALUE.get();
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
     // The first character of an encoded value must be an opening curly brace.
     if (userPasswordValue.charAt(0) != '{')
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_USERPW_NO_OPENING_BRACE;
-      String message = getMessage(msgID);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_USERPW_NO_OPENING_BRACE.get();
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -262,10 +259,9 @@ public class UserPasswordSyntax
     int closePos = userPasswordValue.indexOf('}');
     if (closePos < 0)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_USERPW_NO_CLOSING_BRACE;
-      String message = getMessage(msgID);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_USERPW_NO_CLOSING_BRACE.get();
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -275,10 +271,9 @@ public class UserPasswordSyntax
 
     if (schemeName.length() == 0)
     {
-      int msgID = MSGID_ATTR_SYNTAX_USERPW_NO_SCHEME;
-      String message = getMessage(msgID);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_USERPW_NO_SCHEME.get();
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 

@@ -39,6 +39,7 @@ import org.testng.annotations.Test;
 import org.testng.annotations.AfterMethod;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
@@ -1990,7 +1991,7 @@ public class AddOperationTestCase
                           entry.getOperationalAttributes());
 
     CancelRequest cancelRequest = new CancelRequest(false,
-                                                    "testCancelBeforeStartup");
+                                                    Message.raw("testCancelBeforeStartup"));
     addOperation.setCancelRequest(cancelRequest);
     addOperation.run();
     assertEquals(addOperation.getResultCode(), ResultCode.CANCELED);

@@ -35,9 +35,11 @@ import java.util.TreeSet;
 
 import javax.swing.table.AbstractTableModel;
 
-import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.guitools.statuspanel.ListenerDescriptor;
 import org.opends.quicksetup.ui.SortableTableModel;
+
+import org.opends.messages.Message;
+import static org.opends.messages.AdminToolMessages.*;
 
 /**
  * This class is just a table model used to display the information about
@@ -51,10 +53,10 @@ implements SortableTableModel, Comparator<ListenerDescriptor>
   private HashSet<ListenerDescriptor> data = new HashSet<ListenerDescriptor>();
   private ArrayList<ListenerDescriptor> dataArray =
     new ArrayList<ListenerDescriptor>();
-  private final String[] COLUMN_NAMES = {
-    getMsg("address-port-column"),
-    getMsg("protocol-column"),
-    getMsg("state-column")
+  private final Message[] COLUMN_NAMES = {
+    INFO_ADDRESS_PORT_COLUMN.get(),
+    INFO_PROTOCOL_COLUMN.get(),
+    INFO_STATE_COLUMN.get()
   };
   private int sortColumn = 0;
   private boolean sortAscending = true;
@@ -194,15 +196,15 @@ implements SortableTableModel, Comparator<ListenerDescriptor>
       switch (desc.getState())
       {
       case ENABLED:
-        v = getMsg("enabled-label");
+        v = INFO_ENABLED_LABEL.get();
         break;
 
       case DISABLED:
-        v = getMsg("disabled-label");
+        v = INFO_DISABLED_LABEL.get();
         break;
 
       case UNKNOWN:
-        v = getMsg("unknown-label");
+        v = INFO_UNKNOWN_LABEL.get();
         break;
 
         default:
@@ -216,7 +218,7 @@ implements SortableTableModel, Comparator<ListenerDescriptor>
    * {@inheritDoc}
    */
   public String getColumnName(int col) {
-    return COLUMN_NAMES[col];
+    return COLUMN_NAMES[col].toString();
   }
 
 
@@ -257,17 +259,4 @@ implements SortableTableModel, Comparator<ListenerDescriptor>
     this.sortColumn = sortColumn;
   }
 
-  /**
-   * The following three methods are just commodity methods to get localized
-   * messages.
-   */
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
-  }
 }

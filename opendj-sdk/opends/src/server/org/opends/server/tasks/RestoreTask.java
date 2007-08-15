@@ -25,12 +25,12 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
+import org.opends.messages.Message;
 
 import static org.opends.server.core.DirectoryServer.getAttributeType;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.messages.TaskMessages.*;
-import static org.opends.server.messages.ToolMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.TaskMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -51,8 +51,8 @@ import org.opends.server.types.BackupInfo;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
@@ -94,10 +94,9 @@ public class RestoreTask extends Task
       ClientConnection clientConnection = operation.getClientConnection();
       if (! clientConnection.hasPrivilege(Privilege.BACKEND_RESTORE, operation))
       {
-        int    msgID   = MSGID_TASK_RESTORE_INSUFFICIENT_PRIVILEGES;
-        String message = getMessage(msgID);
+        Message message = ERR_TASK_RESTORE_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -145,21 +144,17 @@ public class RestoreTask extends Task
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_LOCK_BACKEND;
-        String message = getMessage(msgID, backend.getBackendID(),
-                                    String.valueOf(failureReason));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_RESTOREDB_CANNOT_LOCK_BACKEND.get(
+            backend.getBackendID(), String.valueOf(failureReason));
+        logError(message);
         return false;
       }
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_RESTOREDB_CANNOT_LOCK_BACKEND;
-      String message = getMessage(msgID, backend.getBackendID(),
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_RESTOREDB_CANNOT_LOCK_BACKEND.get(
+          backend.getBackendID(), getExceptionMessage(e));
+      logError(message);
       return false;
     }
     return true;
@@ -178,21 +173,17 @@ public class RestoreTask extends Task
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_UNLOCK_BACKEND;
-        String message = getMessage(msgID, backend.getBackendID(),
-                                    String.valueOf(failureReason));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-                 message, msgID);
+        Message message = WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND.get(
+            backend.getBackendID(), String.valueOf(failureReason));
+        logError(message);
         return false;
       }
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_RESTOREDB_CANNOT_UNLOCK_BACKEND;
-      String message = getMessage(msgID, backend.getBackendID(),
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-               message, msgID);
+      Message message = WARN_RESTOREDB_CANNOT_UNLOCK_BACKEND.get(
+          backend.getBackendID(), getExceptionMessage(e));
+      logError(message);
       return false;
     }
     return true;
@@ -212,11 +203,9 @@ public class RestoreTask extends Task
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY;
-      String message = getMessage(msgID, backupDirectory,
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY.get(
+          String.valueOf(backupDirectory), getExceptionMessage(e));
+      logError(message);
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -228,10 +217,10 @@ public class RestoreTask extends Task
       BackupInfo backupInfo = backupDir.getBackupInfo(backupID);
       if (backupInfo == null)
       {
-        int    msgID   = MSGID_RESTOREDB_INVALID_BACKUP_ID;
-        String message = getMessage(msgID, backupID, backupDirectory);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message =
+            ERR_RESTOREDB_INVALID_BACKUP_ID.get(
+                    backupID, String.valueOf(backupDirectory));
+        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
     }
@@ -240,10 +229,10 @@ public class RestoreTask extends Task
       BackupInfo latestBackup = backupDir.getLatestBackup();
       if (latestBackup == null)
       {
-        int    msgID   = MSGID_RESTOREDB_NO_BACKUPS_IN_DIRECTORY;
-        String message = getMessage(msgID, backupDirectory);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message =
+            ERR_RESTOREDB_NO_BACKUPS_IN_DIRECTORY.get(
+                    String.valueOf(backupDirectory));
+        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
       else
@@ -267,11 +256,9 @@ public class RestoreTask extends Task
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      int    msgID   = MSGID_RESTOREDB_NO_BACKENDS_FOR_DN;
-      String message = getMessage(msgID, backupDirectory,
-                                  configEntryDN.toString());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_RESTOREDB_NO_BACKENDS_FOR_DN.get(
+          String.valueOf(backupDirectory), configEntryDN.toString());
+      logError(message);
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -283,10 +270,9 @@ public class RestoreTask extends Task
 
     if (! backend.supportsRestore())
     {
-      int    msgID   = MSGID_RESTOREDB_CANNOT_RESTORE;
-      String message = getMessage(msgID, backend.getBackendID());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message =
+          ERR_RESTOREDB_CANNOT_RESTORE.get(backend.getBackendID());
+      logError(message);
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -312,8 +298,7 @@ public class RestoreTask extends Task
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               e.getErrorMessage(), e.getMessageID());
+      logError(e.getMessageObject());
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -335,21 +320,17 @@ public class RestoreTask extends Task
           catch (DirectoryException de)
           {
             DirectoryServer.notifyRestoreEnded(backend, restoreConfig, false);
-            int    msgID   = MSGID_RESTOREDB_ERROR_DURING_BACKUP;
-            String message = getMessage(msgID, backupID, backupDir.getPath(),
-                                        de.getErrorMessage());
-            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
+            Message message = ERR_RESTOREDB_ERROR_DURING_BACKUP.get(
+                backupID, backupDir.getPath(), de.getMessageObject());
+            logError(message);
             errorsEncountered = true;
           }
           catch (Exception e)
           {
             DirectoryServer.notifyRestoreEnded(backend, restoreConfig, false);
-            int    msgID   = MSGID_RESTOREDB_ERROR_DURING_BACKUP;
-            String message = getMessage(msgID, backupID, backupDir.getPath(),
-                                        getExceptionMessage(e));
-            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
+            Message message = ERR_RESTOREDB_ERROR_DURING_BACKUP.get(
+                backupID, backupDir.getPath(), getExceptionMessage(e));
+            logError(message);
             errorsEncountered = true;
           }
         }
@@ -381,8 +362,7 @@ public class RestoreTask extends Task
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 e.getErrorMessage(), e.getMessageID());
+        logError(e.getMessageObject());
         errorsEncountered = true;
       }
       DirectoryServer.notifyRestoreEnded(backend, restoreConfig, true);

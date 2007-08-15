@@ -26,6 +26,7 @@
  */
 
 package org.opends.quicksetup;
+import org.opends.messages.Message;
 
 import java.util.List;
 
@@ -70,8 +71,9 @@ public interface UserInteraction {
    * @return Object that is the same value as the user selection from the
    *         <code>options</code> parameter.
    */
-  Object confirm(String summary, String detail,
-                 String title, MessageType type, String[] options, String def);
+  Object confirm(Message summary, Message detail,
+                 Message title, MessageType type,
+                 Message[] options, Message def);
 
   /**
    * Present a list of choices to the user and wait for them to select one
@@ -92,9 +94,9 @@ public interface UserInteraction {
    * @return Object that is the same value as the user selection from the
    *         <code>options</code> parameter.
    */
-  Object confirm(String summary, String detail, String fineDetails,
-                 String title, MessageType type, String[] options, String def,
-                 String viewDetailsOption);
+  Object confirm(Message summary, Message detail, Message fineDetails,
+                 Message title, MessageType type, Message[] options,
+                 Message def, Message viewDetailsOption);
 
   /**
    * Creates a list appropriate for the presentation implementation.

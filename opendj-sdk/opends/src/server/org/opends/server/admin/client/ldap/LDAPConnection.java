@@ -27,7 +27,6 @@
 package org.opends.server.admin.client.ldap;
 
 
-
 import java.util.Collection;
 
 import javax.naming.NamingException;

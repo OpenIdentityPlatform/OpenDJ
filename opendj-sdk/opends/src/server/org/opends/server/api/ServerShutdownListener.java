@@ -25,6 +25,8 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
+import org.opends.messages.Message;
+
 
 
 
@@ -50,6 +52,6 @@ public interface ServerShutdownListener
    *
    * @param  reason  The human-readable reason for the shutdown.
    */
-  public void processServerShutdown(String reason);
+  public void processServerShutdown(Message reason);
 }
 

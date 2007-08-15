@@ -26,10 +26,10 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.AciMessages.*;
+import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
 import java.util.regex.Pattern;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -84,9 +84,9 @@ public class Target
           //The NULL_LDAP_URL corresponds to the root DSE.
           if((!target.equals(NULL_LDAP_URL)) &&
              (!Pattern.matches(LDAP_URL, target))) {
-              int msgID = MSGID_ACI_SYNTAX_INVALID_TARGETKEYWORD_EXPRESSION;
-              String message = getMessage(msgID, target);
-              throw new AciException(msgID, message);
+              Message message =
+                  WARN_ACI_SYNTAX_INVALID_TARGETKEYWORD_EXPRESSION.get(target);
+              throw new AciException(message);
           }
           LDAPURL targetURL =  LDAPURL.decode(target, false);
           if(targetURL.getRawBaseDN().indexOf("*") != -1) {
@@ -95,18 +95,17 @@ public class Target
           } else {
               urlDN=targetURL.getBaseDN();
               if(!urlDN.isDescendantOf(aciDN)) {
-                  int msgID = MSGID_ACI_SYNTAX_TARGET_DN_NOT_DESCENDENTOF;
-                  String message = getMessage(msgID,
-                                              urlDN.toNormalizedString(),
-                                              aciDN.toNormalizedString());
-                  throw new AciException(msgID, message);
+                  Message message = WARN_ACI_SYNTAX_TARGET_DN_NOT_DESCENDENTOF.
+                      get(urlDN.toNormalizedString(),
+                          aciDN.toNormalizedString());
+                  throw new AciException(message);
               }
           }
         }
         catch (DirectoryException e){
-            int msgID = MSGID_ACI_SYNTAX_INVALID_TARGETKEYWORD_EXPRESSION;
-            String message = getMessage(msgID, target);
-            throw new AciException(msgID, message);
+            Message message =
+                WARN_ACI_SYNTAX_INVALID_TARGETKEYWORD_EXPRESSION.get(target);
+            throw new AciException(message);
         }
     }
 

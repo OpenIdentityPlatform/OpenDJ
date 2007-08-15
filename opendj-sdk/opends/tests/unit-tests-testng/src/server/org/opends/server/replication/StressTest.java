@@ -37,6 +37,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Category;
+import org.opends.messages.Severity;
+import org.opends.messages.Message;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
@@ -50,8 +53,6 @@ import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
@@ -84,9 +85,8 @@ public class StressTest extends ReplicationTestCase
   @Test(enabled=true, groups="slow")
   public void fromServertoBroker() throws Exception
   {
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.NOTICE,
-        "Starting replication StressTest : fromServertoBroker" , 1);
+    logError(Message.raw("Starting replication StressTest : fromServertoBroker",
+            Category.SYNC, Severity.NOTICE));
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
     final int TOTAL_MESSAGES = 1000;
@@ -260,7 +260,7 @@ public class StressTest extends ReplicationTestCase
 
     /**
      * Creates a new Stress Test Reader
-     * @param broker
+     * @param count
      */
     public BrokerWriter(int count)
     {

@@ -31,7 +31,7 @@ package org.opends.server.protocols.asn1;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
-
+import org.opends.messages.Message;
 
 
 /**
@@ -47,7 +47,7 @@ public class TestASN1Exception
   @Test()
   public void testConstructor1()
   {
-    new ASN1Exception(1, "Test");
+    new ASN1Exception(Message.raw("Test"));
   }
 
 
@@ -59,22 +59,8 @@ public class TestASN1Exception
   @Test()
   public void testConstructor2()
   {
-    new ASN1Exception(1, "Test", new Exception());
+    new ASN1Exception(Message.raw("Test"), new Exception());
   }
 
-
-
-  /**
-   * Tests the <CODE>getMessageID</CODE> method.
-   */
-  @Test
-  public void testGetMessageID()
-  {
-    for (int i=0; i < 100; i++)
-    {
-      ASN1Exception e = new ASN1Exception(i, "Test");
-      assertEquals(e.getMessageID(), i);
-    }
-  }
 }
 

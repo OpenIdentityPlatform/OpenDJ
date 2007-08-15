@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+import org.opends.messages.Message;
 
 
 
@@ -41,8 +42,7 @@ import org.opends.server.types.ResultCode;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -277,10 +277,10 @@ public class IntegerFirstComponentEqualityMatchingRule
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_EMR_INTFIRSTCOMP_NO_INITIAL_PARENTHESIS;
-        String message = getMessage(msgID, String.valueOf(valueString));
+        Message message = ERR_EMR_INTFIRSTCOMP_NO_INITIAL_PARENTHESIS.get(
+            String.valueOf(valueString));
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                     message, msgID, e);
+                                     message, e);
       }
     }
 
@@ -293,10 +293,10 @@ public class IntegerFirstComponentEqualityMatchingRule
 
     if (pos >= valueLength)
     {
-      int    msgID   = MSGID_EMR_INTFIRSTCOMP_NO_NONSPACE;
-      String message = getMessage(msgID, String.valueOf(valueString));
+      Message message =
+          ERR_EMR_INTFIRSTCOMP_NO_NONSPACE.get(String.valueOf(valueString));
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -310,10 +310,10 @@ public class IntegerFirstComponentEqualityMatchingRule
 
     if (pos >= valueLength)
     {
-      int    msgID   = MSGID_EMR_INTFIRSTCOMP_NO_SPACE_AFTER_INT;
-      String message = getMessage(msgID, String.valueOf(valueString));
+      Message message = ERR_EMR_INTFIRSTCOMP_NO_SPACE_AFTER_INT.get(
+          String.valueOf(valueString));
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -330,10 +330,10 @@ public class IntegerFirstComponentEqualityMatchingRule
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT;
-      String message = getMessage(msgID, String.valueOf(valueString));
+      Message message = ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT.get(
+          String.valueOf(valueString));
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                   message, msgID);
+                                   message);
     }
   }
 }

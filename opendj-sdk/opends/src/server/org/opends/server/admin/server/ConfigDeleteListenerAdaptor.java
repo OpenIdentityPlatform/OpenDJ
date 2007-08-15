@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
+import org.opends.messages.Message;
 
 
 
@@ -43,7 +44,7 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.ResultCode;
-
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -150,7 +151,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration>
    * {@inheritDoc}
    */
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
-      StringBuilder unacceptableReason) {
+      MessageBuilder unacceptableReason) {
     DN dn = configEntry.getDN();
     AttributeValue av = dn.getRDN().getAttributeValue(0);
     String name = av.getStringValue().trim();
@@ -184,7 +185,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration>
     }
 
     cachedConfiguration = mo.getConfiguration();
-    List<String> reasons = new LinkedList<String>();
+    List<Message> reasons = new LinkedList<Message>();
     if (listener.isConfigurationDeleteAcceptable(cachedConfiguration,
         reasons)) {
       return true;

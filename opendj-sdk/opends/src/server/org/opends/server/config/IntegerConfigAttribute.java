@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.config;
+import org.opends.messages.Message;
 
 
 
@@ -41,18 +42,13 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-
-
+import org.opends.server.loggers.ErrorLogger;
+import static org.opends.messages.ConfigMessages.*;
 /**
  * This class defines an integer configuration attribute, which can hold zero or
  * more integer values.  For scalability, the actual values will be stored as
@@ -114,7 +110,7 @@ public class IntegerConfigAttribute
    * @param  upperBound           The upper bound that will be enforced for
    *                              values of this attribute.
    */
-  public IntegerConfigAttribute(String name, String description,
+  public IntegerConfigAttribute(String name, Message description,
                                 boolean isRequired, boolean isMultiValued,
                                 boolean requiresAdminAction,
                                 boolean hasLowerBound, long lowerBound,
@@ -159,7 +155,7 @@ public class IntegerConfigAttribute
    * @param  value                The value for this integer configuration
    *                              attribute.
    */
-  public IntegerConfigAttribute(String name, String description,
+  public IntegerConfigAttribute(String name, Message description,
                                 boolean isRequired, boolean isMultiValued,
                                 boolean requiresAdminAction,
                                 boolean hasLowerBound, long lowerBound,
@@ -208,7 +204,7 @@ public class IntegerConfigAttribute
    * @param  values               The set of values for this configuration
    *                              attribute.
    */
-  public IntegerConfigAttribute(String name, String description,
+  public IntegerConfigAttribute(String name, Message description,
                                 boolean isRequired, boolean isMultiValued,
                                 boolean requiresAdminAction,
                                 boolean hasLowerBound, long lowerBound,
@@ -265,7 +261,7 @@ public class IntegerConfigAttribute
    * @param  pendingValues        The set of pending values for this
    *                              configuration attribute.
    */
-  public IntegerConfigAttribute(String name, String description,
+  public IntegerConfigAttribute(String name, Message description,
                                 boolean isRequired, boolean isMultiValued,
                                 boolean requiresAdminAction,
                                 boolean hasLowerBound, long lowerBound,
@@ -345,16 +341,14 @@ public class IntegerConfigAttribute
   {
     if ((activeValues == null) || activeValues.isEmpty())
     {
-      int    msgID   = MSGID_CONFIG_ATTR_NO_INT_VALUE;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_NO_INT_VALUE.get(getName());
+      throw new ConfigException(message);
     }
 
     if (activeValues.size() > 1)
     {
-      int    msgID   = MSGID_CONFIG_ATTR_MULTIPLE_INT_VALUES;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_MULTIPLE_INT_VALUES.get(getName());
+      throw new ConfigException(message);
     }
 
     return activeValues.get(0);
@@ -379,16 +373,14 @@ public class IntegerConfigAttribute
   {
     if ((activeValues == null) || activeValues.isEmpty())
     {
-      int    msgID   = MSGID_CONFIG_ATTR_NO_INT_VALUE;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_NO_INT_VALUE.get(getName());
+      throw new ConfigException(message);
     }
 
     if (activeValues.size() > 1)
     {
-      int    msgID   = MSGID_CONFIG_ATTR_MULTIPLE_INT_VALUES;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_MULTIPLE_INT_VALUES.get(getName());
+      throw new ConfigException(message);
     }
 
     long longValue = activeValues.get(0);
@@ -399,9 +391,8 @@ public class IntegerConfigAttribute
     }
     else
     {
-      int    msgID   = MSGID_CONFIG_ATTR_VALUE_OUT_OF_INT_RANGE;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_VALUE_OUT_OF_INT_RANGE.get(getName());
+      throw new ConfigException(message);
     }
   }
 
@@ -440,16 +431,14 @@ public class IntegerConfigAttribute
 
     if ((pendingValues == null) || pendingValues.isEmpty())
     {
-      int    msgID   = MSGID_CONFIG_ATTR_NO_INT_VALUE;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_NO_INT_VALUE.get(getName());
+      throw new ConfigException(message);
     }
 
     if (pendingValues.size() > 1)
     {
-      int    msgID   = MSGID_CONFIG_ATTR_MULTIPLE_INT_VALUES;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_MULTIPLE_INT_VALUES.get(getName());
+      throw new ConfigException(message);
     }
 
     return pendingValues.get(0);
@@ -480,16 +469,14 @@ public class IntegerConfigAttribute
 
     if ((pendingValues == null) || pendingValues.isEmpty())
     {
-      int    msgID   = MSGID_CONFIG_ATTR_NO_INT_VALUE;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_NO_INT_VALUE.get(getName());
+      throw new ConfigException(message);
     }
 
     if (pendingValues.size() > 1)
     {
-      int    msgID   = MSGID_CONFIG_ATTR_MULTIPLE_INT_VALUES;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_MULTIPLE_INT_VALUES.get(getName());
+      throw new ConfigException(message);
     }
 
     long longValue = pendingValues.get(0);
@@ -500,9 +487,8 @@ public class IntegerConfigAttribute
     }
     else
     {
-      int    msgID   = MSGID_CONFIG_ATTR_VALUE_OUT_OF_INT_RANGE;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_VALUE_OUT_OF_INT_RANGE.get(getName());
+      throw new ConfigException(message);
     }
   }
 
@@ -595,16 +581,16 @@ public class IntegerConfigAttribute
   {
     if (hasLowerBound && (value < lowerBound))
     {
-      int    msgID   = MSGID_CONFIG_ATTR_INT_BELOW_LOWER_BOUND;
-      String message = getMessage(msgID, getName(), value, lowerBound);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
+          getName(), value, lowerBound);
+      throw new ConfigException(message);
     }
 
     if (hasUpperBound && (value > upperBound))
     {
-      int    msgID   = MSGID_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND;
-      String message = getMessage(msgID, getName(), value, upperBound);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
+          getName(), value, upperBound);
+      throw new ConfigException(message);
     }
 
     if (requiresAdminAction())
@@ -640,9 +626,8 @@ public class IntegerConfigAttribute
     {
       if (isRequired())
       {
-        int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-        String message = getMessage(msgID, getName());
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+        throw new ConfigException(message);
       }
       else
       {
@@ -664,9 +649,9 @@ public class IntegerConfigAttribute
     int numValues = values.size();
     if ((! isMultiValued()) && (numValues > 1))
     {
-      int    msgID   = MSGID_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message =
+          ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
+      throw new ConfigException(message);
     }
 
 
@@ -678,16 +663,16 @@ public class IntegerConfigAttribute
     {
       if (hasLowerBound && (value < lowerBound))
       {
-        int    msgID   = MSGID_CONFIG_ATTR_INT_BELOW_LOWER_BOUND;
-        String message = getMessage(msgID, getName(), value, lowerBound);
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
+            getName(), value, lowerBound);
+        throw new ConfigException(message);
       }
 
       if (hasUpperBound && (value > upperBound))
       {
-        int    msgID   = MSGID_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND;
-        String message = getMessage(msgID, getName(), value, upperBound);
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
+            getName(), value, upperBound);
+        throw new ConfigException(message);
       }
 
       String valueString = String.valueOf(value);
@@ -697,9 +682,9 @@ public class IntegerConfigAttribute
 
       if (valueSet.contains(attrValue))
       {
-        int    msgID   = MSGID_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS;
-        String message = getMessage(msgID, getName(), valueString);
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(
+            getName(), valueString);
+        throw new ConfigException(message);
       }
 
       valueSet.add(attrValue);
@@ -819,8 +804,8 @@ public class IntegerConfigAttribute
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      rejectReason.append(getMessage(MSGID_CONFIG_ATTR_INVALID_INT_VALUE,
-                                     stringValue, String.valueOf(e)));
+      rejectReason.append(ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(
+              getName(), stringValue, String.valueOf(e)));
       return false;
     }
 
@@ -828,15 +813,15 @@ public class IntegerConfigAttribute
     // Perform any necessary bounds checking.
     if (hasLowerBound && (longValue < lowerBound))
     {
-      rejectReason.append(getMessage(MSGID_CONFIG_ATTR_INT_BELOW_LOWER_BOUND,
-                                     getName(), longValue, lowerBound));
+      rejectReason.append(ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
+              getName(), longValue, lowerBound));
       return false;
     }
 
     if (hasUpperBound && (longValue > upperBound))
     {
-      rejectReason.append(getMessage(MSGID_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND,
-                                     getName(), longValue, upperBound));
+      rejectReason.append(ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
+              getName(), longValue, upperBound));
       return false;
     }
 
@@ -875,9 +860,8 @@ public class IntegerConfigAttribute
     {
       if (isRequired())
       {
-        int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-        String message = getMessage(msgID, getName());
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+        throw new ConfigException(message);
       }
       else
       {
@@ -889,9 +873,9 @@ public class IntegerConfigAttribute
     int numValues = valueStrings.size();
     if ((! isMultiValued()) && (numValues > 1))
     {
-      int    msgID   = MSGID_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message =
+          ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
+      throw new ConfigException(message);
     }
 
 
@@ -911,55 +895,52 @@ public class IntegerConfigAttribute
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_CONFIG_ATTR_INT_COULD_NOT_PARSE;
-        String message = getMessage(msgID, valueString, getName(),
-                                    String.valueOf(e));
+        Message message = ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
+                valueString, getName(),
+                String.valueOf(e));
 
         if (allowFailures)
         {
-          logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
-                   message, msgID);
+          ErrorLogger.logError(message);
           continue;
         }
         else
         {
-          throw new ConfigException(msgID, message);
+          throw new ConfigException(message);
         }
       }
 
 
       if (hasLowerBound && (longValue < lowerBound))
       {
-        int    msgID   = MSGID_CONFIG_ATTR_INT_BELOW_LOWER_BOUND;
-        String message = getMessage(msgID, getName(), longValue, lowerBound);
 
+        Message message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
+                getName(), longValue, lowerBound);
         if (allowFailures)
         {
-          logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
-                   message, msgID);
+          ErrorLogger.logError(message);
           continue;
         }
         else
         {
-          throw new ConfigException(msgID, message);
+          throw new ConfigException(message);
         }
       }
 
 
       if (hasUpperBound && (longValue > upperBound))
       {
-        int    msgID   = MSGID_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND;
-        String message = getMessage(msgID, getName(), longValue, upperBound);
+        Message message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
+                getName(), longValue, upperBound);
 
         if (allowFailures)
         {
-          logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
-                   message, msgID);
+          ErrorLogger.logError(message);
           continue;
         }
         else
         {
-          throw new ConfigException(msgID, message);
+          throw new ConfigException(message);
         }
       }
 
@@ -974,9 +955,8 @@ public class IntegerConfigAttribute
     // attribute and if so deal with it accordingly.
     if ((isRequired()) && valueSet.isEmpty())
     {
-      int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+      throw new ConfigException(message);
     }
 
 
@@ -1078,9 +1058,9 @@ public class IntegerConfigAttribute
           if (pendingValues != null)
           {
             // We cannot have multiple pending value sets.
-            int    msgID   = MSGID_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS;
-            String message = getMessage(msgID, a.getName());
-            throw new ConfigException(msgID, message);
+            Message message =
+                ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(a.getName());
+            throw new ConfigException(message);
           }
 
 
@@ -1090,9 +1070,8 @@ public class IntegerConfigAttribute
             if (isRequired())
             {
               // This is illegal -- it must have a value.
-              int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-              String message = getMessage(msgID, a.getName());
-              throw new ConfigException(msgID, message);
+              Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
+              throw new ConfigException(message);
             }
             else
             {
@@ -1106,9 +1085,9 @@ public class IntegerConfigAttribute
             if ((numValues > 1) && (! isMultiValued()))
             {
               // This is illegal -- the attribute is single-valued.
-              int    msgID   = MSGID_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED;
-              String message = getMessage(msgID, a.getName());
-              throw new ConfigException(msgID, message);
+              Message message =
+                  ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
+              throw new ConfigException(message);
             }
 
             pendingValues = new ArrayList<Long>(numValues);
@@ -1121,28 +1100,25 @@ public class IntegerConfigAttribute
               }
               catch (Exception e)
               {
-                int    msgID   = MSGID_CONFIG_ATTR_INT_COULD_NOT_PARSE;
-                String message = getMessage(msgID, v.getStringValue(),
-                                            a.getName(), String.valueOf(e));
-                throw new ConfigException(msgID, message, e);
+                Message message = ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
+                    v.getStringValue(), a.getName(), String.valueOf(e));
+                throw new ConfigException(message, e);
               }
 
 
               // Check the bounds set for this attribute.
               if (hasLowerBound && (longValue < lowerBound))
               {
-                int msgID = MSGID_CONFIG_ATTR_INT_BELOW_LOWER_BOUND;
-                String message = getMessage(msgID, a.getName(), longValue,
-                                            lowerBound);
-                throw new ConfigException(msgID, message);
+                Message message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
+                    a.getName(), longValue, lowerBound);
+                throw new ConfigException(message);
               }
 
               if (hasUpperBound && (longValue > upperBound))
               {
-                int msgID = MSGID_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND;
-                String message = getMessage(msgID, a.getName(), longValue,
-                                            upperBound);
-                throw new ConfigException(msgID, message);
+                Message message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
+                    a.getName(), longValue, upperBound);
+                throw new ConfigException(message);
               }
 
               pendingValues.add(longValue);
@@ -1153,9 +1129,10 @@ public class IntegerConfigAttribute
         {
           // This is illegal -- only the pending option is allowed for
           // configuration attributes.
-          int    msgID   = MSGID_CONFIG_ATTR_OPTIONS_NOT_ALLOWED;
-          String message = getMessage(msgID, a.getName());
-          throw new ConfigException(msgID, message);
+          Message message =
+              ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(
+                      a.getName());
+          throw new ConfigException(message);
         }
       }
       else
@@ -1164,9 +1141,9 @@ public class IntegerConfigAttribute
         if (activeValues!= null)
         {
           // We cannot have multiple active value sets.
-          int    msgID   = MSGID_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS;
-          String message = getMessage(msgID, a.getName());
-          throw new ConfigException(msgID, message);
+          Message message =
+              ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(a.getName());
+          throw new ConfigException(message);
         }
 
 
@@ -1176,9 +1153,8 @@ public class IntegerConfigAttribute
           if (isRequired())
           {
             // This is illegal -- it must have a value.
-            int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-            String message = getMessage(msgID, a.getName());
-            throw new ConfigException(msgID, message);
+            Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
+            throw new ConfigException(message);
           }
           else
           {
@@ -1192,9 +1168,9 @@ public class IntegerConfigAttribute
           if ((numValues > 1) && (! isMultiValued()))
           {
             // This is illegal -- the attribute is single-valued.
-            int    msgID   = MSGID_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED;
-            String message = getMessage(msgID, a.getName());
-            throw new ConfigException(msgID, message);
+            Message message =
+                ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
+            throw new ConfigException(message);
           }
 
           activeValues = new ArrayList<Long>(numValues);
@@ -1207,28 +1183,25 @@ public class IntegerConfigAttribute
             }
             catch (Exception e)
             {
-              int    msgID   = MSGID_CONFIG_ATTR_INT_COULD_NOT_PARSE;
-              String message = getMessage(msgID, v.getStringValue(),
-                                          a.getName(), String.valueOf(e));
-              throw new ConfigException(msgID, message, e);
+              Message message = ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
+                  v.getStringValue(), a.getName(), String.valueOf(e));
+              throw new ConfigException(message, e);
             }
 
 
             // Check the bounds set for this attribute.
             if (hasLowerBound && (longValue < lowerBound))
             {
-              int    msgID   = MSGID_CONFIG_ATTR_INT_BELOW_LOWER_BOUND;
-              String message = getMessage(msgID, a.getName(), longValue,
-                                          lowerBound);
-              throw new ConfigException(msgID, message);
+              Message message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
+                  a.getName(), longValue, lowerBound);
+              throw new ConfigException(message);
             }
 
             if (hasUpperBound && (longValue > upperBound))
             {
-              int    msgID   = MSGID_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND;
-              String message = getMessage(msgID, a.getName(), longValue,
-                                          upperBound);
-              throw new ConfigException(msgID, message);
+              Message message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
+                  a.getName(), longValue, upperBound);
+              throw new ConfigException(message);
             }
 
             activeValues.add(longValue);
@@ -1240,9 +1213,8 @@ public class IntegerConfigAttribute
     if (activeValues == null)
     {
       // This is not OK.  The value set must contain an active value.
-      int    msgID   = MSGID_CONFIG_ATTR_NO_ACTIVE_VALUE_SET;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_NO_ACTIVE_VALUE_SET.get(getName());
+      throw new ConfigException(message);
     }
 
     if (pendingValues == null)
@@ -1425,15 +1397,17 @@ public class IntegerConfigAttribute
     {
       attributeInfoList.add(new MBeanAttributeInfo(getName(),
                                                    JMX_TYPE_LONG_ARRAY,
-                                                   getDescription(), true, true,
-                                                   false));
+                                                   String.valueOf(
+                                                           getDescription()),
+                                                   true, true, false));
     }
     else
     {
       attributeInfoList.add(new MBeanAttributeInfo(getName(),
                                                    Long.class.getName(),
-                                                   getDescription(), true, true,
-                                                   false));
+                                                   String.valueOf(
+                                                           getDescription()),
+                                                   true, true, false));
     }
 
 
@@ -1444,14 +1418,16 @@ public class IntegerConfigAttribute
       if (isMultiValued())
       {
         attributeInfoList.add(new MBeanAttributeInfo(name, JMX_TYPE_LONG_ARRAY,
-                                                     getDescription(), true,
-                                                     false, false));
+                                                     String.valueOf(
+                                                             getDescription()),
+                                                     true, false, false));
       }
       else
       {
         attributeInfoList.add(new MBeanAttributeInfo(name, Long.class.getName(),
-                                                     getDescription(), true,
-                                                     false, false));
+                                                     String.valueOf(
+                                                             getDescription()),
+                                                     true, false, false));
       }
     }
   }
@@ -1470,12 +1446,12 @@ public class IntegerConfigAttribute
     if (isMultiValued())
     {
       return new MBeanParameterInfo(getName(), JMX_TYPE_LONG_ARRAY,
-                                    getDescription());
+                                    String.valueOf(getDescription()));
     }
     else
     {
       return new MBeanParameterInfo(getName(), Long.TYPE.getName(),
-                                    getDescription());
+                                    String.valueOf(getDescription()));
     }
   }
 
@@ -1517,10 +1493,9 @@ public class IntegerConfigAttribute
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_CONFIG_ATTR_INT_COULD_NOT_PARSE;
-        String message = getMessage(msgID, String.valueOf(value), getName(),
-                                    String.valueOf(e));
-        throw new ConfigException(msgID, message, e);
+        Message message = ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
+            String.valueOf(value), getName(), String.valueOf(e));
+        throw new ConfigException(message, e);
       }
     }
     else if (value.getClass().isArray())
@@ -1566,9 +1541,10 @@ public class IntegerConfigAttribute
         }
         else
         {
-          int    msgID   = MSGID_CONFIG_ATTR_INT_INVALID_ARRAY_TYPE;
-          String message = getMessage(msgID, componentType);
-          throw new ConfigException(msgID, message);
+          Message message =
+              ERR_CONFIG_ATTR_INT_INVALID_ARRAY_TYPE.get(
+                      jmxAttribute.getName(), componentType);
+          throw new ConfigException(message);
         }
       }
       catch (ConfigException ce)
@@ -1587,18 +1563,16 @@ public class IntegerConfigAttribute
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_CONFIG_ATTR_INT_COULD_NOT_PARSE;
-        String message = getMessage(msgID, componentType + "[" + length + "]",
-                                    getName(), String.valueOf(e));
-        throw new ConfigException(msgID, message, e);
+        Message message = ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
+            componentType + "[" + length + "]", getName(), String.valueOf(e));
+        throw new ConfigException(message, e);
       }
     }
     else
     {
-      int    msgID   = MSGID_CONFIG_ATTR_INT_INVALID_TYPE;
-      String message = getMessage(msgID, String.valueOf(value), getName(),
-                                  value.getClass().getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_INT_INVALID_TYPE.get(
+          String.valueOf(value), getName(), value.getClass().getName());
+      throw new ConfigException(message);
     }
   }
 

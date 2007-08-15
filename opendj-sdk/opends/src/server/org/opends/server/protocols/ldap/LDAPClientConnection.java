@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
+import org.opends.messages.Message;
 
 
 
@@ -32,10 +33,9 @@ import static org.opends.server.loggers.AccessLogger.logDisconnect;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.StaticUtils.getBacktrace;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
@@ -82,8 +82,8 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
@@ -271,7 +271,7 @@ public class LDAPClientConnection
     if (connectionID < 0)
     {
       disconnect(DisconnectReason.ADMIN_LIMIT_EXCEEDED, true,
-                 MSGID_LDAP_CONNHANDLER_REJECTED_BY_SERVER);
+                 ERR_LDAP_CONNHANDLER_REJECTED_BY_SERVER.get());
     }
   }
 
@@ -584,16 +584,15 @@ public class LDAPClientConnection
       // This must mean that the operation has either not yet completed or that
       // it completed without a result for some reason.  In any case, log a
       // message and set the response to "operations error".
-      logError(ErrorLogCategory.REQUEST_HANDLING, ErrorLogSeverity.MILD_ERROR,
-               MSGID_LDAP_CLIENT_SEND_RESPONSE_NO_RESULT_CODE,
-               operation.getOperationType().toString(),
-               operation.getConnectionID(), operation.getOperationID());
+      logError(ERR_LDAP_CLIENT_SEND_RESPONSE_NO_RESULT_CODE.
+          get(operation.getOperationType().toString(),
+              operation.getConnectionID(), operation.getOperationID()));
       resultCode = DirectoryServer.getServerErrorResultCode();
     }
 
 
-    StringBuilder errorMessage = operation.getErrorMessage();
-    DN            matchedDN    = operation.getMatchedDN();
+    MessageBuilder errorMessage = operation.getErrorMessage();
+    DN             matchedDN    = operation.getMatchedDN();
 
 
     // Referrals are not allowed for LDAPv2 clients.
@@ -605,7 +604,7 @@ public class LDAPClientConnection
       if (resultCode == ResultCode.REFERRAL)
       {
         resultCode = ResultCode.CONSTRAINT_VIOLATION;
-        errorMessage.append(getMessage(MSGID_LDAPV2_REFERRAL_RESULT_CHANGED));
+        errorMessage.append(ERR_LDAPV2_REFERRAL_RESULT_CHANGED.get());
       }
 
       List<String> opReferrals = operation.getReferralURLs();
@@ -621,8 +620,8 @@ public class LDAPClientConnection
           referralsStr.append(iterator.next());
         }
 
-        errorMessage.append(getMessage(MSGID_LDAPV2_REFERRALS_OMITTED,
-                                       String.valueOf(referralsStr)));
+        errorMessage.append(ERR_LDAPV2_REFERRALS_OMITTED.get(
+                String.valueOf(referralsStr)));
       }
     }
     else
@@ -635,63 +634,64 @@ public class LDAPClientConnection
     {
       case ADD:
         protocolOp = new AddResponseProtocolOp(resultCode.getIntValue(),
-                                               errorMessage.toString(),
+                                               errorMessage.toMessage(),
                                                matchedDN, referralURLs);
         break;
       case BIND:
         ASN1OctetString serverSASLCredentials =
              ((BindOperationBasis) operation).getServerSASLCredentials();
         protocolOp = new BindResponseProtocolOp(resultCode.getIntValue(),
-                              errorMessage.toString(), matchedDN,
+                              errorMessage.toMessage(), matchedDN,
                               referralURLs, serverSASLCredentials);
         break;
       case COMPARE:
         protocolOp = new CompareResponseProtocolOp(resultCode.getIntValue(),
-                                                   errorMessage.toString(),
+                                                   errorMessage.toMessage(),
                                                    matchedDN, referralURLs);
         break;
       case DELETE:
         protocolOp = new DeleteResponseProtocolOp(resultCode.getIntValue(),
-                                                  errorMessage.toString(),
+                                                  errorMessage.toMessage(),
                                                   matchedDN, referralURLs);
         break;
       case EXTENDED:
         // If this an LDAPv2 client, then we can't send this.
         if (ldapVersion == 2)
         {
-          logError(ErrorLogCategory.REQUEST_HANDLING,
-                   ErrorLogSeverity.MILD_WARNING,
-                   MSGID_LDAPV2_SKIPPING_EXTENDED_RESPONSE,
-                   getConnectionID(), String.valueOf(operation));
+          logError(ERR_LDAPV2_SKIPPING_EXTENDED_RESPONSE.get(
+              getConnectionID(), operation.getOperationID(),
+                  String.valueOf(operation)));
           return null;
         }
 
         ExtendedOperationBasis extOp = (ExtendedOperationBasis) operation;
         protocolOp = new ExtendedResponseProtocolOp(resultCode.getIntValue(),
-                              errorMessage.toString(), matchedDN, referralURLs,
+                              errorMessage.toMessage(), matchedDN, referralURLs,
                               extOp.getResponseOID(), extOp.getResponseValue());
         break;
       case MODIFY:
         protocolOp = new ModifyResponseProtocolOp(resultCode.getIntValue(),
-                                                  errorMessage.toString(),
+                                                  errorMessage.toMessage(),
                                                   matchedDN, referralURLs);
         break;
       case MODIFY_DN:
         protocolOp = new ModifyDNResponseProtocolOp(resultCode.getIntValue(),
-                                                    errorMessage.toString(),
+                                                    errorMessage.toMessage(),
                                                     matchedDN, referralURLs);
         break;
       case SEARCH:
         protocolOp = new SearchResultDoneProtocolOp(resultCode.getIntValue(),
-                                                    errorMessage.toString(),
+                                                    errorMessage.toMessage(),
                                                     matchedDN, referralURLs);
         break;
       default:
         // This must be a type of operation that doesn't have a response.  This
         // shouldn't happen, so log a message and return.
-        logError(ErrorLogCategory.REQUEST_HANDLING, ErrorLogSeverity.MILD_ERROR,
-                 MSGID_LDAP_CLIENT_SEND_RESPONSE_INVALID_OP,
-                 String.valueOf(operation));
+        logError(ERR_LDAP_CLIENT_SEND_RESPONSE_INVALID_OP.get(
+                String.valueOf(operation.getOperationType()),
+                getConnectionID(),
+                operation.getOperationID(),
+                String.valueOf(operation)));
         return null;
     }
 
@@ -781,12 +781,10 @@ public class LDAPClientConnection
     // client for the rest of the operation.
     if (ldapVersion == 2)
     {
-      int    msgID   = MSGID_LDAPV2_SKIPPING_SEARCH_REFERENCE;
-      String message = getMessage(msgID, getConnectionID(),
-                                  searchOperation.getOperationID(),
-                                  String.valueOf(searchReference));
-      logError(ErrorLogCategory.REQUEST_HANDLING,
-               ErrorLogSeverity.MILD_WARNING, message, msgID);
+      Message message = ERR_LDAPV2_SKIPPING_SEARCH_REFERENCE.
+          get(getConnectionID(), searchOperation.getOperationID(),
+              String.valueOf(searchReference));
+      logError(message);
       return false;
     }
 
@@ -907,8 +905,7 @@ public class LDAPClientConnection
 
         // We were unable to send the message due to some other internal
         // problem.  Disconnect from the client and return.
-        disconnect(DisconnectReason.SERVER_ERROR, true, -1, String.valueOf(e),
-                   getBacktrace(e));
+        disconnect(DisconnectReason.SERVER_ERROR, true, null);
         return;
       }
     }
@@ -920,8 +917,7 @@ public class LDAPClientConnection
       }
 
       // FIXME -- Log a message or something
-      disconnect(DisconnectReason.SERVER_ERROR, true, -1, String.valueOf(e),
-                 getBacktrace(e));
+      disconnect(DisconnectReason.SERVER_ERROR, true, null);
       return;
     }
     finally
@@ -945,13 +941,10 @@ public class LDAPClientConnection
    * @param  message           The message to include in the disconnect
    *                           notification response.  It may be
    *                           <CODE>null</CODE> if no message is to be sent.
-   * @param  messageID         The unique identifier associated with the message
-   *                           to send to the client.  It may be -1 if no
-   *                           notification is to be sent.
    */
   public void disconnect(DisconnectReason disconnectReason,
-                         boolean sendNotification, String message,
-                         int messageID)
+                         boolean sendNotification,
+                         Message message)
   {
     // If we are already in the middle of a disconnect, then don't do anything.
     if (disconnectRequested)
@@ -1034,11 +1027,10 @@ public class LDAPClientConnection
         }
 
 
-        String errMsg;
+        Message errMsg;
         if (message == null)
         {
-          errMsg =
-               getMessage(MSGID_LDAP_CLIENT_GENERIC_NOTICE_OF_DISCONNECTION);
+          errMsg = INFO_LDAP_CLIENT_GENERIC_NOTICE_OF_DISCONNECTION.get();
         }
         else
         {
@@ -1100,13 +1092,7 @@ public class LDAPClientConnection
 
 
     // Log a disconnect message.
-    if(messageID == -1)
-    {
-      logDisconnect(this, disconnectReason, null);
-    } else
-    {
-      logDisconnect(this, disconnectReason, message);
-    }
+    logDisconnect(this, disconnectReason, message);
 
 
     try
@@ -1114,7 +1100,7 @@ public class LDAPClientConnection
       PluginConfigManager pluginManager =
            DirectoryServer.getPluginConfigManager();
       pluginManager.invokePostDisconnectPlugins(this, disconnectReason,
-                                                messageID, message);
+              message);
     }
     catch (Exception e)
     {
@@ -1181,10 +1167,8 @@ public class LDAPClientConnection
       // reject the operation.
       if (disconnectRequested)
       {
-        int    msgID   = MSGID_LDAP_CLIENT_DISCONNECT_IN_PROGRESS;
-        String message = getMessage(msgID);
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = WARN_LDAP_CLIENT_DISCONNECT_IN_PROGRESS.get();
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
 
@@ -1193,9 +1177,8 @@ public class LDAPClientConnection
       AbstractOperation op = operationsInProgress.get(messageID);
       if (op != null)
       {
-        int    msgID   = MSGID_LDAP_CLIENT_DUPLICATE_MESSAGE_ID;
-        String message = getMessage(msgID, messageID);
-        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, msgID);
+        Message message = WARN_LDAP_CLIENT_DUPLICATE_MESSAGE_ID.get(messageID);
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
 
 
@@ -1226,10 +1209,10 @@ public class LDAPClientConnection
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_LDAP_CLIENT_CANNOT_ENQUEUE;
-      String message = getMessage(msgID, getExceptionMessage(e));
+      Message message =
+          WARN_LDAP_CLIENT_CANNOT_ENQUEUE.get(getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
     finally
     {
@@ -1510,7 +1493,7 @@ public class LDAPClientConnection
             if (elementLength == 0)
             {
               disconnect(DisconnectReason.PROTOCOL_ERROR, true,
-                         MSGID_LDAP_CLIENT_DECODE_ZERO_BYTE_VALUE);
+                         ERR_LDAP_CLIENT_DECODE_ZERO_BYTE_VALUE.get());
               return false;
             }
 
@@ -1519,9 +1502,9 @@ public class LDAPClientConnection
             if ((connectionHandler.getMaxRequestSize() > 0) &&
                 (elementLength > connectionHandler.getMaxRequestSize()))
             {
-              disconnect(DisconnectReason.MAX_REQUEST_SIZE_EXCEEDED, true,
-                         MSGID_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED,
-                         elementLength, connectionHandler.getMaxRequestSize());
+              Message m = ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(
+                elementLength, connectionHandler.getMaxRequestSize());
+              disconnect(DisconnectReason.MAX_REQUEST_SIZE_EXCEEDED, true, m);
               return false;
             }
 
@@ -1537,9 +1520,9 @@ public class LDAPClientConnection
             {
               // We cannot handle multi-byte lengths in which more than four
               // bytes are used to encode the length.
-              disconnect(DisconnectReason.PROTOCOL_ERROR, true,
-                         MSGID_LDAP_CLIENT_DECODE_INVALID_MULTIBYTE_LENGTH,
-                         elementLengthBytesNeeded);
+              Message m = ERR_LDAP_CLIENT_DECODE_INVALID_MULTIBYTE_LENGTH.get(
+                elementLengthBytesNeeded);
+              disconnect(DisconnectReason.PROTOCOL_ERROR, true, m);
               return false;
             }
 
@@ -1558,7 +1541,7 @@ public class LDAPClientConnection
               if (elementLength == 0)
               {
                 disconnect(DisconnectReason.PROTOCOL_ERROR, true,
-                           MSGID_LDAP_CLIENT_DECODE_ZERO_BYTE_VALUE);
+                           ERR_LDAP_CLIENT_DECODE_ZERO_BYTE_VALUE.get());
                 return false;
               }
 
@@ -1568,9 +1551,9 @@ public class LDAPClientConnection
                   (elementLength > connectionHandler.getMaxRequestSize()))
               {
                 disconnect(DisconnectReason.MAX_REQUEST_SIZE_EXCEEDED, true,
-                           MSGID_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED,
-                           elementLength,
-                           connectionHandler.getMaxRequestSize());
+                           ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(
+                                   elementLength,
+                                   connectionHandler.getMaxRequestSize()));
                 return false;
               }
 
@@ -1612,7 +1595,7 @@ public class LDAPClientConnection
             if (elementLength == 0)
             {
               disconnect(DisconnectReason.PROTOCOL_ERROR, true,
-                         MSGID_LDAP_CLIENT_DECODE_ZERO_BYTE_VALUE);
+                         ERR_LDAP_CLIENT_DECODE_ZERO_BYTE_VALUE.get());
               return false;
             }
 
@@ -1622,8 +1605,9 @@ public class LDAPClientConnection
                 (elementLength > connectionHandler.getMaxRequestSize()))
             {
               disconnect(DisconnectReason.MAX_REQUEST_SIZE_EXCEEDED, true,
-                         MSGID_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED,
-                         elementLength, connectionHandler.getMaxRequestSize());
+                         ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(
+                                 elementLength,
+                                 connectionHandler.getMaxRequestSize()));
               return false;
             }
 
@@ -1674,10 +1658,9 @@ public class LDAPClientConnection
               {
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
-
-              disconnect(DisconnectReason.PROTOCOL_ERROR, true,
-                         MSGID_LDAP_CLIENT_DECODE_ASN1_FAILED,
-                         String.valueOf(e));
+              Message m = ERR_LDAP_CLIENT_DECODE_ASN1_FAILED.get(
+                String.valueOf(e));
+              disconnect(DisconnectReason.PROTOCOL_ERROR, true, m);
               return false;
             }
 
@@ -1694,10 +1677,9 @@ public class LDAPClientConnection
               {
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
-
-              disconnect(DisconnectReason.PROTOCOL_ERROR, true,
-                         MSGID_LDAP_CLIENT_DECODE_LDAP_MESSAGE_FAILED,
-                         String.valueOf(e));
+              Message m = ERR_LDAP_CLIENT_DECODE_LDAP_MESSAGE_FAILED.get(
+                String.valueOf(e));
+              disconnect(DisconnectReason.PROTOCOL_ERROR, true, m);
               return false;
             }
 
@@ -1725,11 +1707,10 @@ public class LDAPClientConnection
           // This should never happen.  There is an invalid internal read state.
           // The only recourse that we have is to log a message and disconnect
           // the client.
-          int    msgID   = MSGID_LDAP_CLIENT_INVALID_DECODE_STATE;
-          String message = getMessage(msgID, elementReadState);
-          logError(ErrorLogCategory.REQUEST_HANDLING,
-                   ErrorLogSeverity.SEVERE_ERROR, message, msgID);
-          disconnect(DisconnectReason.SERVER_ERROR, true, message, msgID);
+          Message message =
+              ERR_LDAP_CLIENT_INVALID_DECODE_STATE.get(elementReadState);
+          logError(message);
+          disconnect(DisconnectReason.SERVER_ERROR, true, message);
           return false;
       }
     }
@@ -1813,10 +1794,9 @@ public class LDAPClientConnection
         case OP_TYPE_UNBIND_REQUEST:
           return processUnbindRequest(message, opControls);
         default:
-          int msgID = MSGID_LDAP_DISCONNECT_DUE_TO_INVALID_REQUEST_TYPE;
-          String msg = getMessage(msgID, message.getProtocolOpName(),
-                                  message.getMessageID());
-          disconnect(DisconnectReason.PROTOCOL_ERROR, true, msg, msgID);
+          Message msg = ERR_LDAP_DISCONNECT_DUE_TO_INVALID_REQUEST_TYPE.get(
+                  message.getProtocolOpName(), message.getMessageID());
+          disconnect(DisconnectReason.PROTOCOL_ERROR, true, msg);
           return false;
       }
     }
@@ -1827,10 +1807,10 @@ public class LDAPClientConnection
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_DISCONNECT_DUE_TO_PROCESSING_FAILURE;
-      String msg = getMessage(msgID, message.getProtocolOpName(),
-                              message.getMessageID(), String.valueOf(e));
-      disconnect(DisconnectReason.SERVER_ERROR, true, msg, msgID);
+      Message msg = ERR_LDAP_DISCONNECT_DUE_TO_PROCESSING_FAILURE.get(
+              message.getProtocolOpName(),
+              message.getMessageID(), String.valueOf(e));
+      disconnect(DisconnectReason.SERVER_ERROR, true, msg);
       return false;
     }
   }
@@ -1890,11 +1870,11 @@ public class LDAPClientConnection
       // LDAPv2 clients aren't allowed to send controls.
       AddResponseProtocolOp responseOp =
            new AddResponseProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
-                    getMessage(MSGID_LDAPV2_CONTROLS_NOT_ALLOWED));
+                    ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
       sendLDAPMessage(securityProvider,
                       new LDAPMessage(message.getMessageID(), responseOp));
       disconnect(DisconnectReason.PROTOCOL_ERROR, false,
-                 MSGID_LDAPV2_CONTROLS_NOT_ALLOWED);
+                 ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
       return false;
     }
 
@@ -1918,7 +1898,7 @@ public class LDAPClientConnection
 
       AddResponseProtocolOp responseOp =
            new AddResponseProtocolOp(de.getResultCode().getIntValue(),
-                                     de.getErrorMessage(), de.getMatchedDN(),
+                                     de.getMessageObject(), de.getMatchedDN(),
                                      de.getReferralURLs());
 
       List<Control> responseControls = addOp.getResponseControls();
@@ -1970,11 +1950,11 @@ public class LDAPClientConnection
           BindResponseProtocolOp responseOp =
                new BindResponseProtocolOp(
                         LDAPResultCode.INAPPROPRIATE_AUTHENTICATION,
-                        getMessage(MSGID_LDAPV2_CLIENTS_NOT_ALLOWED));
+                        ERR_LDAPV2_CLIENTS_NOT_ALLOWED.get());
           sendLDAPMessage(securityProvider,
                           new LDAPMessage(message.getMessageID(), responseOp));
           disconnect(DisconnectReason.PROTOCOL_ERROR, false,
-                     MSGID_LDAPV2_CLIENTS_NOT_ALLOWED);
+                     ERR_LDAPV2_CLIENTS_NOT_ALLOWED.get());
           return false;
         }
 
@@ -1983,11 +1963,11 @@ public class LDAPClientConnection
           // LDAPv2 clients aren't allowed to send controls.
           BindResponseProtocolOp responseOp =
                new BindResponseProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
-                        getMessage(MSGID_LDAPV2_CONTROLS_NOT_ALLOWED));
+                        ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
           sendLDAPMessage(securityProvider,
                           new LDAPMessage(message.getMessageID(), responseOp));
           disconnect(DisconnectReason.PROTOCOL_ERROR, false,
-                     MSGID_LDAPV2_CONTROLS_NOT_ALLOWED);
+                     ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
           return false;
         }
 
@@ -2023,10 +2003,10 @@ public class LDAPClientConnection
         // This is an invalid authentication type, and therefore a protocol
         // error.  As per RFC 2251, a protocol error in a bind request must
         // result in terminating the connection.
-        int msgID = MSGID_LDAP_INVALID_BIND_AUTH_TYPE;
-        String msg = getMessage(msgID, message.getMessageID(),
+        Message msg =
+                ERR_LDAP_INVALID_BIND_AUTH_TYPE.get(message.getMessageID(),
                           String.valueOf(protocolOp.getAuthenticationType()));
-        disconnect(DisconnectReason.PROTOCOL_ERROR, true, msg, msgID);
+        disconnect(DisconnectReason.PROTOCOL_ERROR, true, msg);
         return false;
     }
 
@@ -2044,7 +2024,7 @@ public class LDAPClientConnection
 
       BindResponseProtocolOp responseOp =
            new BindResponseProtocolOp(de.getResultCode().getIntValue(),
-                                      de.getErrorMessage(), de.getMatchedDN(),
+                                      de.getMessageObject(), de.getMatchedDN(),
                                       de.getReferralURLs());
 
       List<Control> responseControls = bindOp.getResponseControls();
@@ -2062,10 +2042,9 @@ public class LDAPClientConnection
       // If it was a protocol error, then terminate the connection.
       if (de.getResultCode() == ResultCode.PROTOCOL_ERROR)
       {
-        int msgID = MSGID_LDAP_DISCONNECT_DUE_TO_BIND_PROTOCOL_ERROR;
-        String msg = getMessage(msgID, message.getMessageID(),
-                                de.getErrorMessage());
-        disconnect(DisconnectReason.PROTOCOL_ERROR, true, msg, msgID);
+        Message msg = ERR_LDAP_DISCONNECT_DUE_TO_BIND_PROTOCOL_ERROR.get(
+                message.getMessageID(), de.getMessageObject());
+        disconnect(DisconnectReason.PROTOCOL_ERROR, true, msg);
       }
     }
 
@@ -2096,11 +2075,11 @@ public class LDAPClientConnection
       // LDAPv2 clients aren't allowed to send controls.
       CompareResponseProtocolOp responseOp =
            new CompareResponseProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
-                    getMessage(MSGID_LDAPV2_CONTROLS_NOT_ALLOWED));
+                    ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
       sendLDAPMessage(securityProvider,
                       new LDAPMessage(message.getMessageID(), responseOp));
       disconnect(DisconnectReason.PROTOCOL_ERROR, false,
-                 MSGID_LDAPV2_CONTROLS_NOT_ALLOWED);
+                 ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
       return false;
     }
 
@@ -2125,7 +2104,7 @@ public class LDAPClientConnection
 
       CompareResponseProtocolOp responseOp =
            new CompareResponseProtocolOp(de.getResultCode().getIntValue(),
-                                         de.getErrorMessage(),
+                                         de.getMessageObject(),
                                          de.getMatchedDN(),
                                          de.getReferralURLs());
 
@@ -2169,11 +2148,11 @@ public class LDAPClientConnection
       // LDAPv2 clients aren't allowed to send controls.
       DeleteResponseProtocolOp responseOp =
            new DeleteResponseProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
-                    getMessage(MSGID_LDAPV2_CONTROLS_NOT_ALLOWED));
+                    ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
       sendLDAPMessage(securityProvider,
                       new LDAPMessage(message.getMessageID(), responseOp));
       disconnect(DisconnectReason.PROTOCOL_ERROR, false,
-                 MSGID_LDAPV2_CONTROLS_NOT_ALLOWED);
+                 ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
       return false;
     }
 
@@ -2197,7 +2176,8 @@ public class LDAPClientConnection
 
       DeleteResponseProtocolOp responseOp =
            new DeleteResponseProtocolOp(de.getResultCode().getIntValue(),
-                                        de.getErrorMessage(), de.getMatchedDN(),
+                                        de.getMessageObject(),
+                                        de.getMatchedDN(),
                                         de.getReferralURLs());
 
       List<Control> responseControls = deleteOp.getResponseControls();
@@ -2240,12 +2220,10 @@ public class LDAPClientConnection
     // they can understand, so we have no choice but to close the connection.
     if (ldapVersion == 2)
     {
-      int msgID = MSGID_LDAPV2_EXTENDED_REQUEST_NOT_ALLOWED;
-      String msg = getMessage(msgID, getConnectionID(), message.getMessageID());
-      logError(ErrorLogCategory.REQUEST_HANDLING, ErrorLogSeverity.MILD_ERROR,
-               msg, msgID);
-
-      disconnect(DisconnectReason.PROTOCOL_ERROR, false, msg, msgID);
+      Message msg = ERR_LDAPV2_EXTENDED_REQUEST_NOT_ALLOWED.get(
+          getConnectionID(), message.getMessageID());
+      logError(msg);
+      disconnect(DisconnectReason.PROTOCOL_ERROR, false, msg);
       return false;
     }
 
@@ -2276,7 +2254,7 @@ public class LDAPClientConnection
 
       ExtendedResponseProtocolOp responseOp =
            new ExtendedResponseProtocolOp(de.getResultCode().getIntValue(),
-                                          de.getErrorMessage(),
+                                          de.getMessageObject(),
                                           de.getMatchedDN(),
                                           de.getReferralURLs());
 
@@ -2320,11 +2298,11 @@ public class LDAPClientConnection
       // LDAPv2 clients aren't allowed to send controls.
       ModifyResponseProtocolOp responseOp =
            new ModifyResponseProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
-                    getMessage(MSGID_LDAPV2_CONTROLS_NOT_ALLOWED));
+                    ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
       sendLDAPMessage(securityProvider,
                       new LDAPMessage(message.getMessageID(), responseOp));
       disconnect(DisconnectReason.PROTOCOL_ERROR, false,
-                 MSGID_LDAPV2_CONTROLS_NOT_ALLOWED);
+                 ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
       return false;
     }
 
@@ -2348,7 +2326,8 @@ public class LDAPClientConnection
 
       ModifyResponseProtocolOp responseOp =
            new ModifyResponseProtocolOp(de.getResultCode().getIntValue(),
-                                        de.getErrorMessage(), de.getMatchedDN(),
+                                        de.getMessageObject(),
+                                        de.getMatchedDN(),
                                         de.getReferralURLs());
 
       List<Control> responseControls = modifyOp.getResponseControls();
@@ -2391,11 +2370,11 @@ public class LDAPClientConnection
       // LDAPv2 clients aren't allowed to send controls.
       ModifyDNResponseProtocolOp responseOp =
            new ModifyDNResponseProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
-                    getMessage(MSGID_LDAPV2_CONTROLS_NOT_ALLOWED));
+                    ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
       sendLDAPMessage(securityProvider,
                       new LDAPMessage(message.getMessageID(), responseOp));
       disconnect(DisconnectReason.PROTOCOL_ERROR, false,
-                 MSGID_LDAPV2_CONTROLS_NOT_ALLOWED);
+                 ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
       return false;
     }
 
@@ -2422,7 +2401,7 @@ public class LDAPClientConnection
 
       ModifyDNResponseProtocolOp responseOp =
            new ModifyDNResponseProtocolOp(de.getResultCode().getIntValue(),
-                                          de.getErrorMessage(),
+                                          de.getMessageObject(),
                                           de.getMatchedDN(),
                                           de.getReferralURLs());
 
@@ -2466,11 +2445,11 @@ public class LDAPClientConnection
       // LDAPv2 clients aren't allowed to send controls.
       SearchResultDoneProtocolOp responseOp =
            new SearchResultDoneProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
-                    getMessage(MSGID_LDAPV2_CONTROLS_NOT_ALLOWED));
+                    ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
       sendLDAPMessage(securityProvider,
                       new LDAPMessage(message.getMessageID(), responseOp));
       disconnect(DisconnectReason.PROTOCOL_ERROR, false,
-                 MSGID_LDAPV2_CONTROLS_NOT_ALLOWED);
+                 ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
       return false;
     }
 
@@ -2499,7 +2478,7 @@ public class LDAPClientConnection
 
       SearchResultDoneProtocolOp responseOp =
            new SearchResultDoneProtocolOp(de.getResultCode().getIntValue(),
-                                          de.getErrorMessage(),
+                                          de.getMessageObject(),
                                           de.getMatchedDN(),
                                           de.getReferralURLs());
 
@@ -2630,15 +2609,15 @@ public class LDAPClientConnection
    * @return  <CODE>true</CODE> if TLS is available on the underlying client
    *          connection, or <CODE>false</CODE> if it is not.
    */
-  public boolean tlsProtectionAvailable(StringBuilder unavailableReason)
+  public boolean tlsProtectionAvailable(MessageBuilder unavailableReason)
   {
     // Make sure that this client connection does not already have some other
     // security provider enabled.
     if (! (securityProvider instanceof NullConnectionSecurityProvider))
     {
-      int msgID = MSGID_LDAP_TLS_EXISTING_SECURITY_PROVIDER;
-      unavailableReason.append(getMessage(msgID,
-           securityProvider.getSecurityMechanismName()));
+
+      unavailableReason.append(ERR_LDAP_TLS_EXISTING_SECURITY_PROVIDER.get(
+              securityProvider.getSecurityMechanismName()));
       return false;
     }
 
@@ -2647,8 +2626,8 @@ public class LDAPClientConnection
     // operation.
     if (! connectionHandler.allowStartTLS())
     {
-      int msgID = MSGID_LDAP_TLS_STARTTLS_NOT_ALLOWED;
-      unavailableReason.append(getMessage(msgID));
+
+      unavailableReason.append(ERR_LDAP_TLS_STARTTLS_NOT_ALLOWED.get());
       return false;
     }
 
@@ -2680,9 +2659,9 @@ public class LDAPClientConnection
 
         tlsSecurityProvider = null;
 
-        int msgID = MSGID_LDAP_TLS_CANNOT_CREATE_TLS_PROVIDER;
-        unavailableReason.append(getMessage(msgID,
-                                            stackTraceToSingleLineString(e)));
+
+        unavailableReason.append(ERR_LDAP_TLS_CANNOT_CREATE_TLS_PROVIDER.get(
+                stackTraceToSingleLineString(e)));
         return false;
       }
     }
@@ -2709,12 +2688,11 @@ public class LDAPClientConnection
   {
     if (tlsSecurityProvider == null)
     {
-      int    msgID   = MSGID_LDAP_TLS_NO_PROVIDER;
-      String message = getMessage(msgID);
+      Message message = ERR_LDAP_TLS_NO_PROVIDER.get();
 
-      disconnect(DisconnectReason.OTHER, false, message, msgID);
+      disconnect(DisconnectReason.OTHER, false, message);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
 
     clearSecurityProvider = securityProvider;
@@ -2737,12 +2715,11 @@ public class LDAPClientConnection
   public void disableTLSConnectionSecurityProvider()
          throws DirectoryException
   {
-    int    msgID   = MSGID_LDAP_TLS_CLOSURE_NOT_ALLOWED;
-    String message = getMessage(msgID);
+    Message message = ERR_LDAP_TLS_CLOSURE_NOT_ALLOWED.get();
 
-    disconnect(DisconnectReason.OTHER, false, message, msgID);
+    disconnect(DisconnectReason.OTHER, false, message);
     throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                 message, msgID);
+                                 message);
   }
 
 
@@ -2765,10 +2742,9 @@ public class LDAPClientConnection
   {
     if (clearSecurityProvider == null)
     {
-      int    msgID   = MSGID_LDAP_NO_CLEAR_SECURITY_PROVIDER;
-      String message = getMessage(msgID, toString());
+      Message message = ERR_LDAP_NO_CLEAR_SECURITY_PROVIDER.get(toString());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
 
     sendLDAPMessage(clearSecurityProvider,

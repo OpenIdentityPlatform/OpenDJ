@@ -25,18 +25,16 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
+import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ReplicationMessages.*;
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.util.List;
 import java.io.UnsupportedEncodingException;
 
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.UpdateMessage;
 
@@ -106,11 +104,10 @@ public class ReplicationDB
           db.put(txn, key, data);
         } catch (DatabaseException e)
         {
-          int    msgID   = MSGID_CHANGELOG_SHUTDOWN_DATABASE_ERROR;
-          String message = getMessage(msgID) + stackTraceToSingleLineString(e);
-          logError(ErrorLogCategory.SYNCHRONIZATION,
-                   ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          MessageBuilder mb = new MessageBuilder();
+          mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
+          mb.append(stackTraceToSingleLineString(e));
+          logError(mb.toMessage());
           replicationServer.shutdown();
         }
       }
@@ -120,11 +117,10 @@ public class ReplicationDB
     }
     catch (DatabaseException e)
     {
-      int    msgID   = MSGID_CHANGELOG_SHUTDOWN_DATABASE_ERROR;
-      String message = getMessage(msgID) + stackTraceToSingleLineString(e);
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-               ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
+      mb.append(stackTraceToSingleLineString(e));
+      logError(mb.toMessage());
       if (txn != null)
       {
         try
@@ -139,11 +135,10 @@ public class ReplicationDB
     }
     catch (UnsupportedEncodingException e)
     {
-      int    msgID   = MSGID_CHANGELOG_UNSUPPORTED_UTF8_ENCODING;
-      String message = getMessage(msgID) + stackTraceToSingleLineString(e);
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-          ErrorLogSeverity.SEVERE_ERROR,
-          message, msgID);
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(ERR_CHANGELOG_UNSUPPORTED_UTF8_ENCODING.get());
+      mb.append(stackTraceToSingleLineString(e));
+      logError(mb.toMessage());
       replicationServer.shutdown();
       if (txn != null)
       {
@@ -170,12 +165,10 @@ public class ReplicationDB
       db.close();
     } catch (DatabaseException e)
     {
-      int    msgID   = MSGID_EXCEPTION_CLOSING_DATABASE;
-      String message = getMessage(msgID, this.toString())  +
-                                 stackTraceToSingleLineString(e);
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-               ErrorLogSeverity.NOTICE,
-               message, msgID);
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(NOTE_EXCEPTION_CLOSING_DATABASE.get(this.toString()));
+      mb.append(stackTraceToSingleLineString(e));
+      logError(mb.toMessage());
     }
   }
 
@@ -254,11 +247,10 @@ public class ReplicationDB
       {
       }
       /* database is faulty */
-      int    msgID   = MSGID_CHANGELOG_SHUTDOWN_DATABASE_ERROR;
-      String message = getMessage(msgID) + stackTraceToSingleLineString(e);
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-               ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
+      mb.append(stackTraceToSingleLineString(e));
+      logError(mb.toMessage());
       replicationServer.shutdown();
       return null;
     }
@@ -295,11 +287,10 @@ public class ReplicationDB
       return new ChangeNumber(str);
     } catch (DatabaseException e)
     {
-      int    msgID   = MSGID_CHANGELOG_SHUTDOWN_DATABASE_ERROR;
-      String message = getMessage(msgID) + stackTraceToSingleLineString(e);
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-               ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
+      mb.append(stackTraceToSingleLineString(e));
+      logError(mb.toMessage());
       replicationServer.shutdown();
       return null;
     }
@@ -384,11 +375,10 @@ public class ReplicationDB
         cursor = null;
       } catch (DatabaseException e)
       {
-        int    msgID   = MSGID_CHANGELOG_SHUTDOWN_DATABASE_ERROR;
-        String message = getMessage(msgID) + stackTraceToSingleLineString(e);
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-                 ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        MessageBuilder mb = new MessageBuilder();
+        mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
+        mb.append(stackTraceToSingleLineString(e));
+        logError(mb.toMessage());
         replicationServer.shutdown();
       }
       if (txn != null)
@@ -398,11 +388,10 @@ public class ReplicationDB
           txn.commit();
         } catch (DatabaseException e)
         {
-          int    msgID   = MSGID_CHANGELOG_SHUTDOWN_DATABASE_ERROR;
-          String message = getMessage(msgID) + stackTraceToSingleLineString(e);
-          logError(ErrorLogCategory.SYNCHRONIZATION,
-                   ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          MessageBuilder mb = new MessageBuilder();
+          mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
+          mb.append(stackTraceToSingleLineString(e));
+          logError(mb.toMessage());
           replicationServer.shutdown();
         }
       }

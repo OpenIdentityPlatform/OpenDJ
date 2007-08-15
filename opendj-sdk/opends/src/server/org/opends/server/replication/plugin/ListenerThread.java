@@ -25,19 +25,17 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
+import org.opends.messages.Message;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ReplicationMessages.*;
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.protocol.UpdateMessage;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 
 /**
  * Thread that is used to get messages from the Replication servers
@@ -101,10 +99,9 @@ public class ListenerThread extends DirectoryThread
          * listener.replay so that the thread never dies even in case
          * of problems.
          */
-        int msgID = MSGID_EXCEPTION_RECEIVING_REPLICATION_MESSAGE;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-            ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+        Message message = ERR_EXCEPTION_RECEIVING_REPLICATION_MESSAGE.get(
+            stackTraceToSingleLineString(e));
+        logError(message);
       }
     }
     if (debugEnabled())

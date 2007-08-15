@@ -25,11 +25,11 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.asn1;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -162,16 +162,15 @@ public class ASN1Long
   {
     if (value == null)
     {
-      int    msgID   = MSGID_ASN1_INTEGER_SET_VALUE_NULL;
-      String message = getMessage(msgID);
-      throw new ASN1Exception(msgID, message);
+      Message message = ERR_ASN1_INTEGER_SET_VALUE_NULL.get();
+      throw new ASN1Exception(message);
     }
 
     if ((value.length < 1) || (value.length > 8))
     {
-      int    msgID   = MSGID_ASN1_LONG_SET_VALUE_INVALID_LENGTH;
-      String message = getMessage(msgID, value.length);
-      throw new ASN1Exception(msgID, message);
+      Message message =
+          ERR_ASN1_LONG_SET_VALUE_INVALID_LENGTH.get(value.length);
+      throw new ASN1Exception(message);
     }
 
     longValue = 0;
@@ -200,17 +199,16 @@ public class ASN1Long
   {
     if (element == null)
     {
-      int    msgID   = MSGID_ASN1_INTEGER_DECODE_ELEMENT_NULL;
-      String message = getMessage(msgID);
-      throw new ASN1Exception(msgID, message);
+      Message message = ERR_ASN1_INTEGER_DECODE_ELEMENT_NULL.get();
+      throw new ASN1Exception(message);
     }
 
     byte[] value = element.value();
     if ((value.length < 1) || (value.length > 8))
     {
-      int    msgID   = MSGID_ASN1_LONG_DECODE_ELEMENT_INVALID_LENGTH;
-      String message = getMessage(msgID, value.length);
-      throw new ASN1Exception(msgID, message);
+      Message message =
+          ERR_ASN1_LONG_DECODE_ELEMENT_INVALID_LENGTH.get(value.length);
+      throw new ASN1Exception(message);
     }
 
     long longValue = 0;
@@ -241,16 +239,15 @@ public class ASN1Long
     // a valid ASN.1 long element.
     if (encodedElement == null)
     {
-      int    msgID   = MSGID_ASN1_INTEGER_DECODE_ARRAY_NULL;
-      String message = getMessage(msgID);
-      throw new ASN1Exception(msgID, message);
+      Message message = ERR_ASN1_INTEGER_DECODE_ARRAY_NULL.get();
+      throw new ASN1Exception(message);
     }
 
     if (encodedElement.length < 3)
     {
-      int    msgID   = MSGID_ASN1_INTEGER_SHORT_ELEMENT;
-      String message = getMessage(msgID, encodedElement.length);
-      throw new ASN1Exception(msgID, message);
+      Message message =
+          ERR_ASN1_INTEGER_SHORT_ELEMENT.get(encodedElement.length);
+      throw new ASN1Exception(message);
     }
 
 
@@ -264,15 +261,13 @@ public class ASN1Long
       int numLengthBytes = length;
       if (numLengthBytes > 4)
       {
-        int    msgID   = MSGID_ASN1_INVALID_NUM_LENGTH_BYTES;
-        String message = getMessage(msgID, numLengthBytes);
-        throw new ASN1Exception(msgID, message);
+        Message message = ERR_ASN1_INVALID_NUM_LENGTH_BYTES.get(numLengthBytes);
+        throw new ASN1Exception(message);
       }
       else if (encodedElement.length < (2 + numLengthBytes))
       {
-        int    msgID   = MSGID_ASN1_TRUNCATED_LENGTH;
-        String message = getMessage(msgID, numLengthBytes);
-        throw new ASN1Exception(msgID, message);
+        Message message = ERR_ASN1_TRUNCATED_LENGTH.get(numLengthBytes);
+        throw new ASN1Exception(message);
       }
 
       length = 0x00;
@@ -288,19 +283,17 @@ public class ASN1Long
     // in the value.
     if ((encodedElement.length - valueStartPos) != length)
     {
-      int    msgID   = MSGID_ASN1_LENGTH_MISMATCH;
-      String message = getMessage(msgID, length,
-                                  (encodedElement.length - valueStartPos));
-      throw new ASN1Exception(msgID, message);
+      Message message = ERR_ASN1_LENGTH_MISMATCH.get(
+          length, (encodedElement.length - valueStartPos));
+      throw new ASN1Exception(message);
     }
 
 
     // Make sure that the decoded length is between 1 and 8 bytes.
     if ((length < 1) || (length > 8))
     {
-      int    msgID   = MSGID_ASN1_LONG_DECODE_ARRAY_INVALID_LENGTH;
-      String message = getMessage(msgID, length);
-      throw new ASN1Exception(msgID, message);
+      Message message = ERR_ASN1_LONG_DECODE_ARRAY_INVALID_LENGTH.get(length);
+      throw new ASN1Exception(message);
     }
 
 

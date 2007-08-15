@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -60,8 +61,8 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.Privilege;
@@ -72,8 +73,8 @@ import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
+
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -164,9 +165,9 @@ public class DigestMD5SASLMechanismHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_SASLDIGESTMD5_CANNOT_GET_MESSAGE_DIGEST;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_SASLDIGESTMD5_CANNOT_GET_MESSAGE_DIGEST.get(
+          getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
 
 
@@ -175,10 +176,9 @@ public class DigestMD5SASLMechanismHandler
     identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
     if (identityMapper == null)
     {
-      int    msgID   = MSGID_SASLDIGESTMD5_NO_SUCH_IDENTITY_MAPPER;
-      String message = getMessage(msgID, String.valueOf(identityMapperDN),
-                                  String.valueOf(configEntryDN));
-      throw new ConfigException(msgID, message);
+      Message message = ERR_SASLDIGESTMD5_NO_SUCH_IDENTITY_MAPPER.get(
+          String.valueOf(identityMapperDN), String.valueOf(configEntryDN));
+      throw new ConfigException(message);
     }
 
 
@@ -297,12 +297,11 @@ public class DigestMD5SASLMechanismHandler
       {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int    msgID   = MSGID_SASLDIGESTMD5_CHALLENGE_TOO_LONG;
-        String message = getMessage(msgID, challenge.value().length);
-        bindOperation.setAuthFailureReason(msgID, message);
+        Message message = WARN_SASLDIGESTMD5_CHALLENGE_TOO_LONG.get(
+                challenge.value().length);
+        bindOperation.setAuthFailureReason(message);
 
-        logError(ErrorLogCategory.EXTENSIONS, ErrorLogSeverity.SEVERE_WARNING,
-                 message, msgID);
+        logError(message);
         return;
       }
 
@@ -327,9 +326,8 @@ public class DigestMD5SASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLDIGESTMD5_NO_CREDENTIALS;
-      String message = getMessage(msgID);
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLDIGESTMD5_NO_CREDENTIALS.get();
+      bindOperation.setAuthFailureReason(message);
       return;
     }
 
@@ -380,9 +378,8 @@ public class DigestMD5SASLMechanismHandler
 
       // This isn't necessarily fatal because we're going to retry using UTF-8,
       // but we want to log it anyway.
-      logError(ErrorLogCategory.EXTENSIONS, ErrorLogSeverity.SEVERE_WARNING,
-               MSGID_SASLDIGESTMD5_CANNOT_PARSE_ISO_CREDENTIALS,
-               responseCharset, getExceptionMessage(e));
+      logError(WARN_SASLDIGESTMD5_CANNOT_PARSE_ISO_CREDENTIALS.get(
+          responseCharset, getExceptionMessage(e)));
     }
 
     if ((credString == null) ||
@@ -404,9 +401,9 @@ public class DigestMD5SASLMechanismHandler
         // string at all, or we know we need to do so using UTF-8 and can't.
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int    msgID   = MSGID_SASLDIGESTMD5_CANNOT_PARSE_UTF8_CREDENTIALS;
-        String message = getMessage(msgID, getExceptionMessage(e));
-        bindOperation.setAuthFailureReason(msgID, message);
+        Message message = WARN_SASLDIGESTMD5_CANNOT_PARSE_UTF8_CREDENTIALS.get(
+                getExceptionMessage(e));
+        bindOperation.setAuthFailureReason(message);
         return;
       }
     }
@@ -425,9 +422,9 @@ public class DigestMD5SASLMechanismHandler
         // have a name/value delimiter.
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int    msgID   = MSGID_SASLDIGESTMD5_INVALID_TOKEN_IN_CREDENTIALS;
-        String message = getMessage(msgID, pos);
-        bindOperation.setAuthFailureReason(msgID, message);
+        Message message = ERR_SASLDIGESTMD5_INVALID_TOKEN_IN_CREDENTIALS.get(
+                credString, pos);
+        bindOperation.setAuthFailureReason(message);
         return;
       }
 
@@ -445,8 +442,8 @@ public class DigestMD5SASLMechanismHandler
       {
         // We couldn't parse the token value, so it must be malformed.
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-        bindOperation.setAuthFailureReason(de.getMessageID(),
-                                           de.getErrorMessage());
+        bindOperation.setAuthFailureReason(
+                de.getMessageObject());
         return;
       }
 
@@ -457,9 +454,8 @@ public class DigestMD5SASLMechanismHandler
         {
           bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-          int    msgID   = MSGID_SASLDIGESTMD5_INVALID_CHARSET;
-          String message = getMessage(msgID, tokenValue);
-          bindOperation.setAuthFailureReason(msgID, message);
+          Message message = ERR_SASLDIGESTMD5_INVALID_CHARSET.get(tokenValue);
+          bindOperation.setAuthFailureReason(message);
           return;
         }
       }
@@ -476,9 +472,9 @@ public class DigestMD5SASLMechanismHandler
           {
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-            int   msgID   = MSGID_SASLDIGESTMD5_INVALID_REALM;
-            String message = getMessage(msgID, responseRealm);
-            bindOperation.setAuthFailureReason(msgID, message);
+            Message message =
+                    ERR_SASLDIGESTMD5_INVALID_REALM.get(responseRealm);
+            bindOperation.setAuthFailureReason(message);
             return;
           }
         }
@@ -493,10 +489,9 @@ public class DigestMD5SASLMechanismHandler
           // attempt at a replay or chosen plaintext attack, so we'll close the
           // connection.  We will put a message in the log but will not send it
           // to the client.
-          int    msgID   = MSGID_SASLDIGESTMD5_INVALID_NONCE;
-          String message = getMessage(msgID);
+          Message message = ERR_SASLDIGESTMD5_INVALID_NONCE.get();
           clientConnection.disconnect(DisconnectReason.SECURITY_PROBLEM, false,
-                                      msgID, message);
+                  message);
           return;
         }
       }
@@ -520,9 +515,9 @@ public class DigestMD5SASLMechanismHandler
 
           bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-          int    msgID   = MSGID_SASLDIGESTMD5_CANNOT_DECODE_NONCE_COUNT;
-          String message = getMessage(msgID, tokenValue);
-          bindOperation.setAuthFailureReason(msgID, message);
+          Message message = ERR_SASLDIGESTMD5_CANNOT_DECODE_NONCE_COUNT.get(
+                  tokenValue);
+          bindOperation.setAuthFailureReason(message);
           return;
         }
 
@@ -540,9 +535,10 @@ public class DigestMD5SASLMechanismHandler
 
           bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-          int msgID = MSGID_SASLDIGESTMD5_CANNOT_DECODE_STORED_NONCE_COUNT;
-          String message = getMessage(msgID, getExceptionMessage(e));
-          bindOperation.setAuthFailureReason(msgID, message);
+          Message message =
+                  ERR_SASLDIGESTMD5_CANNOT_DECODE_STORED_NONCE_COUNT.get(
+                          getExceptionMessage(e));
+          bindOperation.setAuthFailureReason(message);
           return;
         }
 
@@ -551,10 +547,9 @@ public class DigestMD5SASLMechanismHandler
           // The nonce count provided by the client is incorrect.  This
           // indicates a replay attack, so we'll close the connection.  We will
           // put a message in the log but we will not send it to the client.
-          int    msgID   = MSGID_SASLDIGESTMD5_INVALID_NONCE_COUNT;
-          String message = getMessage(msgID);
+          Message message = ERR_SASLDIGESTMD5_INVALID_NONCE_COUNT.get();
           clientConnection.disconnect(DisconnectReason.SECURITY_PROBLEM, false,
-                                      msgID, message);
+                  message);
           return;
         }
       }
@@ -571,9 +566,8 @@ public class DigestMD5SASLMechanismHandler
           // FIXME -- Add support for integrity protection.
           bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-          int    msgID   = MSGID_SASLDIGESTMD5_INTEGRITY_NOT_SUPPORTED;
-          String message = getMessage(msgID);
-          bindOperation.setAuthFailureReason(msgID, message);
+          Message message = ERR_SASLDIGESTMD5_INTEGRITY_NOT_SUPPORTED.get();
+          bindOperation.setAuthFailureReason(message);
           return;
         }
         else if (responseQoP.equals("auth-conf"))
@@ -581,9 +575,9 @@ public class DigestMD5SASLMechanismHandler
           // FIXME -- Add support for confidentiality protection.
           bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-          int    msgID   = MSGID_SASLDIGESTMD5_CONFIDENTIALITY_NOT_SUPPORTED;
-          String message = getMessage(msgID);
-          bindOperation.setAuthFailureReason(msgID, message);
+          Message message =
+                  ERR_SASLDIGESTMD5_CONFIDENTIALITY_NOT_SUPPORTED.get();
+          bindOperation.setAuthFailureReason(message);
           return;
         }
         else
@@ -591,9 +585,8 @@ public class DigestMD5SASLMechanismHandler
           // This is an invalid QoP value.
           bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-          int    msgID   = MSGID_SASLDIGESTMD5_INVALID_QOP;
-          String message = getMessage(msgID, responseQoP);
-          bindOperation.setAuthFailureReason(msgID, message);
+          Message message = ERR_SASLDIGESTMD5_INVALID_QOP.get(responseQoP);
+          bindOperation.setAuthFailureReason(message);
           return;
         }
       }
@@ -611,10 +604,9 @@ public class DigestMD5SASLMechanismHandler
           {
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-            int    msgID   = MSGID_SASLDIGESTMD5_INVALID_DIGEST_URI;
-            String message = getMessage(msgID, responseDigestURI,
-                                        expectedDigestURI);
-            bindOperation.setAuthFailureReason(msgID, message);
+            Message message = ERR_SASLDIGESTMD5_INVALID_DIGEST_URI.get(
+                    responseDigestURI, expectedDigestURI);
+            bindOperation.setAuthFailureReason(message);
             return;
           }
         }
@@ -632,9 +624,10 @@ public class DigestMD5SASLMechanismHandler
             TRACER.debugCaught(DebugLogLevel.ERROR, pe);
           }
 
-          int    msgID   = MSGID_SASLDIGESTMD5_CANNOT_PARSE_RESPONSE_DIGEST;
-          String message = getMessage(msgID, getExceptionMessage(pe));
-          bindOperation.setAuthFailureReason(msgID, message);
+          Message message =
+                  ERR_SASLDIGESTMD5_CANNOT_PARSE_RESPONSE_DIGEST.get(
+                          getExceptionMessage(pe));
+          bindOperation.setAuthFailureReason(message);
           return;
         }
       }
@@ -653,9 +646,9 @@ public class DigestMD5SASLMechanismHandler
       {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int    msgID   = MSGID_SASLDIGESTMD5_INVALID_RESPONSE_TOKEN;
-        String message = getMessage(msgID, tokenName);
-        bindOperation.setAuthFailureReason(msgID, message);
+        Message message = ERR_SASLDIGESTMD5_INVALID_RESPONSE_TOKEN.get(
+                tokenName);
+        bindOperation.setAuthFailureReason(message);
         return;
       }
     }
@@ -666,54 +659,48 @@ public class DigestMD5SASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLDIGESTMD5_NO_USERNAME_IN_RESPONSE;
-      String message = getMessage(msgID);
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLDIGESTMD5_NO_USERNAME_IN_RESPONSE.get();
+      bindOperation.setAuthFailureReason(message);
       return;
     }
     else if (responseNonce == null)
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLDIGESTMD5_NO_NONCE_IN_RESPONSE;
-      String message = getMessage(msgID);
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLDIGESTMD5_NO_NONCE_IN_RESPONSE.get();
+      bindOperation.setAuthFailureReason(message);
       return;
     }
     else if (responseCNonce == null)
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLDIGESTMD5_NO_CNONCE_IN_RESPONSE;
-      String message = getMessage(msgID);
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLDIGESTMD5_NO_CNONCE_IN_RESPONSE.get();
+      bindOperation.setAuthFailureReason(message);
       return;
     }
     else if (responseNonceCount < 0)
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLDIGESTMD5_NO_NONCE_COUNT_IN_RESPONSE;
-      String message = getMessage(msgID);
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLDIGESTMD5_NO_NONCE_COUNT_IN_RESPONSE.get();
+      bindOperation.setAuthFailureReason(message);
       return;
     }
     else if (responseDigestURI == null)
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLDIGESTMD5_NO_DIGEST_URI_IN_RESPONSE;
-      String message = getMessage(msgID);
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLDIGESTMD5_NO_DIGEST_URI_IN_RESPONSE.get();
+      bindOperation.setAuthFailureReason(message);
       return;
     }
     else if (responseDigest == null)
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLDIGESTMD5_NO_DIGEST_IN_RESPONSE;
-      String message = getMessage(msgID);
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLDIGESTMD5_NO_DIGEST_IN_RESPONSE.get();
+      bindOperation.setAuthFailureReason(message);
       return;
     }
 
@@ -748,10 +735,9 @@ public class DigestMD5SASLMechanismHandler
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int    msgID   = MSGID_SASLDIGESTMD5_CANNOT_DECODE_USERNAME_AS_DN;
-        String message = getMessage(msgID, responseUserName,
-                                    de.getErrorMessage());
-        bindOperation.setAuthFailureReason(msgID, message);
+        Message message = ERR_SASLDIGESTMD5_CANNOT_DECODE_USERNAME_AS_DN.get(
+                responseUserName, de.getMessageObject());
+        bindOperation.setAuthFailureReason(message);
         return;
       }
 
@@ -759,9 +745,8 @@ public class DigestMD5SASLMechanismHandler
       {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int    msgID   = MSGID_SASLDIGESTMD5_USERNAME_IS_NULL_DN;
-        String message = getMessage(msgID);
-        bindOperation.setAuthFailureReason(msgID, message);
+        Message message = ERR_SASLDIGESTMD5_USERNAME_IS_NULL_DN.get();
+        bindOperation.setAuthFailureReason(message);
         return;
       }
 
@@ -787,9 +772,9 @@ public class DigestMD5SASLMechanismHandler
       {
         bindOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
 
-        int    msgID   = MSGID_SASLDIGESTMD5_CANNOT_LOCK_ENTRY;
-        String message = getMessage(msgID, String.valueOf(userDN));
-        bindOperation.setAuthFailureReason(msgID, message);
+        Message message = INFO_SASLDIGESTMD5_CANNOT_LOCK_ENTRY.get(
+                String.valueOf(userDN));
+        bindOperation.setAuthFailureReason(message);
         return;
       }
 
@@ -806,10 +791,9 @@ public class DigestMD5SASLMechanismHandler
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int    msgID   = MSGID_SASLDIGESTMD5_CANNOT_GET_ENTRY_BY_DN;
-        String message = getMessage(msgID, String.valueOf(userDN),
-                                    de.getErrorMessage());
-        bindOperation.setAuthFailureReason(msgID, message);
+        Message message = ERR_SASLDIGESTMD5_CANNOT_GET_ENTRY_BY_DN.get(
+                String.valueOf(userDN), de.getMessageObject());
+        bindOperation.setAuthFailureReason(message);
         return;
       }
       finally
@@ -827,9 +811,8 @@ public class DigestMD5SASLMechanismHandler
         {
           bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-          int    msgID   = MSGID_SASLDIGESTMD5_ZERO_LENGTH_USERNAME;
-          String message = getMessage(msgID);
-          bindOperation.setAuthFailureReason(msgID, message);
+          Message message = ERR_SASLDIGESTMD5_ZERO_LENGTH_USERNAME.get();
+          bindOperation.setAuthFailureReason(message);
           return;
         }
 
@@ -850,10 +833,9 @@ public class DigestMD5SASLMechanismHandler
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int    msgID   = MSGID_SASLDIGESTMD5_CANNOT_MAP_USERNAME;
-        String message = getMessage(msgID, String.valueOf(responseUserName),
-                                    de.getErrorMessage());
-        bindOperation.setAuthFailureReason(msgID, message);
+        Message message = ERR_SASLDIGESTMD5_CANNOT_MAP_USERNAME.get(
+                String.valueOf(responseUserName), de.getMessageObject());
+        bindOperation.setAuthFailureReason(message);
         return;
       }
     }
@@ -864,9 +846,9 @@ public class DigestMD5SASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLDIGESTMD5_NO_MATCHING_ENTRIES;
-      String message = getMessage(msgID, responseUserName);
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message =
+              ERR_SASLDIGESTMD5_NO_MATCHING_ENTRIES.get(responseUserName);
+      bindOperation.setAuthFailureReason(message);
       return;
     }
     else
@@ -883,9 +865,8 @@ public class DigestMD5SASLMechanismHandler
         // The authorization ID must not be an empty string.
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int    msgID   = MSGID_SASLDIGESTMD5_EMPTY_AUTHZID;
-        String message = getMessage(msgID);
-        bindOperation.setAuthFailureReason(msgID, message);
+        Message message = ERR_SASLDIGESTMD5_EMPTY_AUTHZID.get();
+        bindOperation.setAuthFailureReason(message);
         return;
       }
       else if (! responseAuthzID.equals(responseUserName))
@@ -908,10 +889,9 @@ public class DigestMD5SASLMechanismHandler
 
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-            int    msgID   = MSGID_SASLDIGESTMD5_AUTHZID_INVALID_DN;
-            String message = getMessage(msgID, responseAuthzID,
-                                        de.getErrorMessage());
-            bindOperation.setAuthFailureReason(msgID, message);
+            Message message = ERR_SASLDIGESTMD5_AUTHZID_INVALID_DN.get(
+                    responseAuthzID, de.getMessageObject());
+            bindOperation.setAuthFailureReason(message);
             return;
           }
 
@@ -932,10 +912,10 @@ public class DigestMD5SASLMechanismHandler
             {
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              int msgID = MSGID_SASLDIGESTMD5_AUTHZID_INSUFFICIENT_PRIVILEGES;
-              String message = getMessage(msgID,
-                                          String.valueOf(userEntry.getDN()));
-              bindOperation.setAuthFailureReason(msgID, message);
+              Message message =
+                      ERR_SASLDIGESTMD5_AUTHZID_INSUFFICIENT_PRIVILEGES.get(
+                              String.valueOf(userEntry.getDN()));
+              bindOperation.setAuthFailureReason(message);
               return;
             }
 
@@ -952,9 +932,9 @@ public class DigestMD5SASLMechanismHandler
                 {
                   bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-                  int msgID = MSGID_SASLDIGESTMD5_AUTHZID_NO_SUCH_ENTRY;
-                  String message = getMessage(msgID, String.valueOf(authzDN));
-                  bindOperation.setAuthFailureReason(msgID, message);
+                  Message message = ERR_SASLDIGESTMD5_AUTHZID_NO_SUCH_ENTRY.get(
+                          String.valueOf(authzDN));
+                  bindOperation.setAuthFailureReason(message);
                   return;
                 }
               }
@@ -967,10 +947,9 @@ public class DigestMD5SASLMechanismHandler
 
                 bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-                int msgID = MSGID_SASLDIGESTMD5_AUTHZID_CANNOT_GET_ENTRY;
-                String message = getMessage(msgID, String.valueOf(authzDN),
-                                            de.getErrorMessage());
-                bindOperation.setAuthFailureReason(msgID, message);
+                Message message = ERR_SASLDIGESTMD5_AUTHZID_CANNOT_GET_ENTRY
+                        .get(String.valueOf(authzDN), de.getMessageObject());
+                bindOperation.setAuthFailureReason(message);
                 return;
               }
             }
@@ -1001,9 +980,9 @@ public class DigestMD5SASLMechanismHandler
               {
                 bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-                int    msgID   = MSGID_SASLDIGESTMD5_AUTHZID_NO_MAPPED_ENTRY;
-                String message = getMessage(msgID, responseAuthzID);
-                bindOperation.setAuthFailureReason(msgID, message);
+                Message message = ERR_SASLDIGESTMD5_AUTHZID_NO_MAPPED_ENTRY.get(
+                        responseAuthzID);
+                bindOperation.setAuthFailureReason(message);
                 return;
               }
             }
@@ -1016,10 +995,9 @@ public class DigestMD5SASLMechanismHandler
 
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              int    msgID   = MSGID_SASLDIGESTMD5_CANNOT_MAP_AUTHZID;
-              String message = getMessage(msgID, responseAuthzID,
-                                          de.getErrorMessage());
-              bindOperation.setAuthFailureReason(msgID, message);
+              Message message = ERR_SASLDIGESTMD5_CANNOT_MAP_AUTHZID.get(
+                      responseAuthzID, de.getMessageObject());
+              bindOperation.setAuthFailureReason(message);
               return;
             }
           }
@@ -1036,10 +1014,10 @@ public class DigestMD5SASLMechanismHandler
             {
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              int msgID = MSGID_SASLDIGESTMD5_AUTHZID_INSUFFICIENT_PRIVILEGES;
-              String message = getMessage(msgID,
-                                          String.valueOf(userEntry.getDN()));
-              bindOperation.setAuthFailureReason(msgID, message);
+              Message message =
+                      ERR_SASLDIGESTMD5_AUTHZID_INSUFFICIENT_PRIVILEGES.get(
+                              String.valueOf(userEntry.getDN()));
+              bindOperation.setAuthFailureReason(message);
               return;
             }
           }
@@ -1059,9 +1037,9 @@ public class DigestMD5SASLMechanismHandler
       {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int msgID = MSGID_SASLDIGESTMD5_NO_REVERSIBLE_PASSWORDS;
-        String message = getMessage(msgID, String.valueOf(userEntry.getDN()));
-        bindOperation.setAuthFailureReason(msgID, message);
+        Message message = ERR_SASLDIGESTMD5_NO_REVERSIBLE_PASSWORDS.get(
+                String.valueOf(userEntry.getDN()));
+        bindOperation.setAuthFailureReason(message);
         return;
       }
     }
@@ -1069,10 +1047,10 @@ public class DigestMD5SASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLDIGESTMD5_CANNOT_GET_REVERSIBLE_PASSWORDS;
-      String message = getMessage(msgID, String.valueOf(userEntry.getDN()),
-                                  String.valueOf(e));
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLDIGESTMD5_CANNOT_GET_REVERSIBLE_PASSWORDS.get(
+              String.valueOf(userEntry.getDN()),
+              String.valueOf(e));
+      bindOperation.setAuthFailureReason(message);
       return;
     }
 
@@ -1100,10 +1078,8 @@ public class DigestMD5SASLMechanismHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        logError(ErrorLogCategory.EXTENSIONS,
-                 ErrorLogSeverity.SEVERE_WARNING,
-                 MSGID_SASLDIGESTMD5_CANNOT_GENERATE_RESPONSE_DIGEST,
-                 getExceptionMessage(e));
+        logError(WARN_SASLDIGESTMD5_CANNOT_GENERATE_RESPONSE_DIGEST.get(
+            getExceptionMessage(e)));
         continue;
       }
 
@@ -1119,9 +1095,8 @@ public class DigestMD5SASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLDIGESTMD5_INVALID_CREDENTIALS;
-      String message = getMessage(msgID);
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLDIGESTMD5_INVALID_CREDENTIALS.get();
+      bindOperation.setAuthFailureReason(message);
       return;
     }
 
@@ -1147,9 +1122,10 @@ public class DigestMD5SASLMechanismHandler
 
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLDIGESTMD5_CANNOT_GENERATE_RESPONSE_AUTH_DIGEST;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message =
+              ERR_SASLDIGESTMD5_CANNOT_GENERATE_RESPONSE_AUTH_DIGEST.get(
+                      getExceptionMessage(e));
+      bindOperation.setAuthFailureReason(message);
       return;
     }
 
@@ -1318,10 +1294,10 @@ public class DigestMD5SASLMechanismHandler
             {
               // We found the closing quote before the end of the token.  This
               // is not fine.
-              int    msgID   = MSGID_SASLDIGESTMD5_INVALID_CLOSING_QUOTE_POS;
-              String message = getMessage(msgID, (pos-2));
+              Message message =
+                  ERR_SASLDIGESTMD5_INVALID_CLOSING_QUOTE_POS.get((pos-2));
               throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                                           message, msgID);
+                                           message);
             }
           }
         }
@@ -1619,7 +1595,7 @@ public class DigestMD5SASLMechanismHandler
   @Override()
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     DigestMD5SASLMechanismHandlerCfg config =
          (DigestMD5SASLMechanismHandlerCfg) configuration;
@@ -1633,7 +1609,7 @@ public class DigestMD5SASLMechanismHandler
    */
   public boolean isConfigurationChangeAcceptable(
                       DigestMD5SASLMechanismHandlerCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
     DN cfgEntryDN = configuration.dn();
@@ -1644,10 +1620,9 @@ public class DigestMD5SASLMechanismHandler
          DirectoryServer.getIdentityMapper(identityMapperDN);
     if (newIdentityMapper == null)
     {
-      int    msgID   = MSGID_SASLDIGESTMD5_NO_SUCH_IDENTITY_MAPPER;
-      unacceptableReasons.add(getMessage(msgID,
-                                         String.valueOf(identityMapperDN),
-                                         String.valueOf(cfgEntryDN)));
+      unacceptableReasons.add(ERR_SASLDIGESTMD5_NO_SUCH_IDENTITY_MAPPER.get(
+              String.valueOf(identityMapperDN),
+              String.valueOf(cfgEntryDN)));
       configAcceptable = false;
     }
 
@@ -1665,7 +1640,7 @@ public class DigestMD5SASLMechanismHandler
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Get the identity mapper that should be used to find users.
@@ -1679,9 +1654,9 @@ public class DigestMD5SASLMechanismHandler
         resultCode = ResultCode.CONSTRAINT_VIOLATION;
       }
 
-      int    msgID   = MSGID_SASLDIGESTMD5_NO_SUCH_IDENTITY_MAPPER;
-      messages.add(getMessage(msgID, String.valueOf(identityMapperDN),
-                              String.valueOf(configEntryDN)));
+      messages.add(ERR_SASLDIGESTMD5_NO_SUCH_IDENTITY_MAPPER.get(
+              String.valueOf(identityMapperDN),
+              String.valueOf(configEntryDN)));
     }
 
 

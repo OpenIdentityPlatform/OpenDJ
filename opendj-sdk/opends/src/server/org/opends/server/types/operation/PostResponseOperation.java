@@ -25,7 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types.operation;
-
+import org.opends.messages.MessageBuilder;
 
 
 import java.util.List;
@@ -61,7 +61,7 @@ public interface PostResponseOperation
    *
    * @return  The error message for this operation.
    */
-  public StringBuilder getErrorMessage();
+  public MessageBuilder getErrorMessage();
 
 
 
@@ -73,7 +73,7 @@ public interface PostResponseOperation
    *
    * @return  The additional log message for this operation.
    */
-  public StringBuilder getAdditionalLogMessage();
+  public MessageBuilder getAdditionalLogMessage();
 
 
 

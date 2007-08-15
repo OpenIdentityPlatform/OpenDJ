@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util.args;
+import org.opends.messages.Message;
 
 
 
@@ -50,22 +51,16 @@ public class ArgumentException
 
 
 
-  // The message ID for the message associated with this argument exception.
-  private int messageID;
-
 
 
   /**
    * Creates a new argument exception with the provided message.
    *
-   * @param  messageID  The unique identifier for the associated message.
    * @param  message    The message that explains the problem that occurred.
    */
-  public ArgumentException(int messageID, String message)
+  public ArgumentException(Message message)
   {
     super(message);
-
-    this.messageID = messageID;
   }
 
 
@@ -73,27 +68,15 @@ public class ArgumentException
   /**
    * Creates a new argument exception with the provided message and root cause.
    *
-   * @param  messageID  The unique identifier for the associated message.
    * @param  message    The message that explains the problem that occurred.
    * @param  cause      The exception that was caught to trigger this exception.
    */
-  public ArgumentException(int messageID, String message, Throwable cause)
+  public ArgumentException(Message message, Throwable cause)
   {
     super(message, cause);
-
-    this.messageID = messageID;
   }
 
 
 
-  /**
-   * Retrieves the unique identifier for the associated message.
-   *
-   * @return  The unique identifier for the associated message.
-   */
-  public int getMessageID()
-  {
-    return messageID;
-  }
 }
 

@@ -25,10 +25,12 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
+import org.opends.messages.Message;
 
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
+
 
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -188,7 +190,7 @@ public class AsyncronousTextWriter
   /**
    * {@inheritDoc}
    */
-  public void processServerShutdown(String reason)
+  public void processServerShutdown(Message reason)
   {
     // Don't shutdown the wrapped writer on server shutdown as it
     // might get more write requests before the log publishers are

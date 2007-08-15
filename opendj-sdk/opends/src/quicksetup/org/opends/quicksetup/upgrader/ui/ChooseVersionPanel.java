@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup.upgrader.ui;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.event.BrowseActionListener;
 import org.opends.quicksetup.ui.*;
@@ -150,8 +153,8 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
     JPanel p = UIFactory.makeJPanel();
 
     LabelFieldDescriptor currentVersionDescriptor = new LabelFieldDescriptor(
-      getMsg("upgrade-review-panel-old-version-label"),
-      getMsg("upgrade-review-panel-old-version-tooltip"),
+      INFO_UPGRADE_REVIEW_PANEL_OLD_VERSION_LABEL.get(),
+      INFO_UPGRADE_REVIEW_PANEL_OLD_VERSION_TOOLTIP.get(),
       LabelFieldDescriptor.FieldType.READ_ONLY,
       LabelFieldDescriptor.LabelType.PRIMARY,
       0
@@ -159,16 +162,16 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
 
     lblCurrentVersion = UIFactory.makeJLabel(
             UIFactory.IconType.NO_ICON,
-            "", UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+            Message.EMPTY, UIFactory.TextStyle.SECONDARY_FIELD_VALID);
 
     rbRemote = UIFactory.makeJRadioButton(
-            getMsg("upgrade-choose-version-remote-label"),
-            getMsg("upgrade-choose-version-remote-tooltip"),
+            INFO_UPGRADE_CHOOSE_VERSION_REMOTE_LABEL.get(),
+            INFO_UPGRADE_CHOOSE_VERSION_REMOTE_TOOLTIP.get(),
             UIFactory.TextStyle.SECONDARY_FIELD_VALID);
 
     rbLocal = UIFactory.makeJRadioButton(
-            getMsg("upgrade-choose-version-local-label"),
-            getMsg("upgrade-choose-version-local-tooltip"),
+            INFO_UPGRADE_CHOOSE_VERSION_LOCAL_LABEL.get(),
+            INFO_UPGRADE_CHOOSE_VERSION_LOCAL_TOOLTIP.get(),
             UIFactory.TextStyle.SECONDARY_FIELD_VALID);
 
     ButtonGroup grpRemoteLocal = new ButtonGroup();
@@ -184,8 +187,8 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
     tfFile.setColumns(20);
 
     butBrowse =
-            UIFactory.makeJButton(getMsg("browse-button-label"),
-            getMsg("browse-button-tooltip"));
+            UIFactory.makeJButton(INFO_BROWSE_BUTTON_LABEL.get(),
+              INFO_BROWSE_BUTTON_TOOLTIP.get());
 
     BrowseActionListener l =
             new BrowseActionListener(tfFile,
@@ -194,7 +197,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
     butBrowse.addActionListener(l);
 
     lblFile = UIFactory.makeJLabel(null,
-                    getMsg("upgrade-choose-version-local-path"),
+                    INFO_UPGRADE_CHOOSE_VERSION_LOCAL_PATH.get(),
                     UIFactory.TextStyle.SECONDARY_FIELD_VALID);
 
     JPanel pnlBrowse = Utilities.createBrowseButtonPanel(
@@ -295,15 +298,15 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
   /**
    * {@inheritDoc}
    */
-  protected String getTitle() {
-    return getMsg("upgrade-choose-version-panel-title");
+  protected Message getTitle() {
+    return INFO_UPGRADE_CHOOSE_VERSION_PANEL_TITLE.get();
   }
 
   /**
    * {@inheritDoc}
    */
-  protected String getInstructions() {
-    return getMsg("upgrade-choose-version-panel-instructions");
+  protected Message getInstructions() {
+    return INFO_UPGRADE_CHOOSE_VERSION_PANEL_INSTRUCTIONS.get();
   }
 
   private RemoteBuildListComboBoxModelCreator getBuildLoader() {
@@ -343,7 +346,8 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
      * Creates a default instance.
      */
     public BuildListErrorComboBoxRenderer() {
-      super(getMsg("upgrade-choose-version-unable-to-access-build-info"),
+      super(INFO_UPGRADE_CHOOSE_VERSION_UNABLE_TO_ACCESS_BUILD_INFO.get()
+              .toString(),
               UIFactory.getImageIcon(UIFactory.IconType.WARNING),
               SwingConstants.LEFT);
       UIFactory.setTextStyle(this, UIFactory.TextStyle.SECONDARY_STATUS);
@@ -382,7 +386,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
      * Creates a default instance.
      */
     public BuildListLoadingComboBoxRenderer() {
-      super(getMsg("upgrade-choose-version-loading-build-info"),
+      super(INFO_UPGRADE_CHOOSE_VERSION_LOADING_BUILD_INFO.get().toString(),
               UIFactory.getImageIcon(UIFactory.IconType.WAIT_TINY),
               SwingConstants.LEFT);
       UIFactory.setTextStyle(this, UIFactory.TextStyle.SECONDARY_STATUS);
@@ -450,13 +454,13 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
       } else {
         try {
         String[] options = {
-                getMsg("retry-button-label"),
-                getMsg("close-button-label")
+                INFO_RETRY_BUTTON_LABEL.get().toString(),
+                INFO_CLOSE_BUTTON_LABEL.get().toString()
         };
         int i = JOptionPane.showOptionDialog(getMainWindow(),
                 new BuildListDownloadErrorPanel(rbm,
                         throwable),
-                getMsg("network-error-title"),
+                INFO_NETWORK_ERROR_TITLE.get().toString(),
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.ERROR_MESSAGE,
                 null,
@@ -504,7 +508,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
     private InputStream getInputStream() throws IOException {
       if (this.in == null) {
         this.in = rbm.getDailyBuildsInputStream(getMainWindow(),
-                getMsg("upgrade-choose-version-reading-build-info"));
+                INFO_UPGRADE_CHOOSE_VERSION_READING_BUILD_INFO.get());
       }
       return this.in;
     }

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -80,8 +81,7 @@ import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -148,7 +148,8 @@ public class LDAPModify
    * (file or stdin) and execute the given modify request.
    *
    * @param connection     The connection to use for this modify request.
-   * @param is             The input stream to read the change records from.
+   * @param fileNameValue  Name of the file from which to read.  If null,
+   *                       input will be read from <code>System.in</code>.
    * @param modifyOptions  The constraints for the modify request.
    *
    * @throws  IOException  If a problem occurs while attempting to communicate
@@ -156,7 +157,7 @@ public class LDAPModify
    *
    * @throws  LDAPException  If the Directory Server returns an error response.
    */
-  public void readAndExecute(LDAPConnection connection, InputStream is,
+  public void readAndExecute(LDAPConnection connection, String fileNameValue,
                              LDAPModifyOptions modifyOptions)
          throws IOException, LDAPException
   {
@@ -167,6 +168,12 @@ public class LDAPModify
 
     try
     {
+      InputStream is = System.in;
+      if(fileNameValue != null)
+      {
+        is = new FileInputStream(fileNameValue);
+      }
+
       LDIFImportConfig importConfig = new LDIFImportConfig(is);
       reader = new LDIFReader(importConfig);
     } catch (Exception e)
@@ -175,9 +182,10 @@ public class LDAPModify
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      int msgID = MSGID_LDIF_FILE_CANNOT_OPEN_FOR_READ;
-      String message = getMessage(msgID, is, String.valueOf(e));
-      throw new IOException(message);
+      Message message =
+          ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(fileNameValue,
+                  e.getLocalizedMessage());
+      throw new IOException(message.toString());
     }
 
     while (true)
@@ -207,16 +215,14 @@ public class LDAPModify
             }
           }
 
-          int msgID = MSGID_LDIF_FILE_INVALID_LDIF_ENTRY;
-          String message = getMessage(msgID, le.getLineNumber(), fileName,
-                                      String.valueOf(le));
-          throw new IOException(message);
+          Message message = ERR_LDIF_FILE_INVALID_LDIF_ENTRY.get(
+              le.getLineNumber(), fileName, String.valueOf(le));
+          throw new IOException(message.toString());
         }
         else
         {
-          int msgID = MSGID_LDIF_FILE_INVALID_LDIF_ENTRY;
-          String message = getMessage(msgID, le.getLineNumber(), fileName,
-                                      String.valueOf(le));
+          Message message = ERR_LDIF_FILE_INVALID_LDIF_ENTRY.get(
+                  le.getLineNumber(), fileName, String.valueOf(le));
           err.println(wrapText(message, MAX_LINE_WIDTH));
           continue;
         }
@@ -241,14 +247,14 @@ public class LDAPModify
             }
           }
 
-          int msgID = MSGID_LDIF_FILE_READ_ERROR;
-          String message = getMessage(msgID, fileName, String.valueOf(e));
-          throw new IOException(message);
+          Message message =
+              ERR_LDIF_FILE_READ_ERROR.get(fileName, String.valueOf(e));
+          throw new IOException(message.toString());
         }
         else
         {
-          int msgID = MSGID_LDIF_FILE_READ_ERROR;
-          String message = getMessage(msgID, fileName, String.valueOf(e));
+          Message message = ERR_LDIF_FILE_READ_ERROR.get(
+                  fileName, String.valueOf(e));
           err.println(wrapText(message, MAX_LINE_WIDTH));
           continue;
         }
@@ -291,14 +297,14 @@ public class LDAPModify
             attributes.add(new LDAPAttribute(a));
           }
           protocolOp = new AddRequestProtocolOp(asn1OctetStr, attributes);
-          msgID = MSGID_PROCESSING_OPERATION;
-          out.println(getMessage(msgID, operationType, asn1OctetStr));
+          out.println(INFO_PROCESSING_OPERATION.get(
+                  operationType, String.valueOf(asn1OctetStr)));
           break;
         case DELETE:
           operationType = "DELETE";
           protocolOp = new DeleteRequestProtocolOp(asn1OctetStr);
-          msgID = MSGID_PROCESSING_OPERATION;
-          out.println(getMessage(msgID, operationType, asn1OctetStr));
+          out.println(INFO_PROCESSING_OPERATION.get(
+                  operationType, String.valueOf(asn1OctetStr)));
           break;
         case MODIFY:
           operationType = "MODIFY";
@@ -306,8 +312,8 @@ public class LDAPModify
           ArrayList<RawModification> mods =
             new ArrayList<RawModification>(modEntry.getModifications());
           protocolOp = new ModifyRequestProtocolOp(asn1OctetStr, mods);
-          msgID = MSGID_PROCESSING_OPERATION;
-          out.println(getMessage(msgID, operationType, asn1OctetStr));
+          out.println(INFO_PROCESSING_OPERATION.get(
+                  operationType, String.valueOf(asn1OctetStr)));
           break;
         case MODIFY_DN:
           operationType = "MODIFY DN";
@@ -326,8 +332,9 @@ public class LDAPModify
                  new ASN1OctetString(modDNEntry.getNewRDN().toString()),
                  modDNEntry.deleteOldRDN());
           }
-          msgID = MSGID_PROCESSING_OPERATION;
-          out.println(getMessage(msgID, operationType, asn1OctetStr));
+
+          out.println(INFO_PROCESSING_OPERATION.get(
+                  operationType, String.valueOf(asn1OctetStr)));
           break;
         default:
           break;
@@ -349,8 +356,7 @@ public class LDAPModify
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, ae);
           }
-          msgID = MSGID_OPERATION_FAILED;
-          String message = getMessage(msgID, operationType);
+          Message message = INFO_OPERATION_FAILED.get(operationType);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
           if (!modifyOptions.continueOnError())
@@ -361,7 +367,7 @@ public class LDAPModify
         }
 
         int resultCode = 0;
-        String errorMessage = null;
+        Message errorMessage = null;
         DN matchedDN = null;
         List<String> referralURLs = null;
         switch(entry.getChangeOperationType())
@@ -404,12 +410,11 @@ public class LDAPModify
 
         if(resultCode != SUCCESS && resultCode != REFERRAL)
         {
-          msgID = MSGID_OPERATION_FAILED;
-          String msg = getMessage(msgID, operationType);
+          Message msg = INFO_OPERATION_FAILED.get(operationType);
 
           if(!modifyOptions.continueOnError())
           {
-            throw new LDAPException(resultCode, errorMessage, msgID, msg,
+            throw new LDAPException(resultCode, errorMessage, msg,
                                     matchedDN, null);
           } else
           {
@@ -418,8 +423,8 @@ public class LDAPModify
           }
         } else
         {
-          msgID = MSGID_OPERATION_SUCCESSFUL;
-          String msg = getMessage(msgID, operationType, asn1OctetStr);
+          Message msg = INFO_OPERATION_SUCCESSFUL.get(
+                  operationType, String.valueOf(asn1OctetStr));
           out.println(msg);
 
           if (errorMessage != null)
@@ -442,8 +447,10 @@ public class LDAPModify
             ASN1OctetString controlValue = c.getValue();
             if (controlValue == null)
             {
-              msgID = MSGID_LDAPMODIFY_PREREAD_NO_VALUE;
-              err.println(wrapText(getMessage(msgID), MAX_LINE_WIDTH));
+
+              err.println(wrapText(
+                      ERR_LDAPMODIFY_PREREAD_NO_VALUE.get(),
+                      MAX_LINE_WIDTH));
               continue;
             }
 
@@ -457,22 +464,26 @@ public class LDAPModify
             }
             catch (ASN1Exception ae)
             {
-              msgID = MSGID_LDAPMODIFY_PREREAD_CANNOT_DECODE_VALUE;
-              err.println(wrapText(getMessage(msgID, ae.getMessage()),
-                                   MAX_LINE_WIDTH));
+
+              err.println(wrapText(
+                      ERR_LDAPMODIFY_PREREAD_CANNOT_DECODE_VALUE.get(
+                              ae.getMessage()),
+                      MAX_LINE_WIDTH));
               continue;
             }
             catch (LDAPException le)
             {
-              msgID = MSGID_LDAPMODIFY_PREREAD_CANNOT_DECODE_VALUE;
-              err.println(wrapText(getMessage(msgID, le.getMessage()),
-                                   MAX_LINE_WIDTH));
+
+              err.println(wrapText(
+                      ERR_LDAPMODIFY_PREREAD_CANNOT_DECODE_VALUE.get(
+                              le.getMessage()),
+                      MAX_LINE_WIDTH));
               continue;
             }
 
             StringBuilder buffer = new StringBuilder();
             searchEntry.toLDIF(buffer, 78);
-            out.println(getMessage(MSGID_LDAPMODIFY_PREREAD_ENTRY));
+            out.println(INFO_LDAPMODIFY_PREREAD_ENTRY.get());
             out.println(buffer);
           }
           else if (oid.equals(OID_LDAP_READENTRY_POSTREAD))
@@ -480,8 +491,10 @@ public class LDAPModify
             ASN1OctetString controlValue = c.getValue();
             if (controlValue == null)
             {
-              msgID = MSGID_LDAPMODIFY_POSTREAD_NO_VALUE;
-              err.println(wrapText(getMessage(msgID), MAX_LINE_WIDTH));
+
+              err.println(wrapText(
+                      ERR_LDAPMODIFY_POSTREAD_NO_VALUE.get(),
+                      MAX_LINE_WIDTH));
               continue;
             }
 
@@ -495,22 +508,26 @@ public class LDAPModify
             }
             catch (ASN1Exception ae)
             {
-              msgID = MSGID_LDAPMODIFY_POSTREAD_CANNOT_DECODE_VALUE;
-              err.println(wrapText(getMessage(msgID, ae.getMessage()),
-                                   MAX_LINE_WIDTH));
+
+              err.println(wrapText(
+                      ERR_LDAPMODIFY_POSTREAD_CANNOT_DECODE_VALUE.get(
+                              ae.getMessage()),
+                      MAX_LINE_WIDTH));
               continue;
             }
             catch (LDAPException le)
             {
-              msgID = MSGID_LDAPMODIFY_POSTREAD_CANNOT_DECODE_VALUE;
-              err.println(wrapText(getMessage(msgID, le.getMessage()),
-                                   MAX_LINE_WIDTH));
+
+              err.println(wrapText(
+                      ERR_LDAPMODIFY_POSTREAD_CANNOT_DECODE_VALUE.get(
+                              le.getMessage()),
+                      MAX_LINE_WIDTH));
               continue;
             }
 
             StringBuilder buffer = new StringBuilder();
             searchEntry.toLDIF(buffer, 78);
-            out.println(getMessage(MSGID_LDAPMODIFY_POSTREAD_ENTRY));
+            out.println(INFO_LDAPMODIFY_POSTREAD_ENTRY.get());
             out.println(buffer);
           }
         }
@@ -629,7 +646,7 @@ public class LDAPModify
     StringArgument    trustStorePassword     = null;
 
     // Create the command-line argument parser for use with this program.
-    String toolDescription = getMessage(MSGID_LDAPMODIFY_TOOL_DESCRIPTION);
+    Message toolDescription = INFO_LDAPMODIFY_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false);
     try
@@ -637,29 +654,29 @@ public class LDAPModify
       hostName = new StringArgument("host", OPTION_SHORT_HOST,
                                     OPTION_LONG_HOST, false, false, true,
                                     OPTION_VALUE_HOST, "localhost", null,
-                                    MSGID_DESCRIPTION_HOST);
+                                    INFO_DESCRIPTION_HOST.get());
       argParser.addArgument(hostName);
 
       port = new IntegerArgument("port", OPTION_SHORT_PORT,
                                  OPTION_LONG_PORT, false, false, true,
                                  OPTION_VALUE_PORT, 389, null,
-                                 MSGID_DESCRIPTION_PORT);
+                                 INFO_DESCRIPTION_PORT.get());
       argParser.addArgument(port);
 
       useSSL = new BooleanArgument("useSSL", OPTION_SHORT_USE_SSL,
                                    OPTION_LONG_USE_SSL,
-                                   MSGID_DESCRIPTION_USE_SSL);
+                                   INFO_DESCRIPTION_USE_SSL.get());
       argParser.addArgument(useSSL);
 
       startTLS = new BooleanArgument("startTLS", OPTION_SHORT_START_TLS,
                                      OPTION_LONG_START_TLS,
-                                     MSGID_DESCRIPTION_START_TLS);
+                                     INFO_DESCRIPTION_START_TLS.get());
       argParser.addArgument(startTLS);
 
       bindDN = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
                                   OPTION_LONG_BINDDN, false, false, true,
                                   OPTION_VALUE_BINDDN, null, null,
-                                  MSGID_DESCRIPTION_BINDDN);
+                                  INFO_DESCRIPTION_BINDDN.get());
       argParser.addArgument(bindDN);
 
       bindPassword = new StringArgument("bindPassword", OPTION_SHORT_BINDPWD,
@@ -667,7 +684,7 @@ public class LDAPModify
                                         false, false, true,
                                         OPTION_VALUE_BINDPWD,
                                         null, null,
-                                        MSGID_DESCRIPTION_BINDPASSWORD);
+                                        INFO_DESCRIPTION_BINDPASSWORD.get());
       argParser.addArgument(bindPassword);
 
       bindPasswordFile =
@@ -676,33 +693,35 @@ public class LDAPModify
                                  OPTION_LONG_BINDPWD_FILE,
                                  false, false,
                                  OPTION_VALUE_BINDPWD_FILE, null,
-                                 null, MSGID_DESCRIPTION_BINDPASSWORDFILE);
+                                 null, INFO_DESCRIPTION_BINDPASSWORDFILE.get());
       argParser.addArgument(bindPasswordFile);
 
-      defaultAdd = new BooleanArgument("defaultAdd", 'a', "defaultAdd",
-                                       MSGID_MODIFY_DESCRIPTION_DEFAULT_ADD);
+      defaultAdd = new BooleanArgument(
+              "defaultAdd", 'a', "defaultAdd",
+              INFO_MODIFY_DESCRIPTION_DEFAULT_ADD.get());
       argParser.addArgument(defaultAdd);
 
       filename = new StringArgument("filename", OPTION_SHORT_FILENAME,
                                     OPTION_LONG_FILENAME, false, false,
                                     true, OPTION_VALUE_FILENAME, null, null,
-                                    MSGID_LDAPMODIFY_DESCRIPTION_FILENAME);
+                                    INFO_LDAPMODIFY_DESCRIPTION_FILENAME.get());
       argParser.addArgument(filename);
 
-      saslExternal = new BooleanArgument("useSASLExternal", 'r',
-                                         "useSASLExternal",
-                                         MSGID_DESCRIPTION_USE_SASL_EXTERNAL);
+      saslExternal = new BooleanArgument(
+              "useSASLExternal", 'r',
+              "useSASLExternal",
+              INFO_DESCRIPTION_USE_SASL_EXTERNAL.get());
       argParser.addArgument(saslExternal);
 
       saslOptions = new StringArgument("saslOption", OPTION_SHORT_SASLOPTION,
                                        OPTION_LONG_SASLOPTION, false,
                                        true, true,
                                        OPTION_VALUE_SASLOPTION, null, null,
-                                       MSGID_DESCRIPTION_SASL_PROPERTIES);
+                                       INFO_DESCRIPTION_SASL_PROPERTIES.get());
       argParser.addArgument(saslOptions);
 
       trustAll = new BooleanArgument("trustAll", 'X', "trustAll",
-                                    MSGID_DESCRIPTION_TRUSTALL);
+                                    INFO_DESCRIPTION_TRUSTALL.get());
       argParser.addArgument(trustAll);
 
       keyStorePath = new StringArgument("keyStorePath",
@@ -711,17 +730,18 @@ public class LDAPModify
                                         false, false, true,
                                         OPTION_VALUE_KEYSTOREPATH,
                                         null, null,
-                                        MSGID_DESCRIPTION_KEYSTOREPATH);
+                                        INFO_DESCRIPTION_KEYSTOREPATH.get());
       argParser.addArgument(keyStorePath);
 
-      keyStorePassword = new StringArgument("keyStorePassword",
-                                            OPTION_SHORT_KEYSTORE_PWD,
-                                            OPTION_LONG_KEYSTORE_PWD,
-                                            false, false,
-                                            true,
-                                            OPTION_VALUE_KEYSTORE_PWD,
-                                            null, null,
-                                            MSGID_DESCRIPTION_KEYSTOREPASSWORD);
+      keyStorePassword =
+              new StringArgument("keyStorePassword",
+                                 OPTION_SHORT_KEYSTORE_PWD,
+                                 OPTION_LONG_KEYSTORE_PWD,
+                                 false, false,
+                                 true,
+                                 OPTION_VALUE_KEYSTORE_PWD,
+                                 null, null,
+                                 INFO_DESCRIPTION_KEYSTOREPASSWORD.get());
       argParser.addArgument(keyStorePassword);
 
       keyStorePasswordFile =
@@ -730,21 +750,23 @@ public class LDAPModify
                                  OPTION_LONG_KEYSTORE_PWD_FILE,
                                  false, false, OPTION_VALUE_KEYSTORE_PWD_FILE,
                                  null, null,
-                                 MSGID_DESCRIPTION_KEYSTOREPASSWORD_FILE);
+                                 INFO_DESCRIPTION_KEYSTOREPASSWORD_FILE.get());
       argParser.addArgument(keyStorePasswordFile);
 
-      certNickname = new StringArgument("certnickname", 'N', "certNickname",
-                                        false, false, true, "{nickname}", null,
-                                        null, MSGID_DESCRIPTION_CERT_NICKNAME);
+      certNickname = new StringArgument(
+              "certnickname", 'N', "certNickname",
+              false, false, true, "{nickname}", null,
+              null, INFO_DESCRIPTION_CERT_NICKNAME.get());
       argParser.addArgument(certNickname);
 
-      trustStorePath = new StringArgument("trustStorePath",
-                                          OPTION_SHORT_TRUSTSTOREPATH,
-                                          OPTION_LONG_TRUSTSTOREPATH,
-                                          false, false, true,
-                                          OPTION_VALUE_TRUSTSTOREPATH,
-                                          null, null,
-                                          MSGID_DESCRIPTION_TRUSTSTOREPATH);
+      trustStorePath = new StringArgument(
+              "trustStorePath",
+              OPTION_SHORT_TRUSTSTOREPATH,
+              OPTION_LONG_TRUSTSTOREPATH,
+              false, false, true,
+              OPTION_VALUE_TRUSTSTOREPATH,
+              null, null,
+              INFO_DESCRIPTION_TRUSTSTOREPATH.get());
       argParser.addArgument(trustStorePath);
 
       trustStorePassword =
@@ -752,15 +774,16 @@ public class LDAPModify
                               OPTION_LONG_TRUSTSTORE_PWD ,
                               false, false, true,
                               OPTION_VALUE_TRUSTSTORE_PWD, null,
-                              null, MSGID_DESCRIPTION_TRUSTSTOREPASSWORD);
+                              null, INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get());
       argParser.addArgument(trustStorePassword);
 
       trustStorePasswordFile =
-           new FileBasedArgument("truststorepasswordfile",
-                                 OPTION_SHORT_TRUSTSTORE_PWD_FILE,
-                                 OPTION_LONG_TRUSTSTORE_PWD_FILE, false, false,
-                                 OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
-                                 MSGID_DESCRIPTION_TRUSTSTOREPASSWORD_FILE);
+           new FileBasedArgument(
+                   "truststorepasswordfile",
+                   OPTION_SHORT_TRUSTSTORE_PWD_FILE,
+                   OPTION_LONG_TRUSTSTORE_PWD_FILE, false, false,
+                   OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
+                   INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get());
       argParser.addArgument(trustStorePasswordFile);
 
       proxyAuthzID = new StringArgument("proxy_authzid",
@@ -768,78 +791,81 @@ public class LDAPModify
                                         OPTION_LONG_PROXYAUTHID, false,
                                         false, true,
                                         OPTION_VALUE_PROXYAUTHID, null, null,
-                                        MSGID_DESCRIPTION_PROXY_AUTHZID);
+                                        INFO_DESCRIPTION_PROXY_AUTHZID.get());
       argParser.addArgument(proxyAuthzID);
 
-      reportAuthzID = new BooleanArgument("reportauthzid", 'E',
-                                          "reportAuthzID",
-                                          MSGID_DESCRIPTION_REPORT_AUTHZID);
+      reportAuthzID = new BooleanArgument(
+              "reportauthzid", 'E',
+              "reportAuthzID",
+              INFO_DESCRIPTION_REPORT_AUTHZID.get());
       argParser.addArgument(reportAuthzID);
 
-      assertionFilter = new StringArgument("assertionfilter", null,
-                                           OPTION_LONG_ASSERTION_FILE,
-                                           false, false,
-                                           true,
-                                           OPTION_VALUE_ASSERTION_FILE,
-                                           null, null,
-                                           MSGID_DESCRIPTION_ASSERTION_FILTER);
+      assertionFilter = new StringArgument(
+              "assertionfilter", null,
+              OPTION_LONG_ASSERTION_FILE,
+              false, false,
+              true,
+              OPTION_VALUE_ASSERTION_FILE,
+              null, null,
+              INFO_DESCRIPTION_ASSERTION_FILTER.get());
       argParser.addArgument(assertionFilter);
 
-      preReadAttributes = new StringArgument("prereadattrs", null,
-                                             "preReadAttributes", false, false,
-                                             true, "{attrList}", null, null,
-                                             MSGID_DESCRIPTION_PREREAD_ATTRS);
+      preReadAttributes = new StringArgument(
+              "prereadattrs", null,
+              "preReadAttributes", false, false,
+              true, "{attrList}", null, null,
+              INFO_DESCRIPTION_PREREAD_ATTRS.get());
       argParser.addArgument(preReadAttributes);
 
-      postReadAttributes = new StringArgument("postreadattrs", null,
-                                              "postReadAttributes", false,
-                                              false, true, "{attrList}", null,
-                                              null,
-                                              MSGID_DESCRIPTION_POSTREAD_ATTRS);
+      postReadAttributes = new StringArgument(
+              "postreadattrs", null,
+              "postReadAttributes", false,
+              false, true, "{attrList}", null,
+              null,
+              INFO_DESCRIPTION_POSTREAD_ATTRS.get());
       argParser.addArgument(postReadAttributes);
 
       controlStr =
            new StringArgument("control", 'J', "control", false, true, true,
                     "{controloid[:criticality[:value|::b64value|:<fileurl]]}",
-                    null, null, MSGID_DESCRIPTION_CONTROLS);
+                    null, null, INFO_DESCRIPTION_CONTROLS.get());
       argParser.addArgument(controlStr);
 
       version = new IntegerArgument("version", OPTION_SHORT_PROTOCOL_VERSION,
                               OPTION_LONG_PROTOCOL_VERSION,
                               false, false, true,
                               OPTION_VALUE_PROTOCOL_VERSION, 3, null,
-                              MSGID_DESCRIPTION_VERSION);
+                              INFO_DESCRIPTION_VERSION.get());
       argParser.addArgument(version);
 
       encodingStr = new StringArgument("encoding", 'i', "encoding",
                                       false, false,
                                       true, "{encoding}", null, null,
-                                      MSGID_DESCRIPTION_ENCODING);
+                                      INFO_DESCRIPTION_ENCODING.get());
       argParser.addArgument(encodingStr);
 
       continueOnError = new BooleanArgument("continueOnError", 'c',
                                     "continueOnError",
-                                    MSGID_DESCRIPTION_CONTINUE_ON_ERROR);
+                                    INFO_DESCRIPTION_CONTINUE_ON_ERROR.get());
       argParser.addArgument(continueOnError);
 
       noop = new BooleanArgument("no-op", OPTION_SHORT_DRYRUN,
                                     OPTION_LONG_DRYRUN,
-                                    MSGID_DESCRIPTION_NOOP);
+                                    INFO_DESCRIPTION_NOOP.get());
       argParser.addArgument(noop);
 
       verbose = new BooleanArgument("verbose", 'v', "verbose",
-                                    MSGID_DESCRIPTION_VERBOSE);
+                                    INFO_DESCRIPTION_VERBOSE.get());
       argParser.addArgument(verbose);
 
       showUsage = new BooleanArgument("showUsage", OPTION_SHORT_HELP,
                                       OPTION_LONG_HELP,
-                                      MSGID_DESCRIPTION_SHOWUSAGE);
+                                      INFO_DESCRIPTION_SHOWUSAGE.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);
     } catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
@@ -852,8 +878,7 @@ public class LDAPModify
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -869,9 +894,9 @@ public class LDAPModify
 
     if(bindPassword.isPresent() && bindPasswordFile.isPresent())
     {
-      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, bindPassword.getLongIdentifier(),
-                                  bindPasswordFile.getLongIdentifier());
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+              bindPassword.getLongIdentifier(),
+              bindPasswordFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -896,8 +921,9 @@ public class LDAPModify
       int versionNumber = version.getIntValue();
       if(versionNumber != 2 && versionNumber != 3)
       {
-        int msgID = MSGID_DESCRIPTION_INVALID_VERSION;
-        err.println(wrapText(getMessage(msgID, versionNumber), MAX_LINE_WIDTH));
+
+        err.println(wrapText(ERR_DESCRIPTION_INVALID_VERSION.get(
+                String.valueOf(versionNumber)), MAX_LINE_WIDTH));
         return 1;
       }
       connectionOptions.setVersionNumber(versionNumber);
@@ -919,7 +945,7 @@ public class LDAPModify
       // read the password from the stdin.
       try
       {
-        out.print(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT, bindDNValue));
+        out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDNValue));
         char[] pwChars = PasswordReader.readPassword();
         bindPasswordValue = new String(pwChars);
       } catch(Exception ex)
@@ -973,8 +999,7 @@ public class LDAPModify
         LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
         if(ctrl == null)
         {
-          int    msgID   = MSGID_TOOL_INVALID_CONTROL_STRING;
-          String message = getMessage(msgID, ctrlString);
+          Message message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           err.println(argParser.getUsage());
           return 1;
@@ -1007,8 +1032,8 @@ public class LDAPModify
       }
       catch (LDAPException le)
       {
-        int    msgID   = MSGID_LDAP_ASSERTION_INVALID_FILTER;
-        String message = getMessage(msgID, le.getMessage());
+        Message message = ERR_LDAP_ASSERTION_INVALID_FILTER.get(
+                le.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -1083,15 +1108,13 @@ public class LDAPModify
     {
       if(!connectionOptions.useSSL() && !connectionOptions.useStartTLS())
       {
-        int    msgID   = MSGID_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS;
-        String message = getMessage(msgID);
+        Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       if(keyStorePathValue == null)
       {
-        int    msgID   = MSGID_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE;
-        String message = getMessage(msgID);
+        Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -1135,19 +1158,15 @@ public class LDAPModify
       connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID);
 
       ldapModify = new LDAPModify(fileNameValue, nextMessageID, out, err);
-      InputStream is = System.in;
-      if(fileNameValue != null)
-      {
-        is = new FileInputStream(fileNameValue);
-      }
-      ldapModify.readAndExecute(connection, is, modifyOptions);
+      ldapModify.readAndExecute(connection, fileNameValue, modifyOptions);
     } catch(LDAPException le)
     {
       if (debugEnabled())
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, le);
       }
-      LDAPToolUtils.printErrorMessage(err, le.getMessage(), le.getResultCode(),
+      LDAPToolUtils.printErrorMessage(err, le.getMessageObject(),
+                                      le.getResultCode(),
                                       le.getErrorMessage(), le.getMatchedDN());
       int code = le.getResultCode();
       return code;
@@ -1157,7 +1176,7 @@ public class LDAPModify
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, lce);
       }
-      LDAPToolUtils.printErrorMessage(err, lce.getMessage(),
+      LDAPToolUtils.printErrorMessage(err, lce.getMessageObject(),
                                       lce.getResultCode(),
                                       lce.getErrorMessage(),
                                       lce.getMatchedDN());

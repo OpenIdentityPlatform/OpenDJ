@@ -37,6 +37,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
+import org.opends.messages.Category;
+import org.opends.messages.Severity;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
@@ -51,8 +54,6 @@ import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
@@ -92,9 +93,9 @@ public class ProtocolWindowTest extends ReplicationTestCase
   @Test(enabled=true, groups="slow")
   public void saturateQueueAndRestart() throws Exception
   {
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.NOTICE,
-        "Starting Replication ProtocolWindowTest : saturateAndRestart" , 1);
+    logError(Message.raw(
+        "Starting Replication ProtocolWindowTest : saturateAndRestart",
+            Category.SYNC, Severity.INFORMATION));
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
@@ -337,9 +338,9 @@ public class ProtocolWindowTest extends ReplicationTestCase
   @Test(enabled=true)
   public void protocolVersion() throws Exception
   {
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.NOTICE,
-        "Starting Replication ProtocolWindowTest : protocolVersion" , 1);
+    logError(Message.raw(
+            "Starting Replication ProtocolWindowTest : protocolVersion",
+            Category.SYNC, Severity.INFORMATION));
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 

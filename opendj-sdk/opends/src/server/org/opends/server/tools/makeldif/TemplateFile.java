@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
+import org.opends.messages.Message;
 
 
 
@@ -47,8 +48,8 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
+
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -236,9 +237,8 @@ public class TemplateFile
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_MAKELDIF_CANNOT_LOAD_TAG_CLASS;
-      String message = getMessage(msgID, tagClass);
-      throw new MakeLDIFException(msgID, message, e);
+      Message message = ERR_MAKELDIF_CANNOT_LOAD_TAG_CLASS.get(tagClass);
+      throw new MakeLDIFException(message, e);
     }
 
     Tag t;
@@ -248,17 +248,16 @@ public class TemplateFile
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_MAKELDIF_CANNOT_INSTANTIATE_TAG;
-      String message = getMessage(msgID, tagClass);
-      throw new MakeLDIFException(msgID, message, e);
+      Message message = ERR_MAKELDIF_CANNOT_INSTANTIATE_TAG.get(tagClass);
+      throw new MakeLDIFException(message, e);
     }
 
     String lowerName = toLowerCase(t.getName());
     if (registeredTags.containsKey(lowerName))
     {
-      int    msgID   = MSGID_MAKELDIF_CONFLICTING_TAG_NAME;
-      String message = getMessage(msgID, tagClass, t.getName());
-      throw new MakeLDIFException(msgID, message);
+      Message message =
+          ERR_MAKELDIF_CONFLICTING_TAG_NAME.get(tagClass, t.getName());
+      throw new MakeLDIFException(message);
     }
     else
     {
@@ -592,7 +591,7 @@ public class TemplateFile
    * @throws  MakeLDIFException  If any other problem occurs while parsing the
    *                             template file.
    */
-  public void parse(String filename, List<String> warnings)
+  public void parse(String filename, List<Message> warnings)
          throws IOException, InitializationException, MakeLDIFException
   {
     ArrayList<String> fileLines = new ArrayList<String>();
@@ -601,9 +600,8 @@ public class TemplateFile
     File f = getFile(filename);
     if ((f == null) || (! f.exists()))
     {
-      int    msgID   = MSGID_MAKELDIF_COULD_NOT_FIND_TEMPLATE_FILE;
-      String message = getMessage(msgID, filename);
-      throw new IOException(message);
+      Message message = ERR_MAKELDIF_COULD_NOT_FIND_TEMPLATE_FILE.get(filename);
+      throw new IOException(message.toString());
     }
     else
     {
@@ -651,7 +649,7 @@ public class TemplateFile
    * @throws  MakeLDIFException  If any other problem occurs while parsing the
    *                             template file.
    */
-  public void parse(InputStream inputStream, List<String> warnings)
+  public void parse(InputStream inputStream, List<Message> warnings)
          throws IOException, InitializationException, MakeLDIFException
   {
     ArrayList<String> fileLines = new ArrayList<String>();
@@ -692,7 +690,7 @@ public class TemplateFile
    * @throws  MakeLDIFException  If any other problem occurs while parsing the
    *                             template file.
    */
-  public void parse(String[] lines, List<String> warnings)
+  public void parse(String[] lines, List<Message> warnings)
          throws InitializationException, MakeLDIFException
   {
     // Create temporary variables that will be used to hold the data read.
@@ -723,8 +721,8 @@ public class TemplateFile
           String constantValue = templateFileConstants.get(constantName);
           if (constantValue == null)
           {
-            int    msgID   = MSGID_MAKELDIF_WARNING_UNDEFINED_CONSTANT;
-            String message = getMessage(msgID, constantName, lineNumber);
+            Message message = WARN_MAKELDIF_WARNING_UNDEFINED_CONSTANT.get(
+                    constantName, lineNumber);
             warnings.add(message);
           }
           else
@@ -757,9 +755,8 @@ public class TemplateFile
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_MAKELDIF_CANNOT_LOAD_TAG_CLASS;
-          String message = getMessage(msgID, className);
-          throw new MakeLDIFException(msgID, message, e);
+          Message message = ERR_MAKELDIF_CANNOT_LOAD_TAG_CLASS.get(className);
+          throw new MakeLDIFException(message, e);
         }
 
         Tag tag;
@@ -769,18 +766,17 @@ public class TemplateFile
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_MAKELDIF_CANNOT_INSTANTIATE_TAG;
-          String message = getMessage(msgID, className);
-          throw new MakeLDIFException(msgID, message, e);
+          Message message = ERR_MAKELDIF_CANNOT_INSTANTIATE_TAG.get(className);
+          throw new MakeLDIFException(message, e);
         }
 
         String lowerName = toLowerCase(tag.getName());
         if (registeredTags.containsKey(lowerName) ||
             templateFileIncludeTags.containsKey(lowerName))
         {
-          int    msgID   = MSGID_MAKELDIF_CONFLICTING_TAG_NAME;
-          String message = getMessage(msgID, className, tag.getName());
-          throw new MakeLDIFException(msgID, message);
+          Message message =
+              ERR_MAKELDIF_CONFLICTING_TAG_NAME.get(className, tag.getName());
+          throw new MakeLDIFException(message);
         }
 
         templateFileIncludeTags.put(lowerName, tag);
@@ -792,32 +788,30 @@ public class TemplateFile
         int equalPos = line.indexOf('=', 7);
         if (equalPos < 0)
         {
-          int    msgID   = MSGID_MAKELDIF_DEFINE_MISSING_EQUALS;
-          String message = getMessage(msgID, lineNumber);
-          throw new MakeLDIFException(msgID, message);
+          Message message = ERR_MAKELDIF_DEFINE_MISSING_EQUALS.get(lineNumber);
+          throw new MakeLDIFException(message);
         }
 
         String name  = line.substring(7, equalPos).trim();
         if (name.length() == 0)
         {
-          int    msgID   = MSGID_MAKELDIF_DEFINE_NAME_EMPTY;
-          String message = getMessage(msgID, lineNumber);
-          throw new MakeLDIFException(msgID, message);
+          Message message = ERR_MAKELDIF_DEFINE_NAME_EMPTY.get(lineNumber);
+          throw new MakeLDIFException(message);
         }
 
         String lowerName = toLowerCase(name);
         if (templateFileConstants.containsKey(lowerName))
         {
-          int    msgID   = MSGID_MAKELDIF_CONFLICTING_CONSTANT_NAME;
-          String message = getMessage(msgID, name, lineNumber);
-          throw new MakeLDIFException(msgID, message);
+          Message message =
+              ERR_MAKELDIF_CONFLICTING_CONSTANT_NAME.get(name, lineNumber);
+          throw new MakeLDIFException(message);
         }
 
         String value = line.substring(equalPos+1);
         if (value.length() == 0)
         {
-          int    msgID   = MSGID_MAKELDIF_WARNING_DEFINE_VALUE_EMPTY;
-          String message = getMessage(msgID, name, lineNumber);
+          Message message = ERR_MAKELDIF_WARNING_DEFINE_VALUE_EMPTY.get(
+                  name, lineNumber);
           warnings.add(message);
         }
 
@@ -858,8 +852,9 @@ public class TemplateFile
                 String constantValue = templateFileConstants.get(constantName);
                 if (constantValue == null)
                 {
-                  int    msgID   = MSGID_MAKELDIF_WARNING_UNDEFINED_CONSTANT;
-                  String message = getMessage(msgID, constantName, lineNumber);
+                  Message message =
+                          WARN_MAKELDIF_WARNING_UNDEFINED_CONSTANT.get(
+                                  constantName, lineNumber);
                   warnings.add(message);
                 }
                 else
@@ -884,10 +879,9 @@ public class TemplateFile
         DN branchDN = b.getBranchDN();
         if (templateFileBranches.containsKey(branchDN))
         {
-          int    msgID   = MSGID_MAKELDIF_CONFLICTING_BRANCH_DN;
-          String message = getMessage(msgID, String.valueOf(branchDN),
-                                      startLineNumber);
-          throw new MakeLDIFException(msgID, message);
+          Message message = ERR_MAKELDIF_CONFLICTING_BRANCH_DN.get(
+              String.valueOf(branchDN), startLineNumber);
+          throw new MakeLDIFException(message);
         }
         else
         {
@@ -929,8 +923,9 @@ public class TemplateFile
                 String constantValue = templateFileConstants.get(constantName);
                 if (constantValue == null)
                 {
-                  int    msgID   = MSGID_MAKELDIF_WARNING_UNDEFINED_CONSTANT;
-                  String message = getMessage(msgID, constantName, lineNumber);
+                  Message message =
+                          WARN_MAKELDIF_WARNING_UNDEFINED_CONSTANT.get(
+                                  constantName, lineNumber);
                   warnings.add(message);
                 }
                 else
@@ -956,10 +951,9 @@ public class TemplateFile
         String lowerName = toLowerCase(t.getName());
         if (templateFileTemplates.containsKey(lowerName))
         {
-          int    msgID   = MSGID_MAKELDIF_CONFLICTING_TEMPLATE_NAME;
-          String message = getMessage(msgID, String.valueOf(t.getName()),
-                                      startLineNumber);
-          throw new MakeLDIFException(msgID, message);
+          Message message = ERR_MAKELDIF_CONFLICTING_TEMPLATE_NAME.get(
+              String.valueOf(t.getName()), startLineNumber);
+          throw new MakeLDIFException(message);
         }
         else
         {
@@ -968,9 +962,9 @@ public class TemplateFile
       }
       else
       {
-        int    msgID   = MSGID_MAKELDIF_UNEXPECTED_TEMPLATE_FILE_LINE;
-        String message = getMessage(msgID, line, lineNumber);
-        throw new MakeLDIFException(msgID, message);
+        Message message =
+            ERR_MAKELDIF_UNEXPECTED_TEMPLATE_FILE_LINE.get(line, lineNumber);
+        throw new MakeLDIFException(message);
       }
     }
 
@@ -1021,7 +1015,7 @@ public class TemplateFile
                                        int startLineNumber,
                                        LinkedHashMap<String,Tag> tags,
                                        LinkedHashMap<String,String> constants,
-                                       List<String> warnings)
+                                       List<Message> warnings)
           throws InitializationException, MakeLDIFException
   {
     // The first line must be "branch: " followed by the branch DN.
@@ -1033,9 +1027,9 @@ public class TemplateFile
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_MAKELDIF_CANNOT_DECODE_BRANCH_DN;
-      String message = getMessage(msgID, dnString, startLineNumber);
-      throw new MakeLDIFException(msgID, message);
+      Message message =
+          ERR_MAKELDIF_CANNOT_DECODE_BRANCH_DN.get(dnString, startLineNumber);
+      throw new MakeLDIFException(message);
     }
 
 
@@ -1060,9 +1054,9 @@ public class TemplateFile
         int colonPos = line.indexOf(':', 21);
         if (colonPos <= 21)
         {
-          int    msgID   = MSGID_MAKELDIF_BRANCH_SUBORDINATE_TEMPLATE_NO_COLON;
-          String message = getMessage(msgID, lineNumber, dnString);
-          throw new MakeLDIFException(msgID, message);
+          Message message = ERR_MAKELDIF_BRANCH_SUBORDINATE_TEMPLATE_NO_COLON.
+              get(lineNumber, dnString);
+          throw new MakeLDIFException(message);
         }
 
         String templateName = line.substring(21, colonPos).trim();
@@ -1073,15 +1067,15 @@ public class TemplateFile
           numEntries = Integer.parseInt(line.substring(colonPos+1).trim());
           if (numEntries < 0)
           {
-            int msgID = MSGID_MAKELDIF_BRANCH_SUBORDINATE_INVALID_NUM_ENTRIES;
-            String message = getMessage(msgID, lineNumber, dnString, numEntries,
-                                        templateName);
-            throw new MakeLDIFException(msgID, message);
+            Message message =
+              ERR_MAKELDIF_BRANCH_SUBORDINATE_INVALID_NUM_ENTRIES.
+                  get(lineNumber, dnString, numEntries, templateName);
+            throw new MakeLDIFException(message);
           }
           else if (numEntries == 0)
           {
-            int    msgID   = MSGID_MAKELDIF_BRANCH_SUBORDINATE_ZERO_ENTRIES;
-            String message = getMessage(msgID, lineNumber, dnString,
+            Message message = WARN_MAKELDIF_BRANCH_SUBORDINATE_ZERO_ENTRIES.get(
+                    lineNumber, dnString,
                                         templateName);
             warnings.add(message);
           }
@@ -1090,10 +1084,10 @@ public class TemplateFile
         }
         catch (NumberFormatException nfe)
         {
-          int msgID = MSGID_MAKELDIF_BRANCH_SUBORDINATE_CANT_PARSE_NUMENTRIES;
-          String message = getMessage(msgID, templateName, lineNumber,
-                                      dnString);
-          throw new MakeLDIFException(msgID, message);
+          Message message =
+            ERR_MAKELDIF_BRANCH_SUBORDINATE_CANT_PARSE_NUMENTRIES.
+                get(templateName, lineNumber, dnString);
+          throw new MakeLDIFException(message);
         }
       }
       else
@@ -1142,7 +1136,7 @@ public class TemplateFile
                                                 constants,
                                            LinkedHashMap<String,Template>
                                                 definedTemplates,
-                                           List<String> warnings)
+                                           List<Message> warnings)
           throws InitializationException, MakeLDIFException
   {
     // The first line must be "template: " followed by the template name.
@@ -1174,10 +1168,9 @@ public class TemplateFile
         parentTemplate = definedTemplates.get(parentTemplateName.toLowerCase());
         if (parentTemplate == null)
         {
-          int msgID = MSGID_MAKELDIF_TEMPLATE_INVALID_PARENT_TEMPLATE;
-          String message = getMessage(msgID, parentTemplateName, lineNumber,
-                                      templateName);
-          throw new MakeLDIFException(msgID, message);
+          Message message = ERR_MAKELDIF_TEMPLATE_INVALID_PARENT_TEMPLATE.get(
+              parentTemplateName, lineNumber, templateName);
+          throw new MakeLDIFException(message);
         }
       }
       else if (lowerLine.startsWith("rdnattr: "))
@@ -1203,9 +1196,9 @@ public class TemplateFile
         int colonPos = line.indexOf(':', 21);
         if (colonPos <= 21)
         {
-          int msgID = MSGID_MAKELDIF_TEMPLATE_SUBORDINATE_TEMPLATE_NO_COLON;
-          String message = getMessage(msgID, lineNumber, templateName);
-          throw new MakeLDIFException(msgID, message);
+          Message message = ERR_MAKELDIF_TEMPLATE_SUBORDINATE_TEMPLATE_NO_COLON.
+              get(lineNumber, templateName);
+          throw new MakeLDIFException(message);
         }
 
         String subTemplateName = line.substring(21, colonPos).trim();
@@ -1216,16 +1209,15 @@ public class TemplateFile
           numEntries = Integer.parseInt(line.substring(colonPos+1).trim());
           if (numEntries < 0)
           {
-            int msgID = MSGID_MAKELDIF_TEMPLATE_SUBORDINATE_INVALID_NUM_ENTRIES;
-            String message = getMessage(msgID, lineNumber, templateName,
-                                        numEntries, subTemplateName);
-            throw new MakeLDIFException(msgID, message);
+            Message message =
+              ERR_MAKELDIF_TEMPLATE_SUBORDINATE_INVALID_NUM_ENTRIES.
+                  get(lineNumber, templateName, numEntries, subTemplateName);
+            throw new MakeLDIFException(message);
           }
           else if (numEntries == 0)
           {
-            int    msgID   = MSGID_MAKELDIF_TEMPLATE_SUBORDINATE_ZERO_ENTRIES;
-            String message = getMessage(msgID, lineNumber, templateName,
-                                        subTemplateName);
+            Message message = WARN_MAKELDIF_TEMPLATE_SUBORDINATE_ZERO_ENTRIES
+                    .get(lineNumber, templateName, subTemplateName);
             warnings.add(message);
           }
 
@@ -1234,10 +1226,10 @@ public class TemplateFile
         }
         catch (NumberFormatException nfe)
         {
-          int msgID = MSGID_MAKELDIF_TEMPLATE_SUBORDINATE_CANT_PARSE_NUMENTRIES;
-          String message = getMessage(msgID, subTemplateName, lineNumber,
-                                      templateName);
-          throw new MakeLDIFException(msgID, message);
+          Message message =
+            ERR_MAKELDIF_TEMPLATE_SUBORDINATE_CANT_PARSE_NUMENTRIES.
+                get(subTemplateName, lineNumber, templateName);
+          throw new MakeLDIFException(message);
         }
       }
       else
@@ -1325,7 +1317,7 @@ public class TemplateFile
                                          int lineNumber, Branch branch,
                                          Template template,
                                          LinkedHashMap<String,Tag> tags,
-                                         List<String> warnings)
+                                         List<Message> warnings)
           throws InitializationException, MakeLDIFException
   {
     // The first component must be the attribute type, followed by a colon.
@@ -1334,32 +1326,30 @@ public class TemplateFile
     {
       if (branch == null)
       {
-        int    msgID   = MSGID_MAKELDIF_NO_COLON_IN_TEMPLATE_LINE;
-        String message = getMessage(msgID, lineNumber, template.getName());
-        throw new MakeLDIFException(msgID, message);
+        Message message = ERR_MAKELDIF_NO_COLON_IN_TEMPLATE_LINE.get(
+            lineNumber, template.getName());
+        throw new MakeLDIFException(message);
       }
       else
       {
-        int    msgID   = MSGID_MAKELDIF_NO_COLON_IN_BRANCH_EXTRA_LINE;
-        String message = getMessage(msgID, lineNumber,
-                                    String.valueOf(branch.getBranchDN()));
-        throw new MakeLDIFException(msgID, message);
+        Message message = ERR_MAKELDIF_NO_COLON_IN_BRANCH_EXTRA_LINE.get(
+            lineNumber, String.valueOf(branch.getBranchDN()));
+        throw new MakeLDIFException(message);
       }
     }
     else if (colonPos == 0)
     {
       if (branch == null)
       {
-        int    msgID   = MSGID_MAKELDIF_NO_ATTR_IN_TEMPLATE_LINE;
-        String message = getMessage(msgID, lineNumber, template.getName());
-        throw new MakeLDIFException(msgID, message);
+        Message message = ERR_MAKELDIF_NO_ATTR_IN_TEMPLATE_LINE.get(
+            lineNumber, template.getName());
+        throw new MakeLDIFException(message);
       }
       else
       {
-        int    msgID   = MSGID_MAKELDIF_NO_ATTR_IN_BRANCH_EXTRA_LINE;
-        String message = getMessage(msgID, lineNumber,
-                                    String.valueOf(branch.getBranchDN()));
-        throw new MakeLDIFException(msgID, message);
+        Message message = ERR_MAKELDIF_NO_ATTR_IN_BRANCH_EXTRA_LINE.get(
+            lineNumber, String.valueOf(branch.getBranchDN()));
+        throw new MakeLDIFException(message);
       }
     }
 
@@ -1382,15 +1372,14 @@ public class TemplateFile
       // warning.
       if (branch == null)
       {
-        int    msgID   = MSGID_MAKELDIF_NO_VALUE_IN_TEMPLATE_LINE;
-        String message = getMessage(msgID, lineNumber, template.getName());
+        Message message = WARN_MAKELDIF_NO_VALUE_IN_TEMPLATE_LINE.get(
+                lineNumber, template.getName());
         warnings.add(message);
       }
       else
       {
-        int    msgID   = MSGID_MAKELDIF_NO_VALUE_IN_BRANCH_EXTRA_LINE;
-        String message = getMessage(msgID, lineNumber,
-                                    String.valueOf(branch.getBranchDN()));
+        Message message = WARN_MAKELDIF_NO_VALUE_IN_BRANCH_EXTRA_LINE.get(
+                lineNumber, String.valueOf(branch.getBranchDN()));
         warnings.add(message);
       }
     }
@@ -1493,9 +1482,8 @@ public class TemplateFile
     }
     else
     {
-      int    msgID   = MSGID_MAKELDIF_INCOMPLETE_TAG;
-      String message = getMessage(msgID, lineNumber);
-      throw new InitializationException(msgID, message);
+      Message message = ERR_MAKELDIF_INCOMPLETE_TAG.get(lineNumber);
+      throw new InitializationException(message);
     }
 
     Tag[] tagArray = new Tag[tagList.size()];
@@ -1530,7 +1518,7 @@ public class TemplateFile
   private Tag parseReplacementTag(String tagString, Branch branch,
                                   Template template, int lineNumber,
                                   LinkedHashMap<String,Tag> tags,
-                                  List<String> warnings)
+                                  List<Message> warnings)
           throws InitializationException, MakeLDIFException
   {
     // The components of the replacement tag will be separated by colons, with
@@ -1545,9 +1533,8 @@ public class TemplateFile
       t = tags.get(lowerTagName);
       if (t == null)
       {
-        int    msgID   = MSGID_MAKELDIF_NO_SUCH_TAG;
-        String message = getMessage(msgID, tagName, lineNumber);
-        throw new MakeLDIFException(msgID, message);
+        Message message = ERR_MAKELDIF_NO_SUCH_TAG.get(tagName, lineNumber);
+        throw new MakeLDIFException(message);
       }
     }
 
@@ -1568,10 +1555,9 @@ public class TemplateFile
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_MAKELDIF_CANNOT_INSTANTIATE_NEW_TAG;
-      String message = getMessage(msgID, tagName, lineNumber,
-                                  String.valueOf(e));
-      throw new MakeLDIFException(msgID, message, e);
+      Message message = ERR_MAKELDIF_CANNOT_INSTANTIATE_NEW_TAG.get(
+          tagName, lineNumber, String.valueOf(e));
+      throw new MakeLDIFException(message, e);
     }
 
 
@@ -1587,9 +1573,9 @@ public class TemplateFile
       }
       else
       {
-        int    msgID   = MSGID_MAKELDIF_TAG_NOT_ALLOWED_IN_BRANCH;
-        String message = getMessage(msgID, newTag.getName(), lineNumber);
-        throw new MakeLDIFException(msgID, message);
+        Message message = ERR_MAKELDIF_TAG_NOT_ALLOWED_IN_BRANCH.get(
+            newTag.getName(), lineNumber);
+        throw new MakeLDIFException(message);
       }
     }
 
@@ -1619,7 +1605,7 @@ public class TemplateFile
    */
   private Tag parseAttributeTag(String tagString, Branch branch,
                                 Template template, int lineNumber,
-                                List<String> warnings)
+                                List<Message> warnings)
           throws InitializationException, MakeLDIFException
   {
     // The attribute tag must have at least one argument, which is the name of

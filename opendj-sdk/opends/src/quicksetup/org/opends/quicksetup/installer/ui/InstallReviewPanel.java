@@ -27,6 +27,10 @@
 
 package org.opends.quicksetup.installer.ui;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.quicksetup.UserData;
@@ -145,17 +149,17 @@ public class InstallReviewPanel extends ReviewPanel {
   /**
    * {@inheritDoc}
    */
-  protected String getInstructions()
+  protected Message getInstructions()
   {
-    return getMsg("review-panel-instructions");
+    return INFO_REVIEW_PANEL_INSTRUCTIONS.get();
   }
 
   /**
    * {@inheritDoc}
    */
-  protected String getTitle()
+  protected Message getTitle()
   {
-    return getMsg("review-panel-title");
+    return INFO_REVIEW_PANEL_TITLE.get();
   }
 
   /**
@@ -169,46 +173,50 @@ public class InstallReviewPanel extends ReviewPanel {
     if (displayServerLocation)
     {
       hm.put(FieldName.SERVER_LOCATION, new LabelFieldDescriptor(
-          getMsg("server-location-label"), getMsg("server-port-tooltip"),
-          LabelFieldDescriptor.FieldType.READ_ONLY,
-          LabelFieldDescriptor.LabelType.PRIMARY, 0));
+              INFO_SERVER_LOCATION_LABEL.get(),
+              INFO_SERVER_LOCATION_RELATIVE_TOOLTIP.get(),
+              LabelFieldDescriptor.FieldType.READ_ONLY,
+              LabelFieldDescriptor.LabelType.PRIMARY, 0));
     }
 
     hm.put(FieldName.HOST_NAME, new LabelFieldDescriptor(
-        getMsg("host-name-label"), getMsg("host-name-tooltip"),
-        LabelFieldDescriptor.FieldType.READ_ONLY,
-        LabelFieldDescriptor.LabelType.PRIMARY, 0));
+            INFO_HOST_NAME_LABEL.get(),
+            INFO_HOST_NAME_TOOLTIP.get(),
+            LabelFieldDescriptor.FieldType.READ_ONLY,
+            LabelFieldDescriptor.LabelType.PRIMARY, 0));
 
     hm.put(FieldName.SERVER_PORT, new LabelFieldDescriptor(
-        getMsg("server-port-label"), getMsg("server-port-tooltip"),
-        LabelFieldDescriptor.FieldType.READ_ONLY,
-        LabelFieldDescriptor.LabelType.PRIMARY, 0));
+            INFO_SERVER_PORT_LABEL.get(),
+            INFO_SERVER_PORT_TOOLTIP.get(),
+            LabelFieldDescriptor.FieldType.READ_ONLY,
+            LabelFieldDescriptor.LabelType.PRIMARY, 0));
 
     hm.put(FieldName.SECURITY_OPTIONS, new LabelFieldDescriptor(
-        getMsg("server-security-label"), getMsg("server-security-tooltip"),
-        LabelFieldDescriptor.FieldType.READ_ONLY,
-        LabelFieldDescriptor.LabelType.PRIMARY, 0));
+            INFO_SERVER_SECURITY_LABEL.get(),
+            INFO_SERVER_SECURITY_TOOLTIP.get(),
+            LabelFieldDescriptor.FieldType.READ_ONLY,
+            LabelFieldDescriptor.LabelType.PRIMARY, 0));
 
     hm.put(FieldName.DIRECTORY_MANAGER_DN, new LabelFieldDescriptor(
-        getMsg("server-directory-manager-dn-label"),
-        getMsg("server-directory-manager-dn-tooltip"),
-        LabelFieldDescriptor.FieldType.READ_ONLY,
-        LabelFieldDescriptor.LabelType.PRIMARY, 0));
+            INFO_SERVER_DIRECTORY_MANAGER_DN_LABEL.get(),
+            INFO_SERVER_DIRECTORY_MANAGER_DN_TOOLTIP.get(),
+            LabelFieldDescriptor.FieldType.READ_ONLY,
+            LabelFieldDescriptor.LabelType.PRIMARY, 0));
 
     hm.put(FieldName.GLOBAL_ADMINISTRATOR_UID, new LabelFieldDescriptor(
-        getMsg("global-administrator-uid-label"), null,
-        LabelFieldDescriptor.FieldType.READ_ONLY,
-        LabelFieldDescriptor.LabelType.PRIMARY, 0));
+            INFO_GLOBAL_ADMINISTRATOR_UID_LABEL.get(), null,
+            LabelFieldDescriptor.FieldType.READ_ONLY,
+            LabelFieldDescriptor.LabelType.PRIMARY, 0));
 
     hm.put(FieldName.DATA_OPTIONS, new LabelFieldDescriptor(
-        getMsg("directory-data-label"), null,
-        LabelFieldDescriptor.FieldType.READ_ONLY,
-        LabelFieldDescriptor.LabelType.PRIMARY, 0));
+            INFO_DIRECTORY_DATA_LABEL.get(), null,
+            LabelFieldDescriptor.FieldType.READ_ONLY,
+            LabelFieldDescriptor.LabelType.PRIMARY, 0));
 
     hm.put(FieldName.REPLICATION_PORT, new LabelFieldDescriptor(
-        getMsg("replication-port-label"), null,
-        LabelFieldDescriptor.FieldType.READ_ONLY,
-        LabelFieldDescriptor.LabelType.PRIMARY, 0));
+            INFO_REPLICATION_PORT_LABEL.get(), null,
+            LabelFieldDescriptor.FieldType.READ_ONLY,
+            LabelFieldDescriptor.LabelType.PRIMARY, 0));
 
     for (FieldName fieldName : hm.keySet())
     {
@@ -260,12 +268,12 @@ public class InstallReviewPanel extends ReviewPanel {
 
   /**
    * Returns the localized string describing the DataOptions chosen by the user.
-   * @param options the DataOptions of the user.
+   * @param userInstallData the DataOptions of the user.
    * @return the localized string describing the DataOptions chosen by the user.
    */
-  private String getDataDisplayString(UserData userInstallData)
+  private Message getDataDisplayString(UserData userInstallData)
   {
-    String msg;
+    Message msg;
 
     boolean createSuffix = false;
 
@@ -282,37 +290,34 @@ public class InstallReviewPanel extends ReviewPanel {
 
     if (createSuffix)
     {
-      String arg2;
+      Message arg2;
 
       NewSuffixOptions options = userInstallData.getNewSuffixOptions();
       switch (options.getType())
       {
       case CREATE_BASE_ENTRY:
-        arg2 = getMsg("review-create-base-entry-label",
-            new String[] { options.getBaseDn() });
+        arg2 = INFO_REVIEW_CREATE_BASE_ENTRY_LABEL.get(options.getBaseDn());
 
         break;
 
       case LEAVE_DATABASE_EMPTY:
-        arg2 = getMsg("review-leave-database-empty-label");
+        arg2 = INFO_REVIEW_LEAVE_DATABASE_EMPTY_LABEL.get();
         break;
 
       case IMPORT_FROM_LDIF_FILE:
-        arg2 = getMsg("review-import-ldif",
-            new String[] { options.getLDIFPath() });
+        arg2 = INFO_REVIEW_IMPORT_LDIF.get(options.getLDIFPath());
         break;
 
       case IMPORT_AUTOMATICALLY_GENERATED_DATA:
-        arg2 = getMsg("review-import-automatically-generated",
-            new String[] { String.valueOf(options.getNumberEntries()) });
+        arg2 = INFO_REVIEW_IMPORT_AUTOMATICALLY_GENERATED.get(
+                String.valueOf(options.getNumberEntries()));
         break;
 
       default:
         throw new IllegalArgumentException("Unknow type: " + options.getType());
       }
 
-      msg = getMsg("review-create-suffix",
-          new String[] {options.getBaseDn(), arg2});
+      msg = INFO_REVIEW_CREATE_SUFFIX.get(options.getBaseDn(), arg2);
     }
     else
     {
@@ -326,20 +331,20 @@ public class InstallReviewPanel extends ReviewPanel {
         }
         buf.append(suffix.getDN());
       }
-      msg = getMsg("review-replicate-suffix", new String[] {buf.toString()});
+      msg = INFO_REVIEW_REPLICATE_SUFFIX.get(buf.toString());
     }
 
     return msg;
   }
    /**
     * Returns the String representing the replication port configuration.
-    * @param options the DataOptions of the user.
+    * @param userInstallData the DataOptions of the user.
     * @return the localized string describing the Replication Ports chosen by
     * the user.
     */
   private String getReplicationPortString(UserData userInstallData)
   {
-    StringBuilder buf = new StringBuilder();
+    MessageBuilder buf = new MessageBuilder();
 
     DataReplicationOptions repl =
       userInstallData.getReplicationOptions();
@@ -355,17 +360,19 @@ public class InstallReviewPanel extends ReviewPanel {
         SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES) &&
         remotePorts.size() > 0)
     {
-      buf.append(userInstallData.getReplicationOptions().getReplicationPort());
-      TreeSet<String> remoteServerLines = new TreeSet<String>();
+      buf.append(String.valueOf(
+                      userInstallData.getReplicationOptions()
+                              .getReplicationPort()));
+      TreeSet<Message> remoteServerLines = new TreeSet<Message>();
       for (ServerDescriptor server : remotePorts.keySet())
       {
-        String[] args = {String.valueOf(remotePorts.get(server)),
-            server.getHostPort(true)};
-        remoteServerLines.add(getMsg("remote-server-replication-port", args));
+        remoteServerLines.add(INFO_REMOTE_SERVER_REPLICATION_PORT.get(
+                String.valueOf(remotePorts.get(server)),
+                server.getHostPort(true)));
       }
-      for (String line : remoteServerLines)
+      for (Message line : remoteServerLines)
       {
-        buf.append("\n"+line);
+        buf.append("\n").append(line);
       }
     }
     else
@@ -476,7 +483,7 @@ public class InstallReviewPanel extends ReviewPanel {
     if (warningLabel == null)
     {
       warningLabel = UIFactory.makeJLabel(UIFactory.IconType.WARNING,
-          getMsg("install-server-must-be-temporarily-started"),
+          INFO_INSTALL_SERVER_MUST_BE_TEMPORARILY_STARTED.get(),
           UIFactory.TextStyle.READ_ONLY);
     }
     return warningLabel;
@@ -487,8 +494,8 @@ public class InstallReviewPanel extends ReviewPanel {
     if (startCheckBox == null)
     {
       startCheckBox =
-          UIFactory.makeJCheckBox(getMsg("start-server-label"),
-              getMsg("start-server-tooltip"), UIFactory.TextStyle.CHECKBOX);
+          UIFactory.makeJCheckBox(INFO_START_SERVER_LABEL.get(),
+              INFO_START_SERVER_TOOLTIP.get(), UIFactory.TextStyle.CHECKBOX);
       startCheckBox.setSelected(
           getApplication().getUserData().getStartServer());
       startCheckBox.addActionListener(new ActionListener()
@@ -507,8 +514,8 @@ public class InstallReviewPanel extends ReviewPanel {
     if (enableWindowsServiceCheckBox == null)
     {
       enableWindowsServiceCheckBox =
-          UIFactory.makeJCheckBox(getMsg("enable-windows-service-label"),
-              getMsg("enable-windows-service-tooltip"),
+          UIFactory.makeJCheckBox(INFO_ENABLE_WINDOWS_SERVICE_LABEL.get(),
+              INFO_ENABLE_WINDOWS_SERVICE_TOOLTIP.get(),
               UIFactory.TextStyle.CHECKBOX);
       enableWindowsServiceCheckBox.setSelected(
           getApplication().getUserData().getEnableWindowsService());

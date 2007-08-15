@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
@@ -51,8 +52,8 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ConfigMessages.*;
+
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 
@@ -168,7 +169,7 @@ public class ExtendedOperationConfigManager implements
    */
   public boolean isConfigurationChangeAcceptable(
        ExtendedOperationHandlerCfg configuration,
-       List<String> unacceptableReasons)
+       List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled()) {
       // It's enabled so always validate the class.
@@ -193,7 +194,7 @@ public class ExtendedOperationConfigManager implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     // See whether the handler should be enabled.
     if (handler == null) {
@@ -212,7 +213,7 @@ public class ExtendedOperationConfigManager implements
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          messages.add(e.getMessage());
+          messages.add(e.getMessageObject());
           resultCode = DirectoryServer.getServerErrorResultCode();
         } catch (Exception e) {
           if (debugEnabled())
@@ -220,10 +221,10 @@ public class ExtendedOperationConfigManager implements
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int msgID = MSGID_CONFIG_EXTOP_INITIALIZATION_FAILED;
-          messages.add(getMessage(msgID, String.valueOf(configuration
-              .getJavaImplementationClass()), String.valueOf(dn),
-              stackTraceToSingleLineString(e)));
+          messages.add(ERR_CONFIG_EXTOP_INITIALIZATION_FAILED.get(
+                  String.valueOf(configuration.getJavaImplementationClass()),
+                  String.valueOf(dn),
+                  stackTraceToSingleLineString(e)));
           resultCode = DirectoryServer.getServerErrorResultCode();
         }
       }
@@ -257,7 +258,7 @@ public class ExtendedOperationConfigManager implements
    */
   public boolean isConfigurationAddAcceptable(
        ExtendedOperationHandlerCfg configuration,
-       List<String> unacceptableReasons)
+       List<Message> unacceptableReasons)
   {
     return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
@@ -271,7 +272,7 @@ public class ExtendedOperationConfigManager implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     // Register as a change listener for this connection handler entry
     // so that we will be notified of any changes that may be made to
@@ -298,7 +299,7 @@ public class ExtendedOperationConfigManager implements
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        messages.add(e.getMessage());
+        messages.add(e.getMessageObject());
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
       catch (Exception e)
@@ -308,10 +309,10 @@ public class ExtendedOperationConfigManager implements
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_CONFIG_EXTOP_INITIALIZATION_FAILED;
-        messages.add(getMessage(msgID, String.valueOf(configuration
-            .getJavaImplementationClass()), String.valueOf(dn),
-            stackTraceToSingleLineString(e)));
+        messages.add(ERR_CONFIG_EXTOP_INITIALIZATION_FAILED.get(
+                String.valueOf(configuration.getJavaImplementationClass()),
+                String.valueOf(dn),
+                stackTraceToSingleLineString(e)));
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
     }
@@ -326,7 +327,7 @@ public class ExtendedOperationConfigManager implements
    */
   public boolean isConfigurationDeleteAcceptable(
        ExtendedOperationHandlerCfg configuration,
-       List<String> unacceptableReasons)
+       List<Message> unacceptableReasons)
   {
     // A delete should always be acceptable, so just return true.
     return true;
@@ -367,11 +368,10 @@ public class ExtendedOperationConfigManager implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_EXTOP_INVALID_CLASS;
-      String message = getMessage(msgID, String.valueOf(className),
-                                  String.valueOf(config.dn()),
-                                  String.valueOf(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = ERR_CONFIG_EXTOP_INVALID_CLASS.
+          get(String.valueOf(className), String.valueOf(config.dn()),
+              String.valueOf(e));
+      throw new ConfigException(message, e);
     }
 
     // The handler has been successfully initialized.
@@ -383,7 +383,7 @@ public class ExtendedOperationConfigManager implements
   // Determines whether or not the new configuration's implementation
   // class is acceptable.
   private boolean isJavaClassAcceptable(ExtendedOperationHandlerCfg config,
-                                        List<String> unacceptableReasons)
+                                        List<Message> unacceptableReasons)
   {
     String className = config.getJavaImplementationClass();
     ExtendedOperationHandlerCfgDefn d =
@@ -418,8 +418,7 @@ public class ExtendedOperationConfigManager implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_EXTOP_INVALID_CLASS;
-      unacceptableReasons.add(getMessage(msgID, className,
+      unacceptableReasons.add(ERR_CONFIG_EXTOP_INVALID_CLASS.get(className,
                               String.valueOf(config.dn()),
                               String.valueOf(e)));
       return false;

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
@@ -47,15 +48,14 @@ import org.opends.server.extensions.DefaultEntryCache;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.messages.ConfigMessages.*;
+
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -119,9 +119,9 @@ public class EntryCacheConfigManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_ENTRYCACHE_CANNOT_INSTALL_DEFAULT_CACHE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_ENTRYCACHE_CANNOT_INSTALL_DEFAULT_CACHE.get(
+          stackTraceToSingleLineString(e));
+      throw new InitializationException(message, e);
     }
 
   }
@@ -169,7 +169,7 @@ public class EntryCacheConfigManager
     //      logError(
     //          ErrorLogCategory.CONFIGURATION,
     //          ErrorLogSeverity.SEVERE_WARNING,
-    //          MSGID_CONFIG_ENTRYCACHE_NO_CONFIG_ENTRY
+    //          ERR_CONFIG_ENTRYCACHE_NO_CONFIG_ENTRY
     //          );
     //      return;
     //    }
@@ -194,11 +194,7 @@ public class EntryCacheConfigManager
       }
       catch (InitializationException ie)
       {
-        logError(
-            ErrorLogCategory.CONFIGURATION,
-            ErrorLogSeverity.SEVERE_ERROR,
-            ie.getMessage(),
-            ie.getMessageID());
+        logError(ie.getMessageObject());
       }
     }
   }
@@ -209,7 +205,7 @@ public class EntryCacheConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
       EntryCacheCfg configuration,
-      List<String>  unacceptableReasons
+      List<Message> unacceptableReasons
       )
   {
     // returned status -- all is fine by default
@@ -227,7 +223,7 @@ public class EntryCacheConfigManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add(ie.getMessage());
+        unacceptableReasons.add(ie.getMessageObject());
         status = false;
       }
     }
@@ -245,7 +241,7 @@ public class EntryCacheConfigManager
   {
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<String>()
+        ResultCode.SUCCESS, false, new ArrayList<Message>()
         );
 
     // If the new configuration has the entry cache disabled, then install
@@ -287,7 +283,7 @@ public class EntryCacheConfigManager
     }
     catch (InitializationException ie)
     {
-      changeResult.addMessage (ie.getMessage());
+      changeResult.addMessage (ie.getMessageObject());
       changeResult.setResultCode (DirectoryServer.getServerErrorResultCode());
       return changeResult;
     }
@@ -301,7 +297,7 @@ public class EntryCacheConfigManager
    */
   public boolean isConfigurationAddAcceptable(
       EntryCacheCfg configuration,
-      List<String>  unacceptableReasons
+      List<Message> unacceptableReasons
       )
   {
     // returned status -- all is fine by default
@@ -319,7 +315,7 @@ public class EntryCacheConfigManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add (ie.getMessage());
+        unacceptableReasons.add (ie.getMessageObject());
         status = false;
       }
     }
@@ -337,7 +333,7 @@ public class EntryCacheConfigManager
   {
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<String>()
+        ResultCode.SUCCESS, false, new ArrayList<Message>()
         );
 
     // Register a change listener with it so we can be notified of changes
@@ -354,7 +350,7 @@ public class EntryCacheConfigManager
       }
       catch (InitializationException ie)
       {
-        changeResult.addMessage (ie.getMessage());
+        changeResult.addMessage (ie.getMessageObject());
         changeResult.setResultCode (DirectoryServer.getServerErrorResultCode());
         return changeResult;
       }
@@ -369,7 +365,7 @@ public class EntryCacheConfigManager
    */
   public boolean isConfigurationDeleteAcceptable(
       EntryCacheCfg configuration,
-      List<String>  unacceptableReasons
+      List<Message> unacceptableReasons
       )
   {
     // NYI
@@ -390,7 +386,7 @@ public class EntryCacheConfigManager
   {
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<String>()
+        ResultCode.SUCCESS, false, new ArrayList<Message>()
         );
 
     // If the entry cache was installed then replace it with the
@@ -484,15 +480,15 @@ public class EntryCacheConfigManager
                                                    EntryCacheCfg.class,
                                                    List.class);
 
-        List<String> unacceptableReasons = new ArrayList<String>();
+        List<Message> unacceptableReasons = new ArrayList<Message>();
         Boolean acceptable = (Boolean) method.invoke(cache, configuration,
                                                      unacceptableReasons);
         if (! acceptable)
         {
-          StringBuilder buffer = new StringBuilder();
+          MessageBuilder buffer = new MessageBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<String> iterator = unacceptableReasons.iterator();
+            Iterator<Message> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -501,10 +497,9 @@ public class EntryCacheConfigManager
             }
           }
 
-          int    msgID   = MSGID_CONFIG_ENTRYCACHE_CONFIG_NOT_ACCEPTABLE;
-          String message = getMessage(msgID, String.valueOf(configuration.dn()),
-                                      buffer.toString());
-          throw new InitializationException(msgID, message);
+          Message message = ERR_CONFIG_ENTRYCACHE_CONFIG_NOT_ACCEPTABLE.get(
+              String.valueOf(configuration.dn()), buffer.toString());
+          throw new InitializationException(message);
         }
       }
 
@@ -512,13 +507,10 @@ public class EntryCacheConfigManager
     }
     catch (Exception e)
     {
-      int msgID = MSGID_CONFIG_ENTRYCACHE_CANNOT_INITIALIZE_CACHE;
-      String message = getMessage(
-          msgID, className,
-          String.valueOf(configuration.dn()),
-          stackTraceToSingleLineString(e)
-          );
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_ENTRYCACHE_CANNOT_INITIALIZE_CACHE.get(
+          className,
+          String.valueOf(configuration.dn()));
+      throw new InitializationException(message, e);
     }
   }
 

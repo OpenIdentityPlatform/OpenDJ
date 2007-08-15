@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.config;
+import org.opends.messages.Message;
 
 
 
@@ -43,8 +44,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -81,7 +81,7 @@ public class BooleanConfigAttribute
    *                              configuration attribute require administrative
    *                              action before they will take effect.
    */
-  public BooleanConfigAttribute(String name, String description,
+  public BooleanConfigAttribute(String name, Message description,
                                 boolean requiresAdminAction)
   {
     super(name, description, true, false, requiresAdminAction);
@@ -103,7 +103,7 @@ public class BooleanConfigAttribute
    * @param  value                The value for this Boolean configuration
    *                              attribute.
    */
-  public BooleanConfigAttribute(String name, String description,
+  public BooleanConfigAttribute(String name, Message description,
                                 boolean requiresAdminAction,
                                 boolean value)
   {
@@ -131,7 +131,7 @@ public class BooleanConfigAttribute
    * @param  pendingValue         The pending value for this Boolean
    *                              configuration attribute.
    */
-  public BooleanConfigAttribute(String name, String description,
+  public BooleanConfigAttribute(String name, Message description,
                                 boolean requiresAdminAction,
                                 boolean activeValue, boolean pendingValue)
   {
@@ -292,8 +292,8 @@ public class BooleanConfigAttribute
       return true;
     }
 
-    rejectReason.append(getMessage(MSGID_CONFIG_ATTR_INVALID_BOOLEAN_VALUE,
-                                   getName(), stringValue));
+    rejectReason.append(ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(
+            getName(), stringValue));
     return false;
   }
 
@@ -325,9 +325,8 @@ public class BooleanConfigAttribute
   {
     if ((valueStrings == null) || valueStrings.isEmpty())
     {
-      int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+      throw new ConfigException(message);
     }
 
 
@@ -335,9 +334,8 @@ public class BooleanConfigAttribute
     String valueString = iterator.next().toLowerCase();
     if (iterator.hasNext())
     {
-      int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+      throw new ConfigException(message);
     }
 
     if (valueString.equals("true") || valueString.equals("yes") ||
@@ -352,9 +350,9 @@ public class BooleanConfigAttribute
     }
     else
     {
-      int    msgID   = MSGID_CONFIG_ATTR_INVALID_BOOLEAN_VALUE;
-      String message = getMessage(msgID, getName(), valueString);
-      throw new ConfigException(msgID, message);
+      Message message =
+          ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(getName(), valueString);
+      throw new ConfigException(message);
     }
   }
 
@@ -447,9 +445,9 @@ public class BooleanConfigAttribute
           if (pendingValueSet)
           {
             // We cannot have multiple pending values.
-            int    msgID   = MSGID_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS;
-            String message = getMessage(msgID, a.getName());
-            throw new ConfigException(msgID, message);
+            Message message =
+                ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(a.getName());
+            throw new ConfigException(message);
           }
 
 
@@ -457,9 +455,8 @@ public class BooleanConfigAttribute
           if (values.isEmpty())
           {
             // This is illegal -- it must have a value.
-            int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-            String message = getMessage(msgID, a.getName());
-            throw new ConfigException(msgID, message);
+            Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
+            throw new ConfigException(message);
           }
           else
           {
@@ -482,17 +479,17 @@ public class BooleanConfigAttribute
             else
             {
               // This is an illegal value.
-              int msgID = MSGID_CONFIG_ATTR_INVALID_BOOLEAN_VALUE;
-              String message = getMessage(msgID, getName(), valueString);
-              throw new ConfigException(msgID, message);
+              Message message = ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(
+                  getName(), valueString);
+              throw new ConfigException(message);
             }
 
             if (iterator.hasNext())
             {
               // This is illegal -- it must be single-valued.
-              int    msgID   = MSGID_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED;
-              String message = getMessage(msgID, a.getName());
-              throw new ConfigException(msgID, message);
+              Message message =
+                  ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
+              throw new ConfigException(message);
             }
           }
         }
@@ -500,9 +497,9 @@ public class BooleanConfigAttribute
         {
           // This is illegal -- only the pending option is allowed for
           // configuration attributes.
-          int    msgID   = MSGID_CONFIG_ATTR_OPTIONS_NOT_ALLOWED;
-          String message = getMessage(msgID, a.getName());
-          throw new ConfigException(msgID, message);
+          Message message =
+              ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(a.getName());
+          throw new ConfigException(message);
         }
       }
       else
@@ -511,9 +508,9 @@ public class BooleanConfigAttribute
         if (activeValueSet)
         {
           // We cannot have multiple active values.
-          int    msgID   = MSGID_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS;
-          String message = getMessage(msgID, a.getName());
-          throw new ConfigException(msgID, message);
+          Message message =
+              ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(a.getName());
+          throw new ConfigException(message);
         }
 
 
@@ -521,9 +518,8 @@ public class BooleanConfigAttribute
         if (values.isEmpty())
         {
           // This is illegal -- it must have a value.
-          int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-          String message = getMessage(msgID, a.getName());
-          throw new ConfigException(msgID, message);
+          Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
+          throw new ConfigException(message);
         }
         else
         {
@@ -546,17 +542,17 @@ public class BooleanConfigAttribute
           else
           {
             // This is an illegal value.
-            int msgID = MSGID_CONFIG_ATTR_INVALID_BOOLEAN_VALUE;
-            String message = getMessage(msgID, getName(), valueString);
-            throw new ConfigException(msgID, message);
+            Message message = ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(
+                getName(), valueString);
+            throw new ConfigException(message);
           }
 
           if (iterator.hasNext())
           {
             // This is illegal -- it must be single-valued.
-            int    msgID   = MSGID_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED;
-            String message = getMessage(msgID, a.getName());
-            throw new ConfigException(msgID, message);
+            Message message =
+                ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
+            throw new ConfigException(message);
           }
         }
       }
@@ -565,9 +561,8 @@ public class BooleanConfigAttribute
     if (! activeValueSet)
     {
       // This is not OK.  The value set must contain an active value.
-      int    msgID   = MSGID_CONFIG_ATTR_NO_ACTIVE_VALUE_SET;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_NO_ACTIVE_VALUE_SET.get(getName());
+      throw new ConfigException(message);
     }
 
     if (pendingValueSet)
@@ -653,16 +648,18 @@ public class BooleanConfigAttribute
   {
     attributeInfoList.add(new MBeanAttributeInfo(getName(),
                                                  Boolean.class.getName(),
-                                                 getDescription(), true, true,
-                                                 false));
+                                                 String.valueOf(
+                                                         getDescription()),
+                                                 true, true, false));
 
     if (requiresAdminAction())
     {
       String name = getName() + ";" + OPTION_PENDING_VALUES;
       attributeInfoList.add(new MBeanAttributeInfo(name,
                                                    Boolean.class.getName(),
-                                                   getDescription(), true,
-                                                   false, false));
+                                                   String.valueOf(
+                                                           getDescription()),
+                                                   true, false, false));
     }
   }
 
@@ -678,7 +675,7 @@ public class BooleanConfigAttribute
   public MBeanParameterInfo toJMXParameterInfo()
   {
     return new MBeanParameterInfo(getName(), Boolean.TYPE.getName(),
-                                  getDescription());
+                                  String.valueOf(getDescription()));
   }
 
 
@@ -717,18 +714,17 @@ public class BooleanConfigAttribute
       }
       else
       {
-        int    msgID   = MSGID_CONFIG_ATTR_INVALID_BOOLEAN_VALUE;
-        String message = getMessage(msgID, getName(), stringValue);
-        throw new ConfigException(msgID, message);
+        Message message =
+            ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(getName(), stringValue);
+        throw new ConfigException(message);
       }
     }
     else
     {
-      int    msgID   = MSGID_CONFIG_ATTR_INVALID_BOOLEAN_VALUE;
-      String message = getMessage(msgID, getName(),
-                                  value.getClass().getName() + ":" +
+      Message message = ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(
+          getName(), value.getClass().getName() + ":" +
                                        String.valueOf(value));
-      throw new ConfigException(msgID, message);
+      throw new ConfigException(message);
     }
   }
 

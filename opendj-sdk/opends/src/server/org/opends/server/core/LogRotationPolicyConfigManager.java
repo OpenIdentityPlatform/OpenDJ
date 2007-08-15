@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 import org.opends.server.loggers.RotationPolicy;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -43,8 +44,8 @@ import org.opends.server.config.ConfigException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ConfigMessages.*;
+import static org.opends.messages.ConfigMessages.*;
+
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.List;
@@ -104,7 +105,7 @@ public class LogRotationPolicyConfigManager implements
    */
   public boolean isConfigurationAddAcceptable(
       LogRotationPolicyCfg configuration,
-      List<String> unacceptableReasons)
+      List<Message> unacceptableReasons)
   {
     return isJavaClassAcceptable(configuration, unacceptableReasons);
   }
@@ -114,7 +115,7 @@ public class LogRotationPolicyConfigManager implements
    */
   public boolean isConfigurationDeleteAcceptable(
       LogRotationPolicyCfg configuration,
-      List<String> unacceptableReasons)
+      List<Message> unacceptableReasons)
   {
     // TODO: Make sure nothing is using this policy before deleting it.
     return true;
@@ -128,7 +129,7 @@ public class LogRotationPolicyConfigManager implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     try
     {
@@ -141,16 +142,17 @@ public class LogRotationPolicyConfigManager implements
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      messages.add(e.getMessage());
+      messages.add(e.getMessageObject());
       resultCode = DirectoryServer.getServerErrorResultCode();
     } catch (Exception e) {
       if (debugEnabled())
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      int msgID = MSGID_CONFIG_ROTATION_POLICY_CANNOT_CREATE_POLICY;
-      messages.add(getMessage(msgID, String.valueOf(config.dn().toString()),
-                              stackTraceToSingleLineString(e)));
+
+      messages.add(ERR_CONFIG_ROTATION_POLICY_CANNOT_CREATE_POLICY.get(
+              String.valueOf(config.dn().toString()),
+              stackTraceToSingleLineString(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
     }
 
@@ -166,7 +168,7 @@ public class LogRotationPolicyConfigManager implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     RotationPolicy policy = DirectoryServer.getRotationPolicy(config.dn());
     if(policy != null)
@@ -187,7 +189,7 @@ public class LogRotationPolicyConfigManager implements
    */
   public boolean isConfigurationChangeAcceptable(
       LogRotationPolicyCfg configuration,
-      List<String> unacceptableReasons)
+      List<Message> unacceptableReasons)
   {
     return isJavaClassAcceptable(configuration, unacceptableReasons);
   }
@@ -201,7 +203,7 @@ public class LogRotationPolicyConfigManager implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     RotationPolicy policy =
         DirectoryServer.getRotationPolicy(configuration.dn());
@@ -215,7 +217,7 @@ public class LogRotationPolicyConfigManager implements
   }
 
   private boolean isJavaClassAcceptable(LogRotationPolicyCfg config,
-                                        List<String> unacceptableReasons)
+                                        List<Message> unacceptableReasons)
   {
     String className = config.getJavaImplementationClass();
     LogRotationPolicyCfgDefn d = LogRotationPolicyCfgDefn.getInstance();
@@ -227,8 +229,7 @@ public class LogRotationPolicyConfigManager implements
       theClass = pd.loadClass(className, RotationPolicy.class);
       theClass.newInstance();
     } catch (Exception e) {
-      int    msgID   = MSGID_CONFIG_ROTATION_POLICY_INVALID_CLASS;
-      String message = getMessage(msgID, className,
+      Message message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(className,
                                   config.dn().toString(),
                                   String.valueOf(e));
       unacceptableReasons.add(message);
@@ -242,8 +243,7 @@ public class LogRotationPolicyConfigManager implements
       theClass.getMethod("initializeLogRotationPolicy", config.definition()
           .getServerConfigurationClass());
     } catch (Exception e) {
-      int    msgID   = MSGID_CONFIG_ROTATION_POLICY_INVALID_CLASS;
-      String message = getMessage(msgID, className,
+      Message message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(className,
                                   config.dn().toString(),
                                   String.valueOf(e));
       unacceptableReasons.add(message);
@@ -277,17 +277,13 @@ public class LogRotationPolicyConfigManager implements
     {
       // Rethrow the exceptions thrown be the invoked method.
       Throwable e = ite.getTargetException();
-      int    msgID   = MSGID_CONFIG_ROTATION_POLICY_INVALID_CLASS;
-      String message = getMessage(msgID, className,
-                                  config.dn().toString(),
-                                  stackTraceToSingleLineString(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(
+          className, config.dn().toString(), stackTraceToSingleLineString(e));
+      throw new ConfigException(message, e);
     } catch (Exception e) {
-      int    msgID   = MSGID_CONFIG_ROTATION_POLICY_INVALID_CLASS;
-      String message = getMessage(msgID, className,
-                                  config.dn().toString(),
-                                  String.valueOf(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(
+          className, config.dn().toString(), String.valueOf(e));
+      throw new ConfigException(message, e);
     }
 
     // The connection handler has been successfully initialized.

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 
@@ -51,7 +52,6 @@ import org.opends.server.config.ConfigException;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.StaticUtils.*;
-
 
 
 /**
@@ -129,10 +129,10 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      // FIXME -- Number this.
-      throw new InitializationException(-1,
-                     "Can't get preferred digest:  " +
-                     getExceptionMessage(e), e);
+      // TODO: i18n
+      throw new InitializationException(
+                     Message.raw("Can't get preferred digest:  " +
+                          getExceptionMessage(e).toString()), e);
     }
 
     try
@@ -147,10 +147,10 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      // FIXME -- Number this.
-      throw new InitializationException(-1,
-                     "Can't get preferred MAC provider:  " +
-                     getExceptionMessage(e), e);
+      // TODO: i18n
+      throw new InitializationException(
+                   Message.raw("Can't get preferred MAC provider:  " +
+                          getExceptionMessage(e).toString()), e);
     }
 
     try
@@ -165,10 +165,10 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      // FIXME -- Number this.
-      throw new InitializationException(-1,
-                     "Can't get preferred cipher:  " +
-                     getExceptionMessage(e), e);
+      // TODO: i18n
+      throw new InitializationException(
+                     Message.raw("Can't get preferred cipher:  " +
+                     getExceptionMessage(e).toString()), e);
     }
   }
 

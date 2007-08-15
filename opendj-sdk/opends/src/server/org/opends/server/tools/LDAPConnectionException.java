@@ -25,17 +25,20 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 
 import org.opends.server.types.DN;
+import org.opends.server.types.OpenDsException;
+
 
 
 /**
  * This class defines an exception that may be thrown during the course of
  * creating an LDAP connection to the server.
  */
-public class LDAPConnectionException extends Exception
-{
+public class LDAPConnectionException extends OpenDsException {
+
   /**
    * The serial version identifier required to satisfy the compiler because this
    * class extends <CODE>java.lang.Exception</CODE>, which implements the
@@ -61,7 +64,7 @@ public class LDAPConnectionException extends Exception
   /**
    * The server-provided error message for this exception.
    */
-  private final String errorMessage;
+  private final Message errorMessage;
 
 
   /**
@@ -69,7 +72,7 @@ public class LDAPConnectionException extends Exception
    *
    * @param  message    The message to use for this exception.
    */
-  public LDAPConnectionException(String message)
+  public LDAPConnectionException(Message message)
   {
     super(message);
 
@@ -86,8 +89,8 @@ public class LDAPConnectionException extends Exception
    * @param  resultCode    The result code for this exception.
    * @param  errorMessage  The server-provided error message for this exception.
    */
-  public LDAPConnectionException(String message, int resultCode,
-                                 String errorMessage)
+  public LDAPConnectionException(Message message, int resultCode,
+                                 Message errorMessage)
   {
     super(message);
 
@@ -106,7 +109,7 @@ public class LDAPConnectionException extends Exception
    * @param  cause      The underlying cause that triggered this
    *                    exception.
    */
-  public LDAPConnectionException(String message, Throwable cause)
+  public LDAPConnectionException(Message message, Throwable cause)
   {
     super(message, cause);
 
@@ -126,8 +129,8 @@ public class LDAPConnectionException extends Exception
    * @param  cause         The underlying cause that triggered this
    *                       exception.
    */
-  public LDAPConnectionException(String message, int resultCode,
-                                 String errorMessage, Throwable cause)
+  public LDAPConnectionException(Message message, int resultCode,
+                                 Message errorMessage, Throwable cause)
   {
     super(message, cause);
 
@@ -150,8 +153,8 @@ public class LDAPConnectionException extends Exception
    * @param  cause         The underlying cause that triggered this
    *                       exception.
    */
-  public LDAPConnectionException(String message, int resultCode,
-                                 String errorMessage, DN matchedDN,
+  public LDAPConnectionException(Message message, int resultCode,
+                                 Message errorMessage, DN matchedDN,
                                  Throwable cause)
   {
     super(message, cause);
@@ -179,7 +182,7 @@ public class LDAPConnectionException extends Exception
    *
    * @return  The server-provided error message associated with this exception.
    */
-  public String getErrorMessage()
+  public Message getErrorMessage()
   {
     return this.errorMessage;
   }

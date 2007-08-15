@@ -62,7 +62,10 @@ import javax.swing.event.HyperlinkListener;
 
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
-import org.opends.quicksetup.i18n.ResourceProvider;
+
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * This class is used to present the user a certificate to the user in order
@@ -95,7 +98,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
   {
     super(parent);
     this.ce = ce;
-    setTitle(getMsg("certificate-dialog-title"));
+    setTitle(INFO_CERTIFICATE_DIALOG_TITLE.get().toString());
     getContentPane().add(createPanel());
     setModal(true);
     pack();
@@ -154,23 +157,6 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
         pack();
       }
     }
-  }
-
-  /* The following three methods are just commodity methods to retrieve
-   * localized messages */
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  private String getMsg(String key, String... args)
-  {
-    return getI18n().getMsg(key, args);
-  }
-
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
   }
 
   /**
@@ -244,7 +230,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     gbc.weightx = 0.0;
     gbc.gridwidth = GridBagConstraints.RELATIVE;
 
-    String title = getMsg("certificate-title");
+    Message title = INFO_CERTIFICATE_TITLE.get();
     JLabel l =
         UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, title,
             UIFactory.TextStyle.TITLE);
@@ -269,16 +255,16 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
    */
   private Component createTextPane()
   {
-    String text;
+    Message text;
     if (ce.getType() == UserDataCertificateException.Type.NOT_TRUSTED)
     {
-      text = getMsg("certificate-not-trusted-text", ce.getHost(),
+      text = INFO_CERTIFICATE_NOT_TRUSTED_TEXT.get(ce.getHost(),
           String.valueOf(ce.getPort()));
     }
     else
     {
-      text = getMsg("certificate-name-mismatch-text",
-          ce.getHost(), String.valueOf(ce.getPort()));
+      text = INFO_CERTIFICATE_NAME_MISMATCH_TEXT.get(
+              ce.getHost(), String.valueOf(ce.getPort()));
     }
     JPanel p = UIFactory.makeJPanel();
     p.setLayout(new GridBagLayout());
@@ -299,16 +285,22 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     p.add(explanationPane, gbc);
     if ((ce.getChain() != null) && (ce.getChain().length > 0))
     {
-      explanationWithShowDetails = UIFactory.applyFontToHtml(text +
-          getMsg("certificate-show-details-text"), UIFactory.INSTRUCTIONS_FONT);
-      explanationWithHideDetails = UIFactory.applyFontToHtml(text +
-          getMsg("certificate-hide-details-text"), UIFactory.INSTRUCTIONS_FONT);
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(text);
+      mb.append(INFO_CERTIFICATE_SHOW_DETAILS_TEXT.get());
+      explanationWithShowDetails = UIFactory.applyFontToHtml(
+              mb.toString(), UIFactory.INSTRUCTIONS_FONT);
+      MessageBuilder mb2 = new MessageBuilder();
+      mb2.append(text);
+      mb2.append(INFO_CERTIFICATE_SHOW_DETAILS_TEXT.get());
+      explanationWithHideDetails = UIFactory.applyFontToHtml(
+              mb2.toString(), UIFactory.INSTRUCTIONS_FONT);
 
       explanationPane.setText(explanationWithShowDetails);
     }
     else
     {
-      explanationPane.setText(text);
+      explanationPane.setText(text.toString());
     }
     return p;
   }
@@ -336,8 +328,8 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     gbc.fill = GridBagConstraints.NONE;
     gbc.weightx = 0.0;
     okButton =
-      UIFactory.makeJButton(getMsg("ok-button-label"),
-          getMsg("certificate-dialog-ok-button-tooltip"));
+      UIFactory.makeJButton(INFO_OK_BUTTON_LABEL.get(),
+          INFO_CERTIFICATE_DIALOG_OK_BUTTON_TOOLTIP.get());
     buttonsPanel.add(okButton, gbc);
     okButton.addActionListener(new ActionListener()
     {
@@ -350,8 +342,8 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.insets.left = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
     cancelButton =
-      UIFactory.makeJButton(getMsg("cancel-button-label"),
-          getMsg("certificate-dialog-cancel-button-tooltip"));
+      UIFactory.makeJButton(INFO_CANCEL_BUTTON_LABEL.get(),
+          INFO_CERTIFICATE_DIALOG_CANCEL_BUTTON_TOOLTIP.get());
     buttonsPanel.add(cancelButton, gbc);
     cancelButton.addActionListener(new ActionListener()
     {
@@ -375,23 +367,24 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     if ((ce.getChain() != null) && (ce.getChain().length > 0))
     {
       final JComboBox combo = new JComboBox();
-      combo.setToolTipText(getMsg("certificate-chain-combo-tooltip"));
+      combo.setToolTipText(
+              INFO_CERTIFICATE_CHAIN_COMBO_TOOLTIP.get().toString());
       final CardLayout cl = new CardLayout();
       final JPanel cardPanel = new JPanel(cl);
       final Map<String, JPanel> hmPanels = new HashMap<String, JPanel>();
 
-      String[] labels =
+      Message[] labels =
       {
-          getMsg("certificate-subject-label"),
-          getMsg("certificate-issued-by-label"),
-          getMsg("certificate-valid-from-label"),
-          getMsg("certificate-expires-on-label"),
-          getMsg("certificate-type-label"),
-          getMsg("certificate-serial-number-label"),
-          getMsg("certificate-signature-label"),
-          getMsg("certificate-signature-algorithm-label"),
-          getMsg("certificate-version-label"),
-          getMsg("certificate-public-key-label")
+          INFO_CERTIFICATE_SUBJECT_LABEL.get(),
+          INFO_CERTIFICATE_ISSUED_BY_LABEL.get(),
+          INFO_CERTIFICATE_VALID_FROM_LABEL.get(),
+          INFO_CERTIFICATE_EXPIRES_ON_LABEL.get(),
+          INFO_CERTIFICATE_TYPE_LABEL.get(),
+          INFO_CERTIFICATE_SERIAL_NUMBER_LABEL.get(),
+          INFO_CERTIFICATE_SIGNATURE_LABEL.get(),
+          INFO_CERTIFICATE_SIGNATURE_ALGORITHM_LABEL.get(),
+          INFO_CERTIFICATE_VERSION_LABEL.get(),
+          INFO_CERTIFICATE_PUBLIC_KEY_LABEL.get()
       };
 
       for (int i=0; i<ce.getChain().length; i++)
@@ -459,7 +452,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
         JPanel auxPanel = UIFactory.makeJPanel();
         auxPanel.setLayout(new GridBagLayout());
         JLabel l = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-            getMsg("certificate-chain-label"),
+            INFO_CERTIFICATE_CHAIN_LABEL.get(),
             UIFactory.TextStyle.PRIMARY_FIELD_VALID);
         auxPanel.add(l, gbc);
         gbc.gridwidth = GridBagConstraints.RELATIVE;
@@ -501,13 +494,13 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
 
   private JComponent createSubjectComponent(X509Certificate cert)
   {
-    String dn = cert.getSubjectX500Principal().getName();
+    Message dn = Message.raw(cert.getSubjectX500Principal().getName());
     return makeValueLabel(dn);
   }
 
   private JComponent createIssuedByComponent(X509Certificate cert)
   {
-    String dn = cert.getIssuerX500Principal().getName();
+    Message dn = Message.raw(cert.getIssuerX500Principal().getName());
     return makeValueLabel(dn);
   }
 
@@ -518,7 +511,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     Date date = cert.getNotBefore();
     DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT,
     DateFormat.SHORT);
-    String value = df.format(date);
+    Message value = Message.raw(df.format(date));
     boolean isNotValidYet = false;
     long t1 = System.currentTimeMillis();
     long t2 = date.getTime();
@@ -527,7 +520,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     if (isNotValidYet)
     {
       c = UIFactory.makeJLabel(UIFactory.IconType.ERROR,
-          getMsg("certificate-not-valid-yet", value),
+          INFO_CERTIFICATE_NOT_VALID_YET.get(value),
           UIFactory.TextStyle.SECONDARY_FIELD_INVALID);
     }
     else
@@ -544,7 +537,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     Date date = cert.getNotAfter();
     DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT,
     DateFormat.SHORT);
-    String value = df.format(date);
+    Message value = Message.raw(df.format(date));
     boolean isExpired = false;
     long t1 = System.currentTimeMillis();
     long t2 = date.getTime();
@@ -553,7 +546,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     if (isExpired)
     {
       c = UIFactory.makeJLabel(UIFactory.IconType.ERROR,
-          getMsg("certificate-expired", value),
+          INFO_CERTIFICATE_EXPIRED.get(value),
           UIFactory.TextStyle.SECONDARY_FIELD_INVALID);
     }
     else
@@ -565,20 +558,20 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
 
   private JComponent createTypeComponent(X509Certificate cert)
   {
-    String type = cert.getType();
+    Message type = Message.raw(cert.getType());
     return makeValueLabel(type);
   }
 
   private JComponent createSerialNumberComponent(X509Certificate cert)
   {
-    String serialNumber = String.valueOf(cert.getSerialNumber());
+    Message serialNumber = Message.raw(String.valueOf(cert.getSerialNumber()));
     return makeValueLabel(serialNumber);
   }
 
   private JComponent createSignatureComponent(X509Certificate cert)
   {
     byte[] sig = cert.getSignature();
-    StringBuffer sb = new StringBuffer();
+    MessageBuilder sb = new MessageBuilder();
     for (int i = 0; i < sig.length; i++)
     {
       if (i > 0)
@@ -587,33 +580,33 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
       }
       sb.append(Integer.toHexString(((int) sig[i]) & 0xFF));
     }
-    return UIFactory.makeTextPane(sb.toString(),
+    return UIFactory.makeTextPane(sb.toMessage(),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
   }
 
   private JComponent createSignatureAlgorithmComponent(X509Certificate cert)
   {
-    String signature = String.valueOf(cert.getSigAlgName());
+    Message signature = Message.raw(String.valueOf(cert.getSigAlgName()));
     return makeValueLabel(signature);
   }
 
   private JComponent createVersionComponent(X509Certificate cert)
   {
-    String version = String.valueOf(cert.getVersion());
+    Message version = Message.raw(String.valueOf(cert.getVersion()));
     return makeValueLabel(version);
   }
 
   private JComponent createPublicKeyComponent(X509Certificate cert)
   {
-    return UIFactory.makeTextPane(cert.getPublicKey().toString(),
+    return UIFactory.makeTextPane(Message.raw(cert.getPublicKey().toString()),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
   }
 
-  private JLabel makeValueLabel(String value)
+  private JLabel makeValueLabel(Message value)
   {
     if (value == null)
     {
-      value = getMsg("not-available-label");
+      value = INFO_NOT_AVAILABLE_LABEL.get();
     }
     return UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, value,
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);

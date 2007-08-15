@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup.installandupgrader;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +47,6 @@ import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.UserDataException;
 import org.opends.quicksetup.WizardStep;
 import org.opends.quicksetup.event.ProgressUpdateListener;
-import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.installandupgrader.ui.WelcomePanel;
 import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
@@ -84,8 +86,7 @@ public class InstallAndUpgrader extends GuiApplication
                         UpgradeLauncher.LOG_FILE_PREFIX,
                         QuickSetupLog.LOG_FILE_SUFFIX));
     } catch (IOException e) {
-      System.err.println(
-              ResourceProvider.getInstance().getMsg("error-initializing-log"));
+      System.err.println(INFO_ERROR_INITIALIZING_LOG.get());
       e.printStackTrace();
     }
     if (Utils.isWebStart())
@@ -130,8 +131,8 @@ public class InstallAndUpgrader extends GuiApplication
   /**
    * {@inheritDoc}
    */
-  public String getFrameTitle() {
-    return getMsg("frame-install-title");
+  public Message getFrameTitle() {
+    return INFO_FRAME_INSTALL_TITLE.get();
   }
 
   /**
@@ -268,7 +269,7 @@ public class InstallAndUpgrader extends GuiApplication
   /**
    * {@inheritDoc}
    */
-  public String getSummary(ProgressStep step) {
+  public Message getSummary(ProgressStep step) {
     return getDelegateApplication().getSummary(step);
   }
 

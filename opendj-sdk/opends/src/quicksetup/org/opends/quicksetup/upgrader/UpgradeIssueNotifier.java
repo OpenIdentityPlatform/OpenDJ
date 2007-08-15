@@ -27,12 +27,16 @@
 
 package org.opends.quicksetup.upgrader;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+
 import org.opends.quicksetup.ApplicationReturnCode;
 import org.opends.quicksetup.BuildInformation;
 import org.opends.quicksetup.UserInteraction;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Constants;
 import org.opends.server.util.VersionCompatibilityIssue;
+import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.server.util.VersionCompatibilityIssue.*;
 
 import java.util.Set;
@@ -67,8 +71,8 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
    */
   public void notifyUser() throws ApplicationException {
     String[] args = { currentBuildInfo.toString(), newBuildInfo.toString() };
-    String cont = getMsg("oracle-action-prompt-continue");
-    String cancel = getMsg("oracle-action-prompt-cancel");
+    Message cont = INFO_ORACLE_ACTION_PROMPT_CONTINUE.get();
+    Message cancel = INFO_ORACLE_ACTION_PROMPT_CANCEL.get();
     if (hasIssues()) {
       List<Directive> issues = getIssues();
       if (!isSupported()) {
@@ -79,52 +83,58 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
           }
         }
         throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.APPLICATION_ERROR, getMsg(
-                "upgrade-oracle-unsupported", args), null);
+            ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
+                INFO_UPGRADE_ORACLE_UNSUPPORTED.get(
+                        currentBuildInfo.toString(),
+                        newBuildInfo.toString()),
+                null);
       } else {
         if (ui != null) {
           for (VersionIssueNotifier.Directive directive : issues) {
-            String title;
-            String summary;
-            String details;
-            String defaultAction;
+            Message title;
+            Message summary;
+            Message details;
+            Message defaultAction;
             UserInteraction.MessageType msgType;
             switch (directive.getType()) {
               case ACTION:
-                title = getMsg("general-action-required");
-                summary = getMsg("upgrade-oracle-action", args);
-                details = directive.getMessage() +
-                        Constants.HTML_LINE_BREAK +
-                        Constants.HTML_LINE_BREAK +
-                        getMsg("oracle-action-prompt");
+                title = INFO_GENERAL_ACTION_REQUIRED.get();
+                summary = INFO_UPGRADE_ORACLE_ACTION.get();
+                details = new MessageBuilder(directive.getMessage())
+                        .append(Constants.HTML_LINE_BREAK)
+                        .append(Constants.HTML_LINE_BREAK)
+                        .append(INFO_ORACLE_ACTION_PROMPT.get())
+                        .toMessage();
                 msgType = UserInteraction.MessageType.WARNING;
                 defaultAction = cancel;
                 break;
               case INFO:
-                title = getMsg("general-info");
-                summary = getMsg("upgrade-oracle-info");
-                details = directive.getMessage() +
-                        Constants.HTML_LINE_BREAK +
-                        Constants.HTML_LINE_BREAK +
-                        getMsg("oracle-info-prompt");
+                title = INFO_GENERAL_INFO.get();
+                summary = INFO_UPGRADE_ORACLE_INFO.get();
+                details = new MessageBuilder(directive.getMessage())
+                        .append(Constants.HTML_LINE_BREAK)
+                        .append(Constants.HTML_LINE_BREAK)
+                        .append(INFO_ORACLE_INFO_PROMPT.get())
+                        .toMessage();
                 msgType = UserInteraction.MessageType.INFORMATION;
                 defaultAction = cont;
                 break;
               case WARNING:
-                title = getMsg("general-warning");
-                summary = getMsg("upgrade-oracle-warning");
-                details = directive.getMessage() +
-                        Constants.HTML_LINE_BREAK +
-                        Constants.HTML_LINE_BREAK +
-                        getMsg("oracle-info-prompt");
+                title = INFO_GENERAL_WARNING.get();
+                summary = INFO_UPGRADE_ORACLE_WARNING.get();
+                details = new MessageBuilder(directive.getMessage())
+                        .append(Constants.HTML_LINE_BREAK)
+                        .append(Constants.HTML_LINE_BREAK)
+                        .append(INFO_ORACLE_INFO_PROMPT.get())
+                        .toMessage();
                 msgType = UserInteraction.MessageType.WARNING;
                 defaultAction = cont;
                 break;
               default:
                 LOG.log(Level.INFO, "Unexpected issue type " +
                         directive.getType());
-                title = "";
-                summary = "";
+                title = Message.EMPTY;
+                summary = Message.EMPTY;
                 details = directive.getMessage();
                 msgType = UserInteraction.MessageType.WARNING;
                 defaultAction = cont;
@@ -134,17 +144,17 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
                     details,
                     title,
                     msgType,
-                    new String[]{cont, cancel},
+                    new Message[]{cont, cancel},
                     defaultAction))) {
               throw new ApplicationException(
                   ApplicationReturnCode.ReturnCode.CANCELLED,
-                      getMsg("upgrade-canceled"), null);
+                      INFO_UPGRADE_CANCELED.get(), null);
             }
           }
         } else {
           throw new ApplicationException(
               ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
-              getMsg("oracle-no-silent"), null);
+              INFO_ORACLE_NO_SILENT.get(), null);
         }
       }
     }
@@ -153,10 +163,10 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
   /**
    * {@inheritDoc}
    */
-  protected String getLocalizedDetailMessage(
+  protected Message getLocalizedDetailMessage(
           VersionCompatibilityIssue.Cause cause)
   {
-    String msg = cause.getLocalizedUpgradeMessage();
+    Message msg = cause.getLocalizedUpgradeMessage();
 
     // See if we need to supply a generic message
     Set<VersionCompatibilityIssue.Effect> effects = cause.getEffects();
@@ -164,9 +174,10 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
     // If the import/export effect is present, append the detailed
     // instructions.
     if (effects.contains(Effect.UPGRADE_DATA_EXPORT_AND_REIMPORT_REQUIRED)) {
-      if (msg == null) msg = "";
-      msg = msg + Constants.HTML_LINE_BREAK +
-              ui.createUnorderedList(getExportImportInstructions());
+      msg = new MessageBuilder(msg)
+              .append(Constants.HTML_LINE_BREAK)
+              .append(ui.createUnorderedList(getExportImportInstructions()))
+              .toMessage();
     }
     return msg;
   }

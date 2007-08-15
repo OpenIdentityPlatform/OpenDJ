@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers.debug;
+import org.opends.messages.Message;
 
 import org.opends.server.api.*;
 import org.opends.server.loggers.*;
@@ -44,13 +45,13 @@ import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import static org.opends.server.messages.ConfigMessages.
-    MSGID_CONFIG_LOGGER_INVALID_ROTATION_POLICY;
-import static org.opends.server.messages.ConfigMessages.
-    MSGID_CONFIG_LOGGER_INVALID_RETENTION_POLICY;
-import static org.opends.server.messages.ConfigMessages.
-    MSGID_CONFIG_LOGGING_CANNOT_CREATE_WRITER;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.ConfigMessages.
+    ERR_CONFIG_LOGGER_INVALID_ROTATION_POLICY;
+import static org.opends.messages.ConfigMessages.
+    WARN_CONFIG_LOGGER_INVALID_RETENTION_POLICY;
+import static org.opends.messages.ConfigMessages.
+    ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER;
+
 
 import java.util.*;
 import java.io.File;
@@ -161,10 +162,9 @@ public class TextDebugLogPublisher
         }
         else
         {
-          int msgID = MSGID_CONFIG_LOGGER_INVALID_ROTATION_POLICY;
-          String message = getMessage(msgID, dn.toString(),
-                                      config.dn().toString());
-          throw new ConfigException(msgID, message);
+          Message message = ERR_CONFIG_LOGGER_INVALID_ROTATION_POLICY.get(
+              dn.toString(), config.dn().toString());
+          throw new ConfigException(message);
         }
       }
       for(DN dn: config.getRetentionPolicyDN())
@@ -176,10 +176,9 @@ public class TextDebugLogPublisher
         }
         else
         {
-          int msgID = MSGID_CONFIG_LOGGER_INVALID_RETENTION_POLICY;
-          String message = getMessage(msgID, dn.toString(),
-                                      config.dn().toString());
-          throw new ConfigException(msgID, message);
+          Message message = WARN_CONFIG_LOGGER_INVALID_RETENTION_POLICY.get(
+              dn.toString(), config.dn().toString());
+          throw new ConfigException(message);
         }
       }
 
@@ -196,18 +195,16 @@ public class TextDebugLogPublisher
     }
     catch(DirectoryException e)
     {
-      int msgID = MSGID_CONFIG_LOGGING_CANNOT_CREATE_WRITER;
-      String message = getMessage(msgID, config.dn().toString(),
-                                  String.valueOf(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+          config.dn().toString(), String.valueOf(e));
+      throw new InitializationException(message, e);
 
     }
     catch(IOException e)
     {
-      int msgID = MSGID_CONFIG_LOGGING_CANNOT_CREATE_WRITER;
-      String message = getMessage(msgID, config.dn().toString(),
-                                  String.valueOf(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+          config.dn().toString(), String.valueOf(e));
+      throw new InitializationException(message, e);
 
     }
 
@@ -258,7 +255,7 @@ public class TextDebugLogPublisher
    */
   @Override()
   public boolean isConfigurationAcceptable(DebugLogPublisherCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     FileBasedDebugLogPublisherCfg config =
          (FileBasedDebugLogPublisherCfg) configuration;
@@ -269,9 +266,9 @@ public class TextDebugLogPublisher
       RotationPolicy policy = DirectoryServer.getRotationPolicy(dn);
       if(policy == null)
       {
-        int msgID = MSGID_CONFIG_LOGGER_INVALID_ROTATION_POLICY;
-        String message = getMessage(msgID, dn.toString(),
-                                    config.dn().toString());
+        Message message = ERR_CONFIG_LOGGER_INVALID_ROTATION_POLICY.get(
+                dn.toString(),
+                config.dn().toString());
         unacceptableReasons.add(message);
         return false;
       }
@@ -281,9 +278,9 @@ public class TextDebugLogPublisher
       RetentionPolicy policy = DirectoryServer.getRetentionPolicy(dn);
       if(policy != null)
       {
-        int msgID = MSGID_CONFIG_LOGGER_INVALID_RETENTION_POLICY;
-        String message = getMessage(msgID, dn.toString(),
-                                    config.dn().toString());
+        Message message = WARN_CONFIG_LOGGER_INVALID_RETENTION_POLICY.get(
+                dn.toString(),
+                config.dn().toString());
         unacceptableReasons.add(message);
         return false;
       }
@@ -296,7 +293,7 @@ public class TextDebugLogPublisher
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-      FileBasedDebugLogPublisherCfg config, List<String> unacceptableReasons)
+      FileBasedDebugLogPublisherCfg config, List<Message> unacceptableReasons)
   {
     // Make sure the permission is valid.
     try
@@ -317,9 +314,9 @@ public class TextDebugLogPublisher
     }
     catch(Exception e)
     {
-      int msgID = MSGID_CONFIG_LOGGING_CANNOT_CREATE_WRITER;
-      String message = getMessage(msgID, config.dn().toString(),
-                                   stackTraceToSingleLineString(e));
+      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+              config.dn().toString(),
+              stackTraceToSingleLineString(e));
       unacceptableReasons.add(message);
       return false;
     }
@@ -336,7 +333,7 @@ public class TextDebugLogPublisher
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     //Get the default/global settings
     LogLevel logLevel =
@@ -410,9 +407,9 @@ public class TextDebugLogPublisher
           }
           else
           {
-            int msgID = MSGID_CONFIG_LOGGER_INVALID_ROTATION_POLICY;
-            String message = getMessage(msgID, dn.toString(),
-                                        config.dn().toString());
+            Message message = ERR_CONFIG_LOGGER_INVALID_ROTATION_POLICY.get(
+                    dn.toString(),
+                    config.dn().toString());
             resultCode = DirectoryServer.getServerErrorResultCode();
             messages.add(message);
           }
@@ -426,9 +423,9 @@ public class TextDebugLogPublisher
           }
           else
           {
-            int msgID = MSGID_CONFIG_LOGGER_INVALID_RETENTION_POLICY;
-            String message = getMessage(msgID, dn.toString(),
-                                        config.dn().toString());
+            Message message = WARN_CONFIG_LOGGER_INVALID_RETENTION_POLICY.get(
+                    dn.toString(),
+                    config.dn().toString());
             resultCode = DirectoryServer.getServerErrorResultCode();
             messages.add(message);
           }
@@ -466,9 +463,9 @@ public class TextDebugLogPublisher
     }
     catch(Exception e)
     {
-      int msgID = MSGID_CONFIG_LOGGING_CANNOT_CREATE_WRITER;
-      String message = getMessage(msgID, config.dn().toString(),
-                                  stackTraceToSingleLineString(e));
+      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+              config.dn().toString(),
+              stackTraceToSingleLineString(e));
       resultCode = DirectoryServer.getServerErrorResultCode();
       messages.add(message);
 
@@ -481,7 +478,7 @@ public class TextDebugLogPublisher
    * {@inheritDoc}
    */
   public boolean isConfigurationAddAcceptable(DebugTargetCfg config,
-                                              List<String> unacceptableReasons)
+                                              List<Message> unacceptableReasons)
   {
     return getTraceSettings(config.getDebugScope()) == null;
   }
@@ -490,7 +487,7 @@ public class TextDebugLogPublisher
    * {@inheritDoc}
    */
   public boolean isConfigurationDeleteAcceptable(DebugTargetCfg config,
-                                               List<String> unacceptableReasons)
+                                              List<Message> unacceptableReasons)
   {
     // A delete should always be acceptable.
     return true;
@@ -504,7 +501,7 @@ public class TextDebugLogPublisher
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     addTraceSettings(config.getDebugScope(), new TraceSettings(config));
 
@@ -521,7 +518,7 @@ public class TextDebugLogPublisher
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     removeTraceSettings(config.getDebugScope());
 

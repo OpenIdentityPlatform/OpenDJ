@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
+import org.opends.messages.Message;
 
 
 
@@ -58,9 +59,10 @@ import org.opends.server.types.RDN;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.UtilityMessages.*;
+import static org.opends.messages.UtilityMessages.*;
+
+import org.opends.messages.MessageBuilder;
+import org.opends.messages.MessageDescriptor;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -1449,7 +1451,7 @@ public final class StaticUtils
    *
    * @return  The human-readable message generated for the provided exception.
    */
-  public static String getExceptionMessage(Throwable t)
+  public static Message getExceptionMessage(Throwable t)
   {
     if (t instanceof IdentifiedException)
     {
@@ -1458,21 +1460,26 @@ public final class StaticUtils
       StringBuilder message = new StringBuilder();
       message.append(ie.getMessage());
       message.append(" (id=");
-      message.append(ie.getMessageID());
+      Message ieMsg = ie.getMessageObject();
+      if (ieMsg != null) {
+        message.append(ieMsg.getDescriptor().getId());
+      } else {
+        message.append(MessageDescriptor.NULL_ID);
+      }
       message.append(")");
-      return message.toString();
+      return Message.raw(message.toString());
     }
     else if (t instanceof NullPointerException)
     {
       StackTraceElement[] stackElements = t.getStackTrace();
 
-      StringBuilder message = new StringBuilder();
+      MessageBuilder message = new MessageBuilder();
       message.append("NullPointerException(");
       message.append(stackElements[0].getFileName());
       message.append(":");
       message.append(stackElements[0].getLineNumber());
       message.append(")");
-      return message.toString();
+      return message.toMessage();
     }
     else if ((t instanceof InvocationTargetException) &&
              (t.getCause() != null))
@@ -1509,7 +1516,7 @@ public final class StaticUtils
 
       message.append(")");
 
-      return message.toString();
+      return Message.raw(message.toString());
     }
   }
 
@@ -1993,9 +2000,8 @@ public final class StaticUtils
 
     if ((length % 2) == 1)
     {
-      int    msgID   = MSGID_HEX_DECODE_INVALID_LENGTH;
-      String message = getMessage(msgID, hexString);
-      throw new ParseException(message, 0);
+      Message message = ERR_HEX_DECODE_INVALID_LENGTH.get(hexString);
+      throw new ParseException(message.toString(), 0);
     }
 
 
@@ -2061,10 +2067,9 @@ public final class StaticUtils
           returnArray[i] = (byte) 0xF0;
           break;
         default:
-          int    msgID   = MSGID_HEX_DECODE_INVALID_CHARACTER;
-          String message = getMessage(msgID, hexString,
-                                      hexString.charAt(pos-1));
-          throw new ParseException(message, 0);
+          Message message = ERR_HEX_DECODE_INVALID_CHARACTER.get(
+              hexString, hexString.charAt(pos-1));
+          throw new ParseException(message.toString(), 0);
       }
 
       switch (hexString.charAt(pos++))
@@ -2124,10 +2129,9 @@ public final class StaticUtils
           returnArray[i] |= 0x0F;
           break;
         default:
-          int    msgID   = MSGID_HEX_DECODE_INVALID_CHARACTER;
-          String message = getMessage(msgID, hexString,
-                                      hexString.charAt(pos-1));
-          throw new ParseException(message, 0);
+          Message message = ERR_HEX_DECODE_INVALID_CHARACTER.get(
+              hexString, hexString.charAt(pos-1));
+          throw new ParseException(message.toString(), 0);
       }
     }
 
@@ -2303,9 +2307,8 @@ public final class StaticUtils
     // throw an exception.
     if (! mayUseExec())
     {
-      int    msgID   = MSGID_EXEC_DISABLED;
-      String message = getMessage(msgID, String.valueOf(command));
-      throw new SecurityException(message);
+      Message message = ERR_EXEC_DISABLED.get(String.valueOf(command));
+      throw new SecurityException(message.toString());
     }
 
 
@@ -2450,12 +2453,11 @@ public final class StaticUtils
    */
   public static boolean isValidSchemaElement(String element, int startPos,
                                              int endPos,
-                                             StringBuilder invalidReason)
+                                             MessageBuilder invalidReason)
   {
     if ((element == null) || (startPos >= endPos))
     {
-      int msgID = MSGID_SCHEMANAME_EMPTY_VALUE;
-      invalidReason.append(getMessage(msgID));
+      invalidReason.append(ERR_SCHEMANAME_EMPTY_VALUE.get());
       return false;
     }
 
@@ -2472,8 +2474,7 @@ public final class StaticUtils
                ((c == '_') && DirectoryServer.allowAttributeNameExceptions())))
         {
           // This is an illegal character for an attribute name.
-          int msgID = MSGID_SCHEMANAME_ILLEGAL_CHAR;
-          invalidReason.append(getMessage(msgID, element, c, i));
+          invalidReason.append(ERR_SCHEMANAME_ILLEGAL_CHAR.get(element, c, i));
           return false;
         }
       }
@@ -2500,8 +2501,8 @@ public final class StaticUtils
               // period.
               if (lastWasDot)
               {
-                int msgID = MSGID_SCHEMANAME_CONSECUTIVE_PERIODS;
-                invalidReason.append(getMessage(msgID, element, i));
+                invalidReason.append(ERR_SCHEMANAME_CONSECUTIVE_PERIODS.get(
+                        element, i));
                 return false;
               }
               else
@@ -2512,8 +2513,8 @@ public final class StaticUtils
             else
             {
               // This is an illegal character.
-              int msgID = MSGID_SCHEMANAME_ILLEGAL_CHAR;
-              invalidReason.append(getMessage(msgID, element, c, i));
+              invalidReason.append(ERR_SCHEMANAME_ILLEGAL_CHAR.get(
+                      element, c, i));
               return false;
             }
           }
@@ -2537,8 +2538,8 @@ public final class StaticUtils
               if (isNumeric)
               {
                 // This is an illegal character for a numeric OID.
-                int msgID = MSGID_SCHEMANAME_ILLEGAL_CHAR;
-                invalidReason.append(getMessage(msgID, element, c, i));
+                invalidReason.append(ERR_SCHEMANAME_ILLEGAL_CHAR.get(
+                        element, c, i));
                 return false;
               }
             }
@@ -2553,8 +2554,8 @@ public final class StaticUtils
           else if (! isDigit(c))
           {
             // This is an illegal character.
-            int msgID = MSGID_SCHEMANAME_ILLEGAL_CHAR;
-            invalidReason.append(getMessage(msgID, element, c, i));
+            invalidReason.append(ERR_SCHEMANAME_ILLEGAL_CHAR.get(
+                    element, c, i));
             return false;
           }
         }
@@ -2563,8 +2564,8 @@ public final class StaticUtils
     else
     {
       // This is an illegal character.
-      int msgID = MSGID_SCHEMANAME_ILLEGAL_CHAR;
-      invalidReason.append(getMessage(msgID, element, c, startPos));
+      invalidReason.append(ERR_SCHEMANAME_ILLEGAL_CHAR.get(
+              element, c, startPos));
       return false;
     }
 
@@ -3342,30 +3343,28 @@ public final class StaticUtils
   {
     if (! fileToMove.exists())
     {
-      int    msgID   = MSGID_MOVEFILE_NO_SUCH_FILE;
-      String message = getMessage(msgID, fileToMove.getPath());
-      throw new IOException(message);
+      Message message = ERR_MOVEFILE_NO_SUCH_FILE.get(fileToMove.getPath());
+      throw new IOException(message.toString());
     }
 
     if (! fileToMove.isFile())
     {
-      int    msgID   = MSGID_MOVEFILE_NOT_FILE;
-      String message = getMessage(msgID, fileToMove.getPath());
-      throw new IOException(message);
+      Message message = ERR_MOVEFILE_NOT_FILE.get(fileToMove.getPath());
+      throw new IOException(message.toString());
     }
 
     if (! targetDirectory.exists())
     {
-      int    msgID   = MSGID_MOVEFILE_NO_SUCH_DIRECTORY;
-      String message = getMessage(msgID, targetDirectory.getPath());
-      throw new IOException(message);
+      Message message =
+          ERR_MOVEFILE_NO_SUCH_DIRECTORY.get(targetDirectory.getPath());
+      throw new IOException(message.toString());
     }
 
     if (! targetDirectory.isDirectory())
     {
-      int    msgID   = MSGID_MOVEFILE_NOT_DIRECTORY;
-      String message = getMessage(msgID, targetDirectory.getPath());
-      throw new IOException(message);
+      Message message =
+          ERR_MOVEFILE_NOT_DIRECTORY.get(targetDirectory.getPath());
+      throw new IOException(message.toString());
     }
 
     String newFilePath = targetDirectory.getPath() + File.separator +
@@ -3414,18 +3413,17 @@ public final class StaticUtils
         {
           if (!target.delete())
           {
-            int    msgID   = MSGID_RENAMEFILE_CANNOT_DELETE_TARGET;
-            String message = getMessage(msgID, target.getPath());
-            throw new IOException(message);
+            Message message =
+                ERR_RENAMEFILE_CANNOT_DELETE_TARGET.get(target.getPath());
+            throw new IOException(message.toString());
           }
         }
       }
       if (!fileToRename.renameTo(target))
       {
-        int    msgID   = MSGID_RENAMEFILE_CANNOT_RENAME;
-        String message = getMessage(msgID, fileToRename.getPath(),
-                target.getPath());
-        throw new IOException(message);
+        Message message = ERR_RENAMEFILE_CANNOT_RENAME.get(
+            fileToRename.getPath(), target.getPath());
+        throw new IOException(message.toString());
 
       }
     }
@@ -3643,19 +3641,19 @@ public final class StaticUtils
    * @return  The user-friendly representation of the specified number of
    *          seconds.
    */
-  public static String secondsToTimeString(int numSeconds)
+  public static Message secondsToTimeString(int numSeconds)
   {
     if (numSeconds < 60)
     {
       // We can express it in seconds.
-      return getMessage(MSGID_TIME_IN_SECONDS, numSeconds);
+      return INFO_TIME_IN_SECONDS.get(numSeconds);
     }
     else if (numSeconds < 3600)
     {
       // We can express it in minutes and seconds.
       int m = numSeconds / 60;
       int s = numSeconds % 60;
-      return getMessage(MSGID_TIME_IN_MINUTES_SECONDS, m, s);
+      return INFO_TIME_IN_MINUTES_SECONDS.get(m, s);
     }
     else if (numSeconds < 86400)
     {
@@ -3663,7 +3661,7 @@ public final class StaticUtils
       int h = numSeconds / 3600;
       int m = (numSeconds % 3600) / 60;
       int s = numSeconds % 3600 % 60;
-      return getMessage(MSGID_TIME_IN_HOURS_MINUTES_SECONDS, h, m, s);
+      return INFO_TIME_IN_HOURS_MINUTES_SECONDS.get(h, m, s);
     }
     else
     {
@@ -3672,11 +3670,28 @@ public final class StaticUtils
       int h = (numSeconds % 86400) / 3600;
       int m = (numSeconds % 86400 % 3600) / 60;
       int s = numSeconds % 86400 % 3600 % 60;
-      return getMessage(MSGID_TIME_IN_DAYS_HOURS_MINUTES_SECONDS, d, h, m, s);
+      return INFO_TIME_IN_DAYS_HOURS_MINUTES_SECONDS.get(d, h, m, s);
     }
   }
 
 
+
+  /**
+   * Inserts line breaks into the provided buffer to wrap text at no more than
+   * the specified column width.  Wrapping will only be done at space boundaries
+   * and if there are no spaces within the specified width, then wrapping will
+   * be performed at the first space after the specified column.
+   *
+   * @param  message The message to be wrapped.
+   * @param  width  The maximum number of characters to allow on a line if there
+   *                is a suitable breaking point.
+   *
+   * @return  The wrapped text.
+   */
+  public static String wrapText(Message message, int width)
+  {
+    return wrapText(Message.toString(message), width);
+  }
 
   /**
    * Inserts line breaks into the provided buffer to wrap text at no more than

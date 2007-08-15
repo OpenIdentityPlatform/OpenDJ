@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -42,10 +43,7 @@ import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-
-
+import static org.opends.messages.ExtensionMessages.*;
 /**
  * This class defines a Directory Server password storage scheme that will store
  * the values in base64-encoded form.  This is a reversible algorithm that
@@ -175,11 +173,10 @@ public class Base64PasswordStorageScheme
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD;
-      String message = getMessage(msgID, storedPassword.stringValue(),
-                                  String.valueOf(e));
+      Message message = ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(
+          storedPassword.stringValue(), String.valueOf(e));
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
-                                   msgID, e);
+                                   e);
     }
   }
 
@@ -204,10 +201,9 @@ public class Base64PasswordStorageScheme
   public ByteString encodeAuthPassword(ByteString plaintext)
          throws DirectoryException
   {
-    int    msgID   = MSGID_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD;
-    String message = getMessage(msgID, getStorageSchemeName());
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message =
+        ERR_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD.get(getStorageSchemeName());
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -233,10 +229,9 @@ public class Base64PasswordStorageScheme
                                                   String authValue)
          throws DirectoryException
   {
-    int    msgID   = MSGID_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD;
-    String message = getMessage(msgID, getStorageSchemeName());
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message =
+        ERR_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD.get(getStorageSchemeName());
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 

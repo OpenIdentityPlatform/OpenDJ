@@ -26,7 +26,7 @@
  */
 package org.opends.server.admin.client.cli;
 
-import static org.opends.server.messages.AdminMessages.*;
+import static org.opends.messages.AdminMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 
 import java.io.OutputStream;
@@ -181,26 +181,26 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
 
     // Create-ads subcommand
     createAdsSubCmd = new SubCommand(argParser, SubCommandNameEnum.CREATE_ADS
-        .toString(), MSGID_ADMIN_SUBCMD_CREATE_ADS_DESCRIPTION);
+        .toString(), INFO_ADMIN_SUBCMD_CREATE_ADS_DESCRIPTION.get());
     createAdsSubCmd.setHidden(true);
     subCommands.add(createAdsSubCmd);
 
     createAdsBackendNameArg = new StringArgument("backendName",
         OPTION_SHORT_BACKENDNAME, OPTION_LONG_BACKENDNAME, true, true,
         OPTION_VALUE_BACKENDNAME,
-        MSGID_ADMIN_ARG_BACKENDNAME_DESCRIPTION);
+        INFO_ADMIN_ARG_BACKENDNAME_DESCRIPTION.get());
     createAdsSubCmd.addArgument(createAdsBackendNameArg);
 
     // delete-ads
     deleteAdsSubCmd = new SubCommand(argParser,SubCommandNameEnum.DELETE_ADS
-        .toString(), MSGID_ADMIN_SUBCMD_DELETE_ADS_DESCRIPTION);
+        .toString(), INFO_ADMIN_SUBCMD_DELETE_ADS_DESCRIPTION.get());
     deleteAdsSubCmd.setHidden(true);
     subCommands.add(deleteAdsSubCmd);
 
     deleteAdsBackendNameArg = new StringArgument("backendName",
         OPTION_SHORT_BACKENDNAME, OPTION_LONG_BACKENDNAME, true, true,
         OPTION_VALUE_BACKENDNAME,
-        MSGID_ADMIN_ARG_BACKENDNAME_DESCRIPTION);
+        INFO_ADMIN_ARG_BACKENDNAME_DESCRIPTION.get());
     deleteAdsSubCmd.addArgument(deleteAdsBackendNameArg);
   }
 

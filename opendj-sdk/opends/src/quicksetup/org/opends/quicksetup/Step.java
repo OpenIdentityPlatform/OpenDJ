@@ -27,6 +27,10 @@
 
 package org.opends.quicksetup;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.messages.AdminToolMessages.*;
+
 /**
  * This enumeration just represents the different steps that we can have in
  * the installation and uninstallation wizards.
@@ -38,64 +42,64 @@ public enum Step implements WizardStep
   /**
    * Welcome step for the installation.
    */
-  WELCOME("welcome-step"),
+  WELCOME(INFO_WELCOME_STEP.get()),
 
   /**
    * Confirmation panel for the uninstallation.
    */
-  CONFIRM_UNINSTALL("confirm-uninstall-step"),
+  CONFIRM_UNINSTALL(INFO_CONFIRM_UNINSTALL_STEP.get()),
 
   /**
    * Server Settings step (path, port, etc.).
    */
-  SERVER_SETTINGS("server-settings-step"),
+  SERVER_SETTINGS(INFO_SERVER_SETTINGS_STEP.get()),
 
   /**
    * Data Replication panel (standalone or replicated).
    */
-  REPLICATION_OPTIONS("data-replication-step"),
+  REPLICATION_OPTIONS(INFO_DATA_REPLICATION_STEP.get()),
   /**
    * Global Administrator creation panel.
    */
-  CREATE_GLOBAL_ADMINISTRATOR("create-global-administrator-step"),
+  CREATE_GLOBAL_ADMINISTRATOR(INFO_CREATE_GLOBAL_ADMINISTRATOR_STEP.get()),
   /**
    * Suffixes to Replicate.
    */
-  SUFFIXES_OPTIONS("suffixes-step"),
+  SUFFIXES_OPTIONS(INFO_SUFFIXES_STEP.get()),
   /**
    * Panel when the user specifies the replication ports of the remote servers
    * that have not defined it.
    */
-  REMOTE_REPLICATION_PORTS("remote-replication-ports-step"),
+  REMOTE_REPLICATION_PORTS(INFO_REMOTE_REPLICATION_PORTS_STEP.get()),
   /**
    * Data Options panel (suffix dn, LDIF path, etc.).
    */
-  NEW_SUFFIX_OPTIONS("data-options-step"),
+  NEW_SUFFIX_OPTIONS(INFO_DATA_OPTIONS_STEP.get()),
 
   /**
    * Review panel for the install.
    */
-  REVIEW("review-step"),
+  REVIEW(INFO_REVIEW_STEP.get()),
 
   /**
    * Progress panel.
    */
-  PROGRESS("progress-step"),
+  PROGRESS(INFO_PROGRESS_STEP.get()),
 
   /**
    * Finished panel.
    */
-  FINISHED("finished-step");
+  FINISHED(INFO_FINISHED_STEP.get());
 
-  private String msgKey;
+  private Message msg;
 
   /**
    * Creates a step.
-   * @param msgKey the message key used to access a message catalog to
+   * @param msg the message key used to access a message catalog to
    * retreive this step's display name
    */
-  Step(String msgKey) {
-    this.msgKey = msgKey;
+  Step(Message msg) {
+    this.msg = msg;
   }
 
   /**
@@ -103,8 +107,8 @@ public enum Step implements WizardStep
    * @return String message key used to access a message catalog to
    * retreive this step's display name
    */
-  public String getMessageKey() {
-    return msgKey;
+  public Message getDisplayMessage() {
+    return msg;
   }
 
   /**

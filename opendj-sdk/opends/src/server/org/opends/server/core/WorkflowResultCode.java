@@ -25,6 +25,8 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 
 import org.opends.server.types.ResultCode;
@@ -40,7 +42,7 @@ public class WorkflowResultCode
   private ResultCode resultCode = ResultCode.UNDEFINED;
 
   // The global error message.
-  private StringBuilder errorMessage = new StringBuilder ("");
+  private MessageBuilder errorMessage = new MessageBuilder(Message.EMPTY);
 
 
   /**
@@ -61,8 +63,8 @@ public class WorkflowResultCode
    * @param errorMessage  the initial value for the error message
    */
   public WorkflowResultCode(
-      ResultCode    resultCode,
-      StringBuilder errorMessage
+      ResultCode     resultCode,
+      MessageBuilder errorMessage
       )
   {
     this.resultCode   = resultCode;
@@ -114,8 +116,8 @@ public class WorkflowResultCode
    *         into a reference entry
    */
   public boolean elaborateGlobalResultCode(
-      ResultCode    newResultCode,
-      StringBuilder newErrorMessage
+      ResultCode     newResultCode,
+      MessageBuilder newErrorMessage
       )
   {
     // Returned value
@@ -126,7 +128,7 @@ public class WorkflowResultCode
     if (resultCode == ResultCode.UNDEFINED)
     {
       resultCode   = newResultCode;
-      errorMessage = new StringBuilder (newErrorMessage);
+      errorMessage = new MessageBuilder (newErrorMessage);
     }
     else
     {
@@ -143,11 +145,11 @@ public class WorkflowResultCode
         {
           case NO_SUCH_OBJECT:
             resultCode = ResultCode.SUCCESS;
-            errorMessage = new StringBuilder ("");
+            errorMessage = new MessageBuilder(Message.EMPTY);
             break;
           case REFERRAL:
             resultCode = ResultCode.SUCCESS;
-            errorMessage = new StringBuilder ("");
+            errorMessage = new MessageBuilder(Message.EMPTY);
             sendReferenceEntry = true;
             break;
           default:
@@ -171,12 +173,12 @@ public class WorkflowResultCode
         {
           case REFERRAL:
             resultCode = ResultCode.SUCCESS;
-            errorMessage = new StringBuilder ("");
+            errorMessage = new MessageBuilder(Message.EMPTY);
             sendReferenceEntry = true;
             break;
           case NO_SUCH_OBJECT:
             resultCode = ResultCode.REFERRAL;
-            errorMessage = new StringBuilder (newErrorMessage);
+            errorMessage = new MessageBuilder (Message.EMPTY);
             break;
           default:
             // global resultCode remains the same
@@ -193,23 +195,23 @@ public class WorkflowResultCode
         {
           case REFERRAL:
             resultCode = newResultCode;
-            errorMessage = new StringBuilder (newErrorMessage);
+            errorMessage = new MessageBuilder (newErrorMessage);
             sendReferenceEntry = true;
             break;
           case SUCCESS:
             resultCode = newResultCode;
-            errorMessage = new StringBuilder (newErrorMessage);
+            errorMessage = new MessageBuilder (newErrorMessage);
             break;
           case NO_SUCH_OBJECT:
             resultCode = newResultCode;
-            errorMessage = new StringBuilder (newErrorMessage);
+            errorMessage = new MessageBuilder (newErrorMessage);
             break;
           default:
             // global resultCode remains the same but append the new
             // error message into the current error message
             if (errorMessage == null)
             {
-              errorMessage =  new StringBuilder (newErrorMessage);
+              errorMessage =  new MessageBuilder (newErrorMessage);
             }
             else
             {
@@ -241,7 +243,7 @@ public class WorkflowResultCode
    *
    * @return the global error message.
    */
-  public StringBuilder errorMessage()
+  public MessageBuilder errorMessage()
   {
     return errorMessage;
   }

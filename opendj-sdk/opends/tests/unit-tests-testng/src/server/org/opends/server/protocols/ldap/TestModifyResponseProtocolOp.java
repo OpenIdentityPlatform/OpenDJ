@@ -34,6 +34,7 @@ import org.opends.server.types.RDN;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.*;
 import static org.opends.server.util.ServerConstants.EOL;
+import org.opends.messages.Message;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertEquals;
@@ -68,7 +69,7 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
   /**
    * The error message to use for add result operations.
    */
-  private static final String resultMsg = "Test Successful";
+  private static final Message resultMsg = Message.raw("Test Successful");
 
 /**
    * The DN to use for add result operations
@@ -259,7 +260,7 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
     elements.add(new ASN1Enumerated(resultCode));
     elements.add(new ASN1OctetString(dn.toString()));
-    elements.add(new ASN1OctetString(resultMsg));
+    elements.add(new ASN1OctetString(String.valueOf(resultMsg)));
     elements.add(new ASN1Null());
     ModifyResponseProtocolOp.decode(new ASN1Sequence(OP_TYPE_MODIFY_RESPONSE,
                                                     elements));

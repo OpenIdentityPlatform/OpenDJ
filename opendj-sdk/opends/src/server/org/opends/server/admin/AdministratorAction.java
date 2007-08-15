@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.admin;
+import org.opends.messages.Message;
 
 
 
@@ -149,7 +150,7 @@ public final class AdministratorAction {
    *         default locale, or <code>null</code> if there is no
    *         synopsis defined.
    */
-  public final String getSynopsis() {
+  public final Message getSynopsis() {
     return getSynopsis(Locale.getDefault());
   }
 
@@ -165,7 +166,7 @@ public final class AdministratorAction {
    *         specified locale, or <code>null</code> if there is no
    *         synopsis defined.
    */
-  public final String getSynopsis(Locale locale) {
+  public final Message getSynopsis(Locale locale) {
     ManagedObjectDefinitionI18NResource resource =
       ManagedObjectDefinitionI18NResource.getInstance();
     String property = "property." + propertyName

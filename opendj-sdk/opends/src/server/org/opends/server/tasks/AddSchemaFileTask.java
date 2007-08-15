@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
+import org.opends.messages.Message;
 
 
 
@@ -50,8 +51,6 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
@@ -63,8 +62,7 @@ import org.opends.server.types.Schema;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.TaskMessages.*;
+import static org.opends.messages.TaskMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -102,10 +100,9 @@ public class AddSchemaFileTask
       ClientConnection clientConnection = operation.getClientConnection();
       if (! clientConnection.hasPrivilege(Privilege.UPDATE_SCHEMA, operation))
       {
-        int    msgID   = MSGID_TASK_ADDSCHEMAFILE_INSUFFICIENT_PRIVILEGES;
-        String message = getMessage(msgID);
+        Message message = ERR_TASK_ADDSCHEMAFILE_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -117,11 +114,9 @@ public class AddSchemaFileTask
     List<Attribute> attrList = taskEntry.getAttribute(attrType);
     if ((attrList == null) || attrList.isEmpty())
     {
-      int    msgID   = MSGID_TASK_ADDSCHEMAFILE_NO_FILENAME;
-      String message = getMessage(msgID, ATTR_TASK_ADDSCHEMAFILE_FILENAME,
-                                  String.valueOf(taskEntry.getDN()));
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_TASK_ADDSCHEMAFILE_NO_FILENAME.get(
+          ATTR_TASK_ADDSCHEMAFILE_FILENAME, String.valueOf(taskEntry.getDN()));
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
 
@@ -142,10 +137,10 @@ public class AddSchemaFileTask
           if ((! schemaFile.exists()) ||
               (! schemaFile.getParent().equals(schemaDirectory)))
           {
-            int    msgID   = MSGID_TASK_ADDSCHEMAFILE_NO_SUCH_FILE;
-            String message = getMessage(msgID, filename, schemaDirectory);
+            Message message = ERR_TASK_ADDSCHEMAFILE_NO_SUCH_FILE.get(
+                filename, schemaDirectory);
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message, msgID);
+                                         message);
           }
         }
         catch (Exception e)
@@ -155,11 +150,10 @@ public class AddSchemaFileTask
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_CHECKING_FOR_FILE;
-          String message = getMessage(msgID, filename, schemaDirectory,
-                                      getExceptionMessage(e));
+          Message message = ERR_TASK_ADDSCHEMAFILE_ERROR_CHECKING_FOR_FILE.get(
+              filename, schemaDirectory, getExceptionMessage(e));
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                       message, msgID, e);
+                                       message, e);
         }
       }
     }
@@ -184,11 +178,10 @@ public class AddSchemaFileTask
           TRACER.debugCaught(DebugLogLevel.ERROR, ce);
         }
 
-        int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE;
-        String message = getMessage(msgID, String.valueOf(schemaFile),
-                                    ce.getMessage());
+        Message message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.get(
+            String.valueOf(schemaFile), ce.getMessage());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, ce);
+                                     message, ce);
       }
       catch (InitializationException ie)
       {
@@ -197,11 +190,10 @@ public class AddSchemaFileTask
           TRACER.debugCaught(DebugLogLevel.ERROR, ie);
         }
 
-        int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE;
-        String message = getMessage(msgID, String.valueOf(schemaFile),
-                                    ie.getMessage());
+        Message message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.get(
+            String.valueOf(schemaFile), ie.getMessage());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, ie);
+                                     message, ie);
       }
     }
   }
@@ -224,10 +216,9 @@ public class AddSchemaFileTask
 
     if (schemaLock == null)
     {
-      int    msgID   = MSGID_TASK_ADDSCHEMAFILE_CANNOT_LOCK_SCHEMA;
-      String message = getMessage(msgID, String.valueOf(schemaDN));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_TASK_ADDSCHEMAFILE_CANNOT_LOCK_SCHEMA.get(
+          String.valueOf(schemaDN));
+      logError(message);
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -280,11 +271,9 @@ public class AddSchemaFileTask
             TRACER.debugCaught(DebugLogLevel.ERROR, ce);
           }
 
-          int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE;
-          String message = getMessage(msgID, String.valueOf(schemaFile),
-                                      ce.getMessage());
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.
+              get(String.valueOf(schemaFile), ce.getMessage());
+          logError(message);
           return TaskState.STOPPED_BY_ERROR;
         }
         catch (InitializationException ie)
@@ -294,11 +283,9 @@ public class AddSchemaFileTask
             TRACER.debugCaught(DebugLogLevel.ERROR, ie);
           }
 
-          int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE;
-          String message = getMessage(msgID, String.valueOf(schemaFile),
-                                      ie.getMessage());
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.
+              get(String.valueOf(schemaFile), ie.getMessage());
+          logError(message);
           return TaskState.STOPPED_BY_ERROR;
         }
       }
@@ -319,11 +306,10 @@ public class AddSchemaFileTask
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            int msgID = MSGID_TASK_ADDSCHEMAFILE_CANNOT_NOTIFY_SYNC_PROVIDER;
-            String message = getMessage(msgID, provider.getClass().getName(),
-                                        getExceptionMessage(e));
-            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
+            Message message =
+                ERR_TASK_ADDSCHEMAFILE_CANNOT_NOTIFY_SYNC_PROVIDER.
+                  get(provider.getClass().getName(), getExceptionMessage(e));
+            logError(message);
           }
         }
 

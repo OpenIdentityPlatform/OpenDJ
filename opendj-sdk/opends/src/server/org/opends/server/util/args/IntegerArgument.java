@@ -25,12 +25,12 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util.args;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
-
+import static org.opends.messages.UtilityMessages.*;
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -70,10 +70,8 @@ public class IntegerArgument
    *                           be displayed in usage information, or
    *                           <CODE>null</CODE> if this argument does not
    *                           require a value.
-   * @param  descriptionID     The unique ID of the description for this
+   * @param  description       Message for the description of this
    *                           argument.
-   * @param  descriptionArgs   The arguments that are to be used when generating
-   *                           the description for this argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
    *                             parameters used to create this argument.
@@ -81,11 +79,11 @@ public class IntegerArgument
   public IntegerArgument(String name, Character shortIdentifier,
                          String longIdentifier, boolean isRequired,
                          boolean needsValue, String valuePlaceholder,
-                         int descriptionID, Object... descriptionArgs)
+                         Message description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, false, needsValue,
-          valuePlaceholder, null, null, descriptionID, descriptionArgs);
+          valuePlaceholder, null, null, description);
 
     hasLowerBound = false;
     hasUpperBound = false;
@@ -119,10 +117,8 @@ public class IntegerArgument
    *                           enforced for values of this argument.
    * @param  upperBound        The upper bound that should be enforced for
    *                           values of this argument.
-   * @param  descriptionID     The unique ID of the description for this
+   * @param  description       Message for the description of this
    *                           argument.
-   * @param  descriptionArgs   The arguments that are to be used when generating
-   *                           the description for this argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
    *                             parameters used to create this argument.
@@ -132,11 +128,11 @@ public class IntegerArgument
                          boolean needsValue, String valuePlaceholder,
                          boolean hasLowerBound, int lowerBound,
                          boolean hasUpperBound, int upperBound,
-                         int descriptionID, Object... descriptionArgs)
+                         Message description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, false, needsValue,
-          valuePlaceholder, null, null, descriptionID, descriptionArgs);
+          valuePlaceholder, null, null, description);
 
     this.hasLowerBound = hasLowerBound;
     this.hasUpperBound = hasUpperBound;
@@ -145,9 +141,9 @@ public class IntegerArgument
 
     if (hasLowerBound && hasUpperBound && (lowerBound > upperBound))
     {
-      int    msgID   = MSGID_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND;
-      String message = getMessage(msgID, name, lowerBound, upperBound);
-      throw new ArgumentException(msgID, message);
+      Message message = ERR_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND.get(
+          name, lowerBound, upperBound);
+      throw new ArgumentException(message);
     }
   }
 
@@ -178,10 +174,8 @@ public class IntegerArgument
    * @param  propertyName      The name of the property in a property file that
    *                           may be used to override the default value but
    *                           will be overridden by a command-line argument.
-   * @param  descriptionID     The unique ID of the description for this
+   * @param  description       Message for the description of this
    *                           argument.
-   * @param  descriptionArgs   The arguments that are to be used when generating
-   *                           the description for this argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
    *                             parameters used to create this argument.
@@ -190,13 +184,13 @@ public class IntegerArgument
                          String longIdentifier, boolean isRequired,
                          boolean isMultiValued, boolean needsValue,
                          String valuePlaceholder, int defaultValue,
-                         String propertyName, int descriptionID,
-                         Object... descriptionArgs)
+                         String propertyName,
+                         Message description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, isMultiValued,
           needsValue, valuePlaceholder, String.valueOf(defaultValue),
-          propertyName, descriptionID, descriptionArgs);
+          propertyName, description);
 
     hasLowerBound = false;
     hasUpperBound = false;
@@ -239,10 +233,8 @@ public class IntegerArgument
    *                           enforced for values of this argument.
    * @param  upperBound        The upper bound that should be enforced for
    *                           values of this argument.
-   * @param  descriptionID     The unique ID of the description for this
+   * @param  description       Message for the description of this
    *                           argument.
-   * @param  descriptionArgs   The arguments that are to be used when generating
-   *                           the description for this argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
    *                             parameters used to create this argument.
@@ -253,12 +245,12 @@ public class IntegerArgument
                          String valuePlaceholder, int defaultValue,
                          String propertyName, boolean hasLowerBound,
                          int lowerBound, boolean hasUpperBound, int upperBound,
-                         int descriptionID, Object... descriptionArgs)
+                         Message description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, isMultiValued,
           needsValue, valuePlaceholder, String.valueOf(defaultValue),
-          propertyName, descriptionID, descriptionArgs);
+          propertyName, description);
 
     this.hasLowerBound = hasLowerBound;
     this.hasUpperBound = hasUpperBound;
@@ -267,9 +259,9 @@ public class IntegerArgument
 
     if (hasLowerBound && hasUpperBound && (lowerBound > upperBound))
     {
-      int    msgID   = MSGID_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND;
-      String message = getMessage(msgID, name, lowerBound, upperBound);
-      throw new ArgumentException(msgID, message);
+      Message message = ERR_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND.get(
+          name, lowerBound, upperBound);
+      throw new ArgumentException(message);
     }
   }
 
@@ -339,7 +331,7 @@ public class IntegerArgument
    *          <CODE>false</CODE> if it is not.
    */
   public boolean valueIsAcceptable(String valueString,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // First, the value must be decodable as an integer.
     int intValue;
@@ -349,8 +341,8 @@ public class IntegerArgument
     }
     catch (Exception e)
     {
-      int msgID = MSGID_ARG_CANNOT_DECODE_AS_INT;
-      invalidReason.append(getMessage(msgID, valueString, getName()));
+      invalidReason.append(ERR_ARG_CANNOT_DECODE_AS_INT.get(
+              valueString, getName()));
       return false;
     }
 
@@ -359,8 +351,8 @@ public class IntegerArgument
     // to it.
     if (hasLowerBound && (intValue < lowerBound))
     {
-      int msgID = MSGID_INTARG_VALUE_BELOW_LOWER_BOUND;
-      invalidReason.append(getMessage(msgID, getName(), intValue, lowerBound));
+      invalidReason.append(ERR_INTARG_VALUE_BELOW_LOWER_BOUND.get(
+              getName(), intValue, lowerBound));
       return false;
     }
 
@@ -369,8 +361,9 @@ public class IntegerArgument
     // it.
     if (hasUpperBound && (intValue > upperBound))
     {
-      int msgID = MSGID_INTARG_VALUE_ABOVE_UPPER_BOUND;
-      invalidReason.append(getMessage(msgID, getName(), intValue, upperBound));
+
+      invalidReason.append(ERR_INTARG_VALUE_ABOVE_UPPER_BOUND.get(
+              getName(), intValue, upperBound));
       return false;
     }
 

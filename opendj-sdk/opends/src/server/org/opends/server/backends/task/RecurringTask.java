@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.task;
+import org.opends.messages.Message;
 
 
 
@@ -46,8 +47,7 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.BackendMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -117,38 +117,33 @@ public class RecurringTask
     List<Attribute> attrList = recurringTaskEntry.getAttribute(attrType);
     if ((attrList == null) || attrList.isEmpty())
     {
-      int    msgID   = MSGID_RECURRINGTASK_NO_ID_ATTRIBUTE;
-      String message = getMessage(msgID, ATTR_RECURRING_TASK_ID);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message =
+          ERR_RECURRINGTASK_NO_ID_ATTRIBUTE.get(ATTR_RECURRING_TASK_ID);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     if (attrList.size() > 1)
     {
-      int    msgID   = MSGID_RECURRINGTASK_MULTIPLE_ID_TYPES;
-      String message = getMessage(msgID, ATTR_RECURRING_TASK_ID);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message =
+          ERR_RECURRINGTASK_MULTIPLE_ID_TYPES.get(ATTR_RECURRING_TASK_ID);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     Attribute attr = attrList.get(0);
     LinkedHashSet<AttributeValue> values = attr.getValues();
     if ((values == null) || values.isEmpty())
     {
-      int    msgID   = MSGID_RECURRINGTASK_NO_ID;
-      String message = getMessage(msgID, ATTR_RECURRING_TASK_ID);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_RECURRINGTASK_NO_ID.get(ATTR_RECURRING_TASK_ID);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     Iterator<AttributeValue> iterator = values.iterator();
     AttributeValue value = iterator.next();
     if (iterator.hasNext())
     {
-      int    msgID   = MSGID_RECURRINGTASK_MULTIPLE_ID_VALUES;
-      String message = getMessage(msgID, ATTR_RECURRING_TASK_ID);
-      throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message,
-                                   msgID);
+      Message message =
+          ERR_RECURRINGTASK_MULTIPLE_ID_VALUES.get(ATTR_RECURRING_TASK_ID);
+      throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
     }
 
     recurringTaskID = value.getStringValue();
@@ -170,38 +165,34 @@ public class RecurringTask
     attrList = recurringTaskEntry.getAttribute(attrType);
     if ((attrList == null) || attrList.isEmpty())
     {
-      int    msgID   = MSGID_RECURRINGTASK_NO_CLASS_ATTRIBUTE;
-      String message = getMessage(msgID, ATTR_RECURRING_TASK_CLASS_NAME);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_RECURRINGTASK_NO_CLASS_ATTRIBUTE.get(
+          ATTR_RECURRING_TASK_CLASS_NAME);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     if (attrList.size() > 0)
     {
-      int    msgID   = MSGID_RECURRINGTASK_MULTIPLE_CLASS_TYPES;
-      String message = getMessage(msgID, ATTR_RECURRING_TASK_CLASS_NAME);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_RECURRINGTASK_MULTIPLE_CLASS_TYPES.get(
+          ATTR_RECURRING_TASK_CLASS_NAME);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     attr = attrList.get(0);
     values = attr.getValues();
     if ((values == null) || values.isEmpty())
     {
-      int    msgID   = MSGID_RECURRINGTASK_NO_CLASS_VALUES;
-      String message = getMessage(msgID, ATTR_RECURRING_TASK_CLASS_NAME);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message =
+          ERR_RECURRINGTASK_NO_CLASS_VALUES.get(ATTR_RECURRING_TASK_CLASS_NAME);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     iterator = values.iterator();
     value = iterator.next();
     if (iterator.hasNext())
     {
-      int    msgID   = MSGID_RECURRINGTASK_MULTIPLE_CLASS_VALUES;
-      String message = getMessage(msgID, ATTR_RECURRING_TASK_CLASS_NAME);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_RECURRINGTASK_MULTIPLE_CLASS_VALUES.get(
+          ATTR_RECURRING_TASK_CLASS_NAME);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     taskClassName = value.getStringValue();
@@ -220,12 +211,11 @@ public class RecurringTask
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_RECURRINGTASK_CANNOT_LOAD_CLASS;
-      String message = getMessage(msgID, String.valueOf(taskClassName),
-                                  ATTR_RECURRING_TASK_CLASS_NAME,
-                                  getExceptionMessage(e));
+      Message message = ERR_RECURRINGTASK_CANNOT_LOAD_CLASS.
+          get(String.valueOf(taskClassName), ATTR_RECURRING_TASK_CLASS_NAME,
+              getExceptionMessage(e));
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID, e);
+                                   e);
     }
 
 
@@ -242,11 +232,10 @@ public class RecurringTask
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_RECURRINGTASK_CANNOT_INSTANTIATE_CLASS_AS_TASK;
-      String message = getMessage(msgID, String.valueOf(taskClassName),
-                                  Task.class.getName());
+      Message message = ERR_RECURRINGTASK_CANNOT_INSTANTIATE_CLASS_AS_TASK.get(
+          String.valueOf(taskClassName), Task.class.getName());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID, e);
+                                   e);
     }
 
 
@@ -263,11 +252,10 @@ public class RecurringTask
         TRACER.debugCaught(DebugLogLevel.ERROR, ie);
       }
 
-      int    msgID   = MSGID_RECURRINGTASK_CANNOT_INITIALIZE_INTERNAL;
-      String message = getMessage(msgID, String.valueOf(taskClassName),
-                                  ie.getMessage());
+      Message message = ERR_RECURRINGTASK_CANNOT_INITIALIZE_INTERNAL.get(
+          String.valueOf(taskClassName), ie.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, ie);
+                                   message, ie);
     }
 
     task.initializeTask();

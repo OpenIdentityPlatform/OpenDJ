@@ -25,11 +25,11 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.UtilityMessages.*;
+import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.Validator.*;
 
 import java.nio.ByteBuffer;
@@ -132,9 +132,8 @@ public final class Base64
     int length = encodedData.length();
     if ((length % 4) != 0)
     {
-      int    msgID   = MSGID_BASE64_DECODE_INVALID_LENGTH;
-      String message = getMessage(msgID, encodedData);
-      throw new ParseException(message, 0);
+      Message message = ERR_BASE64_DECODE_INVALID_LENGTH.get(encodedData);
+      throw new ParseException(message.toString(), 0);
     }
 
 
@@ -354,10 +353,9 @@ public final class Base64
             }
             break;
           default:
-            int msgID = MSGID_BASE64_DECODE_INVALID_CHARACTER;
-            String message = getMessage(msgID, encodedData,
-                                        encodedData.charAt(i+j));
-            throw new ParseException(message, i+j);
+            Message message = ERR_BASE64_DECODE_INVALID_CHARACTER.get(
+                encodedData, encodedData.charAt(i+j));
+            throw new ParseException(message.toString(), i+j);
         }
 
 

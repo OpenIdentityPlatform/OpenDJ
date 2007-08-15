@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+import org.opends.messages.Message;
 
 
 
@@ -47,16 +48,16 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.ResultCode;
 
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -142,27 +143,24 @@ public class GeneralizedTimeSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_GENERALIZED_TIME_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_GENERALIZED_TIME_OID, SYNTAX_GENERALIZED_TIME_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_GENERALIZED_TIME_OID, SYNTAX_GENERALIZED_TIME_NAME));
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_GENERALIZED_TIME_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-               OMR_GENERALIZED_TIME_OID, SYNTAX_GENERALIZED_TIME_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+          OMR_GENERALIZED_TIME_OID, SYNTAX_GENERALIZED_TIME_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_CASE_IGNORE_OID, SYNTAX_GENERALIZED_TIME_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_CASE_IGNORE_OID, SYNTAX_GENERALIZED_TIME_NAME));
     }
   }
 
@@ -278,7 +276,7 @@ public class GeneralizedTimeSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     try
     {
@@ -287,7 +285,7 @@ public class GeneralizedTimeSyntax
     }
     catch (DirectoryException de)
     {
-      invalidReason.append(de.getErrorMessage());
+      invalidReason.append(de.getMessageObject());
       return false;
     }
   }
@@ -409,10 +407,10 @@ public class GeneralizedTimeSyntax
     int    length      = valueString.length();
     if (length < 11)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_TOO_SHORT;
-      String message = getMessage(msgID, valueString);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message =
+          WARN_ATTR_SYNTAX_GENERALIZED_TIME_TOO_SHORT.get(valueString);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -463,11 +461,10 @@ public class GeneralizedTimeSyntax
           break;
 
         default:
-          int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_YEAR;
-          String message = getMessage(msgID, valueString,
-                                      valueString.charAt(i));
+          Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_YEAR.get(
+              valueString, String.valueOf(valueString.charAt(i)));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
       }
     }
 
@@ -519,11 +516,11 @@ public class GeneralizedTimeSyntax
             break;
 
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH;
-            String message = getMessage(msgID, valueString,
+            Message message =
+                WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH.get(valueString,
                                         valueString.substring(4, 6));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
         }
         break;
       case '1':
@@ -543,19 +540,19 @@ public class GeneralizedTimeSyntax
             break;
 
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH;
-            String message = getMessage(msgID, valueString,
+            Message message =
+                WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH.get(valueString,
                                         valueString.substring(4, 6));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
         }
         break;
       default:
-        int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH;
-        String message = getMessage(msgID, valueString,
+        Message message =
+            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH.get(valueString,
                                     valueString.substring(4, 6));
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                     message, msgID);
+                                     message);
     }
 
 
@@ -609,11 +606,11 @@ public class GeneralizedTimeSyntax
             break;
 
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY;
-            String message = getMessage(msgID, valueString,
+            Message message =
+                WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(valueString,
                                         valueString.substring(6, 8));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
         }
         break;
 
@@ -662,11 +659,11 @@ public class GeneralizedTimeSyntax
             break;
 
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY;
-            String message = getMessage(msgID, valueString,
+            Message message =
+                WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(valueString,
                                         valueString.substring(6, 8));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
         }
         break;
 
@@ -715,11 +712,11 @@ public class GeneralizedTimeSyntax
             break;
 
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY;
-            String message = getMessage(msgID, valueString,
+            Message message =
+                WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(valueString,
                                         valueString.substring(6, 8));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
         }
         break;
 
@@ -736,20 +733,20 @@ public class GeneralizedTimeSyntax
             break;
 
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY;
-            String message = getMessage(msgID, valueString,
+            Message message =
+                WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(valueString,
                                         valueString.substring(6, 8));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
         }
         break;
 
       default:
-        int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY;
-        String message = getMessage(msgID, valueString,
+        Message message =
+            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(valueString,
                                     valueString.substring(6, 8));
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                     message, msgID);
+                                     message);
     }
 
 
@@ -803,11 +800,11 @@ public class GeneralizedTimeSyntax
             break;
 
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR;
-            String message = getMessage(msgID, valueString,
+            Message message =
+                WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(valueString,
                                         valueString.substring(8, 10));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
         }
         break;
 
@@ -855,11 +852,11 @@ public class GeneralizedTimeSyntax
             break;
 
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR;
-            String message = getMessage(msgID, valueString,
+            Message message =
+                WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(valueString,
                                         valueString.substring(8, 10));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
         }
         break;
 
@@ -883,20 +880,20 @@ public class GeneralizedTimeSyntax
             break;
 
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR;
-            String message = getMessage(msgID, valueString,
+            Message message =
+                WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(valueString,
                                         valueString.substring(8, 10));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
         }
         break;
 
       default:
-        int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR;
-        String message = getMessage(msgID, valueString,
+        Message message =
+            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(valueString,
                                     valueString.substring(8, 10));
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                     message, msgID);
+                                     message);
     }
 
 
@@ -917,10 +914,10 @@ public class GeneralizedTimeSyntax
         // be a digit between 0 and 9.
         if (length < 13)
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString, m1, 10);
+          Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
+              valueString, String.valueOf(m1), 10);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
 
@@ -968,11 +965,11 @@ public class GeneralizedTimeSyntax
             break;
 
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE;
-            String message = getMessage(msgID, valueString,
+            Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE.
+                get(valueString,
                                         valueString.substring(10, 12));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
         }
 
         break;
@@ -999,18 +996,18 @@ public class GeneralizedTimeSyntax
 
             // This should only happen if the provided date wasn't legal
             // (e.g., September 31).
-            int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME;
-            String message = getMessage(msgID, valueString, String.valueOf(e));
+            Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.
+                get(valueString, String.valueOf(e));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID, e);
+                                         message, e);
           }
         }
         else
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString, m1, 10);
+          Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
+              valueString, String.valueOf(m1), 10);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
       case '+':
@@ -1037,18 +1034,18 @@ public class GeneralizedTimeSyntax
 
             // This should only happen if the provided date wasn't legal
             // (e.g., September 31).
-            int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME;
-            String message = getMessage(msgID, valueString, String.valueOf(e));
+            Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.
+                get(valueString, String.valueOf(e));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID, e);
+                                         message, e);
           }
         }
         else
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString, m1, 10);
+          Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
+              valueString, String.valueOf(m1), 10);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
       case '.':
@@ -1057,10 +1054,10 @@ public class GeneralizedTimeSyntax
                                       minute, second, 3600000);
 
       default:
-        int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR;
-        String message = getMessage(msgID, valueString, m1, 10);
+        Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
+            valueString, String.valueOf(m1), 10);
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                     message, msgID);
+                                     message);
     }
 
 
@@ -1081,10 +1078,10 @@ public class GeneralizedTimeSyntax
         // be a digit between 0 and 9.
         if (length < 15)
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString, s1, 12);
+          Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
+              valueString, String.valueOf(s1), 12);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
 
@@ -1132,11 +1129,11 @@ public class GeneralizedTimeSyntax
             break;
 
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE;
-            String message = getMessage(msgID, valueString,
+            Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE.
+                get(valueString,
                                         valueString.substring(12, 14));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
         }
 
         break;
@@ -1146,19 +1143,19 @@ public class GeneralizedTimeSyntax
         // a 0.
         if (length < 15)
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString, s1, 12);
+          Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
+              valueString, String.valueOf(s1), 12);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
         if (valueString.charAt(13) != '0')
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_SECOND;
-          String message = getMessage(msgID, valueString,
+          Message message =
+              WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_SECOND.get(valueString,
                                       valueString.substring(12, 14));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
         second = 60;
@@ -1186,18 +1183,18 @@ public class GeneralizedTimeSyntax
 
             // This should only happen if the provided date wasn't legal
             // (e.g., September 31).
-            int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME;
-            String message = getMessage(msgID, valueString, String.valueOf(e));
+            Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.
+                get(valueString, String.valueOf(e));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID, e);
+                                         message, e);
           }
         }
         else
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString, s1, 12);
+          Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
+              valueString, String.valueOf(s1), 12);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
       case '+':
@@ -1224,18 +1221,18 @@ public class GeneralizedTimeSyntax
 
             // This should only happen if the provided date wasn't legal
             // (e.g., September 31).
-            int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME;
-            String message = getMessage(msgID, valueString, String.valueOf(e));
+            Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.
+                get(valueString, String.valueOf(e));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID, e);
+                                         message, e);
           }
         }
         else
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString, s1, 12);
+          Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
+              valueString, String.valueOf(s1), 12);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
       case '.':
@@ -1244,10 +1241,10 @@ public class GeneralizedTimeSyntax
                                       minute, second, 60000);
 
       default:
-        int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR;
-        String message = getMessage(msgID, valueString, s1, 12);
+        Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
+            valueString, String.valueOf(s1), 12);
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                     message, msgID);
+                                     message);
     }
 
 
@@ -1284,19 +1281,18 @@ public class GeneralizedTimeSyntax
 
             // This should only happen if the provided date wasn't legal
             // (e.g., September 31).
-            int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME;
-            String message = getMessage(msgID, valueString, String.valueOf(e));
+            Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.
+                get(valueString, String.valueOf(e));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID, e);
+                                         message, e);
           }
         }
         else
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString,
-                                      valueString.charAt(14), 14);
+          Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
+              valueString, String.valueOf(valueString.charAt(14)), 14);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
       case '+':
@@ -1323,27 +1319,25 @@ public class GeneralizedTimeSyntax
 
             // This should only happen if the provided date wasn't legal
             // (e.g., September 31).
-            int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME;
-            String message = getMessage(msgID, valueString, String.valueOf(e));
+            Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.
+                get(valueString, String.valueOf(e));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID, e);
+                                         message, e);
           }
         }
         else
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString,
-                                      valueString.charAt(14), 14);
+          Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
+              valueString, String.valueOf(valueString.charAt(14)), 14);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
       default:
-        int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR;
-        String message = getMessage(msgID, valueString, valueString.charAt(14),
-                                    14);
+        Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
+            valueString, String.valueOf(valueString.charAt(14)), 14);
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                     message, msgID);
+                                     message);
     }
   }
 
@@ -1410,11 +1404,11 @@ outerLoop:
           // This is only acceptable if we're at the end of the value.
           if (i != (value.length() - 1))
           {
-            int msgID =
-                 MSGID_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR;
-            String message = getMessage(msgID, value, String.valueOf(c));
+            Message message =
+                WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR.
+                  get(value, String.valueOf(c));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
 
           timeZone = TimeZone.getTimeZone(TIME_ZONE_UTC);
@@ -1426,27 +1420,28 @@ outerLoop:
           break outerLoop;
 
         default:
-          int msgID = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR;
-          String message = getMessage(msgID, value, String.valueOf(c));
+          Message message =
+              WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR.
+                get(value, String.valueOf(c));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
       }
     }
 
     if (fractionBuffer.length() == 2)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_EMPTY_FRACTION;
-      String message = getMessage(msgID, value);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message =
+          WARN_ATTR_SYNTAX_GENERALIZED_TIME_EMPTY_FRACTION.get(value);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
     if (timeZone == null)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_NO_TIME_ZONE_INFO;
-      String message = getMessage(msgID, value);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message =
+          WARN_ATTR_SYNTAX_GENERALIZED_TIME_NO_TIME_ZONE_INFO.get(value);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
     Double fractionValue = Double.parseDouble(fractionBuffer.toString());
@@ -1470,10 +1465,10 @@ outerLoop:
 
       // This should only happen if the provided date wasn't legal
       // (e.g., September 31).
-      int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME;
-      String message = getMessage(msgID, value, String.valueOf(e));
+      Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(
+          value, String.valueOf(e));
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                   message, msgID, e);
+                                   message, e);
     }
   }
 
@@ -1498,10 +1493,10 @@ outerLoop:
     String offSetStr = value.substring(startPos);
     if ((offSetStr.length() != 3) && (offSetStr.length() != 5))
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET;
-      String message = getMessage(msgID, value, offSetStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(
+          value, offSetStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1514,10 +1509,11 @@ outerLoop:
         break;
 
       default:
-        int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET;
-        String message = getMessage(msgID, value, offSetStr);
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                     message, msgID);
+        Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(
+            value, offSetStr);
+        throw new DirectoryException(
+                ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                message);
     }
 
 
@@ -1542,10 +1538,10 @@ outerLoop:
             break;
 
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET;
-            String message = getMessage(msgID, value, offSetStr);
+            Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.
+                get(value, offSetStr);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
         }
         break;
 
@@ -1560,18 +1556,18 @@ outerLoop:
             break;
 
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET;
-            String message = getMessage(msgID, value, offSetStr);
+            Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.
+                get(value, offSetStr);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
         }
         break;
 
       default:
-        int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET;
-        String message = getMessage(msgID, value, offSetStr);
+        Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(
+            value, offSetStr);
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                     message, msgID);
+                                     message);
     }
 
 
@@ -1603,18 +1599,19 @@ outerLoop:
               break;
 
             default:
-              int msgID = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET;
-              String message = getMessage(msgID, value, offSetStr);
+              Message message =
+                  WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.
+                    get(value, offSetStr);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                           message, msgID);
+                                           message);
           }
           break;
 
         default:
-          int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET;
-          String message = getMessage(msgID, value, offSetStr);
+          Message message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.
+              get(value, offSetStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
       }
     }
 

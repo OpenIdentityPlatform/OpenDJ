@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
+import org.opends.messages.Message;
 
 
 
@@ -103,7 +104,7 @@ public abstract class
   public boolean isConfigurationAcceptable(
                       AccountStatusNotificationHandlerCfg
                            configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by account status
@@ -133,14 +134,13 @@ public abstract class
    *                           notification.
    * @param  userDN            The DN of the user entry to which this
    *                           notification applies.
-   * @param  messageID         The unique ID for this notification.
    * @param  message           The human-readable message for this
    *                           notification.
    */
   public abstract void
        handleStatusNotification(
-            AccountStatusNotificationType notificationType,
-            DN userDN, int messageID, String message);
+          AccountStatusNotificationType notificationType,
+          DN userDN, Message message);
 
 
 
@@ -156,7 +156,6 @@ public abstract class
   {
     handleStatusNotification(notification.getNotificationType(),
                              notification.getUserDN(),
-                             notification.getMessageID(),
                              notification.getMessage());
   }
 }

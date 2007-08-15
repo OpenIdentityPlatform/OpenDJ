@@ -25,6 +25,9 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
+
+
 
 
 
@@ -47,7 +50,7 @@ public class ConfigChangeResult
   // A set of messages describing the changes that were made, any
   // action that may be required, or any problems that were
   // encountered.
-  private ArrayList<String> messages;
+  private List<Message> messages;
 
   // Indicates whether one or more of the changes requires
   // administrative action in order to take effect.
@@ -74,7 +77,7 @@ public class ConfigChangeResult
   {
     this.resultCode          = resultCode;
     this.adminActionRequired = adminActionRequired;
-    this.messages            = new ArrayList<String>();
+    this.messages            = new ArrayList<Message>();
   }
 
 
@@ -94,7 +97,7 @@ public class ConfigChangeResult
    */
   public ConfigChangeResult(ResultCode resultCode,
                             boolean adminActionRequired,
-                            ArrayList<String> messages)
+                            List<Message> messages)
   {
     this.resultCode          = resultCode;
     this.adminActionRequired = adminActionRequired;
@@ -167,7 +170,7 @@ public class ConfigChangeResult
    * @return  The set of messages that provide explanation for the
    *          processing of the configuration changes.
    */
-  public List<String> getMessages()
+  public List<Message> getMessages()
   {
     return messages;
   }
@@ -181,7 +184,7 @@ public class ConfigChangeResult
    * @param  message  The message to add to the set of messages for
    *                  this config change result.
    */
-  public void addMessage(String message)
+  public void addMessage(Message message)
   {
     messages.add(message);
   }
@@ -219,9 +222,9 @@ public class ConfigChangeResult
 
     if (! messages.isEmpty())
     {
-      Iterator<String> iterator = messages.iterator();
+      Iterator<Message> iterator = messages.iterator();
 
-      String firstMessage = iterator.next();
+      Message firstMessage = iterator.next();
       buffer.append(firstMessage);
 
       while (iterator.hasNext())

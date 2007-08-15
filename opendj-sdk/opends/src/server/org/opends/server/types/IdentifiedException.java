@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 
@@ -34,7 +35,7 @@ package org.opends.server.types;
  * message.
  */
 public abstract class IdentifiedException
-       extends Exception
+       extends OpenDsException
 {
   /**
    * Creates a new identified exception.
@@ -52,7 +53,7 @@ public abstract class IdentifiedException
    * @param  message  The message that explains the problem that
    *                  occurred.
    */
-  protected IdentifiedException(String message)
+  protected IdentifiedException(Message message)
   {
     super(message);
   }
@@ -80,18 +81,10 @@ public abstract class IdentifiedException
    * @param  cause    The underlying cause that triggered this
    *                  exception.
    */
-  protected IdentifiedException(String message, Throwable cause)
+  protected IdentifiedException(Message message, Throwable cause)
   {
     super(message, cause);
   }
 
-
-
-  /**
-   * Retrieves the unique identifier for the associated message.
-   *
-   * @return  The unique identifier for the associated message.
-   */
-  public abstract int getMessageID();
 }
 

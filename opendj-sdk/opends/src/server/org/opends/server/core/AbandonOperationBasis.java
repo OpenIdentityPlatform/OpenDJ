@@ -25,6 +25,8 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.core.CoreConstants.LOG_ELEMENT_ERROR_MESSAGE;
 import static org.opends.server.core.CoreConstants.LOG_ELEMENT_ID_TO_ABANDON;
@@ -32,9 +34,7 @@ import static org.opends.server.core.CoreConstants.LOG_ELEMENT_PROCESSING_TIME;
 import static org.opends.server.core.CoreConstants.LOG_ELEMENT_RESULT_CODE;
 import static org.opends.server.loggers.AccessLogger.logAbandonRequest;
 import static org.opends.server.loggers.AccessLogger.logAbandonResult;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
-
+import static org.opends.messages.CoreMessages.*;
 import java.util.List;
 
 import org.opends.server.api.ClientConnection;
@@ -130,13 +130,13 @@ public class AbandonOperationBasis extends AbstractOperation
    */
   @Override()
   public final void disconnectClient(DisconnectReason disconnectReason,
-                                     boolean sendNotification, String message,
-                                     int messageID)
+                                     boolean sendNotification, Message message
+  )
   {
     // Since abandon operations can't be cancelled, we don't need to do anything
     // but forward the request on to the client connection.
-    clientConnection.disconnect(disconnectReason, sendNotification, message,
-                                messageID);
+    clientConnection.disconnect(disconnectReason, sendNotification,
+            message);
   }
 
 
@@ -172,7 +172,7 @@ public class AbandonOperationBasis extends AbstractOperation
     String resultCode = String.valueOf(getResultCode().getIntValue());
 
     String errorMessage;
-    StringBuilder errorMessageBuffer = getErrorMessage();
+    MessageBuilder errorMessageBuffer = getErrorMessage();
     if (errorMessageBuffer == null)
     {
       errorMessage = null;
@@ -265,8 +265,7 @@ abandonProcessing:
         // return.
         setResultCode(ResultCode.CANCELED);
 
-        int msgID = MSGID_CANCELED_BY_PREPARSE_DISCONNECT;
-        appendErrorMessage(getMessage(msgID));
+        appendErrorMessage(ERR_CANCELED_BY_PREPARSE_DISCONNECT.get());
 
         setProcessingStopTime();
 
@@ -299,8 +298,7 @@ abandonProcessing:
       if (operation == null)
       {
         setResultCode(ResultCode.NO_SUCH_OPERATION);
-        appendErrorMessage(getMessage(MSGID_ABANDON_OP_NO_SUCH_OPERATION,
-                                      idToAbandon));
+        appendErrorMessage(ERR_ABANDON_OP_NO_SUCH_OPERATION.get(idToAbandon));
       }
       else
       {
@@ -309,9 +307,8 @@ abandonProcessing:
         // to ensure that the requestor isn't left hanging.  This will be a
         // configurable option in the server.
         boolean notifyRequestor = DirectoryServer.notifyAbandonedOperations();
-        String cancelReason = getMessage(MSGID_CANCELED_BY_ABANDON_REQUEST,
-                                         messageID);
-        StringBuilder cancelResponse = new StringBuilder();
+        Message cancelReason = INFO_CANCELED_BY_ABANDON_REQUEST.get(messageID);
+        MessageBuilder cancelResponse = new MessageBuilder();
         CancelResult result =
              operation.cancel(new CancelRequest(notifyRequestor, cancelReason,
                                                 cancelResponse));
@@ -344,7 +341,7 @@ abandonProcessing:
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-    cancelRequest.addResponseMessage(getMessage(MSGID_CANNOT_CANCEL_ABANDON));
+    cancelRequest.addResponseMessage(ERR_CANNOT_CANCEL_ABANDON.get());
     return CancelResult.CANNOT_CANCEL;
   }
 

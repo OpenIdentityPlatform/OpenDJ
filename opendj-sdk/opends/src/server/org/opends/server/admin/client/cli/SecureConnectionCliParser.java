@@ -30,8 +30,9 @@ package org.opends.server.admin.client.cli;
 import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
 import static org.opends.server.util.StaticUtils.wrapText;
@@ -189,7 +190,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    *          should be treated in a case-sensitive manner.
    */
   protected SecureConnectionCliParser(String mainClassName,
-      String toolDescription, boolean longArgumentsCaseSensitive)
+      Message toolDescription, boolean longArgumentsCaseSensitive)
   {
     super(mainClassName, toolDescription, longArgumentsCaseSensitive);
   }
@@ -237,7 +238,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
         // read the password from the stdin.
         try
         {
-          out.write(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT, dn).getBytes());
+          out.write(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn).getBytes());
           char[] pwChars = PasswordReader.readPassword();
           bindPasswordValue = new String(pwChars);
         } catch(Exception ex)
@@ -269,7 +270,8 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
       // read the password from the stdin.
       try
       {
-        out.write(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT, dn).getBytes());
+        out.write(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn).toString()
+                .getBytes());
         char[] pwChars = PasswordReader.readPassword();
         return new String(pwChars);
       }
@@ -305,92 +307,92 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
   throws ArgumentException
   {
     showUsageArg = new BooleanArgument("showUsage", OPTION_SHORT_HELP,
-        OPTION_LONG_HELP, MSGID_DESCRIPTION_SHOWUSAGE);
+        OPTION_LONG_HELP, INFO_DESCRIPTION_SHOWUSAGE.get());
     addGlobalArgument(showUsageArg);
     setUsageArgument(showUsageArg, outStream);
 
     useSSLArg = new BooleanArgument("useSSL", OPTION_SHORT_USE_SSL,
-        OPTION_LONG_USE_SSL, MSGID_DESCRIPTION_USE_SSL);
+        OPTION_LONG_USE_SSL, INFO_DESCRIPTION_USE_SSL.get());
     addGlobalArgument(useSSLArg);
 
     startTLSArg = new BooleanArgument("startTLS", OPTION_SHORT_START_TLS,
         OPTION_LONG_START_TLS,
-        MSGID_DESCRIPTION_START_TLS);
+        INFO_DESCRIPTION_START_TLS.get());
     addGlobalArgument(startTLSArg);
 
     hostNameArg = new StringArgument("host", OPTION_SHORT_HOST,
         OPTION_LONG_HOST, false, false, true, OPTION_VALUE_HOST, "localhost",
-        null, MSGID_DESCRIPTION_HOST);
+        null, INFO_DESCRIPTION_HOST.get());
     addGlobalArgument(hostNameArg);
 
     portArg = new IntegerArgument("port", OPTION_SHORT_PORT, OPTION_LONG_PORT,
         false, false, true, OPTION_VALUE_PORT, 389, null,
-        MSGID_DESCRIPTION_PORT);
+        INFO_DESCRIPTION_PORT.get());
     addGlobalArgument(portArg);
 
     bindDnArg = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
         OPTION_LONG_BINDDN, false, false, true, OPTION_VALUE_BINDDN,
-        "cn=Directory Manager", null, MSGID_DESCRIPTION_BINDDN);
+        "cn=Directory Manager", null, INFO_DESCRIPTION_BINDDN.get());
     addGlobalArgument(bindDnArg);
 
     bindPasswordArg = new StringArgument("bindPassword",
         OPTION_SHORT_BINDPWD, OPTION_LONG_BINDPWD, false, false, true,
-        OPTION_VALUE_BINDPWD, null, null, MSGID_DESCRIPTION_BINDPASSWORD);
+        OPTION_VALUE_BINDPWD, null, null, INFO_DESCRIPTION_BINDPASSWORD.get());
     addGlobalArgument(bindPasswordArg);
 
     bindPasswordFileArg = new FileBasedArgument("bindPasswordFile",
         OPTION_SHORT_BINDPWD_FILE, OPTION_LONG_BINDPWD_FILE, false, false,
         OPTION_VALUE_BINDPWD_FILE, null, null,
-        MSGID_DESCRIPTION_BINDPASSWORDFILE);
+        INFO_DESCRIPTION_BINDPASSWORDFILE.get());
     addGlobalArgument(bindPasswordFileArg);
 
     trustAllArg = new BooleanArgument("trustAll", 'X', "trustAll",
-        MSGID_DESCRIPTION_TRUSTALL);
+        INFO_DESCRIPTION_TRUSTALL.get());
     addGlobalArgument(trustAllArg);
 
     trustStorePathArg = new StringArgument("trustStorePath",
         OPTION_SHORT_TRUSTSTOREPATH, OPTION_LONG_TRUSTSTOREPATH, false,
         false, true, OPTION_VALUE_TRUSTSTOREPATH, null, null,
-        MSGID_DESCRIPTION_TRUSTSTOREPATH);
+        INFO_DESCRIPTION_TRUSTSTOREPATH.get());
     addGlobalArgument(trustStorePathArg);
 
     trustStorePasswordArg = new StringArgument("trustStorePassword", null,
         OPTION_LONG_TRUSTSTORE_PWD, false, false, true,
         OPTION_VALUE_TRUSTSTORE_PWD, null, null,
-        MSGID_DESCRIPTION_TRUSTSTOREPASSWORD);
+        INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get());
     addGlobalArgument(trustStorePasswordArg);
 
     trustStorePasswordFileArg = new FileBasedArgument("truststorepasswordfile",
         OPTION_SHORT_TRUSTSTORE_PWD_FILE, OPTION_LONG_TRUSTSTORE_PWD_FILE,
         false, false, OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
-        MSGID_DESCRIPTION_TRUSTSTOREPASSWORD_FILE);
+        INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get());
     addGlobalArgument(trustStorePasswordFileArg);
 
     keyStorePathArg = new StringArgument("keyStorePath",
         OPTION_SHORT_KEYSTOREPATH, OPTION_LONG_KEYSTOREPATH, false, false,
         true, OPTION_VALUE_KEYSTOREPATH, null, null,
-        MSGID_DESCRIPTION_KEYSTOREPATH);
+        INFO_DESCRIPTION_KEYSTOREPATH.get());
     addGlobalArgument(keyStorePathArg);
 
     keyStorePasswordArg = new StringArgument("keyStorePassword", null,
         OPTION_LONG_KEYSTORE_PWD, false, false, true,
         OPTION_VALUE_KEYSTORE_PWD, null, null,
-        MSGID_DESCRIPTION_KEYSTOREPASSWORD);
+        INFO_DESCRIPTION_KEYSTOREPASSWORD.get());
     addGlobalArgument(keyStorePasswordArg);
 
     keyStorePasswordFileArg = new FileBasedArgument("keystorepasswordfile",
         OPTION_SHORT_KEYSTORE_PWD_FILE, OPTION_LONG_KEYSTORE_PWD_FILE, false,
         false, OPTION_VALUE_KEYSTORE_PWD_FILE, null, null,
-        MSGID_DESCRIPTION_KEYSTOREPASSWORD_FILE);
+        INFO_DESCRIPTION_KEYSTOREPASSWORD_FILE.get());
     addGlobalArgument(keyStorePasswordFileArg);
 
     certNicknameArg = new StringArgument("certnickname", 'N', "certNickname",
         false, false, true, "{nickname}", null, null,
-        MSGID_DESCRIPTION_CERT_NICKNAME);
+        INFO_DESCRIPTION_CERT_NICKNAME.get());
     addGlobalArgument(certNicknameArg);
 
     verboseArg = new BooleanArgument("verbose", 'v', "verbose",
-        MSGID_DESCRIPTION_VERBOSE);
+        INFO_DESCRIPTION_VERBOSE.get());
     addGlobalArgument(verboseArg);
   }
 
@@ -436,68 +438,61 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    * @param err the stream to be used to print error message.
    * @return return code.
    */
-  public int validateGlobalOption(PrintStream err)
-  {
-    ArrayList<String> errors = new ArrayList<String>();
+  public int validateGlobalOption(PrintStream err) {
+    ArrayList<Message> errors = new ArrayList<Message>();
     // Couldn't have at the same time bindPassword and bindPasswordFile
-    if(bindPasswordArg.isPresent() && bindPasswordFileArg.isPresent())
-    {
-      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, bindPasswordArg.getLongIdentifier(),
-                                  bindPasswordFileArg.getLongIdentifier());
+    if (bindPasswordArg.isPresent() && bindPasswordFileArg.isPresent()) {
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+              bindPasswordArg.getLongIdentifier(),
+              bindPasswordFileArg.getLongIdentifier());
       errors.add(message);
     }
 
     // Couldn't have at the same time trustAll and
     // trustStore related arg
-    if (trustAllArg.isPresent() && trustStorePathArg.isPresent())
-    {
-      int msgID = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, trustAllArg.getLongIdentifier(),
-          trustStorePathArg.getLongIdentifier());
+    if (trustAllArg.isPresent() && trustStorePathArg.isPresent()) {
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+              trustAllArg.getLongIdentifier(),
+              trustStorePathArg.getLongIdentifier());
       errors.add(message);
     }
-    if (trustAllArg.isPresent() && trustStorePasswordArg.isPresent())
-    {
-      int msgID = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, trustAllArg.getLongIdentifier(),
-          trustStorePasswordArg.getLongIdentifier());
+    if (trustAllArg.isPresent() && trustStorePasswordArg.isPresent()) {
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+              trustAllArg.getLongIdentifier(),
+              trustStorePasswordArg.getLongIdentifier());
       errors.add(message);
     }
-    if (trustAllArg.isPresent() && trustStorePasswordFileArg.isPresent())
-    {
-      int msgID = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, trustAllArg.getLongIdentifier(),
-          trustStorePasswordFileArg.getLongIdentifier());
+    if (trustAllArg.isPresent() && trustStorePasswordFileArg.isPresent()) {
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+              trustAllArg.getLongIdentifier(),
+              trustStorePasswordFileArg.getLongIdentifier());
       errors.add(message);
     }
 
     // Couldn't have at the same time trustStorePasswordArg and
     // trustStorePasswordFileArg
     if (trustStorePasswordArg.isPresent()
-        && trustStorePasswordFileArg.isPresent())
-    {
-      int msgID = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, trustStorePasswordArg
-          .getLongIdentifier(), trustStorePasswordFileArg.getLongIdentifier());
+            && trustStorePasswordFileArg.isPresent()) {
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+              trustStorePasswordArg.getLongIdentifier(),
+              trustStorePasswordFileArg.getLongIdentifier());
       errors.add(message);
     }
 
     // Couldn't have at the same time startTLSArg and
     // useSSLArg
     if (startTLSArg.isPresent()
-        && useSSLArg.isPresent())
-    {
-      int msgID = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, startTLSArg
-          .getLongIdentifier(), useSSLArg.getLongIdentifier());
+            && useSSLArg.isPresent()) {
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+              startTLSArg
+                      .getLongIdentifier(), useSSLArg.getLongIdentifier());
       errors.add(message);
     }
 
     if (errors.size() > 0)
     {
-      StringBuffer buf = new StringBuffer();
-      for (String error : errors)
+      MessageBuilder buf = new MessageBuilder();
+      for (Message error : errors)
       {
         if (buf.length() > 0)
         {

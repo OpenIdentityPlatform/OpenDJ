@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -64,20 +65,20 @@ import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.EntryEncodeConfig;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.OpenDsException;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.messages.ExtensionMessages.*;
+
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -273,16 +274,13 @@ public class FileSystemEntryCache
       }
 
       // Log an error message.
-      logError(ErrorLogCategory.CONFIGURATION,
-          ErrorLogSeverity.SEVERE_ERROR,
-          MSGID_FSCACHE_HOMELESS,
-          String.valueOf(configEntryDN), stackTraceToSingleLineString(e));
+      logError(ERR_FSCACHE_HOMELESS.get());
 
       // Not having any home directory for the cache db environment is a
       // fatal error as we are unable to continue any further without it.
-      int msgID = MSGID_FSCACHE_HOMELESS;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      Message message =
+          ERR_FSCACHE_HOMELESS.get();
+      throw new InitializationException(message, e);
     }
 
     // Open JE environment and cache database.
@@ -326,10 +324,7 @@ public class FileSystemEntryCache
           // Its safe to ignore and continue here, JE will use its default
           // value for this however we have to let the user know about it
           // so just log an error message.
-          logError(ErrorLogCategory.CONFIGURATION,
-              ErrorLogSeverity.SEVERE_ERROR,
-              MSGID_FSCACHE_CANNOT_SET_JE_MEMORY_PCT,
-              String.valueOf(configEntryDN), stackTraceToSingleLineString(e));
+          logError(ERR_FSCACHE_CANNOT_SET_JE_MEMORY_PCT.get());
         }
       }
       if (jeCacheSize != 0) {
@@ -343,10 +338,7 @@ public class FileSystemEntryCache
           // Its safe to ignore and continue here, JE will use its default
           // value for this however we have to let the user know about it
           // so just log an error message.
-          logError(ErrorLogCategory.CONFIGURATION,
-              ErrorLogSeverity.SEVERE_ERROR,
-              MSGID_FSCACHE_CANNOT_SET_JE_MEMORY_SIZE,
-              String.valueOf(configEntryDN), stackTraceToSingleLineString(e));
+          logError(ERR_FSCACHE_CANNOT_SET_JE_MEMORY_SIZE.get());
         }
       }
 
@@ -423,11 +415,9 @@ public class FileSystemEntryCache
               public void run() {
                 if ((persistentEntriesRestored > 0) &&
                     (persistentEntriesRestored < persistentEntriesTotal)) {
-                  int msgID = MSGID_FSCACHE_RESTORE_PROGRESS_REPORT;
-                  String message = getMessage(msgID, persistentEntriesRestored,
-                      persistentEntriesTotal);
-                  logError(ErrorLogCategory.EXTENSIONS, ErrorLogSeverity.NOTICE,
-                      message, msgID);
+                  Message message = INFO_FSCACHE_RESTORE_PROGRESS_REPORT.get(
+                      persistentEntriesRestored, persistentEntriesTotal);
+                  logError(message);
                 }
               }
             };
@@ -456,11 +446,9 @@ public class FileSystemEntryCache
               timer.cancel();
 
               // Final persistent state restore progress report.
-              int msgID = MSGID_FSCACHE_RESTORE_PROGRESS_REPORT;
-              String message = getMessage(msgID, persistentEntriesRestored,
-                      persistentEntriesTotal);
-              logError(ErrorLogCategory.EXTENSIONS, ErrorLogSeverity.NOTICE,
-                      message, msgID);
+              Message message = INFO_FSCACHE_RESTORE_PROGRESS_REPORT.get(
+                  persistentEntriesRestored, persistentEntriesTotal);
+              logError(message);
             }
 
             // Compare last known offline states to offline states on startup.
@@ -478,10 +466,7 @@ public class FileSystemEntryCache
                 // Remove cache entries specific to this backend.
                 clearBackend(DirectoryServer.getBackend(backend));
                 // Log an error message.
-                logError(ErrorLogCategory.EXTENSIONS,
-                    ErrorLogSeverity.SEVERE_WARNING,
-                    MSGID_FSCACHE_OFFLINE_STATE_FAIL,
-                    backend);
+                logError(WARN_FSCACHE_OFFLINE_STATE_FAIL.get(backend));
               }
             }
             // Pop max entries limit.
@@ -493,8 +478,7 @@ public class FileSystemEntryCache
           }
 
           // Log an error message.
-          logError(ErrorLogCategory.EXTENSIONS, ErrorLogSeverity.NOTICE,
-              MSGID_FSCACHE_INDEX_NOT_FOUND);
+          logError(INFO_FSCACHE_INDEX_NOT_FOUND.get());
 
           // Clear the entry cache.
           clear();
@@ -504,8 +488,7 @@ public class FileSystemEntryCache
           }
 
           // Log an error message.
-          logError(ErrorLogCategory.EXTENSIONS, ErrorLogSeverity.SEVERE_ERROR,
-              MSGID_FSCACHE_INDEX_IMPAIRED);
+          logError(ERR_FSCACHE_INDEX_IMPAIRED.get());
 
           // Clear the entry cache.
           clear();
@@ -515,9 +498,7 @@ public class FileSystemEntryCache
           }
 
           // Log an error message.
-          logError(ErrorLogCategory.EXTENSIONS, ErrorLogSeverity.SEVERE_ERROR,
-              MSGID_FSCACHE_CANNOT_LOAD_PERSISTENT_DATA,
-              stackTraceToSingleLineString(e));
+          logError(ERR_FSCACHE_CANNOT_LOAD_PERSISTENT_DATA.get());
 
           // Clear the entry cache.
           clear();
@@ -531,9 +512,9 @@ public class FileSystemEntryCache
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_FSCACHE_CANNOT_INITIALIZE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      Message message =
+          ERR_FSCACHE_CANNOT_INITIALIZE.get();
+      throw new InitializationException(message, e);
     }
 
   }
@@ -569,11 +550,9 @@ public class FileSystemEntryCache
         public void run() {
           if ((persistentEntriesSaved > 0) &&
               (persistentEntriesSaved < persistentEntriesTotal)) {
-            int msgID = MSGID_FSCACHE_SAVE_PROGRESS_REPORT;
-            String message = getMessage(msgID, persistentEntriesSaved,
-                persistentEntriesTotal);
-            logError(ErrorLogCategory.EXTENSIONS, ErrorLogSeverity.NOTICE,
-                message, msgID);
+            Message message = INFO_FSCACHE_SAVE_PROGRESS_REPORT.get(
+                persistentEntriesSaved, persistentEntriesTotal);
+            logError(message);
           }
         }
       };
@@ -598,11 +577,9 @@ public class FileSystemEntryCache
         timer.cancel();
 
         // Final persistent state save progress report.
-        int msgID = MSGID_FSCACHE_SAVE_PROGRESS_REPORT;
-        String message = getMessage(msgID, persistentEntriesSaved,
-            persistentEntriesTotal);
-        logError(ErrorLogCategory.EXTENSIONS, ErrorLogSeverity.NOTICE,
-            message, msgID);
+        Message message = INFO_FSCACHE_SAVE_PROGRESS_REPORT.get(
+            persistentEntriesSaved, persistentEntriesTotal);
+        logError(message);
       }
 
       // Store the index.
@@ -620,9 +597,7 @@ public class FileSystemEntryCache
         }
 
         // Log an error message.
-        logError(ErrorLogCategory.EXTENSIONS, ErrorLogSeverity.SEVERE_ERROR,
-            MSGID_FSCACHE_CANNOT_STORE_PERSISTENT_DATA,
-            stackTraceToSingleLineString(e));
+        logError(ERR_FSCACHE_CANNOT_STORE_PERSISTENT_DATA.get());
       }
     }
 
@@ -1044,7 +1019,7 @@ public class FileSystemEntryCache
    */
   @Override()
   public boolean isConfigurationAcceptable(EntryCacheCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     FileSystemEntryCacheCfg config = (FileSystemEntryCacheCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
@@ -1055,7 +1030,7 @@ public class FileSystemEntryCache
    */
   public boolean isConfigurationChangeAcceptable(
       FileSystemEntryCacheCfg configuration,
-      List<String>      unacceptableReasons
+      List<Message> unacceptableReasons
       )
   {
     // Make sure that we can process the defined character sets.  If so, then
@@ -1082,7 +1057,7 @@ public class FileSystemEntryCache
     // Make sure that we can process the defined character sets.  If so, then
     // activate the new configuration.
     boolean applyChanges = false;
-    ArrayList<String> errorMessages = new ArrayList<String>();
+    ArrayList<Message> errorMessages = new ArrayList<Message>();
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
           EntryCacheCommon.ConfigPhase.PHASE_APPLY, null, errorMessages
@@ -1142,50 +1117,50 @@ public class FileSystemEntryCache
       if (maxEntries.longValue() != prevMaxEntries)
       {
         changeResult.addMessage(
-            getMessage (MSGID_FSCACHE_UPDATED_MAX_ENTRIES, maxEntries));
+            INFO_FSCACHE_UPDATED_MAX_ENTRIES.get(maxEntries));
       }
 
       if (lockTimeout != prevLockTimeout)
       {
         changeResult.addMessage(
-            getMessage (MSGID_FSCACHE_UPDATED_LOCK_TIMEOUT, lockTimeout));
+            INFO_FSCACHE_UPDATED_LOCK_TIMEOUT.get(lockTimeout));
       }
 
       if (!includeFilters.equals(prevIncludeFilters))
       {
         changeResult.addMessage(
-            getMessage (MSGID_FSCACHE_UPDATED_INCLUDE_FILTERS));
+            INFO_FSCACHE_UPDATED_INCLUDE_FILTERS.get());
       }
 
       if (!excludeFilters.equals(prevExcludeFilters))
       {
         changeResult.addMessage(
-            getMessage (MSGID_FSCACHE_UPDATED_EXCLUDE_FILTERS));
+            INFO_FSCACHE_UPDATED_EXCLUDE_FILTERS.get());
       }
 
       if (maxAllowedMemory != prevMaxAllowedMemory)
       {
         changeResult.addMessage(
-            getMessage (MSGID_FSCACHE_UPDATED_MAX_MEMORY_SIZE,
-            maxAllowedMemory));
+            INFO_FSCACHE_UPDATED_MAX_MEMORY_SIZE.get(maxAllowedMemory));
       }
 
       if (jeCachePercent != prevJECachePercent)
       {
         changeResult.addMessage(
-            getMessage (MSGID_FSCACHE_UPDATED_JE_MEMORY_PCT, jeCachePercent));
+            INFO_FSCACHE_UPDATED_JE_MEMORY_PCT.get(jeCachePercent));
       }
 
       if (jeCacheSize != prevJECacheSize)
       {
         changeResult.addMessage(
-            getMessage (MSGID_FSCACHE_UPDATED_JE_MEMORY_SIZE, jeCacheSize));
+            INFO_FSCACHE_UPDATED_JE_MEMORY_SIZE.get(jeCacheSize));
       }
 
       if (persistentCache != prevPersistentCache)
       {
         changeResult.addMessage(
-            getMessage (MSGID_FSCACHE_UPDATED_IS_PERSISTENT, persistentCache));
+            INFO_FSCACHE_UPDATED_IS_PERSISTENT.get(
+                    String.valueOf(persistentCache)));
       }
     }
 
@@ -1255,15 +1230,15 @@ public class FileSystemEntryCache
 
       newIncludeFilters = EntryCacheCommon.getFilters(
           configuration.getIncludeFilter(),
-          MSGID_FIFOCACHE_INVALID_INCLUDE_FILTER,
-          MSGID_FIFOCACHE_CANNOT_DECODE_ANY_INCLUDE_FILTERS,
+          ERR_FIFOCACHE_INVALID_INCLUDE_FILTER,
+          WARN_FIFOCACHE_CANNOT_DECODE_ANY_INCLUDE_FILTERS,
           errorHandler,
           configEntryDN
           );
       newExcludeFilters = EntryCacheCommon.getFilters (
           configuration.getExcludeFilter(),
-          MSGID_FIFOCACHE_CANNOT_DECODE_EXCLUDE_FILTER,
-          MSGID_FIFOCACHE_CANNOT_DECODE_ANY_EXCLUDE_FILTERS,
+          WARN_FIFOCACHE_CANNOT_DECODE_EXCLUDE_FILTER,
+          WARN_FIFOCACHE_CANNOT_DECODE_ANY_EXCLUDE_FILTERS,
           errorHandler,
           configEntryDN
           );
@@ -1272,15 +1247,15 @@ public class FileSystemEntryCache
     case PHASE_APPLY:       // error ID codes
       newIncludeFilters = EntryCacheCommon.getFilters (
           configuration.getIncludeFilter(),
-          MSGID_FIFOCACHE_INVALID_INCLUDE_FILTER,
-          0,
+          ERR_FIFOCACHE_INVALID_INCLUDE_FILTER,
+          null,
           errorHandler,
           configEntryDN
           );
       newExcludeFilters = EntryCacheCommon.getFilters (
           configuration.getExcludeFilter(),
-          MSGID_FIFOCACHE_INVALID_EXCLUDE_FILTER,
-          0,
+          ERR_FIFOCACHE_INVALID_EXCLUDE_FILTER,
+          null,
           errorHandler,
           configEntryDN
           );
@@ -1308,12 +1283,7 @@ public class FileSystemEntryCache
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
             errorHandler.reportError(
-              ErrorLogCategory.CONFIGURATION,
-              ErrorLogSeverity.SEVERE_WARNING,
-              MSGID_FSCACHE_CANNOT_SET_JE_MEMORY_PCT,
-              String.valueOf(configEntryDN),
-              stackTraceToSingleLineString(e),
-              null,
+              ERR_FSCACHE_CANNOT_SET_JE_MEMORY_PCT.get(),
               false,
               DirectoryServer.getServerErrorResultCode()
               );
@@ -1329,12 +1299,7 @@ public class FileSystemEntryCache
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
             errorHandler.reportError(
-              ErrorLogCategory.CONFIGURATION,
-              ErrorLogSeverity.SEVERE_WARNING,
-              MSGID_FSCACHE_CANNOT_SET_JE_MEMORY_SIZE,
-              String.valueOf(configEntryDN),
-              stackTraceToSingleLineString(e),
-              null,
+              ERR_FSCACHE_CANNOT_SET_JE_MEMORY_SIZE.get(),
               false,
               DirectoryServer.getServerErrorResultCode()
               );
@@ -1386,9 +1351,7 @@ public class FileSystemEntryCache
       }
 
       // Log an error message.
-      logError(ErrorLogCategory.EXTENSIONS, ErrorLogSeverity.SEVERE_ERROR,
-              MSGID_FSCACHE_CANNOT_RETRIEVE_ENTRY,
-              stackTraceToSingleLineString(e));
+      logError(ERR_FSCACHE_CANNOT_RETRIEVE_ENTRY.get());
     }
     return null;
   }
@@ -1475,9 +1438,8 @@ public class FileSystemEntryCache
       }
 
       // Log an error message.
-      logError(ErrorLogCategory.EXTENSIONS, ErrorLogSeverity.SEVERE_ERROR,
-              MSGID_FSCACHE_CANNOT_STORE_ENTRY,
-              stackTraceToSingleLineString(e));
+      logError(
+          ERR_FSCACHE_CANNOT_STORE_ENTRY.get());
 
       return false;
     }
@@ -1518,10 +1480,8 @@ public class FileSystemEntryCache
           }
         } catch(Exception e) {
           // Log a warning that the permissions were not set.
-          int msgID = MSGID_FSCACHE_SET_PERMISSIONS_FAILED;
-          String message = getMessage(msgID, cacheHome);
-          logError(ErrorLogCategory.EXTENSIONS, ErrorLogSeverity.SEVERE_WARNING,
-              message, msgID);
+          Message message = WARN_FSCACHE_SET_PERMISSIONS_FAILED.get(cacheHome);
+          logError(message);
         }
       }
     } else {
@@ -1598,10 +1558,10 @@ public class FileSystemEntryCache
    * trying to locate and load persistent cache index from
    * the existing entry cache database.
    */
-  private class CacheIndexNotFoundException extends Exception {
+  private class CacheIndexNotFoundException extends OpenDsException {
     static final long serialVersionUID = 6444756053577853869L;
     public CacheIndexNotFoundException() {}
-    public CacheIndexNotFoundException(String message) {
+    public CacheIndexNotFoundException(Message message) {
       super(message);
     }
   }
@@ -1611,10 +1571,10 @@ public class FileSystemEntryCache
    * found in the existing entry cache database is determined
    * to be empty, inconsistent or damaged.
    */
-  private class CacheIndexImpairedException extends Exception {
+  private class CacheIndexImpairedException extends OpenDsException {
     static final long serialVersionUID = -369455697709478407L;
     public CacheIndexImpairedException() {}
-    public CacheIndexImpairedException(String message) {
+    public CacheIndexImpairedException(Message message) {
       super(message);
     }
   }

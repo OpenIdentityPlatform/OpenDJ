@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 
@@ -49,8 +50,7 @@ import org.opends.server.protocols.asn1.ASN1Writer;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -387,12 +387,12 @@ public class CompressedSchema
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_COMPRESSEDSCHEMA_CANNOT_WRITE_UPDATED_DATA;
-      String message = getMessage(msgID,
-                                  stackTraceToSingleLineString(e));
+      Message message =
+        ERR_COMPRESSEDSCHEMA_CANNOT_WRITE_UPDATED_DATA.
+            get(stackTraceToSingleLineString(e));
       throw new DirectoryException(
                      DirectoryServer.getServerErrorResultCode(),
-                     message, msgID, e);
+                     message, e);
     }
     finally
     {
@@ -480,12 +480,11 @@ public class CompressedSchema
          instance.ocDecodeMap.get(byteArray);
     if (ocMap == null)
     {
-      int    msgID   = MSGID_COMPRESSEDSCHEMA_UNKNOWN_OC_TOKEN;
-      String message = getMessage(msgID,
-                                  bytesToHex(encodedObjectClasses));
+      Message message = ERR_COMPRESSEDSCHEMA_UNKNOWN_OC_TOKEN.get(
+          bytesToHex(encodedObjectClasses));
       throw new DirectoryException(
                      DirectoryServer.getServerErrorResultCode(),
-                     message, msgID);
+                     message);
     }
     else
     {
@@ -664,11 +663,11 @@ public class CompressedSchema
     LinkedHashSet<String> options = instance.aoDecodeMap.get(adArray);
     if ((attrType == null) || (options == null))
     {
-      int msgID = MSGID_COMPRESSEDSCHEMA_UNRECOGNIZED_AD_TOKEN;
-      String message = getMessage(msgID, bytesToHex(adArray.array()));
+      Message message = ERR_COMPRESSEDSCHEMA_UNRECOGNIZED_AD_TOKEN.
+          get(bytesToHex(adArray.array()));
       throw new DirectoryException(
                      DirectoryServer.getServerErrorResultCode(),
-                     message, msgID);
+                     message);
     }
 
 

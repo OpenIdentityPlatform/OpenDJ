@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup.ui;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -46,7 +49,6 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
-import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 
@@ -66,13 +68,13 @@ public class ProgressDialog extends JDialog
 
   private JScrollPane scroll;
 
-  private String lastText;
+  private Message lastText;
 
   private JFrame parent;
 
   private JButton closeButton;
 
-  private String panelTitle = getMsg("progress-title");
+  private Message panelTitle = INFO_PROGRESS_TITLE.get();
 
   private ProgressMessageFormatter formatter =
     new HtmlProgressMessageFormatter();
@@ -85,7 +87,7 @@ public class ProgressDialog extends JDialog
   {
     super(frame);
     this.parent = frame;
-    setTitle(getMsg("progress-dialog-title"));
+    setTitle(INFO_PROGRESS_DIALOG_TITLE.get().toString());
     createLayout();
   }
 
@@ -118,7 +120,7 @@ public class ProgressDialog extends JDialog
    * Sets the title of the panel.
    * @param title the title of the panel.
    */
-  public void setPanelTitle(String title)
+  public void setPanelTitle(Message title)
   {
     this.panelTitle = title;
   }
@@ -127,7 +129,7 @@ public class ProgressDialog extends JDialog
    * Returns the title of the panel.
    * @return the title of the panel
    */
-  public String getPanelTitle()
+  public Message getPanelTitle()
   {
     return panelTitle;
   }
@@ -145,18 +147,26 @@ public class ProgressDialog extends JDialog
    * Sets the text in the summary label.  The text can be in HTML format.
    * @param text the text to be set.
    */
-  public void setSummary(String text)
+  public void setSummary(Message text)
   {
-    progressBarLabel.setText(text);
+    if (text != null) {
+      progressBarLabel.setText(text.toString());
+    } else {
+      progressBarLabel.setText(null);
+    }
   }
 
   /**
    * Sets the text in the details text pane.  The text can be in HTML format.
    * @param text the text to be set.
    */
-  public void setDetails(String text)
+  public void setDetails(Message text)
   {
-    detailsTextArea.setText(text);
+    if (text != null) {
+      detailsTextArea.setText(text.toString());
+    } else {
+      detailsTextArea.setText(null);
+    }
   }
 
   /**
@@ -189,7 +199,7 @@ public class ProgressDialog extends JDialog
     gbc.weightx = 0.0;
     gbc.gridwidth = GridBagConstraints.RELATIVE;
 
-    String title = getPanelTitle();
+    Message title = getPanelTitle();
 
     JLabel l =
         UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, title,
@@ -213,7 +223,7 @@ public class ProgressDialog extends JDialog
 
     gbc.insets.top = UIFactory.TOP_INSET_INSTRUCTIONS_SUBPANEL;
     progressBarLabel =
-        UIFactory.makeHtmlPane(getMsg("progressbar-initial-label"),
+        UIFactory.makeHtmlPane(INFO_PROGRESSBAR_INITIAL_LABEL.get(),
             UIFactory.PROGRESS_FONT);
     progressBarLabel.setOpaque(false);
     progressBarLabel.setEditable(false);
@@ -222,11 +232,11 @@ public class ProgressDialog extends JDialog
     gbc.insets.top = UIFactory.TOP_INSET_PROGRESS_BAR;
     gbc.insets.bottom = UIFactory.BOTTOM_INSET_PROGRESS_BAR;
     mainPanel.add(createProgressBarPanel(), gbc);
-    progressBar.setToolTipText(getMsg("progressbar-tooltip"));
+    progressBar.setToolTipText(INFO_PROGRESSBAR_TOOLTIP.get().toString());
 
     l =
         UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-            getMsg("progress-details-label"),
+            INFO_PROGRESS_DETAILS_LABEL.get(),
             UIFactory.TextStyle.SECONDARY_FIELD_VALID);
 
     gbc.insets = UIFactory.getEmptyInsets();
@@ -243,10 +253,10 @@ public class ProgressDialog extends JDialog
         if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
         {
           String url = e.getURL().toString();
-          String newText = getFormatter().getFormattedAfterUrlClick(url,
+          Message newText = getFormatter().getFormattedAfterUrlClick(url,
               lastText);
           lastText = newText;
-          detailsTextArea.setText(lastText);
+          setDetails(lastText);
         }
       }
     });
@@ -270,8 +280,8 @@ public class ProgressDialog extends JDialog
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     buttonsPanel.add(Box.createHorizontalGlue(), gbc);
     closeButton =
-        UIFactory.makeJButton(getMsg("close-button-label"),
-            getMsg("close-progress-button-tooltip"));
+        UIFactory.makeJButton(INFO_CLOSE_BUTTON_LABEL.get(),
+            INFO_CLOSE_PROGRESS_BUTTON_TOOLTIP.get());
     gbc.fill = GridBagConstraints.NONE;
     gbc.weightx = 0.0;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -338,20 +348,6 @@ public class ProgressDialog extends JDialog
     panel.add(Box.createHorizontalGlue(), gbc);
 
     return panel;
-  }
-
-  /**
-   * The following three methods are just commodity methods to get localized
-   * messages.
-   */
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
   }
 
   /**

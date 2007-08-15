@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+import org.opends.messages.Message;
 
 
 
@@ -37,16 +38,12 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
-
+import org.opends.server.loggers.ErrorLogger;
 
 
 /**
@@ -164,21 +161,19 @@ public class IntegerEqualityMatchingRule
               }
               else
               {
-                int    msgID   = MSGID_ATTR_SYNTAX_INTEGER_INITIAL_ZERO;
-                String message = getMessage(msgID, value.stringValue());
+                Message message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
+                        value.stringValue());
 
                 switch (DirectoryServer.getSyntaxEnforcementPolicy())
                 {
                   case REJECT:
                     throw new DirectoryException(
-                                   ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+                                  ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
                   case WARN:
                     if (! logged)
                     {
                       logged = true;
-                      logError(ErrorLogCategory.SCHEMA,
-                               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                      ErrorLogger.logError(message);
                     }
                     break;
                 }
@@ -188,21 +183,19 @@ public class IntegerEqualityMatchingRule
               // This is OK as long as the first character isn't a dash.
               if (buffer.charAt(0) == '-')
               {
-                int    msgID   = MSGID_ATTR_SYNTAX_INTEGER_INITIAL_ZERO;
-                String message = getMessage(msgID, value.stringValue());
+                Message message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
+                        value.stringValue());
 
                 switch (DirectoryServer.getSyntaxEnforcementPolicy())
                 {
                   case REJECT:
                     throw new DirectoryException(
-                                   ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+                                  ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
                   case WARN:
                     if (! logged)
                     {
                       logged = true;
-                      logError(ErrorLogCategory.SCHEMA,
-                               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                      ErrorLogger.logError(message);
                     }
                     break;
                 }
@@ -253,42 +246,38 @@ public class IntegerEqualityMatchingRule
           }
           else
           {
-            int    msgID   = MSGID_ATTR_SYNTAX_INTEGER_MISPLACED_DASH;
-            String message = getMessage(msgID, value.stringValue());
+            Message message = WARN_ATTR_SYNTAX_INTEGER_MISPLACED_DASH.get(
+                    value.stringValue());
 
             switch (DirectoryServer.getSyntaxEnforcementPolicy())
             {
               case REJECT:
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               msgID);
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
               case WARN:
                 if (! logged)
                 {
                   logged = true;
-                  logError(ErrorLogCategory.SCHEMA,
-                           ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                  ErrorLogger.logError(message);
                 }
                 break;
             }
           }
           break;
         default:
-          int    msgID   = MSGID_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER;
-          String message = getMessage(msgID, value.stringValue(),
-                                      ((char) valueBytes[i]), i);
+          Message message = WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
+                  value.stringValue(),
+                  ((char) valueBytes[i]), i);
           switch (DirectoryServer.getSyntaxEnforcementPolicy())
           {
             case REJECT:
               throw new DirectoryException(
-                             ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                             msgID);
+                             ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
             case WARN:
               if (! logged)
               {
                 logged = true;
-                logError(ErrorLogCategory.SCHEMA,
-                         ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                ErrorLogger.logError(message);
               }
               break;
           }
@@ -297,21 +286,20 @@ public class IntegerEqualityMatchingRule
 
     if (buffer.length() == 0)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_INTEGER_EMPTY_VALUE;
-      String message = getMessage(msgID, value.stringValue());
+      Message message = WARN_ATTR_SYNTAX_INTEGER_EMPTY_VALUE.get(
+              value.stringValue());
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
         case REJECT:
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
 
         case WARN:
           if (! logged)
           {
             logged = true;
-            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                     message, msgID);
+            ErrorLogger.logError(message);
           }
 
           buffer.append("0");
@@ -324,21 +312,19 @@ public class IntegerEqualityMatchingRule
     }
     else if ((buffer.length() == 1) && (buffer.charAt(0) == '-'))
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE;
-      String message = getMessage(msgID, value.stringValue());
-
+      Message message = WARN_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE.get(
+              value.stringValue());
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
         case REJECT:
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
 
         case WARN:
           if (! logged)
           {
             logged = true;
-            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                     message, msgID);
+            ErrorLogger.logError(message);
           }
 
           buffer.setCharAt(0, '0');

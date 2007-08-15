@@ -25,7 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
-
+import org.opends.messages.MessageBuilder;
 
 
 import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
@@ -35,13 +35,13 @@ import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.ExtensionsMessages.*;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -112,14 +112,15 @@ public class AnonymousSASLMechanismHandler
       String credString = saslCredentials.stringValue();
       if (credString.length() > 0)
       {
-        bindOperation.appendAdditionalLogMessage("trace='");
-        bindOperation.appendAdditionalLogMessage(credString);
-        bindOperation.appendAdditionalLogMessage("'");
+        MessageBuilder mb = new MessageBuilder();
+        mb.append("trace='");
+        mb.append(credString);
+        mb.append("'");
+        bindOperation.appendAdditionalLogMessage(mb.toMessage());
 
-        logError(ErrorLogCategory.REQUEST_HANDLING,
-                 ErrorLogSeverity.INFORMATIONAL, MSGID_SASLANONYMOUS_TRACE,
-                 bindOperation.getConnectionID(),
-                 bindOperation.getOperationID(), credString);
+        logError(INFO_SASLANONYMOUS_TRACE.
+            get(bindOperation.getConnectionID(), bindOperation.getOperationID(),
+                credString));
 
       }
     }

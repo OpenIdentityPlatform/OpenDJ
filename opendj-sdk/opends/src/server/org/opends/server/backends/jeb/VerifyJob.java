@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
+import org.opends.messages.Message;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -48,8 +49,7 @@ import org.opends.server.util.StaticUtils;
 import org.opends.server.util.ServerConstants;
 
 import org.opends.server.types.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.JebMessages.*;
+import static org.opends.messages.JebMessages.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -250,18 +250,17 @@ public class VerifyJob
           {
             if(lowerName.length() < 5)
             {
-              int msgID = MSGID_JEB_VLV_INDEX_NOT_CONFIGURED;
-              String msg = getMessage(msgID, lowerName);
-              throw new JebException(msgID, msg);
+              Message msg = ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName);
+              throw new JebException(msg);
             }
 
             VLVIndex vlvIndex =
                 entryContainer.getVLVIndex(lowerName.substring(4));
             if(vlvIndex == null)
             {
-              int msgID = MSGID_JEB_VLV_INDEX_NOT_CONFIGURED;
-              String msg = getMessage(msgID, lowerName.substring(4));
-              throw new JebException(msgID, msg);
+              Message msg =
+                  ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName.substring(4));
+              throw new JebException(msg);
             }
 
             vlvIndexList.add(vlvIndex);
@@ -272,17 +271,15 @@ public class VerifyJob
                 DirectoryServer.getAttributeType(lowerName);
             if (attrType == null)
             {
-              int msgID = MSGID_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED;
-              String msg = getMessage(msgID, index);
-              throw new JebException(msgID, msg);
+              Message msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+              throw new JebException(msg);
             }
             AttributeIndex attrIndex =
                 entryContainer.getAttributeIndex(attrType);
             if (attrIndex == null)
             {
-              int msgID = MSGID_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED;
-              String msg = getMessage(msgID, index);
-              throw new JebException(msgID, msg);
+              Message msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+              throw new JebException(msg);
             }
             attrIndexList.add(attrIndex);
           }
@@ -348,11 +345,9 @@ public class VerifyJob
                    String.valueOf(keyCount));
       if (cleanMode)
       {
-        int msgID = MSGID_JEB_VERIFY_CLEAN_FINAL_STATUS;
-        String message = getMessage(msgID, keyCount, errorCount,
-                                    totalTime/1000, rate);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                 message, msgID);
+        Message message = INFO_JEB_VERIFY_CLEAN_FINAL_STATUS.get(
+            keyCount, errorCount, totalTime/1000, rate);
+        logError(message);
 
         if (multiReferenceCount > 0)
         {
@@ -362,49 +357,41 @@ public class VerifyJob
             averageEntryReferences = (float)entryReferencesCount/keyCount;
           }
 
-          msgID = MSGID_JEB_VERIFY_MULTIPLE_REFERENCE_COUNT;
-          message = getMessage(msgID, multiReferenceCount);
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                   message, msgID);
+          message =
+              INFO_JEB_VERIFY_MULTIPLE_REFERENCE_COUNT.get(multiReferenceCount);
+          logError(message);
           addStatEntry(statEntry, "verify-multiple-reference-count",
                        String.valueOf(multiReferenceCount));
 
-          msgID = MSGID_JEB_VERIFY_ENTRY_LIMIT_EXCEEDED_COUNT;
-          message = getMessage(msgID, entryLimitExceededCount);
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                   message, msgID);
+          message = INFO_JEB_VERIFY_ENTRY_LIMIT_EXCEEDED_COUNT.get(
+              entryLimitExceededCount);
+          logError(message);
           addStatEntry(statEntry, "verify-entry-limit-exceeded-count",
                        String.valueOf(entryLimitExceededCount));
 
-          msgID = MSGID_JEB_VERIFY_AVERAGE_REFERENCE_COUNT;
-          message = getMessage(msgID, averageEntryReferences);
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                   message, msgID);
+          message = INFO_JEB_VERIFY_AVERAGE_REFERENCE_COUNT.get(
+              averageEntryReferences);
+          logError(message);
           addStatEntry(statEntry, "verify-average-reference-count",
                        String.valueOf(averageEntryReferences));
 
-          msgID = MSGID_JEB_VERIFY_MAX_REFERENCE_COUNT;
-          message = getMessage(msgID, maxEntryPerValue);
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                   message, msgID);
+          message =
+              INFO_JEB_VERIFY_MAX_REFERENCE_COUNT.get(maxEntryPerValue);
+          logError(message);
           addStatEntry(statEntry, "verify-max-reference-count",
                        String.valueOf(maxEntryPerValue));
         }
       }
       else
       {
-        int msgID = MSGID_JEB_VERIFY_FINAL_STATUS;
-        String message = getMessage(msgID, keyCount, errorCount,
-                                    totalTime/1000, rate);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                 message, msgID);
+        Message message = INFO_JEB_VERIFY_FINAL_STATUS.get(
+            keyCount, errorCount, totalTime/1000, rate);
+        logError(message);
         //TODO add entry-limit-stats to the statEntry
         if (entryLimitMap.size() > 0)
         {
-          msgID = MSGID_JEB_VERIFY_ENTRY_LIMIT_STATS_HEADER;
-          message = getMessage(msgID);
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                   message, msgID);
+          message = INFO_JEB_VERIFY_ENTRY_LIMIT_STATS_HEADER.get();
+          logError(message);
 
           for (Map.Entry<Index,HashMap<ByteString,Long>> mapEntry :
               entryLimitMap.entrySet())
@@ -425,12 +412,10 @@ public class VerifyJob
               medianValue = values[x];
             }
 
-            msgID = MSGID_JEB_VERIFY_ENTRY_LIMIT_STATS_ROW;
-            message = getMessage(msgID, index.toString(), values.length,
-                                 values[0], values[values.length-1],
-                                 medianValue);
-            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                     message, msgID);
+            message = INFO_JEB_VERIFY_ENTRY_LIMIT_STATS_ROW.
+                get(index.toString(), values.length, values[0],
+                    values[values.length-1], medianValue);
+            logError(message);
           }
         }
       }
@@ -1725,7 +1710,7 @@ public class VerifyJob
               "entry <%s>: %s.%n",
                      attrIndex.getAttributeType().toString(),
                      entry.getDN().toString(),
-                     e.getErrorMessage());
+                     String.valueOf(e.getMessageObject()));
         }
       }
     }
@@ -1759,7 +1744,7 @@ public class VerifyJob
               "base DN for VLV index %s: %s",
                      entry.getDN().toString(),
                      vlvIndex.getName(),
-                     e.getErrorMessage());
+                     String.valueOf(e.getMessageObject()));
         }
         errorCount++;
       }
@@ -2099,10 +2084,9 @@ public class VerifyJob
 
       float rate = 1000f*deltaCount / deltaTime;
 
-      int msgID = MSGID_JEB_VERIFY_PROGRESS_REPORT;
-      String message = getMessage(msgID, latestCount, errorCount, rate);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-               message, msgID);
+      Message message =
+          INFO_JEB_VERIFY_PROGRESS_REPORT.get(latestCount, errorCount, rate);
+      logError(message);
 
       try
       {
@@ -2120,10 +2104,9 @@ public class VerifyJob
           cacheMissRate = nCacheMiss/(float)deltaCount;
         }
 
-        msgID = MSGID_JEB_VERIFY_CACHE_AND_MEMORY_REPORT;
-        message = getMessage(msgID, freeMemory, cacheMissRate);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                 message, msgID);
+        message = INFO_JEB_VERIFY_CACHE_AND_MEMORY_REPORT.get(
+            freeMemory, cacheMissRate);
+        logError(message);
 
         prevEnvStats = envStats;
       }

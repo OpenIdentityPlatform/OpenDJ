@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
+import org.opends.messages.Message;
 
 
 import com.sleepycat.je.*;
@@ -56,10 +57,8 @@ import static org.opends.server.util.ServerConstants.ATTR_REFERRAL_URL;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.JebMessages.
-     MSGID_JEB_REFERRAL_RESULT_MESSAGE;
-import static org.opends.server.messages.MessageHandler.getMessage;
-
+import static org.opends.messages.JebMessages.
+     INFO_JEB_REFERRAL_RESULT_MESSAGE;
 /**
  * This class represents the referral database which contains URIs from referral
  * entries.  The key is the DN of the referral entry and the value is that of a
@@ -460,10 +459,10 @@ public class DN2URI extends DatabaseContainer
     }
 
     // Throw a directory referral exception containing the URIs.
-    int msgID = MSGID_JEB_REFERRAL_RESULT_MESSAGE;
-    String msg = getMessage(msgID, referralDN);
-    throw new DirectoryException(ResultCode.REFERRAL, msg, msgID,
-                                 referralDN, URIList, null);
+    Message msg =
+        INFO_JEB_REFERRAL_RESULT_MESSAGE.get(String.valueOf(referralDN));
+    throw new DirectoryException(
+            ResultCode.REFERRAL, msg, referralDN, URIList, null);
   }
 
   /**

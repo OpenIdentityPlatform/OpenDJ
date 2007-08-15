@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
+import org.opends.messages.Message;
 
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.CursorConfig;
@@ -35,8 +36,6 @@ import com.sleepycat.je.OperationStatus;
 
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.StaticUtils;
@@ -45,11 +44,10 @@ import java.io.IOException;
 import java.util.*;
 
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.JebMessages.*;
+import static org.opends.messages.JebMessages.*;
 
 /**
  * Export a JE backend to LDIF.
@@ -171,11 +169,9 @@ public class ExportJob
       rate = 1000f*exportedCount / totalTime;
     }
 
-    int msgID = MSGID_JEB_EXPORT_FINAL_STATUS;
-    String message = getMessage(msgID, exportedCount, skippedCount,
-                                totalTime/1000, rate);
-    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-             message, msgID);
+    Message message = INFO_JEB_EXPORT_FINAL_STATUS.get(
+        exportedCount, skippedCount, totalTime/1000, rate);
+    logError(message);
 
   }
 
@@ -305,10 +301,9 @@ public class ExportJob
 
       float rate = 1000f*deltaCount / deltaTime;
 
-      int msgID = MSGID_JEB_EXPORT_PROGRESS_REPORT;
-      String message = getMessage(msgID, latestCount, skippedCount, rate);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-               message, msgID);
+      Message message =
+          INFO_JEB_EXPORT_PROGRESS_REPORT.get(latestCount, skippedCount, rate);
+      logError(message);
 
       previousCount = latestCount;
       previousTime = latestTime;

@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -42,8 +43,7 @@ import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
@@ -213,8 +213,8 @@ public class ConfigureWindowsService
     }
 
 //  Define all the arguments that may be used with this program.
-    String toolDescription =
-      getMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_TOOL_DESCRIPTION);
+    Message toolDescription =
+        INFO_CONFIGURE_WINDOWS_SERVICE_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME,
         toolDescription, false);
     BooleanArgument enableService = null;
@@ -226,34 +226,33 @@ public class ConfigureWindowsService
     try
     {
       enableService = new BooleanArgument("enableservice", 'e', "enableService",
-          MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_ENABLE);
+          INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_ENABLE.get());
       argParser.addArgument(enableService);
 
       disableService = new BooleanArgument("disableservice", 'd',
           "disableService",
-          MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_DISABLE);
+          INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_DISABLE.get());
       argParser.addArgument(disableService);
 
       serviceState = new BooleanArgument("servicestate", 's',
           "serviceState",
-          MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_STATE);
+          INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_STATE.get());
       argParser.addArgument(serviceState);
 
       cleanupService = new StringArgument("cleanupservice", 'c',
           "cleanupService", false, false, true, "{serviceName}", null, null,
-          MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_CLEANUP);
+          INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_CLEANUP.get());
       argParser.addArgument(cleanupService);
 
       showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
           OPTION_LONG_HELP,
-          MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_SHOWUSAGE);
+          INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_SHOWUSAGE.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);
     }
     catch (ArgumentException ae)
     {
-      int msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       returnValue = ERROR;
@@ -268,8 +267,7 @@ public class ConfigureWindowsService
       }
       catch (ArgumentException ae)
       {
-        int msgID = MSGID_ERROR_PARSING_ARGS;
-        String message = getMessage(msgID, ae.getMessage());
+        Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
@@ -301,16 +299,14 @@ public class ConfigureWindowsService
       }
       if (nArgs > 1)
       {
-        int msgID = MSGID_CONFIGURE_WINDOWS_SERVICE_TOO_MANY_ARGS;
-        String message = getMessage(msgID, (Object[])null);
+        Message message = ERR_CONFIGURE_WINDOWS_SERVICE_TOO_MANY_ARGS.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
         returnValue = ERROR;
       }
       if (nArgs == 0)
       {
-        int msgID = MSGID_CONFIGURE_WINDOWS_SERVICE_TOO_FEW_ARGS;
-        String message = getMessage(msgID, (Object[])null);
+        Message message = ERR_CONFIGURE_WINDOWS_SERVICE_TOO_FEW_ARGS.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
         returnValue = ERROR;
@@ -403,7 +399,7 @@ public class ConfigureWindowsService
   public static int enableService(PrintStream out, PrintStream err)
   {
     int returnValue;
-    String msg;
+    Message msg;
     String serverRoot = getServerRoot();
 
     String[] cmd;
@@ -418,8 +414,8 @@ public class ConfigureWindowsService
           getBinaryFullPath(),
           "create",
           serverRoot,
-          getMessage(MSGID_WINDOWS_SERVICE_NAME, (Object[]) null),
-          getMessage(MSGID_WINDOWS_SERVICE_DESCRIPTION, serverRoot),
+          INFO_WINDOWS_SERVICE_NAME.get().toString(),
+          INFO_WINDOWS_SERVICE_DESCRIPTION.get(serverRoot).toString(),
           DEBUG_OPTION
       };
     }
@@ -429,8 +425,8 @@ public class ConfigureWindowsService
           getBinaryFullPath(),
           "create",
           serverRoot,
-          getMessage(MSGID_WINDOWS_SERVICE_NAME, (Object[]) null),
-          getMessage(MSGID_WINDOWS_SERVICE_DESCRIPTION, serverRoot),
+          INFO_WINDOWS_SERVICE_NAME.get().toString(),
+          INFO_WINDOWS_SERVICE_DESCRIPTION.get(serverRoot).toString(),
           DEBUG_OPTION
       };
     }
@@ -442,32 +438,27 @@ public class ConfigureWindowsService
       {
       case 0:
         returnValue = SERVICE_ENABLE_SUCCESS;
-        msg = getMessage(MSGID_WINDOWS_SERVICE_SUCCESSULLY_ENABLED,
-            (Object[])null);
+        msg = INFO_WINDOWS_SERVICE_SUCCESSULLY_ENABLED.get();
         out.println(wrapText(msg, MAX_LINE_WIDTH));
         break;
       case 1:
         returnValue = SERVICE_ALREADY_ENABLED;
-        msg = getMessage(MSGID_WINDOWS_SERVICE_ALREADY_ENABLED,
-            (Object[])null);
+        msg = INFO_WINDOWS_SERVICE_ALREADY_ENABLED.get();
         out.println(wrapText(msg, MAX_LINE_WIDTH));
         break;
       case 2:
         returnValue = SERVICE_NAME_ALREADY_IN_USE;
-        msg = getMessage(MSGID_WINDOWS_SERVICE_NAME_ALREADY_IN_USE,
-            (Object[])null);
+        msg = ERR_WINDOWS_SERVICE_NAME_ALREADY_IN_USE.get();
         err.println(wrapText(msg, MAX_LINE_WIDTH));
         break;
       case 3:
         returnValue = SERVICE_ENABLE_ERROR;
-        msg = getMessage(MSGID_WINDOWS_SERVICE_ENABLE_ERROR,
-            (Object[])null);
+        msg = ERR_WINDOWS_SERVICE_ENABLE_ERROR.get();
         err.println(wrapText(msg, MAX_LINE_WIDTH));
         break;
       default:
         returnValue = SERVICE_ENABLE_ERROR;
-        msg = getMessage(MSGID_WINDOWS_SERVICE_ENABLE_ERROR,
-            (Object[])null);
+        msg = ERR_WINDOWS_SERVICE_ENABLE_ERROR.get();
         err.println(wrapText(msg, MAX_LINE_WIDTH));
       }
     }
@@ -476,8 +467,7 @@ public class ConfigureWindowsService
       err.println("Fucking throwable: "+t);
       t.printStackTrace();
       returnValue = SERVICE_ENABLE_ERROR;
-      msg = getMessage(MSGID_WINDOWS_SERVICE_ENABLE_ERROR,
-          (Object[])null);
+      msg = ERR_WINDOWS_SERVICE_ENABLE_ERROR.get();
       err.println(wrapText(msg, MAX_LINE_WIDTH));
     }
     return returnValue;
@@ -496,7 +486,7 @@ public class ConfigureWindowsService
   public static int disableService(PrintStream out, PrintStream err)
   {
     int returnValue;
-    String msg;
+    Message msg;
     String serverRoot = getServerRoot();
     String[] cmd;
     if (isVista())
@@ -528,32 +518,27 @@ public class ConfigureWindowsService
       {
       case 0:
         returnValue = SERVICE_DISABLE_SUCCESS;
-        msg = getMessage(MSGID_WINDOWS_SERVICE_SUCCESSULLY_DISABLED,
-            (Object[])null);
+        msg = INFO_WINDOWS_SERVICE_SUCCESSULLY_DISABLED.get();
         out.println(msg);
         break;
       case 1:
         returnValue = SERVICE_ALREADY_DISABLED;
-        msg = getMessage(MSGID_WINDOWS_SERVICE_ALREADY_DISABLED,
-            (Object[])null);
+        msg = INFO_WINDOWS_SERVICE_ALREADY_DISABLED.get();
         out.println(msg);
         break;
       case 2:
         returnValue = SERVICE_MARKED_FOR_DELETION;
-        msg = getMessage(MSGID_WINDOWS_SERVICE_MARKED_FOR_DELETION,
-            (Object[])null);
+        msg = WARN_WINDOWS_SERVICE_MARKED_FOR_DELETION.get();
         out.println(msg);
         break;
       case 3:
         returnValue = SERVICE_DISABLE_ERROR;
-        msg = getMessage(MSGID_WINDOWS_SERVICE_DISABLE_ERROR,
-            (Object[])null);
+        msg = ERR_WINDOWS_SERVICE_DISABLE_ERROR.get();
         err.println(msg);
         break;
       default:
         returnValue = SERVICE_DISABLE_ERROR;
-        msg = getMessage(MSGID_WINDOWS_SERVICE_DISABLE_ERROR,
-            (Object[])null);
+        msg = ERR_WINDOWS_SERVICE_DISABLE_ERROR.get();
         err.println(msg);
       }
     }
@@ -561,8 +546,7 @@ public class ConfigureWindowsService
     {
       t.printStackTrace();
       returnValue = SERVICE_DISABLE_ERROR;
-      msg = getMessage(MSGID_WINDOWS_SERVICE_DISABLE_ERROR,
-          (Object[])null);
+      msg = ERR_WINDOWS_SERVICE_DISABLE_ERROR.get();
       err.println(msg);
     }
     return returnValue;
@@ -583,7 +567,7 @@ public class ConfigureWindowsService
       PrintStream err)
   {
     int returnValue;
-    String msg;
+    Message msg;
     String[] cmd;
     if (isVista())
     {
@@ -614,35 +598,34 @@ public class ConfigureWindowsService
       {
       case 0:
         returnValue = SERVICE_CLEANUP_SUCCESS;
-        msg = getMessage(MSGID_WINDOWS_SERVICE_CLEANUP_SUCCESS, serviceName);
+        msg = INFO_WINDOWS_SERVICE_CLEANUP_SUCCESS.get(serviceName);
         out.println(msg);
         break;
       case 1:
         returnValue = SERVICE_NOT_FOUND;
-        msg = getMessage(MSGID_WINDOWS_SERVICE_CLEANUP_NOT_FOUND, serviceName);
+        msg = ERR_WINDOWS_SERVICE_CLEANUP_NOT_FOUND.get(serviceName);
         err.println(msg);
         break;
       case 2:
         returnValue = SERVICE_CLEANUP_MARKED_FOR_DELETION;
-        msg = getMessage(MSGID_WINDOWS_SERVICE_CLEANUP_MARKED_FOR_DELETION,
-            serviceName);
+        msg = WARN_WINDOWS_SERVICE_CLEANUP_MARKED_FOR_DELETION.get(serviceName);
         out.println(msg);
         break;
       case 3:
         returnValue = SERVICE_CLEANUP_ERROR;
-        msg = getMessage(MSGID_WINDOWS_SERVICE_CLEANUP_ERROR, serviceName);
+        msg = ERR_WINDOWS_SERVICE_CLEANUP_ERROR.get(serviceName);
         err.println(msg);
         break;
       default:
         returnValue = SERVICE_CLEANUP_ERROR;
-        msg = getMessage(MSGID_WINDOWS_SERVICE_CLEANUP_ERROR, serviceName);
+        msg = ERR_WINDOWS_SERVICE_CLEANUP_ERROR.get(serviceName);
         err.println(msg);
       }
     }
     catch (Throwable t)
     {
       returnValue = SERVICE_CLEANUP_ERROR;
-      msg = getMessage(MSGID_WINDOWS_SERVICE_CLEANUP_ERROR, serviceName);
+      msg = ERR_WINDOWS_SERVICE_CLEANUP_ERROR.get(serviceName);
       err.println(msg);
     }
     return returnValue;
@@ -660,7 +643,7 @@ public class ConfigureWindowsService
   public static int serviceState(PrintStream out, PrintStream err)
   {
     int returnValue;
-    String msg;
+    Message msg;
     String serviceName = null;
 
     String serverRoot = getServerRoot();
@@ -707,8 +690,7 @@ public class ConfigureWindowsService
         returnValue = SERVICE_STATE_ENABLED;
         if (out != null)
         {
-          msg = getMessage(MSGID_WINDOWS_SERVICE_ENABLED,
-            serviceName);
+          msg = INFO_WINDOWS_SERVICE_ENABLED.get(serviceName);
           out.println(msg);
         }
         break;
@@ -716,8 +698,7 @@ public class ConfigureWindowsService
         returnValue = SERVICE_STATE_DISABLED;
         if (out != null)
         {
-          msg = getMessage(MSGID_WINDOWS_SERVICE_DISABLED,
-            (Object[])null);
+          msg = INFO_WINDOWS_SERVICE_DISABLED.get();
           out.println(msg);
         }
         break;
@@ -725,8 +706,7 @@ public class ConfigureWindowsService
         returnValue = SERVICE_STATE_ERROR;
         if (out != null)
         {
-          msg = getMessage(MSGID_WINDOWS_SERVICE_STATE_ERROR,
-            (Object[])null);
+          msg = ERR_WINDOWS_SERVICE_STATE_ERROR.get();
           out.println(msg);
         }
         break;
@@ -734,8 +714,7 @@ public class ConfigureWindowsService
         returnValue = SERVICE_STATE_ERROR;
         if (err != null)
         {
-          msg = getMessage(MSGID_WINDOWS_SERVICE_STATE_ERROR,
-            (Object[])null);
+          msg = ERR_WINDOWS_SERVICE_STATE_ERROR.get();
           err.println(msg);
         }
       }
@@ -745,8 +724,7 @@ public class ConfigureWindowsService
       returnValue = SERVICE_STATE_ERROR;
       if (err != null)
       {
-        msg = getMessage(MSGID_WINDOWS_SERVICE_STATE_ERROR,
-          (Object[])null);
+        msg = ERR_WINDOWS_SERVICE_STATE_ERROR.get();
         err.println(wrapText(msg, MAX_LINE_WIDTH));
       }
     }

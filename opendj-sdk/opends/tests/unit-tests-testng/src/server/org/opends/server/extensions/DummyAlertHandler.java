@@ -39,7 +39,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
-
+import org.opends.messages.Message;
 
 
 /**
@@ -95,7 +95,7 @@ public class DummyAlertHandler
    * {@inheritDoc}
    */
   public boolean isConfigurationAcceptable(AlertHandlerCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     return true;
   }
@@ -116,7 +116,7 @@ public class DummyAlertHandler
    * {@inheritDoc}
    */
   public void sendAlertNotification(AlertGenerator generator, String alertType,
-                                    int alertID, String alertMessage)
+                                    Message alertMessage)
   {
     alertCount.incrementAndGet();
   }
@@ -139,7 +139,7 @@ public class DummyAlertHandler
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(AlertHandlerCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     return true;
   }

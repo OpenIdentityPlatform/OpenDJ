@@ -27,11 +27,13 @@
 
 package org.opends.quicksetup;
 
-import static org.opends.server.util.DynamicConstants.PRINTABLE_VERSION_STRING;
+import org.opends.messages.Message;
 import org.opends.server.util.args.ArgumentParser;
 
+import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.server.util.DynamicConstants.PRINTABLE_VERSION_STRING;
+
 import org.opends.quicksetup.util.Utils;
-import org.opends.quicksetup.i18n.ResourceProvider;
 
 import java.io.PrintStream;
 import java.io.ByteArrayOutputStream;
@@ -138,32 +140,6 @@ public abstract class Launcher {
   }
 
   /**
-   * Creates an internationaized message based on the input key and
-   * properly formatted for the terminal.
-   * @param key for the message in the bundle
-   * @return String message properly formatted for the terminal
-   */
-  protected String getMsg(String key)
-  {
-    return org.opends.server.util.StaticUtils.wrapText(getI18n().getMsg(key),
-        Utils.getCommandLineMaxLineWidth());
-  }
-
-  /**
-   * Creates an internationaized message based on the input key and
-   * properly formatted for the terminal.
-   * @param key for the message in the bundle
-   * @param args String... arguments for the message
-   * @return String message properly formatted for the terminal
-   */
-  protected String getMsg(String key, String... args)
-  {
-    return org.opends.server.util.StaticUtils.wrapText(
-            getI18n().getMsg(key, args),
-        Utils.getCommandLineMaxLineWidth());
-  }
-
-  /**
    * Prints a usage message to the terminal.
    * @param i18nMsg localized user message that will be printed to the terminal.
    * @param toStdErr whether the message must be printed to the standard error
@@ -260,7 +236,7 @@ public abstract class Launcher {
    * in some operating systems.
    * @return internationalized String representing the frame title
    */
-  abstract protected String getFrameTitle();
+  abstract protected Message getFrameTitle();
 
   /**
    * Launches the command line based uninstall.
@@ -388,8 +364,8 @@ public abstract class Launcher {
 
         File logFile = QuickSetupLog.getLogFile();
         if (logFile != null) {
-          System.out.println(getMsg("general-see-for-details",
-                QuickSetupLog.getLogFile().getPath()));
+          System.out.println(INFO_GENERAL_SEE_FOR_DETAILS.get(
+                  QuickSetupLog.getLogFile().getPath()));
         }
       }
     }
@@ -416,15 +392,6 @@ public abstract class Launcher {
     public void println(String msg)
     {
     }
-  }
-
-  /**
-   * Returns the ResourceProvider used to get localized messages.
-   * @return the ResourceProvider used to get localized messages.
-   */
-  protected ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
   }
 
 }

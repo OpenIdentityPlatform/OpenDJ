@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
+import org.opends.messages.Message;
 
 
 
@@ -38,8 +39,7 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
 import org.opends.server.types.LDAPException;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -207,9 +207,8 @@ public class ServerSideSortResponseControl
     ASN1OctetString controlValue = control.getValue();
     if (controlValue == null)
     {
-      int    msgID   = MSGID_SORTRES_CONTROL_NO_VALUE;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = INFO_SORTRES_CONTROL_NO_VALUE.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
     try
@@ -231,9 +230,9 @@ public class ServerSideSortResponseControl
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_SORTRES_CONTROL_CANNOT_DECODE_VALUE;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          INFO_SORTRES_CONTROL_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message, e);
     }
   }
 

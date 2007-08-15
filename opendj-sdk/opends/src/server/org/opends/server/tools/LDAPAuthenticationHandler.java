@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 
 
@@ -69,8 +70,8 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.util.Base64;
 import org.opends.server.util.PasswordReader;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
+
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -208,7 +209,8 @@ public class LDAPAuthenticationHandler
    *          specified SASL mechanism, mapped from the property names to their
    *          corresponding descriptions.
    */
-  public static LinkedHashMap<String,String> getSASLProperties(String mechanism)
+  public static LinkedHashMap<String,Message> getSASLProperties(
+          String mechanism)
   {
     String upperName = toUpperCase(mechanism);
     if (upperName.equals(SASL_MECHANISM_ANONYMOUS))
@@ -289,8 +291,8 @@ public class LDAPAuthenticationHandler
       }
       else
       {
-        System.out.print(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT,
-                                    bindDN.stringValue()));
+        System.out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(
+                bindDN.stringValue()));
         char[] pwChars = PasswordReader.readPassword();
         if (pwChars == null)
         {
@@ -325,17 +327,17 @@ public class LDAPAuthenticationHandler
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SIMPLE_BIND;
-      String message = getMessage(msgID, getExceptionMessage(ioe));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                message, ioe);
+      Message message =
+          ERR_LDAPAUTH_CANNOT_SEND_SIMPLE_BIND.get(getExceptionMessage(ioe));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SIMPLE_BIND;
-      String message = getMessage(msgID, getExceptionMessage(e));
+      Message message =
+          ERR_LDAPAUTH_CANNOT_SEND_SIMPLE_BIND.get(getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
-                                msgID, message, e);
+                                message, e);
     }
 
 
@@ -346,39 +348,39 @@ public class LDAPAuthenticationHandler
       responseMessage = reader.readMessage();
       if (responseMessage == null)
       {
-        int    msgID   = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
-        String message = getMessage(msgID);
+        Message message =
+            ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
-                                  msgID, message);
+                                  message);
       }
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(ioe));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                message, ioe);
+      Message message =
+          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ioe));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (ASN1Exception ae)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(ae));
+      Message message =
+          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ae));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                msgID, message, ae);
+                                message, ae);
     }
     catch (LDAPException le)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(le));
+      Message message =
+          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(le));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                msgID, message, le);
+                                message, le);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                message, e);
+      Message message =
+          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -407,26 +409,24 @@ public class LDAPAuthenticationHandler
         if ((responseOID != null) &&
             responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
         {
-          int    msgID   = MSGID_LDAPAUTH_SERVER_DISCONNECT;
-          String message = getMessage(msgID, extendedResponse.getResultCode(),
-                                      extendedResponse.getErrorMessage());
-          throw new LDAPException(extendedResponse.getResultCode(), msgID,
-                                  message);
+          Message message = ERR_LDAPAUTH_SERVER_DISCONNECT.
+              get(extendedResponse.getResultCode(),
+                  extendedResponse.getErrorMessage());
+          throw new LDAPException(extendedResponse.getResultCode(), message);
         }
         else
         {
-          int    msgID   = MSGID_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE;
-          String message = getMessage(msgID, String.valueOf(extendedResponse));
+          Message message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
+              String.valueOf(extendedResponse));
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    msgID, message);
+                                    message);
         }
 
       default:
-        int msgID = MSGID_LDAPAUTH_UNEXPECTED_RESPONSE;
-        String message =
-             getMessage(msgID, String.valueOf(responseMessage.getProtocolOp()));
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                  message);
+        Message message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
+            String.valueOf(responseMessage.getProtocolOp()));
+        throw new ClientException(
+                LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -442,10 +442,9 @@ public class LDAPAuthenticationHandler
 
     // FIXME -- Add support for referrals.
 
-    int    msgID   = MSGID_LDAPAUTH_SIMPLE_BIND_FAILED;
-    String message = getMessage(msgID);
+    Message message = ERR_LDAPAUTH_SIMPLE_BIND_FAILED.get();
     throw new LDAPException(resultCode, bindResponse.getErrorMessage(),
-                            msgID, message, bindResponse.getMatchedDN(), null);
+                            message, bindResponse.getMatchedDN(), null);
   }
 
 
@@ -497,10 +496,9 @@ public class LDAPAuthenticationHandler
 
     if ((mechanism == null) || (mechanism.length() == 0))
     {
-      int    msgID   = MSGID_LDAPAUTH_NO_SASL_MECHANISM;
-      String message = getMessage(msgID);
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, msgID,
-                                message);
+      Message message = ERR_LDAPAUTH_NO_SASL_MECHANISM.get();
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
 
@@ -539,10 +537,9 @@ public class LDAPAuthenticationHandler
     }
     else
     {
-      int    msgID   = MSGID_LDAPAUTH_UNSUPPORTED_SASL_MECHANISM;
-      String message = getMessage(msgID, mechanism);
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_AUTH_UNKNOWN, msgID,
-                                message);
+      Message message = ERR_LDAPAUTH_UNSUPPORTED_SASL_MECHANISM.get(mechanism);
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_AUTH_UNKNOWN, message);
     }
   }
 
@@ -604,19 +601,18 @@ public class LDAPAuthenticationHandler
 
             if (iterator.hasNext())
             {
-              int    msgID   = MSGID_LDAPAUTH_TRACE_SINGLE_VALUED;
-              String message = getMessage(msgID);
+              Message message = ERR_LDAPAUTH_TRACE_SINGLE_VALUED.get();
               throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                        msgID, message);
+                                        message);
             }
           }
         }
         else
         {
-          int    msgID   = MSGID_LDAPAUTH_INVALID_SASL_PROPERTY;
-          String message = getMessage(msgID, name, SASL_MECHANISM_ANONYMOUS);
+          Message message = ERR_LDAPAUTH_INVALID_SASL_PROPERTY.get(
+              name, SASL_MECHANISM_ANONYMOUS);
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                    msgID, message);
+                                    message);
         }
       }
     }
@@ -646,19 +642,17 @@ public class LDAPAuthenticationHandler
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
-      String message = getMessage(msgID, SASL_MECHANISM_ANONYMOUS,
-                                  getExceptionMessage(ioe));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                message, ioe);
+      Message message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
+          SASL_MECHANISM_ANONYMOUS, getExceptionMessage(ioe));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
-      String message = getMessage(msgID, SASL_MECHANISM_ANONYMOUS,
-                                  getExceptionMessage(e));
+      Message message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
+          SASL_MECHANISM_ANONYMOUS, getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
-                                msgID, message, e);
+                                message, e);
     }
 
 
@@ -669,39 +663,39 @@ public class LDAPAuthenticationHandler
       responseMessage = reader.readMessage();
       if (responseMessage == null)
       {
-        int    msgID   = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
-        String message = getMessage(msgID);
+        Message message =
+            ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
-                                  msgID, message);
+                                  message);
       }
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(ioe));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                message, ioe);
+      Message message =
+          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ioe));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (ASN1Exception ae)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(ae));
+      Message message =
+          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ae));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                msgID, message, ae);
+                                message, ae);
     }
     catch (LDAPException le)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(le));
+      Message message =
+          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(le));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                msgID, message, le);
+                                message, le);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                message, e);
+      Message message =
+          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -730,26 +724,24 @@ public class LDAPAuthenticationHandler
         if ((responseOID != null) &&
             responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
         {
-          int    msgID   = MSGID_LDAPAUTH_SERVER_DISCONNECT;
-          String message = getMessage(msgID, extendedResponse.getResultCode(),
-                                      extendedResponse.getErrorMessage());
-          throw new LDAPException(extendedResponse.getResultCode(), msgID,
-                                  message);
+          Message message = ERR_LDAPAUTH_SERVER_DISCONNECT.
+              get(extendedResponse.getResultCode(),
+                  extendedResponse.getErrorMessage());
+          throw new LDAPException(extendedResponse.getResultCode(), message);
         }
         else
         {
-          int    msgID   = MSGID_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE;
-          String message = getMessage(msgID, String.valueOf(extendedResponse));
+          Message message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
+              String.valueOf(extendedResponse));
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    msgID, message);
+                                    message);
         }
 
       default:
-        int msgID = MSGID_LDAPAUTH_UNEXPECTED_RESPONSE;
-        String message =
-             getMessage(msgID, String.valueOf(responseMessage.getProtocolOp()));
+        Message message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
+            String.valueOf(responseMessage.getProtocolOp()));
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                  msgID, message);
+                                  message);
     }
 
 
@@ -765,10 +757,10 @@ public class LDAPAuthenticationHandler
 
     // FIXME -- Add support for referrals.
 
-    int    msgID   = MSGID_LDAPAUTH_SASL_BIND_FAILED;
-    String message = getMessage(msgID, SASL_MECHANISM_ANONYMOUS);
+    Message message =
+        ERR_LDAPAUTH_SASL_BIND_FAILED.get(SASL_MECHANISM_ANONYMOUS);
     throw new LDAPException(resultCode, bindResponse.getErrorMessage(),
-                            msgID, message, bindResponse.getMatchedDN(), null);
+                            message, bindResponse.getMatchedDN(), null);
   }
 
 
@@ -782,13 +774,13 @@ public class LDAPAuthenticationHandler
    *          SASL ANONYMOUS bind, mapped from the property names to their
    *          corresponding descriptions.
    */
-  public static LinkedHashMap<String,String> getSASLAnonymousProperties()
+  public static LinkedHashMap<String, Message> getSASLAnonymousProperties()
   {
-    LinkedHashMap<String,String> properties =
-         new LinkedHashMap<String,String>(1);
+    LinkedHashMap<String,Message> properties =
+         new LinkedHashMap<String,Message>(1);
 
     properties.put(SASL_PROPERTY_TRACE,
-                   getMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_TRACE));
+                   INFO_LDAPAUTH_PROPERTY_DESCRIPTION_TRACE.get());
 
     return properties;
   }
@@ -834,10 +826,10 @@ public class LDAPAuthenticationHandler
     // properties are allowed.
     if ((saslProperties == null) || saslProperties.isEmpty())
     {
-      int    msgID   = MSGID_LDAPAUTH_NO_SASL_PROPERTIES;
-      String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5);
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, msgID,
-                                message);
+      Message message =
+          ERR_LDAPAUTH_NO_SASL_PROPERTIES.get(SASL_MECHANISM_CRAM_MD5);
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
     Iterator<String> propertyNames = saslProperties.keySet().iterator();
@@ -856,19 +848,18 @@ public class LDAPAuthenticationHandler
 
           if (iterator.hasNext())
           {
-            int    msgID   = MSGID_LDAPAUTH_AUTHID_SINGLE_VALUED;
-            String message = getMessage(msgID);
+            Message message = ERR_LDAPAUTH_AUTHID_SINGLE_VALUED.get();
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                      msgID, message);
+                                      message);
           }
         }
       }
       else
       {
-        int    msgID   = MSGID_LDAPAUTH_INVALID_SASL_PROPERTY;
-        String message = getMessage(msgID, name, SASL_MECHANISM_CRAM_MD5);
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, msgID,
-                                  message);
+        Message message = ERR_LDAPAUTH_INVALID_SASL_PROPERTY.get(
+            name, SASL_MECHANISM_CRAM_MD5);
+        throw new ClientException(
+                LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
       }
     }
 
@@ -876,10 +867,10 @@ public class LDAPAuthenticationHandler
     // Make sure that the authID was provided.
     if ((authID == null) || (authID.length() == 0))
     {
-      int    msgID   = MSGID_LDAPAUTH_SASL_AUTHID_REQUIRED;
-      String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5);
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, msgID,
-                                message);
+      Message message =
+          ERR_LDAPAUTH_SASL_AUTHID_REQUIRED.get(SASL_MECHANISM_CRAM_MD5);
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
 
@@ -887,7 +878,7 @@ public class LDAPAuthenticationHandler
     // the user.
     if (bindPassword == null)
     {
-      System.out.print(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT, authID));
+      System.out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(authID));
       char[] pwChars = PasswordReader.readPassword();
       if (pwChars == null)
       {
@@ -917,19 +908,17 @@ public class LDAPAuthenticationHandler
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND;
-      String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  getExceptionMessage(ioe));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                message, ioe);
+      Message message = ERR_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND.get(
+          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ioe));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND;
-      String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  getExceptionMessage(e));
+      Message message = ERR_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND.get(
+          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
-                                msgID, message, e);
+                                message, e);
     }
 
 
@@ -940,43 +929,39 @@ public class LDAPAuthenticationHandler
       responseMessage1 = reader.readMessage();
       if (responseMessage1 == null)
       {
-        int    msgID   = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
-        String message = getMessage(msgID);
+        Message message =
+            ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
-                                  msgID, message);
+                                  message);
       }
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE;
-      String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  getExceptionMessage(ioe));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                message, ioe);
+      Message message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
+          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ioe));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (ASN1Exception ae)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE;
-      String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  getExceptionMessage(ae));
+      Message message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
+          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ae));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                msgID, message, ae);
+                                message, ae);
     }
     catch (LDAPException le)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE;
-      String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  getExceptionMessage(le));
+      Message message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
+          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(le));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                msgID, message, le);
+                                message, le);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE;
-      String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                message, e);
+      Message message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
+          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(e));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -996,26 +981,24 @@ public class LDAPAuthenticationHandler
         if ((responseOID != null) &&
             responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
         {
-          int    msgID   = MSGID_LDAPAUTH_SERVER_DISCONNECT;
-          String message = getMessage(msgID, extendedResponse.getResultCode(),
-                                      extendedResponse.getErrorMessage());
-          throw new LDAPException(extendedResponse.getResultCode(), msgID,
-                                  message);
+          Message message = ERR_LDAPAUTH_SERVER_DISCONNECT.
+              get(extendedResponse.getResultCode(),
+                  extendedResponse.getErrorMessage());
+          throw new LDAPException(extendedResponse.getResultCode(), message);
         }
         else
         {
-          int    msgID   = MSGID_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE;
-          String message = getMessage(msgID, String.valueOf(extendedResponse));
+          Message message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
+              String.valueOf(extendedResponse));
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    msgID, message);
+                                    message);
         }
 
       default:
-        int msgID = MSGID_LDAPAUTH_UNEXPECTED_RESPONSE;
-        String message = getMessage(msgID,
-                              String.valueOf(responseMessage1.getProtocolOp()));
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                  message);
+        Message message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
+            String.valueOf(responseMessage1.getProtocolOp()));
+        throw new ClientException(
+                LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -1026,17 +1009,16 @@ public class LDAPAuthenticationHandler
     int resultCode1 = bindResponse1.getResultCode();
     if (resultCode1 != LDAPResultCode.SASL_BIND_IN_PROGRESS)
     {
-      String errorMessage = bindResponse1.getErrorMessage();
+      Message errorMessage = bindResponse1.getErrorMessage();
       if (errorMessage == null)
       {
-        errorMessage = "";
+        errorMessage = Message.EMPTY;
       }
 
-      int    msgID   = MSGID_LDAPAUTH_UNEXPECTED_INITIAL_BIND_RESPONSE;
-      String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5, resultCode1,
-                                  LDAPResultCode.toString(resultCode1),
-                                  errorMessage);
-      throw new LDAPException(resultCode1, errorMessage, msgID, message,
+      Message message = ERR_LDAPAUTH_UNEXPECTED_INITIAL_BIND_RESPONSE.
+          get(SASL_MECHANISM_CRAM_MD5, resultCode1,
+              LDAPResultCode.toString(resultCode1), errorMessage);
+      throw new LDAPException(resultCode1, errorMessage, message,
                               bindResponse1.getMatchedDN(), null);
     }
 
@@ -1046,9 +1028,8 @@ public class LDAPAuthenticationHandler
     ASN1OctetString serverChallenge = bindResponse1.getServerSASLCredentials();
     if (serverChallenge == null)
     {
-      int    msgID   = MSGID_LDAPAUTH_NO_CRAMMD5_SERVER_CREDENTIALS;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_LDAPAUTH_NO_CRAMMD5_SERVER_CREDENTIALS.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -1074,19 +1055,17 @@ public class LDAPAuthenticationHandler
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND;
-      String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  getExceptionMessage(ioe));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                message, ioe);
+      Message message = ERR_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND.get(
+          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ioe));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND;
-      String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                message, e);
+      Message message = ERR_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND.get(
+          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(e));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -1097,43 +1076,39 @@ public class LDAPAuthenticationHandler
       responseMessage2 = reader.readMessage();
       if (responseMessage2 == null)
       {
-        int    msgID   = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
-        String message = getMessage(msgID);
+        Message message =
+            ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
-                                  msgID, message);
+                                  message);
       }
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE;
-      String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  getExceptionMessage(ioe));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                message, ioe);
+      Message message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
+          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ioe));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (ASN1Exception ae)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE;
-      String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  getExceptionMessage(ae));
+      Message message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
+          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ae));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                msgID, message, ae);
+                                message, ae);
     }
     catch (LDAPException le)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE;
-      String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  getExceptionMessage(le));
+      Message message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
+          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(le));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                msgID, message, le);
+                                message, le);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE;
-      String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                message, e);
+      Message message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
+          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(e));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -1162,26 +1137,24 @@ public class LDAPAuthenticationHandler
         if ((responseOID != null) &&
             responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
         {
-          int    msgID   = MSGID_LDAPAUTH_SERVER_DISCONNECT;
-          String message = getMessage(msgID, extendedResponse.getResultCode(),
-                                      extendedResponse.getErrorMessage());
-          throw new LDAPException(extendedResponse.getResultCode(), msgID,
-                                  message);
+          Message message = ERR_LDAPAUTH_SERVER_DISCONNECT.
+              get(extendedResponse.getResultCode(),
+                  extendedResponse.getErrorMessage());
+          throw new LDAPException(extendedResponse.getResultCode(), message);
         }
         else
         {
-          int    msgID   = MSGID_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE;
-          String message = getMessage(msgID, String.valueOf(extendedResponse));
+          Message message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
+              String.valueOf(extendedResponse));
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    msgID, message);
+                                    message);
         }
 
       default:
-        int msgID = MSGID_LDAPAUTH_UNEXPECTED_RESPONSE;
-        String message = getMessage(msgID,
-                              String.valueOf(responseMessage2.getProtocolOp()));
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                  message);
+        Message message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
+            String.valueOf(responseMessage2.getProtocolOp()));
+        throw new ClientException(
+                LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -1197,10 +1170,10 @@ public class LDAPAuthenticationHandler
 
     // FIXME -- Add support for referrals.
 
-    int    msgID   = MSGID_LDAPAUTH_SASL_BIND_FAILED;
-    String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5);
+    Message message =
+        ERR_LDAPAUTH_SASL_BIND_FAILED.get(SASL_MECHANISM_CRAM_MD5);
     throw new LDAPException(resultCode2, bindResponse2.getErrorMessage(),
-                            msgID, message, bindResponse2.getMatchedDN(), null);
+                            message, bindResponse2.getMatchedDN(), null);
   }
 
 
@@ -1232,10 +1205,10 @@ public class LDAPAuthenticationHandler
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDAPAUTH_CANNOT_INITIALIZE_MD5_DIGEST;
-        String message = getMessage(msgID, getExceptionMessage(e));
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                  message, e);
+        Message message = ERR_LDAPAUTH_CANNOT_INITIALIZE_MD5_DIGEST.get(
+            getExceptionMessage(e));
+        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
+                message, e);
       }
     }
 
@@ -1309,13 +1282,13 @@ public class LDAPAuthenticationHandler
    *          SASL CRAM-MD5 bind, mapped from the property names to their
    *          corresponding descriptions.
    */
-  public static LinkedHashMap<String,String> getSASLCRAMMD5Properties()
+  public static LinkedHashMap<String,Message> getSASLCRAMMD5Properties()
   {
-    LinkedHashMap<String,String> properties =
-         new LinkedHashMap<String,String>(1);
+    LinkedHashMap<String,Message> properties =
+         new LinkedHashMap<String,Message>(1);
 
     properties.put(SASL_PROPERTY_AUTHID,
-                   getMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHID));
+                   INFO_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHID.get());
 
     return properties;
   }
@@ -1366,10 +1339,10 @@ public class LDAPAuthenticationHandler
     // QoP, digest URI, and authzID are optional.
     if ((saslProperties == null) || saslProperties.isEmpty())
     {
-      int    msgID   = MSGID_LDAPAUTH_NO_SASL_PROPERTIES;
-      String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5);
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, msgID,
-                                message);
+      Message message =
+          ERR_LDAPAUTH_NO_SASL_PROPERTIES.get(SASL_MECHANISM_DIGEST_MD5);
+      throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+              message);
     }
 
     Iterator<String> propertyNames = saslProperties.keySet().iterator();
@@ -1388,10 +1361,9 @@ public class LDAPAuthenticationHandler
 
           if (iterator.hasNext())
           {
-            int    msgID   = MSGID_LDAPAUTH_AUTHID_SINGLE_VALUED;
-            String message = getMessage(msgID);
+            Message message = ERR_LDAPAUTH_AUTHID_SINGLE_VALUED.get();
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                      msgID, message);
+                                      message);
           }
         }
       }
@@ -1406,10 +1378,9 @@ public class LDAPAuthenticationHandler
 
           if (iterator.hasNext())
           {
-            int    msgID   = MSGID_LDAPAUTH_REALM_SINGLE_VALUED;
-            String message = getMessage(msgID);
+            Message message = ERR_LDAPAUTH_REALM_SINGLE_VALUED.get();
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                      msgID, message);
+                                      message);
           }
         }
       }
@@ -1423,10 +1394,9 @@ public class LDAPAuthenticationHandler
 
           if (iterator.hasNext())
           {
-            int    msgID   = MSGID_LDAPAUTH_QOP_SINGLE_VALUED;
-            String message = getMessage(msgID);
+            Message message = ERR_LDAPAUTH_QOP_SINGLE_VALUED.get();
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                      msgID, message);
+                                      message);
           }
 
           if (qop.equals("auth"))
@@ -1436,18 +1406,16 @@ public class LDAPAuthenticationHandler
           else if (qop.equals("auth-int") || qop.equals("auth-conf"))
           {
             // FIXME -- Add support for integrity and confidentiality.
-            int    msgID   = MSGID_LDAPAUTH_DIGESTMD5_QOP_NOT_SUPPORTED;
-            String message = getMessage(msgID, qop);
+            Message message = ERR_LDAPAUTH_DIGESTMD5_QOP_NOT_SUPPORTED.get(qop);
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                      msgID, message);
+                                      message);
           }
           else
           {
             // This is an illegal value.
-            int    msgID   = MSGID_LDAPAUTH_DIGESTMD5_INVALID_QOP;
-            String message = getMessage(msgID, qop);
+            Message message = ERR_LDAPAUTH_DIGESTMD5_INVALID_QOP.get(qop);
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                      msgID, message);
+                                      message);
           }
         }
       }
@@ -1461,10 +1429,9 @@ public class LDAPAuthenticationHandler
 
           if (iterator.hasNext())
           {
-            int    msgID   = MSGID_LDAPAUTH_DIGEST_URI_SINGLE_VALUED;
-            String message = getMessage(msgID);
+            Message message = ERR_LDAPAUTH_DIGEST_URI_SINGLE_VALUED.get();
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                      msgID, message);
+                                      message);
           }
         }
       }
@@ -1478,19 +1445,18 @@ public class LDAPAuthenticationHandler
 
           if (iterator.hasNext())
           {
-            int    msgID   = MSGID_LDAPAUTH_AUTHZID_SINGLE_VALUED;
-            String message = getMessage(msgID);
+            Message message = ERR_LDAPAUTH_AUTHZID_SINGLE_VALUED.get();
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                      msgID, message);
+                                      message);
           }
         }
       }
       else
       {
-        int    msgID   = MSGID_LDAPAUTH_INVALID_SASL_PROPERTY;
-        String message = getMessage(msgID, name, SASL_MECHANISM_DIGEST_MD5);
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, msgID,
-                                  message);
+        Message message = ERR_LDAPAUTH_INVALID_SASL_PROPERTY.get(
+            name, SASL_MECHANISM_DIGEST_MD5);
+        throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+                message);
       }
     }
 
@@ -1498,10 +1464,10 @@ public class LDAPAuthenticationHandler
     // Make sure that the authID was provided.
     if ((authID == null) || (authID.length() == 0))
     {
-      int    msgID   = MSGID_LDAPAUTH_SASL_AUTHID_REQUIRED;
-      String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5);
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, msgID,
-                                message);
+      Message message =
+          ERR_LDAPAUTH_SASL_AUTHID_REQUIRED.get(SASL_MECHANISM_DIGEST_MD5);
+      throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+              message);
     }
 
 
@@ -1509,7 +1475,7 @@ public class LDAPAuthenticationHandler
     // the user.
     if (bindPassword == null)
     {
-      System.out.print(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT, authID));
+      System.out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(authID));
       char[] pwChars = PasswordReader.readPassword();
       if (pwChars == null)
       {
@@ -1539,19 +1505,17 @@ public class LDAPAuthenticationHandler
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND;
-      String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  getExceptionMessage(ioe));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                message, ioe);
+      Message message = ERR_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND.get(
+          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ioe));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND;
-      String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  getExceptionMessage(e));
+      Message message = ERR_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND.get(
+          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
-                                msgID, message, e);
+                                message, e);
     }
 
 
@@ -1562,43 +1526,39 @@ public class LDAPAuthenticationHandler
       responseMessage1 = reader.readMessage();
       if (responseMessage1 == null)
       {
-        int    msgID   = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
-        String message = getMessage(msgID);
+        Message message =
+            ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
-                                  msgID, message);
+                                  message);
       }
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE;
-      String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  getExceptionMessage(ioe));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                message, ioe);
+      Message message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
+          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ioe));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (ASN1Exception ae)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE;
-      String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  getExceptionMessage(ae));
+      Message message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
+          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ae));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                msgID, message, ae);
+                                message, ae);
     }
     catch (LDAPException le)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE;
-      String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  getExceptionMessage(le));
+      Message message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
+          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(le));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                msgID, message, le);
+                                message, le);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE;
-      String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                message, e);
+      Message message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
+          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(e));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -1618,26 +1578,24 @@ public class LDAPAuthenticationHandler
         if ((responseOID != null) &&
             responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
         {
-          int    msgID   = MSGID_LDAPAUTH_SERVER_DISCONNECT;
-          String message = getMessage(msgID, extendedResponse.getResultCode(),
-                                      extendedResponse.getErrorMessage());
-          throw new LDAPException(extendedResponse.getResultCode(), msgID,
-                                  message);
+          Message message = ERR_LDAPAUTH_SERVER_DISCONNECT.
+              get(extendedResponse.getResultCode(),
+                  extendedResponse.getErrorMessage());
+          throw new LDAPException(extendedResponse.getResultCode(), message);
         }
         else
         {
-          int    msgID   = MSGID_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE;
-          String message = getMessage(msgID, String.valueOf(extendedResponse));
+          Message message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
+              String.valueOf(extendedResponse));
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    msgID, message);
+                                    message);
         }
 
       default:
-        int msgID = MSGID_LDAPAUTH_UNEXPECTED_RESPONSE;
-        String message = getMessage(msgID,
-                              String.valueOf(responseMessage1.getProtocolOp()));
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                  message);
+        Message message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
+            String.valueOf(responseMessage1.getProtocolOp()));
+        throw new ClientException(
+                LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -1648,17 +1606,16 @@ public class LDAPAuthenticationHandler
     int resultCode1 = bindResponse1.getResultCode();
     if (resultCode1 != LDAPResultCode.SASL_BIND_IN_PROGRESS)
     {
-      String errorMessage = bindResponse1.getErrorMessage();
+      Message errorMessage = bindResponse1.getErrorMessage();
       if (errorMessage == null)
       {
-        errorMessage = "";
+        errorMessage = Message.EMPTY;
       }
 
-      int    msgID   = MSGID_LDAPAUTH_UNEXPECTED_INITIAL_BIND_RESPONSE;
-      String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5, resultCode1,
-                                  LDAPResultCode.toString(resultCode1),
-                                  errorMessage);
-      throw new LDAPException(resultCode1, errorMessage, msgID, message,
+      Message message = ERR_LDAPAUTH_UNEXPECTED_INITIAL_BIND_RESPONSE.
+          get(SASL_MECHANISM_DIGEST_MD5, resultCode1,
+              LDAPResultCode.toString(resultCode1), errorMessage);
+      throw new LDAPException(resultCode1, errorMessage, message,
                               bindResponse1.getMatchedDN(), null);
     }
 
@@ -1669,9 +1626,8 @@ public class LDAPAuthenticationHandler
          bindResponse1.getServerSASLCredentials();
     if (serverCredentials == null)
     {
-      int    msgID   = MSGID_LDAPAUTH_NO_DIGESTMD5_SERVER_CREDENTIALS;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_LDAPAUTH_NO_DIGESTMD5_SERVER_CREDENTIALS.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -1692,9 +1648,10 @@ public class LDAPAuthenticationHandler
       {
         // This is bad because we're not at the end of the string but we don't
         // have a name/value delimiter.
-        int    msgID   = MSGID_LDAPAUTH_DIGESTMD5_INVALID_TOKEN_IN_CREDENTIALS;
-        String message = getMessage(msgID, pos);
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+        Message message =
+            ERR_LDAPAUTH_DIGESTMD5_INVALID_TOKEN_IN_CREDENTIALS.get(
+                    credString, pos);
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
 
 
@@ -1709,10 +1666,9 @@ public class LDAPAuthenticationHandler
         // The value must be the string "utf-8".  If not, that's an error.
         if (! tokenValue.equalsIgnoreCase("utf-8"))
         {
-          int    msgID   = MSGID_LDAPAUTH_DIGESTMD5_INVALID_CHARSET;
-          String message = getMessage(msgID, tokenValue);
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                  message);
+          Message message =
+              ERR_LDAPAUTH_DIGESTMD5_INVALID_CHARSET.get(tokenValue);
+          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
         }
 
         useUTF8 = true;
@@ -1758,10 +1714,10 @@ public class LDAPAuthenticationHandler
 
         if (! qopModes.contains(qop))
         {
-          int    msgID   = MSGID_LDAPAUTH_REQUESTED_QOP_NOT_SUPPORTED_BY_SERVER;
-          String message = getMessage(msgID, qop, tokenValue);
+          Message message = ERR_LDAPAUTH_REQUESTED_QOP_NOT_SUPPORTED_BY_SERVER.
+              get(qop, tokenValue);
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                    msgID, message);
+                                    message);
         }
       }
       else
@@ -1777,9 +1733,8 @@ public class LDAPAuthenticationHandler
     // Make sure that the nonce was included in the response from the server.
     if (nonce == null)
     {
-      int    msgID   = MSGID_LDAPAUTH_DIGESTMD5_NO_NONCE;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_LDAPAUTH_DIGESTMD5_NO_NONCE.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -1805,10 +1760,10 @@ public class LDAPAuthenticationHandler
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_DIGESTMD5_CANNOT_CREATE_RESPONSE_DIGEST;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                message, e);
+      Message message = ERR_LDAPAUTH_DIGESTMD5_CANNOT_CREATE_RESPONSE_DIGEST.
+          get(getExceptionMessage(e));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -1865,19 +1820,17 @@ public class LDAPAuthenticationHandler
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND;
-      String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  getExceptionMessage(ioe));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                message, ioe);
+      Message message = ERR_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND.get(
+          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ioe));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND;
-      String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  getExceptionMessage(e));
+      Message message = ERR_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND.get(
+          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
-                                msgID, message, e);
+                                message, e);
     }
 
 
@@ -1888,43 +1841,39 @@ public class LDAPAuthenticationHandler
       responseMessage2 = reader.readMessage();
       if (responseMessage2 == null)
       {
-        int    msgID   = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
-        String message = getMessage(msgID);
+        Message message =
+            ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
-                                  msgID, message);
+                                  message);
       }
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE;
-      String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  getExceptionMessage(ioe));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                message, ioe);
+      Message message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
+          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ioe));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (ASN1Exception ae)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE;
-      String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  getExceptionMessage(ae));
+      Message message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
+          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ae));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                msgID, message, ae);
+                                message, ae);
     }
     catch (LDAPException le)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE;
-      String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  getExceptionMessage(le));
+      Message message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
+          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(le));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                msgID, message, le);
+                                message, le);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE;
-      String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                message, e);
+      Message message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
+          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(e));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -1953,26 +1902,24 @@ public class LDAPAuthenticationHandler
         if ((responseOID != null) &&
             responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
         {
-          int    msgID   = MSGID_LDAPAUTH_SERVER_DISCONNECT;
-          String message = getMessage(msgID, extendedResponse.getResultCode(),
-                                      extendedResponse.getErrorMessage());
-          throw new LDAPException(extendedResponse.getResultCode(), msgID,
-                                  message);
+          Message message = ERR_LDAPAUTH_SERVER_DISCONNECT.
+              get(extendedResponse.getResultCode(),
+                  extendedResponse.getErrorMessage());
+          throw new LDAPException(extendedResponse.getResultCode(), message);
         }
         else
         {
-          int    msgID   = MSGID_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE;
-          String message = getMessage(msgID, String.valueOf(extendedResponse));
+          Message message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
+              String.valueOf(extendedResponse));
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    msgID, message);
+                                    message);
         }
 
       default:
-        int msgID = MSGID_LDAPAUTH_UNEXPECTED_RESPONSE;
-        String message = getMessage(msgID,
-                              String.valueOf(responseMessage2.getProtocolOp()));
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                  message);
+        Message message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
+            String.valueOf(responseMessage2.getProtocolOp()));
+        throw new ClientException(
+                LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -1983,10 +1930,10 @@ public class LDAPAuthenticationHandler
     {
       // FIXME -- Add support for referrals.
 
-      int    msgID   = MSGID_LDAPAUTH_SASL_BIND_FAILED;
-      String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5);
+      Message message =
+          ERR_LDAPAUTH_SASL_BIND_FAILED.get(SASL_MECHANISM_DIGEST_MD5);
       throw new LDAPException(resultCode2, bindResponse2.getErrorMessage(),
-                              msgID, message, bindResponse2.getMatchedDN(),
+                              message, bindResponse2.getMatchedDN(),
                               null);
     }
 
@@ -1996,17 +1943,15 @@ public class LDAPAuthenticationHandler
     ASN1OctetString rspAuthCreds = bindResponse2.getServerSASLCredentials();
     if (rspAuthCreds == null)
     {
-      int    msgID   = MSGID_LDAPAUTH_DIGESTMD5_NO_RSPAUTH_CREDS;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_LDAPAUTH_DIGESTMD5_NO_RSPAUTH_CREDS.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
     String credStr = toLowerCase(rspAuthCreds.stringValue());
     if (! credStr.startsWith("rspauth="))
     {
-      int    msgID   = MSGID_LDAPAUTH_DIGESTMD5_NO_RSPAUTH_CREDS;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_LDAPAUTH_DIGESTMD5_NO_RSPAUTH_CREDS.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -2017,9 +1962,9 @@ public class LDAPAuthenticationHandler
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_DIGESTMD5_COULD_NOT_DECODE_RSPAUTH;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_LDAPAUTH_DIGESTMD5_COULD_NOT_DECODE_RSPAUTH.get(
+          getExceptionMessage(e));
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
     byte[] clientRspAuth;
@@ -2032,18 +1977,17 @@ public class LDAPAuthenticationHandler
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_DIGESTMD5_COULD_NOT_CALCULATE_RSPAUTH;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                message);
+      Message message = ERR_LDAPAUTH_DIGESTMD5_COULD_NOT_CALCULATE_RSPAUTH.get(
+          getExceptionMessage(e));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
     if (! Arrays.equals(serverRspAuth, clientRspAuth))
     {
-      int    msgID   = MSGID_LDAPAUTH_DIGESTMD5_RSPAUTH_MISMATCH;
-      String message = getMessage(msgID);
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                message);
+      Message message = ERR_LDAPAUTH_DIGESTMD5_RSPAUTH_MISMATCH.get();
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
     // FIXME -- Need to look for things like password expiration warning,
@@ -2167,10 +2111,10 @@ public class LDAPAuthenticationHandler
             {
               // We found the closing quote before the end of the token.  This
               // is not fine.
-              int msgID = MSGID_LDAPAUTH_DIGESTMD5_INVALID_CLOSING_QUOTE_POS;
-              String message = getMessage(msgID, (pos-2));
+              Message message =
+                  ERR_LDAPAUTH_DIGESTMD5_INVALID_CLOSING_QUOTE_POS.get((pos-2));
               throw new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
-                                      msgID, message);
+                                      message);
             }
           }
         }
@@ -2265,10 +2209,10 @@ public class LDAPAuthenticationHandler
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDAPAUTH_CANNOT_INITIALIZE_MD5_DIGEST;
-        String message = getMessage(msgID, getExceptionMessage(e));
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                  message, e);
+        Message message = ERR_LDAPAUTH_CANNOT_INITIALIZE_MD5_DIGEST.get(
+            getExceptionMessage(e));
+        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
+                message, e);
       }
     }
 
@@ -2469,21 +2413,21 @@ public class LDAPAuthenticationHandler
    *          SASL DIGEST-MD5 bind, mapped from the property names to their
    *          corresponding descriptions.
    */
-  public static LinkedHashMap<String,String> getSASLDigestMD5Properties()
+  public static LinkedHashMap<String,Message> getSASLDigestMD5Properties()
   {
-    LinkedHashMap<String,String> properties =
-         new LinkedHashMap<String,String>(5);
+    LinkedHashMap<String,Message> properties =
+         new LinkedHashMap<String,Message>(5);
 
     properties.put(SASL_PROPERTY_AUTHID,
-                   getMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHID));
+                   INFO_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHID.get());
     properties.put(SASL_PROPERTY_REALM,
-                   getMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_REALM));
+                   INFO_LDAPAUTH_PROPERTY_DESCRIPTION_REALM.get());
     properties.put(SASL_PROPERTY_QOP,
-                   getMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_QOP));
+                   INFO_LDAPAUTH_PROPERTY_DESCRIPTION_QOP.get());
     properties.put(SASL_PROPERTY_DIGEST_URI,
-                   getMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_DIGEST_URI));
+                   INFO_LDAPAUTH_PROPERTY_DESCRIPTION_DIGEST_URI.get());
     properties.put(SASL_PROPERTY_AUTHZID,
-                   getMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHZID));
+                   INFO_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHZID.get());
 
     return properties;
   }
@@ -2524,10 +2468,10 @@ public class LDAPAuthenticationHandler
     // Make sure that no SASL properties were provided.
     if ((saslProperties != null) && (! saslProperties.isEmpty()))
     {
-      int    msgID   = MSGID_LDAPAUTH_NO_ALLOWED_SASL_PROPERTIES;
-      String message = getMessage(msgID, SASL_MECHANISM_EXTERNAL);
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, msgID,
-                                message);
+      Message message =
+          ERR_LDAPAUTH_NO_ALLOWED_SASL_PROPERTIES.get(SASL_MECHANISM_EXTERNAL);
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
 
@@ -2544,19 +2488,17 @@ public class LDAPAuthenticationHandler
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
-      String message = getMessage(msgID, SASL_MECHANISM_EXTERNAL,
-                                  getExceptionMessage(ioe));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                message, ioe);
+      Message message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
+          SASL_MECHANISM_EXTERNAL, getExceptionMessage(ioe));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
-      String message = getMessage(msgID, SASL_MECHANISM_EXTERNAL,
-                                  getExceptionMessage(e));
+      Message message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
+          SASL_MECHANISM_EXTERNAL, getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
-                                msgID, message, e);
+                                message, e);
     }
 
 
@@ -2567,39 +2509,39 @@ public class LDAPAuthenticationHandler
       responseMessage = reader.readMessage();
       if (responseMessage == null)
       {
-        int    msgID   = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
-        String message = getMessage(msgID);
+        Message message =
+            ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
-                                  msgID, message);
+                                  message);
       }
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(ioe));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                message, ioe);
+      Message message =
+          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ioe));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (ASN1Exception ae)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(ae));
+      Message message =
+          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ae));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                msgID, message, ae);
+                                message, ae);
     }
     catch (LDAPException le)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(le));
+      Message message =
+          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(le));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                msgID, message, le);
+                                message, le);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                message, e);
+      Message message =
+          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -2628,26 +2570,24 @@ public class LDAPAuthenticationHandler
         if ((responseOID != null) &&
             responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
         {
-          int    msgID   = MSGID_LDAPAUTH_SERVER_DISCONNECT;
-          String message = getMessage(msgID, extendedResponse.getResultCode(),
-                                      extendedResponse.getErrorMessage());
-          throw new LDAPException(extendedResponse.getResultCode(), msgID,
-                                  message);
+          Message message = ERR_LDAPAUTH_SERVER_DISCONNECT.
+              get(extendedResponse.getResultCode(),
+                  extendedResponse.getErrorMessage());
+          throw new LDAPException(extendedResponse.getResultCode(), message);
         }
         else
         {
-          int    msgID   = MSGID_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE;
-          String message = getMessage(msgID, String.valueOf(extendedResponse));
+          Message message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
+              String.valueOf(extendedResponse));
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    msgID, message);
+                                    message);
         }
 
       default:
-        int msgID = MSGID_LDAPAUTH_UNEXPECTED_RESPONSE;
-        String message =
-             getMessage(msgID, String.valueOf(responseMessage.getProtocolOp()));
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                  message);
+        Message message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
+            String.valueOf(responseMessage.getProtocolOp()));
+        throw new ClientException(
+                LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -2663,10 +2603,10 @@ public class LDAPAuthenticationHandler
 
     // FIXME -- Add support for referrals.
 
-    int    msgID   = MSGID_LDAPAUTH_SASL_BIND_FAILED;
-    String message = getMessage(msgID, SASL_MECHANISM_EXTERNAL);
+    Message message =
+        ERR_LDAPAUTH_SASL_BIND_FAILED.get(SASL_MECHANISM_EXTERNAL);
     throw new LDAPException(resultCode, bindResponse.getErrorMessage(),
-                            msgID, message, bindResponse.getMatchedDN(), null);
+                            message, bindResponse.getMatchedDN(), null);
   }
 
 
@@ -2680,10 +2620,10 @@ public class LDAPAuthenticationHandler
    *          SASL EXTERNAL bind, mapped from the property names to their
    *          corresponding descriptions.
    */
-  public static LinkedHashMap<String,String> getSASLExternalProperties()
+  public static LinkedHashMap<String,Message> getSASLExternalProperties()
   {
     // There are no properties for the SASL EXTERNAL mechanism.
-    return new LinkedHashMap<String,String>(0);
+    return new LinkedHashMap<String,Message>(0);
   }
 
 
@@ -2744,10 +2684,10 @@ public class LDAPAuthenticationHandler
     // KDC, QoP, and realm are optional.
     if ((saslProperties == null) || saslProperties.isEmpty())
     {
-      int    msgID   = MSGID_LDAPAUTH_NO_SASL_PROPERTIES;
-      String message = getMessage(msgID, SASL_MECHANISM_GSSAPI);
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, msgID,
-                                message);
+      Message message =
+          ERR_LDAPAUTH_NO_SASL_PROPERTIES.get(SASL_MECHANISM_GSSAPI);
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
     Iterator<String> propertyNames = saslProperties.keySet().iterator();
@@ -2766,10 +2706,9 @@ public class LDAPAuthenticationHandler
 
           if (iterator.hasNext())
           {
-            int    msgID   = MSGID_LDAPAUTH_AUTHID_SINGLE_VALUED;
-            String message = getMessage(msgID);
+            Message message = ERR_LDAPAUTH_AUTHID_SINGLE_VALUED.get();
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                      msgID, message);
+                                      message);
           }
         }
       }
@@ -2783,10 +2722,9 @@ public class LDAPAuthenticationHandler
 
           if (iterator.hasNext())
           {
-            int    msgID   = MSGID_LDAPAUTH_AUTHZID_SINGLE_VALUED;
-            String message = getMessage(msgID);
+            Message message = ERR_LDAPAUTH_AUTHZID_SINGLE_VALUED.get();
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                      msgID, message);
+                                      message);
           }
         }
       }
@@ -2800,10 +2738,9 @@ public class LDAPAuthenticationHandler
 
           if (iterator.hasNext())
           {
-            int    msgID   = MSGID_LDAPAUTH_KDC_SINGLE_VALUED;
-            String message = getMessage(msgID);
+            Message message = ERR_LDAPAUTH_KDC_SINGLE_VALUED.get();
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                      msgID, message);
+                                      message);
           }
         }
       }
@@ -2817,10 +2754,9 @@ public class LDAPAuthenticationHandler
 
           if (iterator.hasNext())
           {
-            int    msgID   = MSGID_LDAPAUTH_QOP_SINGLE_VALUED;
-            String message = getMessage(msgID);
+            Message message = ERR_LDAPAUTH_QOP_SINGLE_VALUED.get();
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                      msgID, message);
+                                      message);
           }
 
           if (gssapiQoP.equals("auth"))
@@ -2831,18 +2767,17 @@ public class LDAPAuthenticationHandler
                    gssapiQoP.equals("auth-conf"))
           {
             // FIXME -- Add support for integrity and confidentiality.
-            int    msgID   = MSGID_LDAPAUTH_DIGESTMD5_QOP_NOT_SUPPORTED;
-            String message = getMessage(msgID, gssapiQoP);
+            Message message =
+                ERR_LDAPAUTH_DIGESTMD5_QOP_NOT_SUPPORTED.get(gssapiQoP);
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                      msgID, message);
+                                      message);
           }
           else
           {
             // This is an illegal value.
-            int    msgID   = MSGID_LDAPAUTH_GSSAPI_INVALID_QOP;
-            String message = getMessage(msgID, gssapiQoP);
+            Message message = ERR_LDAPAUTH_GSSAPI_INVALID_QOP.get(gssapiQoP);
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                      msgID, message);
+                                      message);
           }
         }
       }
@@ -2856,19 +2791,18 @@ public class LDAPAuthenticationHandler
 
           if (iterator.hasNext())
           {
-            int    msgID   = MSGID_LDAPAUTH_REALM_SINGLE_VALUED;
-            String message = getMessage(msgID);
+            Message message = ERR_LDAPAUTH_REALM_SINGLE_VALUED.get();
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                      msgID, message);
+                                      message);
           }
         }
       }
       else
       {
-        int    msgID   = MSGID_LDAPAUTH_INVALID_SASL_PROPERTY;
-        String message = getMessage(msgID, name, SASL_MECHANISM_GSSAPI);
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, msgID,
-                                  message);
+        Message message =
+            ERR_LDAPAUTH_INVALID_SASL_PROPERTY.get(name, SASL_MECHANISM_GSSAPI);
+        throw new ClientException(
+                LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
       }
     }
 
@@ -2876,10 +2810,10 @@ public class LDAPAuthenticationHandler
     // Make sure that the authID was provided.
     if ((gssapiAuthID == null) || (gssapiAuthID.length() == 0))
     {
-      int    msgID   = MSGID_LDAPAUTH_SASL_AUTHID_REQUIRED;
-      String message = getMessage(msgID, SASL_MECHANISM_GSSAPI);
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, msgID,
-                                message);
+      Message message =
+          ERR_LDAPAUTH_SASL_AUTHID_REQUIRED.get(SASL_MECHANISM_GSSAPI);
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
 
@@ -2931,10 +2865,10 @@ public class LDAPAuthenticationHandler
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_GSSAPI_CANNOT_CREATE_JAAS_CONFIG;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                message, e);
+      Message message = ERR_LDAPAUTH_GSSAPI_CANNOT_CREATE_JAAS_CONFIG.get(
+          getExceptionMessage(e));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
     System.setProperty(JAAS_PROPERTY_CONFIG_FILE, configFileName);
@@ -2951,10 +2885,10 @@ public class LDAPAuthenticationHandler
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_GSSAPI_LOCAL_AUTHENTICATION_FAILED;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                message, e);
+      Message message = ERR_LDAPAUTH_GSSAPI_LOCAL_AUTHENTICATION_FAILED.get(
+          getExceptionMessage(e));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
     try
@@ -2972,10 +2906,10 @@ public class LDAPAuthenticationHandler
         throw (LDAPException) e;
       }
 
-      int    msgID   = MSGID_LDAPAUTH_GSSAPI_REMOTE_AUTHENTICATION_FAILED;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                message, e);
+      Message message = ERR_LDAPAUTH_GSSAPI_REMOTE_AUTHENTICATION_FAILED.get(
+              getExceptionMessage(e));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -2996,19 +2930,19 @@ public class LDAPAuthenticationHandler
    *          SASL EXTERNAL bind, mapped from the property names to their
    *          corresponding descriptions.
    */
-  public static LinkedHashMap<String,String> getSASLGSSAPIProperties()
+  public static LinkedHashMap<String,Message> getSASLGSSAPIProperties()
   {
-    LinkedHashMap<String,String> properties =
-         new LinkedHashMap<String,String>(4);
+    LinkedHashMap<String,Message> properties =
+         new LinkedHashMap<String,Message>(4);
 
     properties.put(SASL_PROPERTY_AUTHID,
-                   getMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHID));
+                   INFO_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHID.get());
     properties.put(SASL_PROPERTY_AUTHZID,
-                   getMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHZID));
+                   INFO_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHZID.get());
     properties.put(SASL_PROPERTY_KDC,
-                   getMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_KDC));
+                   INFO_LDAPAUTH_PROPERTY_DESCRIPTION_KDC.get());
     properties.put(SASL_PROPERTY_REALM,
-                   getMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_REALM));
+                   INFO_LDAPAUTH_PROPERTY_DESCRIPTION_REALM.get());
 
     return properties;
   }
@@ -3055,10 +2989,10 @@ public class LDAPAuthenticationHandler
     // optional.
     if ((saslProperties == null) || saslProperties.isEmpty())
     {
-      int    msgID   = MSGID_LDAPAUTH_NO_SASL_PROPERTIES;
-      String message = getMessage(msgID, SASL_MECHANISM_PLAIN);
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, msgID,
-                                message);
+      Message message =
+          ERR_LDAPAUTH_NO_SASL_PROPERTIES.get(SASL_MECHANISM_PLAIN);
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
     Iterator<String> propertyNames = saslProperties.keySet().iterator();
@@ -3077,10 +3011,9 @@ public class LDAPAuthenticationHandler
 
           if (iterator.hasNext())
           {
-            int    msgID   = MSGID_LDAPAUTH_AUTHID_SINGLE_VALUED;
-            String message = getMessage(msgID);
+            Message message = ERR_LDAPAUTH_AUTHID_SINGLE_VALUED.get();
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                      msgID, message);
+                                      message);
           }
         }
       }
@@ -3094,19 +3027,18 @@ public class LDAPAuthenticationHandler
 
           if (iterator.hasNext())
           {
-            int    msgID   = MSGID_LDAPAUTH_AUTHZID_SINGLE_VALUED;
-            String message = getMessage(msgID);
+            Message message = ERR_LDAPAUTH_AUTHZID_SINGLE_VALUED.get();
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                                      msgID, message);
+                                      message);
           }
         }
       }
       else
       {
-        int    msgID   = MSGID_LDAPAUTH_INVALID_SASL_PROPERTY;
-        String message = getMessage(msgID, name, SASL_MECHANISM_PLAIN);
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, msgID,
-                                  message);
+        Message message =
+            ERR_LDAPAUTH_INVALID_SASL_PROPERTY.get(name, SASL_MECHANISM_PLAIN);
+        throw new ClientException(
+                LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
       }
     }
 
@@ -3114,10 +3046,10 @@ public class LDAPAuthenticationHandler
     // Make sure that at least the authID was provided.
     if ((authID == null) || (authID.length() == 0))
     {
-      int    msgID   = MSGID_LDAPAUTH_SASL_AUTHID_REQUIRED;
-      String message = getMessage(msgID, SASL_MECHANISM_PLAIN);
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, msgID,
-                                message);
+      Message message =
+          ERR_LDAPAUTH_SASL_AUTHID_REQUIRED.get(SASL_MECHANISM_PLAIN);
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
 
@@ -3125,7 +3057,7 @@ public class LDAPAuthenticationHandler
     // the user.
     if (bindPassword == null)
     {
-      System.out.print(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT, authID));
+      System.out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(authID));
       char[] pwChars = PasswordReader.readPassword();
       if (pwChars == null)
       {
@@ -3165,19 +3097,17 @@ public class LDAPAuthenticationHandler
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
-      String message = getMessage(msgID, SASL_MECHANISM_PLAIN,
-                                  getExceptionMessage(ioe));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                message, ioe);
+      Message message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
+          SASL_MECHANISM_PLAIN, getExceptionMessage(ioe));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
-      String message = getMessage(msgID, SASL_MECHANISM_PLAIN,
-                                  getExceptionMessage(e));
+      Message message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
+          SASL_MECHANISM_PLAIN, getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
-                                msgID, message, e);
+                                message, e);
     }
 
 
@@ -3188,39 +3118,39 @@ public class LDAPAuthenticationHandler
       responseMessage = reader.readMessage();
       if (responseMessage == null)
       {
-        int    msgID   = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
-        String message = getMessage(msgID);
+        Message message =
+            ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
-                                  msgID, message);
+                                  message);
       }
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(ioe));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                message, ioe);
+      Message message =
+          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ioe));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (ASN1Exception ae)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(ae));
+      Message message =
+          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ae));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                msgID, message, ae);
+                                message, ae);
     }
     catch (LDAPException le)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(le));
+      Message message =
+          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(le));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                msgID, message, le);
+                                message, le);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                message, e);
+      Message message =
+          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -3249,26 +3179,24 @@ public class LDAPAuthenticationHandler
         if ((responseOID != null) &&
             responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
         {
-          int    msgID   = MSGID_LDAPAUTH_SERVER_DISCONNECT;
-          String message = getMessage(msgID, extendedResponse.getResultCode(),
-                                      extendedResponse.getErrorMessage());
-          throw new LDAPException(extendedResponse.getResultCode(), msgID,
-                                  message);
+          Message message = ERR_LDAPAUTH_SERVER_DISCONNECT.
+              get(extendedResponse.getResultCode(),
+                  extendedResponse.getErrorMessage());
+          throw new LDAPException(extendedResponse.getResultCode(), message);
         }
         else
         {
-          int    msgID   = MSGID_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE;
-          String message = getMessage(msgID, String.valueOf(extendedResponse));
+          Message message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
+              String.valueOf(extendedResponse));
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    msgID, message);
+                                    message);
         }
 
       default:
-        int msgID = MSGID_LDAPAUTH_UNEXPECTED_RESPONSE;
-        String message =
-             getMessage(msgID, String.valueOf(responseMessage.getProtocolOp()));
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                  message);
+        Message message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
+            String.valueOf(responseMessage.getProtocolOp()));
+        throw new ClientException(
+                LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -3284,10 +3212,9 @@ public class LDAPAuthenticationHandler
 
     // FIXME -- Add support for referrals.
 
-    int    msgID   = MSGID_LDAPAUTH_SASL_BIND_FAILED;
-    String message = getMessage(msgID, SASL_MECHANISM_PLAIN);
+    Message message = ERR_LDAPAUTH_SASL_BIND_FAILED.get(SASL_MECHANISM_PLAIN);
     throw new LDAPException(resultCode, bindResponse.getErrorMessage(),
-                            msgID, message, bindResponse.getMatchedDN(), null);
+                            message, bindResponse.getMatchedDN(), null);
   }
 
 
@@ -3301,15 +3228,15 @@ public class LDAPAuthenticationHandler
    *          SASL PLAIN bind, mapped from the property names to their
    *          corresponding descriptions.
    */
-  public static LinkedHashMap<String,String> getSASLPlainProperties()
+  public static LinkedHashMap<String,Message> getSASLPlainProperties()
   {
-    LinkedHashMap<String,String> properties =
-         new LinkedHashMap<String,String>(2);
+    LinkedHashMap<String,Message> properties =
+         new LinkedHashMap<String,Message>(2);
 
     properties.put(SASL_PROPERTY_AUTHID,
-                   getMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHID));
+                   INFO_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHID.get());
     properties.put(SASL_PROPERTY_AUTHZID,
-                   getMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHZID));
+                   INFO_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHZID.get());
 
     return properties;
   }
@@ -3334,10 +3261,9 @@ public class LDAPAuthenticationHandler
   {
     if (saslMechanism == null)
     {
-      int    msgID   = MSGID_LDAPAUTH_NONSASL_RUN_INVOCATION;
-      String message = getMessage(msgID, getBacktrace());
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                message);
+      Message message = ERR_LDAPAUTH_NONSASL_RUN_INVOCATION.get(getBacktrace());
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
     else if (saslMechanism.equals(SASL_MECHANISM_GSSAPI))
     {
@@ -3359,10 +3285,10 @@ public class LDAPAuthenticationHandler
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDAPAUTH_GSSAPI_CANNOT_CREATE_SASL_CLIENT;
-        String message = getMessage(msgID, getExceptionMessage(e));
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                  message, e);
+        Message message = ERR_LDAPAUTH_GSSAPI_CANNOT_CREATE_SASL_CLIENT.get(
+            getExceptionMessage(e));
+        throw new ClientException(
+                LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
       }
 
 
@@ -3377,10 +3303,11 @@ public class LDAPAuthenticationHandler
         }
         catch (Exception e)
         {
-          int msgID = MSGID_LDAPAUTH_GSSAPI_CANNOT_CREATE_INITIAL_CHALLENGE;
-          String message = getMessage(msgID, getExceptionMessage(e));
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    msgID, message, e);
+          Message message = ERR_LDAPAUTH_GSSAPI_CANNOT_CREATE_INITIAL_CHALLENGE.
+              get(getExceptionMessage(e));
+          throw new ClientException(
+                  LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
+                                    message, e);
         }
       }
       else
@@ -3402,19 +3329,17 @@ public class LDAPAuthenticationHandler
       }
       catch (IOException ioe)
       {
-        int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
-        String message = getMessage(msgID, SASL_MECHANISM_GSSAPI,
-                                    getExceptionMessage(ioe));
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                  message, ioe);
+        Message message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
+            SASL_MECHANISM_GSSAPI, getExceptionMessage(ioe));
+        throw new ClientException(
+                LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
-        String message = getMessage(msgID, SASL_MECHANISM_GSSAPI,
-                                    getExceptionMessage(e));
+        Message message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
+            SASL_MECHANISM_GSSAPI, getExceptionMessage(e));
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
-                                  msgID, message, e);
+                                  message, e);
       }
 
 
@@ -3425,39 +3350,39 @@ public class LDAPAuthenticationHandler
         responseMessage = reader.readMessage();
         if (responseMessage == null)
         {
-          int msgID = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
-          String message = getMessage(msgID);
+          Message message =
+              ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
-                                    msgID, message);
+                                    message);
         }
       }
       catch (IOException ioe)
       {
-        int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-        String message = getMessage(msgID, getExceptionMessage(ioe));
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                  message, ioe);
+        Message message = ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(
+            getExceptionMessage(ioe));
+        throw new ClientException(
+                LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
       }
       catch (ASN1Exception ae)
       {
-        int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-        String message = getMessage(msgID, getExceptionMessage(ae));
+        Message message =
+            ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ae));
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                  msgID, message, ae);
+                                  message, ae);
       }
       catch (LDAPException le)
       {
-        int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-        String message = getMessage(msgID, getExceptionMessage(le));
+        Message message =
+            ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(le));
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                  msgID, message, le);
+                                  message, le);
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-        String message = getMessage(msgID, getExceptionMessage(e));
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                  message, e);
+        Message message =
+            ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
+        throw new ClientException(
+                LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
       }
 
 
@@ -3480,28 +3405,24 @@ public class LDAPAuthenticationHandler
           if ((responseOID != null) &&
               responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
           {
-            int    msgID   = MSGID_LDAPAUTH_SERVER_DISCONNECT;
-            String message = getMessage(msgID, extendedResponse.getResultCode(),
-                                        extendedResponse.getErrorMessage());
-            throw new LDAPException(extendedResponse.getResultCode(), msgID,
-                                    message);
+            Message message = ERR_LDAPAUTH_SERVER_DISCONNECT.
+                get(extendedResponse.getResultCode(),
+                    extendedResponse.getErrorMessage());
+            throw new LDAPException(extendedResponse.getResultCode(), message);
           }
           else
           {
-            int    msgID   = MSGID_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE;
-            String message = getMessage(msgID,
-                                        String.valueOf(extendedResponse));
+            Message message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
+                String.valueOf(extendedResponse));
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                      msgID, message);
+                                      message);
           }
 
         default:
-          int msgID = MSGID_LDAPAUTH_UNEXPECTED_RESPONSE;
-          String message =
-               getMessage(msgID,
-                          String.valueOf(responseMessage.getProtocolOp()));
+          Message message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
+              String.valueOf(responseMessage.getProtocolOp()));
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    msgID, message);
+                                    message);
       }
 
 
@@ -3524,10 +3445,11 @@ public class LDAPAuthenticationHandler
             }
             catch (Exception e)
             {
-              int msgID = MSGID_LDAPAUTH_GSSAPI_CANNOT_VALIDATE_SERVER_CREDS;
-              String message = getMessage(msgID, getExceptionMessage(e));
+              Message message =
+                  ERR_LDAPAUTH_GSSAPI_CANNOT_VALIDATE_SERVER_CREDS.
+                    get(getExceptionMessage(e));
               throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                        msgID, message, e);
+                                        message, e);
             }
           }
 
@@ -3535,10 +3457,10 @@ public class LDAPAuthenticationHandler
           // Just to be sure, check that the login really is complete.
           if (! saslClient.isComplete())
           {
-            int    msgID   = MSGID_LDAPAUTH_GSSAPI_UNEXPECTED_SUCCESS_RESPONSE;
-            String message = getMessage(msgID);
+            Message message =
+                ERR_LDAPAUTH_GSSAPI_UNEXPECTED_SUCCESS_RESPONSE.get();
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                      msgID, message);
+                                      message);
           }
 
           break;
@@ -3563,10 +3485,10 @@ public class LDAPAuthenticationHandler
           }
           catch (Exception e)
           {
-            int msgID = MSGID_LDAPAUTH_GSSAPI_CANNOT_VALIDATE_SERVER_CREDS;
-            String message = getMessage(msgID, getExceptionMessage(e));
+            Message message = ERR_LDAPAUTH_GSSAPI_CANNOT_VALIDATE_SERVER_CREDS.
+                get(getExceptionMessage(e));
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                      msgID, message, e);
+                                      message, e);
           }
 
 
@@ -3585,19 +3507,17 @@ public class LDAPAuthenticationHandler
           }
           catch (IOException ioe)
           {
-            int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
-            String message = getMessage(msgID, SASL_MECHANISM_GSSAPI,
-                                        getExceptionMessage(ioe));
+            Message message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
+                SASL_MECHANISM_GSSAPI, getExceptionMessage(ioe));
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
-                                      msgID, message, ioe);
+                                      message, ioe);
           }
           catch (Exception e)
           {
-            int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
-            String message = getMessage(msgID, SASL_MECHANISM_GSSAPI,
-                                        getExceptionMessage(e));
+            Message message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
+                SASL_MECHANISM_GSSAPI, getExceptionMessage(e));
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
-                                      msgID, message, e);
+                                      message, e);
           }
 
 
@@ -3607,40 +3527,39 @@ public class LDAPAuthenticationHandler
             responseMessage = reader.readMessage();
             if (responseMessage == null)
             {
-              int msgID =
-                   MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
-              String message = getMessage(msgID);
+              Message message =
+                  ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
               throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
-                                        msgID, message);
+                                        message);
             }
           }
           catch (IOException ioe)
           {
-            int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-            String message = getMessage(msgID, getExceptionMessage(ioe));
+            Message message = ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(
+                getExceptionMessage(ioe));
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
-                                      msgID, message, ioe);
+                                      message, ioe);
           }
           catch (ASN1Exception ae)
           {
-            int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-            String message = getMessage(msgID, getExceptionMessage(ae));
+            Message message = ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(
+                getExceptionMessage(ae));
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                      msgID, message, ae);
+                                      message, ae);
           }
           catch (LDAPException le)
           {
-            int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-            String message = getMessage(msgID, getExceptionMessage(le));
+            Message message = ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(
+                getExceptionMessage(le));
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                      msgID, message, le);
+                                      message, le);
           }
           catch (Exception e)
           {
-            int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-            String message = getMessage(msgID, getExceptionMessage(e));
+            Message message = ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(
+                getExceptionMessage(e));
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                      msgID, message, e);
+                                      message, e);
           }
 
 
@@ -3664,49 +3583,43 @@ public class LDAPAuthenticationHandler
               if ((responseOID != null) &&
                   responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
               {
-                int    msgID   = MSGID_LDAPAUTH_SERVER_DISCONNECT;
-                String message = getMessage(msgID,
-                                            extendedResponse.getResultCode(),
-                                            extendedResponse.getErrorMessage());
-                throw new LDAPException(extendedResponse.getResultCode(), msgID,
-                                        message);
+                Message message = ERR_LDAPAUTH_SERVER_DISCONNECT.
+                    get(extendedResponse.getResultCode(),
+                        extendedResponse.getErrorMessage());
+                throw new LDAPException(extendedResponse.getResultCode(),
+                        message);
               }
               else
               {
-                int    msgID   = MSGID_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE;
-                String message = getMessage(msgID,
-                                            String.valueOf(extendedResponse));
+                Message message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(
+                    String.valueOf(extendedResponse));
                 throw new ClientException(
-                               LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                               message);
+                               LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
               }
 
             default:
-              int msgID = MSGID_LDAPAUTH_UNEXPECTED_RESPONSE;
-              String message =
-                   getMessage(msgID,
-                              String.valueOf(responseMessage.getProtocolOp()));
+              Message message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
+                  String.valueOf(responseMessage.getProtocolOp()));
               throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                        msgID, message);
+                                        message);
           }
         }
         else
         {
           // This is an error.
-          int    msgID   = MSGID_LDAPAUTH_GSSAPI_BIND_FAILED;
-          String message = getMessage(msgID);
+          Message message = ERR_LDAPAUTH_GSSAPI_BIND_FAILED.get();
           throw new LDAPException(resultCode, bindResponse.getErrorMessage(),
-                                  msgID, message, bindResponse.getMatchedDN(),
+                                  message, bindResponse.getMatchedDN(),
                                   null);
         }
       }
     }
     else
     {
-      int    msgID   = MSGID_LDAPAUTH_UNEXPECTED_RUN_INVOCATION;
-      String message = getMessage(msgID, saslMechanism, getBacktrace());
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                message);
+      Message message = ERR_LDAPAUTH_UNEXPECTED_RUN_INVOCATION.get(
+          saslMechanism, getBacktrace());
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -3732,9 +3645,9 @@ public class LDAPAuthenticationHandler
   {
     if (saslMechanism ==  null)
     {
-      int    msgID   = MSGID_LDAPAUTH_NONSASL_CALLBACK_INVOCATION;
-      String message = getMessage(msgID, getBacktrace());
-      throw new UnsupportedCallbackException(callbacks[0], message);
+      Message message =
+          ERR_LDAPAUTH_NONSASL_CALLBACK_INVOCATION.get(getBacktrace());
+      throw new UnsupportedCallbackException(callbacks[0], message.toString());
     }
     else if (saslMechanism.equals(SASL_MECHANISM_GSSAPI))
     {
@@ -3748,8 +3661,7 @@ public class LDAPAuthenticationHandler
         {
           if (gssapiAuthPW == null)
           {
-            System.out.print(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT,
-                                        gssapiAuthID));
+            System.out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(gssapiAuthID));
             gssapiAuthPW = PasswordReader.readPassword();
           }
 
@@ -3757,17 +3669,17 @@ public class LDAPAuthenticationHandler
         }
         else
         {
-          int    msgID   = MSGID_LDAPAUTH_UNEXPECTED_GSSAPI_CALLBACK;
-          String message = getMessage(msgID, String.valueOf(cb));
-          throw new UnsupportedCallbackException(cb, message);
+          Message message =
+              ERR_LDAPAUTH_UNEXPECTED_GSSAPI_CALLBACK.get(String.valueOf(cb));
+          throw new UnsupportedCallbackException(cb, message.toString());
         }
       }
     }
     else
     {
-      int    msgID   = MSGID_LDAPAUTH_UNEXPECTED_CALLBACK_INVOCATION;
-      String message = getMessage(msgID, saslMechanism, getBacktrace());
-      throw new UnsupportedCallbackException(callbacks[0], message);
+      Message message = ERR_LDAPAUTH_UNEXPECTED_CALLBACK_INVOCATION.get(
+          saslMechanism, getBacktrace());
+      throw new UnsupportedCallbackException(callbacks[0], message.toString());
     }
   }
 
@@ -3802,17 +3714,17 @@ public class LDAPAuthenticationHandler
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_WHOAMI_REQUEST;
-      String message = getMessage(msgID, getExceptionMessage(ioe));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                message, ioe);
+      Message message =
+          ERR_LDAPAUTH_CANNOT_SEND_WHOAMI_REQUEST.get(getExceptionMessage(ioe));
+      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+              message, ioe);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_WHOAMI_REQUEST;
-      String message = getMessage(msgID, getExceptionMessage(e));
+      Message message =
+          ERR_LDAPAUTH_CANNOT_SEND_WHOAMI_REQUEST.get(getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
-                                msgID, message, e);
+                                message, e);
     }
 
 
@@ -3823,50 +3735,49 @@ public class LDAPAuthenticationHandler
       responseMessage = reader.readMessage();
       if (responseMessage == null)
       {
-        int    msgID   = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
-        String message = getMessage(msgID);
+        Message message =
+            ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
-                                  msgID, message);
+                                  message);
       }
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(ioe));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-                                message, ioe);
+      Message message = ERR_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE.get(
+          getExceptionMessage(ioe));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (ASN1Exception ae)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(ae));
+      Message message =
+          ERR_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE.get(getExceptionMessage(ae));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                msgID, message, ae);
+                                message, ae);
     }
     catch (LDAPException le)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(le));
+      Message message =
+          ERR_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE.get(getExceptionMessage(le));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-                                msgID, message, le);
+                                message, le);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                message, e);
+      Message message =
+          ERR_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE.get(getExceptionMessage(e));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
     // If the protocol op isn't an extended response, then that's a problem.
     if (responseMessage.getProtocolOpType() != OP_TYPE_EXTENDED_RESPONSE)
     {
-      int msgID = MSGID_LDAPAUTH_UNEXPECTED_RESPONSE;
-      String message =
-           getMessage(msgID, String.valueOf(responseMessage.getProtocolOp()));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
-                                message);
+      Message message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(
+          String.valueOf(responseMessage.getProtocolOp()));
+      throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -3878,10 +3789,9 @@ public class LDAPAuthenticationHandler
     if ((responseOID != null) &&
         responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
     {
-      int    msgID   = MSGID_LDAPAUTH_SERVER_DISCONNECT;
-      String message = getMessage(msgID, extendedResponse.getResultCode(),
-                                  extendedResponse.getErrorMessage());
-      throw new LDAPException(extendedResponse.getResultCode(), msgID, message);
+      Message message = ERR_LDAPAUTH_SERVER_DISCONNECT.get(
+          extendedResponse.getResultCode(), extendedResponse.getErrorMessage());
+      throw new LDAPException(extendedResponse.getResultCode(), message);
     }
 
 
@@ -3891,10 +3801,9 @@ public class LDAPAuthenticationHandler
     int resultCode = extendedResponse.getResultCode();
     if (resultCode != LDAPResultCode.SUCCESS)
     {
-      int msgID = MSGID_LDAPAUTH_WHOAMI_FAILED;
-      String message = getMessage(msgID);
+      Message message = ERR_LDAPAUTH_WHOAMI_FAILED.get();
       throw new LDAPException(resultCode, extendedResponse.getErrorMessage(),
-                              msgID, message, extendedResponse.getMatchedDN(),
+                              message, extendedResponse.getMatchedDN(),
                               null);
     }
 

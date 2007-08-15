@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
+import org.opends.messages.Message;
 
 
 
@@ -33,8 +34,7 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
 import org.opends.server.types.LDAPException;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -97,9 +97,8 @@ public class PasswordExpiredControl
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_PWEXPIRED_CONTROL_INVALID_VALUE;
-        String message = getMessage(msgID);
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+        Message message = ERR_PWEXPIRED_CONTROL_INVALID_VALUE.get();
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
     }
 

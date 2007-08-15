@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
+import org.opends.messages.Message;
 
 
 
@@ -131,7 +132,7 @@ public abstract class MonitorProvider<T extends MonitorProviderCfg>
    */
   public boolean isConfigurationAcceptable(
                       MonitorProviderCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by monitor provider

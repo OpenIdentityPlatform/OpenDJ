@@ -37,8 +37,8 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.InitializationException;
 
 import org.opends.server.types.DebugLogLevel;
@@ -180,8 +180,7 @@ public class AuthPasswordExactEqualityMatchingRule
         case REJECT:
           throw de;
         case WARN:
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                   de.getErrorMessage(), de.getMessageID());
+          logError(de.getMessageObject());
           return new ASN1OctetString(value.stringValue());
         default:
           return new ASN1OctetString(value.stringValue());

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 
@@ -42,8 +43,7 @@ import org.opends.server.schema.AttributeTypeSyntax;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.Validator.*;
 
@@ -661,11 +661,10 @@ public final class AttributeType
   {
     if (equalityMatchingRule == null)
     {
-      int    msgID   = MSGID_ATTR_TYPE_NORMALIZE_NO_MR;
-      String message = getMessage(msgID, String.valueOf(value),
-                                  getNameOrOID());
+      Message message = ERR_ATTR_TYPE_NORMALIZE_NO_MR.get(
+          String.valueOf(value), getNameOrOID());
       throw new DirectoryException(ResultCode.INAPPROPRIATE_MATCHING,
-                                   message, msgID);
+                                   message);
     }
 
     return equalityMatchingRule.normalizeValue(value);

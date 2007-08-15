@@ -37,7 +37,8 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;
-
+import org.opends.messages.MessageBuilder;
+import org.opends.messages.Message;
 
 
 /**
@@ -102,8 +103,8 @@ public class TestPasswordValidator
     }
     else
     {
-      throw new InitializationException(1,
-           "Cannot configure more than one TestPasswordValidator instance");
+      throw new InitializationException(Message.raw(
+           "Cannot configure more than one TestPasswordValidator instance"));
     }
 
     lastNewPassword      = null;
@@ -123,7 +124,7 @@ public class TestPasswordValidator
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
-                                      StringBuilder invalidReason)
+                                      MessageBuilder invalidReason)
   {
     lastNewPassword      = newPassword;
     lastCurrentPasswords = currentPasswords;

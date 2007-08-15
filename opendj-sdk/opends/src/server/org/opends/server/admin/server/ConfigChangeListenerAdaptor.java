@@ -25,13 +25,11 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -55,12 +53,13 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.messages.AdminMessages;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.messages.AdminMessages;
+
+import org.opends.messages.MessageBuilder;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.util.StaticUtils;
 
 
@@ -322,7 +321,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
    * {@inheritDoc}
    */
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
-      StringBuilder unacceptableReason) {
+      MessageBuilder unacceptableReason) {
     return configChangeIsAcceptable(configEntry, unacceptableReason,
         configEntry);
   }
@@ -349,7 +348,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
    *         does not.
    */
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
-      StringBuilder unacceptableReason, ConfigEntry newConfigEntry) {
+      MessageBuilder unacceptableReason, ConfigEntry newConfigEntry) {
     try {
       cachedManagedObject = ServerManagedObject.decode(path, d, configEntry,
           newConfigEntry);
@@ -358,7 +357,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
       return false;
     }
 
-    List<String> reasons = new LinkedList<String>();
+    List<Message> reasons = new LinkedList<Message>();
     if (listener.isConfigurationChangeAcceptable(cachedManagedObject
         .getConfiguration(), reasons)) {
       return true;
@@ -391,10 +390,9 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
       if (configEntry != null) {
         return configEntry;
       } else {
-        int msgID = AdminMessages.MSGID_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST;
-        String message = getMessage(msgID, String.valueOf(dn));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-            message, msgID);
+        Message message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST.
+            get(String.valueOf(dn));
+        ErrorLogger.logError(message);
       }
     } catch (ConfigException e) {
       // The dependent entry could not be retrieved.
@@ -402,11 +400,9 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = AdminMessages.MSGID_ADMIN_CANNOT_GET_MANAGED_OBJECT;
-      String message = getMessage(msgID, String.valueOf(dn), StaticUtils
-          .getExceptionMessage(e));
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-          message, msgID);
+      Message message = AdminMessages.ERR_ADMIN_CANNOT_GET_MANAGED_OBJECT.get(
+          String.valueOf(dn), StaticUtils.getExceptionMessage(e));
+      ErrorLogger.logError(message);
     }
 
     return null;

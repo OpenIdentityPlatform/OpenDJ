@@ -26,6 +26,9 @@
  */
 package org.opends.server.core;
 
+import org.opends.messages.MessageBuilder;
+import org.opends.messages.Message;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -73,8 +76,7 @@ import org.opends.server.util.TimeThread;
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 
 /**
@@ -420,7 +422,7 @@ public class SearchOperationBasis
       }
 
       setResultCode(de.getResultCode());
-      appendErrorMessage(de.getErrorMessage());
+      appendErrorMessage(de.getMessageObject());
       setMatchedDN(de.getMatchedDN());
       setReferralURLs(de.getReferralURLs());
     }
@@ -554,7 +556,7 @@ public class SearchOperationBasis
       }
 
       setResultCode(de.getResultCode());
-      appendErrorMessage(de.getErrorMessage());
+      appendErrorMessage(de.getMessageObject());
       setMatchedDN(de.getMatchedDN());
       setReferralURLs(de.getReferralURLs());
     }
@@ -619,8 +621,7 @@ public class SearchOperationBasis
     if ((getSizeLimit() > 0) && (getEntriesSent() >= getSizeLimit()))
     {
       setResultCode(ResultCode.SIZE_LIMIT_EXCEEDED);
-      appendErrorMessage(getMessage(MSGID_SEARCH_SIZE_LIMIT_EXCEEDED,
-                                    getSizeLimit()));
+      appendErrorMessage(ERR_SEARCH_SIZE_LIMIT_EXCEEDED.get(getSizeLimit()));
       return false;
     }
 
@@ -630,8 +631,7 @@ public class SearchOperationBasis
                                                 getTimeLimitExpiration()))
     {
       setResultCode(ResultCode.TIME_LIMIT_EXCEEDED);
-      appendErrorMessage(getMessage(MSGID_SEARCH_TIME_LIMIT_EXCEEDED,
-                                    getTimeLimit()));
+      appendErrorMessage(ERR_SEARCH_TIME_LIMIT_EXCEEDED.get(getTimeLimit()));
       return false;
     }
 
@@ -1005,8 +1005,8 @@ public class SearchOperationBasis
       // any processing.  Just update the operation to indicate that it was
       // cancelled and return false.
       setResultCode(ResultCode.CANCELED);
-      appendErrorMessage(getMessage(MSGID_CANCELED_BY_SEARCH_ENTRY_DISCONNECT,
-                                    String.valueOf(entry.getDN())));
+      appendErrorMessage(ERR_CANCELED_BY_SEARCH_ENTRY_DISCONNECT.get(
+              String.valueOf(entry.getDN())));
       return false;
     }
 
@@ -1057,8 +1057,7 @@ public class SearchOperationBasis
                                         getTimeLimitExpiration()))
     {
       setResultCode(ResultCode.TIME_LIMIT_EXCEEDED);
-      appendErrorMessage(getMessage(MSGID_SEARCH_TIME_LIMIT_EXCEEDED,
-                                    getTimeLimit()));
+      appendErrorMessage(ERR_SEARCH_TIME_LIMIT_EXCEEDED.get(getTimeLimit()));
       return false;
     }
 
@@ -1089,8 +1088,8 @@ public class SearchOperationBasis
       // any processing.  Just update the operation to indicate that it was
       // cancelled and return false.
       setResultCode(ResultCode.CANCELED);
-      appendErrorMessage(getMessage(MSGID_CANCELED_BY_SEARCH_REF_DISCONNECT,
-           String.valueOf(reference.getReferralURLString())));
+      appendErrorMessage(ERR_CANCELED_BY_SEARCH_REF_DISCONNECT.get(
+              String.valueOf(reference.getReferralURLString())));
       return false;
     }
 
@@ -1172,16 +1171,15 @@ public class SearchOperationBasis
    */
   @Override()
   public final void disconnectClient(DisconnectReason disconnectReason,
-                                     boolean sendNotification, String message,
-                                     int messageID)
+                                     boolean sendNotification, Message message
+  )
   {
     // Before calling clientConnection.disconnect, we need to mark this
     // operation as cancelled so that the attempt to cancel it later won't cause
     // an unnecessary delay.
     setCancelResult(CancelResult.CANCELED);
 
-    clientConnection.disconnect(disconnectReason, sendNotification, message,
-                                messageID);
+    clientConnection.disconnect(disconnectReason, sendNotification, message);
   }
 
   /**
@@ -1236,7 +1234,7 @@ public class SearchOperationBasis
     String resultCode = String.valueOf(getResultCode().getIntValue());
 
     String errorMessage;
-    StringBuilder errorMessageBuffer = getErrorMessage();
+    MessageBuilder errorMessageBuffer = getErrorMessage();
     if (errorMessageBuffer == null)
     {
       errorMessage = null;
@@ -1651,8 +1649,7 @@ searchProcessing:
         // result and return.
         setResultCode(ResultCode.CANCELED);
 
-        int msgID = MSGID_CANCELED_BY_PREPARSE_DISCONNECT;
-        appendErrorMessage(getMessage(msgID));
+        appendErrorMessage(ERR_CANCELED_BY_PREPARSE_DISCONNECT.get());
 
         setProcessingStopTime();
 
@@ -1784,8 +1781,9 @@ searchProcessing:
   private void updateOperationErrMsgAndResCode()
   {
     setResultCode(ResultCode.NO_SUCH_OBJECT);
-    appendErrorMessage(getMessage(MSGID_SEARCH_BASE_DOESNT_EXIST,
-                                  String.valueOf(getBaseDN())));
+    Message message =
+            ERR_SEARCH_BASE_DOESNT_EXIST.get(String.valueOf(getBaseDN()));
+    appendErrorMessage(message);
   }
 
 }

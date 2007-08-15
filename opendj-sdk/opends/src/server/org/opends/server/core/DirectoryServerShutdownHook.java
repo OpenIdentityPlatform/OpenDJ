@@ -31,11 +31,7 @@ import org.opends.server.api.DirectoryThread;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-
-
-
+import static org.opends.messages.CoreMessages.*;
 /**
  * This class defines a shutdown hook that will be invoked automatically when
  * the JVM is shutting down.  It may be able to detect certain kinds of shutdown
@@ -79,7 +75,7 @@ public class DirectoryServerShutdownHook
         "Directory Server shutdown hook has been invoked.");
 
     DirectoryServer.shutDown(CLASS_NAME,
-                             getMessage(MSGID_SHUTDOWN_DUE_TO_SHUTDOWN_HOOK));
+                             ERR_SHUTDOWN_DUE_TO_SHUTDOWN_HOOK.get());
   }
 }
 

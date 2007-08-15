@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 
@@ -42,8 +43,7 @@ import java.util.zip.GZIPOutputStream;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
+import static org.opends.messages.UtilityMessages.*;
 
 
 
@@ -228,9 +228,8 @@ public class LDIFExportConfig
             File f = new File(ldifFile);
             if (f.exists())
             {
-              int    msgID   = MSGID_LDIF_FILE_EXISTS;
-              String message = getMessage(msgID, ldifFile);
-              throw new IOException(message);
+              Message message = ERR_LDIF_FILE_EXISTS.get(ldifFile);
+              throw new IOException(message.toString());
             }
             else
             {

@@ -48,6 +48,9 @@ import org.opends.quicksetup.util.ZipExtractor;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.FileManager;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 /**
  * This is an implementation of the Installer class that is used to install
  * the Directory Server using Web Start.
@@ -78,8 +81,8 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
   private HashMap<InstallProgressStep, Integer> hmRatio =
       new HashMap<InstallProgressStep, Integer>();
 
-  private HashMap<InstallProgressStep, String> hmSummary =
-      new HashMap<InstallProgressStep, String>();
+  private HashMap<InstallProgressStep, Message> hmSummary =
+      new HashMap<InstallProgressStep, Message>();
 
   private static final Logger LOG =
     Logger.getLogger(WebStartInstaller.class.getName());
@@ -234,7 +237,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
         notifyListenersOfLog();
         updateSummaryWithServerState(hmSummary);
         setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
-        String html = getFormattedError(ex, true);
+        Message html = getFormattedError(ex, true);
         notifyListeners(html);
         LOG.log(Level.SEVERE, "Error installing.", ex);
       }
@@ -256,8 +259,8 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
       setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
       ApplicationException ex = new ApplicationException(
           ApplicationReturnCode.ReturnCode.BUG,
-          getThrowableMsg("bug-msg", t), t);
-      String msg = getFormattedError(ex, true);
+          Utils.getThrowableMsg(INFO_BUG_MSG.get(), t), t);
+      Message msg = getFormattedError(ex, true);
       notifyListeners(msg);
       LOG.log(Level.SEVERE, "Error installing.", t);
     }
@@ -276,9 +279,9 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
   /**
    * {@inheritDoc}
    */
-  public String getSummary(ProgressStep status)
+  public Message getSummary(ProgressStep status)
   {
-    String summary = null;
+    Message summary = null;
     if (InstallProgressStep.DOWNLOADING.equals(status)) {
       summary = loader.getSummary();
     } else {
@@ -400,7 +403,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
 
   private InputStream getZipInputStream(Integer maxRatio)
       throws ApplicationException {
-    notifyListeners(getFormattedWithPoints(getMsg("progress-downloading")));
+    notifyListeners(getFormattedWithPoints(INFO_PROGRESS_DOWNLOADING.get()));
     InputStream in = null;
 
     waitForLoader(maxRatio);
@@ -412,8 +415,8 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
     if (in == null)
     {
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.DOWNLOAD_ERROR, getMsg(
-              "error-zipinputstreamnull", new String[] { zipName }), null);
+          ApplicationReturnCode.ReturnCode.DOWNLOAD_ERROR,
+              INFO_ERROR_ZIPINPUTSTREAMNULL.get(zipName), null);
     }
 
     notifyListeners(getFormattedDone());
@@ -437,15 +440,14 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
         {
           throw new ApplicationException(
               ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
-              getMsg("error-could-not-create-parent-dir",
-                  new String[] {parent}), null);
+              INFO_ERROR_COULD_NOT_CREATE_PARENT_DIR.get(parent), null);
         }
       }
       catch (IOException ioe)
       {
         throw new ApplicationException(
             ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
-            getMsg("error-could-not-create-parent-dir", new String[] {parent}),
+            INFO_ERROR_COULD_NOT_CREATE_PARENT_DIR.get(parent),
             ioe);
       }
     }

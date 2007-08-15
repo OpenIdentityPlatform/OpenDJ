@@ -35,8 +35,8 @@ import java.io.File;
 import javax.swing.JFileChooser;
 import javax.swing.text.JTextComponent;
 
-import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.ExtensionFileFilter;
+import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * This class is an action listener used to update a text component. When the
@@ -102,24 +102,23 @@ public class BrowseActionListener implements ActionListener
     this.type = type;
     this.parent = parent;
 
-    ResourceProvider i18n = ResourceProvider.getInstance();
-
     fc = new JFileChooser();
     switch (type)
     {
     case LOCATION_DIRECTORY:
       fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
       fc.setDialogType(JFileChooser.OPEN_DIALOG);
-      fc.setDialogTitle(i18n.getMsg("open-server-location-dialog-title"));
+      fc.setDialogTitle(INFO_OPEN_SERVER_LOCATION_DIALOG_TITLE
+              .get().toString());
       break;
 
     case OPEN_LDIF_FILE:
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
       fc.setDialogType(JFileChooser.OPEN_DIALOG);
-      fc.setDialogTitle(i18n.getMsg("open-ldif-file-dialog-title"));
+      fc.setDialogTitle(INFO_OPEN_LDIF_FILE_DIALOG_TITLE.get().toString());
       ExtensionFileFilter ldifFiles =
           new ExtensionFileFilter("ldif",
-              i18n.getMsg("ldif-files-description"));
+              INFO_LDIF_FILES_DESCRIPTION.get().toString());
 
       fc.addChoosableFileFilter(ldifFiles);
       fc.setFileFilter(ldifFiles);
@@ -128,10 +127,10 @@ public class BrowseActionListener implements ActionListener
     case OPEN_ZIP_FILE:
         fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fc.setDialogType(JFileChooser.OPEN_DIALOG);
-        fc.setDialogTitle(i18n.getMsg("open-zip-file-dialog-title"));
+        fc.setDialogTitle(INFO_OPEN_ZIP_FILE_DIALOG_TITLE.get().toString());
         ExtensionFileFilter zipFiles =
             new ExtensionFileFilter("zip",
-                i18n.getMsg("zip-files-description"));
+                INFO_ZIP_FILES_DESCRIPTION.get().toString());
 
         fc.addChoosableFileFilter(zipFiles);
         fc.setFileFilter(zipFiles);
@@ -140,7 +139,7 @@ public class BrowseActionListener implements ActionListener
     case GENERIC_FILE:
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
       fc.setDialogType(JFileChooser.OPEN_DIALOG);
-      fc.setDialogTitle(i18n.getMsg("open-generic-file-dialog-title"));
+      fc.setDialogTitle(INFO_OPEN_GENERIC_FILE_DIALOG_TITLE.get().toString());
 
       break;
 

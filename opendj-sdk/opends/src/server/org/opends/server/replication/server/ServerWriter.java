@@ -25,12 +25,12 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
+import org.opends.messages.Message;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ReplicationMessages.*;
+import static org.opends.messages.ReplicationMessages.*;
 
 import java.io.IOException;
 import java.net.SocketException;
@@ -40,8 +40,6 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.UpdateMessage;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 
 
 /**
@@ -114,11 +112,8 @@ public class ServerWriter extends DirectoryThread
        * The remote host has disconnected and this particular Tree is going to
        * be removed, just ignore the exception and let the thread die as well
        */
-      int    msgID   = MSGID_SERVER_DISCONNECT;
-      String message = getMessage(msgID, handler.toString());
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-               ErrorLogSeverity.NOTICE,
-               message, msgID);
+      Message message = NOTE_SERVER_DISCONNECT.get(handler.toString());
+      logError(message);
     }
     catch (SocketException e)
     {
@@ -126,11 +121,8 @@ public class ServerWriter extends DirectoryThread
        * The remote host has disconnected and this particular Tree is going to
        * be removed, just ignore the exception and let the thread die as well
        */
-      int    msgID   = MSGID_SERVER_DISCONNECT;
-      String message = getMessage(msgID, handler.toString());
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-               ErrorLogSeverity.NOTICE,
-               message, msgID);
+      Message message = NOTE_SERVER_DISCONNECT.get(handler.toString());
+      logError(message);
     }
     catch (Exception e)
     {
@@ -138,11 +130,8 @@ public class ServerWriter extends DirectoryThread
        * An unexpected error happened.
        * Log an error and close the connection.
        */
-      int    msgID   = MSGID_WRITER_UNEXPECTED_EXCEPTION;
-      String message = getMessage(msgID, handler.toString());
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-               ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_WRITER_UNEXPECTED_EXCEPTION.get(handler.toString());
+      logError(message);
     }
     finally {
       try

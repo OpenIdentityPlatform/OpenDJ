@@ -38,6 +38,7 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.types.RDN;
 import org.opends.server.core.DirectoryServer;
 import static org.opends.server.util.ServerConstants.EOL;
+import org.opends.messages.Message;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -66,7 +67,7 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
   /**
    * The error message to use for delete result operations.
    */
-  private static final String resultMsg = "Test Successful";
+  private static final Message resultMsg = Message.raw("Test Successful");
 
 /**
    * The DN to use for delete result operations
@@ -257,7 +258,7 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
     elements.add(new ASN1Enumerated(resultCode));
     elements.add(new ASN1OctetString(dn.toString()));
-    elements.add(new ASN1OctetString(resultMsg));
+    elements.add(new ASN1OctetString(String.valueOf(resultMsg)));
     elements.add(new ASN1Null());
     DeleteResponseProtocolOp.decode(new ASN1Sequence(OP_TYPE_DELETE_RESPONSE,
                                                  elements));

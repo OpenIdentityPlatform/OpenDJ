@@ -27,10 +27,12 @@
 
 package org.opends.quicksetup.util;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Application;
 import org.opends.quicksetup.ApplicationReturnCode;
-import org.opends.quicksetup.i18n.ResourceProvider;
 
 import java.io.*;
 import java.util.zip.ZipInputStream;
@@ -203,11 +205,9 @@ public class ZipExtractor {
                     ratioBeforeCompleted, ratioWhenCompleted, permissions);
 
           } catch (IOException ioe) {
-            String[] arg =
-                    {entry.getName()};
-            String errorMsg =
-                    Utils.getThrowableMsg(ResourceProvider.getInstance(),
-                            "error-copying", arg, ioe);
+            Message errorMsg =
+                    Utils.getThrowableMsg(
+                            INFO_ERROR_COPYING.get(entry.getName()), ioe);
 
             throw new ApplicationException(
                 ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
@@ -242,11 +242,9 @@ public class ZipExtractor {
       }
 
     } catch (IOException ioe) {
-      String[] arg =
-              {zipFileName};
-      String errorMsg =
-              Utils.getThrowableMsg(ResourceProvider.getInstance(),
-                      "error-zip-stream", arg, ioe);
+      Message errorMsg =
+              Utils.getThrowableMsg(
+                      INFO_ERROR_ZIP_STREAM.get(zipFileName), ioe);
       throw new ApplicationException(
           ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
           errorMsg, ioe);
@@ -272,9 +270,8 @@ public class ZipExtractor {
       throws IOException
   {
     if (application != null) {
-      String progressSummary =
-              ResourceProvider.getInstance().getMsg("progress-extracting",
-                      new String[]{ Utils.getPath(destination) });
+      Message progressSummary =
+              INFO_PROGRESS_EXTRACTING.get(Utils.getPath(destination));
       application.notifyListeners(ratioBeforeCompleted, progressSummary);
     }
     LOG.log(Level.INFO, "extracting " + Utils.getPath(destination));

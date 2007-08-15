@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
@@ -46,8 +47,8 @@ import org.opends.server.types.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.ConfigMessages.*;
+
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -135,9 +136,9 @@ public class BackendConfigManager implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_BACKEND_CANNOT_GET_CONFIG_BASE;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new ConfigException(msgID, message, e);
+      Message message =
+          ERR_CONFIG_BACKEND_CANNOT_GET_CONFIG_BASE.get(getExceptionMessage(e));
+      throw new ConfigException(message, e);
 
     }
 
@@ -147,9 +148,8 @@ public class BackendConfigManager implements
     // configuration, even if there are no backends defined below it.
     if (backendRoot == null)
     {
-      int    msgID   = MSGID_CONFIG_BACKEND_BASE_DOES_NOT_EXIST;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_BACKEND_BASE_DOES_NOT_EXIST.get();
+      throw new ConfigException(message);
     }
 
 
@@ -174,11 +174,9 @@ public class BackendConfigManager implements
         // then log an error and skip it.
         if (DirectoryServer.hasBackend(backendCfg.getBackendId()))
         {
-          int msgID = MSGID_CONFIG_BACKEND_DUPLICATE_BACKEND_ID;
-          String message = getMessage(msgID, backendID,
-                                      String.valueOf(backendDN));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          Message message = WARN_CONFIG_BACKEND_DUPLICATE_BACKEND_ID.get(
+              backendID, String.valueOf(backendDN));
+          logError(message);
           continue;
         }
 
@@ -204,13 +202,10 @@ public class BackendConfigManager implements
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
-          String message = getMessage(msgID, String.valueOf(className),
-                                      String.valueOf(backendDN),
-                                      stackTraceToSingleLineString(e));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.
+              get(String.valueOf(className), String.valueOf(backendDN),
+                  stackTraceToSingleLineString(e));
+          logError(message);
           continue;
         }
 
@@ -256,11 +251,9 @@ public class BackendConfigManager implements
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
           {
-            int msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
-            String message = getMessage(msgID, backendID,
-                                        String.valueOf(failureReason));
-            logError(ErrorLogCategory.CONFIGURATION,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+            Message message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(
+                backendID, String.valueOf(failureReason));
+            logError(message);
             // FIXME -- Do we need to send an admin alert?
             continue;
           }
@@ -272,11 +265,9 @@ public class BackendConfigManager implements
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
-          String message = getMessage(msgID, backendID,
-                                      stackTraceToSingleLineString(e));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          Message message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(
+              backendID, stackTraceToSingleLineString(e));
+          logError(message);
           // FIXME -- Do we need to send an admin alert?
           continue;
         }
@@ -294,13 +285,10 @@ public class BackendConfigManager implements
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int msgID = MSGID_CONFIG_BACKEND_CANNOT_INITIALIZE;
-          String message = getMessage(msgID, String.valueOf(className),
-                                      String.valueOf(backendDN),
-                                      stackTraceToSingleLineString(e));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.
+              get(String.valueOf(className), String.valueOf(backendDN),
+                  stackTraceToSingleLineString(e));
+          logError(message);
 
           try
           {
@@ -308,11 +296,9 @@ public class BackendConfigManager implements
             StringBuilder failureReason = new StringBuilder();
             if (! LockFileManager.releaseLock(lockFile, failureReason))
             {
-              msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
-              message = getMessage(msgID, backendID,
-                                   String.valueOf(failureReason));
-              logError(ErrorLogCategory.CONFIGURATION,
-                       ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+              message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.
+                  get(backendID, String.valueOf(failureReason));
+              logError(message);
               // FIXME -- Do we need to send an admin alert?
             }
           }
@@ -323,11 +309,9 @@ public class BackendConfigManager implements
               TRACER.debugCaught(DebugLogLevel.ERROR, e2);
             }
 
-            msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
-            message = getMessage(msgID, backendID,
-                                 stackTraceToSingleLineString(e2));
-            logError(ErrorLogCategory.CONFIGURATION,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+            message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.
+                get(backendID, stackTraceToSingleLineString(e2));
+            logError(message);
             // FIXME -- Do we need to send an admin alert?
           }
 
@@ -355,12 +339,9 @@ public class BackendConfigManager implements
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int msgID = MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND;
-          String message = getMessage(msgID, backendID,
-                                      getExceptionMessage(e));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND.get(
+              backendID, getExceptionMessage(e));
+          logError(message);
           // FIXME -- Do we need to send an admin alert?
         }
 
@@ -374,10 +355,9 @@ public class BackendConfigManager implements
       {
         // The backend is explicitly disabled.  Log a mild warning and
         // continue.
-        int msgID = MSGID_CONFIG_BACKEND_DISABLED;
-        String message = getMessage(msgID, String.valueOf(backendDN));
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.INFORMATIONAL, message, msgID);
+        Message message =
+            INFO_CONFIG_BACKEND_DISABLED.get(String.valueOf(backendDN));
+        logError(message);
       }
     }
   }
@@ -388,7 +368,7 @@ public class BackendConfigManager implements
    */
   public boolean isConfigurationChangeAcceptable(
        BackendCfg configEntry,
-       List<String> unacceptableReason)
+       List<Message> unacceptableReason)
   {
     DN backendDN = configEntry.dn();
 
@@ -435,7 +415,7 @@ public class BackendConfigManager implements
             TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
-          unacceptableReason.add(de.getMessage());
+          unacceptableReason.add(de.getMessageObject());
           return false;
         }
       }
@@ -453,7 +433,7 @@ public class BackendConfigManager implements
             TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
-          unacceptableReason.add(de.getMessage());
+          unacceptableReason.add(de.getMessageObject());
           return false;
         }
       }
@@ -471,9 +451,9 @@ public class BackendConfigManager implements
       Class backendClass = DirectoryServer.loadClass(className);
       if (! Backend.class.isAssignableFrom(backendClass))
       {
-        int msgID = MSGID_CONFIG_BACKEND_CLASS_NOT_BACKEND;
-        unacceptableReason.add(getMessage(msgID, String.valueOf(className),
-                                          String.valueOf(backendDN)));
+
+        unacceptableReason.add(ERR_CONFIG_BACKEND_CLASS_NOT_BACKEND.get(
+                String.valueOf(className), String.valueOf(backendDN)));
         return false;
       }
 
@@ -490,10 +470,11 @@ public class BackendConfigManager implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
-      unacceptableReason.add(getMessage(msgID, String.valueOf(className),
-                                        String.valueOf(backendDN),
-                                        stackTraceToSingleLineString(e)));
+
+      unacceptableReason.add(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
+              String.valueOf(className),
+              String.valueOf(backendDN),
+              stackTraceToSingleLineString(e)));
       return false;
     }
 
@@ -510,11 +491,11 @@ public class BackendConfigManager implements
    */
   public ConfigChangeResult applyConfigurationChange(BackendCfg cfg)
   {
-    DN                backendDN           = cfg.dn();
-    Backend           backend             = registeredBackends.get(backendDN);
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    DN                 backendDN           = cfg.dn();
+    Backend            backend             = registeredBackends.get(backendDN);
+    ResultCode         resultCode          = ResultCode.SUCCESS;
+    boolean            adminActionRequired = false;
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // See if the entry contains an attribute that indicates whether the
@@ -559,11 +540,9 @@ public class BackendConfigManager implements
             StringBuilder failureReason = new StringBuilder();
             if (! LockFileManager.releaseLock(lockFile, failureReason))
             {
-              int msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
-              String message = getMessage(msgID, backend.getBackendID(),
-                                          String.valueOf(failureReason));
-              logError(ErrorLogCategory.CONFIGURATION,
-                       ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+              Message message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.
+                  get(backend.getBackendID(), String.valueOf(failureReason));
+              logError(message);
               // FIXME -- Do we need to send an admin alert?
             }
           }
@@ -574,11 +553,9 @@ public class BackendConfigManager implements
               TRACER.debugCaught(DebugLogLevel.ERROR, e2);
             }
 
-            int msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
-            String message = getMessage(msgID, backend.getBackendID(),
-                                        stackTraceToSingleLineString(e2));
-            logError(ErrorLogCategory.CONFIGURATION,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+            Message message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.
+                get(backend.getBackendID(), stackTraceToSingleLineString(e2));
+            logError(message);
             // FIXME -- Do we need to send an admin alert?
           }
 
@@ -598,9 +575,9 @@ public class BackendConfigManager implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE;
-      messages.add(getMessage(msgID, String.valueOf(backendDN),
-                              stackTraceToSingleLineString(e)));
+
+      messages.add(ERR_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE.get(
+              String.valueOf(backendDN), stackTraceToSingleLineString(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
@@ -660,9 +637,11 @@ public class BackendConfigManager implements
             // It appears to be a valid backend class.  We'll return that the
             // change is successful, but indicate that some administrative
             // action is required.
-            int msgID = MSGID_CONFIG_BACKEND_ACTION_REQUIRED_TO_CHANGE_CLASS;
-            messages.add(getMessage(msgID, String.valueOf(backendDN),
-                                    backend.getClass().getName(), className));
+
+            messages.add(
+                    NOTE_CONFIG_BACKEND_ACTION_REQUIRED_TO_CHANGE_CLASS.get(
+                            String.valueOf(backendDN),
+                            backend.getClass().getName(), className));
             adminActionRequired = true;
             return new ConfigChangeResult(resultCode, adminActionRequired,
                                           messages);
@@ -670,9 +649,9 @@ public class BackendConfigManager implements
           else
           {
             // It is not a valid backend class.  This is an error.
-            int msgID = MSGID_CONFIG_BACKEND_CLASS_NOT_BACKEND;
-            messages.add(getMessage(msgID, String.valueOf(className),
-                                    String.valueOf(backendDN)));
+
+            messages.add(ERR_CONFIG_BACKEND_CLASS_NOT_BACKEND.get(
+                    String.valueOf(className), String.valueOf(backendDN)));
             resultCode = ResultCode.CONSTRAINT_VIOLATION;
             return new ConfigChangeResult(resultCode, adminActionRequired,
                                           messages);
@@ -685,10 +664,10 @@ public class BackendConfigManager implements
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
-          messages.add(getMessage(msgID, String.valueOf(className),
-                                  String.valueOf(backendDN),
-                                  stackTraceToSingleLineString(e)));
+
+          messages.add(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
+                  String.valueOf(className), String.valueOf(backendDN),
+                  stackTraceToSingleLineString(e)));
           resultCode = DirectoryServer.getServerErrorResultCode();
           return new ConfigChangeResult(resultCode, adminActionRequired,
                                         messages);
@@ -710,9 +689,9 @@ public class BackendConfigManager implements
       catch (Exception e)
       {
         // It is not a valid backend class.  This is an error.
-        int msgID = MSGID_CONFIG_BACKEND_CLASS_NOT_BACKEND;
-        messages.add(getMessage(msgID, String.valueOf(className),
-                                String.valueOf(backendDN)));
+
+        messages.add(ERR_CONFIG_BACKEND_CLASS_NOT_BACKEND.get(
+                String.valueOf(className), String.valueOf(backendDN)));
         resultCode = ResultCode.CONSTRAINT_VIOLATION;
         return new ConfigChangeResult(resultCode, adminActionRequired,
                                       messages);
@@ -732,11 +711,9 @@ public class BackendConfigManager implements
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
         {
-          int msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
-          String message = getMessage(msgID, backendID,
-                                      String.valueOf(failureReason));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          Message message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(
+              backendID, String.valueOf(failureReason));
+          logError(message);
           // FIXME -- Do we need to send an admin alert?
 
           resultCode = ResultCode.CONSTRAINT_VIOLATION;
@@ -753,11 +730,9 @@ public class BackendConfigManager implements
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
-        String message = getMessage(msgID, backendID,
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+        Message message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(
+            backendID, stackTraceToSingleLineString(e));
+        logError(message);
         // FIXME -- Do we need to send an admin alert?
 
         resultCode = ResultCode.CONSTRAINT_VIOLATION;
@@ -779,10 +754,9 @@ public class BackendConfigManager implements
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_CONFIG_BACKEND_CANNOT_INITIALIZE;
-        messages.add(getMessage(msgID, String.valueOf(className),
-                                String.valueOf(backendDN),
-                                stackTraceToSingleLineString(e)));
+        messages.add(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(
+                String.valueOf(className), String.valueOf(backendDN),
+                stackTraceToSingleLineString(e)));
         resultCode = DirectoryServer.getServerErrorResultCode();
 
         try
@@ -791,11 +765,9 @@ public class BackendConfigManager implements
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.releaseLock(lockFile, failureReason))
           {
-            msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
-            String message = getMessage(msgID, backendID,
-                                        String.valueOf(failureReason));
-            logError(ErrorLogCategory.CONFIGURATION,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+            Message message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.
+                get(backendID, String.valueOf(failureReason));
+            logError(message);
             // FIXME -- Do we need to send an admin alert?
           }
         }
@@ -806,11 +778,9 @@ public class BackendConfigManager implements
             TRACER.debugCaught(DebugLogLevel.ERROR, e2);
           }
 
-          msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
-          String message = getMessage(msgID, backendID,
-                                      stackTraceToSingleLineString(e2));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          Message message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.get(
+              backendID, stackTraceToSingleLineString(e2));
+          logError(message);
           // FIXME -- Do we need to send an admin alert?
         }
 
@@ -839,15 +809,13 @@ public class BackendConfigManager implements
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND;
-        String message = getMessage(msgID, backendID,
-                                    getExceptionMessage(e));
+        Message message = WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND.get(
+                backendID, getExceptionMessage(e));
 
         resultCode = DirectoryServer.getServerErrorResultCode();
         messages.add(message);
 
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        logError(message);
         // FIXME -- Do we need to send an admin alert?
 
         return new ConfigChangeResult(resultCode, adminActionRequired,
@@ -878,7 +846,7 @@ public class BackendConfigManager implements
    */
   public boolean isConfigurationAddAcceptable(
        BackendCfg configEntry,
-       List<String> unacceptableReason)
+       List<Message> unacceptableReason)
   {
     DN backendDN = configEntry.dn();
 
@@ -888,9 +856,8 @@ public class BackendConfigManager implements
     String backendID = configEntry.getBackendId();
     if (DirectoryServer.hasBackend(backendID))
     {
-      int msgID = MSGID_CONFIG_BACKEND_DUPLICATE_BACKEND_ID;
-      unacceptableReason.add(getMessage(msgID,
-                                        String.valueOf(backendDN)));
+      unacceptableReason.add(WARN_CONFIG_BACKEND_DUPLICATE_BACKEND_ID.get(
+              String.valueOf(backendDN), backendID));
       return false;
     }
 
@@ -922,10 +889,10 @@ public class BackendConfigManager implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
-      unacceptableReason.add(getMessage(msgID, String.valueOf(className),
-                                        String.valueOf(backendDN),
-                                        stackTraceToSingleLineString(e)));
+      unacceptableReason.add(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
+              String.valueOf(className),
+              String.valueOf(backendDN),
+              stackTraceToSingleLineString(e)));
       return false;
     }
 
@@ -940,7 +907,7 @@ public class BackendConfigManager implements
 //      {
 //        if (errorMessages.isEmpty())
 //        {
-//          int msgID = MSGID_CONFIG_BACKEND_UNACCEPTABLE_CONFIG;
+//          int message = ERR_CONFIG_BACKEND_UNACCEPTABLE_CONFIG.get();
 //          unacceptableReason.add(getMessage(msgID,
 //                                            String.valueOf(configEntryDN)));
 //        }
@@ -969,7 +936,7 @@ public class BackendConfigManager implements
       }
       catch (DirectoryException de)
       {
-        unacceptableReason.add(de.getMessage());
+        unacceptableReason.add(de.getMessageObject());
         return false;
       }
       catch (Exception e)
@@ -996,7 +963,7 @@ public class BackendConfigManager implements
     DN                backendDN           = cfg.dn();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Register as a change listener for this backend entry so that we will
@@ -1011,10 +978,9 @@ public class BackendConfigManager implements
     {
       // The backend is explicitly disabled.  We will log a message to
       // indicate that it won't be enabled and return.
-      int msgID = MSGID_CONFIG_BACKEND_DISABLED;
-      String message = getMessage(msgID, String.valueOf(backendDN));
-      logError(ErrorLogCategory.CONFIGURATION,
-               ErrorLogSeverity.INFORMATIONAL, message, msgID);
+      Message message =
+          INFO_CONFIG_BACKEND_DISABLED.get(String.valueOf(backendDN));
+      logError(message);
       messages.add(message);
       return new ConfigChangeResult(resultCode, adminActionRequired,
                                     messages);
@@ -1027,10 +993,9 @@ public class BackendConfigManager implements
     String backendID = cfg.getBackendId();
     if (DirectoryServer.hasBackend(backendID))
     {
-      int msgID = MSGID_CONFIG_BACKEND_DUPLICATE_BACKEND_ID;
-      String message = getMessage(msgID, String.valueOf(backendDN));
-      logError(ErrorLogCategory.CONFIGURATION,
-               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+      Message message = WARN_CONFIG_BACKEND_DUPLICATE_BACKEND_ID.get(
+          String.valueOf(backendDN), backendID);
+      logError(message);
       messages.add(message);
       return new ConfigChangeResult(resultCode, adminActionRequired,
                                     messages);
@@ -1084,10 +1049,10 @@ public class BackendConfigManager implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
-      messages.add(getMessage(msgID, String.valueOf(className),
-                              String.valueOf(backendDN),
-                              stackTraceToSingleLineString(e)));
+      messages.add(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
+              String.valueOf(className),
+              String.valueOf(backendDN),
+              stackTraceToSingleLineString(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
       return new ConfigChangeResult(resultCode, adminActionRequired,
                                     messages);
@@ -1107,11 +1072,9 @@ public class BackendConfigManager implements
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        int msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
-        String message = getMessage(msgID, backendID,
-                                    String.valueOf(failureReason));
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+        Message message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(
+            backendID, String.valueOf(failureReason));
+        logError(message);
         // FIXME -- Do we need to send an admin alert?
 
         resultCode = ResultCode.CONSTRAINT_VIOLATION;
@@ -1128,11 +1091,9 @@ public class BackendConfigManager implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
-      String message = getMessage(msgID, backendID,
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.CONFIGURATION,
-               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+      Message message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(
+          backendID, stackTraceToSingleLineString(e));
+      logError(message);
       // FIXME -- Do we need to send an admin alert?
 
       resultCode = ResultCode.CONSTRAINT_VIOLATION;
@@ -1155,10 +1116,10 @@ public class BackendConfigManager implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_BACKEND_CANNOT_INITIALIZE;
-      messages.add(getMessage(msgID, String.valueOf(className),
-                              String.valueOf(backendDN),
-                              stackTraceToSingleLineString(e)));
+      messages.add(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(
+              String.valueOf(className),
+              String.valueOf(backendDN),
+              stackTraceToSingleLineString(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
 
       try
@@ -1167,11 +1128,9 @@ public class BackendConfigManager implements
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
-          msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
-          String message = getMessage(msgID, backendID,
-                                      String.valueOf(failureReason));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          Message message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.get(
+              backendID, String.valueOf(failureReason));
+          logError(message);
           // FIXME -- Do we need to send an admin alert?
         }
       }
@@ -1182,11 +1141,9 @@ public class BackendConfigManager implements
           TRACER.debugCaught(DebugLogLevel.ERROR, e2);
         }
 
-        msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
-        String message = getMessage(msgID, backendID,
-                                    stackTraceToSingleLineString(e2));
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+        Message message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.get(
+            backendID, stackTraceToSingleLineString(e2));
+        logError(message);
         // FIXME -- Do we need to send an admin alert?
       }
 
@@ -1215,15 +1172,13 @@ public class BackendConfigManager implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND;
-      String message = getMessage(msgID, backendID,
-                                  getExceptionMessage(e));
+      Message message = WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND.get(
+              backendID, getExceptionMessage(e));
 
       resultCode = DirectoryServer.getServerErrorResultCode();
       messages.add(message);
 
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      logError(message);
       // FIXME -- Do we need to send an admin alert?
 
       return new ConfigChangeResult(resultCode, adminActionRequired,
@@ -1240,7 +1195,7 @@ public class BackendConfigManager implements
    */
   public boolean isConfigurationDeleteAcceptable(
        BackendCfg configEntry,
-       List<String> unacceptableReason)
+       List<Message> unacceptableReason)
   {
     DN backendDN = configEntry.dn();
 
@@ -1265,8 +1220,9 @@ public class BackendConfigManager implements
     }
     else
     {
-      int msgID = MSGID_CONFIG_BACKEND_CANNOT_REMOVE_BACKEND_WITH_SUBORDINATES;
-      unacceptableReason.add(getMessage(msgID, String.valueOf(backendDN)));
+      unacceptableReason.add(
+              NOTE_CONFIG_BACKEND_CANNOT_REMOVE_BACKEND_WITH_SUBORDINATES.get(
+                      String.valueOf(backendDN)));
       return false;
     }
   }
@@ -1280,7 +1236,7 @@ public class BackendConfigManager implements
     DN                backendDN           = configEntry.dn();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // See if this backend config manager has a backend registered with the
@@ -1328,11 +1284,9 @@ public class BackendConfigManager implements
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
-          int msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
-          String message = getMessage(msgID, backend.getBackendID(),
-                                      String.valueOf(failureReason));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          Message message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.get(
+              backend.getBackendID(), String.valueOf(failureReason));
+          logError(message);
           // FIXME -- Do we need to send an admin alert?
         }
       }
@@ -1343,11 +1297,9 @@ public class BackendConfigManager implements
           TRACER.debugCaught(DebugLogLevel.ERROR, e2);
         }
 
-        int msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
-        String message = getMessage(msgID, backend.getBackendID(),
-                                    stackTraceToSingleLineString(e2));
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+        Message message = WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK.get(
+            backend.getBackendID(), stackTraceToSingleLineString(e2));
+        logError(message);
         // FIXME -- Do we need to send an admin alert?
       }
 
@@ -1356,8 +1308,9 @@ public class BackendConfigManager implements
     }
     else
     {
-      int msgID = MSGID_CONFIG_BACKEND_CANNOT_REMOVE_BACKEND_WITH_SUBORDINATES;
-      messages.add(getMessage(msgID, String.valueOf(backendDN)));
+
+      messages.add(NOTE_CONFIG_BACKEND_CANNOT_REMOVE_BACKEND_WITH_SUBORDINATES
+              .get(String.valueOf(backendDN)));
       resultCode = ResultCode.UNWILLING_TO_PERFORM;
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }

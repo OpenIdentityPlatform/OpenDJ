@@ -26,7 +26,7 @@
  */
 
 package org.opends.server.admin;
-
+import org.opends.messages.Message;
 
 
 /**
@@ -51,34 +51,34 @@ public class DefinitionDecodingException extends DecodingException {
      * The managed object could be found but did not contain any type
      * information (eg missing object classes in LDAP).
      */
-    NO_TYPE_INFORMATION(
+    NO_TYPE_INFORMATION(Message.raw( // TODO: i18n?
         "The managed object could be found but did not contain any"
-            + " type information (e.g. missing object classes in LDAP)."),
+            + " type information (e.g. missing object classes in LDAP).")),
 
     /**
      * The managed object could be found but did not contain the expected type
      * information (eg incorrect object classes in LDAP).
      */
-    WRONG_TYPE_INFORMATION(
+    WRONG_TYPE_INFORMATION(Message.raw( // TODO: i18n?
         "The managed object could be found but did not contain the"
             + " expected type information (e.g. incorrect object"
-            + " classes in LDAP)."),
+            + " classes in LDAP).")),
 
     /**
      * The managed object could be found but its type resolved to an abstract
      * managed object definition.
      */
-    ABSTRACT_TYPE_INFORMATION(
+    ABSTRACT_TYPE_INFORMATION(Message.raw( // TODO: i18n?
         "The managed object could be found but its type resolved to an"
-            + " abstract managed object definition.");
+            + " abstract managed object definition."));
 
     // Simple description of this reason for debugging.
-    private String msg;
+    private Message msg;
 
 
 
     // Private constructor.
-    private Reason(String msg) {
+    private Reason(Message msg) {
       this.msg = msg;
     }
 
@@ -118,7 +118,7 @@ public class DefinitionDecodingException extends DecodingException {
    * {@inheritDoc}
    */
   @Override
-  public String getMessage() {
+  public Message getMessageObject() {
     return reason.msg;
   }
 

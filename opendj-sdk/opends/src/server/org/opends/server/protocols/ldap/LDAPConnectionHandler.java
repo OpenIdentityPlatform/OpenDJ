@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
+import org.opends.messages.Message;
 
 
 
@@ -32,8 +33,8 @@ import static org.opends.server.loggers.AccessLogger.logConnect;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
+
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -74,8 +75,8 @@ import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
@@ -243,7 +244,7 @@ public final class LDAPConnectionHandler extends
     // Create variables to include in the response.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     // Note that the following properties cannot be modified:
     //
@@ -313,7 +314,7 @@ public final class LDAPConnectionHandler extends
    *          associated with the connection handler should also be
    *          closed.
    */
-  public void finalizeConnectionHandler(String finalizeReason,
+  public void finalizeConnectionHandler(Message finalizeReason,
       boolean closeConnections) {
     shutdownRequested = true;
     currentConfig.removeLDAPChangeListener(this);
@@ -579,10 +580,9 @@ public final class LDAPConnectionHandler extends
   {
     // SSL and StartTLS are mutually exclusive.
     if (config.isAllowStartTLS() && config.isUseSSL()) {
-      int msgID = MSGID_LDAP_CONNHANDLER_CANNOT_HAVE_SSL_AND_STARTTLS;
-      String message = getMessage(msgID, String.valueOf(config.dn()));
-      logError(ErrorLogCategory.CONFIGURATION,
-          ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+      Message message = ERR_LDAP_CONNHANDLER_CANNOT_HAVE_SSL_AND_STARTTLS.get(
+          String.valueOf(config.dn()));
+      logError(message);
     }
 
     if (config.isAllowStartTLS() || config.isUseSSL())
@@ -590,36 +590,34 @@ public final class LDAPConnectionHandler extends
       // Validate the key manager provider DN.
       DN keyManagerProviderDN = config.getKeyManagerProviderDN();
       if (keyManagerProviderDN == null) {
-        int msgID = MSGID_LDAP_CONNHANDLER_NO_KEYMANAGER_DN;
-        String message = getMessage(msgID, String.valueOf(config.dn()));
-        throw new ConfigException(msgID, message);
+        Message message = ERR_LDAP_CONNHANDLER_NO_KEYMANAGER_DN.get(
+            String.valueOf(config.dn()));
+        throw new ConfigException(message);
       } else {
         KeyManagerProvider provider = DirectoryServer
             .getKeyManagerProvider(keyManagerProviderDN);
         if (provider == null) {
-          int msgID = MSGID_LDAP_CONNHANDLER_INVALID_KEYMANAGER_DN;
-          String message = getMessage(msgID, String
-              .valueOf(config.dn()), String
-              .valueOf(keyManagerProviderDN));
-          throw new ConfigException(msgID, message);
+          Message message = ERR_LDAP_CONNHANDLER_INVALID_KEYMANAGER_DN.
+              get(String.valueOf(config.dn()),
+                  String.valueOf(keyManagerProviderDN));
+          throw new ConfigException(message);
         }
       }
 
       // Validate the trust manager provider DN.
       DN trustManagerProviderDN = config.getTrustManagerProviderDN();
       if (trustManagerProviderDN == null) {
-        int msgID = MSGID_LDAP_CONNHANDLER_NO_TRUSTMANAGER_DN;
-        String message = getMessage(msgID, String.valueOf(config.dn()));
-        throw new ConfigException(msgID, message);
+        Message message = ERR_LDAP_CONNHANDLER_NO_TRUSTMANAGER_DN.get(
+            String.valueOf(config.dn()));
+        throw new ConfigException(message);
       } else {
         TrustManagerProvider provider = DirectoryServer
             .getTrustManagerProvider(trustManagerProviderDN);
         if (provider == null) {
-          int msgID = MSGID_LDAP_CONNHANDLER_INVALID_TRUSTMANAGER_DN;
-          String message = getMessage(msgID, String
-              .valueOf(config.dn()), String
-              .valueOf(trustManagerProviderDN));
-          throw new ConfigException(msgID, message);
+          Message message = ERR_LDAP_CONNHANDLER_INVALID_TRUSTMANAGER_DN.
+              get(String.valueOf(config.dn()),
+                  String.valueOf(trustManagerProviderDN));
+          throw new ConfigException(message);
         }
       }
     }
@@ -633,10 +631,9 @@ public final class LDAPConnectionHandler extends
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_CONNHANDLER_OPEN_SELECTOR_FAILED;
-      String message = getMessage(msgID, config.dn(),
-          stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_LDAP_CONNHANDLER_OPEN_SELECTOR_FAILED.get(
+          String.valueOf(config.dn()), stackTraceToSingleLineString(e));
+      throw new InitializationException(message, e);
     }
 
     // Get the SSL auth policy.
@@ -748,13 +745,11 @@ public final class LDAPConnectionHandler extends
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_LDAP_CONNHANDLER_CANNOT_BIND;
-          String message = getMessage(msgID, String.valueOf(config.dn()),
-                                      a.getHostAddress(), listenPort,
-                                      getExceptionMessage(e));
-          logError(ErrorLogCategory.CONNECTION_HANDLING,
-                   ErrorLogSeverity.SEVERE_ERROR, message, msgID);
-          throw new InitializationException(msgID, message);
+          Message message = ERR_LDAP_CONNHANDLER_CANNOT_BIND.
+              get(String.valueOf(config.dn()), a.getHostAddress(), listenPort,
+                  getExceptionMessage(e));
+          logError(message);
+          throw new InitializationException(message);
         }
       }
     }
@@ -792,7 +787,7 @@ public final class LDAPConnectionHandler extends
    */
   @Override()
   public boolean isConfigurationAcceptable(ConnectionHandlerCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     LDAPConnectionHandlerCfg config = (LDAPConnectionHandlerCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
@@ -805,14 +800,15 @@ public final class LDAPConnectionHandler extends
    */
   public boolean isConfigurationChangeAcceptable(
       LDAPConnectionHandlerCfg config,
-      List<String> unacceptableReasons) {
+      List<Message> unacceptableReasons) {
     boolean isAcceptable = true;
 
     // SSL and StartTLS are mutually exclusive.
     if (config.isAllowStartTLS() && config.isUseSSL()) {
-      int msgID = MSGID_LDAP_CONNHANDLER_CANNOT_HAVE_SSL_AND_STARTTLS;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(config
-          .dn())));
+
+      unacceptableReasons.add(
+              ERR_LDAP_CONNHANDLER_CANNOT_HAVE_SSL_AND_STARTTLS.get(
+                      String.valueOf(config.dn())));
       isAcceptable = false;
     }
 
@@ -821,18 +817,19 @@ public final class LDAPConnectionHandler extends
       // Validate the key manager provider DN.
       DN keyManagerProviderDN = config.getKeyManagerProviderDN();
       if (keyManagerProviderDN == null) {
-        int msgID = MSGID_LDAP_CONNHANDLER_NO_KEYMANAGER_DN;
-        String message = getMessage(msgID, String.valueOf(config.dn()));
+        Message message = ERR_LDAP_CONNHANDLER_NO_KEYMANAGER_DN.get(
+                String.valueOf(config.dn()));
         unacceptableReasons.add(message);
         isAcceptable = false;
       } else {
         KeyManagerProvider provider = DirectoryServer
             .getKeyManagerProvider(keyManagerProviderDN);
         if (provider == null) {
-          int msgID = MSGID_LDAP_CONNHANDLER_INVALID_KEYMANAGER_DN;
-          unacceptableReasons.add(getMessage(msgID, String
-              .valueOf(config.dn()), String
-              .valueOf(keyManagerProviderDN)));
+
+          unacceptableReasons.add(
+                  ERR_LDAP_CONNHANDLER_INVALID_KEYMANAGER_DN.get(
+                          String.valueOf(config.dn()),
+                          String.valueOf(keyManagerProviderDN)));
           isAcceptable = false;
         }
       }
@@ -840,18 +837,19 @@ public final class LDAPConnectionHandler extends
       // Validate the trust manager provider DN.
       DN trustManagerProviderDN = config.getTrustManagerProviderDN();
       if (trustManagerProviderDN == null) {
-        int msgID = MSGID_LDAP_CONNHANDLER_NO_TRUSTMANAGER_DN;
-        String message = getMessage(msgID, String.valueOf(config.dn()));
+        Message message = ERR_LDAP_CONNHANDLER_NO_TRUSTMANAGER_DN.get(
+                String.valueOf(config.dn()));
         unacceptableReasons.add(message);
         isAcceptable = false;
       } else {
         TrustManagerProvider provider = DirectoryServer
             .getTrustManagerProvider(trustManagerProviderDN);
         if (provider == null) {
-          int msgID = MSGID_LDAP_CONNHANDLER_INVALID_TRUSTMANAGER_DN;
-          unacceptableReasons.add(getMessage(msgID, String
-              .valueOf(config.dn()), String
-              .valueOf(trustManagerProviderDN)));
+
+          unacceptableReasons.add(
+                  ERR_LDAP_CONNHANDLER_INVALID_TRUSTMANAGER_DN.get(
+                          String.valueOf(config.dn()),
+                          String.valueOf(trustManagerProviderDN)));
           isAcceptable = false;
         }
       }
@@ -879,7 +877,7 @@ public final class LDAPConnectionHandler extends
   /**
    * {@inheritDoc}
    */
-  public void processServerShutdown(String reason) {
+  public void processServerShutdown(Message reason) {
     shutdownRequested = true;
 
     try {
@@ -911,9 +909,7 @@ public final class LDAPConnectionHandler extends
           cleanUpSelector();
           listening = false;
 
-          logError(ErrorLogCategory.CONNECTION_HANDLING,
-              ErrorLogSeverity.NOTICE,
-              MSGID_LDAP_CONNHANDLER_STOPPED_LISTENING, handlerName);
+          logError(ERR_LDAP_CONNHANDLER_STOPPED_LISTENING.get(handlerName));
         }
 
         try {
@@ -942,20 +938,16 @@ public final class LDAPConnectionHandler extends
             channel.register(selector, SelectionKey.OP_ACCEPT);
             numRegistered++;
 
-            logError(ErrorLogCategory.CONNECTION_HANDLING,
-                ErrorLogSeverity.NOTICE,
-                MSGID_LDAP_CONNHANDLER_STARTED_LISTENING, handlerName);
+            logError(ERR_LDAP_CONNHANDLER_STARTED_LISTENING.get(handlerName));
           } catch (Exception e) {
             if (debugEnabled())
             {
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            logError(ErrorLogCategory.CONNECTION_HANDLING,
-                ErrorLogSeverity.SEVERE_ERROR,
-                MSGID_LDAP_CONNHANDLER_CREATE_CHANNEL_FAILED,
-                currentConfig.dn(), a.getHostAddress(), listenPort,
-                stackTraceToSingleLineString(e));
+            logError(ERR_LDAP_CONNHANDLER_CREATE_CHANNEL_FAILED.
+                get(String.valueOf(currentConfig.dn()), a.getHostAddress(),
+                    listenPort, stackTraceToSingleLineString(e)));
           }
         }
 
@@ -963,9 +955,8 @@ public final class LDAPConnectionHandler extends
         // consider the connection handler disabled and require
         // administrative action before trying again.
         if (numRegistered == 0) {
-          logError(ErrorLogCategory.CONNECTION_HANDLING,
-              ErrorLogSeverity.FATAL_ERROR,
-              MSGID_LDAP_CONNHANDLER_NO_ACCEPTORS, currentConfig.dn());
+          logError(ERR_LDAP_CONNHANDLER_NO_ACCEPTORS.get(
+                  String.valueOf(currentConfig.dn())));
 
           enabled = false;
           continue;
@@ -1013,9 +1004,9 @@ public final class LDAPConnectionHandler extends
                     clientConnection.disconnect(
                         DisconnectReason.CONNECTION_REJECTED,
                         currentConfig.isSendRejectionNotice(),
-                        MSGID_LDAP_CONNHANDLER_DENIED_CLIENT,
-                        clientConnection.getClientHostPort(),
-                        clientConnection.getServerHostPort());
+                        ERR_LDAP_CONNHANDLER_DENIED_CLIENT.get(
+                          clientConnection.getClientHostPort(),
+                          clientConnection.getServerHostPort()));
 
                     iterator.remove();
                     continue;
@@ -1030,10 +1021,9 @@ public final class LDAPConnectionHandler extends
                     clientConnection.disconnect(
                         DisconnectReason.CONNECTION_REJECTED,
                         currentConfig.isSendRejectionNotice(),
-                        MSGID_LDAP_CONNHANDLER_DISALLOWED_CLIENT,
-                        clientConnection.getClientHostPort(),
-                        clientConnection.getServerHostPort());
-
+                        ERR_LDAP_CONNHANDLER_DISALLOWED_CLIENT.get(
+                          clientConnection.getClientHostPort(),
+                          clientConnection.getServerHostPort()));
                     iterator.remove();
                     continue;
                   }
@@ -1059,8 +1049,8 @@ public final class LDAPConnectionHandler extends
 
                     clientConnection.disconnect(
                          DisconnectReason.SECURITY_PROBLEM, false,
-                         MSGID_LDAP_CONNHANDLER_CANNOT_SET_SECURITY_PROVIDER,
-                         String.valueOf(e));
+                         ERR_LDAP_CONNHANDLER_CANNOT_SET_SECURITY_PROVIDER.get(
+                          String.valueOf(e)));
                     iterator.remove();
                     continue;
                   }
@@ -1098,19 +1088,16 @@ public final class LDAPConnectionHandler extends
                       TRACER.debugCaught(DebugLogLevel.ERROR, e);
                     }
 
-                    int msgID =
-                      MSGID_LDAP_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT;
-                    String message = getMessage(msgID,
-                        clientConnection.getClientHostPort(),
-                        clientConnection.getServerHostPort(),
-                        getExceptionMessage(e));
-
-                    logError(ErrorLogCategory.CONNECTION_HANDLING,
-                        ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+                    Message message =
+                      INFO_LDAP_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.
+                          get(clientConnection.getClientHostPort(),
+                              clientConnection.getServerHostPort(),
+                              getExceptionMessage(e));
+                    logError(message);
 
                     clientConnection.disconnect(
                         DisconnectReason.SERVER_ERROR, currentConfig
-                            .isSendRejectionNotice(), message, msgID);
+                            .isSendRejectionNotice(), message);
 
                     iterator.remove();
                     continue;
@@ -1135,29 +1122,25 @@ public final class LDAPConnectionHandler extends
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            logError(ErrorLogCategory.CONNECTION_HANDLING,
-                ErrorLogSeverity.SEVERE_WARNING,
-                MSGID_LDAP_CONNHANDLER_CANNOT_ACCEPT_CONNECTION,
-                currentConfig.dn(), getExceptionMessage(e));
+            logError(ERR_LDAP_CONNHANDLER_CANNOT_ACCEPT_CONNECTION.get(
+                String.valueOf(currentConfig.dn()), getExceptionMessage(e)));
 
             if (lastIterationFailed) {
               // The last time through the accept loop we also
               // encountered a failure. Rather than enter a potential
               // infinite loop of failures, disable this acceptor and
               // log an error.
-              int msgID = MSGID_LDAP_CONNHANDLER_CONSECUTIVE_ACCEPT_FAILURES;
-              String message = getMessage(msgID, String
-                  .valueOf(currentConfig.dn()),
-                  stackTraceToSingleLineString(e));
-
-              logError(ErrorLogCategory.CONNECTION_HANDLING,
-                  ErrorLogSeverity.FATAL_ERROR, message, msgID);
+              Message message =
+                ERR_LDAP_CONNHANDLER_CONSECUTIVE_ACCEPT_FAILURES.
+                    get(String.valueOf(currentConfig.dn()),
+                        stackTraceToSingleLineString(e));
+              logError(message);
 
               DirectoryServer
                   .sendAlertNotification(
                       this,
                       ALERT_TYPE_LDAP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES,
-                      msgID, message);
+                          message);
 
               enabled = false;
 
@@ -1180,17 +1163,14 @@ public final class LDAPConnectionHandler extends
         // only thing we can do here is log a message, send an alert,
         // and disable the selector until an administrator can figure
         // out what's going on.
-        int msgID = MSGID_LDAP_CONNHANDLER_UNCAUGHT_ERROR;
-        String message = getMessage(msgID, String
-            .valueOf(currentConfig.dn()),
-            stackTraceToSingleLineString(e));
-
-        logError(ErrorLogCategory.CONNECTION_HANDLING,
-            ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+        Message message = ERR_LDAP_CONNHANDLER_UNCAUGHT_ERROR.
+            get(String.valueOf(currentConfig.dn()),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         DirectoryServer.sendAlertNotification(this,
-            ALERT_TYPE_LDAP_CONNECTION_HANDLER_UNCAUGHT_ERROR, msgID,
-            message);
+            ALERT_TYPE_LDAP_CONNECTION_HANDLER_UNCAUGHT_ERROR,
+                message);
 
         try {
           cleanUpSelector();

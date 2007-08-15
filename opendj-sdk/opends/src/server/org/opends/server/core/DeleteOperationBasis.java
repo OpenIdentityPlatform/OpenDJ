@@ -25,7 +25,8 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
-
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 
 import static org.opends.server.core.CoreConstants.LOG_ELEMENT_ENTRY_DN;
@@ -38,8 +39,7 @@ import static org.opends.server.loggers.AccessLogger.logDeleteRequest;
 import static org.opends.server.loggers.AccessLogger.logDeleteResponse;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 
 import java.util.ArrayList;
@@ -61,8 +61,6 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
@@ -201,7 +199,7 @@ public class DeleteOperationBasis
       }
 
       setResultCode(de.getResultCode());
-      appendErrorMessage(de.getErrorMessage());
+      appendErrorMessage(de.getMessageObject());
       setMatchedDN(de.getMatchedDN());
       setReferralURLs(de.getReferralURLs());
     }
@@ -242,16 +240,16 @@ public class DeleteOperationBasis
    */
   @Override()
   public final void disconnectClient(DisconnectReason disconnectReason,
-                                     boolean sendNotification, String message,
-                                     int messageID)
+                                     boolean sendNotification, Message message
+  )
   {
     // Before calling clientConnection.disconnect, we need to mark this
     // operation as cancelled so that the attempt to cancel it later won't cause
     // an unnecessary delay.
     setCancelResult(CancelResult.CANCELED);
 
-    clientConnection.disconnect(disconnectReason, sendNotification, message,
-                                messageID);
+    clientConnection.disconnect(disconnectReason, sendNotification,
+            message);
   }
 
 
@@ -282,7 +280,7 @@ public class DeleteOperationBasis
     String resultCode = String.valueOf(getResultCode().getIntValue());
 
     String errorMessage;
-    StringBuilder errorMessageBuffer = getErrorMessage();
+    MessageBuilder errorMessageBuffer = getErrorMessage();
     if (errorMessageBuffer == null)
     {
       errorMessage = null;
@@ -493,8 +491,7 @@ deleteProcessing:
         // result and return.
         setResultCode(ResultCode.CANCELED);
 
-        int msgID = MSGID_CANCELED_BY_PREPARSE_DISCONNECT;
-        appendErrorMessage(getMessage(msgID));
+        appendErrorMessage(ERR_CANCELED_BY_PREPARSE_DISCONNECT.get());
 
         setProcessingStopTime();
 
@@ -684,13 +681,9 @@ deleteProcessing:
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              int    msgID   = MSGID_DELETE_ERROR_NOTIFYING_PERSISTENT_SEARCH;
-              String message = getMessage(msgID,
-                  String.valueOf(persistentSearch),
-                  getExceptionMessage(e));
-              logError(ErrorLogCategory.CORE_SERVER,
-                  ErrorLogSeverity.SEVERE_ERROR,
-                  message, msgID);
+              Message message = ERR_DELETE_ERROR_NOTIFYING_PERSISTENT_SEARCH.
+                  get(String.valueOf(persistentSearch), getExceptionMessage(e));
+              logError(message);
 
               DirectoryServer.deregisterPersistentSearch(persistentSearch);
             }
@@ -710,8 +703,8 @@ deleteProcessing:
   private void updateOperationErrMsgAndResCode()
   {
     setResultCode(ResultCode.NO_SUCH_OBJECT);
-    appendErrorMessage(getMessage(MSGID_DELETE_NO_SUCH_ENTRY,
-                                  String.valueOf(getEntryDN())));
+    appendErrorMessage(ERR_DELETE_NO_SUCH_ENTRY.get(
+            String.valueOf(getEntryDN())));
   }
 
 

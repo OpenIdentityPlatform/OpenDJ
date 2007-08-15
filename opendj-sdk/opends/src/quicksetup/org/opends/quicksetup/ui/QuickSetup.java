@@ -32,11 +32,13 @@ import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.*;
-import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.BackgroundTask;
-import org.opends.quicksetup.util.Utils;
+import static org.opends.quicksetup.util.Utils.*;
+import org.opends.messages.MessageBuilder;
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
 
 import javax.swing.*;
 
@@ -80,7 +82,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
   private QuickSetupDialog dialog;
 
-  private StringBuffer progressDetails = new StringBuffer();
+  private MessageBuilder progressDetails = new MessageBuilder();
 
   private ProgressDescriptor lastDescriptor;
 
@@ -275,7 +277,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
         }
         catch (Throwable t) {
           throw new UserDataException(cStep,
-                  getThrowableMsg("bug-msg", t));
+                  getThrowableMsg(INFO_BUG_MSG.get(), t));
         }
         return null;
       }
@@ -288,8 +290,8 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
           UserDataException ude = (UserDataException) throwable;
           if (ude instanceof UserDataConfirmationException)
           {
-            if (displayConfirmation(ude.getLocalizedMessage(),
-                getMsg("confirmation-title")))
+            if (displayConfirmation(ude.getMessageObject(),
+                INFO_CONFIRMATION_TITLE.get()))
             {
               try
               {
@@ -303,7 +305,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
           }
           else
           {
-            displayError(ude.getLocalizedMessage(), getMsg("error-title"));
+            displayError(ude.getMessageObject(), INFO_ERROR_TITLE.get());
           }
         } else {
           setCurrentStep(application.getNextWizardStep(cStep));
@@ -383,10 +385,10 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
           if (isWebStart()) {
             rootDirectory = application.getUserData().getServerLocation();
           } else {
-            rootDirectory = Utils.getInstallPathFromClasspath();
+            rootDirectory = getInstallPathFromClasspath();
           }
           Installation installation = new Installation(rootDirectory);
-          String cmd = Utils.getPath(installation.getStatusPanelCommandFile());
+          String cmd = getPath(installation.getStatusPanelCommandFile());
           ProcessBuilder pb = new ProcessBuilder(cmd);
           Map<String, String> env = pb.environment();
           env.put("JAVA_HOME", System.getProperty("java.home"));
@@ -419,14 +421,16 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
           if (returnValue != 0)
           {
-            throw new Error(getMsg("could-not-launch-status-panel-msg"));
+            throw new Error(
+                    INFO_COULD_NOT_LAUNCH_STATUS_PANEL_MSG.get().toString());
           }
         }
         catch (Throwable t)
         {
           // This looks like a bug
           t.printStackTrace();
-          throw new Error(getMsg("could-not-launch-status-panel-msg"));
+          throw new Error(
+                  INFO_COULD_NOT_LAUNCH_STATUS_PANEL_MSG.get().toString());
         }
         return null;
       }
@@ -439,7 +443,8 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
         if (throwable != null)
         {
-          displayError(throwable.getMessage(), getMsg("error-title"));
+          displayError(Message.raw(throwable.getMessage()),
+                  INFO_ERROR_TITLE.get());
         }
       }
     };
@@ -501,34 +506,6 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   }
 
   /**
-   * The following three methods are just commodity methods to get localized
-   * messages.
-   * @param key String key
-   * @return String message
-   */
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  /**
-   * The following three methods are just commodity methods to get localized
-   * messages.
-   * @param key String key
-   * @param t Throwable throwable
-   * @return String message
-   */
-  private String getThrowableMsg(String key, Throwable t)
-  {
-    return Utils.getThrowableMsg(getI18n(), key, null, t);
-  }
-
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
-  }
-
-  /**
    * Get the current step.
    *
    * @return the currently displayed Step of the wizard.
@@ -581,9 +558,9 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    * @param title
    *          the title for the dialog.
    */
-  public void displayError(String msg, String title)
+  public void displayError(Message msg, Message title)
   {
-    if (Utils.isCli()) {
+    if (isCli()) {
       System.err.println(msg);
     } else {
       getDialog().displayError(msg, title);
@@ -600,7 +577,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    * @return <CODE>true</CODE> if the user confirms the message, or
    * <CODE>false</CODE> if not.
    */
-  public boolean displayConfirmation(String msg, String title)
+  public boolean displayConfirmation(Message msg, Message title)
   {
     return getDialog().displayConfirmation(msg, title);
   }
@@ -610,8 +587,6 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    *
    * @param ce
    *          the certificate exception that occurred.
-   * @param title
-   *          the title of the dialog.
    * @return <CODE>true</CODE> if the user confirms the message, or
    * <CODE>false</CODE> if not.
    */
@@ -703,8 +678,8 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       ProgressUpdateEvent ev)
   {
     ProgressStep status = ev.getProgressStep();
-    String newProgressLabel = ev.getCurrentPhaseSummary();
-    String additionalDetails = ev.getNewLogs();
+    Message newProgressLabel = ev.getCurrentPhaseSummary();
+    Message additionalDetails = ev.getNewLogs();
     Integer ratio = ev.getProgressRatio();
 
     if (additionalDetails != null)
@@ -713,7 +688,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     }
 
     return new ProgressDescriptor(status, ratio, newProgressLabel,
-        progressDetails.toString());
+        progressDetails.toMessage());
   }
 
   /**
@@ -724,7 +699,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    */
   private boolean isWebStart()
   {
-    return Utils.isWebStart();
+    return isWebStart();
   }
 
   /**
@@ -748,7 +723,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       }
       catch (Throwable t) {
         throw new UserDataException(cStep,
-                getThrowableMsg("bug-msg", t));
+                getThrowableMsg(INFO_BUG_MSG.get(), t));
       }
       return null;
     }
@@ -768,8 +743,8 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
           UserDataException ude = (UserDataException) throwable;
           if (ude instanceof UserDataConfirmationException)
           {
-            if (displayConfirmation(ude.getLocalizedMessage(),
-                getMsg("confirmation-title")))
+            if (displayConfirmation(ude.getMessageObject(),
+                INFO_CONFIRMATION_TITLE.get()))
             {
               setCurrentStep(application.getNextWizardStep(cStep));
             }
@@ -792,7 +767,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
           }
           else
           {
-            displayError(ude.getLocalizedMessage(), getMsg("error-title"));
+            displayError(ude.getMessageObject(), INFO_ERROR_TITLE.get());
           }
         }
       } else {

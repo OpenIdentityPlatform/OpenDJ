@@ -37,6 +37,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.std.meta.
             LengthBasedPasswordValidatorCfgDefn;
 import org.opends.server.admin.std.server.
@@ -379,7 +380,7 @@ public class LengthBasedPasswordValidatorTestCase
                                conn.nextMessageID(), new ArrayList<Control>(),
                                DN.decode("cn=uid=test.user,o=test"), mods);
 
-      StringBuilder invalidReason = new StringBuilder();
+      MessageBuilder invalidReason = new MessageBuilder();
       assertTrue(validator.passwordIsAcceptable(password,
                                                 new HashSet<ByteString>(0),
                                                 op, userEntry, invalidReason));
@@ -452,7 +453,7 @@ public class LengthBasedPasswordValidatorTestCase
                                conn.nextMessageID(), new ArrayList<Control>(),
                                DN.decode("cn=uid=test.user,o=test"), mods);
 
-      StringBuilder invalidReason = new StringBuilder();
+      MessageBuilder invalidReason = new MessageBuilder();
       assertEquals((buffer.length() >= 10),
                    validator.passwordIsAcceptable(password,
                                                   new HashSet<ByteString>(0),
@@ -527,7 +528,7 @@ public class LengthBasedPasswordValidatorTestCase
                                conn.nextMessageID(), new ArrayList<Control>(),
                                DN.decode("cn=uid=test.user,o=test"), mods);
 
-      StringBuilder invalidReason = new StringBuilder();
+      MessageBuilder invalidReason = new MessageBuilder();
       assertEquals((buffer.length() <= 10),
                    validator.passwordIsAcceptable(password,
                                                   new HashSet<ByteString>(0),
@@ -602,7 +603,7 @@ public class LengthBasedPasswordValidatorTestCase
                                conn.nextMessageID(), new ArrayList<Control>(),
                                DN.decode("cn=uid=test.user,o=test"), mods);
 
-      StringBuilder invalidReason = new StringBuilder();
+      MessageBuilder invalidReason = new MessageBuilder();
       assertEquals(((buffer.length() >= 6) && (buffer.length() <= 10)),
                    validator.passwordIsAcceptable(password,
                                                   new HashSet<ByteString>(0),

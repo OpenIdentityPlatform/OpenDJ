@@ -26,6 +26,7 @@
  */
 
 package org.opends.quicksetup.ui;
+import org.opends.messages.Message;
 
 import org.opends.quicksetup.util.Utils;
 
@@ -144,15 +145,16 @@ public class Utilities {
   * @return <CODE>true</CODE> if the user confirms the message, or
   * <CODE>false</CODE> if not.
   */
- public static boolean displayConfirmation(JFrame parent, String msg,
-     String title)
+ public static boolean displayConfirmation(JFrame parent, Message msg,
+     Message title)
  {
    return JOptionPane.YES_OPTION == JOptionPane.showOptionDialog(
-       parent, wrapMsg(msg, 100), title, JOptionPane.YES_NO_OPTION,
-       JOptionPane.QUESTION_MESSAGE, null, // don't use a custom
-       // Icon
-       null, // the titles of buttons
-       null); // default button title
+           parent, wrapMsg(String.valueOf(msg), 100), String.valueOf(title),
+           JOptionPane.YES_NO_OPTION,
+           JOptionPane.QUESTION_MESSAGE,
+           null, // don't use a custom Icon
+           null, // the titles of buttons
+           null); // default button title
  }
 
   /**
@@ -161,14 +163,15 @@ public class Utilities {
    * @param parent
    *          the parent component of the error dialog.
    * @param msg
-   *          the error message.
+ *          the error message.
    * @param title
    *          the title for the dialog.
    */
-  public static void displayError(Component parent, String msg, String title)
+  public static void displayError(Component parent, Message msg, Message title)
   {
-    JOptionPane.showMessageDialog(parent, wrapMsg(msg, 100), title,
-        JOptionPane.ERROR_MESSAGE);
+    JOptionPane.showMessageDialog(parent,
+            wrapMsg(String.valueOf(msg), 100),
+            String.valueOf(title), JOptionPane.ERROR_MESSAGE);
   }
 
   /**
@@ -177,15 +180,16 @@ public class Utilities {
    * @param parent
    *          the parent frame of the information dialog.
    * @param msg
-   *          the error message.
+ *          the error message.
    * @param title
    *          the title for the dialog.
    */
-  public static void displayInformationMessage(JFrame parent, String msg,
-      String title)
+  public static void displayInformationMessage(JFrame parent, Message msg,
+      Message title)
   {
-    JOptionPane.showMessageDialog(parent, wrapMsg(msg, 100), title,
-        JOptionPane.INFORMATION_MESSAGE);
+    JOptionPane.showMessageDialog(parent,
+            wrapMsg(String.valueOf(msg), 100), String.valueOf(title),
+            JOptionPane.INFORMATION_MESSAGE);
   }
 
   /**

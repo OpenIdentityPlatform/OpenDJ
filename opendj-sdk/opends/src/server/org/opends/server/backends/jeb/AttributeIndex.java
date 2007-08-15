@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
+import org.opends.messages.Message;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -46,8 +47,8 @@ import org.opends.server.admin.std.server.JEIndexCfg;
 import org.opends.server.admin.std.meta.JEIndexCfgDefn;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.config.ConfigException;
-import static org.opends.server.messages.JebMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.JebMessages.*;
+
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.StaticUtils;
 
@@ -147,9 +148,9 @@ public class AttributeIndex
     {
       if (attrType.getEqualityMatchingRule() == null)
       {
-        int messageID = MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE;
-        String message = getMessage(messageID, attrType, "equality");
-        throw new ConfigException(messageID, message);
+        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+            String.valueOf(attrType), "equality");
+        throw new ConfigException(message);
       }
 
       Indexer equalityIndexer = new EqualityIndexer(attrType);
@@ -178,9 +179,9 @@ public class AttributeIndex
     {
       if (attrType.getSubstringMatchingRule() == null)
       {
-        int messageID = MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE;
-        String message = getMessage(messageID, attrType, "substring");
-        throw new ConfigException(messageID, message);
+        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+            String.valueOf(attrType), "substring");
+        throw new ConfigException(message);
       }
 
       Indexer substringIndexer = new SubstringIndexer(attrType,
@@ -198,9 +199,9 @@ public class AttributeIndex
     {
       if (attrType.getOrderingMatchingRule() == null)
       {
-        int messageID = MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE;
-        String message = getMessage(messageID, attrType, "ordering");
-        throw new ConfigException(messageID, message);
+        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+            String.valueOf(attrType), "ordering");
+        throw new ConfigException(message);
       }
 
       Indexer orderingIndexer = new OrderingIndexer(attrType);
@@ -217,9 +218,9 @@ public class AttributeIndex
     {
       if (attrType.getApproximateMatchingRule() == null)
       {
-        int messageID = MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE;
-        String message = getMessage(messageID, attrType, "approximate");
-        throw new ConfigException(messageID, message);
+        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+            String.valueOf(attrType), "approximate");
+        throw new ConfigException(message);
       }
 
       Indexer approximateIndexer = new ApproximateIndexer(attrType);
@@ -1153,7 +1154,7 @@ public class AttributeIndex
    */
   public synchronized boolean isConfigurationChangeAcceptable(
       JEIndexCfg cfg,
-      List<String> unacceptableReasons)
+      List<Message> unacceptableReasons)
   {
     AttributeType attrType = cfg.getIndexAttribute();
 
@@ -1161,8 +1162,8 @@ public class AttributeIndex
     {
       if (equalityIndex == null && attrType.getEqualityMatchingRule() == null)
       {
-        int messageID = MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE;
-        String message = getMessage(messageID, attrType, "equality");
+        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+                String.valueOf(String.valueOf(attrType)), "equality");
         unacceptableReasons.add(message);
         return false;
       }
@@ -1172,8 +1173,8 @@ public class AttributeIndex
     {
       if (substringIndex == null && attrType.getSubstringMatchingRule() == null)
       {
-        int messageID = MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE;
-        String message = getMessage(messageID, attrType, "substring");
+        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+                String.valueOf(attrType), "substring");
         unacceptableReasons.add(message);
         return false;
       }
@@ -1184,8 +1185,8 @@ public class AttributeIndex
     {
       if (orderingIndex == null && attrType.getOrderingMatchingRule() == null)
       {
-        int messageID = MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE;
-        String message = getMessage(messageID, attrType, "ordering");
+        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+                String.valueOf(attrType), "ordering");
         unacceptableReasons.add(message);
         return false;
       }
@@ -1195,8 +1196,8 @@ public class AttributeIndex
       if (approximateIndex == null &&
           attrType.getApproximateMatchingRule() == null)
       {
-        int messageID = MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE;
-        String message = getMessage(messageID, attrType, "approximate");
+        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+                String.valueOf(attrType), "approximate");
         unacceptableReasons.add(message);
         return false;
       }
@@ -1213,7 +1214,7 @@ public class AttributeIndex
   {
     ConfigChangeResult ccr;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
     try
     {
       AttributeType attrType = cfg.getIndexAttribute();
@@ -1237,8 +1238,8 @@ public class AttributeIndex
           equalityIndex.open();
 
           adminActionRequired = true;
-          int msgID = MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
-          messages.add(getMessage(msgID, name + ".equality"));
+          messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
+                  name + ".equality"));
 
         }
         else
@@ -1248,8 +1249,9 @@ public class AttributeIndex
           {
 
             adminActionRequired = true;
-            int msgID = MSGID_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD;
-            String message = getMessage(msgID, name + ".equality");
+            Message message =
+                    NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
+                            name + ".equality");
             messages.add(message);
             this.equalityIndex.setIndexEntryLimit(indexEntryLimit);
           }
@@ -1267,7 +1269,8 @@ public class AttributeIndex
           }
           catch(DatabaseException de)
           {
-            messages.add(StaticUtils.stackTraceToSingleLineString(de));
+            messages.add(Message.raw(
+                    StaticUtils.stackTraceToSingleLineString(de)));
             ccr = new ConfigChangeResult(
                 DirectoryServer.getServerErrorResultCode(), false, messages);
             return ccr;
@@ -1294,8 +1297,9 @@ public class AttributeIndex
           presenceIndex.open();
 
           adminActionRequired = true;
-          int msgID = MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
-          messages.add(getMessage(msgID, name + ".presence"));
+
+          messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
+                  name + ".presence"));
         }
         else
         {
@@ -1303,8 +1307,10 @@ public class AttributeIndex
           if(this.presenceIndex.setIndexEntryLimit(indexEntryLimit))
           {
             adminActionRequired = true;
-            int msgID = MSGID_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD;
-            String message = getMessage(msgID, name + ".presence");
+
+            Message message =
+                    NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
+                            name + ".presence");
             messages.add(message);
           }
         }
@@ -1321,7 +1327,8 @@ public class AttributeIndex
           }
           catch(DatabaseException de)
           {
-            messages.add(StaticUtils.stackTraceToSingleLineString(de));
+            messages.add(Message.raw(
+                    StaticUtils.stackTraceToSingleLineString(de)));
             ccr = new ConfigChangeResult(
                 DirectoryServer.getServerErrorResultCode(), false, messages);
             return ccr;
@@ -1349,8 +1356,8 @@ public class AttributeIndex
           substringIndex.open();
 
           adminActionRequired = true;
-          int msgID = MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
-          messages.add(getMessage(msgID, name + ".substring"));
+          messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
+                  name + ".substring"));
         }
         else
         {
@@ -1358,8 +1365,9 @@ public class AttributeIndex
           if(this.substringIndex.setIndexEntryLimit(indexEntryLimit))
           {
             adminActionRequired = true;
-            int msgID = MSGID_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD;
-            String message = getMessage(msgID, name + ".substring");
+            Message message =
+                    NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
+                            name + ".substring");
             messages.add(message);
           }
 
@@ -1384,7 +1392,8 @@ public class AttributeIndex
           }
           catch(DatabaseException de)
           {
-            messages.add(StaticUtils.stackTraceToSingleLineString(de));
+            messages.add(Message.raw(
+                    StaticUtils.stackTraceToSingleLineString(de)));
             ccr = new ConfigChangeResult(
                 DirectoryServer.getServerErrorResultCode(), false, messages);
             return ccr;
@@ -1411,8 +1420,8 @@ public class AttributeIndex
           orderingIndex.open();
 
           adminActionRequired = true;
-          int msgID = MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
-          messages.add(getMessage(msgID, name + ".ordering"));
+          messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
+                  name + ".ordering"));
         }
         else
         {
@@ -1420,8 +1429,10 @@ public class AttributeIndex
           if(this.orderingIndex.setIndexEntryLimit(indexEntryLimit))
           {
             adminActionRequired = true;
-            int msgID = MSGID_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD;
-            String message = getMessage(msgID, name + ".ordering");
+
+            Message message =
+                    NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
+                            name + ".ordering");
             messages.add(message);
           }
         }
@@ -1438,7 +1449,8 @@ public class AttributeIndex
           }
           catch(DatabaseException de)
           {
-            messages.add(StaticUtils.stackTraceToSingleLineString(de));
+            messages.add(Message.raw(
+                    StaticUtils.stackTraceToSingleLineString(de)));
             ccr = new ConfigChangeResult(
                 DirectoryServer.getServerErrorResultCode(), false, messages);
             return ccr;
@@ -1465,8 +1477,9 @@ public class AttributeIndex
           approximateIndex.open();
 
           adminActionRequired = true;
-          int msgID = MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
-          messages.add(getMessage(msgID, name + ".approximate"));
+
+          messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
+                  name + ".approximate"));
         }
         else
         {
@@ -1474,8 +1487,10 @@ public class AttributeIndex
           if(this.approximateIndex.setIndexEntryLimit(indexEntryLimit))
           {
             adminActionRequired = true;
-            int msgID = MSGID_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD;
-            String message = getMessage(msgID, name + ".approximate");
+
+            Message message =
+                    NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
+                            name + ".approximate");
             messages.add(message);
           }
         }
@@ -1492,7 +1507,8 @@ public class AttributeIndex
           }
           catch(DatabaseException de)
           {
-            messages.add(StaticUtils.stackTraceToSingleLineString(de));
+            messages.add(
+                    Message.raw(StaticUtils.stackTraceToSingleLineString(de)));
             ccr = new ConfigChangeResult(
                 DirectoryServer.getServerErrorResultCode(), false, messages);
             return ccr;
@@ -1511,7 +1527,7 @@ public class AttributeIndex
     }
     catch(Exception e)
     {
-      messages.add(StaticUtils.stackTraceToSingleLineString(e));
+      messages.add(Message.raw(StaticUtils.stackTraceToSingleLineString(e)));
       ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
                                    adminActionRequired,
                                    messages);

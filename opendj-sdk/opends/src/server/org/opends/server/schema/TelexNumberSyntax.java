@@ -37,14 +37,13 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
-
 
 
 /**
@@ -89,27 +88,24 @@ public class TelexNumberSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_CASE_IGNORE_OID, SYNTAX_TELEX_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_CASE_IGNORE_OID, SYNTAX_TELEX_NAME));
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-               OMR_CASE_IGNORE_OID, SYNTAX_TELEX_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+          OMR_CASE_IGNORE_OID, SYNTAX_TELEX_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_CASE_IGNORE_OID, SYNTAX_TELEX_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_CASE_IGNORE_OID, SYNTAX_TELEX_NAME));
     }
   }
 
@@ -225,7 +221,7 @@ public class TelexNumberSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // Get a string representation of the value and find its length.
     String valueString = value.stringValue();
@@ -233,8 +229,8 @@ public class TelexNumberSyntax
 
     if (valueLength < 5)
     {
-      int msgID = MSGID_ATTR_SYNTAX_TELEX_TOO_SHORT;
-      invalidReason.append(getMessage(msgID, valueString));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_TOO_SHORT.get(valueString));
       return false;
     }
 
@@ -243,8 +239,9 @@ public class TelexNumberSyntax
     char c = valueString.charAt(0);
     if (! PrintableString.isPrintableCharacter(c))
     {
-      int msgID = MSGID_ATTR_SYNTAX_TELEX_NOT_PRINTABLE;
-      invalidReason.append(getMessage(msgID, valueString, c, 0));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(
+              valueString, String.valueOf(c), 0));
       return false;
     }
 
@@ -264,16 +261,17 @@ public class TelexNumberSyntax
       {
         if (! PrintableString.isPrintableCharacter(c))
         {
-          int msgID = MSGID_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR;
-          invalidReason.append(getMessage(msgID, valueString, c, pos));
+
+          invalidReason.append(ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR.get(
+                  valueString, String.valueOf(c), pos));
         }
       }
     }
 
     if (pos >= valueLength)
     {
-      int msgID = MSGID_ATTR_SYNTAX_TELEX_TRUNCATED;
-      invalidReason.append(getMessage(msgID, valueString));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_TRUNCATED.get(valueString));
       return false;
     }
 
@@ -282,8 +280,9 @@ public class TelexNumberSyntax
     c = valueString.charAt(pos++);
     if (! PrintableString.isPrintableCharacter(c))
     {
-      int msgID = MSGID_ATTR_SYNTAX_TELEX_NOT_PRINTABLE;
-      invalidReason.append(getMessage(msgID, valueString, c, (pos-1)));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(
+              valueString, String.valueOf(c), (pos-1)));
       return false;
     }
 
@@ -302,8 +301,9 @@ public class TelexNumberSyntax
       {
         if (! PrintableString.isPrintableCharacter(c))
         {
-          int msgID = MSGID_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR;
-          invalidReason.append(getMessage(msgID, valueString, c, pos));
+
+          invalidReason.append(ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR.get(
+                  valueString, String.valueOf(c), pos));
           return false;
         }
       }
@@ -311,8 +311,8 @@ public class TelexNumberSyntax
 
     if (pos >= valueLength)
     {
-      int msgID = MSGID_ATTR_SYNTAX_TELEX_TRUNCATED;
-      invalidReason.append(getMessage(msgID, valueString));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_TRUNCATED.get(valueString));
       return false;
     }
 
@@ -321,8 +321,9 @@ public class TelexNumberSyntax
     c = valueString.charAt(pos++);
     if (! PrintableString.isPrintableCharacter(c))
     {
-      int msgID = MSGID_ATTR_SYNTAX_TELEX_NOT_PRINTABLE;
-      invalidReason.append(getMessage(msgID, valueString, c, (pos-1)));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(
+              valueString, String.valueOf(c), (pos-1)));
       return false;
     }
 
@@ -334,8 +335,9 @@ public class TelexNumberSyntax
       c = valueString.charAt(pos);
       if (! PrintableString.isPrintableCharacter(c))
       {
-        int msgID = MSGID_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR;
-        invalidReason.append(getMessage(msgID, valueString, c, pos));
+
+        invalidReason.append(ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR.get(
+                valueString, String.valueOf(c), pos));
         return false;
       }
     }

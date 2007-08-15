@@ -26,10 +26,13 @@
  */
 package org.opends.server.workflowelement.localbackend;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.util.StaticUtils.secondsToTimeString;
@@ -104,8 +107,8 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
@@ -251,8 +254,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
       {
         localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
         localOp.appendErrorMessage(
-            getMessage(MSGID_MODIFY_NO_MODIFICATIONS,
-            String.valueOf(entryDN)));
+            ERR_MODIFY_NO_MODIFICATIONS.get(String.valueOf(entryDN)));
         break modifyProcessing;
       }
 
@@ -282,8 +284,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
           localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-          int msgID = MSGID_MODIFY_MUST_CHANGE_PASSWORD;
-          localOp.appendErrorMessage(getMessage(msgID));
+
+          localOp.appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD.get());
           break modifyProcessing;
         }
       }
@@ -310,8 +312,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
       {
         localOp.setResultCode(DirectoryServer.getServerErrorResultCode());
         localOp.appendErrorMessage(
-            getMessage(MSGID_MODIFY_CANNOT_LOCK_ENTRY,
-            String.valueOf(entryDN)));
+            ERR_MODIFY_CANNOT_LOCK_ENTRY.get(String.valueOf(entryDN)));
 
         skipPostOperation = true;
         break modifyProcessing;
@@ -342,7 +343,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
           }
 
           localOp.setResultCode(de.getResultCode());
-          localOp.appendErrorMessage(de.getErrorMessage());
+          localOp.appendErrorMessage(de.getMessageObject());
           localOp.setMatchedDN(de.getMatchedDN());
           localOp.setReferralURLs(de.getReferralURLs());
 
@@ -352,8 +353,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
         if (currentEntry == null)
         {
           localOp.setResultCode(ResultCode.NO_SUCH_OBJECT);
-          localOp.appendErrorMessage(getMessage(MSGID_MODIFY_NO_SUCH_ENTRY,
-              String.valueOf(entryDN)));
+          localOp.appendErrorMessage(ERR_MODIFY_NO_SUCH_ENTRY.get(
+                  String.valueOf(entryDN)));
 
           // See if one of the entry's ancestors exists.
           DN parentDN = entryDN.getParentDNInSuffix();
@@ -400,8 +401,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                      isAllowed(entryDN, localOp, c))
             {
               localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-              int msgID = MSGID_CONTROL_INSUFFICIENT_ACCESS_RIGHTS;
-              localOp.appendErrorMessage(getMessage(msgID, oid));
+
+              localOp.appendErrorMessage(
+                      ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
               skipPostOperation = true;
               break modifyProcessing;
             }
@@ -428,7 +430,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                   }
 
                   localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  localOp.appendErrorMessage(le.getMessage());
+                  localOp.appendErrorMessage(le.getMessageObject());
 
                   break modifyProcessing;
                 }
@@ -444,8 +446,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                   localOp.setResultCode(ResultCode.ASSERTION_FAILED);
 
                   localOp.appendErrorMessage(
-                      getMessage(MSGID_MODIFY_ASSERTION_FAILED,
-                      String.valueOf(entryDN)));
+                      ERR_MODIFY_ASSERTION_FAILED.get(String.valueOf(entryDN)));
 
                   break modifyProcessing;
                 }
@@ -459,10 +460,10 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                 localOp.setResultCode(ResultCode.PROTOCOL_ERROR);
 
-                int msgID = MSGID_MODIFY_CANNOT_PROCESS_ASSERTION_FILTER;
-                localOp.appendErrorMessage(getMessage(
-                    msgID, String.valueOf(entryDN),
-                    de.getErrorMessage()));
+                localOp.appendErrorMessage(
+                        ERR_MODIFY_CANNOT_PROCESS_ASSERTION_FILTER.get(
+                                String.valueOf(entryDN),
+                                de.getMessageObject()));
 
                 break modifyProcessing;
               }
@@ -492,7 +493,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                   }
 
                   localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  localOp.appendErrorMessage(le.getMessage());
+                  localOp.appendErrorMessage(le.getMessageObject());
 
                   break modifyProcessing;
                 }
@@ -519,7 +520,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                   }
 
                   localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  localOp.appendErrorMessage(le.getMessage());
+                  localOp.appendErrorMessage(le.getMessageObject());
 
                   break modifyProcessing;
                 }
@@ -532,8 +533,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH,
                   localOp))
               {
-                int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
-                localOp.appendErrorMessage(getMessage(msgID));
+                localOp.appendErrorMessage(
+                        ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
                 localOp.setResultCode(ResultCode.AUTHORIZATION_DENIED);
                 break modifyProcessing;
               }
@@ -558,7 +559,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                   }
 
                   localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  localOp.appendErrorMessage(le.getMessage());
+                  localOp.appendErrorMessage(le.getMessageObject());
 
                   break modifyProcessing;
                 }
@@ -578,7 +579,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                 }
 
                 localOp.setResultCode(de.getResultCode());
-                localOp.appendErrorMessage(de.getErrorMessage());
+                localOp.appendErrorMessage(de.getMessageObject());
 
                 break modifyProcessing;
               }
@@ -600,8 +601,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH,
                   localOp))
               {
-                int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
-                localOp.appendErrorMessage(getMessage(msgID));
+                localOp.appendErrorMessage(
+                        ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
                 localOp.setResultCode(ResultCode.AUTHORIZATION_DENIED);
                 break modifyProcessing;
               }
@@ -626,7 +627,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                   }
 
                   localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  localOp.appendErrorMessage(le.getMessage());
+                  localOp.appendErrorMessage(le.getMessageObject());
 
                   break modifyProcessing;
                 }
@@ -646,7 +647,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                 }
 
                 localOp.setResultCode(de.getResultCode());
-                localOp.appendErrorMessage(de.getErrorMessage());
+                localOp.appendErrorMessage(de.getMessageObject());
 
                 break modifyProcessing;
               }
@@ -674,10 +675,10 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                 localOp.setResultCode(
                     ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
 
-                int msgID = MSGID_MODIFY_UNSUPPORTED_CRITICAL_CONTROL;
                 localOp.appendErrorMessage(
-                    getMessage(msgID, String.valueOf(entryDN),
-                    oid));
+                    ERR_MODIFY_UNSUPPORTED_CRITICAL_CONTROL.get(
+                            String.valueOf(entryDN),
+                            oid));
 
                 break modifyProcessing;
               }
@@ -704,7 +705,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
           }
 
           localOp.setResultCode(de.getResultCode());
-          localOp.appendErrorMessage(de.getErrorMessage());
+          localOp.appendErrorMessage(de.getMessageObject());
 
           break modifyProcessing;
         }
@@ -737,12 +738,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                 TRACER.debugCaught(DebugLogLevel.ERROR, de);
               }
 
-              logError(ErrorLogCategory.SYNCHRONIZATION,
-                  ErrorLogSeverity.SEVERE_ERROR,
-                  MSGID_MODIFY_SYNCH_CONFLICT_RESOLUTION_FAILED,
-                  localOp.getConnectionID(),
-                  localOp.getOperationID(),
-                  getExceptionMessage(de));
+              logError(ERR_MODIFY_SYNCH_CONFLICT_RESOLUTION_FAILED.
+                  get(localOp.getConnectionID(), localOp.getOperationID(),
+                      getExceptionMessage(de)));
 
               localOp.setResponseData(de);
               break modifyProcessing;
@@ -793,8 +791,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                   pwpErrorType =
                        PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
 
-                  int msgID = MSGID_MODIFY_PWRESET_INSUFFICIENT_PRIVILEGES;
-                  localOp.appendErrorMessage(getMessage(msgID));
+                  localOp.appendErrorMessage(
+                          ERR_MODIFY_PWRESET_INSUFFICIENT_PRIVILEGES.get());
                   localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
                   break modifyProcessing;
                 }
@@ -823,8 +821,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             {
               localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
               localOp.appendErrorMessage(
-                  getMessage(MSGID_MODIFY_ATTR_IS_NO_USER_MOD,
-                  String.valueOf(entryDN),
+                  ERR_MODIFY_ATTR_IS_NO_USER_MOD.get(String.valueOf(entryDN),
                   a.getName()));
               break modifyProcessing;
             }
@@ -844,8 +841,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               {
                 localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
                 localOp.appendErrorMessage(
-                    getMessage(MSGID_MODIFY_ATTR_IS_OBSOLETE,
-                    String.valueOf(entryDN),
+                    ERR_MODIFY_ATTR_IS_OBSOLETE.get(String.valueOf(entryDN),
                     a.getName()));
                 break modifyProcessing;
               }
@@ -861,8 +857,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             if (! clientConnection.hasPrivilege(Privilege.PRIVILEGE_CHANGE,
                 localOp))
             {
-              int msgID = MSGID_MODIFY_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES;
-              localOp.appendErrorMessage(getMessage(msgID));
+              localOp.appendErrorMessage(
+                      ERR_MODIFY_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES
+                              .get());
               localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
               break modifyProcessing;
             }
@@ -885,8 +882,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               {
                 localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-                int msgID = MSGID_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS;
-                localOp.appendErrorMessage(getMessage(msgID));
+                localOp.appendErrorMessage(
+                        ERR_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS.get());
                 break modifyProcessing;
               }
 
@@ -899,8 +896,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                 localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-                int msgID = MSGID_MODIFY_NO_USER_PW_CHANGES;
-                localOp.appendErrorMessage(getMessage(msgID));
+                localOp.appendErrorMessage(
+                        ERR_MODIFY_NO_USER_PW_CHANGES.get());
                 break modifyProcessing;
               }
 
@@ -914,8 +911,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                 localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-                int msgID = MSGID_MODIFY_REQUIRE_SECURE_CHANGES;
-                localOp.appendErrorMessage(getMessage(msgID));
+                localOp.appendErrorMessage(
+                        ERR_MODIFY_REQUIRE_SECURE_CHANGES.get());
                 break modifyProcessing;
               }
 
@@ -928,8 +925,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                 localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-                int msgID = MSGID_MODIFY_WITHIN_MINIMUM_AGE;
-                localOp.appendErrorMessage(getMessage(msgID));
+                localOp.appendErrorMessage(ERR_MODIFY_WITHIN_MINIMUM_AGE.get());
                 break modifyProcessing;
               }
             }
@@ -968,8 +964,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                 localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-                int msgID = MSGID_MODIFY_MULTIPLE_VALUES_NOT_ALLOWED;
-                localOp.appendErrorMessage(getMessage(msgID));
+                localOp.appendErrorMessage(
+                        ERR_MODIFY_MULTIPLE_VALUES_NOT_ALLOWED.get());
                 break modifyProcessing;
               }
 
@@ -989,8 +985,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                     localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-                    int msgID = MSGID_MODIFY_NO_PREENCODED_PASSWORDS;
-                    localOp.appendErrorMessage(getMessage(msgID));
+                    localOp.appendErrorMessage(
+                            ERR_MODIFY_NO_PREENCODED_PASSWORDS.get());
                     break modifyProcessing;
                   }
                   else
@@ -1012,8 +1008,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                       localOp.setResultCode(
                           ResultCode.ATTRIBUTE_OR_VALUE_EXISTS);
 
-                      int msgID = MSGID_MODIFY_PASSWORD_EXISTS;
-                      localOp.appendErrorMessage(getMessage(msgID));
+                      localOp.appendErrorMessage(
+                              ERR_MODIFY_PASSWORD_EXISTS.get());
                       break modifyProcessing;
                     }
                   }
@@ -1045,7 +1041,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                     }
 
                     localOp.setResultCode(de.getResultCode());
-                    localOp.appendErrorMessage(de.getErrorMessage());
+                    localOp.appendErrorMessage(de.getMessageObject());
                     break modifyProcessing;
                   }
                 }
@@ -1073,8 +1069,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                     localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-                    int msgID = MSGID_MODIFY_NO_PREENCODED_PASSWORDS;
-                    localOp.appendErrorMessage(getMessage(msgID));
+                    localOp.appendErrorMessage(
+                            ERR_MODIFY_NO_PREENCODED_PASSWORDS.get());
                     break modifyProcessing;
                   }
                   else
@@ -1089,8 +1085,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                   {
                     localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-                    int msgID = MSGID_MODIFY_NO_EXISTING_VALUES;
-                    localOp.appendErrorMessage(getMessage(msgID));
+                    localOp.appendErrorMessage(
+                            ERR_MODIFY_NO_EXISTING_VALUES.get());
                     break modifyProcessing;
                   }
                   boolean found = false;
@@ -1133,9 +1129,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                             localOp.setResultCode(de.getResultCode());
 
-                            int msgID = MSGID_MODIFY_CANNOT_DECODE_PW;
                             localOp.appendErrorMessage(
-                                getMessage(msgID, de.getErrorMessage()));
+                                ERR_MODIFY_CANNOT_DECODE_PW.get(
+                                        de.getMessageObject()));
                             break modifyProcessing;
                           }
                         }
@@ -1181,9 +1177,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                             localOp.setResultCode(de.getResultCode());
 
-                            int msgID = MSGID_MODIFY_CANNOT_DECODE_PW;
-                            localOp.appendErrorMessage(getMessage(msgID,
-                                de.getErrorMessage()));
+                            localOp.appendErrorMessage(
+                                    ERR_MODIFY_CANNOT_DECODE_PW.get(
+                                            de.getMessageObject()));
                             break modifyProcessing;
                           }
                         }
@@ -1216,8 +1212,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                   {
                     localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-                    int msgID = MSGID_MODIFY_INVALID_PASSWORD;
-                    localOp.appendErrorMessage(getMessage(msgID));
+                    localOp.appendErrorMessage(
+                            ERR_MODIFY_INVALID_PASSWORD.get());
                     break modifyProcessing;
                   }
 
@@ -1232,9 +1228,10 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             default:
               localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-            int msgID = MSGID_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD;
-            localOp.appendErrorMessage(getMessage(msgID,
-                String.valueOf(m.getModificationType()), a.getName()));
+            localOp.appendErrorMessage(
+                    ERR_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD.get(
+                            String.valueOf(m.getModificationType()),
+                            a.getName()));
 
             break modifyProcessing;
             }
@@ -1260,10 +1257,10 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                 {
                   localOp.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
 
-                  int msgID = MSGID_MODIFY_INVALID_DISABLED_VALUE;
-                  String message =
-                    getMessage(msgID, OP_ATTR_ACCOUNT_DISABLED,
-                        String.valueOf(de.getErrorMessage()));
+                  Message message =
+                    ERR_MODIFY_INVALID_DISABLED_VALUE.get(
+                            OP_ATTR_ACCOUNT_DISABLED,
+                            String.valueOf(de.getMessageObject()));
                   localOp.appendErrorMessage(message);
                   break modifyProcessing;
                 }
@@ -1281,9 +1278,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             if ((newValues == null) || newValues.isEmpty())
             {
               localOp.setResultCode(ResultCode.PROTOCOL_ERROR);
-              localOp.appendErrorMessage(getMessage(MSGID_MODIFY_ADD_NO_VALUES,
-                  String.valueOf(entryDN),
-                  a.getName()));
+              localOp.appendErrorMessage(ERR_MODIFY_ADD_NO_VALUES.get(
+                      String.valueOf(entryDN),
+                      a.getName()));
               break modifyProcessing;
             }
 
@@ -1300,8 +1297,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
               if (syntaxPolicy == AcceptRejectWarn.REJECT)
               {
-                StringBuilder invalidReason =
-                  new StringBuilder();
+                MessageBuilder invalidReason =
+                  new MessageBuilder();
 
                 for (AttributeValue v : newValues)
                 {
@@ -1309,12 +1306,12 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                   {
                     localOp.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
 
-                    int msgID = MSGID_MODIFY_ADD_INVALID_SYNTAX;
-                    localOp.appendErrorMessage(getMessage(msgID,
-                        String.valueOf(entryDN),
-                        a.getName(),
-                        v.getStringValue(),
-                        invalidReason.toString()));
+
+                    localOp.appendErrorMessage(ERR_MODIFY_ADD_INVALID_SYNTAX
+                            .get(String.valueOf(entryDN),
+                                 a.getName(),
+                                 v.getStringValue(),
+                                 invalidReason.toString()));
 
                     break modifyProcessing;
                   }
@@ -1322,7 +1319,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               }
               else if (syntaxPolicy == AcceptRejectWarn.WARN)
               {
-                StringBuilder invalidReason = new StringBuilder();
+                MessageBuilder invalidReason = new MessageBuilder();
 
                 for (AttributeValue v : newValues)
                 {
@@ -1331,13 +1328,12 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                     localOp.setResultCode(
                         ResultCode.INVALID_ATTRIBUTE_SYNTAX);
 
-                    int msgID = MSGID_MODIFY_ADD_INVALID_SYNTAX;
-                    logError(ErrorLogCategory.SCHEMA,
-                        ErrorLogSeverity.SEVERE_WARNING, msgID,
-                        String.valueOf(entryDN), a.getName(),
-                        v.getStringValue(), invalidReason.toString());
+                    logError(
+                          ERR_MODIFY_ADD_INVALID_SYNTAX.
+                            get(String.valueOf(entryDN), a.getName(),
+                                v.getStringValue(), invalidReason.toString()));
 
-                    invalidReason = new StringBuilder();
+                    invalidReason = new MessageBuilder();
                   }
                 }
               }
@@ -1388,9 +1384,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                 localOp.setResultCode(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS);
 
-                int msgID = MSGID_MODIFY_ADD_DUPLICATE_VALUE;
                 localOp.appendErrorMessage(
-                    getMessage(msgID, String.valueOf(entryDN),
+                    ERR_MODIFY_ADD_DUPLICATE_VALUE.get(String.valueOf(entryDN),
                     a.getName(),
                     buffer.toString()));
 
@@ -1420,9 +1415,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                 {
                   localOp.setResultCode(ResultCode.NOT_ALLOWED_ON_RDN);
 
-                  int msgID = MSGID_MODIFY_DELETE_RDN_ATTR;
-                  localOp.appendErrorMessage(getMessage(msgID,
-                      String.valueOf(entryDN),
+                  localOp.appendErrorMessage(ERR_MODIFY_DELETE_RDN_ATTR.get(
+                          String.valueOf(entryDN),
                       a.getName()));
                   break modifyProcessing;
                 }
@@ -1442,9 +1436,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                 localOp.setResultCode(ResultCode.NO_SUCH_ATTRIBUTE);
 
-                int msgID = MSGID_MODIFY_DELETE_MISSING_VALUES;
                 localOp.appendErrorMessage(
-                    getMessage(msgID, String.valueOf(entryDN),
+                    ERR_MODIFY_DELETE_MISSING_VALUES.get(
+                            String.valueOf(entryDN),
                     a.getName(),
                     buffer.toString()));
 
@@ -1455,9 +1449,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             {
               localOp.setResultCode(ResultCode.NO_SUCH_ATTRIBUTE);
 
-              int msgID = MSGID_MODIFY_DELETE_NO_SUCH_ATTR;
               localOp.appendErrorMessage(
-                  getMessage(msgID, String.valueOf(entryDN),
+                  ERR_MODIFY_DELETE_NO_SUCH_ATTR.get(String.valueOf(entryDN),
                   a.getName()));
               break modifyProcessing;
             }
@@ -1497,9 +1490,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               {
                 localOp.setResultCode(ResultCode.NOT_ALLOWED_ON_RDN);
 
-                int msgID = MSGID_MODIFY_DELETE_RDN_ATTR;
                 localOp.appendErrorMessage(
-                    getMessage(msgID, String.valueOf(entryDN),
+                    ERR_MODIFY_DELETE_RDN_ATTR.get(String.valueOf(entryDN),
                     a.getName()));
                 break modifyProcessing;
               }
@@ -1520,7 +1512,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
               if (syntaxPolicy == AcceptRejectWarn.REJECT)
               {
-                StringBuilder invalidReason = new StringBuilder();
+                MessageBuilder invalidReason = new MessageBuilder();
 
                 for (AttributeValue v : newValues)
                 {
@@ -1528,9 +1520,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                   {
                     localOp.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
 
-                    int msgID = MSGID_MODIFY_REPLACE_INVALID_SYNTAX;
-                    localOp.appendErrorMessage(getMessage(msgID,
-                        String.valueOf(entryDN),
+                    localOp.appendErrorMessage(
+                            ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(
+                                    String.valueOf(entryDN),
                         a.getName(),
                         v.getStringValue(),
                         invalidReason.toString()));
@@ -1541,21 +1533,19 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               }
               else if (syntaxPolicy == AcceptRejectWarn.WARN)
               {
-                StringBuilder invalidReason = new StringBuilder();
-
+                MessageBuilder invalidReason = new MessageBuilder();
                 for (AttributeValue v : newValues)
                 {
                   if (! syntax.valueIsAcceptable(v.getValue(), invalidReason))
                   {
                     localOp.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
 
-                    int msgID = MSGID_MODIFY_REPLACE_INVALID_SYNTAX;
-                    logError(ErrorLogCategory.SCHEMA,
-                        ErrorLogSeverity.SEVERE_WARNING, msgID,
-                        String.valueOf(entryDN), a.getName(),
-                        v.getStringValue(), invalidReason.toString());
+                    logError(
+                          ERR_MODIFY_REPLACE_INVALID_SYNTAX.
+                            get(String.valueOf(entryDN), a.getName(),
+                                v.getStringValue(), invalidReason.toString()));
 
-                    invalidReason = new StringBuilder();
+                    invalidReason = new MessageBuilder();
                   }
                 }
               }
@@ -1578,9 +1568,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               {
                 localOp.setResultCode(ResultCode.NOT_ALLOWED_ON_RDN);
 
-                int msgID = MSGID_MODIFY_DELETE_RDN_ATTR;
                 localOp.appendErrorMessage(
-                    getMessage(msgID, String.valueOf(entryDN),
+                    ERR_MODIFY_DELETE_RDN_ATTR.get(String.valueOf(entryDN),
                     a.getName()));
                 break modifyProcessing;
               }
@@ -1604,9 +1593,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               {
                 localOp.setResultCode(ResultCode.NOT_ALLOWED_ON_RDN);
 
-                int msgID = MSGID_MODIFY_DELETE_RDN_ATTR;
                 localOp.appendErrorMessage(
-                    getMessage(msgID, String.valueOf(entryDN),
+                    ERR_MODIFY_DELETE_RDN_ATTR.get(String.valueOf(entryDN),
                     a.getName()));
                 break modifyProcessing;
               }
@@ -1640,9 +1628,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             {
               localOp.setResultCode(ResultCode.NOT_ALLOWED_ON_RDN);
 
-              int msgID = MSGID_MODIFY_DELETE_RDN_ATTR;
               localOp.appendErrorMessage(
-                  getMessage(msgID, String.valueOf(entryDN),
+                  ERR_MODIFY_DELETE_RDN_ATTR.get(String.valueOf(entryDN),
                   a.getName()));
               break modifyProcessing;
             }
@@ -1655,8 +1642,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             if ((rdn !=  null) && rdn.hasAttributeType(t))
             {
               localOp.setResultCode(ResultCode.NOT_ALLOWED_ON_RDN);
-              localOp.appendErrorMessage(getMessage(MSGID_MODIFY_INCREMENT_RDN,
-                  String.valueOf(entryDN),
+              localOp.appendErrorMessage(ERR_MODIFY_INCREMENT_RDN.get(
+                      String.valueOf(entryDN),
                   a.getName()));
             }
 
@@ -1668,9 +1655,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             {
               localOp.setResultCode(ResultCode.PROTOCOL_ERROR);
 
-              int msgID = MSGID_MODIFY_INCREMENT_REQUIRES_VALUE;
               localOp.appendErrorMessage(
-                  getMessage(msgID, String.valueOf(entryDN),
+                  ERR_MODIFY_INCREMENT_REQUIRES_VALUE.get(
+                          String.valueOf(entryDN),
                   a.getName()));
 
               break modifyProcessing;
@@ -1679,9 +1666,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             {
               localOp.setResultCode(ResultCode.PROTOCOL_ERROR);
 
-              int msgID = MSGID_MODIFY_INCREMENT_REQUIRES_SINGLE_VALUE;
               localOp.appendErrorMessage(
-                  getMessage(msgID, String.valueOf(entryDN),
+                  ERR_MODIFY_INCREMENT_REQUIRES_SINGLE_VALUE.get(
+                          String.valueOf(entryDN),
                   a.getName()));
               break modifyProcessing;
             }
@@ -1702,9 +1689,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
               localOp.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
 
-              int msgID = MSGID_MODIFY_INCREMENT_PROVIDED_VALUE_NOT_INTEGER;
               localOp.appendErrorMessage(
-                  getMessage(msgID, String.valueOf(entryDN),
+                  ERR_MODIFY_INCREMENT_PROVIDED_VALUE_NOT_INTEGER.get(
+                          String.valueOf(entryDN),
                   a.getName(), v.getStringValue()));
 
               break modifyProcessing;
@@ -1718,9 +1705,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             {
               localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
 
-              int msgID = MSGID_MODIFY_INCREMENT_REQUIRES_EXISTING_VALUE;
               localOp.appendErrorMessage(
-                  getMessage(msgID, String.valueOf(entryDN),
+                  ERR_MODIFY_INCREMENT_REQUIRES_EXISTING_VALUE.get(
+                          String.valueOf(entryDN),
                   a.getName()));
 
               break modifyProcessing;
@@ -1755,9 +1742,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                   localOp.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
 
-                  int msgID = MSGID_MODIFY_INCREMENT_REQUIRES_INTEGER_VALUE;
-                  localOp.appendErrorMessage(getMessage(msgID,
-                      String.valueOf(entryDN),
+                  localOp.appendErrorMessage(
+                          ERR_MODIFY_INCREMENT_REQUIRES_INTEGER_VALUE.get(
+                                  String.valueOf(entryDN),
                       a.getName(),
                       existingValue.getStringValue()));
                   break modifyProcessing;
@@ -1776,10 +1763,10 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             {
               localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
 
-              int msgID = MSGID_MODIFY_INCREMENT_REQUIRES_EXISTING_VALUE;
               localOp.appendErrorMessage(
-                  getMessage(msgID, String.valueOf(entryDN),
-                  a.getName()));
+                  ERR_MODIFY_INCREMENT_REQUIRES_EXISTING_VALUE.get(
+                          String.valueOf(entryDN),
+                          a.getName()));
 
               break modifyProcessing;
             }
@@ -1805,8 +1792,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
             localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-            int msgID = MSGID_MODIFY_PW_CHANGE_REQUIRES_CURRENT_PW;
-            localOp.appendErrorMessage(getMessage(msgID));
+            localOp.appendErrorMessage(
+                    ERR_MODIFY_PW_CHANGE_REQUIRES_CURRENT_PW.get());
             break modifyProcessing;
           }
 
@@ -1820,8 +1807,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
             localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-            int msgID = MSGID_MODIFY_MULTIPLE_PASSWORDS_NOT_ALLOWED;
-            localOp.appendErrorMessage(getMessage(msgID));
+            localOp.appendErrorMessage(
+                    ERR_MODIFY_MULTIPLE_PASSWORDS_NOT_ALLOWED.get());
             break modifyProcessing;
           }
 
@@ -1881,7 +1868,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
               for (AttributeValue v : newPasswords)
               {
-                StringBuilder invalidReason = new StringBuilder();
+                MessageBuilder invalidReason = new MessageBuilder();
                 if (! pwPolicyState.passwordIsAcceptable(localOp, modifiedEntry,
                     v.getValue(),
                     clearPasswords,
@@ -1892,9 +1879,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                   localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-                  int msgID = MSGID_MODIFY_PW_VALIDATION_FAILED;
-                  localOp.appendErrorMessage(getMessage(msgID,
-                      invalidReason.toString()));
+                  localOp.appendErrorMessage(ERR_MODIFY_PW_VALIDATION_FAILED
+                          .get(invalidReason.toString()));
                   break modifyProcessing;
                 }
               }
@@ -1919,8 +1905,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                     localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-                    int msgID = MSGID_MODIFY_PW_IN_HISTORY;
-                    localOp.appendErrorMessage(getMessage(msgID));
+                    localOp.appendErrorMessage(ERR_MODIFY_PW_IN_HISTORY.get());
                     break modifyProcessing;
                   }
                 }
@@ -1947,9 +1932,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             .getAccessControlHandler().isAllowed(localOp)) {
           localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
 
-          int msgID = MSGID_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
           localOp.appendErrorMessage(
-              getMessage(msgID, String.valueOf(entryDN)));
+              ERR_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
+                      String.valueOf(entryDN)));
 
           skipPostOperation = true;
           break modifyProcessing;
@@ -2017,8 +2002,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
             localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-            int msgID = MSGID_MODIFY_MUST_CHANGE_PASSWORD;
-            localOp.appendErrorMessage(getMessage(msgID));
+            localOp.appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD.get());
             break modifyProcessing;
         }
 
@@ -2028,14 +2012,14 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
         if ((DirectoryServer.checkSchema()) &&
             (!localOp.isSynchronizationOperation()) )
         {
-          StringBuilder invalidReason = new StringBuilder();
+          MessageBuilder invalidReason = new MessageBuilder();
           if (! modifiedEntry.conformsToSchema(null, false, false, false,
               invalidReason))
           {
             localOp.setResultCode(ResultCode.OBJECTCLASS_VIOLATION);
-            localOp.appendErrorMessage(getMessage(MSGID_MODIFY_VIOLATES_SCHEMA,
-                String.valueOf(entryDN),
-                invalidReason.toString()));
+            localOp.appendErrorMessage(ERR_MODIFY_VIOLATES_SCHEMA.get(
+                    String.valueOf(entryDN),
+                    invalidReason.toString()));
             break modifyProcessing;
           }
         }
@@ -2059,8 +2043,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             // and return.
             localOp.setResultCode(ResultCode.CANCELED);
 
-            int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
-            localOp.appendErrorMessage(getMessage(msgID));
+            localOp.appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
 
             localOp.setProcessingStopTime();
 
@@ -2092,8 +2075,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
         {
           localOp.setResultCode(ResultCode.NO_SUCH_OBJECT);
           localOp.appendErrorMessage(
-              getMessage(MSGID_MODIFY_NO_BACKEND_FOR_ENTRY,
-              String.valueOf(entryDN)));
+              ERR_MODIFY_NO_BACKEND_FOR_ENTRY.get(String.valueOf(entryDN)));
           break modifyProcessing;
         }
 
@@ -2108,8 +2090,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             case DISABLED:
               localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
               localOp.appendErrorMessage(
-                  getMessage(MSGID_MODIFY_SERVER_READONLY,
-                  String.valueOf(entryDN)));
+                  ERR_MODIFY_SERVER_READONLY.get(String.valueOf(entryDN)));
               break modifyProcessing;
 
             case INTERNAL_ONLY:
@@ -2118,8 +2099,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               {
                 localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
                 localOp.appendErrorMessage(
-                    getMessage(MSGID_MODIFY_SERVER_READONLY,
-                    String.valueOf(entryDN)));
+                    ERR_MODIFY_SERVER_READONLY.get(String.valueOf(entryDN)));
                 break modifyProcessing;
               }
             }
@@ -2129,8 +2109,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             case DISABLED:
               localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
               localOp.appendErrorMessage(
-                  getMessage(MSGID_MODIFY_BACKEND_READONLY,
-                  String.valueOf(entryDN)));
+                  ERR_MODIFY_BACKEND_READONLY.get(String.valueOf(entryDN)));
               break modifyProcessing;
 
             case INTERNAL_ONLY:
@@ -2139,8 +2118,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               {
                 localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
                 localOp.appendErrorMessage(
-                    getMessage(MSGID_MODIFY_BACKEND_READONLY,
-                    String.valueOf(entryDN)));
+                    ERR_MODIFY_BACKEND_READONLY.get(String.valueOf(entryDN)));
                 break modifyProcessing;
               }
             }
@@ -2149,7 +2127,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
           if (noOp)
           {
-            localOp.appendErrorMessage(getMessage(MSGID_MODIFY_NOOP));
+            localOp.appendErrorMessage(INFO_MODIFY_NOOP.get());
 
             localOp.setResultCode(ResultCode.NO_OPERATION);
           }
@@ -2174,12 +2152,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                logError(ErrorLogCategory.SYNCHRONIZATION,
-                    ErrorLogSeverity.SEVERE_ERROR,
-                    MSGID_MODIFY_SYNCH_PREOP_FAILED,
-                    localOp.getConnectionID(),
-                    localOp.getOperationID(),
-                    getExceptionMessage(de));
+                logError(ERR_MODIFY_SYNCH_PREOP_FAILED.
+                    get(localOp.getConnectionID(), localOp.getOperationID(),
+                        getExceptionMessage(de)));
 
                 localOp.setResponseData(de);
                 break modifyProcessing;
@@ -2203,19 +2178,17 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                   clientConnection.setMustChangePassword(false);
                 }
 
-                int    msgID   = MSGID_MODIFY_PASSWORD_CHANGED;
-                String message = getMessage(msgID);
+                Message message = INFO_MODIFY_PASSWORD_CHANGED.get();
                 pwPolicyState.generateAccountStatusNotification(
                     AccountStatusNotificationType.PASSWORD_CHANGED, entryDN,
-                    msgID, message);
+                    message);
               }
               else
               {
-                int    msgID   = MSGID_MODIFY_PASSWORD_RESET;
-                String message = getMessage(msgID);
+                Message message = INFO_MODIFY_PASSWORD_RESET.get();
                 pwPolicyState.generateAccountStatusNotification(
                     AccountStatusNotificationType.PASSWORD_RESET, entryDN,
-                    msgID, message);
+                    message);
               }
             }
 
@@ -2223,29 +2196,26 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             {
               if (isEnabled)
               {
-                int    msgID   = MSGID_MODIFY_ACCOUNT_ENABLED;
-                String message = getMessage(msgID);
+                Message message = INFO_MODIFY_ACCOUNT_ENABLED.get();
                 pwPolicyState.generateAccountStatusNotification(
                     AccountStatusNotificationType.ACCOUNT_ENABLED, entryDN,
-                    msgID, message);
+                    message);
               }
               else
               {
-                int    msgID   = MSGID_MODIFY_ACCOUNT_DISABLED;
-                String message = getMessage(msgID);
+                Message message = INFO_MODIFY_ACCOUNT_DISABLED.get();
                 pwPolicyState.generateAccountStatusNotification(
                     AccountStatusNotificationType.ACCOUNT_DISABLED, entryDN,
-                    msgID, message);
+                    message);
               }
             }
 
             if (wasLocked)
             {
-              int    msgID   = MSGID_MODIFY_ACCOUNT_UNLOCKED;
-              String message = getMessage(msgID);
+              Message message = INFO_MODIFY_ACCOUNT_UNLOCKED.get();
               pwPolicyState.generateAccountStatusNotification(
                   AccountStatusNotificationType.ACCOUNT_UNLOCKED, entryDN,
-                  msgID, message);
+                  message);
             }
           }
 
@@ -2364,7 +2334,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
           }
 
           localOp.setResultCode(de.getResultCode());
-          localOp.appendErrorMessage(de.getErrorMessage());
+          localOp.appendErrorMessage(de.getMessageObject());
           localOp.setMatchedDN(de.getMatchedDN());
           localOp.setReferralURLs(de.getReferralURLs());
 
@@ -2382,7 +2352,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
           localOp.setCancelResult(cancelResult);
           localOp.setResultCode(cancelResult.getResultCode());
 
-          String message = coe.getMessage();
+          Message message = coe.getMessageObject();
           if ((message != null) && (message.length() > 0))
           {
             localOp.appendErrorMessage(message);
@@ -2409,10 +2379,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            logError(ErrorLogCategory.SYNCHRONIZATION,
-                ErrorLogSeverity.SEVERE_ERROR,
-                MSGID_MODIFY_SYNCH_POSTOP_FAILED, localOp.getConnectionID(),
-                localOp.getOperationID(), getExceptionMessage(de));
+            logError(ERR_MODIFY_SYNCH_POSTOP_FAILED.
+                get(localOp.getConnectionID(), localOp.getOperationID(),
+                    getExceptionMessage(de)));
 
             localOp.setResponseData(de);
             break;
@@ -2446,8 +2415,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
         // return.
         localOp.setResultCode(ResultCode.CANCELED);
 
-        int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
-        localOp.appendErrorMessage(getMessage(msgID));
+        localOp.appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
 
         localOp.setProcessingStopTime();
 
@@ -2475,10 +2443,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_MODIFY_ERROR_NOTIFYING_CHANGE_LISTENER;
-          String message = getMessage(msgID, getExceptionMessage(e));
-          logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_MODIFY_ERROR_NOTIFYING_CHANGE_LISTENER.get(
+              getExceptionMessage(e));
+          logError(message);
         }
       }
     }
@@ -2539,8 +2506,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                   isAllowed(baseDN, localOp, c))
           {
             localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-            int msgID = MSGID_CONTROL_INSUFFICIENT_ACCESS_RIGHTS;
-            localOp.appendErrorMessage(getMessage(msgID, oid));
+
+            localOp.appendErrorMessage(
+                    ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
             skipPostOperation = true;
             break searchProcessing;
           }
@@ -2568,7 +2536,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                 localOp.setResultCode(
                     ResultCode.valueOf(le.getResultCode()));
-                localOp.appendErrorMessage(le.getMessage());
+                localOp.appendErrorMessage(le.getMessageObject());
 
                 break searchProcessing;
               }
@@ -2593,9 +2561,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                 localOp.setResultCode(de.getResultCode());
 
-                int msgID = MSGID_SEARCH_CANNOT_GET_ENTRY_FOR_ASSERTION;
                 localOp.appendErrorMessage(
-                    getMessage(msgID, de.getErrorMessage()));
+                    ERR_SEARCH_CANNOT_GET_ENTRY_FOR_ASSERTION.get(
+                            de.getMessageObject()));
 
                 break searchProcessing;
               }
@@ -2604,8 +2572,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               {
                 localOp.setResultCode(ResultCode.NO_SUCH_OBJECT);
 
-                int msgID = MSGID_SEARCH_NO_SUCH_ENTRY_FOR_ASSERTION;
-                localOp.appendErrorMessage(getMessage(msgID));
+                localOp.appendErrorMessage(
+                    ERR_SEARCH_NO_SUCH_ENTRY_FOR_ASSERTION.get());
 
                 break searchProcessing;
               }
@@ -2616,7 +2584,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                 localOp.setResultCode(ResultCode.ASSERTION_FAILED);
 
                 localOp.appendErrorMessage(
-                    getMessage(MSGID_SEARCH_ASSERTION_FAILED));
+                    ERR_SEARCH_ASSERTION_FAILED.get());
 
                 break searchProcessing;
               }
@@ -2630,9 +2598,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
               localOp.setResultCode(ResultCode.PROTOCOL_ERROR);
 
-              int msgID = MSGID_SEARCH_CANNOT_PROCESS_ASSERTION_FILTER;
               localOp.appendErrorMessage(
-                  getMessage(msgID, de.getErrorMessage()));
+                  ERR_SEARCH_CANNOT_PROCESS_ASSERTION_FILTER.get(
+                          de.getMessageObject()));
 
               break searchProcessing;
             }
@@ -2644,8 +2612,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             if (! clientConnection.hasPrivilege(
                 Privilege.PROXIED_AUTH, localOp))
             {
-              int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
-              localOp.appendErrorMessage(getMessage(msgID));
+              localOp.appendErrorMessage(
+                      ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
               localOp.setResultCode(ResultCode.AUTHORIZATION_DENIED);
               break searchProcessing;
             }
@@ -2671,7 +2639,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                 localOp.setResultCode(
                     ResultCode.valueOf(le.getResultCode()));
-                localOp.appendErrorMessage(le.getMessage());
+                localOp.appendErrorMessage(le.getMessageObject());
 
                 break searchProcessing;
               }
@@ -2691,7 +2659,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               }
 
               localOp.setResultCode(de.getResultCode());
-              localOp.appendErrorMessage(de.getErrorMessage());
+              localOp.appendErrorMessage(de.getMessageObject());
 
               break searchProcessing;
             }
@@ -2713,8 +2681,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             if (! clientConnection.hasPrivilege(
                 Privilege.PROXIED_AUTH, localOp))
             {
-              int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
-              localOp.appendErrorMessage(getMessage(msgID));
+              localOp.appendErrorMessage(
+                      ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
               localOp.setResultCode(ResultCode.AUTHORIZATION_DENIED);
               break searchProcessing;
             }
@@ -2740,7 +2708,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                 localOp.setResultCode(
                     ResultCode.valueOf(le.getResultCode()));
-                localOp.appendErrorMessage(le.getMessage());
+                localOp.appendErrorMessage(le.getMessageObject());
 
                 break searchProcessing;
               }
@@ -2760,7 +2728,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               }
 
               localOp.setResultCode(de.getResultCode());
-              localOp.appendErrorMessage(de.getErrorMessage());
+              localOp.appendErrorMessage(de.getMessageObject());
 
               break searchProcessing;
             }
@@ -2797,7 +2765,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                 localOp.setResultCode(
                     ResultCode.valueOf(le.getResultCode()));
-                localOp.appendErrorMessage(le.getMessage());
+                localOp.appendErrorMessage(le.getMessageObject());
 
                 break searchProcessing;
               }
@@ -2842,7 +2810,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                 localOp.setResultCode(
                     ResultCode.valueOf(le.getResultCode()));
-                localOp.appendErrorMessage(le.getMessage());
+                localOp.appendErrorMessage(le.getMessageObject());
 
                 break searchProcessing;
               }
@@ -2868,8 +2836,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               localOp.setResultCode(
                   ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
 
-              int msgID = MSGID_SEARCH_UNSUPPORTED_CRITICAL_CONTROL;
-              localOp.appendErrorMessage(getMessage(msgID, oid));
+              localOp.appendErrorMessage(
+                      ERR_SEARCH_UNSUPPORTED_CRITICAL_CONTROL.get(oid));
 
               break searchProcessing;
             }
@@ -2888,9 +2856,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
           .getAccessControlHandler().isAllowed(localOp) == false) {
         localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
 
-        int msgID = MSGID_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
         localOp.appendErrorMessage(
-            getMessage(msgID, String.valueOf(baseDN)));
+            ERR_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
+                    String.valueOf(baseDN)));
 
         skipPostOperation = true;
         break searchProcessing;
@@ -2912,8 +2880,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
         // result and return.
         localOp.setResultCode(ResultCode.CANCELED);
 
-        int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
-        localOp.appendErrorMessage(getMessage(msgID));
+        localOp.appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
 
         localOp.setProcessingStopTime();
         return;
@@ -2943,8 +2910,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
       {
         localOp.setResultCode(ResultCode.NO_SUCH_OBJECT);
         localOp.appendErrorMessage(
-            getMessage(MSGID_SEARCH_BASE_DOESNT_EXIST,
-            String.valueOf(baseDN)));
+            ERR_SEARCH_BASE_DOESNT_EXIST.get(String.valueOf(baseDN)));
         break searchProcessing;
       }
 
@@ -2978,7 +2944,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
         }
 
         localOp.setResultCode(de.getResultCode());
-        localOp.appendErrorMessage(de.getErrorMessage());
+        localOp.appendErrorMessage(de.getMessageObject());
         localOp.setMatchedDN(de.getMatchedDN());
         localOp.setReferralURLs(de.getReferralURLs());
 
@@ -3002,7 +2968,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
         localOp.setCancelResult(cancelResult);
         localOp.setResultCode(cancelResult.getResultCode());
 
-        String message = coe.getMessage();
+        Message message = coe.getMessageObject();
         if ((message != null) && (message.length() > 0))
         {
           localOp.appendErrorMessage(message);
@@ -3027,9 +2993,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
         localOp.setResultCode(
             DirectoryServer.getServerErrorResultCode());
 
-        int msgID = MSGID_SEARCH_BACKEND_EXCEPTION;
         localOp.appendErrorMessage(
-            getMessage(msgID, getExceptionMessage(e)));
+            ERR_SEARCH_BACKEND_EXCEPTION.get(getExceptionMessage(e)));
 
         if (persistentSearch != null)
         {
@@ -3059,8 +3024,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
       {
         localOp.setResultCode(ResultCode.CANCELED);
 
-        int msgID = MSGID_CANCELED_BY_POSTOP_DISCONNECT;
-        localOp.appendErrorMessage(getMessage(msgID));
+        localOp.appendErrorMessage(ERR_CANCELED_BY_POSTOP_DISCONNECT.get());
 
         localOp.setProcessingStopTime();
         return;
@@ -3158,9 +3122,9 @@ bindProcessing:
           .getAccessControlHandler().isAllowed(localOp) == false) {
         localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int    msgID   = MSGID_BIND_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-        String message = getMessage(msgID, String.valueOf(bindDN));
-        localOp.setAuthFailureReason(msgID, message);
+        Message message = ERR_BIND_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
+                String.valueOf(bindDN));
+        localOp.setAuthFailureReason(message);
 
         skipPostOperation = true;
         break bindProcessing;
@@ -3180,8 +3144,8 @@ bindProcessing:
                   getAccessControlHandler(). isAllowed(bindDN, localOp, c))
           {
             localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-            int msgID = MSGID_CONTROL_INSUFFICIENT_ACCESS_RIGHTS;
-            localOp.appendErrorMessage(getMessage(msgID, oid));
+            localOp.appendErrorMessage(ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS
+                    .get(oid));
             skipPostOperation = true;
             break bindProcessing;
           }
@@ -3200,8 +3164,8 @@ bindProcessing:
           {
             localOp.setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
 
-            int msgID = MSGID_BIND_UNSUPPORTED_CRITICAL_CONTROL;
-            localOp.appendErrorMessage(getMessage(msgID, String.valueOf(oid)));
+            localOp.appendErrorMessage(ERR_BIND_UNSUPPORTED_CRITICAL_CONTROL
+                    .get(String.valueOf(oid)));
 
             break bindProcessing;
           }
@@ -3225,8 +3189,8 @@ bindProcessing:
             {
               localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              int msgID = MSGID_BIND_REJECTED_LOCKDOWN_MODE;
-              localOp.setAuthFailureReason(msgID, getMessage(msgID));
+              Message message = ERR_BIND_REJECTED_LOCKDOWN_MODE.get();
+              localOp.setAuthFailureReason(message);
 
               localOp.setProcessingStopTime();
               logBindResponse(localOp);
@@ -3239,9 +3203,8 @@ bindProcessing:
             {
               localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-              int    msgID   = MSGID_BIND_DN_BUT_NO_PASSWORD;
-              String message = getMessage(msgID);
-              localOp.setAuthFailureReason(msgID, message);
+              Message message = ERR_BIND_DN_BUT_NO_PASSWORD.get();
+              localOp.setAuthFailureReason(message);
               break bindProcessing;
             }
 
@@ -3255,8 +3218,8 @@ bindProcessing:
               // and return.
               localOp.setResultCode(ResultCode.CANCELED);
 
-              int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
-              localOp.appendErrorMessage(getMessage(msgID));
+              localOp.appendErrorMessage(
+                      ERR_CANCELED_BY_PREOP_DISCONNECT.get());
 
               return;
             }
@@ -3299,11 +3262,11 @@ bindProcessing:
 
           if (userLock == null)
           {
-            int    msgID   = MSGID_BIND_OPERATION_CANNOT_LOCK_USER;
-            String message = getMessage(msgID, String.valueOf(bindDN));
+            Message message = ERR_BIND_OPERATION_CANNOT_LOCK_USER.get(
+                    String.valueOf(bindDN));
 
             localOp.setResultCode(DirectoryServer.getServerErrorResultCode());
-            localOp.setAuthFailureReason(msgID, message);
+            localOp.setAuthFailureReason(message);
             break bindProcessing;
           }
 
@@ -3322,8 +3285,7 @@ bindProcessing:
               }
 
               localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
-              localOp.setAuthFailureReason(de.getMessageID(),
-                                   de.getErrorMessage());
+              localOp.setAuthFailureReason(de.getMessageObject());
 
               userEntry = null;
               break bindProcessing;
@@ -3332,11 +3294,11 @@ bindProcessing:
             if (userEntry == null)
             {
 
-              int    msgID   = MSGID_BIND_OPERATION_UNKNOWN_USER;
-              String message = getMessage(msgID, String.valueOf(bindDN));
+              Message message = ERR_BIND_OPERATION_UNKNOWN_USER.get(
+                      String.valueOf(bindDN));
 
               localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
-              localOp.setAuthFailureReason(msgID, message);
+              localOp.setAuthFailureReason(message);
               break bindProcessing;
             }
             else
@@ -3354,11 +3316,11 @@ bindProcessing:
             List<Attribute> pwAttr = userEntry.getAttribute(pwType);
             if ((pwAttr == null) || (pwAttr.isEmpty()))
             {
-              int    msgID   = MSGID_BIND_OPERATION_NO_PASSWORD;
-              String message = getMessage(msgID, String.valueOf(bindDN));
+              Message message = ERR_BIND_OPERATION_NO_PASSWORD.get(
+                      String.valueOf(bindDN));
 
               localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
-              localOp.setAuthFailureReason(msgID, message);
+              localOp.setAuthFailureReason(message);
               break bindProcessing;
             }
 
@@ -3379,11 +3341,11 @@ bindProcessing:
               // user then ignore it.
               if (! DirectoryServer.isRootDN(bindDN))
               {
-                int    msgID   = MSGID_BIND_OPERATION_WRITABILITY_DISABLED;
-                String message = getMessage(msgID, String.valueOf(bindDN));
+                Message message = ERR_BIND_OPERATION_WRITABILITY_DISABLED.get(
+                        String.valueOf(bindDN));
 
                 localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
-                localOp.setAuthFailureReason(msgID, message);
+                localOp.setAuthFailureReason(message);
                 break bindProcessing;
               }
             }
@@ -3394,11 +3356,11 @@ bindProcessing:
             if (policy.requireSecureAuthentication() &&
                 (! clientConnection.isSecure()))
             {
-              int    msgID   = MSGID_BIND_OPERATION_INSECURE_SIMPLE_BIND;
-              String message = getMessage(msgID, String.valueOf(bindDN));
+              Message message = ERR_BIND_OPERATION_INSECURE_SIMPLE_BIND.get(
+                      String.valueOf(bindDN));
 
               localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
-              localOp.setAuthFailureReason(msgID, message);
+              localOp.setAuthFailureReason(message);
               break bindProcessing;
             }
 
@@ -3406,31 +3368,31 @@ bindProcessing:
             // Check to see if the user is administratively disabled or locked.
             if (pwPolicyState.isDisabled())
             {
-              int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_DISABLED;
-              String message = getMessage(msgID, String.valueOf(bindDN));
+              Message message = ERR_BIND_OPERATION_ACCOUNT_DISABLED.get(
+                      String.valueOf(bindDN));
 
               localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
-              localOp.setAuthFailureReason(msgID, message);
+              localOp.setAuthFailureReason(message);
               break bindProcessing;
             }
             else if (pwPolicyState.isAccountExpired())
             {
-              int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_EXPIRED;
-              String message = getMessage(msgID, String.valueOf(bindDN));
+              Message message = ERR_BIND_OPERATION_ACCOUNT_EXPIRED.get(
+                      String.valueOf(bindDN));
 
               localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
-              localOp.setAuthFailureReason(msgID, message);
+              localOp.setAuthFailureReason(message);
 
               pwPolicyState.generateAccountStatusNotification(
-                   AccountStatusNotificationType.ACCOUNT_EXPIRED, bindDN, msgID,
-                   message);
+                   AccountStatusNotificationType.ACCOUNT_EXPIRED, bindDN,
+                      message);
 
               break bindProcessing;
             }
             else if (pwPolicyState.lockedDueToFailures())
             {
-              int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_FAILURE_LOCKED;
-              String message = getMessage(msgID, String.valueOf(bindDN));
+              Message message = ERR_BIND_OPERATION_ACCOUNT_FAILURE_LOCKED.get(
+                      String.valueOf(bindDN));
 
               if (pwPolicyErrorType == null)
               {
@@ -3438,13 +3400,13 @@ bindProcessing:
               }
 
               localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
-              localOp.setAuthFailureReason(msgID, message);
+              localOp.setAuthFailureReason(message);
               break bindProcessing;
             }
             else if (pwPolicyState.lockedDueToMaximumResetAge())
             {
-              int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_RESET_LOCKED;
-              String message = getMessage(msgID, String.valueOf(bindDN));
+              Message message = ERR_BIND_OPERATION_ACCOUNT_RESET_LOCKED.get(
+                      String.valueOf(bindDN));
 
               if (pwPolicyErrorType == null)
               {
@@ -3452,18 +3414,18 @@ bindProcessing:
               }
 
               localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
-              localOp.setAuthFailureReason(msgID, message);
+              localOp.setAuthFailureReason(message);
 
               pwPolicyState.generateAccountStatusNotification(
                    AccountStatusNotificationType.ACCOUNT_RESET_LOCKED, bindDN,
-                   msgID, message);
+                      message);
 
               break bindProcessing;
             }
             else if (pwPolicyState.lockedDueToIdleInterval())
             {
-              int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_IDLE_LOCKED;
-              String message = getMessage(msgID, String.valueOf(bindDN));
+              Message message = ERR_BIND_OPERATION_ACCOUNT_IDLE_LOCKED.get(
+                      String.valueOf(bindDN));
 
               if (pwPolicyErrorType == null)
               {
@@ -3471,11 +3433,11 @@ bindProcessing:
               }
 
               localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
-              localOp.setAuthFailureReason(msgID, message);
+              localOp.setAuthFailureReason(message);
 
               pwPolicyState.generateAccountStatusNotification(
                    AccountStatusNotificationType.ACCOUNT_IDLE_LOCKED, bindDN,
-                   msgID, message);
+                      message);
 
               break bindProcessing;
             }
@@ -3510,30 +3472,30 @@ bindProcessing:
                 }
                 else
                 {
-                  int    msgID   = MSGID_BIND_OPERATION_PASSWORD_EXPIRED;
-                  String message = getMessage(msgID, String.valueOf(bindDN));
+                  Message message = ERR_BIND_OPERATION_PASSWORD_EXPIRED.get(
+                          String.valueOf(bindDN));
 
                   localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
-                  localOp.setAuthFailureReason(msgID, message);
+                  localOp.setAuthFailureReason(message);
 
                   pwPolicyState.generateAccountStatusNotification(
                        AccountStatusNotificationType.PASSWORD_EXPIRED, bindDN,
-                       msgID, message);
+                          message);
 
                   break bindProcessing;
                 }
               }
               else
               {
-                int    msgID   = MSGID_BIND_OPERATION_PASSWORD_EXPIRED;
-                String message = getMessage(msgID, String.valueOf(bindDN));
+                Message message = ERR_BIND_OPERATION_PASSWORD_EXPIRED.get(
+                        String.valueOf(bindDN));
 
                 localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
-                localOp.setAuthFailureReason(msgID, message);
+                localOp.setAuthFailureReason(message);
 
                 pwPolicyState.generateAccountStatusNotification(
                      AccountStatusNotificationType.PASSWORD_EXPIRED, bindDN,
-                     msgID, message);
+                        message);
 
                 break bindProcessing;
               }
@@ -3541,10 +3503,10 @@ bindProcessing:
             else if (pwPolicyState.shouldWarn())
             {
               int numSeconds = pwPolicyState.getSecondsUntilExpiration();
-              String timeToExpiration = secondsToTimeString(numSeconds);
+              Message timeToExpiration = secondsToTimeString(numSeconds);
 
-              int msgID = MSGID_BIND_PASSWORD_EXPIRING;
-              String message = getMessage(msgID, timeToExpiration);
+              Message message = INFO_BIND_PASSWORD_EXPIRING.get(
+                      timeToExpiration);
               localOp.appendErrorMessage(message);
 
               if (pwPolicyWarningType == null)
@@ -3579,8 +3541,8 @@ bindProcessing:
               // and return.
               localOp.setResultCode(ResultCode.CANCELED);
 
-              int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
-              localOp.appendErrorMessage(getMessage(msgID));
+              localOp.appendErrorMessage(
+                      ERR_CANCELED_BY_PREOP_DISCONNECT.get());
 
               return;
             }
@@ -3607,8 +3569,8 @@ bindProcessing:
               {
                 localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-                int msgID = MSGID_BIND_REJECTED_LOCKDOWN_MODE;
-                localOp.setAuthFailureReason(msgID, getMessage(msgID));
+                Message message = ERR_BIND_REJECTED_LOCKDOWN_MODE.get();
+                localOp.setAuthFailureReason(message);
 
                 break bindProcessing;
               }
@@ -3633,11 +3595,9 @@ bindProcessing:
                   AttributeValue v = iterator.next();
                   if (iterator.hasNext())
                   {
-                    int msgID = MSGID_BIND_MULTIPLE_USER_SIZE_LIMITS;
-                    String message =
-                         getMessage(msgID, String.valueOf(userEntry.getDN()));
-                    logError(ErrorLogCategory.CORE_SERVER,
-                             ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                    Message message = WARN_BIND_MULTIPLE_USER_SIZE_LIMITS.get(
+                        String.valueOf(userEntry.getDN()));
+                    logError(message);
                   }
                   else
                   {
@@ -3652,12 +3612,10 @@ bindProcessing:
                         TRACER.debugCaught(DebugLogLevel.ERROR, e);
                       }
 
-                      int msgID = MSGID_BIND_CANNOT_PROCESS_USER_SIZE_LIMIT;
-                      String message =
-                           getMessage(msgID, v.getStringValue(),
-                                      String.valueOf(userEntry.getDN()));
-                      logError(ErrorLogCategory.CORE_SERVER,
-                               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                      Message message = WARN_BIND_CANNOT_PROCESS_USER_SIZE_LIMIT
+                              .get(v.getStringValue(),
+                                String.valueOf(userEntry.getDN()));
+                      logError(message);
                     }
                   }
                 }
@@ -3679,11 +3637,9 @@ bindProcessing:
                   AttributeValue v = iterator.next();
                   if (iterator.hasNext())
                   {
-                    int msgID = MSGID_BIND_MULTIPLE_USER_TIME_LIMITS;
-                    String message =
-                         getMessage(msgID, String.valueOf(userEntry.getDN()));
-                    logError(ErrorLogCategory.CORE_SERVER,
-                             ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                    Message message = WARN_BIND_MULTIPLE_USER_TIME_LIMITS.get(
+                        String.valueOf(userEntry.getDN()));
+                    logError(message);
                   }
                   else
                   {
@@ -3698,12 +3654,11 @@ bindProcessing:
                         TRACER.debugCaught(DebugLogLevel.ERROR, e);
                       }
 
-                      int msgID = MSGID_BIND_CANNOT_PROCESS_USER_TIME_LIMIT;
-                      String message =
-                           getMessage(msgID, v.getStringValue(),
-                                      String.valueOf(userEntry.getDN()));
-                      logError(ErrorLogCategory.CORE_SERVER,
-                               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                      Message message =
+                          WARN_BIND_CANNOT_PROCESS_USER_TIME_LIMIT.
+                            get(v.getStringValue(),
+                                String.valueOf(userEntry.getDN()));
+                      logError(message);
                     }
                   }
                 }
@@ -3724,11 +3679,9 @@ bindProcessing:
                   AttributeValue v = iterator.next();
                   if (iterator.hasNext())
                   {
-                    int msgID = MSGID_BIND_MULTIPLE_USER_IDLE_TIME_LIMITS;
-                    String message =
-                         getMessage(msgID, String.valueOf(userEntry.getDN()));
-                    logError(ErrorLogCategory.CORE_SERVER,
-                             ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                    Message message = WARN_BIND_MULTIPLE_USER_IDLE_TIME_LIMITS.
+                        get(String.valueOf(userEntry.getDN()));
+                    logError(message);
                   }
                   else
                   {
@@ -3744,13 +3697,11 @@ bindProcessing:
                         TRACER.debugCaught(DebugLogLevel.ERROR, e);
                       }
 
-                      int msgID =
-                           MSGID_BIND_CANNOT_PROCESS_USER_IDLE_TIME_LIMIT;
-                      String message =
-                           getMessage(msgID, v.getStringValue(),
-                                      String.valueOf(userEntry.getDN()));
-                      logError(ErrorLogCategory.CORE_SERVER,
-                               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                      Message message =
+                          WARN_BIND_CANNOT_PROCESS_USER_IDLE_TIME_LIMIT.
+                            get(v.getStringValue(),
+                                String.valueOf(userEntry.getDN()));
+                      logError(message);
                     }
                   }
                 }
@@ -3772,11 +3723,10 @@ bindProcessing:
                   AttributeValue v = iterator.next();
                   if (iterator.hasNext())
                   {
-                    int msgID = MSGID_BIND_MULTIPLE_USER_LOOKTHROUGH_LIMITS;
-                    String message =
-                         getMessage(msgID, String.valueOf(userEntry.getDN()));
-                    logError(ErrorLogCategory.CORE_SERVER,
-                             ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                    Message message =
+                        WARN_BIND_MULTIPLE_USER_LOOKTHROUGH_LIMITS.
+                          get(String.valueOf(userEntry.getDN()));
+                    logError(message);
                   }
                   else
                   {
@@ -3791,13 +3741,11 @@ bindProcessing:
                         TRACER.debugCaught(DebugLogLevel.ERROR, e);
                       }
 
-                      int msgID =
-                          MSGID_BIND_CANNOT_PROCESS_USER_LOOKTHROUGH_LIMIT;
-                      String message =
-                           getMessage(msgID, v.getStringValue(),
-                                      String.valueOf(userEntry.getDN()));
-                      logError(ErrorLogCategory.CORE_SERVER,
-                               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                      Message message =
+                          WARN_BIND_CANNOT_PROCESS_USER_LOOKTHROUGH_LIMIT.
+                            get(v.getStringValue(),
+                                String.valueOf(userEntry.getDN()));
+                      logError(message);
                     }
                   }
                 }
@@ -3812,14 +3760,14 @@ bindProcessing:
                 pwPolicyState.setWarnedTime();
 
                 int numSeconds = pwPolicyState.getSecondsUntilExpiration();
-                String timeToExpiration = secondsToTimeString(numSeconds);
+                Message timeToExpiration = secondsToTimeString(numSeconds);
 
-                int msgID = MSGID_BIND_PASSWORD_EXPIRING;
-                String message = getMessage(msgID, timeToExpiration);
+                Message message = INFO_BIND_PASSWORD_EXPIRING.get(
+                        timeToExpiration);
 
                 pwPolicyState.generateAccountStatusNotification(
                      AccountStatusNotificationType.PASSWORD_EXPIRING, bindDN,
-                     msgID, message);
+                        message);
               }
 
               if (isGraceLogin)
@@ -3831,11 +3779,10 @@ bindProcessing:
             }
             else
             {
-              int    msgID   = MSGID_BIND_OPERATION_WRONG_PASSWORD;
-              String message = getMessage(msgID);
+              Message message = ERR_BIND_OPERATION_WRONG_PASSWORD.get();
 
               localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
-              localOp.setAuthFailureReason(msgID, message);
+              localOp.setAuthFailureReason(message);
 
               if (policy.getLockoutFailureCount() > 0)
               {
@@ -3849,21 +3796,21 @@ bindProcessing:
                   {
                     notificationType = AccountStatusNotificationType.
                                             ACCOUNT_TEMPORARILY_LOCKED;
-                    msgID   = MSGID_BIND_ACCOUNT_TEMPORARILY_LOCKED;
-                    message = getMessage(msgID,
-                                         secondsToTimeString(lockoutDuration));
+
+                    message = ERR_BIND_ACCOUNT_TEMPORARILY_LOCKED.get(
+                            secondsToTimeString(lockoutDuration));
                   }
                   else
                   {
                     notificationType = AccountStatusNotificationType.
                                             ACCOUNT_PERMANENTLY_LOCKED;
-                    msgID   = MSGID_BIND_ACCOUNT_PERMANENTLY_LOCKED;
-                    message = getMessage(msgID);
+
+                    message = ERR_BIND_ACCOUNT_PERMANENTLY_LOCKED.get();
                   }
 
                   pwPolicyState.generateAccountStatusNotification(
                        notificationType, localOp.getUserEntryDN(),
-                       msgID, message);
+                          message);
                 }
               }
             }
@@ -3875,11 +3822,11 @@ bindProcessing:
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            int    msgID   = MSGID_BIND_OPERATION_PASSWORD_VALIDATION_EXCEPTION;
-            String message = getMessage(msgID, getExceptionMessage(e));
+            Message message = ERR_BIND_OPERATION_PASSWORD_VALIDATION_EXCEPTION
+                    .get(getExceptionMessage(e));
 
             localOp.setResultCode(DirectoryServer.getServerErrorResultCode());
-            localOp.setAuthFailureReason(msgID, message);
+            localOp.setAuthFailureReason(message);
             break bindProcessing;
           }
           finally
@@ -3900,11 +3847,11 @@ bindProcessing:
           {
             localOp.setResultCode(ResultCode.AUTH_METHOD_NOT_SUPPORTED);
 
-            int    msgID   = MSGID_BIND_OPERATION_UNKNOWN_SASL_MECHANISM;
-            String message = getMessage(msgID, saslMechanism);
+            Message message = ERR_BIND_OPERATION_UNKNOWN_SASL_MECHANISM.get(
+                    saslMechanism);
 
             localOp.appendErrorMessage(message);
-            localOp.setAuthFailureReason(msgID, message);
+            localOp.setAuthFailureReason(message);
             break bindProcessing;
           }
 
@@ -3923,8 +3870,7 @@ bindProcessing:
             // and return.
             localOp.setResultCode(ResultCode.CANCELED);
 
-            int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
-            localOp.appendErrorMessage(getMessage(msgID));
+            localOp.appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
 
             return;
           }
@@ -3957,8 +3903,8 @@ bindProcessing:
               {
                 localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-                int msgID = MSGID_BIND_REJECTED_LOCKDOWN_MODE;
-                localOp.setAuthFailureReason(msgID, getMessage(msgID));
+                Message message = ERR_BIND_REJECTED_LOCKDOWN_MODE.get();
+                localOp.setAuthFailureReason(message);
 
                 break bindProcessing;
               }
@@ -4018,11 +3964,11 @@ bindProcessing:
               // user then ignore it.
               if (! DirectoryServer.isRootDN(bindDN))
               {
-                int    msgID   = MSGID_BIND_OPERATION_WRITABILITY_DISABLED;
-                String message = getMessage(msgID, userDNString);
+                Message message = ERR_BIND_OPERATION_WRITABILITY_DISABLED.get(
+                        userDNString);
 
                 localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
-                localOp.setAuthFailureReason(msgID, message);
+                localOp.setAuthFailureReason(message);
                 break bindProcessing;
               }
             }
@@ -4030,22 +3976,22 @@ bindProcessing:
             {
               localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_DISABLED;
-              String message = getMessage(msgID, userDNString);
-              localOp.setAuthFailureReason(msgID, message);
+              Message message = ERR_BIND_OPERATION_ACCOUNT_DISABLED.get(
+                      userDNString);
+              localOp.setAuthFailureReason(message);
               break bindProcessing;
             }
             else if (pwPolicyState.isAccountExpired())
             {
               localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_EXPIRED;
-              String message = getMessage(msgID, userDNString);
-              localOp.setAuthFailureReason(msgID, message);
+              Message message = ERR_BIND_OPERATION_ACCOUNT_EXPIRED.get(
+                      userDNString);
+              localOp.setAuthFailureReason(message);
 
               pwPolicyState.generateAccountStatusNotification(
-                   AccountStatusNotificationType.ACCOUNT_EXPIRED, bindDN, msgID,
-                   message);
+                   AccountStatusNotificationType.ACCOUNT_EXPIRED, bindDN,
+                      message);
 
               break bindProcessing;
             }
@@ -4056,9 +4002,9 @@ bindProcessing:
             {
               localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              int    msgID   = MSGID_BIND_OPERATION_INSECURE_SASL_BIND;
-              String message = getMessage(msgID, saslMechanism, userDNString);
-              localOp.setAuthFailureReason(msgID, message);
+              Message message = ERR_BIND_OPERATION_INSECURE_SASL_BIND.get(
+                      saslMechanism, userDNString);
+              localOp.setAuthFailureReason(message);
               break bindProcessing;
             }
 
@@ -4071,9 +4017,9 @@ bindProcessing:
                 pwPolicyErrorType = PasswordPolicyErrorType.ACCOUNT_LOCKED;
               }
 
-              int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_FAILURE_LOCKED;
-              String message = getMessage(msgID, userDNString);
-              localOp.setAuthFailureReason(msgID, message);
+              Message message = ERR_BIND_OPERATION_ACCOUNT_FAILURE_LOCKED.get(
+                      userDNString);
+              localOp.setAuthFailureReason(message);
               break bindProcessing;
             }
 
@@ -4086,13 +4032,13 @@ bindProcessing:
                 pwPolicyErrorType = PasswordPolicyErrorType.ACCOUNT_LOCKED;
               }
 
-              int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_IDLE_LOCKED;
-              String message = getMessage(msgID, userDNString);
-              localOp.setAuthFailureReason(msgID, message);
+              Message message = ERR_BIND_OPERATION_ACCOUNT_IDLE_LOCKED.get(
+                      userDNString);
+              localOp.setAuthFailureReason(message);
 
               pwPolicyState.generateAccountStatusNotification(
                    AccountStatusNotificationType.ACCOUNT_IDLE_LOCKED, bindDN,
-                   msgID, message);
+                      message);
 
               break bindProcessing;
             }
@@ -4109,13 +4055,13 @@ bindProcessing:
                   pwPolicyErrorType = PasswordPolicyErrorType.ACCOUNT_LOCKED;
                 }
 
-                int    msgID   = MSGID_BIND_OPERATION_ACCOUNT_RESET_LOCKED;
-                String message = getMessage(msgID, userDNString);
-                localOp.setAuthFailureReason(msgID, message);
+                Message message = ERR_BIND_OPERATION_ACCOUNT_RESET_LOCKED.get(
+                        userDNString);
+                localOp.setAuthFailureReason(message);
 
                 pwPolicyState.generateAccountStatusNotification(
                      AccountStatusNotificationType.ACCOUNT_RESET_LOCKED, bindDN,
-                     msgID, message);
+                        message);
 
                 break bindProcessing;
               }
@@ -4148,30 +4094,30 @@ bindProcessing:
                   }
                   else
                   {
-                    int    msgID   = MSGID_BIND_OPERATION_PASSWORD_EXPIRED;
-                    String message = getMessage(msgID, String.valueOf(bindDN));
+                    Message message = ERR_BIND_OPERATION_PASSWORD_EXPIRED.get(
+                            String.valueOf(bindDN));
 
                     localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
-                    localOp.setAuthFailureReason(msgID, message);
+                    localOp.setAuthFailureReason(message);
 
                     pwPolicyState.generateAccountStatusNotification(
                          AccountStatusNotificationType.PASSWORD_EXPIRED, bindDN,
-                         msgID, message);
+                            message);
 
                     break bindProcessing;
                   }
                 }
                 else
                 {
-                  int    msgID   = MSGID_BIND_OPERATION_PASSWORD_EXPIRED;
-                  String message = getMessage(msgID, String.valueOf(bindDN));
+                  Message message = ERR_BIND_OPERATION_PASSWORD_EXPIRED.get(
+                          String.valueOf(bindDN));
 
                   localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
-                  localOp.setAuthFailureReason(msgID, message);
+                  localOp.setAuthFailureReason(message);
 
                   pwPolicyState.generateAccountStatusNotification(
                        AccountStatusNotificationType.PASSWORD_EXPIRED, bindDN,
-                       msgID, message);
+                          message);
 
                   break bindProcessing;
                 }
@@ -4179,10 +4125,10 @@ bindProcessing:
               else if (pwPolicyState.shouldWarn())
               {
                 int numSeconds = pwPolicyState.getSecondsUntilExpiration();
-                String timeToExpiration = secondsToTimeString(numSeconds);
+                Message timeToExpiration = secondsToTimeString(numSeconds);
 
-                int    msgID   = MSGID_BIND_PASSWORD_EXPIRING;
-                String message = getMessage(msgID, timeToExpiration);
+                Message message = INFO_BIND_PASSWORD_EXPIRING.get(
+                        timeToExpiration);
                 localOp.appendErrorMessage(message);
 
                 if (pwPolicyWarningType == null)
@@ -4217,14 +4163,14 @@ bindProcessing:
                 pwPolicyState.setWarnedTime();
 
                 int numSeconds = pwPolicyState.getSecondsUntilExpiration();
-                String timeToExpiration = secondsToTimeString(numSeconds);
+                Message timeToExpiration = secondsToTimeString(numSeconds);
 
-                int msgID = MSGID_BIND_PASSWORD_EXPIRING;
-                String message = getMessage(msgID, timeToExpiration);
+                Message message = INFO_BIND_PASSWORD_EXPIRING.get(
+                        timeToExpiration);
 
                 pwPolicyState.generateAccountStatusNotification(
                      AccountStatusNotificationType.PASSWORD_EXPIRING, bindDN,
-                     msgID, message);
+                        message);
               }
 
               if (isGraceLogin)
@@ -4251,10 +4197,9 @@ bindProcessing:
                   AttributeValue v = iterator.next();
                   if (iterator.hasNext())
                   {
-                    int msgID = MSGID_BIND_MULTIPLE_USER_SIZE_LIMITS;
-                    String message = getMessage(msgID, userDNString);
-                    logError(ErrorLogCategory.CORE_SERVER,
-                             ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                    Message message =
+                        WARN_BIND_MULTIPLE_USER_SIZE_LIMITS.get(userDNString);
+                    logError(message);
                   }
                   else
                   {
@@ -4269,11 +4214,10 @@ bindProcessing:
                         TRACER.debugCaught(DebugLogLevel.ERROR, e);
                       }
 
-                      int msgID = MSGID_BIND_CANNOT_PROCESS_USER_SIZE_LIMIT;
-                      String message =
-                           getMessage(msgID, v.getStringValue(), userDNString);
-                      logError(ErrorLogCategory.CORE_SERVER,
-                               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                      Message message =
+                          WARN_BIND_CANNOT_PROCESS_USER_SIZE_LIMIT.
+                            get(v.getStringValue(), userDNString);
+                      logError(message);
                     }
                   }
                 }
@@ -4295,10 +4239,9 @@ bindProcessing:
                   AttributeValue v = iterator.next();
                   if (iterator.hasNext())
                   {
-                    int msgID = MSGID_BIND_MULTIPLE_USER_TIME_LIMITS;
-                    String message = getMessage(msgID, userDNString);
-                    logError(ErrorLogCategory.CORE_SERVER,
-                             ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                    Message message =
+                        WARN_BIND_MULTIPLE_USER_TIME_LIMITS.get(userDNString);
+                    logError(message);
                   }
                   else
                   {
@@ -4313,11 +4256,10 @@ bindProcessing:
                         TRACER.debugCaught(DebugLogLevel.ERROR, e);
                       }
 
-                      int msgID = MSGID_BIND_CANNOT_PROCESS_USER_TIME_LIMIT;
-                      String message =
-                           getMessage(msgID, v.getStringValue(), userDNString);
-                      logError(ErrorLogCategory.CORE_SERVER,
-                               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                      Message message =
+                          WARN_BIND_CANNOT_PROCESS_USER_TIME_LIMIT.
+                            get(v.getStringValue(), userDNString);
+                      logError(message);
                     }
                   }
                 }
@@ -4338,11 +4280,9 @@ bindProcessing:
                   AttributeValue v = iterator.next();
                   if (iterator.hasNext())
                   {
-                    int msgID = MSGID_BIND_MULTIPLE_USER_IDLE_TIME_LIMITS;
-                    String message =
-                         getMessage(msgID, String.valueOf(userDNString));
-                    logError(ErrorLogCategory.CORE_SERVER,
-                             ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                    Message message = WARN_BIND_MULTIPLE_USER_IDLE_TIME_LIMITS.
+                        get(String.valueOf(userDNString));
+                    logError(message);
                   }
                   else
                   {
@@ -4358,13 +4298,11 @@ bindProcessing:
                         TRACER.debugCaught(DebugLogLevel.ERROR, e);
                       }
 
-                      int msgID =
-                           MSGID_BIND_CANNOT_PROCESS_USER_IDLE_TIME_LIMIT;
-                      String message =
-                           getMessage(msgID, v.getStringValue(),
-                                      String.valueOf(userDNString));
-                      logError(ErrorLogCategory.CORE_SERVER,
-                               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                      Message message =
+                          WARN_BIND_CANNOT_PROCESS_USER_IDLE_TIME_LIMIT.
+                            get(v.getStringValue(),
+                                String.valueOf(userDNString));
+                      logError(message);
                     }
                   }
                 }
@@ -4386,10 +4324,10 @@ bindProcessing:
                   AttributeValue v = iterator.next();
                   if (iterator.hasNext())
                   {
-                    int msgID = MSGID_BIND_MULTIPLE_USER_LOOKTHROUGH_LIMITS;
-                    String message = getMessage(msgID, userDNString);
-                    logError(ErrorLogCategory.CORE_SERVER,
-                             ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                    Message message =
+                        WARN_BIND_MULTIPLE_USER_LOOKTHROUGH_LIMITS.
+                          get(userDNString);
+                    logError(message);
                   }
                   else
                   {
@@ -4404,12 +4342,10 @@ bindProcessing:
                         TRACER.debugCaught(DebugLogLevel.ERROR, e);
                       }
 
-                      int msgID =
-                          MSGID_BIND_CANNOT_PROCESS_USER_LOOKTHROUGH_LIMIT;
-                      String message =
-                           getMessage(msgID, v.getStringValue(), userDNString);
-                      logError(ErrorLogCategory.CORE_SERVER,
-                               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                      Message message =
+                          WARN_BIND_CANNOT_PROCESS_USER_LOOKTHROUGH_LIMIT.
+                            get(v.getStringValue(), userDNString);
+                      logError(message);
                     }
                   }
                 }
@@ -4433,29 +4369,26 @@ bindProcessing:
                   if (pwPolicyState.lockedDueToFailures())
                   {
                     AccountStatusNotificationType notificationType;
-                    int msgID;
-                    String message;
+                    Message message;
 
                     int lockoutDuration = pwPolicyState.getSecondsUntilUnlock();
                     if (lockoutDuration > -1)
                     {
                       notificationType = AccountStatusNotificationType.
                                               ACCOUNT_TEMPORARILY_LOCKED;
-                      msgID   = MSGID_BIND_ACCOUNT_TEMPORARILY_LOCKED;
-                      message = getMessage(msgID,
-                                     secondsToTimeString(lockoutDuration));
+                      message = ERR_BIND_ACCOUNT_TEMPORARILY_LOCKED.get(
+                              secondsToTimeString(lockoutDuration));
                     }
                     else
                     {
                       notificationType = AccountStatusNotificationType.
                                               ACCOUNT_PERMANENTLY_LOCKED;
-                      msgID   = MSGID_BIND_ACCOUNT_PERMANENTLY_LOCKED;
-                      message = getMessage(msgID);
+                      message = ERR_BIND_ACCOUNT_PERMANENTLY_LOCKED.get();
                     }
 
                     pwPolicyState.generateAccountStatusNotification(
                          notificationType, localOp.getUserEntryDN(),
-                         msgID, message);
+                            message);
                   }
                 }
               }
@@ -4504,8 +4437,7 @@ bindProcessing:
         // and return.
         localOp.setResultCode(ResultCode.CANCELED);
 
-        int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
-        localOp.appendErrorMessage(getMessage(msgID));
+        localOp.appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
 
         return;
       }
@@ -4669,7 +4601,7 @@ addProcessing:
         {
           // This is not fine.  The root DSE cannot be added.
           localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-          localOp.appendErrorMessage(getMessage(MSGID_ADD_CANNOT_ADD_ROOT_DSE));
+          localOp.appendErrorMessage(ERR_ADD_CANNOT_ADD_ROOT_DSE.get());
           break addProcessing;
         }
         else
@@ -4677,8 +4609,8 @@ addProcessing:
           // The entry doesn't have a parent but isn't a suffix.  This is not
           // allowed.
           localOp.setResultCode(ResultCode.NO_SUCH_OBJECT);
-          localOp.appendErrorMessage(getMessage(MSGID_ADD_ENTRY_NOT_SUFFIX,
-                                        String.valueOf(entryDN)));
+          localOp.appendErrorMessage(ERR_ADD_ENTRY_NOT_SUFFIX.get(
+                  String.valueOf(entryDN)));
           break addProcessing;
         }
       }
@@ -4696,9 +4628,9 @@ addProcessing:
         if (parentLock == null)
         {
           localOp.setResultCode(DirectoryServer.getServerErrorResultCode());
-          localOp.appendErrorMessage(getMessage(MSGID_ADD_CANNOT_LOCK_PARENT,
-                                        String.valueOf(entryDN),
-                                        String.valueOf(parentDN)));
+          localOp.appendErrorMessage(ERR_ADD_CANNOT_LOCK_PARENT.get(
+                  String.valueOf(entryDN),
+                  String.valueOf(parentDN)));
 
           skipPostOperation = true;
           break addProcessing;
@@ -4732,8 +4664,8 @@ addProcessing:
         if (entryLock == null)
         {
           localOp.setResultCode(DirectoryServer.getServerErrorResultCode());
-          localOp.appendErrorMessage(getMessage(MSGID_ADD_CANNOT_LOCK_ENTRY,
-                                        String.valueOf(entryDN)));
+          localOp.appendErrorMessage(ERR_ADD_CANNOT_LOCK_ENTRY.get(
+                  String.valueOf(entryDN)));
 
           skipPostOperation = true;
           break addProcessing;
@@ -4761,12 +4693,9 @@ addProcessing:
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            logError(ErrorLogCategory.SYNCHRONIZATION,
-                     ErrorLogSeverity.SEVERE_ERROR,
-                     MSGID_ADD_SYNCH_CONFLICT_RESOLUTION_FAILED,
-                     localOp.getConnectionID(),
-                     localOp.getOperationID(),
-                     getExceptionMessage(de));
+            logError(ERR_ADD_SYNCH_CONFLICT_RESOLUTION_FAILED.
+                get(localOp.getConnectionID(), localOp.getOperationID(),
+                    getExceptionMessage(de)));
 
             localOp.setResponseData(de);
             break addProcessing;
@@ -4782,9 +4711,8 @@ addProcessing:
           if (DirectoryServer.entryExists(entryDN))
           {
             localOp.setResultCode(ResultCode.ENTRY_ALREADY_EXISTS);
-              localOp.appendErrorMessage(getMessage(
-                                MSGID_ADD_ENTRY_ALREADY_EXISTS,
-                                String.valueOf(entryDN)));
+            localOp.appendErrorMessage(ERR_ADD_ENTRY_ALREADY_EXISTS.get(
+                    String.valueOf(entryDN)));
             break addProcessing;
           }
         }
@@ -4796,7 +4724,7 @@ addProcessing:
           }
 
           localOp.setResultCode(de.getResultCode());
-          localOp.appendErrorMessage(de.getErrorMessage());
+          localOp.appendErrorMessage(de.getMessageObject());
           localOp.setMatchedDN(de.getMatchedDN());
           localOp.setReferralURLs(de.getReferralURLs());
           break addProcessing;
@@ -4839,9 +4767,9 @@ addProcessing:
 
               // The parent doesn't exist, so this add can't be successful.
               localOp.setResultCode(ResultCode.NO_SUCH_OBJECT);
-              localOp.appendErrorMessage(getMessage(MSGID_ADD_NO_PARENT,
-                                            String.valueOf(entryDN),
-                                            String.valueOf(parentDN)));
+              localOp.appendErrorMessage(ERR_ADD_NO_PARENT.get(
+                      String.valueOf(entryDN),
+                      String.valueOf(parentDN)));
               break addProcessing;
             }
           }
@@ -4853,7 +4781,7 @@ addProcessing:
             }
 
             localOp.setResultCode(de.getResultCode());
-            localOp.appendErrorMessage(de.getErrorMessage());
+            localOp.appendErrorMessage(de.getMessageObject());
             localOp.setMatchedDN(de.getMatchedDN());
             localOp.setReferralURLs(de.getReferralURLs());
             break addProcessing;
@@ -4891,10 +4819,9 @@ addProcessing:
               {
                 localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
 
-                int msgID = MSGID_ADD_MISSING_RDN_ATTRIBUTE;
-                localOp.appendErrorMessage(getMessage(msgID,
-                                                      String.valueOf(entryDN),
-                                                      n));
+                localOp.appendErrorMessage(ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
+                        String.valueOf(entryDN),
+                        n));
 
                 break addProcessing;
               }
@@ -4934,9 +4861,9 @@ addProcessing:
                 {
                   localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
 
-                  int msgID = MSGID_ADD_MISSING_RDN_ATTRIBUTE;
                   localOp.appendErrorMessage(
-                      getMessage(msgID, String.valueOf(entryDN), n));
+                      ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
+                              String.valueOf(entryDN), n));
 
                   break addProcessing;
                 }
@@ -4964,9 +4891,9 @@ addProcessing:
               {
                 localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
 
-                int msgID = MSGID_ADD_MISSING_RDN_ATTRIBUTE;
                 localOp.appendErrorMessage(
-                    getMessage(msgID, String.valueOf(entryDN),n));
+                    ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
+                            String.valueOf(entryDN),n));
 
                 break addProcessing;
               }
@@ -5006,9 +4933,9 @@ addProcessing:
                 {
                   localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
 
-                  int msgID = MSGID_ADD_MISSING_RDN_ATTRIBUTE;
                   localOp.appendErrorMessage(
-                      getMessage(msgID, String.valueOf(entryDN),n));
+                      ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
+                              String.valueOf(entryDN),n));
 
                   break addProcessing;
                 }
@@ -5059,8 +4986,9 @@ addProcessing:
             (! clientConnection.hasPrivilege(Privilege.PRIVILEGE_CHANGE,
                 localOp)))
         {
-          int msgID = MSGID_ADD_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES;
-          localOp.appendErrorMessage(getMessage(msgID));
+
+          localOp.appendErrorMessage(
+                  ERR_ADD_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES.get());
           localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
           break addProcessing;
         }
@@ -5098,10 +5026,10 @@ addProcessing:
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                int msgID = MSGID_ADD_INVALID_PWPOLICY_DN_SYNTAX;
                 localOp.appendErrorMessage(
-                    getMessage(msgID, String.valueOf(entryDN),
-                        de.getErrorMessage()));
+                    ERR_ADD_INVALID_PWPOLICY_DN_SYNTAX.get(
+                            String.valueOf(entryDN),
+                            de.getMessageObject()));
 
                 localOp.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
                 break addProcessing;
@@ -5110,9 +5038,8 @@ addProcessing:
               pwPolicy = DirectoryServer.getPasswordPolicy(policyDN);
               if (pwPolicy == null)
               {
-                int msgID = MSGID_ADD_NO_SUCH_PWPOLICY;
                 localOp.appendErrorMessage(
-                    getMessage(msgID, String.valueOf(entryDN),
+                    ERR_ADD_NO_SUCH_PWPOLICY.get(String.valueOf(entryDN),
                         String.valueOf(policyDN)));
 
                 localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
@@ -5149,7 +5076,7 @@ addProcessing:
         if ((DirectoryServer.checkSchema()) &&
             (!localOp.isSynchronizationOperation()) )
         {
-          StringBuilder invalidReason = new StringBuilder();
+          MessageBuilder invalidReason = new MessageBuilder();
           if (! entry.conformsToSchema(parentEntry, true, true, true,
                                        invalidReason))
           {
@@ -5162,7 +5089,7 @@ addProcessing:
             switch (DirectoryServer.getSyntaxEnforcementPolicy())
             {
               case REJECT:
-                invalidReason = new StringBuilder();
+                invalidReason = new MessageBuilder();
                 for (List<Attribute> attrList : userAttributes.values())
                 {
                   for (Attribute a : attrList)
@@ -5175,13 +5102,12 @@ addProcessing:
                         if (! syntax.valueIsAcceptable(v.getValue(),
                                                        invalidReason))
                         {
-                          String message =
-                               getMessage(MSGID_ADD_OP_INVALID_SYNTAX,
-                                          String.valueOf(entryDN),
-                                          String.valueOf(v.getStringValue()),
-                                          String.valueOf(a.getName()),
-                                          String.valueOf(invalidReason));
-                          invalidReason = new StringBuilder(message);
+                          Message message = WARN_ADD_OP_INVALID_SYNTAX.
+                              get(String.valueOf(entryDN),
+                                  String.valueOf(v.getStringValue()),
+                                  String.valueOf(a.getName()),
+                                  String.valueOf(invalidReason));
+                          invalidReason = new MessageBuilder(message);
 
                           localOp.setResultCode(
                               ResultCode.INVALID_ATTRIBUTE_SYNTAX);
@@ -5206,13 +5132,12 @@ addProcessing:
                         if (! syntax.valueIsAcceptable(v.getValue(),
                                                        invalidReason))
                         {
-                          String message =
-                               getMessage(MSGID_ADD_OP_INVALID_SYNTAX,
-                                          String.valueOf(entryDN),
-                                          String.valueOf(v.getStringValue()),
-                                          String.valueOf(a.getName()),
-                                          String.valueOf(invalidReason));
-                          invalidReason = new StringBuilder(message);
+                          Message message = WARN_ADD_OP_INVALID_SYNTAX.
+                              get(String.valueOf(entryDN),
+                                  String.valueOf(v.getStringValue()),
+                                  String.valueOf(a.getName()),
+                                  String.valueOf(invalidReason));
+                          invalidReason = new MessageBuilder(message);
 
                           localOp.setResultCode(
                               ResultCode.INVALID_ATTRIBUTE_SYNTAX);
@@ -5228,7 +5153,7 @@ addProcessing:
 
 
               case WARN:
-                invalidReason = new StringBuilder();
+                invalidReason = new MessageBuilder();
                 for (List<Attribute> attrList : userAttributes.values())
                 {
                   for (Attribute a : attrList)
@@ -5241,13 +5166,11 @@ addProcessing:
                         if (! syntax.valueIsAcceptable(v.getValue(),
                                                        invalidReason))
                         {
-                          logError(ErrorLogCategory.SCHEMA,
-                                   ErrorLogSeverity.SEVERE_WARNING,
-                                   MSGID_ADD_OP_INVALID_SYNTAX,
-                                   String.valueOf(entryDN),
-                                   String.valueOf(v.getStringValue()),
-                                   String.valueOf(a.getName()),
-                                   String.valueOf(invalidReason));
+                          logError(WARN_ADD_OP_INVALID_SYNTAX.
+                              get(String.valueOf(entryDN),
+                                  String.valueOf(v.getStringValue()),
+                                  String.valueOf(a.getName()),
+                                  String.valueOf(invalidReason)));
                         }
                       }
                     }
@@ -5266,13 +5189,11 @@ addProcessing:
                         if (! syntax.valueIsAcceptable(v.getValue(),
                                                        invalidReason))
                         {
-                          logError(ErrorLogCategory.SCHEMA,
-                                   ErrorLogSeverity.SEVERE_WARNING,
-                                   MSGID_ADD_OP_INVALID_SYNTAX,
-                                   String.valueOf(entryDN),
-                                   String.valueOf(v.getStringValue()),
-                                   String.valueOf(a.getName()),
-                                   String.valueOf(invalidReason));
+                          logError(WARN_ADD_OP_INVALID_SYNTAX.
+                              get(String.valueOf(entryDN),
+                                  String.valueOf(v.getStringValue()),
+                                  String.valueOf(a.getName()),
+                                  String.valueOf(invalidReason)));
                         }
                       }
                     }
@@ -5290,9 +5211,9 @@ addProcessing:
           {
             if (at.isObsolete())
             {
-              int    msgID   = MSGID_ADD_ATTR_IS_OBSOLETE;
-              String message = getMessage(msgID, String.valueOf(entryDN),
-                                          at.getNameOrOID());
+              Message message = WARN_ADD_ATTR_IS_OBSOLETE.get(
+                      String.valueOf(entryDN),
+                      at.getNameOrOID());
               localOp.appendErrorMessage(message);
               localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
               break addProcessing;
@@ -5303,9 +5224,9 @@ addProcessing:
           {
             if (at.isObsolete())
             {
-              int    msgID   = MSGID_ADD_ATTR_IS_OBSOLETE;
-              String message = getMessage(msgID, String.valueOf(entryDN),
-                                          at.getNameOrOID());
+              Message message = WARN_ADD_ATTR_IS_OBSOLETE.get(
+                      String.valueOf(entryDN),
+                      at.getNameOrOID());
               localOp.appendErrorMessage(message);
               localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
               break addProcessing;
@@ -5316,9 +5237,9 @@ addProcessing:
           {
             if (oc.isObsolete())
             {
-              int    msgID   = MSGID_ADD_OC_IS_OBSOLETE;
-              String message = getMessage(msgID, String.valueOf(entryDN),
-                                          oc.getNameOrOID());
+              Message message = WARN_ADD_OC_IS_OBSOLETE.get(
+                      String.valueOf(entryDN),
+                      oc.getNameOrOID());
               localOp.appendErrorMessage(message);
               localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
               break addProcessing;
@@ -5342,8 +5263,8 @@ addProcessing:
                     getAccessControlHandler().isAllowed(parentDN, localOp, c))
             {
               localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-              int msgID = MSGID_CONTROL_INSUFFICIENT_ACCESS_RIGHTS;
-              localOp.appendErrorMessage(getMessage(msgID, oid));
+              localOp.appendErrorMessage(
+                      ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
               skipPostOperation = true;
               break addProcessing;
             }
@@ -5370,7 +5291,7 @@ addProcessing:
                   }
 
                   localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  localOp.appendErrorMessage(le.getMessage());
+                  localOp.appendErrorMessage(le.getMessageObject());
 
                   break addProcessing;
                 }
@@ -5385,9 +5306,9 @@ addProcessing:
                 {
                   localOp.setResultCode(ResultCode.ASSERTION_FAILED);
 
-                  localOp.appendErrorMessage(getMessage(
-                                                MSGID_ADD_ASSERTION_FAILED,
-                                                String.valueOf(entryDN)));
+                  localOp.appendErrorMessage(
+                          ERR_ADD_ASSERTION_FAILED.get(
+                                  String.valueOf(entryDN)));
 
                   break addProcessing;
                 }
@@ -5401,10 +5322,10 @@ addProcessing:
 
                 localOp.setResultCode(ResultCode.PROTOCOL_ERROR);
 
-                int msgID = MSGID_ADD_CANNOT_PROCESS_ASSERTION_FILTER;
-                localOp.appendErrorMessage(getMessage(msgID,
-                                                      String.valueOf(entryDN),
-                                                      de.getErrorMessage()));
+                localOp.appendErrorMessage(
+                        ERR_ADD_CANNOT_PROCESS_ASSERTION_FILTER.get(
+                                String.valueOf(entryDN),
+                                de.getMessageObject()));
 
                 break addProcessing;
               }
@@ -5434,7 +5355,7 @@ addProcessing:
                   }
 
                   localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  localOp.appendErrorMessage(le.getMessage());
+                  localOp.appendErrorMessage(le.getMessageObject());
 
                   break addProcessing;
                 }
@@ -5447,8 +5368,8 @@ addProcessing:
               if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH,
                   localOp))
               {
-                int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
-                localOp.appendErrorMessage(getMessage(msgID));
+                localOp.appendErrorMessage(
+                        ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
                 localOp.setResultCode(ResultCode.AUTHORIZATION_DENIED);
                 break addProcessing;
               }
@@ -5473,7 +5394,7 @@ addProcessing:
                   }
 
                   localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  localOp.appendErrorMessage(le.getMessage());
+                  localOp.appendErrorMessage(le.getMessageObject());
 
                   break addProcessing;
                 }
@@ -5493,7 +5414,7 @@ addProcessing:
                 }
 
                 localOp.setResultCode(de.getResultCode());
-                localOp.appendErrorMessage(de.getErrorMessage());
+                localOp.appendErrorMessage(de.getMessageObject());
 
                 break addProcessing;
               }
@@ -5515,8 +5436,8 @@ addProcessing:
               if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH,
                   localOp))
               {
-                int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
-                localOp.appendErrorMessage(getMessage(msgID));
+                localOp.appendErrorMessage(
+                        ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
                 localOp.setResultCode(ResultCode.AUTHORIZATION_DENIED);
                 break addProcessing;
               }
@@ -5541,7 +5462,7 @@ addProcessing:
                   }
 
                   localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  localOp.appendErrorMessage(le.getMessage());
+                  localOp.appendErrorMessage(le.getMessageObject());
 
                   break addProcessing;
                 }
@@ -5561,7 +5482,7 @@ addProcessing:
                 }
 
                 localOp.setResultCode(de.getResultCode());
-                localOp.appendErrorMessage(de.getErrorMessage());
+                localOp.appendErrorMessage(de.getMessageObject());
 
                 break addProcessing;
               }
@@ -5590,10 +5511,10 @@ addProcessing:
                 localOp.setResultCode(
                     ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
 
-                int msgID = MSGID_ADD_UNSUPPORTED_CRITICAL_CONTROL;
-                localOp.appendErrorMessage(getMessage(msgID,
-                                              String.valueOf(entryDN),
-                                              oid));
+                localOp.appendErrorMessage(
+                        ERR_ADD_UNSUPPORTED_CRITICAL_CONTROL.get(
+                                String.valueOf(entryDN),
+                                oid));
 
                 break addProcessing;
               }
@@ -5615,9 +5536,8 @@ addProcessing:
             .getAccessControlHandler().isAllowed(localOp) == false) {
           localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
 
-          int msgID = MSGID_ADD_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-          localOp.appendErrorMessage(getMessage(msgID,
-                                                String.valueOf(entryDN)));
+          localOp.appendErrorMessage(ERR_ADD_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
+                  .get(String.valueOf(entryDN)));
 
           skipPostOperation = true;
           break addProcessing;
@@ -5642,8 +5562,7 @@ addProcessing:
             // and return.
             localOp.setResultCode(ResultCode.CANCELED);
 
-            int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
-            localOp.appendErrorMessage(getMessage(msgID));
+            localOp.appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
 
             return;
           }
@@ -5673,8 +5592,8 @@ addProcessing:
         if (backend == null)
         {
           localOp.setResultCode(ResultCode.NO_SUCH_OBJECT);
-          localOp.appendErrorMessage("No backend for entry " +
-              entryDN.toString());
+          localOp.appendErrorMessage(Message.raw("No backend for entry " +
+              entryDN.toString())); // TODO: i18n
         }
         else
         {
@@ -5686,8 +5605,8 @@ addProcessing:
             {
               case DISABLED:
                 localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-                localOp.appendErrorMessage(getMessage(MSGID_ADD_SERVER_READONLY,
-                                              String.valueOf(entryDN)));
+                localOp.appendErrorMessage(ERR_ADD_SERVER_READONLY.get(
+                        String.valueOf(entryDN)));
                 break addProcessing;
 
               case INTERNAL_ONLY:
@@ -5695,9 +5614,8 @@ addProcessing:
                     localOp.isSynchronizationOperation()))
                 {
                   localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-                  localOp.appendErrorMessage(getMessage(
-                                                MSGID_ADD_SERVER_READONLY,
-                                                String.valueOf(entryDN)));
+                  localOp.appendErrorMessage(ERR_ADD_SERVER_READONLY.get(
+                          String.valueOf(entryDN)));
                   break addProcessing;
                 }
             }
@@ -5706,9 +5624,8 @@ addProcessing:
             {
               case DISABLED:
                 localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-                localOp.appendErrorMessage(getMessage(
-                                              MSGID_ADD_BACKEND_READONLY,
-                                              String.valueOf(entryDN)));
+                localOp.appendErrorMessage(ERR_ADD_BACKEND_READONLY.get(
+                        String.valueOf(entryDN)));
                 break addProcessing;
 
               case INTERNAL_ONLY:
@@ -5716,9 +5633,8 @@ addProcessing:
                     localOp.isSynchronizationOperation()))
                 {
                   localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-                  localOp.appendErrorMessage(getMessage(
-                                                MSGID_ADD_BACKEND_READONLY,
-                                                String.valueOf(entryDN)));
+                  localOp.appendErrorMessage(ERR_ADD_BACKEND_READONLY.get(
+                          String.valueOf(entryDN)));
                   break addProcessing;
                 }
             }
@@ -5729,7 +5645,7 @@ addProcessing:
           {
             if (noOp)
             {
-              localOp.appendErrorMessage(getMessage(MSGID_ADD_NOOP));
+              localOp.appendErrorMessage(INFO_ADD_NOOP.get());
 
               localOp.setResultCode(ResultCode.NO_OPERATION);
             }
@@ -5754,12 +5670,9 @@ addProcessing:
                     TRACER.debugCaught(DebugLogLevel.ERROR, de);
                   }
 
-                  logError(ErrorLogCategory.SYNCHRONIZATION,
-                           ErrorLogSeverity.SEVERE_ERROR,
-                           MSGID_ADD_SYNCH_PREOP_FAILED,
-                           localOp.getConnectionID(),
-                           localOp.getOperationID(),
-                           getExceptionMessage(de));
+                  logError(ERR_ADD_SYNCH_PREOP_FAILED.
+                      get(localOp.getConnectionID(), localOp.getOperationID(),
+                          getExceptionMessage(de)));
 
                   localOp.setResponseData(de);
                   break addProcessing;
@@ -5834,7 +5747,7 @@ addProcessing:
             }
 
             localOp.setResultCode(de.getResultCode());
-            localOp.appendErrorMessage(de.getErrorMessage());
+            localOp.appendErrorMessage(de.getMessageObject());
             localOp.setMatchedDN(de.getMatchedDN());
             localOp.setReferralURLs(de.getReferralURLs());
 
@@ -5852,7 +5765,7 @@ addProcessing:
             localOp.setCancelResult(cancelResult);
             localOp.setResultCode(cancelResult.getResultCode());
 
-            String message = coe.getMessage();
+            Message message = coe.getMessageObject();
             if ((message != null) && (message.length() > 0))
             {
               localOp.appendErrorMessage(message);
@@ -5889,12 +5802,9 @@ addProcessing:
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            logError(ErrorLogCategory.SYNCHRONIZATION,
-                     ErrorLogSeverity.SEVERE_ERROR,
-                     MSGID_ADD_SYNCH_POSTOP_FAILED,
-                     localOp.getConnectionID(),
-                     localOp.getOperationID(),
-                     getExceptionMessage(de));
+            logError(ERR_ADD_SYNCH_POSTOP_FAILED.
+                get(localOp.getConnectionID(), localOp.getOperationID(),
+                    getExceptionMessage(de)));
 
             localOp.setResponseData(de);
             break;
@@ -5920,8 +5830,7 @@ addProcessing:
         // return.
         localOp.setResultCode(ResultCode.CANCELED);
 
-        int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
-        localOp.appendErrorMessage(getMessage(msgID));
+        localOp.appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
 
         return;
       }
@@ -5947,10 +5856,9 @@ addProcessing:
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_ADD_ERROR_NOTIFYING_CHANGE_LISTENER;
-          String message = getMessage(msgID, getExceptionMessage(e));
-          logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_ADD_ERROR_NOTIFYING_CHANGE_LISTENER.get(
+              getExceptionMessage(e));
+          logError(message);
         }
       }
     }
@@ -6013,8 +5921,8 @@ deleteProcessing:
       if (entryLock == null)
       {
         localOp.setResultCode(DirectoryServer.getServerErrorResultCode());
-        localOp.appendErrorMessage(getMessage(MSGID_DELETE_CANNOT_LOCK_ENTRY,
-                                      String.valueOf(entryDN)));
+        localOp.appendErrorMessage(ERR_DELETE_CANNOT_LOCK_ENTRY.get(
+                String.valueOf(entryDN)));
         break deleteProcessing;
       }
 
@@ -6029,8 +5937,8 @@ deleteProcessing:
           if (entry == null)
           {
             localOp.setResultCode(ResultCode.NO_SUCH_OBJECT);
-            localOp.appendErrorMessage(getMessage(MSGID_DELETE_NO_SUCH_ENTRY,
-                                          String.valueOf(entryDN)));
+            localOp.appendErrorMessage(ERR_DELETE_NO_SUCH_ENTRY.get(
+                    String.valueOf(entryDN)));
 
             try
             {
@@ -6065,7 +5973,7 @@ deleteProcessing:
           }
 
           localOp.setResultCode(de.getResultCode());
-          localOp.appendErrorMessage(de.getErrorMessage());
+          localOp.appendErrorMessage(de.getMessageObject());
           localOp.setMatchedDN(de.getMatchedDN());
           localOp.setReferralURLs(de.getReferralURLs());
           break deleteProcessing;
@@ -6093,12 +6001,9 @@ deleteProcessing:
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            logError(ErrorLogCategory.SYNCHRONIZATION,
-                     ErrorLogSeverity.SEVERE_ERROR,
-                     MSGID_DELETE_SYNCH_CONFLICT_RESOLUTION_FAILED,
-                     localOp.getConnectionID(),
-                     localOp.getOperationID(),
-                     getExceptionMessage(de));
+            logError(ERR_DELETE_SYNCH_CONFLICT_RESOLUTION_FAILED.
+                get(localOp.getConnectionID(), localOp.getOperationID(),
+                    getExceptionMessage(de)));
 
             localOp.setResponseData(de);
             break deleteProcessing;
@@ -6125,8 +6030,9 @@ deleteProcessing:
                      getAccessControlHandler().isAllowed(entryDN, localOp, c))
             {
               localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-              int msgID = MSGID_CONTROL_INSUFFICIENT_ACCESS_RIGHTS;
-              localOp.appendErrorMessage(getMessage(msgID, oid));
+
+              localOp.appendErrorMessage(
+                      ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
               skipPostOperation = true;
               break deleteProcessing;
             }
@@ -6153,7 +6059,7 @@ deleteProcessing:
                   }
 
                   localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  localOp.appendErrorMessage(le.getMessage());
+                  localOp.appendErrorMessage(le.getMessageObject());
 
                   break deleteProcessing;
                 }
@@ -6168,9 +6074,9 @@ deleteProcessing:
                 {
                   localOp.setResultCode(ResultCode.ASSERTION_FAILED);
 
-                  localOp.appendErrorMessage(getMessage(
-                                                MSGID_DELETE_ASSERTION_FAILED,
-                                                String.valueOf(entryDN)));
+                  localOp.appendErrorMessage(
+                          ERR_DELETE_ASSERTION_FAILED.get(
+                                  String.valueOf(entryDN)));
 
                   break deleteProcessing;
                 }
@@ -6184,10 +6090,10 @@ deleteProcessing:
 
                 localOp.setResultCode(ResultCode.PROTOCOL_ERROR);
 
-                int msgID = MSGID_DELETE_CANNOT_PROCESS_ASSERTION_FILTER;
-                localOp.appendErrorMessage(getMessage(msgID,
-                                              String.valueOf(entryDN),
-                                              de.getErrorMessage()));
+                localOp.appendErrorMessage(
+                        ERR_DELETE_CANNOT_PROCESS_ASSERTION_FILTER.get(
+                                String.valueOf(entryDN),
+                                de.getMessageObject()));
 
                 break deleteProcessing;
               }
@@ -6217,7 +6123,7 @@ deleteProcessing:
                   }
 
                   localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  localOp.appendErrorMessage(le.getMessage());
+                  localOp.appendErrorMessage(le.getMessageObject());
 
                   break deleteProcessing;
                 }
@@ -6230,8 +6136,9 @@ deleteProcessing:
               if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH,
                   localOp))
               {
-                int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
-                localOp.appendErrorMessage(getMessage(msgID));
+
+                localOp.appendErrorMessage(
+                        ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
                 localOp.setResultCode(ResultCode.AUTHORIZATION_DENIED);
                 break deleteProcessing;
               }
@@ -6256,7 +6163,7 @@ deleteProcessing:
                   }
 
                   localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  localOp.appendErrorMessage(le.getMessage());
+                  localOp.appendErrorMessage(le.getMessageObject());
 
                   break deleteProcessing;
                 }
@@ -6276,7 +6183,7 @@ deleteProcessing:
                 }
 
                 localOp.setResultCode(de.getResultCode());
-                localOp.appendErrorMessage(de.getErrorMessage());
+                localOp.appendErrorMessage(de.getMessageObject());
 
                 break deleteProcessing;
               }
@@ -6298,8 +6205,8 @@ deleteProcessing:
               if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH,
                   localOp))
               {
-                int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
-                localOp.appendErrorMessage(getMessage(msgID));
+                localOp.appendErrorMessage(
+                        ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
                 localOp.setResultCode(ResultCode.AUTHORIZATION_DENIED);
                 break deleteProcessing;
               }
@@ -6324,7 +6231,7 @@ deleteProcessing:
                   }
 
                   localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  localOp.appendErrorMessage(le.getMessage());
+                  localOp.appendErrorMessage(le.getMessageObject());
 
                   break deleteProcessing;
                 }
@@ -6344,7 +6251,7 @@ deleteProcessing:
                 }
 
                 localOp.setResultCode(de.getResultCode());
-                localOp.appendErrorMessage(de.getErrorMessage());
+                localOp.appendErrorMessage(de.getMessageObject());
 
                 break deleteProcessing;
               }
@@ -6369,10 +6276,10 @@ deleteProcessing:
                 localOp.setResultCode(
                     ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
 
-                int msgID = MSGID_DELETE_UNSUPPORTED_CRITICAL_CONTROL;
-                localOp.appendErrorMessage(getMessage(msgID,
-                                              String.valueOf(entryDN),
-                                              oid));
+                localOp.appendErrorMessage(
+                        ERR_DELETE_UNSUPPORTED_CRITICAL_CONTROL.get(
+                                String.valueOf(entryDN),
+                                oid));
 
                 break deleteProcessing;
               }
@@ -6391,9 +6298,9 @@ deleteProcessing:
             .getAccessControlHandler().isAllowed(localOp) == false) {
           localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
 
-          int msgID = MSGID_DELETE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-          localOp.appendErrorMessage(getMessage(msgID,
-              String.valueOf(entryDN)));
+          localOp.appendErrorMessage(
+                  ERR_DELETE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
+                          String.valueOf(entryDN)));
 
           skipPostOperation = true;
           break deleteProcessing;
@@ -6418,8 +6325,7 @@ deleteProcessing:
             // and result and return.
             localOp.setResultCode(ResultCode.CANCELED);
 
-            int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
-            localOp.appendErrorMessage(getMessage(msgID));
+            localOp.appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
 
             localOp.setProcessingStopTime();
             return;
@@ -6448,8 +6354,8 @@ deleteProcessing:
         if (backend == null)
         {
           localOp.setResultCode(ResultCode.NO_SUCH_OBJECT);
-          localOp.appendErrorMessage(getMessage(MSGID_DELETE_NO_SUCH_ENTRY,
-                                        String.valueOf(entryDN)));
+          localOp.appendErrorMessage(
+                  ERR_DELETE_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
           break deleteProcessing;
         }
 
@@ -6462,9 +6368,8 @@ deleteProcessing:
           {
             case DISABLED:
               localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-              localOp.appendErrorMessage(getMessage(
-                                            MSGID_DELETE_SERVER_READONLY,
-                                            String.valueOf(entryDN)));
+              localOp.appendErrorMessage(
+                      ERR_DELETE_SERVER_READONLY.get(String.valueOf(entryDN)));
               break deleteProcessing;
 
             case INTERNAL_ONLY:
@@ -6472,9 +6377,9 @@ deleteProcessing:
                   localOp.isSynchronizationOperation()))
               {
                 localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-                localOp.appendErrorMessage(getMessage(
-                                              MSGID_DELETE_SERVER_READONLY,
-                                              String.valueOf(entryDN)));
+                localOp.appendErrorMessage(
+                        ERR_DELETE_SERVER_READONLY.get(
+                                String.valueOf(entryDN)));
                 break deleteProcessing;
               }
           }
@@ -6483,9 +6388,8 @@ deleteProcessing:
           {
             case DISABLED:
               localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-              localOp.appendErrorMessage(getMessage(
-                                            MSGID_DELETE_BACKEND_READONLY,
-                                            String.valueOf(entryDN)));
+              localOp.appendErrorMessage(
+                      ERR_DELETE_BACKEND_READONLY.get(String.valueOf(entryDN)));
               break deleteProcessing;
 
             case INTERNAL_ONLY:
@@ -6493,9 +6397,9 @@ deleteProcessing:
                   localOp.isSynchronizationOperation()))
               {
                 localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-                localOp.appendErrorMessage(getMessage(
-                                              MSGID_DELETE_BACKEND_READONLY,
-                                              String.valueOf(entryDN)));
+                localOp.appendErrorMessage(
+                        ERR_DELETE_BACKEND_READONLY.get(
+                                String.valueOf(entryDN)));
                 break deleteProcessing;
               }
           }
@@ -6516,10 +6420,9 @@ deleteProcessing:
             if (dn.isDescendantOf(entryDN))
             {
               localOp.setResultCode(ResultCode.NOT_ALLOWED_ON_NONLEAF);
-              localOp.appendErrorMessage(getMessage(
-                                            MSGID_DELETE_HAS_SUB_BACKEND,
-                                            String.valueOf(entryDN),
-                                            String.valueOf(dn)));
+              localOp.appendErrorMessage(ERR_DELETE_HAS_SUB_BACKEND.get(
+                      String.valueOf(entryDN),
+                      String.valueOf(dn)));
               break deleteProcessing;
             }
           }
@@ -6531,7 +6434,7 @@ deleteProcessing:
         {
           if (noOp)
           {
-            localOp.appendErrorMessage(getMessage(MSGID_DELETE_NOOP));
+            localOp.appendErrorMessage(INFO_DELETE_NOOP.get());
 
             localOp.setResultCode(ResultCode.NO_OPERATION);
           }
@@ -6556,12 +6459,9 @@ deleteProcessing:
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                logError(ErrorLogCategory.SYNCHRONIZATION,
-                         ErrorLogSeverity.SEVERE_ERROR,
-                         MSGID_DELETE_SYNCH_PREOP_FAILED,
-                         localOp.getConnectionID(),
-                         localOp.getOperationID(),
-                         getExceptionMessage(de));
+                logError(ERR_DELETE_SYNCH_PREOP_FAILED.
+                    get(localOp.getConnectionID(), localOp.getOperationID(),
+                        getExceptionMessage(de)));
 
                 localOp.setResponseData(de);
                 break deleteProcessing;
@@ -6636,7 +6536,7 @@ deleteProcessing:
           }
 
           localOp.setResultCode(de.getResultCode());
-          localOp.appendErrorMessage(de.getErrorMessage());
+          localOp.appendErrorMessage(de.getMessageObject());
           localOp.setMatchedDN(de.getMatchedDN());
           localOp.setReferralURLs(de.getReferralURLs());
 
@@ -6654,7 +6554,7 @@ deleteProcessing:
           localOp.setCancelResult(cancelResult);
           localOp.setResultCode(cancelResult.getResultCode());
 
-          String message = coe.getMessage();
+          Message message = coe.getMessageObject();
           if ((message != null) && (message.length() > 0))
           {
             localOp.appendErrorMessage(message);
@@ -6681,12 +6581,9 @@ deleteProcessing:
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            logError(ErrorLogCategory.SYNCHRONIZATION,
-                     ErrorLogSeverity.SEVERE_ERROR,
-                     MSGID_DELETE_SYNCH_POSTOP_FAILED,
-                     localOp.getConnectionID(),
-                     localOp.getOperationID(),
-                     getExceptionMessage(de));
+            logError(ERR_DELETE_SYNCH_POSTOP_FAILED.
+                get(localOp.getConnectionID(), localOp.getOperationID(),
+                    getExceptionMessage(de)));
 
             localOp.setResponseData(de);
             break;
@@ -6709,8 +6606,7 @@ deleteProcessing:
       {
         localOp.setResultCode(ResultCode.CANCELED);
 
-        int msgID = MSGID_CANCELED_BY_POSTOP_DISCONNECT;
-        localOp.appendErrorMessage(getMessage(msgID));
+        localOp.appendErrorMessage(ERR_CANCELED_BY_POSTOP_DISCONNECT.get());
 
         localOp.setProcessingStopTime();
         return;
@@ -6737,10 +6633,9 @@ deleteProcessing:
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_DELETE_ERROR_NOTIFYING_CHANGE_LISTENER;
-          String message = getMessage(msgID, getExceptionMessage(e));
-          logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_DELETE_ERROR_NOTIFYING_CHANGE_LISTENER.get(
+              getExceptionMessage(e));
+          logError(message);
         }
       }
     }
@@ -6807,8 +6702,8 @@ compareProcessing:
       if (DirectoryServer.getConfigHandler().handlesEntry(entryDN) &&
           (! clientConnection.hasPrivilege(Privilege.CONFIG_READ, localOp)))
       {
-        int msgID = MSGID_COMPARE_CONFIG_INSUFFICIENT_PRIVILEGES;
-        localOp.appendErrorMessage(getMessage(msgID));
+        localOp.appendErrorMessage(
+                ERR_COMPARE_CONFIG_INSUFFICIENT_PRIVILEGES.get());
         localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
         skipPostOperation = true;
         break compareProcessing;
@@ -6835,8 +6730,8 @@ compareProcessing:
 
       if (readLock == null)
       {
-        int    msgID   = MSGID_COMPARE_CANNOT_LOCK_ENTRY;
-        String message = getMessage(msgID, String.valueOf(entryDN));
+        Message message = ERR_COMPARE_CANNOT_LOCK_ENTRY.get(
+                String.valueOf(entryDN));
 
         localOp.setResultCode(DirectoryServer.getServerErrorResultCode());
         localOp.appendErrorMessage(message);
@@ -6856,8 +6751,8 @@ compareProcessing:
           if (entry == null)
           {
             localOp.setResultCode(ResultCode.NO_SUCH_OBJECT);
-            localOp.appendErrorMessage(getMessage(MSGID_COMPARE_NO_SUCH_ENTRY,
-                                          String.valueOf(entryDN)));
+            localOp.appendErrorMessage(
+                    ERR_COMPARE_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
 
             // See if one of the entry's ancestors exists.
             DN parentDN = entryDN.getParentDNInSuffix();
@@ -6894,7 +6789,7 @@ compareProcessing:
           }
 
           localOp.setResultCode(de.getResultCode());
-          localOp.appendErrorMessage(de.getErrorMessage());
+          localOp.appendErrorMessage(de.getMessageObject());
           break compareProcessing;
         }
 
@@ -6913,8 +6808,9 @@ compareProcessing:
                     isAllowed(entryDN, localOp, c))
             {
               localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-              int msgID = MSGID_CONTROL_INSUFFICIENT_ACCESS_RIGHTS;
-              localOp.appendErrorMessage(getMessage(msgID, oid));
+
+              localOp.appendErrorMessage(
+                      ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
               skipPostOperation = true;
               break compareProcessing;
             }
@@ -6941,7 +6837,7 @@ compareProcessing:
                   }
 
                   localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  localOp.appendErrorMessage(le.getMessage());
+                  localOp.appendErrorMessage(le.getMessageObject());
 
                   break compareProcessing;
                 }
@@ -6957,8 +6853,8 @@ compareProcessing:
                   localOp.setResultCode(ResultCode.ASSERTION_FAILED);
 
                   localOp.appendErrorMessage(
-                      getMessage(MSGID_COMPARE_ASSERTION_FAILED,
-                      String.valueOf(entryDN)));
+                      ERR_COMPARE_ASSERTION_FAILED.get(
+                              String.valueOf(entryDN)));
 
                   break compareProcessing;
                 }
@@ -6972,10 +6868,10 @@ compareProcessing:
 
                 localOp.setResultCode(ResultCode.PROTOCOL_ERROR);
 
-                int msgID = MSGID_COMPARE_CANNOT_PROCESS_ASSERTION_FILTER;
                 localOp.appendErrorMessage(
-                    getMessage(msgID, String.valueOf(entryDN),
-                    de.getErrorMessage()));
+                    ERR_COMPARE_CANNOT_PROCESS_ASSERTION_FILTER.get(
+                            String.valueOf(entryDN),
+                            de.getMessageObject()));
 
                 break compareProcessing;
               }
@@ -6987,8 +6883,8 @@ compareProcessing:
               if (! clientConnection.hasPrivilege(
                        Privilege.PROXIED_AUTH, localOp))
               {
-                int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
-                localOp.appendErrorMessage(getMessage(msgID));
+                localOp.appendErrorMessage(
+                        ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
                 localOp.setResultCode(ResultCode.AUTHORIZATION_DENIED);
                 break compareProcessing;
               }
@@ -7013,7 +6909,7 @@ compareProcessing:
                   }
 
                   localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  localOp.appendErrorMessage(le.getMessage());
+                  localOp.appendErrorMessage(le.getMessageObject());
 
                   break compareProcessing;
                 }
@@ -7033,7 +6929,7 @@ compareProcessing:
                 }
 
                 localOp.setResultCode(de.getResultCode());
-                localOp.appendErrorMessage(de.getErrorMessage());
+                localOp.appendErrorMessage(de.getMessageObject());
 
                 break compareProcessing;
               }
@@ -7055,8 +6951,8 @@ compareProcessing:
               if (! clientConnection.hasPrivilege(
                        Privilege.PROXIED_AUTH, localOp))
               {
-                int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
-                localOp.appendErrorMessage(getMessage(msgID));
+                localOp.appendErrorMessage(
+                        ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
                 localOp.setResultCode(ResultCode.AUTHORIZATION_DENIED);
                 break compareProcessing;
               }
@@ -7081,7 +6977,7 @@ compareProcessing:
                   }
 
                   localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  localOp.appendErrorMessage(le.getMessage());
+                  localOp.appendErrorMessage(le.getMessageObject());
 
                   break compareProcessing;
                 }
@@ -7101,7 +6997,7 @@ compareProcessing:
                 }
 
                 localOp.setResultCode(de.getResultCode());
-                localOp.appendErrorMessage(de.getErrorMessage());
+                localOp.appendErrorMessage(de.getMessageObject());
 
                 break compareProcessing;
               }
@@ -7126,9 +7022,9 @@ compareProcessing:
                 localOp.setResultCode(
                     ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
 
-                int msgID = MSGID_COMPARE_UNSUPPORTED_CRITICAL_CONTROL;
                 localOp.appendErrorMessage(
-                    getMessage(msgID, String.valueOf(entryDN), oid));
+                    ERR_COMPARE_UNSUPPORTED_CRITICAL_CONTROL.get(
+                            String.valueOf(entryDN), oid));
 
                 break compareProcessing;
               }
@@ -7150,9 +7046,9 @@ compareProcessing:
             .getAccessControlHandler().isAllowed(localOp) == false) {
           localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
 
-          int msgID = MSGID_COMPARE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
           localOp.appendErrorMessage(
-              getMessage(msgID, String.valueOf(entryDN)));
+              ERR_COMPARE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
+                      String.valueOf(entryDN)));
 
           skipPostOperation = true;
           break compareProcessing;
@@ -7174,8 +7070,7 @@ compareProcessing:
           // result and return.
           localOp.setResultCode(ResultCode.CANCELED);
 
-          int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
-          localOp.appendErrorMessage(getMessage(msgID));
+          localOp.appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
 
           return;
         }
@@ -7240,14 +7135,14 @@ compareProcessing:
           localOp.setResultCode(ResultCode.NO_SUCH_ATTRIBUTE);
           if (options == null)
           {
-            localOp.appendErrorMessage(getMessage(MSGID_COMPARE_OP_NO_SUCH_ATTR,
-                                          String.valueOf(entryDN), baseName));
+            localOp.appendErrorMessage(WARN_COMPARE_OP_NO_SUCH_ATTR.get(
+                    String.valueOf(entryDN), baseName));
           }
           else
           {
-            localOp.appendErrorMessage(getMessage(
-                                    MSGID_COMPARE_OP_NO_SUCH_ATTR_WITH_OPTIONS,
-                                    String.valueOf(entryDN), baseName));
+            localOp.appendErrorMessage(
+                    WARN_COMPARE_OP_NO_SUCH_ATTR_WITH_OPTIONS.get(
+                            String.valueOf(entryDN), baseName));
           }
         }
         else
@@ -7299,8 +7194,7 @@ compareProcessing:
       {
         localOp.setResultCode(ResultCode.CANCELED);
 
-        int msgID = MSGID_CANCELED_BY_POSTOP_DISCONNECT;
-        localOp.appendErrorMessage(getMessage(msgID));
+        localOp.appendErrorMessage(ERR_CANCELED_BY_POSTOP_DISCONNECT.get());
 
         return;
       }
@@ -7378,8 +7272,7 @@ modifyDNProcessing:
       if ((parentDN == null) || parentDN.isNullDN())
       {
         op.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-        op.appendErrorMessage(getMessage(MSGID_MODDN_NO_PARENT,
-                                      String.valueOf(entryDN)));
+        op.appendErrorMessage(ERR_MODDN_NO_PARENT.get(String.valueOf(entryDN)));
         break modifyDNProcessing;
       }
 
@@ -7391,9 +7284,8 @@ modifyDNProcessing:
       if (currentBackend == null)
       {
         op.setResultCode(ResultCode.NO_SUCH_OBJECT);
-        op.appendErrorMessage(getMessage(
-                                      MSGID_MODDN_NO_BACKEND_FOR_CURRENT_ENTRY,
-                                      String.valueOf(entryDN)));
+        op.appendErrorMessage(ERR_MODDN_NO_BACKEND_FOR_CURRENT_ENTRY.get(
+                String.valueOf(entryDN)));
         break modifyDNProcessing;
       }
 
@@ -7401,17 +7293,17 @@ modifyDNProcessing:
       if (newBackend == null)
       {
         op.setResultCode(ResultCode.NO_SUCH_OBJECT);
-        op.appendErrorMessage(getMessage(MSGID_MODDN_NO_BACKEND_FOR_NEW_ENTRY,
-                                      String.valueOf(entryDN),
+        op.appendErrorMessage(ERR_MODDN_NO_BACKEND_FOR_NEW_ENTRY.get(
+                String.valueOf(entryDN),
                                       String.valueOf(newDN)));
         break modifyDNProcessing;
       }
       else if (! currentBackend.equals(newBackend))
       {
         op.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-        op.appendErrorMessage(getMessage(MSGID_MODDN_DIFFERENT_BACKENDS,
-                                      String.valueOf(entryDN),
-                                      String.valueOf(newDN)));
+        op.appendErrorMessage(ERR_MODDN_DIFFERENT_BACKENDS.get(
+                String.valueOf(entryDN),
+                String.valueOf(newDN)));
         break modifyDNProcessing;
       }
 
@@ -7437,8 +7329,8 @@ modifyDNProcessing:
       if (currentLock == null)
       {
         op.setResultCode(DirectoryServer.getServerErrorResultCode());
-        op.appendErrorMessage(getMessage(MSGID_MODDN_CANNOT_LOCK_CURRENT_DN,
-                                      String.valueOf(entryDN)));
+        op.appendErrorMessage(ERR_MODDN_CANNOT_LOCK_CURRENT_DN.get(
+                String.valueOf(entryDN)));
 
         skipPostOperation = true;
         break modifyDNProcessing;
@@ -7471,10 +7363,10 @@ modifyDNProcessing:
         }
 
         op.setResultCode(DirectoryServer.getServerErrorResultCode());
-        op.appendErrorMessage(getMessage(MSGID_MODDN_EXCEPTION_LOCKING_NEW_DN,
-                                      String.valueOf(entryDN),
-                                      String.valueOf(newDN),
-                                      getExceptionMessage(e)));
+        op.appendErrorMessage(ERR_MODDN_EXCEPTION_LOCKING_NEW_DN.get(
+                String.valueOf(entryDN),
+                String.valueOf(newDN),
+                getExceptionMessage(e)));
 
         skipPostOperation = true;
         break modifyDNProcessing;
@@ -7485,9 +7377,9 @@ modifyDNProcessing:
         LockManager.unlock(entryDN, currentLock);
 
         op.setResultCode(DirectoryServer.getServerErrorResultCode());
-        op.appendErrorMessage(getMessage(MSGID_MODDN_CANNOT_LOCK_NEW_DN,
-                                      String.valueOf(entryDN),
-                                      String.valueOf(newDN)));
+        op.appendErrorMessage(ERR_MODDN_CANNOT_LOCK_NEW_DN.get(
+                String.valueOf(entryDN),
+                String.valueOf(newDN)));
 
         skipPostOperation = true;
         break modifyDNProcessing;
@@ -7518,7 +7410,7 @@ modifyDNProcessing:
           }
 
           op.setResultCode(de.getResultCode());
-          op.appendErrorMessage(de.getErrorMessage());
+          op.appendErrorMessage(de.getMessageObject());
           op.setMatchedDN(de.getMatchedDN());
           op.setReferralURLs(de.getReferralURLs());
 
@@ -7552,8 +7444,8 @@ modifyDNProcessing:
           }
 
           op.setResultCode(ResultCode.NO_SUCH_OBJECT);
-          op.appendErrorMessage(getMessage(MSGID_MODDN_NO_CURRENT_ENTRY,
-                                        String.valueOf(entryDN)));
+          op.appendErrorMessage(ERR_MODDN_NO_CURRENT_ENTRY.get(
+                  String.valueOf(entryDN)));
 
           break modifyDNProcessing;
         }
@@ -7580,11 +7472,9 @@ modifyDNProcessing:
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            logError(ErrorLogCategory.SYNCHRONIZATION,
-                     ErrorLogSeverity.SEVERE_ERROR,
-                     MSGID_MODDN_SYNCH_CONFLICT_RESOLUTION_FAILED,
-                     op.getConnectionID(), op.getOperationID(),
-                     getExceptionMessage(de));
+            logError(ERR_MODDN_SYNCH_CONFLICT_RESOLUTION_FAILED.
+                get(op.getConnectionID(), op.getOperationID(),
+                    getExceptionMessage(de)));
 
             op.setResponseData(de);
             break modifyDNProcessing;
@@ -7609,8 +7499,9 @@ modifyDNProcessing:
                      getAccessControlHandler().isAllowed(entryDN,  op, c))
             {
               op.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-              int msgID = MSGID_CONTROL_INSUFFICIENT_ACCESS_RIGHTS;
-              op.appendErrorMessage(getMessage(msgID, oid));
+
+              op.appendErrorMessage(
+                      ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
               skipPostOperation = true;
               break modifyDNProcessing;
             }
@@ -7637,7 +7528,7 @@ modifyDNProcessing:
                   }
 
                   op.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  op.appendErrorMessage(le.getMessage());
+                  op.appendErrorMessage(le.getMessageObject());
 
                   break modifyDNProcessing;
                 }
@@ -7652,8 +7543,8 @@ modifyDNProcessing:
                 {
                   op.setResultCode(ResultCode.ASSERTION_FAILED);
 
-                  op.appendErrorMessage(getMessage(MSGID_MODDN_ASSERTION_FAILED,
-                                                String.valueOf(entryDN)));
+                  op.appendErrorMessage(ERR_MODDN_ASSERTION_FAILED.get(
+                          String.valueOf(entryDN)));
 
                   break modifyDNProcessing;
                 }
@@ -7667,9 +7558,10 @@ modifyDNProcessing:
 
                 op.setResultCode(ResultCode.PROTOCOL_ERROR);
 
-                int msgID = MSGID_MODDN_CANNOT_PROCESS_ASSERTION_FILTER;
-                op.appendErrorMessage(getMessage(msgID, String.valueOf(entryDN),
-                                              de.getErrorMessage()));
+                op.appendErrorMessage(
+                        ERR_MODDN_CANNOT_PROCESS_ASSERTION_FILTER.get(
+                                String.valueOf(entryDN),
+                                de.getMessageObject()));
 
                 break modifyDNProcessing;
               }
@@ -7699,7 +7591,7 @@ modifyDNProcessing:
                   }
 
                   op.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  op.appendErrorMessage(le.getMessage());
+                  op.appendErrorMessage(le.getMessageObject());
 
                   break modifyDNProcessing;
                 }
@@ -7726,7 +7618,7 @@ modifyDNProcessing:
                   }
 
                   op.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  op.appendErrorMessage(le.getMessage());
+                  op.appendErrorMessage(le.getMessageObject());
 
                   break modifyDNProcessing;
                 }
@@ -7738,8 +7630,9 @@ modifyDNProcessing:
               // be able to use this control.
               if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, op))
               {
-                int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
-                op.appendErrorMessage(getMessage(msgID));
+
+                op.appendErrorMessage(
+                        ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
                 op.setResultCode(ResultCode.AUTHORIZATION_DENIED);
                 break modifyDNProcessing;
               }
@@ -7764,7 +7657,7 @@ modifyDNProcessing:
                   }
 
                   op.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  op.appendErrorMessage(le.getMessage());
+                  op.appendErrorMessage(le.getMessageObject());
 
                   break modifyDNProcessing;
                 }
@@ -7784,7 +7677,7 @@ modifyDNProcessing:
                 }
 
                 op.setResultCode(de.getResultCode());
-                op.appendErrorMessage(de.getErrorMessage());
+                op.appendErrorMessage(de.getMessageObject());
 
                 break modifyDNProcessing;
               }
@@ -7805,8 +7698,9 @@ modifyDNProcessing:
               // be able to use this control.
               if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, op))
               {
-                int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
-                op.appendErrorMessage(getMessage(msgID));
+
+                op.appendErrorMessage(
+                        ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
                 op.setResultCode(ResultCode.AUTHORIZATION_DENIED);
                 break modifyDNProcessing;
               }
@@ -7831,7 +7725,7 @@ modifyDNProcessing:
                   }
 
                   op.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                  op.appendErrorMessage(le.getMessage());
+                  op.appendErrorMessage(le.getMessageObject());
 
                   break modifyDNProcessing;
                 }
@@ -7851,7 +7745,7 @@ modifyDNProcessing:
                 }
 
                 op.setResultCode(de.getResultCode());
-                op.appendErrorMessage(de.getErrorMessage());
+                op.appendErrorMessage(de.getMessageObject());
 
                 break modifyDNProcessing;
               }
@@ -7875,9 +7769,11 @@ modifyDNProcessing:
               {
                 op.setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
 
-                int msgID = MSGID_MODDN_UNSUPPORTED_CRITICAL_CONTROL;
-                op.appendErrorMessage(getMessage(msgID, String.valueOf(entryDN),
-                                              oid));
+
+                op.appendErrorMessage(
+                        ERR_MODDN_UNSUPPORTED_CRITICAL_CONTROL.get(
+                                String.valueOf(entryDN),
+                                oid));
 
                 break modifyDNProcessing;
               }
@@ -7900,8 +7796,8 @@ modifyDNProcessing:
             .getAccessControlHandler().isAllowed(op) == false) {
           op.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
 
-          int msgID = MSGID_MODDN_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-          op.appendErrorMessage(getMessage(msgID, String.valueOf(entryDN)));
+          op.appendErrorMessage(ERR_MODDN_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
+                  String.valueOf(entryDN)));
 
           skipPostOperation = true;
           break modifyDNProcessing;
@@ -7942,9 +7838,8 @@ modifyDNProcessing:
               {
                 op.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-                int msgID = MSGID_MODDN_OLD_RDN_ATTR_IS_NO_USER_MOD;
-                op.appendErrorMessage(getMessage(msgID, String.valueOf(entryDN),
-                                              a.getName()));
+                op.appendErrorMessage(ERR_MODDN_OLD_RDN_ATTR_IS_NO_USER_MOD.get(
+                        String.valueOf(entryDN), a.getName()));
                 break modifyDNProcessing;
               }
             }
@@ -7988,9 +7883,8 @@ modifyDNProcessing:
               {
                 op.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-                int msgID = MSGID_MODDN_NEW_RDN_ATTR_IS_NO_USER_MOD;
-                op.appendErrorMessage(getMessage(msgID, String.valueOf(entryDN),
-                                              a.getName()));
+                op.appendErrorMessage(ERR_MODDN_NEW_RDN_ATTR_IS_NO_USER_MOD.get(
+                        String.valueOf(entryDN), a.getName()));
                 break modifyDNProcessing;
               }
             }
@@ -8007,14 +7901,14 @@ modifyDNProcessing:
         if ((DirectoryServer.checkSchema()) &&
             (!op.isSynchronizationOperation()) )
         {
-          StringBuilder invalidReason = new StringBuilder();
+          MessageBuilder invalidReason = new MessageBuilder();
           if (! newEntry.conformsToSchema(null, false, true, true,
                                           invalidReason))
           {
             op.setResultCode(ResultCode.OBJECTCLASS_VIOLATION);
-            op.appendErrorMessage(getMessage(MSGID_MODDN_VIOLATES_SCHEMA,
-                                          String.valueOf(entryDN),
-                                          String.valueOf(invalidReason)));
+            op.appendErrorMessage(ERR_MODDN_VIOLATES_SCHEMA.get(
+                    String.valueOf(entryDN),
+                    String.valueOf(invalidReason)));
             break modifyDNProcessing;
           }
 
@@ -8024,10 +7918,9 @@ modifyDNProcessing:
             if (at.isObsolete())
             {
               op.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-              op.appendErrorMessage(getMessage(
-                                            MSGID_MODDN_NEWRDN_ATTR_IS_OBSOLETE,
-                                            String.valueOf(entryDN),
-                                            at.getNameOrOID()));
+              op.appendErrorMessage(ERR_MODDN_NEWRDN_ATTR_IS_OBSOLETE.get(
+                      String.valueOf(entryDN),
+                      at.getNameOrOID()));
               break modifyDNProcessing;
             }
           }
@@ -8059,8 +7952,8 @@ modifyDNProcessing:
             // and result and return.
             op.setResultCode(ResultCode.CANCELED);
 
-            int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
-            op.appendErrorMessage(getMessage(msgID));
+
+            op.appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
             return;
           }
           else if (preOpResult.sendResponseImmediately())
@@ -8109,10 +8002,8 @@ modifyDNProcessing:
                 {
                   op.setResultCode(ResultCode.NO_SUCH_ATTRIBUTE);
 
-                  int msgID = MSGID_MODDN_PREOP_INCREMENT_NO_ATTR;
-                  op.appendErrorMessage(getMessage(msgID,
-                                                String.valueOf(entryDN),
-                                                a.getName()));
+                  op.appendErrorMessage(ERR_MODDN_PREOP_INCREMENT_NO_ATTR.get(
+                          String.valueOf(entryDN), a.getName()));
 
                   break modifyDNProcessing;
                 }
@@ -8120,10 +8011,10 @@ modifyDNProcessing:
                 {
                   op.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
 
-                  int msgID = MSGID_MODDN_PREOP_INCREMENT_MULTIPLE_VALUES;
-                  op.appendErrorMessage(getMessage(msgID,
-                                                String.valueOf(entryDN),
-                                                a.getName()));
+                  op.appendErrorMessage(
+                          ERR_MODDN_PREOP_INCREMENT_MULTIPLE_VALUES.get(
+                                  String.valueOf(entryDN),
+                                  a.getName()));
 
                   break modifyDNProcessing;
                 }
@@ -8134,10 +8025,9 @@ modifyDNProcessing:
                 {
                   op.setResultCode(ResultCode.NO_SUCH_ATTRIBUTE);
 
-                  int msgID = MSGID_MODDN_PREOP_INCREMENT_NO_ATTR;
-                  op.appendErrorMessage(getMessage(msgID,
-                                                String.valueOf(entryDN),
-                                                a.getName()));
+                  op.appendErrorMessage(ERR_MODDN_PREOP_INCREMENT_NO_ATTR.get(
+                          String.valueOf(entryDN),
+                          a.getName()));
 
                   break modifyDNProcessing;
                 }
@@ -8145,10 +8035,10 @@ modifyDNProcessing:
                 {
                   op.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
 
-                  int msgID = MSGID_MODDN_PREOP_INCREMENT_MULTIPLE_VALUES;
-                  op.appendErrorMessage(getMessage(msgID,
-                                                String.valueOf(entryDN),
-                                                a.getName()));
+                  op.appendErrorMessage(
+                          ERR_MODDN_PREOP_INCREMENT_MULTIPLE_VALUES.get(
+                                  String.valueOf(entryDN),
+                                  a.getName()));
 
                   break modifyDNProcessing;
                 }
@@ -8168,10 +8058,10 @@ modifyDNProcessing:
 
                   op.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
 
-                  int msgID = MSGID_MODDN_PREOP_INCREMENT_VALUE_NOT_INTEGER;
-                  op.appendErrorMessage(getMessage(msgID,
-                                                String.valueOf(entryDN),
-                                                a.getName()));
+                  op.appendErrorMessage(
+                          ERR_MODDN_PREOP_INCREMENT_VALUE_NOT_INTEGER.get(
+                                  String.valueOf(entryDN),
+                                  a.getName()));
 
                   break modifyDNProcessing;
                 }
@@ -8181,10 +8071,10 @@ modifyDNProcessing:
                 {
                   op.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
 
-                  int msgID = MSGID_MODDN_PREOP_INCREMENT_NO_AMOUNT;
-                  op.appendErrorMessage(getMessage(msgID,
-                                                String.valueOf(entryDN),
-                                                a.getName()));
+                  op.appendErrorMessage(
+                          ERR_MODDN_PREOP_INCREMENT_NO_AMOUNT.get(
+                                  String.valueOf(entryDN),
+                                  a.getName()));
 
                   break modifyDNProcessing;
                 }
@@ -8192,10 +8082,10 @@ modifyDNProcessing:
                 {
                   op.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
 
-                  int msgID = MSGID_MODDN_PREOP_INCREMENT_MULTIPLE_AMOUNTS;
-                  op.appendErrorMessage(getMessage(msgID,
-                                                String.valueOf(entryDN),
-                                                a.getName()));
+                  op.appendErrorMessage(
+                          ERR_MODDN_PREOP_INCREMENT_MULTIPLE_AMOUNTS.get(
+                                  String.valueOf(entryDN),
+                                  a.getName()));
 
                   break modifyDNProcessing;
                 }
@@ -8215,10 +8105,10 @@ modifyDNProcessing:
 
                   op.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
 
-                  int msgID = MSGID_MODDN_PREOP_INCREMENT_AMOUNT_NOT_INTEGER;
-                  op.appendErrorMessage(getMessage(msgID,
-                                                String.valueOf(entryDN),
-                                                a.getName()));
+                  op.appendErrorMessage(
+                          ERR_MODDN_PREOP_INCREMENT_AMOUNT_NOT_INTEGER.get(
+                                  String.valueOf(entryDN),
+                                  a.getName()));
 
                   break modifyDNProcessing;
                 }
@@ -8245,16 +8135,15 @@ modifyDNProcessing:
           // schema.
           if (DirectoryServer.checkSchema())
           {
-            StringBuilder invalidReason = new StringBuilder();
+            MessageBuilder invalidReason = new MessageBuilder();
             if (! newEntry.conformsToSchema(null, false, true, true,
                                             invalidReason))
             {
               op.setResultCode(ResultCode.OBJECTCLASS_VIOLATION);
 
-              op.appendErrorMessage(getMessage(
-                                            MSGID_MODDN_PREOP_VIOLATES_SCHEMA,
-                                            String.valueOf(entryDN),
-                                            String.valueOf(invalidReason)));
+              op.appendErrorMessage(ERR_MODDN_PREOP_VIOLATES_SCHEMA.get(
+                      String.valueOf(entryDN),
+                      String.valueOf(invalidReason)));
               break modifyDNProcessing;
             }
           }
@@ -8281,8 +8170,8 @@ modifyDNProcessing:
             {
               case DISABLED:
                 op.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-                op.appendErrorMessage(getMessage(MSGID_MODDN_SERVER_READONLY,
-                                              String.valueOf(entryDN)));
+                op.appendErrorMessage(ERR_MODDN_SERVER_READONLY.get(
+                        String.valueOf(entryDN)));
                 break modifyDNProcessing;
 
               case INTERNAL_ONLY:
@@ -8290,8 +8179,8 @@ modifyDNProcessing:
                     op.isSynchronizationOperation()))
                 {
                   op.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-                  op.appendErrorMessage(getMessage(MSGID_MODDN_SERVER_READONLY,
-                                                String.valueOf(entryDN)));
+                  op.appendErrorMessage(ERR_MODDN_SERVER_READONLY.get(
+                          String.valueOf(entryDN)));
                   break modifyDNProcessing;
                 }
             }
@@ -8300,8 +8189,8 @@ modifyDNProcessing:
             {
               case DISABLED:
                 op.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-                op.appendErrorMessage(getMessage(MSGID_MODDN_BACKEND_READONLY,
-                                              String.valueOf(entryDN)));
+                op.appendErrorMessage(ERR_MODDN_BACKEND_READONLY.get(
+                        String.valueOf(entryDN)));
                 break modifyDNProcessing;
 
               case INTERNAL_ONLY:
@@ -8309,8 +8198,8 @@ modifyDNProcessing:
                     op.isSynchronizationOperation()))
                 {
                   op.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-                  op.appendErrorMessage(getMessage(MSGID_MODDN_BACKEND_READONLY,
-                                                String.valueOf(entryDN)));
+                  op.appendErrorMessage(ERR_MODDN_BACKEND_READONLY.get(
+                          String.valueOf(entryDN)));
                   break modifyDNProcessing;
                 }
             }
@@ -8319,7 +8208,7 @@ modifyDNProcessing:
 
           if (noOp)
           {
-            op.appendErrorMessage(getMessage(MSGID_MODDN_NOOP));
+            op.appendErrorMessage(INFO_MODDN_NOOP.get());
 
             op.setResultCode(ResultCode.NO_OPERATION);
           }
@@ -8344,10 +8233,9 @@ modifyDNProcessing:
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                logError(ErrorLogCategory.SYNCHRONIZATION,
-                         ErrorLogSeverity.SEVERE_ERROR,
-                         MSGID_MODDN_SYNCH_PREOP_FAILED, op.getConnectionID(),
-                         op.getOperationID(), getExceptionMessage(de));
+                logError(ERR_MODDN_SYNCH_PREOP_FAILED.
+                    get(op.getConnectionID(), op.getOperationID(),
+                        getExceptionMessage(de)));
 
                 op.setResponseData(de);
                 break modifyDNProcessing;
@@ -8473,7 +8361,7 @@ modifyDNProcessing:
           }
 
           op.setResultCode(de.getResultCode());
-          op.appendErrorMessage(de.getErrorMessage());
+          op.appendErrorMessage(de.getMessageObject());
           op.setMatchedDN(de.getMatchedDN());
           op.setReferralURLs(de.getReferralURLs());
 
@@ -8491,7 +8379,7 @@ modifyDNProcessing:
           op.setCancelResult(cancelResult);
           op.setResultCode(cancelResult.getResultCode());
 
-          String message = coe.getMessage();
+          Message message = coe.getMessageObject();
           if ((message != null) && (message.length() > 0))
           {
             op.appendErrorMessage(message);
@@ -8519,10 +8407,9 @@ modifyDNProcessing:
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            logError(ErrorLogCategory.SYNCHRONIZATION,
-                     ErrorLogSeverity.SEVERE_ERROR,
-                     MSGID_MODDN_SYNCH_POSTOP_FAILED, op.getConnectionID(),
-                     op.getOperationID(), getExceptionMessage(de));
+            logError(ERR_MODDN_SYNCH_POSTOP_FAILED.
+                get(op.getConnectionID(), op.getOperationID(),
+                    getExceptionMessage(de)));
 
             op.setResponseData(de);
             break;
@@ -8545,8 +8432,8 @@ modifyDNProcessing:
       {
         op.setResultCode(ResultCode.CANCELED);
 
-        int msgID = MSGID_CANCELED_BY_POSTOP_DISCONNECT;
-        op.appendErrorMessage(getMessage(msgID));
+
+        op.appendErrorMessage(ERR_CANCELED_BY_POSTOP_DISCONNECT.get());
         return;
       }
     }
@@ -8572,10 +8459,9 @@ modifyDNProcessing:
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER;
-          String message = getMessage(msgID, getExceptionMessage(e));
-          logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER.get(
+              getExceptionMessage(e));
+          logError(message);
         }
       }
     }

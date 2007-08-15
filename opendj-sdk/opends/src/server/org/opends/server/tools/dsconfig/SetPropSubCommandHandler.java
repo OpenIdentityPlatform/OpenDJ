@@ -25,11 +25,11 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -244,39 +244,40 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
     // Create the sub-command.
     String name = "set-" + r.getName() + "-prop";
-    int descriptionID = MSGID_DSCFG_DESCRIPTION_SUBCMD_SETPROP;
+    Message description = INFO_DSCFG_DESCRIPTION_SUBCMD_SETPROP.get(
+      r.getChildDefinition().getUserFriendlyName());
     this.subCommand = new SubCommand(parser, name, false, 0, 0, null,
-        descriptionID, r.getChildDefinition().getUserFriendlyName());
+        description);
 
     // Create the naming arguments.
     this.namingArgs = createNamingArgs(subCommand, path, false);
 
     // Register common arguments.
     registerAdvancedModeArgument(this.subCommand,
-        MSGID_DSCFG_DESCRIPTION_ADVANCED_SET, r.getUserFriendlyName());
+        INFO_DSCFG_DESCRIPTION_ADVANCED_SET.get());
 
     // Create the --set argument.
     this.propertySetArgument = new StringArgument(OPTION_DSCFG_LONG_SET,
         OPTION_DSCFG_SHORT_SET, OPTION_DSCFG_LONG_SET, false, true, true,
-        "{PROP:VAL}", null, null, MSGID_DSCFG_DESCRIPTION_PROP_VAL);
+        "{PROP:VAL}", null, null, INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
     this.subCommand.addArgument(this.propertySetArgument);
 
     // Create the --reset argument.
     this.propertyResetArgument = new StringArgument(OPTION_DSCFG_LONG_RESET,
         OPTION_DSCFG_SHORT_RESET, OPTION_DSCFG_LONG_RESET, false, true, true,
-        "{PROP}", null, null, MSGID_DSCFG_DESCRIPTION_RESET_PROP);
+        "{PROP}", null, null, INFO_DSCFG_DESCRIPTION_RESET_PROP.get());
     this.subCommand.addArgument(this.propertyResetArgument);
 
     // Create the --add argument.
     this.propertyAddArgument = new StringArgument(OPTION_DSCFG_LONG_ADD,
         OPTION_DSCFG_SHORT_ADD, OPTION_DSCFG_LONG_ADD, false, true, true,
-        "{PROP:VAL}", null, null, MSGID_DSCFG_DESCRIPTION_ADD_PROP_VAL);
+        "{PROP:VAL}", null, null, INFO_DSCFG_DESCRIPTION_ADD_PROP_VAL.get());
     this.subCommand.addArgument(this.propertyAddArgument);
 
     // Create the --remove argument.
     this.propertyRemoveArgument = new StringArgument(OPTION_DSCFG_LONG_REMOVE,
         OPTION_DSCFG_SHORT_REMOVE, OPTION_DSCFG_LONG_REMOVE, false, true, true,
-        "{PROP:VAL}", null, null, MSGID_DSCFG_DESCRIPTION_REMOVE_PROP_VAL);
+        "{PROP:VAL}", null, null, INFO_DSCFG_DESCRIPTION_REMOVE_PROP_VAL.get());
     this.subCommand.addArgument(this.propertyRemoveArgument);
 
     // Register the tags associated with the child managed objects.
@@ -309,39 +310,33 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
     try {
       child = getManagedObject(path, names);
     } catch (AuthorizationException e) {
-      int msgID = MSGID_DSCFG_ERROR_MODIFY_AUTHZ;
-      String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn);
+      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_MODIFY_AUTHZ.get(ufn);
       throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-          msgID, msg);
+          msg);
     } catch (DefinitionDecodingException e) {
-      int msgID = MSGID_DSCFG_ERROR_GET_CHILD_DDE;
-      String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn, ufn, ufn);
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msgID, msg);
+      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_GET_CHILD_DDE.get(ufn, ufn, ufn);
+      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
     } catch (ManagedObjectDecodingException e) {
       // FIXME: should not abort here. Instead, display the errors (if
       // verbose) and apply the changes to the partial managed object.
-      int msgID = MSGID_DSCFG_ERROR_GET_CHILD_MODE;
-      String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn);
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msgID, msg);
+      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(ufn);
+      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
     } catch (CommunicationException e) {
-      int msgID = MSGID_DSCFG_ERROR_MODIFY_CE;
-      String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn, e.getMessage());
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msgID, msg);
+      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_MODIFY_CE.get(ufn, e.getMessage());
+      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
     } catch (ConcurrentModificationException e) {
-      int msgID = MSGID_DSCFG_ERROR_MODIFY_CME;
-      String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn);
+      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_MODIFY_CME.get(ufn);
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
-          msgID, msg);
+          msg);
     } catch (ManagedObjectNotFoundException e) {
-      int msgID = MSGID_DSCFG_ERROR_GET_CHILD_MONFE;
-      String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn);
-      throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msgID, msg);
+      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_GET_CHILD_MONFE.get(ufn);
+      throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
     }
 
     ManagedObjectDefinition<?, ?> d = child.getManagedObjectDefinition();
@@ -531,12 +526,11 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
     try {
       // Confirm commit.
-      String prompt = getMessage(MSGID_DSCFG_CONFIRM_MODIFY, d
-          .getUserFriendlyName());
+      Message prompt = INFO_DSCFG_CONFIRM_MODIFY.get(d.getUserFriendlyName());
       if (!getConsoleApplication().confirmAction(prompt)) {
         // Output failure message.
-        String msg = getMessage(MSGID_DSCFG_CONFIRM_MODIFY_FAIL, d
-            .getUserFriendlyName());
+        Message msg =
+            INFO_DSCFG_CONFIRM_MODIFY_FAIL.get(d.getUserFriendlyName());
         getConsoleApplication().printVerboseMessage(msg);
         return 1;
       }
@@ -544,31 +538,29 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       child.commit();
 
       // Output success message.
-      String msg = getMessage(MSGID_DSCFG_CONFIRM_MODIFY_SUCCESS, d
-          .getUserFriendlyName());
+      Message msg =
+          INFO_DSCFG_CONFIRM_MODIFY_SUCCESS.get(d.getUserFriendlyName());
       getConsoleApplication().printVerboseMessage(msg);
     } catch (MissingMandatoryPropertiesException e) {
       throw ArgumentExceptionFactory.adaptMissingMandatoryPropertiesException(
           e, d);
     } catch (AuthorizationException e) {
-      int msgID = MSGID_DSCFG_ERROR_MODIFY_AUTHZ;
-      String msg = getMessage(msgID, d.getUserFriendlyName());
+      Message msg = ERR_DSCFG_ERROR_MODIFY_AUTHZ.get(d.getUserFriendlyName());
       throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-          msgID, msg);
+          msg);
     } catch (ConcurrentModificationException e) {
-      int msgID = MSGID_DSCFG_ERROR_MODIFY_CME;
-      String msg = getMessage(msgID, d.getUserFriendlyName());
+      Message msg = ERR_DSCFG_ERROR_MODIFY_CME.get(d.getUserFriendlyName());
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
-          msgID, msg);
+          msg);
     } catch (OperationRejectedException e) {
-      int msgID = MSGID_DSCFG_ERROR_MODIFY_ORE;
-      String msg = getMessage(msgID, d.getUserFriendlyName(), e.getMessage());
+      Message msg = ERR_DSCFG_ERROR_MODIFY_ORE.get(
+          d.getUserFriendlyName(), e.getMessage());
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
-          msgID, msg);
+          msg);
     } catch (CommunicationException e) {
-      int msgID = MSGID_DSCFG_ERROR_MODIFY_CE;
-      String msg = getMessage(msgID, d.getUserFriendlyName(), e.getMessage());
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msgID, msg);
+      Message msg = ERR_DSCFG_ERROR_MODIFY_CE.get(
+          d.getUserFriendlyName(), e.getMessage());
+      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
     } catch (ManagedObjectAlreadyExistsException e) {
       // Should never happen.
       throw new IllegalStateException(e);

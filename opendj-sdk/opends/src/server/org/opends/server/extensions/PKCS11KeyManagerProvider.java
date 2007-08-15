@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -50,12 +51,11 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
+
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -136,10 +136,9 @@ public class PKCS11KeyManagerProvider
       String pinStr = System.getProperty(propertyName);
 
       if (pinStr == null) {
-        int msgID = MSGID_PKCS11_KEYMANAGER_PIN_PROPERTY_NOT_SET;
-        String message = getMessage(msgID, String
-            .valueOf(propertyName), String.valueOf(configEntryDN));
-        throw new InitializationException(msgID, message);
+        Message message = ERR_PKCS11_KEYMANAGER_PIN_PROPERTY_NOT_SET.get(
+            String.valueOf(propertyName), String.valueOf(configEntryDN));
+        throw new InitializationException(message);
       }
 
       keyStorePIN = pinStr.toCharArray();
@@ -149,10 +148,9 @@ public class PKCS11KeyManagerProvider
       String pinStr = System.getenv(enVarName);
 
       if (pinStr == null) {
-        int msgID = MSGID_PKCS11_KEYMANAGER_PIN_ENVAR_NOT_SET;
-        String message = getMessage(msgID, String.valueOf(enVarName),
-            String.valueOf(configEntryDN));
-        throw new InitializationException(msgID, message);
+        Message message = ERR_PKCS11_KEYMANAGER_PIN_ENVAR_NOT_SET.get(
+            String.valueOf(enVarName), String.valueOf(configEntryDN));
+        throw new InitializationException(message);
       }
 
       keyStorePIN = pinStr.toCharArray();
@@ -161,10 +159,9 @@ public class PKCS11KeyManagerProvider
       File pinFile = getFileForPath(fileName);
 
       if (!pinFile.exists()) {
-        int msgID = MSGID_PKCS11_KEYMANAGER_PIN_NO_SUCH_FILE;
-        String message = getMessage(msgID, String.valueOf(fileName),
-            String.valueOf(configEntryDN));
-        throw new InitializationException(msgID, message);
+        Message message = ERR_PKCS11_KEYMANAGER_PIN_NO_SUCH_FILE.get(
+            String.valueOf(fileName), String.valueOf(configEntryDN));
+        throw new InitializationException(message);
       }
 
       String pinStr;
@@ -179,17 +176,16 @@ public class PKCS11KeyManagerProvider
           TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
         }
 
-        int msgID = MSGID_PKCS11_KEYMANAGER_PIN_FILE_CANNOT_READ;
-        String message = getMessage(msgID, String.valueOf(fileName),
-            String.valueOf(configEntryDN), getExceptionMessage(ioe));
-        throw new InitializationException(msgID, message, ioe);
+        Message message = ERR_PKCS11_KEYMANAGER_PIN_FILE_CANNOT_READ.
+            get(String.valueOf(fileName), String.valueOf(configEntryDN),
+                getExceptionMessage(ioe));
+        throw new InitializationException(message, ioe);
       }
 
       if (pinStr == null) {
-        int msgID = MSGID_PKCS11_KEYMANAGER_PIN_FILE_EMPTY;
-        String message = getMessage(msgID, String.valueOf(fileName),
-            String.valueOf(configEntryDN));
-        throw new InitializationException(msgID, message);
+        Message message = ERR_PKCS11_KEYMANAGER_PIN_FILE_EMPTY.get(
+            String.valueOf(fileName), String.valueOf(configEntryDN));
+        throw new InitializationException(message);
       }
 
       keyStorePIN = pinStr.toCharArray();
@@ -197,9 +193,9 @@ public class PKCS11KeyManagerProvider
       keyStorePIN = configuration.getKeyStorePin().toCharArray();
     } else {
       // Pin wasn't defined anywhere.
-      int msgID = MSGID_PKCS11_KEYMANAGER_NO_PIN;
-      String message = getMessage(msgID, String.valueOf(configEntryDN));
-      throw new ConfigException(msgID, message);
+      Message message =
+          ERR_PKCS11_KEYMANAGER_NO_PIN.get(String.valueOf(configEntryDN));
+      throw new ConfigException(message);
     }
   }
 
@@ -242,10 +238,10 @@ public class PKCS11KeyManagerProvider
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_PKCS11_KEYMANAGER_CANNOT_LOAD;
-      String message = getMessage(msgID, getExceptionMessage(e));
+      Message message =
+          ERR_PKCS11_KEYMANAGER_CANNOT_LOAD.get(getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
 
@@ -264,10 +260,10 @@ public class PKCS11KeyManagerProvider
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_PKCS11_KEYMANAGER_CANNOT_CREATE_FACTORY;
-      String message = getMessage(msgID, getExceptionMessage(e));
+      Message message = ERR_PKCS11_KEYMANAGER_CANNOT_CREATE_FACTORY.get(
+          getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
   }
 
@@ -278,7 +274,7 @@ public class PKCS11KeyManagerProvider
    */
   @Override()
   public boolean isConfigurationAcceptable(KeyManagerCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     PKCS11KeyManagerCfg config = (PKCS11KeyManagerCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
@@ -291,7 +287,7 @@ public class PKCS11KeyManagerProvider
    */
   public boolean isConfigurationChangeAcceptable(
                       PKCS11KeyManagerCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
     DN cfgEntryDN = configuration.dn();
@@ -315,9 +311,9 @@ public class PKCS11KeyManagerProvider
 
       if (pinStr == null)
       {
-        int msgID = MSGID_PKCS11_KEYMANAGER_PIN_PROPERTY_NOT_SET;
-        unacceptableReasons.add(getMessage(msgID, String.valueOf(propertyName),
-                                           String.valueOf(cfgEntryDN)));
+        unacceptableReasons.add(ERR_PKCS11_KEYMANAGER_PIN_PROPERTY_NOT_SET.get(
+                String.valueOf(propertyName),
+                String.valueOf(cfgEntryDN)));
         configAcceptable = false;
       }
     }
@@ -328,9 +324,9 @@ public class PKCS11KeyManagerProvider
 
       if (pinStr == null)
       {
-        int msgID = MSGID_PKCS11_KEYMANAGER_PIN_ENVAR_NOT_SET;
-        unacceptableReasons.add(getMessage(msgID, String.valueOf(enVarName),
-                                           String.valueOf(cfgEntryDN)));
+        unacceptableReasons.add(ERR_PKCS11_KEYMANAGER_PIN_ENVAR_NOT_SET.get(
+                String.valueOf(enVarName),
+                String.valueOf(cfgEntryDN)));
         configAcceptable = false;
       }
     }
@@ -341,9 +337,9 @@ public class PKCS11KeyManagerProvider
 
       if (!pinFile.exists())
       {
-        int msgID = MSGID_PKCS11_KEYMANAGER_PIN_NO_SUCH_FILE;
-        unacceptableReasons.add(getMessage(msgID, String.valueOf(fileName),
-                                           String.valueOf(cfgEntryDN)));
+        unacceptableReasons.add(ERR_PKCS11_KEYMANAGER_PIN_NO_SUCH_FILE.get(
+                String.valueOf(fileName),
+                String.valueOf(cfgEntryDN)));
         configAcceptable = false;
       }
       else
@@ -356,10 +352,11 @@ public class PKCS11KeyManagerProvider
         }
         catch (IOException ioe)
         {
-          int msgID = MSGID_PKCS11_KEYMANAGER_PIN_FILE_CANNOT_READ;
-          unacceptableReasons.add(getMessage(msgID, String.valueOf(fileName),
-                                             String.valueOf(cfgEntryDN),
-                                             getExceptionMessage(ioe)));
+          unacceptableReasons.add(
+                  ERR_PKCS11_KEYMANAGER_PIN_FILE_CANNOT_READ.get(
+                          String.valueOf(fileName),
+                          String.valueOf(cfgEntryDN),
+                          getExceptionMessage(ioe)));
           configAcceptable = false;
         }
         finally
@@ -372,9 +369,10 @@ public class PKCS11KeyManagerProvider
 
         if (pinStr == null)
         {
-          int msgID = MSGID_PKCS11_KEYMANAGER_PIN_FILE_EMPTY;
-          unacceptableReasons.add(getMessage(msgID, String.valueOf(fileName),
-                                             String.valueOf(cfgEntryDN)));
+
+          unacceptableReasons.add(ERR_PKCS11_KEYMANAGER_PIN_FILE_EMPTY.get(
+                  String.valueOf(fileName),
+                  String.valueOf(cfgEntryDN)));
           configAcceptable = false;
         }
       }
@@ -386,8 +384,8 @@ public class PKCS11KeyManagerProvider
     else
     {
       // Pin wasn't defined anywhere.
-      int msgID = MSGID_PKCS11_KEYMANAGER_NO_PIN;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(cfgEntryDN)));
+      unacceptableReasons.add(ERR_PKCS11_KEYMANAGER_NO_PIN.get(
+              String.valueOf(cfgEntryDN)));
       configAcceptable = false;
     }
 
@@ -404,7 +402,7 @@ public class PKCS11KeyManagerProvider
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Get the PIN needed to access the contents of the keystore file.
@@ -429,9 +427,9 @@ public class PKCS11KeyManagerProvider
       {
         resultCode = DirectoryServer.getServerErrorResultCode();
 
-        int msgID = MSGID_PKCS11_KEYMANAGER_PIN_PROPERTY_NOT_SET;
-        messages.add(getMessage(msgID, String.valueOf(propertyName),
-                                String.valueOf(configEntryDN)));
+        messages.add(ERR_PKCS11_KEYMANAGER_PIN_PROPERTY_NOT_SET.get(
+                String.valueOf(propertyName),
+                String.valueOf(configEntryDN)));
       }
       else
       {
@@ -447,9 +445,9 @@ public class PKCS11KeyManagerProvider
       {
         resultCode = DirectoryServer.getServerErrorResultCode();
 
-        int msgID = MSGID_PKCS11_KEYMANAGER_PIN_ENVAR_NOT_SET;
-        messages.add(getMessage(msgID, String.valueOf(enVarName),
-                                String.valueOf(configEntryDN)));
+        messages.add(ERR_PKCS11_KEYMANAGER_PIN_ENVAR_NOT_SET.get(
+                String.valueOf(enVarName),
+                String.valueOf(configEntryDN)));
       }
       else
       {
@@ -465,9 +463,9 @@ public class PKCS11KeyManagerProvider
       {
         resultCode = DirectoryServer.getServerErrorResultCode();
 
-        int msgID = MSGID_PKCS11_KEYMANAGER_PIN_NO_SUCH_FILE;
-        messages.add(getMessage(msgID, String.valueOf(fileName),
-                                String.valueOf(configEntryDN)));
+        messages.add(ERR_PKCS11_KEYMANAGER_PIN_NO_SUCH_FILE.get(
+                String.valueOf(fileName),
+                String.valueOf(configEntryDN)));
       }
       else
       {
@@ -481,10 +479,10 @@ public class PKCS11KeyManagerProvider
         {
           resultCode = DirectoryServer.getServerErrorResultCode();
 
-          int msgID = MSGID_PKCS11_KEYMANAGER_PIN_FILE_CANNOT_READ;
-          messages.add(getMessage(msgID, String.valueOf(fileName),
-                                  String.valueOf(configEntryDN),
-                                  getExceptionMessage(ioe)));
+          messages.add(ERR_PKCS11_KEYMANAGER_PIN_FILE_CANNOT_READ.get(
+                  String.valueOf(fileName),
+                  String.valueOf(configEntryDN),
+                  getExceptionMessage(ioe)));
         }
         finally
         {
@@ -498,9 +496,9 @@ public class PKCS11KeyManagerProvider
         {
           resultCode = DirectoryServer.getServerErrorResultCode();
 
-          int msgID = MSGID_PKCS11_KEYMANAGER_PIN_FILE_EMPTY;
-          messages.add(getMessage(msgID, String.valueOf(fileName),
-                                  String.valueOf(configEntryDN)));
+          messages.add(ERR_PKCS11_KEYMANAGER_PIN_FILE_EMPTY.get(
+                  String.valueOf(fileName),
+                  String.valueOf(configEntryDN)));
         }
         else
         {
@@ -517,8 +515,9 @@ public class PKCS11KeyManagerProvider
       // Pin wasn't defined anywhere.
       resultCode = DirectoryServer.getServerErrorResultCode();
 
-      int msgID = MSGID_PKCS11_KEYMANAGER_NO_PIN;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
+
+      messages.add(ERR_PKCS11_KEYMANAGER_NO_PIN.get(
+              String.valueOf(configEntryDN)));
     }
 
 

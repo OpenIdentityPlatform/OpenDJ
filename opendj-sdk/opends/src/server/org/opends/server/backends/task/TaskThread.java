@@ -25,19 +25,18 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.task;
+import org.opends.messages.Message;
 
 
 
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.BackendMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.messages.BackendMessages.*;
+
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.Map;
@@ -139,7 +138,7 @@ public class TaskThread
    * @param  exitThread       Indicates whether this thread should exit when
    *                          processing on the active task has completed.
    */
-  public void interruptTask(TaskState interruptState, String interruptReason,
+  public void interruptTask(TaskState interruptState, Message interruptReason,
                             boolean exitThread)
   {
     if (getAssociatedTask() != null)
@@ -207,13 +206,10 @@ public class TaskThread
 
         Task task = getAssociatedTask();
 
-        int    msgID   = MSGID_TASK_EXECUTE_FAILED;
-        String message = getMessage(msgID,
-                                    String.valueOf(task.getTaskEntry().getDN()),
-                                    stackTraceToSingleLineString(e));
-
-        logError(ErrorLogCategory.TASK, ErrorLogSeverity.FATAL_ERROR, message,
-                 msgID);
+        Message message = ERR_TASK_EXECUTE_FAILED.
+            get(String.valueOf(task.getTaskEntry().getDN()),
+                stackTraceToSingleLineString(e));
+        logError(message);
         task.setTaskState(TaskState.STOPPED_BY_ERROR);
       }
 

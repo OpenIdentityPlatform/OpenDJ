@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
@@ -35,14 +36,12 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.DisconnectReason;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import org.opends.server.loggers.ErrorLogger;
+import static org.opends.messages.CoreMessages.*;
+
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -87,8 +86,7 @@ public class IdleTimeLimitThread
    */
   public void run()
   {
-    int    disconnectMessageID = MSGID_IDLETIME_LIMIT_EXCEEDED;
-    String disconnectMessage   = getMessage(disconnectMessageID);
+    Message disconnectMessage = INFO_IDLETIME_LIMIT_EXCEEDED.get();
 
     long sleepTime = 5000L;
 
@@ -126,7 +124,7 @@ public class IdleTimeLimitThread
                   try
                   {
                     c.disconnect(DisconnectReason.IDLE_TIME_LIMIT_EXCEEDED,
-                                 true, disconnectMessage, disconnectMessageID);
+                                 true, disconnectMessage);
                   }
                   catch (Exception e)
                   {
@@ -135,11 +133,11 @@ public class IdleTimeLimitThread
                       TRACER.debugCaught(DebugLogLevel.ERROR, e);
                     }
 
-                    int    msgID   = MSGID_IDLETIME_DISCONNECT_ERROR;
-                    String message = getMessage(msgID, c.getConnectionID(),
-                                          stackTraceToSingleLineString(e));
-                    logError(ErrorLogCategory.CORE_SERVER,
-                             ErrorLogSeverity.MILD_ERROR, message, msgID);
+                    Message message = ERR_IDLETIME_DISCONNECT_ERROR.get(
+                            c.getConnectionID(),
+                            stackTraceToSingleLineString(e)
+                    );
+                    ErrorLogger.logError(message);
                   }
                 }
                 else
@@ -162,10 +160,9 @@ public class IdleTimeLimitThread
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_IDLETIME_UNEXPECTED_ERROR;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message =
+            ERR_IDLETIME_UNEXPECTED_ERROR.get(stackTraceToSingleLineString(e));
+        ErrorLogger.logError(message);
       }
     }
   }
@@ -185,7 +182,7 @@ public class IdleTimeLimitThread
   /**
    * {@inheritDoc}
    */
-  public void processServerShutdown(String reason)
+  public void processServerShutdown(Message reason)
   {
     shutdownRequested = true;
   }

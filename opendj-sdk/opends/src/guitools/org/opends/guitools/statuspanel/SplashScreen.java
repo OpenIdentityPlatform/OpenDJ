@@ -81,7 +81,7 @@ public class SplashScreen extends org.opends.quicksetup.SplashScreen
 
   /**
    * This method displays the StatusPanel dialog.
-   * @see StatusPanelController.display.
+   * @see org.opends.guitools.statuspanel.StatusPanelController#display()
    * This method assumes that is being called outside the event thread.
    */
   protected void displayApplication()

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
+import org.opends.messages.Message;
 
 
 
@@ -45,8 +46,7 @@ import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.TaskMessages.*;
+import static org.opends.messages.TaskMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -66,7 +66,7 @@ public class ShutdownTask
   private boolean restart;
 
   // The shutdown message that will be used.
-  private String shutdownMessage;
+  private Message shutdownMessage;
 
 
 
@@ -88,8 +88,8 @@ public class ShutdownTask
     Entry taskEntry = getTaskEntry();
 
     restart         = false;
-    shutdownMessage = getMessage(MSGID_TASK_SHUTDOWN_DEFAULT_MESSAGE,
-                                 String.valueOf(taskEntry.getDN()));
+    shutdownMessage = INFO_TASK_SHUTDOWN_DEFAULT_MESSAGE.get(
+        String.valueOf(taskEntry.getDN()));
 
     AttributeType attrType =
          DirectoryServer.getAttributeType(ATTR_SHUTDOWN_MESSAGE, true);
@@ -102,9 +102,8 @@ public class ShutdownTask
       {
         String valueString = values.iterator().next().getStringValue();
 
-        shutdownMessage = getMessage(MSGID_TASK_SHUTDOWN_CUSTOM_MESSAGE,
-                                     String.valueOf(taskEntry.getDN()),
-                                     String.valueOf(valueString));
+        shutdownMessage = INFO_TASK_SHUTDOWN_CUSTOM_MESSAGE.get(
+            String.valueOf(taskEntry.getDN()), String.valueOf(valueString));
       }
     }
 
@@ -138,10 +137,10 @@ public class ShutdownTask
         if (! clientConnection.hasPrivilege(Privilege.SERVER_RESTART,
                                             operation))
         {
-          int    msgID   = MSGID_TASK_SHUTDOWN_INSUFFICIENT_RESTART_PRIVILEGES;
-          String message = getMessage(msgID);
+          Message message =
+              ERR_TASK_SHUTDOWN_INSUFFICIENT_RESTART_PRIVILEGES.get();
           throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                                       message, msgID);
+                                       message);
         }
       }
       else
@@ -149,10 +148,10 @@ public class ShutdownTask
         if (! clientConnection.hasPrivilege(Privilege.SERVER_SHUTDOWN,
                                             operation))
         {
-          int    msgID   = MSGID_TASK_SHUTDOWN_INSUFFICIENT_SHUTDOWN_PRIVILEGES;
-          String message = getMessage(msgID);
+          Message message =
+              ERR_TASK_SHUTDOWN_INSUFFICIENT_SHUTDOWN_PRIVILEGES.get();
           throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                                       message, msgID);
+                                       message);
         }
       }
     }

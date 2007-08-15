@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types.operation;
+import org.opends.messages.Message;
 
 
 
@@ -35,6 +36,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.ResultCode;
 
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -116,7 +118,7 @@ public interface PreParseOperation
    *
    * @return  The error message for this operation.
    */
-  public StringBuilder getErrorMessage();
+  public MessageBuilder getErrorMessage();
 
 
 
@@ -125,7 +127,7 @@ public interface PreParseOperation
    *
    * @param  errorMessage  The error message for this operation.
    */
-  public void setErrorMessage(StringBuilder errorMessage);
+  public void setErrorMessage(MessageBuilder errorMessage);
 
 
 
@@ -137,7 +139,7 @@ public interface PreParseOperation
    * @param  message  The message to append to the error message
    *                  buffer.
    */
-  public void appendErrorMessage(String message);
+  public void appendErrorMessage(Message message);
 
 
 
@@ -149,7 +151,7 @@ public interface PreParseOperation
    *
    * @return  The additional log message for this operation.
    */
-  public StringBuilder getAdditionalLogMessage();
+  public MessageBuilder getAdditionalLogMessage();
 
 
 
@@ -159,10 +161,9 @@ public interface PreParseOperation
    * the client.
    *
    * @param  additionalLogMessage  The additional log message for this
-   *                               operation.
    */
   public void setAdditionalLogMessage(
-                   StringBuilder additionalLogMessage);
+                   MessageBuilder additionalLogMessage);
 
 
 
@@ -173,7 +174,7 @@ public interface PreParseOperation
    * @param  message  The message that should be appended to the
    *                  additional log information for this operation.
    */
-  public void appendAdditionalLogMessage(String message);
+  public void appendAdditionalLogMessage(Message message);
 
 
 

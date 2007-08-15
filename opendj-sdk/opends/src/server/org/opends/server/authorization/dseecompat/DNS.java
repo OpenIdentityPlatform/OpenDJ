@@ -27,20 +27,21 @@
 
 package org.opends.server.authorization.dseecompat;
 
-import static org.opends.server.messages.AciMessages.*;
-import static org.opends.server.authorization.dseecompat.Aci.*;
+import org.opends.messages.Message;
+
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.messages.AccessControlMessages.*;
+import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.StaticUtils.*;
+
+import org.opends.server.loggers.debug.DebugTracer;
+
 import java.net.InetAddress;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 
 /**
  * This class implements the dns bind rule keyword.
@@ -96,9 +97,8 @@ public class DNS implements KeywordBindRule {
     throws AciException
     {
         if (!Pattern.matches(valuesRegExGroup, expr)) {
-            int msgID = MSGID_ACI_SYNTAX_INVALID_DNS_EXPRESSION;
-            String message = getMessage(msgID, expr);
-            throw new AciException(msgID, message);
+            Message message = WARN_ACI_SYNTAX_INVALID_DNS_EXPRESSION.get(expr);
+            throw new AciException(message);
         }
         LinkedList<String>dns=new LinkedList<String>();
         int valuePos = 1;
@@ -109,9 +109,9 @@ public class DNS implements KeywordBindRule {
             String[] hnArray=hn.split("\\.", -1);
             for(int i=1, n=hnArray.length; i < n; i++) {
                 if(hnArray[i].equals("*")) {
-                    int msgID = MSGID_ACI_SYNTAX_INVALID_DNS_WILDCARD;
-                    String message = getMessage(msgID, expr);
-                    throw new AciException(msgID, message);
+                    Message message =
+                        WARN_ACI_SYNTAX_INVALID_DNS_WILDCARD.get(expr);
+                    throw new AciException(message);
                 }
             }
 
@@ -141,22 +141,18 @@ public class DNS implements KeywordBindRule {
                     {
                       dns.add(canonicalName);
 
-                      int msgID =
-                           MSGID_ACI_LOCALHOST_DOESNT_MATCH_CANONICAL_VALUE;
-                      String message = getMessage(msgID, expr, hn,
-                                                  canonicalName);
-                      logError(ErrorLogCategory.ACCESS_CONTROL,
-                               ErrorLogSeverity.INFORMATIONAL, message, msgID);
+                      Message message =
+                        WARN_ACI_LOCALHOST_DOESNT_MATCH_CANONICAL_VALUE.
+                            get(expr, hn, canonicalName);
+                      logError(message);
                     }
                     else
                     {
-                      int msgID =
-                           MSGID_ACI_HOSTNAME_DOESNT_MATCH_CANONICAL_VALUE;
-                      String message = getMessage(msgID, expr,
-                                                  hn, addr.getHostAddress(),
-                                                  addr.getCanonicalHostName());
-                      logError(ErrorLogCategory.ACCESS_CONTROL,
-                               ErrorLogSeverity.INFORMATIONAL, message, msgID);
+                      Message message =
+                        WARN_ACI_HOSTNAME_DOESNT_MATCH_CANONICAL_VALUE.
+                            get(expr, hn, addr.getHostAddress(),
+                                addr.getCanonicalHostName());
+                      logError(message);
                     }
                   }
                 }
@@ -168,11 +164,9 @@ public class DNS implements KeywordBindRule {
                   TRACER.debugCaught(DebugLogLevel.ERROR, e);
                 }
 
-                int msgID = MSGID_ACI_ERROR_CHECKING_CANONICAL_HOSTNAME;
-                String message = getMessage(msgID, hn, expr,
-                                            getExceptionMessage(e));
-                logError(ErrorLogCategory.ACCESS_CONTROL,
-                         ErrorLogSeverity.INFORMATIONAL, message, msgID);
+                Message message = WARN_ACI_ERROR_CHECKING_CANONICAL_HOSTNAME.
+                    get(hn, expr, getExceptionMessage(e));
+                logError(message);
               }
             }
 

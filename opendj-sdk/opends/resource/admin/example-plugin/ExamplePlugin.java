@@ -39,9 +39,10 @@ import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.StartupPluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.ResultCode;
+import org.opends.server.messages.Message;
 
 import com.example.opends.server.ExamplePluginCfg;
 
@@ -139,7 +140,7 @@ public class ExamplePlugin extends
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-      ExamplePluginCfg config, List<String> messages) {
+      ExamplePluginCfg config, List<Message> messages) {
     // The only thing that can be validated here is the plugin's
     // message. However, it is always going to be valid, so let's
     // always return true.

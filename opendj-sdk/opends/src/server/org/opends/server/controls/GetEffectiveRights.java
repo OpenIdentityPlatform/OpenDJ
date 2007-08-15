@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.controls;
+import org.opends.messages.Message;
 
 import org.opends.server.types.*;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -36,8 +37,7 @@ import static org.opends.server.util.ServerConstants.OID_GET_EFFECTIVE_RIGHTS;
 import static org.opends.server.util.Validator.ensureNotNull;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 import org.opends.server.core.DirectoryServer;
-import static org.opends.server.messages.ProtocolMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 
@@ -199,27 +199,26 @@ public class GetEffectiveRights extends Control {
       if (lowerAuthzIDString.startsWith("dn:"))
          authzDN = DN.decode(authzIDString.substring(3));
       else {
-         int  msgID = MSGID_GETEFFECTIVERIGHTS_INVALID_AUTHZID;
-         String message = getMessage(msgID, authzID);
-         throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+         Message message = INFO_GETEFFECTIVERIGHTS_INVALID_AUTHZID.get(
+                 String.valueOf(authzID));
+         throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
     } catch (ASN1Exception e) {
          if (debugEnabled()) {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
          }
 
-         int msgID = MSGID_GETEFFECTIVERIGHTS_DECODE_ERROR;
-         String message = getMessage(msgID, e.getMessage());
-         throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+         Message message =
+             INFO_GETEFFECTIVERIGHTS_DECODE_ERROR.get(e.getMessage());
+         throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     } catch (DirectoryException de) {
         if (debugEnabled()) {
           TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
-        int msgID  = MSGID_CANNOT_DECODE_GETEFFECTIVERIGHTS_AUTHZID_DN;
-        String message =
-        getMessage(msgID, authzIDString.substring(3), de.getErrorMessage());
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+        Message message = INFO_CANNOT_DECODE_GETEFFECTIVERIGHTS_AUTHZID_DN.get(
+            authzIDString.substring(3), de.getMessageObject());
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
     return new GetEffectiveRights(val, authzDN, attrs);
   }

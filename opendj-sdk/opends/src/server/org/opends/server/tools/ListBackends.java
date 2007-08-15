@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 
 
@@ -51,9 +52,8 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
@@ -148,7 +148,7 @@ public class ListBackends
 
 
     // Create the command-line argument parser for use with this program.
-    String toolDescription = getMessage(MSGID_LISTBACKENDS_TOOL_DESCRIPTION);
+    Message toolDescription = INFO_LISTBACKENDS_TOOL_DESCRIPTION.get();
     ArgumentParser argParser =
          new ArgumentParser("org.opends.server.tools.ListBackends",
                             toolDescription, false);
@@ -163,7 +163,7 @@ public class ListBackends
                               OPTION_LONG_CONFIG_CLASS, true, false,
                               true, OPTION_VALUE_CONFIG_CLASS,
                               ConfigFileHandler.class.getName(), null,
-                              MSGID_DESCRIPTION_CONFIG_CLASS);
+                              INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
@@ -171,34 +171,36 @@ public class ListBackends
       configFile =
            new StringArgument("configfile", 'f', "configFile", true, false,
                               true, "{configFile}", null, null,
-                              MSGID_DESCRIPTION_CONFIG_FILE);
+                              INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
 
-      backendID = new StringArgument("backendid", 'n', "backendID", false,
-                                     true, true, "{backendID}", null, null,
-                                     MSGID_LISTBACKENDS_DESCRIPTION_BACKEND_ID);
+      backendID = new StringArgument(
+              "backendid", 'n', "backendID", false,
+              true, true, "{backendID}", null, null,
+              INFO_LISTBACKENDS_DESCRIPTION_BACKEND_ID.get());
       argParser.addArgument(backendID);
 
 
-      baseDN = new StringArgument("basedn", OPTION_SHORT_BASEDN,
-                                  OPTION_LONG_BASEDN, false, true, true,
-                                  OPTION_VALUE_BASEDN, null, null,
-                                  MSGID_LISTBACKENDS_DESCRIPTION_BASE_DN);
+      baseDN = new StringArgument(
+              "basedn", OPTION_SHORT_BASEDN,
+              OPTION_LONG_BASEDN, false, true, true,
+              OPTION_VALUE_BASEDN, null, null,
+              INFO_LISTBACKENDS_DESCRIPTION_BASE_DN.get());
       argParser.addArgument(baseDN);
 
 
-      displayUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
-                                         OPTION_LONG_HELP,
-                                         MSGID_LISTBACKENDS_DESCRIPTION_HELP);
+      displayUsage = new BooleanArgument(
+              "help", OPTION_SHORT_HELP,
+              OPTION_LONG_HELP,
+              INFO_LISTBACKENDS_DESCRIPTION_HELP.get());
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage, out);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
@@ -212,8 +214,7 @@ public class ListBackends
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -233,9 +234,9 @@ public class ListBackends
     // arguments.
     if (backendID.isPresent() && baseDN.isPresent())
     {
-      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, backendID.getLongIdentifier(),
-                                  baseDN.getLongIdentifier());
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+              backendID.getLongIdentifier(),
+              baseDN.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -254,8 +255,8 @@ public class ListBackends
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_SERVER_BOOTSTRAP_ERROR;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_SERVER_BOOTSTRAP_ERROR.get(
+                getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -267,15 +268,13 @@ public class ListBackends
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
-        String message = getMessage(msgID, ie.getMessage());
+        Message message = ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -289,22 +288,19 @@ public class ListBackends
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-        String message = getMessage(msgID, ce.getMessage());
+        Message message = ERR_CANNOT_LOAD_SCHEMA.get(ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-        String message = getMessage(msgID, ie.getMessage());
+        Message message = ERR_CANNOT_LOAD_SCHEMA.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -319,15 +315,15 @@ public class ListBackends
     }
     catch (ConfigException ce)
     {
-      int    msgID   = MSGID_LISTBACKENDS_CANNOT_GET_BACKENDS;
-      String message = getMessage(msgID, ce.getMessage());
+      Message message = ERR_LISTBACKENDS_CANNOT_GET_BACKENDS.get(
+              ce.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LISTBACKENDS_CANNOT_GET_BACKENDS;
-      String message = getMessage(msgID, getExceptionMessage(e));
+      Message message = ERR_LISTBACKENDS_CANNOT_GET_BACKENDS.get(
+              getExceptionMessage(e));
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -363,15 +359,15 @@ public class ListBackends
         }
         catch (DirectoryException de)
         {
-          int    msgID   = MSGID_LISTBACKENDS_INVALID_DN;
-          String message = getMessage(msgID, dnStr, de.getMessage());
+          Message message = ERR_LISTBACKENDS_INVALID_DN.get(
+                  dnStr, de.getMessage());
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_LISTBACKENDS_INVALID_DN;
-          String message = getMessage(msgID, dnStr, getExceptionMessage(e));
+          Message message = ERR_LISTBACKENDS_INVALID_DN.get(
+                  dnStr, getExceptionMessage(e));
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -380,8 +376,8 @@ public class ListBackends
         String id = baseToIDMap.get(dn);
         if (id == null)
         {
-          int    msgID   = MSGID_LISTBACKENDS_NOT_BASE_DN;
-          String message = getMessage(msgID, dn.toString());
+          Message message = INFO_LISTBACKENDS_NOT_BASE_DN.get(
+                  dn.toString());
           out.println(message);
 
           DN parentDN = dn.getParent();
@@ -389,8 +385,8 @@ public class ListBackends
           {
             if (parentDN == null)
             {
-              msgID   = MSGID_LISTBACKENDS_NO_BACKEND_FOR_DN;
-              message = getMessage(msgID, dn.toString());
+              message = INFO_LISTBACKENDS_NO_BACKEND_FOR_DN.get(
+                      dn.toString());
               out.println(message);
               break;
             }
@@ -399,9 +395,8 @@ public class ListBackends
               id = baseToIDMap.get(parentDN);
               if (id != null)
               {
-                msgID = MSGID_LISTBACKENDS_DN_BELOW_BASE;
-                message = getMessage(msgID, dn.toString(), parentDN.toString(),
-                                     id);
+                message = INFO_LISTBACKENDS_DN_BELOW_BASE.get(
+                        dn.toString(), parentDN.toString(), id);
                 out.println(message);
                 break;
               }
@@ -412,8 +407,8 @@ public class ListBackends
         }
         else
         {
-          int    msgID   = MSGID_LISTBACKENDS_BASE_FOR_ID;
-          String message = getMessage(msgID, dn.toString(), id);
+          Message message = INFO_LISTBACKENDS_BASE_FOR_ID.get(
+                  dn.toString(), id);
           out.println(message);
         }
       }
@@ -432,8 +427,8 @@ public class ListBackends
 
       // Figure out the length of the longest backend ID and base DN defined in
       // the server.  We'll use that information to try to align the output.
-      String backendIDLabel  = getMessage(MSGID_LISTBACKENDS_LABEL_BACKEND_ID);
-      String baseDNLabel     = getMessage(MSGID_LISTBACKENDS_LABEL_BASE_DN);
+      Message backendIDLabel = INFO_LISTBACKENDS_LABEL_BACKEND_ID.get();
+      Message baseDNLabel = INFO_LISTBACKENDS_LABEL_BASE_DN.get();
       int    backendIDLength = 10;
       int    baseDNLength    = 7;
 
@@ -444,8 +439,7 @@ public class ListBackends
         TreeSet<DN> baseDNs = backends.get(id);
         if (baseDNs == null)
         {
-          int    msgID   = MSGID_LISTBACKENDS_NO_SUCH_BACKEND;
-          String message = getMessage(msgID, id);
+          Message message = ERR_LISTBACKENDS_NO_SUCH_BACKEND.get(id);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           iterator.remove();
         }
@@ -461,8 +455,7 @@ public class ListBackends
 
       if (backendIDs.isEmpty())
       {
-        int    msgID   = MSGID_LISTBACKENDS_NO_VALID_BACKENDS;
-        String message = getMessage(msgID);
+        Message message = ERR_LISTBACKENDS_NO_VALID_BACKENDS.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -538,16 +531,15 @@ public class ListBackends
     }
     catch (DirectoryException de)
     {
-      int    msgID   = MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
-      String message = getMessage(msgID, DN_BACKEND_BASE, de.getErrorMessage());
-      throw new ConfigException(msgID, message, de);
+      Message message = ERR_CANNOT_DECODE_BACKEND_BASE_DN.get(
+          DN_BACKEND_BASE, de.getMessageObject());
+      throw new ConfigException(message, de);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
-      String message = getMessage(msgID, DN_BACKEND_BASE,
-                                  getExceptionMessage(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = ERR_CANNOT_DECODE_BACKEND_BASE_DN.get(
+          DN_BACKEND_BASE, getExceptionMessage(e));
+      throw new ConfigException(message, e);
     }
 
     ConfigEntry baseEntry = null;
@@ -557,16 +549,15 @@ public class ListBackends
     }
     catch (ConfigException ce)
     {
-      int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
-      String message = getMessage(msgID, DN_BACKEND_BASE, ce.getMessage());
-      throw new ConfigException(msgID, message, ce);
+      Message message = ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY.get(
+          DN_BACKEND_BASE, ce.getMessage());
+      throw new ConfigException(message, ce);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
-      String message = getMessage(msgID, DN_BACKEND_BASE,
-                                  getExceptionMessage(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY.get(
+          DN_BACKEND_BASE, getExceptionMessage(e));
+      throw new ConfigException(message, e);
     }
 
 
@@ -580,9 +571,9 @@ public class ListBackends
       String backendID = null;
       try
       {
-        int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID;
+        Message msg = INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID.get();
         StringConfigAttribute idStub =
-             new StringConfigAttribute(ATTR_BACKEND_ID, getMessage(msgID),
+             new StringConfigAttribute(ATTR_BACKEND_ID, msg,
                                        true, false, true);
         StringConfigAttribute idAttr =
              (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
@@ -597,17 +588,15 @@ public class ListBackends
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    ce.getMessage());
-        throw new ConfigException(msgID, message, ce);
+        Message message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(
+            String.valueOf(configEntry.getDN()), ce.getMessage());
+        throw new ConfigException(message, ce);
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    getExceptionMessage(e));
-        throw new ConfigException(msgID, message, e);
+        Message message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(
+            String.valueOf(configEntry.getDN()), getExceptionMessage(e));
+        throw new ConfigException(message, e);
       }
 
 
@@ -616,9 +605,9 @@ public class ListBackends
       TreeSet<DN> baseDNs = new TreeSet<DN>();
       try
       {
-        int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS;
+        Message msg = INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS.get();
         DNConfigAttribute baseDNStub =
-             new DNConfigAttribute(ATTR_BACKEND_BASE_DN, getMessage(msgID),
+             new DNConfigAttribute(ATTR_BACKEND_BASE_DN, msg,
                                    true, true, true);
         DNConfigAttribute baseDNAttr =
              (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
@@ -629,10 +618,9 @@ public class ListBackends
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BASES_FOR_BACKEND;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    getExceptionMessage(e));
-        throw new ConfigException(msgID, message, e);
+        Message message = ERR_CANNOT_DETERMINE_BASES_FOR_BACKEND.get(
+            String.valueOf(configEntry.getDN()), getExceptionMessage(e));
+        throw new ConfigException(message, e);
       }
 
       backendMap.put(backendID, baseDNs);

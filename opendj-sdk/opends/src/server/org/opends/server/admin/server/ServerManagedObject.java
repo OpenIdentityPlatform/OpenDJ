@@ -26,11 +26,11 @@
  */
 
 package org.opends.server.admin.server;
+import org.opends.messages.Message;
 
 
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
@@ -82,7 +82,7 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.messages.AdminMessages;
+import org.opends.messages.AdminMessages;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
@@ -579,18 +579,17 @@ public final class ServerManagedObject<S extends Configuration> implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = AdminMessages.MSGID_ADMIN_CANNOT_GET_MANAGED_OBJECT;
-      String message = getMessage(msgID, String.valueOf(dn),
-          stackTraceToSingleLineString(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = AdminMessages.ERR_ADMIN_CANNOT_GET_MANAGED_OBJECT.get(
+          String.valueOf(dn), stackTraceToSingleLineString(e));
+      throw new ConfigException(message, e);
     }
 
     // The configuration handler is free to return null indicating
     // that the entry does not exist.
     if (configEntry == null) {
-      int msgID = AdminMessages.MSGID_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST;
-      String message = getMessage(msgID, String.valueOf(dn));
-      throw new ConfigException(msgID, message);
+      Message message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST.
+          get(String.valueOf(dn));
+      throw new ConfigException(message);
     }
 
     return configEntry;
@@ -1238,10 +1237,9 @@ public final class ServerManagedObject<S extends Configuration> implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = AdminMessages.MSGID_ADMIN_CANNOT_GET_LISTENER_BASE;
-      String message = getMessage(msgID, String.valueOf(dn),
-          stackTraceToSingleLineString(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = AdminMessages.ERR_ADMIN_CANNOT_GET_LISTENER_BASE.get(
+          String.valueOf(dn), stackTraceToSingleLineString(e));
+      throw new ConfigException(message, e);
     }
 
     return configEntry;
@@ -1285,9 +1283,9 @@ public final class ServerManagedObject<S extends Configuration> implements
     }
 
     // No parent entry could be found.
-    int msgID = AdminMessages.MSGID_ADMIN_UNABLE_TO_REGISTER_LISTENER;
-    String message = getMessage(msgID, String.valueOf(baseDN));
-    throw new ConfigException(msgID, message);
+    Message message = AdminMessages.ERR_ADMIN_UNABLE_TO_REGISTER_LISTENER.get(
+        String.valueOf(baseDN));
+    throw new ConfigException(message);
   }
 
 

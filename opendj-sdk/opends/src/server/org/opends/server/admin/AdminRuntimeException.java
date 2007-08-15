@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.admin;
+import org.opends.messages.Message;
 
 
 
@@ -64,8 +65,8 @@ public abstract class AdminRuntimeException extends RuntimeException {
    * @param cause
    *          The cause.
    */
-  protected AdminRuntimeException(String message, Throwable cause) {
-    super(message, cause);
+  protected AdminRuntimeException(Message message, Throwable cause) {
+    super(message.toString(), cause);
   }
 
 
@@ -76,7 +77,7 @@ public abstract class AdminRuntimeException extends RuntimeException {
    * @param message
    *          The message.
    */
-  protected AdminRuntimeException(String message) {
-    super(message);
+  protected AdminRuntimeException(Message message) {
+    super(message.toString());
   }
 }

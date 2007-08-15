@@ -27,7 +27,7 @@
 
 package org.opends.server.authorization.dseecompat;
 
-import static org.opends.server.messages.AciMessages.*;
+import static org.opends.messages.AccessControlMessages.*;
 
 import java.util.HashSet;
 
@@ -76,7 +76,8 @@ public class ExtOp {
   public static ExtOp decode(EnumTargetOperator operator, String expr)
           throws AciException {
     HashSet<String> extOpOIDs =
-          Aci.decodeOID(expr,MSGID_ACI_SYNTAX_INVALID_TARGEXTOP_EXPRESSION);
+          Aci.decodeOID(expr,
+                  WARN_ACI_SYNTAX_INVALID_TARGEXTOP_EXPRESSION.get(expr));
     return new ExtOp(operator, extOpOIDs);
   }
 

@@ -35,9 +35,11 @@ import java.util.TreeSet;
 
 import javax.swing.table.AbstractTableModel;
 
-import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.guitools.statuspanel.BaseDNDescriptor;
 import org.opends.quicksetup.ui.SortableTableModel;
+
+import org.opends.messages.Message;
+import static org.opends.messages.AdminToolMessages.*;
 
 /**
  * This class is just a table model used to display the information about
@@ -51,13 +53,13 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
   private HashSet<BaseDNDescriptor> data = new HashSet<BaseDNDescriptor>();
   private ArrayList<BaseDNDescriptor> dataArray =
     new ArrayList<BaseDNDescriptor>();
-  private final String[] COLUMN_NAMES = {
-    getMsg("basedn-column"),
-    getMsg("backendid-column"),
-    getMsg("number-entries-column"),
-    getMsg("replicated-column"),
-    getMsg("missing-changes-column"),
-    getMsg("age-of-oldest-missing-change-column")
+  private final Message[] COLUMN_NAMES = {
+    INFO_BASEDN_COLUMN.get(),
+    INFO_BACKENDID_COLUMN.get(),
+    INFO_NUMBER_ENTRIES_COLUMN.get(),
+    INFO_REPLICATED_COLUMN.get(),
+    INFO_MISSING_CHANGES_COLUMN.get(),
+    INFO_AGE_OF_OLDEST_MISSING_CHANGE_COLUMN.get()
   };
   private int sortColumn = 0;
   private boolean sortAscending = true;
@@ -360,7 +362,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
    * {@inheritDoc}
    */
   public String getColumnName(int col) {
-    return COLUMN_NAMES[col];
+    return COLUMN_NAMES[col].toString();
   }
 
   /**
@@ -468,11 +470,9 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
     if ((rep.getDatabase().getBaseDns().size() > 1) &&
       (nEntries >= 0))
     {
-      String[] args = {
-        String.valueOf(nEntries),
-        rep.getDatabase().getBackendID()
-      };
-      v = getMsg("number-entries-multiple-suffixes-in-db", args);
+      v = INFO_NUMBER_ENTRIES_MULTIPLE_SUFFIXES_IN_DB.get(
+              String.valueOf(nEntries),
+              rep.getDatabase().getBackendID());
     }
     else
     {
@@ -499,7 +499,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
     }
     else
     {
-      v = getMsg("not-applicable-label");
+      v = INFO_NOT_APPLICABLE_LABEL.get();
     }
     return v;
   }
@@ -543,7 +543,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
     }
     else
     {
-      v = getMsg("not-applicable-label");
+      v = INFO_NOT_APPLICABLE_LABEL.get();
     }
     return v;
   }
@@ -555,36 +555,18 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
    * @return the localized String describing the replication state of
    * a given Base DN.
    */
-  private String getStringForReplState(BaseDNDescriptor rep)
+  private Message getStringForReplState(BaseDNDescriptor rep)
   {
-    String s;
+    Message s;
     if (rep.getType() == BaseDNDescriptor.Type.REPLICATED)
     {
-      s = getMsg("suffix-replicated-label");
+      s = INFO_SUFFIX_REPLICATED_LABEL.get();
     }
     else
     {
-      s = getMsg("suffix-not-replicated-label");
+      s = INFO_SUFFIX_NOT_REPLICATED_LABEL.get();
     }
     return s;
   }
 
-  /**
-   * The following three methods are just commodity methods to get localized
-   * messages.
-   */
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  private String getMsg(String key, String[] args)
-  {
-    return getI18n().getMsg(key, args);
-  }
-
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
-  }
 }

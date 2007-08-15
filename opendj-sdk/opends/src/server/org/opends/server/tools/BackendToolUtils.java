@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigEntry;
@@ -33,15 +34,12 @@ import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.messages.ToolMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.RootCfg;
@@ -82,19 +80,16 @@ public class BackendToolUtils
     }
     catch (DirectoryException de)
     {
-      int    msgID   = MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
-      String message = getMessage(msgID, DN_BACKEND_BASE, de.getErrorMessage());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_DECODE_BACKEND_BASE_DN.get(
+          DN_BACKEND_BASE, de.getMessageObject());
+      logError(message);
       return 1;
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
-      String message = getMessage(msgID, DN_BACKEND_BASE,
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_DECODE_BACKEND_BASE_DN.get(
+          DN_BACKEND_BASE, getExceptionMessage(e));
+      logError(message);
       return 1;
     }
 
@@ -105,19 +100,16 @@ public class BackendToolUtils
     }
     catch (ConfigException ce)
     {
-      int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
-      String message = getMessage(msgID, DN_BACKEND_BASE, ce.getMessage());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY.get(
+          DN_BACKEND_BASE, ce.getMessage());
+      logError(message);
       return 1;
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
-      String message = getMessage(msgID, DN_BACKEND_BASE,
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY.get(
+          DN_BACKEND_BASE, getExceptionMessage(e));
+      logError(message);
       return 1;
     }
 
@@ -132,9 +124,10 @@ public class BackendToolUtils
       String backendID;
       try
       {
-        int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID;
+
         StringConfigAttribute idStub =
-             new StringConfigAttribute(ATTR_BACKEND_ID, getMessage(msgID),
+             new StringConfigAttribute(ATTR_BACKEND_ID,
+                     INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID.get(),
                                        true, false, true);
         StringConfigAttribute idAttr =
              (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
@@ -149,20 +142,16 @@ public class BackendToolUtils
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    ce.getMessage());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(
+            String.valueOf(configEntry.getDN()), ce.getMessage());
+        logError(message);
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(
+            String.valueOf(configEntry.getDN()), getExceptionMessage(e));
+        logError(message);
         return 1;
       }
 
@@ -172,10 +161,12 @@ public class BackendToolUtils
       String backendClassName;
       try
       {
-        int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS;
+
         StringConfigAttribute classStub =
-             new StringConfigAttribute(ATTR_BACKEND_CLASS, getMessage(msgID),
-                                       true, false, false);
+             new StringConfigAttribute(
+                     ATTR_BACKEND_CLASS,
+                     INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS.get(),
+                     true, false, false);
         StringConfigAttribute classAttr =
              (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
         if (classAttr == null)
@@ -189,20 +180,16 @@ public class BackendToolUtils
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_CLASS;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    ce.getMessage());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_CANNOT_DETERMINE_BACKEND_CLASS.get(
+            String.valueOf(configEntry.getDN()), ce.getMessage());
+        logError(message);
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_CLASS;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_CANNOT_DETERMINE_BACKEND_CLASS.get(
+            String.valueOf(configEntry.getDN()), getExceptionMessage(e));
+        logError(message);
         return 1;
       }
 
@@ -213,12 +200,10 @@ public class BackendToolUtils
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_BACKEND_CLASS;
-        String message = getMessage(msgID, backendClassName,
-                                    String.valueOf(configEntry.getDN()),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_CANNOT_LOAD_BACKEND_CLASS.
+            get(backendClassName, String.valueOf(configEntry.getDN()),
+                getExceptionMessage(e));
+        logError(message);
         return 1;
       }
 
@@ -233,12 +218,10 @@ public class BackendToolUtils
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_INSTANTIATE_BACKEND_CLASS;
-        String message = getMessage(msgID, backendClassName,
-                                    String.valueOf(configEntry.getDN()),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_CANNOT_INSTANTIATE_BACKEND_CLASS.
+            get(backendClassName, String.valueOf(configEntry.getDN()),
+                getExceptionMessage(e));
+        logError(message);
         return 1;
       }
 
@@ -248,19 +231,19 @@ public class BackendToolUtils
       List<DN> baseDNs = null;
       try
       {
-        int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS;
+
         DNConfigAttribute baseDNStub =
-             new DNConfigAttribute(ATTR_BACKEND_BASE_DN, getMessage(msgID),
-                                   true, true, true);
+             new DNConfigAttribute(
+                     ATTR_BACKEND_BASE_DN,
+                     INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS.get(),
+                     true, true, true);
         DNConfigAttribute baseDNAttr =
              (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
         if (baseDNAttr == null)
         {
-          msgID = MSGID_NO_BASES_FOR_BACKEND;
-          String message = getMessage(msgID,
-                                      String.valueOf(configEntry.getDN()));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message =
+              ERR_NO_BASES_FOR_BACKEND.get(String.valueOf(configEntry.getDN()));
+          logError(message);
         }
         else
         {
@@ -269,11 +252,9 @@ public class BackendToolUtils
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BASES_FOR_BACKEND;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_CANNOT_DETERMINE_BASES_FOR_BACKEND.get(
+            String.valueOf(configEntry.getDN()), getExceptionMessage(e));
+        logError(message);
         return 1;
       }
 

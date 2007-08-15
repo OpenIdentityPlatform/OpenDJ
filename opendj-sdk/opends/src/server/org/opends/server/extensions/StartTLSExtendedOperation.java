@@ -25,7 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
-
+import org.opends.messages.MessageBuilder;
 
 
 import org.opends.server.api.ClientConnection;
@@ -35,8 +35,8 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
@@ -44,8 +44,7 @@ import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
@@ -140,8 +139,8 @@ public class StartTLSExtendedOperation
     {
       operation.setResultCode(ResultCode.UNAVAILABLE);
 
-      int msgID = MSGID_STARTTLS_NO_CLIENT_CONNECTION;
-      operation.appendErrorMessage(getMessage(msgID));
+
+      operation.appendErrorMessage(ERR_STARTTLS_NO_CLIENT_CONNECTION.get());
       return;
     }
 
@@ -157,12 +156,12 @@ public class StartTLSExtendedOperation
     {
       operation.setResultCode(ResultCode.UNAVAILABLE);
 
-      int msgID = MSGID_STARTTLS_NOT_TLS_CAPABLE;
-      operation.appendErrorMessage(getMessage(msgID));
+
+      operation.appendErrorMessage(ERR_STARTTLS_NOT_TLS_CAPABLE.get());
       return;
     }
 
-    StringBuilder unavailableReason = new StringBuilder();
+    MessageBuilder unavailableReason = new MessageBuilder();
     if (! tlsCapableConnection.tlsProtectionAvailable(unavailableReason))
     {
       operation.setResultCode(ResultCode.UNAVAILABLE);
@@ -185,8 +184,7 @@ public class StartTLSExtendedOperation
         TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
-      logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.MILD_ERROR,
-               MSGID_STARTTLS_ERROR_ON_ENABLE, getExceptionMessage(de));
+      logError(ERR_STARTTLS_ERROR_ON_ENABLE.get(getExceptionMessage(de)));
     }
 
 
@@ -206,13 +204,12 @@ public class StartTLSExtendedOperation
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.MILD_ERROR,
-               MSGID_STARTTLS_ERROR_SENDING_CLEAR_RESPONSE,
-               getExceptionMessage(e));
+      logError(ERR_STARTTLS_ERROR_SENDING_CLEAR_RESPONSE.get(
+          getExceptionMessage(e)));
 
       clientConnection.disconnect(DisconnectReason.SECURITY_PROBLEM, false,
-                                  MSGID_STARTTLS_ERROR_SENDING_CLEAR_RESPONSE,
-                                  getExceptionMessage(e));
+                                  ERR_STARTTLS_ERROR_SENDING_CLEAR_RESPONSE.get(
+                                  getExceptionMessage(e)));
     }
   }
 }

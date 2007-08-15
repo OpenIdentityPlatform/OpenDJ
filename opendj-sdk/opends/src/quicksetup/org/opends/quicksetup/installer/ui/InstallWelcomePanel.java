@@ -27,6 +27,10 @@
 
 package org.opends.quicksetup.installer.ui;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+import org.opends.server.util.DynamicConstants;
+
 import java.awt.Component;
 
 import org.opends.quicksetup.ui.GuiApplication;
@@ -55,41 +59,38 @@ public class InstallWelcomePanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected String getTitle()
+  protected Message getTitle()
   {
-    return getMsg("welcome-panel-title");
+    return INFO_WELCOME_PANEL_TITLE.get();
   }
 
   /**
    * {@inheritDoc}
    */
-  protected String getInstructions()
+  protected Message getInstructions()
   {
     /*
      * We can use org.opends.server.util.DynamicConstants without problems as it
      * has been added to quicksetup.jar during build time.
      */
-    String[] args;
-    String msgKey;
+    Message message;
     if (Utils.isWebStart())
     {
-      msgKey = "welcome-panel-webstart-instructions";
-      args = new String[3];
       String cmd = Utils.isWindows()? Installation.WINDOWS_SETUP_FILE_NAME:
           Installation.UNIX_SETUP_FILE_NAME;
-      args[0] = UIFactory.applyFontToHtml(cmd,
-          UIFactory.INSTRUCTIONS_MONOSPACE_FONT);
-      args[1] = org.opends.server.util.DynamicConstants.COMPACT_VERSION_STRING;
-      args[2] = org.opends.server.util.DynamicConstants.BUILD_ID;
+      message = INFO_WELCOME_PANEL_WEBSTART_INSTRUCTIONS.get(
+              UIFactory.applyFontToHtml(cmd,
+                      UIFactory.INSTRUCTIONS_MONOSPACE_FONT),
+              DynamicConstants.COMPACT_VERSION_STRING,
+              DynamicConstants.BUILD_ID);
     }
     else
     {
-      args = new String[2];
-      args[0] = org.opends.server.util.DynamicConstants.COMPACT_VERSION_STRING;
-      args[1] = org.opends.server.util.DynamicConstants.BUILD_ID;
-      msgKey = "welcome-panel-offline-instructions";
+      message = INFO_WELCOME_PANEL_OFFLINE_INSTRUCTIONS.get(
+              DynamicConstants.COMPACT_VERSION_STRING,
+              DynamicConstants.BUILD_ID);
     }
-    return getMsg(msgKey, args);
+    return message;
   }
 
   /**

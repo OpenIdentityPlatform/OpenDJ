@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
+import org.opends.messages.Message;
 
 
 
@@ -34,8 +35,8 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
+
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -109,24 +110,23 @@ public class IfPresentTag
    */
   public void initializeForBranch(TemplateFile templateFile, Branch branch,
                                   String[] arguments, int lineNumber,
-                                  List<String> warnings)
+                                  List<Message> warnings)
          throws InitializationException
   {
     if ((arguments.length < 1) || (arguments.length > 2))
     {
-      int    msgID   = MSGID_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT;
-      String message = getMessage(msgID, getName(), lineNumber, 1, 2,
-                                  arguments.length);
-      throw new InitializationException(msgID, message);
+      Message message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
+          getName(), lineNumber, 1, 2, arguments.length);
+      throw new InitializationException(message);
     }
 
     String lowerName = toLowerCase(arguments[0]);
     AttributeType t = DirectoryServer.getAttributeType(lowerName, true);
     if (! branch.hasAttribute(t))
     {
-      int    msgID   = MSGID_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE;
-      String message = getMessage(msgID, arguments[0], lineNumber);
-      throw new InitializationException(msgID, message);
+      Message message =
+          ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
+      throw new InitializationException(message);
     }
 
     if (arguments.length == 2)
@@ -158,24 +158,23 @@ public class IfPresentTag
    */
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
-                                    int lineNumber, List<String> warnings)
+                                    int lineNumber, List<Message> warnings)
          throws InitializationException
   {
     if ((arguments.length < 1) || (arguments.length > 2))
     {
-      int    msgID   = MSGID_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT;
-      String message = getMessage(msgID, getName(), lineNumber, 1, 2,
-                                  arguments.length);
-      throw new InitializationException(msgID, message);
+      Message message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
+          getName(), lineNumber, 1, 2, arguments.length);
+      throw new InitializationException(message);
     }
 
     String lowerName = toLowerCase(arguments[0]);
     AttributeType t = DirectoryServer.getAttributeType(lowerName, true);
     if (! template.hasAttribute(t))
     {
-      int    msgID   = MSGID_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE;
-      String message = getMessage(msgID, arguments[0], lineNumber);
-      throw new InitializationException(msgID, message);
+      Message message =
+          ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
+      throw new InitializationException(message);
     }
 
     if (arguments.length == 2)

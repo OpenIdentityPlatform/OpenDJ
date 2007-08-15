@@ -28,8 +28,7 @@ package org.opends.server.protocols.jmx;
 
 
 
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ProtocolMessages.MSGID_JMX_INSUFFICIENT_PRIVILEGES;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -44,6 +43,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskBackend;
 import org.opends.server.backends.task.TaskState;
@@ -413,9 +413,8 @@ public class JmxPrivilegeTestCase
     }
     catch (SecurityException e)
     {
-      int msgID = MSGID_JMX_INSUFFICIENT_PRIVILEGES;
-      String message = getMessage(msgID);
-      assertEquals(message, e.getMessage());
+      Message message = ERR_JMX_INSUFFICIENT_PRIVILEGES.get();
+      assertEquals(message.toString(), e.getMessage());
     }
     catch (IOException e)
     {
@@ -446,7 +445,7 @@ public class JmxPrivilegeTestCase
     }
     catch (SecurityException e)
     {
-      assertTrue(true, "User \"cn=Unprivileged JMX Root,cn=Root " +
+      assertTrue(false, "User \"cn=Unprivileged JMX Root,cn=Root " +
           "DNs,cn=config\" has JMX_READ privilege and he's NOT able " +
           "to connect, which is NOT the correct behavior.");
     }
@@ -477,9 +476,8 @@ public class JmxPrivilegeTestCase
     }
     catch (SecurityException e)
     {
-      int msgID = MSGID_JMX_INSUFFICIENT_PRIVILEGES;
-      String message = getMessage(msgID);
-      assertEquals(message, e.getMessage());
+      Message message = ERR_JMX_INSUFFICIENT_PRIVILEGES.get();
+      assertEquals(message.toString(), e.getMessage());
     }
     catch (IOException e)
     {

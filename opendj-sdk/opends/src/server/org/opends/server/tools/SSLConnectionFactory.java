@@ -45,8 +45,7 @@ import org.opends.server.extensions.BlindTrustManagerProvider;
 import org.opends.server.util.ExpirationCheckTrustManager;
 import org.opends.server.util.SelectableCertificateKeyManager;
 
-import static org.opends.server.messages.ToolMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
@@ -136,8 +135,8 @@ public class SSLConnectionFactory
       sslSocketFactory = ctx.getSocketFactory();
     } catch(Exception e)
     {
-      int msgID = MSGID_TOOLS_CANNOT_CREATE_SSL_CONNECTION;
-      throw new SSLConnectionException(getMessage(msgID, e.getMessage()), e);
+      throw new SSLConnectionException(
+              ERR_TOOLS_CANNOT_CREATE_SSL_CONNECTION.get(e.getMessage()), e);
     }
   }
 
@@ -162,8 +161,9 @@ public class SSLConnectionFactory
   {
     if(sslSocketFactory == null)
     {
-      int msgID = MSGID_TOOLS_SSL_CONNECTION_NOT_INITIALIZED;
-      throw new SSLConnectionException(getMessage(msgID));
+
+      throw new SSLConnectionException(
+              ERR_TOOLS_SSL_CONNECTION_NOT_INITIALIZED.get());
     }
     return sslSocketFactory.createSocket(hostName, portNumber);
   }
@@ -194,8 +194,9 @@ public class SSLConnectionFactory
   {
     if(sslSocketFactory == null)
     {
-      int msgID = MSGID_TOOLS_SSL_CONNECTION_NOT_INITIALIZED;
-      throw new SSLConnectionException(getMessage(msgID));
+
+      throw new SSLConnectionException(
+              ERR_TOOLS_SSL_CONNECTION_NOT_INITIALIZED.get());
     }
     return sslSocketFactory.createSocket(s, hostName, portNumber, autoClose);
   }
@@ -264,8 +265,9 @@ public class SSLConnectionFactory
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      int msgID = MSGID_TOOLS_CANNOT_LOAD_KEYSTORE_FILE;
-      throw new SSLConnectionException(getMessage(msgID, keyStoreFile), e);
+
+      throw new SSLConnectionException(
+              ERR_TOOLS_CANNOT_LOAD_KEYSTORE_FILE.get(keyStoreFile), e);
     }
 
     try
@@ -282,8 +284,9 @@ public class SSLConnectionFactory
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, ke);
       }
-      int msgID = MSGID_TOOLS_CANNOT_INIT_KEYMANAGER;
-      throw new SSLConnectionException(getMessage(msgID, keyStoreFile), ke);
+
+      throw new SSLConnectionException(
+              ERR_TOOLS_CANNOT_INIT_KEYMANAGER.get(keyStoreFile), ke);
     }
 
   }
@@ -356,8 +359,9 @@ public class SSLConnectionFactory
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      int msgID = MSGID_TOOLS_CANNOT_LOAD_TRUSTSTORE_FILE;
-      throw new SSLConnectionException(getMessage(msgID, trustStoreFile), e);
+
+      throw new SSLConnectionException(
+              ERR_TOOLS_CANNOT_LOAD_TRUSTSTORE_FILE.get(trustStoreFile), e);
     }
 
     try
@@ -374,8 +378,9 @@ public class SSLConnectionFactory
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, ke);
       }
-      int msgID = MSGID_TOOLS_CANNOT_INIT_TRUSTMANAGER;
-      throw new SSLConnectionException(getMessage(msgID, trustStoreFile), ke);
+
+      throw new SSLConnectionException(
+              ERR_TOOLS_CANNOT_INIT_TRUSTMANAGER.get(trustStoreFile), ke);
     }
 
   }

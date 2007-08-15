@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
+import org.opends.messages.Message;
 
 
 
@@ -43,8 +44,7 @@ import org.opends.server.types.LDAPException;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -262,9 +262,8 @@ public class PasswordPolicyResponseControl
     if (controlValue == null)
     {
       // The response control must always have a value.
-      int    msgID   = MSGID_PWPOLICYRES_NO_CONTROL_VALUE;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_PWPOLICYRES_NO_CONTROL_VALUE.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -287,11 +286,9 @@ public class PasswordPolicyResponseControl
                  PasswordPolicyWarningType.valueOf(integerElement.getType());
             if (warningType == null)
             {
-              int    msgID   = MSGID_PWPOLICYRES_INVALID_WARNING_TYPE;
-              String message = getMessage(msgID,
-                                          byteToHex(integerElement.getType()));
-              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                      message);
+              Message message = ERR_PWPOLICYRES_INVALID_WARNING_TYPE.get(
+                  byteToHex(integerElement.getType()));
+              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
             break;
 
@@ -300,18 +297,16 @@ public class PasswordPolicyResponseControl
             errorType = PasswordPolicyErrorType.valueOf(errorValue);
             if (errorType == null)
             {
-              int    msgID   = MSGID_PWPOLICYRES_INVALID_ERROR_TYPE;
-              String message = getMessage(msgID, errorValue);
-              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                      message);
+              Message message =
+                  ERR_PWPOLICYRES_INVALID_ERROR_TYPE.get(errorValue);
+              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
             break;
 
           default:
-            int    msgID   = MSGID_PWPOLICYRES_INVALID_ELEMENT_TYPE;
-            String message = getMessage(msgID, byteToHex(e.getType()));
-            throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                    message);
+            Message message = ERR_PWPOLICYRES_INVALID_ELEMENT_TYPE.get(
+                byteToHex(e.getType()));
+            throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
         }
       }
 
@@ -331,9 +326,8 @@ public class PasswordPolicyResponseControl
         TRACER.debugCaught(DebugLogLevel.ERROR, ae);
       }
 
-      int    msgID   = MSGID_PWPOLICYRES_DECODE_ERROR;
-      String message = getMessage(msgID, ae.getMessage());
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_PWPOLICYRES_DECODE_ERROR.get(ae.getMessage());
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
     catch (Exception e)
     {
@@ -342,9 +336,9 @@ public class PasswordPolicyResponseControl
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_PWPOLICYRES_DECODE_ERROR;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message =
+          ERR_PWPOLICYRES_DECODE_ERROR.get(getExceptionMessage(e));
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
   }
 

@@ -26,7 +26,9 @@
  */
 package org.opends.quicksetup.installer;
 
-import static org.opends.server.messages.ToolMessages.*;
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 
 import java.io.File;
@@ -101,7 +103,7 @@ public class InstallLauncher extends Launcher {
     System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
 
     argParser = new ArgumentParser(getClass().getName(),
-        getI18n().getMsg("setup-launcher-usage-description"),
+        INFO_SETUP_LAUNCHER_USAGE_DESCRIPTION.get(),
         false);
     BooleanArgument   addBaseEntry;
     BooleanArgument   cliMode;
@@ -121,60 +123,60 @@ public class InstallLauncher extends Launcher {
     try
     {
       cliMode = new BooleanArgument("cli", 'c', OPTION_LONG_CLI,
-          MSGID_INSTALLDS_DESCRIPTION_CLI);
+          INFO_INSTALLDS_DESCRIPTION_CLI.get());
       argParser.addArgument(cliMode);
 
       silentInstall = new BooleanArgument("silent", 's', "silentInstall",
-          MSGID_INSTALLDS_DESCRIPTION_SILENT);
+          INFO_INSTALLDS_DESCRIPTION_SILENT.get());
       argParser.addArgument(silentInstall);
 
       baseDN = new StringArgument("basedn", OPTION_SHORT_BASEDN,
           OPTION_LONG_BASEDN, false, true, true,
           OPTION_VALUE_BASEDN,
           "dc=example,dc=com", null,
-          MSGID_INSTALLDS_DESCRIPTION_BASEDN);
+          INFO_INSTALLDS_DESCRIPTION_BASEDN.get());
       argParser.addArgument(baseDN);
 
       addBaseEntry = new BooleanArgument("addbase", 'a', "addBaseEntry",
-          MSGID_INSTALLDS_DESCRIPTION_ADDBASE);
+          INFO_INSTALLDS_DESCRIPTION_ADDBASE.get());
       argParser.addArgument(addBaseEntry);
 
       importLDIF = new StringArgument("importldif", OPTION_SHORT_LDIF_FILE,
           OPTION_LONG_LDIF_FILE, false,
           true, true, OPTION_VALUE_LDIF_FILE,
           null, null,
-          MSGID_INSTALLDS_DESCRIPTION_IMPORTLDIF);
+          INFO_INSTALLDS_DESCRIPTION_IMPORTLDIF.get());
       argParser.addArgument(importLDIF);
 
       sampleData = new IntegerArgument("sampledata", 'd', "sampleData", false,
           false, true, "{numEntries}", 0, null,
           true, 0, false, 0,
-          MSGID_INSTALLDS_DESCRIPTION_SAMPLE_DATA);
+          INFO_INSTALLDS_DESCRIPTION_SAMPLE_DATA.get());
       argParser.addArgument(sampleData);
 
       ldapPort = new IntegerArgument("ldapport", OPTION_SHORT_PORT,
           "ldapPort", false, false,
           true, OPTION_VALUE_PORT, 389,
           null, true, 1, true, 65535,
-          MSGID_INSTALLDS_DESCRIPTION_LDAPPORT);
+          INFO_INSTALLDS_DESCRIPTION_LDAPPORT.get());
       argParser.addArgument(ldapPort);
 
       jmxPort = new IntegerArgument("jmxport", 'x', "jmxPort", false, false,
           true, "{jmxPort}",
           SetupUtils.getDefaultJMXPort(), null, true,
           1, true, 65535,
-          MSGID_INSTALLDS_DESCRIPTION_JMXPORT);
+          INFO_INSTALLDS_DESCRIPTION_JMXPORT.get());
       argParser.addArgument(jmxPort);
 
       skipPortCheck = new BooleanArgument("skipportcheck", 'S', "skipPortCheck",
-          MSGID_INSTALLDS_DESCRIPTION_SKIPPORT);
+          INFO_INSTALLDS_DESCRIPTION_SKIPPORT.get());
       argParser.addArgument(skipPortCheck);
 
       rootDN = new StringArgument("rootdn",OPTION_SHORT_ROOT_USER_DN,
           OPTION_LONG_ROOT_USER_DN, false, true,
           true, OPTION_VALUE_ROOT_USER_DN,
           "cn=Directory Manager",
-          null, MSGID_INSTALLDS_DESCRIPTION_ROOTDN);
+          null, INFO_INSTALLDS_DESCRIPTION_ROOTDN.get());
       argParser.addArgument(rootDN);
 
       rootPWString = new StringArgument("rootpwstring", OPTION_SHORT_BINDPWD,
@@ -182,19 +184,19 @@ public class InstallLauncher extends Launcher {
           false, false, true,
           "{password}", null,
           null,
-          MSGID_INSTALLDS_DESCRIPTION_ROOTPW);
+          INFO_INSTALLDS_DESCRIPTION_ROOTPW.get());
       argParser.addArgument(rootPWString);
 
       rootPWFile = new FileBasedArgument("rootpwfile",
           OPTION_SHORT_BINDPWD_FILE,
           "rootUserPasswordFile", false, false,
           OPTION_VALUE_BINDPWD_FILE,
-          null, null, MSGID_INSTALLDS_DESCRIPTION_ROOTPWFILE);
+          null, null, INFO_INSTALLDS_DESCRIPTION_ROOTPWFILE.get());
       argParser.addArgument(rootPWFile);
 
       enableWindowsService = new BooleanArgument("enablewindowsservice", 'e',
           "enableWindowsService",
-          MSGID_INSTALLDS_DESCRIPTION_ENABLE_WINDOWS_SERVICE);
+          INFO_INSTALLDS_DESCRIPTION_ENABLE_WINDOWS_SERVICE.get());
       if (SetupUtils.isWindows())
       {
         argParser.addArgument(enableWindowsService);
@@ -202,7 +204,7 @@ public class InstallLauncher extends Launcher {
 
       showUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
           OPTION_LONG_HELP,
-          MSGID_INSTALLDS_DESCRIPTION_HELP);
+          INFO_INSTALLDS_DESCRIPTION_HELP.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }
@@ -219,12 +221,12 @@ public class InstallLauncher extends Launcher {
   protected void guiLaunchFailed(String logFileName) {
     if (logFileName != null)
     {
-      System.err.println(getMsg("setup-launcher-gui-launched-failed-details",
-          logFileName));
+      System.err.println(INFO_SETUP_LAUNCHER_GUI_LAUNCHED_FAILED_DETAILS.get(
+              logFileName));
     }
     else
     {
-      System.err.println(getMsg("setup-launcher-gui-launched-failed"));
+      System.err.println(INFO_SETUP_LAUNCHER_GUI_LAUNCHED_FAILED.get());
     }
   }
 
@@ -239,7 +241,7 @@ public class InstallLauncher extends Launcher {
    * {@inheritDoc}
    */
   protected void willLaunchGui() {
-    System.out.println(getMsg("setup-launcher-launching-gui"));
+    System.out.println(INFO_SETUP_LAUNCHER_LAUNCHING_GUI.get());
     System.setProperty("org.opends.quicksetup.Application.class",
             "org.opends.quicksetup.installer.offline.OfflineInstaller");
   }
@@ -247,8 +249,8 @@ public class InstallLauncher extends Launcher {
   /**
    * {@inheritDoc}
    */
-  protected String getFrameTitle() {
-    return getI18n().getMsg("frame-install-title");
+  protected Message getFrameTitle() {
+    return INFO_FRAME_INSTALL_TITLE.get();
   }
 
   /**

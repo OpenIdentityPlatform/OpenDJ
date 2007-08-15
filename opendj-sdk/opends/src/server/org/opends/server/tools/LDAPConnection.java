@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 import java.io.PrintStream;
 import java.io.IOException;
@@ -50,10 +51,9 @@ import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.CoreMessages.
-                   MSGID_RESULT_CLIENT_SIDE_CONNECT_ERROR;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.CoreMessages.
+                   INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
@@ -169,14 +169,12 @@ public class LDAPConnection
         ldapReader = new LDAPReader(startTLSSocket, tracer);
       } catch(UnknownHostException uhe)
       {
-        int msgID = MSGID_RESULT_CLIENT_SIDE_CONNECT_ERROR;
-        String msg = getMessage(msgID);
+        Message msg = INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get();
         throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, null,
                                           uhe);
       } catch(ConnectException ce)
       {
-        int msgID = MSGID_RESULT_CLIENT_SIDE_CONNECT_ERROR;
-        String msg = getMessage(msgID);
+        Message msg = INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get();
         throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, null,
                                           ce);
       } catch(Exception ex)
@@ -185,7 +183,7 @@ public class LDAPConnection
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, ex);
         }
-        throw new LDAPConnectionException(ex.getMessage(), ex);
+        throw new LDAPConnectionException(Message.raw(ex.getMessage()), ex);
       }
 
       // Send the StartTLS extended request.
@@ -206,13 +204,14 @@ public class LDAPConnection
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, ex1);
         }
-        throw new LDAPConnectionException(ex1.getMessage(), ex1);
+        throw new LDAPConnectionException(Message.raw(ex1.getMessage()), ex1);
       }
       ExtendedResponseProtocolOp res = msg.getExtendedResponseProtocolOp();
       resultCode = res.getResultCode();
       if(resultCode != SUCCESS)
       {
-        throw new LDAPConnectionException(res.getErrorMessage(), resultCode,
+        throw new LDAPConnectionException(res.getErrorMessage(),
+                                          resultCode,
                                           res.getErrorMessage(),
                                           res.getMatchedDN(), null);
       }
@@ -240,14 +239,12 @@ public class LDAPConnection
       ldapReader = new LDAPReader(socket, tracer);
     } catch(UnknownHostException uhe)
     {
-      int msgID = MSGID_RESULT_CLIENT_SIDE_CONNECT_ERROR;
-      String msg = getMessage(msgID);
+      Message msg = INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get();
       throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, null,
                                         uhe);
     } catch(ConnectException ce)
     {
-      int msgID = MSGID_RESULT_CLIENT_SIDE_CONNECT_ERROR;
-      String msg = getMessage(msgID);
+      Message msg = INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get();
       throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, null,
                                         ce);
     } catch(Exception ex2)
@@ -256,7 +253,7 @@ public class LDAPConnection
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, ex2);
       }
-      throw new LDAPConnectionException(ex2.getMessage(), ex2);
+      throw new LDAPConnectionException(Message.raw(ex2.getMessage()), ex2);
     }
 
     // We need this so that we don't run out of addresses when the tool
@@ -330,15 +327,16 @@ public class LDAPConnection
           ASN1OctetString controlValue = c.getValue();
           if (controlValue != null)
           {
-            int    msgID   = MSGID_BIND_AUTHZID_RETURNED;
-            String message = getMessage(msgID, controlValue.stringValue());
+
+            Message message =
+                    INFO_BIND_AUTHZID_RETURNED.get(controlValue.stringValue());
             out.println(message);
           }
         }
         else if (c.getOID().equals(OID_NS_PASSWORD_EXPIRED))
         {
-          int    msgID   = MSGID_BIND_PASSWORD_EXPIRED;
-          String message = getMessage(msgID);
+
+          Message message = INFO_BIND_PASSWORD_EXPIRED.get();
           out.println(message);
         }
         else if (c.getOID().equals(OID_NS_PASSWORD_EXPIRING))
@@ -347,11 +345,11 @@ public class LDAPConnection
                PasswordExpiringControl.decodeControl(new Control(c.getOID(),
                                                                  c.isCritical(),
                                                                  c.getValue()));
-          String timeString =
+          Message timeString =
                secondsToTimeString(expiringControl.getSecondsUntilExpiration());
 
-          int    msgID   = MSGID_BIND_PASSWORD_EXPIRING;
-          String message = getMessage(msgID, timeString);
+
+          Message message = INFO_BIND_PASSWORD_EXPIRING.get(timeString);
           out.println(message);
         }
         else if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
@@ -366,18 +364,18 @@ public class LDAPConnection
             switch (errorType)
             {
               case PASSWORD_EXPIRED:
-                int    msgID   = MSGID_BIND_PASSWORD_EXPIRED;
-                String message = getMessage(msgID);
+
+                Message message = INFO_BIND_PASSWORD_EXPIRED.get();
                 out.println(message);
                 break;
               case ACCOUNT_LOCKED:
-                msgID   = MSGID_BIND_ACCOUNT_LOCKED;
-                message = getMessage(msgID);
+
+                message = INFO_BIND_ACCOUNT_LOCKED.get();
                 out.println(message);
                 break;
               case CHANGE_AFTER_RESET:
-                msgID   = MSGID_BIND_MUST_CHANGE_PASSWORD;
-                message = getMessage(msgID);
+
+                message = INFO_BIND_MUST_CHANGE_PASSWORD.get();
                 out.println(message);
                 break;
             }
@@ -390,16 +388,17 @@ public class LDAPConnection
             switch (warningType)
             {
               case TIME_BEFORE_EXPIRATION:
-                String timeString =
+                Message timeString =
                      secondsToTimeString(pwPolicyControl.getWarningValue());
 
-                int    msgID   = MSGID_BIND_PASSWORD_EXPIRING;
-                String message = getMessage(msgID, timeString);
+
+                Message message = INFO_BIND_PASSWORD_EXPIRING.get(timeString);
                 out.println(message);
                 break;
               case GRACE_LOGINS_REMAINING:
-                msgID   = MSGID_BIND_GRACE_LOGINS_REMAINING;
-                message = getMessage(msgID, pwPolicyControl.getWarningValue());
+
+                message = INFO_BIND_GRACE_LOGINS_REMAINING.get(
+                        pwPolicyControl.getWarningValue());
                 out.println(message);
                 break;
             }
@@ -412,12 +411,14 @@ public class LDAPConnection
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, ce);
       }
-      throw new LDAPConnectionException(ce.getMessage(), ce.getExitCode(),
+      throw new LDAPConnectionException(ce.getMessageObject(), ce.getExitCode(),
                                         null, ce);
     } catch (LDAPException le)
     {
-      throw new LDAPConnectionException(le.getMessage(), le.getResultCode(),
-                                        le.getErrorMessage(), le.getMatchedDN(),
+      throw new LDAPConnectionException(le.getMessageObject(),
+                                        le.getResultCode(),
+                                        le.getErrorMessage(),
+                                        le.getMatchedDN(),
                                         le.getCause());
     } catch(Exception ex)
     {
@@ -425,7 +426,8 @@ public class LDAPConnection
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
-      throw new LDAPConnectionException(ex.getMessage(), ex);
+      throw new LDAPConnectionException(
+              Message.raw(ex.getLocalizedMessage()),ex);
     }
 
   }

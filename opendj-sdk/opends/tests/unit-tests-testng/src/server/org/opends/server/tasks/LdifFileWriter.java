@@ -36,6 +36,7 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.LDIFException;
+import org.opends.messages.Message;
 
 import java.io.IOException;
 import java.util.Random;
@@ -79,7 +80,7 @@ public class LdifFileWriter implements EntryWriter
        throws IOException, InitializationException, MakeLDIFException
   {
     TemplateFile template = new TemplateFile(resourcePath, new Random(1));
-    ArrayList<String> warnings = new ArrayList<String>();
+    ArrayList<Message> warnings = new ArrayList<Message>();
     template.parse(templatePath, warnings);
     makeLdif(ldifPath, template);
   }
@@ -103,7 +104,7 @@ public class LdifFileWriter implements EntryWriter
        throws IOException, InitializationException, MakeLDIFException
   {
     TemplateFile template = new TemplateFile(resourcePath, new Random(1));
-    ArrayList<String> warnings = new ArrayList<String>();
+    ArrayList<Message> warnings = new ArrayList<Message>();
     template.parse(templateLines, warnings);
     makeLdif(ldifPath, template);
   }

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 
@@ -37,8 +38,7 @@ import org.opends.server.core.DirectoryServer;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
+import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -335,19 +335,17 @@ public class LDAPURL
     int schemeEndPos = url.indexOf("://");
     if (schemeEndPos < 0)
     {
-      int    msgID   = MSGID_LDAPURL_NO_COLON_SLASH_SLASH;
-      String message = getMessage(msgID, String.valueOf(url));
+      Message message =
+          ERR_LDAPURL_NO_COLON_SLASH_SLASH.get(String.valueOf(url));
       throw new DirectoryException(
-                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                     msgID);
+                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
     else if (schemeEndPos == 0)
     {
-      int    msgID   = MSGID_LDAPURL_NO_SCHEME;
-      String message = getMessage(msgID, String.valueOf(url));
+      Message message =
+          ERR_LDAPURL_NO_SCHEME.get(String.valueOf(url));
       throw new DirectoryException(
-                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                     msgID);
+                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
     else
     {
@@ -394,19 +392,17 @@ public class LDAPURL
       }
       else if (colonPos == 0)
       {
-        int    msgID   = MSGID_LDAPURL_NO_HOST;
-        String message = getMessage(msgID, String.valueOf(url));
+        Message message =
+            ERR_LDAPURL_NO_HOST.get(String.valueOf(url));
         throw new DirectoryException(
-                       ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                       msgID);
+                       ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
       }
       else if (colonPos == (hostPort.length() - 1))
       {
-        int    msgID   = MSGID_LDAPURL_NO_PORT;
-        String message = getMessage(msgID, String.valueOf(url));
+        Message message =
+            ERR_LDAPURL_NO_PORT.get(String.valueOf(url));
         throw new DirectoryException(
-                       ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                       msgID);
+                       ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
       }
       else
       {
@@ -423,22 +419,18 @@ public class LDAPURL
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_LDAPURL_CANNOT_DECODE_PORT;
-          String message = getMessage(msgID, String.valueOf(url),
-                                      hostPort.substring(colonPos+1));
+          Message message = ERR_LDAPURL_CANNOT_DECODE_PORT.get(
+              String.valueOf(url), hostPort.substring(colonPos+1));
           throw new DirectoryException(
-                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                         msgID);
+                        ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
 
         if ((port <= 0) || (port > 65535))
         {
-          int    msgID   = MSGID_LDAPURL_INVALID_PORT;
-          String message = getMessage(msgID, String.valueOf(url),
-                                      port);
+          Message message =
+              ERR_LDAPURL_INVALID_PORT.get(String.valueOf(url), port);
           throw new DirectoryException(
-                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                         msgID);
+                        ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
     }
@@ -580,12 +572,10 @@ public class LDAPURL
     }
     else
     {
-      int    msgID   = MSGID_LDAPURL_INVALID_SCOPE_STRING;
-      String message = getMessage(msgID, String.valueOf(url),
-                                  String.valueOf(scopeString));
+      Message message = ERR_LDAPURL_INVALID_SCOPE_STRING.get(
+          String.valueOf(url), String.valueOf(scopeString));
       throw new DirectoryException(
-                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                     msgID);
+                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
     if (startPos >= length)
@@ -707,11 +697,10 @@ public class LDAPURL
         // a problem.
         if (i+2 > length)
         {
-          int    msgID   = MSGID_LDAPURL_PERCENT_TOO_CLOSE_TO_END;
-          String message = getMessage(msgID, String.valueOf(s), i);
+          Message message = ERR_LDAPURL_PERCENT_TOO_CLOSE_TO_END.get(
+              String.valueOf(s), i);
           throw new DirectoryException(
-                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                         msgID);
+                        ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
 
         byte b;
@@ -772,11 +761,11 @@ public class LDAPURL
             b = (byte) 0xF0;
             break;
           default:
-            int msgID = MSGID_LDAPURL_INVALID_HEX_BYTE;
-            String message = getMessage(msgID, String.valueOf(s), i);
+            Message message = ERR_LDAPURL_INVALID_HEX_BYTE.get(
+                String.valueOf(s), i);
             throw new DirectoryException(
                            ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                           message, msgID);
+                           message);
         }
 
         switch (stringBytes[++i])
@@ -835,11 +824,11 @@ public class LDAPURL
             b |= 0x0F;
             break;
           default:
-            int msgID = MSGID_LDAPURL_INVALID_HEX_BYTE;
-            String message = getMessage(msgID, String.valueOf(s), i);
+            Message message = ERR_LDAPURL_INVALID_HEX_BYTE.get(
+                String.valueOf(s), i);
             throw new DirectoryException(
                            ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                           message, msgID);
+                           message);
         }
 
         decodedBytes[pos++] = b;
@@ -862,11 +851,10 @@ public class LDAPURL
       }
 
       // This should never happen.
-      int    msgID   = MSGID_LDAPURL_CANNOT_CREATE_UTF8_STRING;
-      String message = getMessage(msgID, getExceptionMessage(e));
+      Message message = ERR_LDAPURL_CANNOT_CREATE_UTF8_STRING.get(
+          getExceptionMessage(e));
       throw new DirectoryException(
-                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                     msgID);
+                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
   }
 

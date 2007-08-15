@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.ToolsTestCase;
 import org.opends.server.types.InitializationException;
@@ -82,7 +83,7 @@ public class MakeLDIFTestCase
     // Previous behaviour showed "missingVar" on line 5.
     
     TemplateFile templateFile = new TemplateFile(resourcePath);
-    List<String> warns = new ArrayList<String>();
+    List<Message> warns = new ArrayList<Message>();
 
     try
     {

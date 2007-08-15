@@ -27,7 +27,8 @@
 
 package org.opends.quicksetup.ui;
 
-import org.opends.quicksetup.i18n.ResourceProvider;
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -105,7 +106,7 @@ public class WebProxyDialog extends JDialog
   }
 
   private void init(String host, Integer port, String user, char[] pw) {
-    setTitle(getMsg("web-proxy-dlg-title"));
+    setTitle(INFO_WEB_PROXY_DLG_TITLE.get().toString());
     optionPane = createContentPane(host, port, user, pw);
     optionPane.addPropertyChangeListener(this);
     setContentPane(optionPane);
@@ -269,18 +270,18 @@ public class WebProxyDialog extends JDialog
     GridBagConstraints gbc = new GridBagConstraints();
 
     final JLabel lblUser = UIFactory.makeJLabel(null,
-            getMsg("web-proxy-dlg-user-label"),
+            INFO_WEB_PROXY_DLG_USER_LABEL.get(),
             UIFactory.TextStyle.SECONDARY_FIELD_VALID);
 
     final JLabel lblPassword = UIFactory.makeJLabel(null,
-            getMsg("web-proxy-dlg-password-label"),
+            INFO_WEB_PROXY_DLG_PASSWORD_LABEL.get(),
             UIFactory.TextStyle.SECONDARY_FIELD_VALID);
 
     gbc.gridx = 0;
     gbc.gridy = 0;
     gbc.anchor = GridBagConstraints.FIRST_LINE_START;
     gbc.fill = GridBagConstraints.NONE;
-    p.add(new JLabel(getMsg("web-proxy-dlg-host-label")), gbc);
+    p.add(new JLabel(INFO_WEB_PROXY_DLG_HOST_LABEL.get().toString()), gbc);
 
     gbc.gridx = 1;
     gbc.gridy = 0;
@@ -292,7 +293,7 @@ public class WebProxyDialog extends JDialog
     gbc.gridy = 1;
     gbc.weightx = 0;
     gbc.fill = GridBagConstraints.NONE;
-    p.add(new JLabel(getMsg("web-proxy-dlg-port-label")), gbc);
+    p.add(new JLabel(INFO_WEB_PROXY_DLG_PORT_LABEL.get().toString()), gbc);
 
     gbc.gridx = 1;
     gbc.gridy = 1;
@@ -304,15 +305,16 @@ public class WebProxyDialog extends JDialog
     gbc.weightx = 0;
     gbc.fill = GridBagConstraints.NONE;
     gbc.insets.top = 7; // I don't understand why this is necesary
-    p.add(new JLabel(getMsg("web-proxy-dlg-auth-label")), gbc);
+    p.add(new JLabel(INFO_WEB_PROXY_DLG_AUTH_LABEL.get().toString()), gbc);
 
     gbc.gridx = 1;
     gbc.gridy = 2;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.insets.top = 0;
     p.add(chkRequiresAuth =
-            UIFactory.makeJCheckBox(getMsg("web-proxy-dlg-auth-req-label"),
-                    "",
+            UIFactory.makeJCheckBox(
+                    INFO_WEB_PROXY_DLG_AUTH_REQ_LABEL.get(),
+                    Message.EMPTY,
                     UIFactory.TextStyle.SECONDARY_FIELD_VALID
             ), gbc);
     chkRequiresAuth.addActionListener(new ActionListener() {
@@ -368,30 +370,26 @@ public class WebProxyDialog extends JDialog
   }
 
   private boolean validateUserData() {
-    String errorMsg = null;
+    Message errorMsg = null;
     String portString = tfPort.getText();
 
     try {
       Integer port = Integer.parseInt(portString);
       if (!(port >= 1 && port <= 65535)) {
-        errorMsg = getMsg("invalid-port-value-range", portString);
+        errorMsg = INFO_INVALID_PORT_VALUE_RANGE.get(
+                String.valueOf(1),
+                String.valueOf(65535));
       }
     } catch (NumberFormatException e) {
-      errorMsg = getMsg("invalid-port-value-range", portString);
+      errorMsg = INFO_INVALID_PORT_VALUE_RANGE.get(
+              String.valueOf(1),
+              String.valueOf(65535));
     }
 
     if (errorMsg != null) {
       JOptionPane.showMessageDialog(this, errorMsg);
     }
     return (errorMsg == null);
-  }
-
-  private String getMsg(String key) {
-    return ResourceProvider.getInstance().getMsg(key);
-  }
-
-  private String getMsg(String key, String... args) {
-    return ResourceProvider.getInstance().getMsg(key, args);
   }
 
 //  /**

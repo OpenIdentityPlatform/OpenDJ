@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
+import org.opends.messages.Message;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -42,21 +43,21 @@ public class ErrorMessage extends RoutableMessage implements
 
   // Specifies the messageID built form the error that was detected
   private int msgID;
+
   // Specifies the complementary details about the error that was detected
-  private String details = null;
+  private Message details = null;
 
   /**
    * Create a InitializeMessage.
    * @param sender The server ID of the server that send this message.
    * @param destination The destination server or servers of this message.
-   * @param msgID The error message ID.
    * @param details The details of the error.
    */
-  public ErrorMessage(short sender, short destination, int msgID,
-      String details)
+  public ErrorMessage(short sender, short destination,
+                      Message details)
   {
     super(sender, destination);
-    this.msgID  = msgID;
+    this.msgID  = details.getDescriptor().getId();
     this.details = details;
   }
 
@@ -64,13 +65,12 @@ public class ErrorMessage extends RoutableMessage implements
    * Create a InitializeMessage.
    *
    * @param destination replication server id
-   * @param msgID error message ID
    * @param details details of the error
    */
-  public ErrorMessage(short destination, int msgID, String details)
+  public ErrorMessage(short destination, Message details)
   {
     super((short)-2, destination);
-    this.msgID  = msgID;
+    this.msgID  = details.getDescriptor().getId();
     this.details = details;
   }
 
@@ -110,7 +110,7 @@ public class ErrorMessage extends RoutableMessage implements
 
       // Details
       length = getNextLength(in, pos);
-      details = new String(in, pos, length, "UTF-8");
+      details = Message.raw(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
     }
@@ -125,7 +125,7 @@ public class ErrorMessage extends RoutableMessage implements
    *
    * @return the base DN from this InitializeMessage.
    */
-  public String getDetails()
+  public Message getDetails()
   {
     return details;
   }
@@ -153,7 +153,7 @@ public class ErrorMessage extends RoutableMessage implements
       byte[] byteSender = String.valueOf(senderID).getBytes("UTF-8");
       byte[] byteDestination = String.valueOf(destination).getBytes("UTF-8");
       byte[] byteErrMsgId = String.valueOf(msgID).getBytes("UTF-8");
-      byte[] byteDetails = details.getBytes("UTF-8");
+      byte[] byteDetails = details.toString().getBytes("UTF-8");
 
       int length = 1 + byteSender.length + 1
                      + byteDestination.length + 1

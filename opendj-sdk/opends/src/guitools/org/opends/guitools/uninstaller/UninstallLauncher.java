@@ -27,13 +27,13 @@
 
 package org.opends.guitools.uninstaller;
 
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import org.opends.messages.Message;
 import static org.opends.server.tools.ToolConstants.*;
 
 import java.io.File;
 import java.util.logging.Logger;
-
-import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.CliApplicationHelper;
 import org.opends.quicksetup.Launcher;
@@ -100,7 +100,7 @@ public class UninstallLauncher extends Launcher {
     System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
 
     argParser = new ArgumentParser(getClass().getName(),
-        getI18n().getMsg("uninstall-launcher-usage-description"), false);
+        INFO_UNINSTALL_LAUNCHER_USAGE_DESCRIPTION.get(), false);
     BooleanArgument cli;
     BooleanArgument silent;
     BooleanArgument interactive;
@@ -108,23 +108,23 @@ public class UninstallLauncher extends Launcher {
     try
     {
       cli = new BooleanArgument("cli", 'c', "cli",
-          MSGID_UNINSTALLDS_DESCRIPTION_CLI);
+          INFO_UNINSTALLDS_DESCRIPTION_CLI.get());
       argParser.addArgument(cli);
       interactive = new BooleanArgument(
           CliApplicationHelper.INTERACTIVE_OPTION_LONG,
           CliApplicationHelper.INTERACTIVE_OPTION_SHORT,
           CliApplicationHelper.INTERACTIVE_OPTION_LONG,
-          MSGID_DESCRIPTION_INTERACTIVE);
+          INFO_DESCRIPTION_INTERACTIVE.get());
       argParser.addArgument(interactive);
       silent = new BooleanArgument(
           CliApplicationHelper.SILENT_OPTION_LONG,
           CliApplicationHelper.SILENT_OPTION_SHORT,
           CliApplicationHelper.SILENT_OPTION_LONG,
-          MSGID_UNINSTALLDS_DESCRIPTION_SILENT);
+          INFO_UNINSTALLDS_DESCRIPTION_SILENT.get());
       argParser.addArgument(silent);
       showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
         OPTION_LONG_HELP,
-        MSGID_DESCRIPTION_USAGE);
+        INFO_DESCRIPTION_USAGE.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }
@@ -141,12 +141,12 @@ public class UninstallLauncher extends Launcher {
   protected void guiLaunchFailed(String logFilePath) {
     if (logFilePath != null)
     {
-      System.err.println(getMsg(
-          "uninstall-launcher-gui-launched-failed-details", logFilePath));
+      System.err.println(INFO_UNINSTALL_LAUNCHER_GUI_LAUNCHED_FAILED_DETAILS
+              .get(logFilePath));
     }
     else
     {
-      System.err.println(getMsg("uninstall-launcher-gui-launched-failed"));
+      System.err.println(INFO_UNINSTALL_LAUNCHER_GUI_LAUNCHED_FAILED.get());
     }
   }
 
@@ -161,7 +161,7 @@ public class UninstallLauncher extends Launcher {
    * {@inheritDoc}
    */
   protected void willLaunchGui() {
-    System.out.println(getMsg("uninstall-launcher-launching-gui"));
+    System.out.println(INFO_UNINSTALL_LAUNCHER_LAUNCHING_GUI.get());
     System.setProperty("org.opends.quicksetup.Application.class",
             org.opends.guitools.uninstaller.Uninstaller.class.getName());
   }
@@ -176,15 +176,8 @@ public class UninstallLauncher extends Launcher {
   /**
    * {@inheritDoc}
    */
-  protected String getFrameTitle() {
-    return getI18n().getMsg("frame-uninstall-title");
+  protected Message getFrameTitle() {
+    return INFO_FRAME_UNINSTALL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  protected ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
-  }
 }

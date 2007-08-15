@@ -25,6 +25,10 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
+
+import org.opends.server.types.OpenDsException;
+
 
 
 /**
@@ -32,8 +36,7 @@ package org.opends.server.tools;
  * creating an SSL connection.
  */
 public class SSLConnectionException
-       extends Exception
-{
+       extends OpenDsException {
 
 
 
@@ -53,7 +56,7 @@ public class SSLConnectionException
    *
    * @param  message    The message to use for this exception.
    */
-  public SSLConnectionException(String message)
+  public SSLConnectionException(Message message)
   {
     super(message);
 
@@ -69,7 +72,7 @@ public class SSLConnectionException
    * @param  cause      The underlying cause that triggered this
    *                    exception.
    */
-  public SSLConnectionException(String message, Throwable cause)
+  public SSLConnectionException(Message message, Throwable cause)
   {
     super(message, cause);
 

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.task;
+import org.opends.messages.Message;
 
 
 
@@ -68,8 +69,8 @@ import org.opends.server.util.Validator;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.BackendMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.BackendMessages.*;
+
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -165,15 +166,13 @@ public class TaskBackend
     // We will only allow one base for task entries.
     if ((baseDNs == null) || (baseDNs.length == 0))
     {
-      int    msgID   = MSGID_TASKBE_NO_BASE_DNS;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_TASKBE_NO_BASE_DNS.get();
+      throw new ConfigException(message);
     }
     else if (baseDNs.length > 1)
     {
-      int    msgID   = MSGID_TASKBE_MULTIPLE_BASE_DNS;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_TASKBE_MULTIPLE_BASE_DNS.get();
+      throw new ConfigException(message);
     }
     else
     {
@@ -195,11 +194,9 @@ public class TaskBackend
         }
 
         // This should never happen.
-        int    msgID   = MSGID_TASKBE_CANNOT_DECODE_RECURRING_TASK_BASE_DN;
-        String message = getMessage(msgID,
-                                    String.valueOf(recurringTaskBaseString),
-                                    getExceptionMessage(e));
-        throw new ConfigException(msgID, message, e);
+        Message message = ERR_TASKBE_CANNOT_DECODE_RECURRING_TASK_BASE_DN.get(
+            String.valueOf(recurringTaskBaseString), getExceptionMessage(e));
+        throw new ConfigException(message, e);
       }
 
       String scheduledTaskBaseString = SCHEDULED_TASK_BASE_RDN + "," +
@@ -216,11 +213,9 @@ public class TaskBackend
         }
 
         // This should never happen.
-        int    msgID   = MSGID_TASKBE_CANNOT_DECODE_SCHEDULED_TASK_BASE_DN;
-        String message = getMessage(msgID,
-                                    String.valueOf(scheduledTaskBaseString),
-                                    getExceptionMessage(e));
-        throw new ConfigException(msgID, message, e);
+        Message message = ERR_TASKBE_CANNOT_DECODE_SCHEDULED_TASK_BASE_DN.get(
+            String.valueOf(scheduledTaskBaseString), getExceptionMessage(e));
+        throw new ConfigException(message, e);
       }
     }
 
@@ -283,10 +278,9 @@ public class TaskBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
-      String message = getMessage(msgID, taskRootDN.toString(),
-                                  getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
+          taskRootDN.toString(), getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
   }
 
@@ -322,8 +316,8 @@ public class TaskBackend
 
     try
     {
-      int    msgID   = MSGID_TASKBE_INTERRUPTED_BY_SHUTDOWN;
-      String message = getMessage(msgID);
+
+      Message message = INFO_TASKBE_INTERRUPTED_BY_SHUTDOWN.get();
 
       taskScheduler.interruptRunningTasks(TaskState.STOPPED_BY_SHUTDOWN,
                                           message, true);
@@ -526,11 +520,10 @@ public class TaskBackend
 
     if (parentDN == null)
     {
-      int msgID = MSGID_TASKBE_ADD_DISALLOWED_DN;
-      String message = getMessage(msgID, String.valueOf(scheduledTaskParentDN),
-                                  String.valueOf(recurringTaskParentDN));
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_TASKBE_ADD_DISALLOWED_DN.
+          get(String.valueOf(scheduledTaskParentDN),
+              String.valueOf(recurringTaskParentDN));
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     // If the parent DN is equal to the parent for scheduled tasks, then try to
@@ -552,11 +545,10 @@ public class TaskBackend
     }
 
     // We won't allow the entry to be added.
-    int msgID = MSGID_TASKBE_ADD_DISALLOWED_DN;
-    String message = getMessage(msgID, String.valueOf(scheduledTaskParentDN),
-                                String.valueOf(recurringTaskParentDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_TASKBE_ADD_DISALLOWED_DN.
+        get(String.valueOf(scheduledTaskParentDN),
+            String.valueOf(recurringTaskParentDN));
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -583,10 +575,9 @@ public class TaskBackend
     DN parentDN = entryDN.getParentDNInSuffix();
     if (parentDN == null)
     {
-      int    msgID   = MSGID_TASKBE_DELETE_INVALID_ENTRY;
-      String message = getMessage(msgID, String.valueOf(entryDN));
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message =
+          ERR_TASKBE_DELETE_INVALID_ENTRY.get(String.valueOf(entryDN));
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
     else if (parentDN.equals(scheduledTaskParentDN))
     {
@@ -594,9 +585,9 @@ public class TaskBackend
       Task t = taskScheduler.getScheduledTask(entryDN);
       if (t == null)
       {
-        int    msgID   = MSGID_TASKBE_DELETE_NO_SUCH_TASK;
-        String message = getMessage(msgID, String.valueOf(entryDN));
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+        Message message =
+            ERR_TASKBE_DELETE_NO_SUCH_TASK.get(String.valueOf(entryDN));
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
 
 
@@ -613,10 +604,9 @@ public class TaskBackend
       }
       else
       {
-        int    msgID   = MSGID_TASKBE_DELETE_RUNNING;
-        String message = getMessage(msgID, String.valueOf(entryDN));
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message =
+            ERR_TASKBE_DELETE_RUNNING.get(String.valueOf(entryDN));
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
     else if (parentDN.equals(recurringTaskParentDN))
@@ -625,9 +615,9 @@ public class TaskBackend
       RecurringTask rt = taskScheduler.getRecurringTask(entryDN);
       if (rt == null)
       {
-        int    msgID   = MSGID_TASKBE_DELETE_NO_SUCH_RECURRING_TASK;
-        String message = getMessage(msgID, String.valueOf(entryDN));
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+        Message message = ERR_TASKBE_DELETE_NO_SUCH_RECURRING_TASK.get(
+            String.valueOf(entryDN));
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
 
 
@@ -637,10 +627,9 @@ public class TaskBackend
     }
     else
     {
-      int    msgID   = MSGID_TASKBE_DELETE_INVALID_ENTRY;
-      String message = getMessage(msgID, String.valueOf(entryDN));
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message =
+          ERR_TASKBE_DELETE_INVALID_ENTRY.get(String.valueOf(entryDN));
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
   }
 
@@ -665,8 +654,8 @@ public class TaskBackend
   {
     // FIXME -- We need to support this.
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                 "Modify operations are not yet supported in " +
-                                 "the task backend", 1);
+            Message.raw("Modify operations are not yet supported in " +
+                        "the task backend"));
   }
 
 
@@ -690,10 +679,8 @@ public class TaskBackend
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    int    msgID   = MSGID_TASKBE_MODIFY_DN_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_TASKBE_MODIFY_DN_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -796,9 +783,9 @@ public class TaskBackend
       DN parentDN = baseDN.getParentDNInSuffix();
       if (parentDN == null)
       {
-        int    msgID   = MSGID_TASKBE_SEARCH_INVALID_BASE;
-        String message = getMessage(msgID, String.valueOf(baseDN));
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+        Message message =
+            ERR_TASKBE_SEARCH_INVALID_BASE.get(String.valueOf(baseDN));
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
       else if (parentDN.equals(scheduledTaskParentDN))
       {
@@ -809,10 +796,10 @@ public class TaskBackend
           Entry e = taskScheduler.getScheduledTaskEntry(baseDN);
           if (e == null)
           {
-            int    msgID   = MSGID_TASKBE_SEARCH_NO_SUCH_TASK;
-            String message = getMessage(msgID, String.valueOf(baseDN));
+            Message message =
+                ERR_TASKBE_SEARCH_NO_SUCH_TASK.get(String.valueOf(baseDN));
             throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
-                                         msgID, scheduledTaskParentDN, null);
+                                         scheduledTaskParentDN, null);
           }
 
           if (((searchScope == SearchScope.BASE_OBJECT) ||
@@ -838,10 +825,10 @@ public class TaskBackend
           Entry e = taskScheduler.getRecurringTaskEntry(baseDN);
           if (e == null)
           {
-            int    msgID   = MSGID_TASKBE_SEARCH_NO_SUCH_RECURRING_TASK;
-            String message = getMessage(msgID, String.valueOf(baseDN));
+            Message message = ERR_TASKBE_SEARCH_NO_SUCH_RECURRING_TASK.get(
+                String.valueOf(baseDN));
             throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
-                                         msgID, recurringTaskParentDN, null);
+                                         recurringTaskParentDN, null);
           }
 
           if (((searchScope == SearchScope.BASE_OBJECT) ||
@@ -860,9 +847,9 @@ public class TaskBackend
       }
       else
       {
-        int    msgID   = MSGID_TASKBE_SEARCH_INVALID_BASE;
-        String message = getMessage(msgID, String.valueOf(baseDN));
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+        Message message =
+            ERR_TASKBE_SEARCH_INVALID_BASE.get(String.valueOf(baseDN));
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
     }
 
@@ -998,10 +985,8 @@ public class TaskBackend
          throws DirectoryException
   {
     // This backend does not support LDIF imports.
-    int    msgID   = MSGID_TASKBE_IMPORT_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_TASKBE_IMPORT_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -1111,7 +1096,7 @@ public class TaskBackend
    */
   @Override()
   public boolean isConfigurationAcceptable(Configuration configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     TaskBackendCfg config = (TaskBackendCfg) configuration;
     return isConfigAcceptable(config, unacceptableReasons, null);
@@ -1123,7 +1108,7 @@ public class TaskBackend
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(TaskBackendCfg configEntry,
-                                            List<String> unacceptableReasons)
+                                            List<Message> unacceptableReasons)
   {
     return isConfigAcceptable(configEntry, unacceptableReasons,
                               taskBackingFile);
@@ -1147,7 +1132,7 @@ public class TaskBackend
    *          if not.
    */
   private static boolean isConfigAcceptable(TaskBackendCfg config,
-                                            List<String> unacceptableReasons,
+                                            List<Message> unacceptableReasons,
                                             String taskBackingFile)
   {
     boolean configIsAcceptable = true;
@@ -1165,8 +1150,8 @@ public class TaskBackend
           // This is only a problem if it's different from the active one.
           if (taskBackingFile != null)
           {
-            int msgID = MSGID_TASKBE_BACKING_FILE_EXISTS;
-            unacceptableReasons.add(getMessage(msgID, tmpBackingFile));
+            unacceptableReasons.add(
+                    ERR_TASKBE_BACKING_FILE_EXISTS.get(tmpBackingFile));
             configIsAcceptable = false;
           }
         }
@@ -1175,22 +1160,24 @@ public class TaskBackend
           File p = f.getParentFile();
           if (p == null)
           {
-            int msgID = MSGID_TASKBE_INVALID_BACKING_FILE_PATH;
-            unacceptableReasons.add(getMessage(msgID, tmpBackingFile));
+            unacceptableReasons.add(ERR_TASKBE_INVALID_BACKING_FILE_PATH.get(
+                    tmpBackingFile));
             configIsAcceptable = false;
           }
           else if (! p.exists())
           {
-            int msgID = MSGID_TASKBE_BACKING_FILE_MISSING_PARENT;
-            unacceptableReasons.add(getMessage(msgID, p.getPath(),
-                                               tmpBackingFile));
+
+            unacceptableReasons.add(ERR_TASKBE_BACKING_FILE_MISSING_PARENT.get(
+                    p.getPath(),
+                    tmpBackingFile));
             configIsAcceptable = false;
           }
           else if (! p.isDirectory())
           {
-            int msgID = MSGID_TASKBE_BACKING_FILE_PARENT_NOT_DIRECTORY;
-            unacceptableReasons.add(getMessage(msgID, p.getPath(),
-                                               tmpBackingFile));
+            unacceptableReasons.add(
+                    ERR_TASKBE_BACKING_FILE_PARENT_NOT_DIRECTORY.get(
+                            p.getPath(),
+                            tmpBackingFile));
             configIsAcceptable = false;
           }
         }
@@ -1203,9 +1190,8 @@ public class TaskBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_TASKBE_ERROR_GETTING_BACKING_FILE;
-      unacceptableReasons.add(getMessage(msgID, ATTR_TASK_BACKING_FILE,
-                                         getExceptionMessage(e)));
+      unacceptableReasons.add(ERR_TASKBE_ERROR_GETTING_BACKING_FILE.get(
+              getExceptionMessage(e)));
 
       configIsAcceptable = false;
     }
@@ -1220,9 +1206,9 @@ public class TaskBackend
    */
   public ConfigChangeResult applyConfigurationChange(TaskBackendCfg configEntry)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ResultCode         resultCode          = ResultCode.SUCCESS;
+    boolean            adminActionRequired = false;
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     String tmpBackingFile = taskBackingFile;
@@ -1235,8 +1221,8 @@ public class TaskBackend
           File f = getFileForPath(tmpBackingFile);
           if (f.exists())
           {
-            int msgID = MSGID_TASKBE_BACKING_FILE_EXISTS;
-            messages.add(getMessage(msgID, tmpBackingFile));
+
+            messages.add(ERR_TASKBE_BACKING_FILE_EXISTS.get(tmpBackingFile));
             resultCode = ResultCode.CONSTRAINT_VIOLATION;
           }
           else
@@ -1244,20 +1230,23 @@ public class TaskBackend
             File p = f.getParentFile();
             if (p == null)
             {
-              int msgID = MSGID_TASKBE_INVALID_BACKING_FILE_PATH;
-              messages.add(getMessage(msgID, tmpBackingFile));
+
+              messages.add(ERR_TASKBE_INVALID_BACKING_FILE_PATH.get(
+                      tmpBackingFile));
               resultCode = ResultCode.CONSTRAINT_VIOLATION;
             }
             else if (! p.exists())
             {
-              int msgID = MSGID_TASKBE_BACKING_FILE_MISSING_PARENT;
-              messages.add(getMessage(msgID, tmpBackingFile));
+
+              messages.add(ERR_TASKBE_BACKING_FILE_MISSING_PARENT.get(
+                      String.valueOf(p), tmpBackingFile));
               resultCode = ResultCode.CONSTRAINT_VIOLATION;
             }
             else if (! p.isDirectory())
             {
-              int msgID = MSGID_TASKBE_BACKING_FILE_PARENT_NOT_DIRECTORY;
-              messages.add(getMessage(msgID, tmpBackingFile));
+
+              messages.add(ERR_TASKBE_BACKING_FILE_PARENT_NOT_DIRECTORY.get(
+                      String.valueOf(p), tmpBackingFile));
               resultCode = ResultCode.CONSTRAINT_VIOLATION;
             }
           }
@@ -1271,9 +1260,8 @@ public class TaskBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_TASKBE_ERROR_GETTING_BACKING_FILE;
-      messages.add(getMessage(msgID, ATTR_TASK_BACKING_FILE,
-                              getExceptionMessage(e)));
+      messages.add(ERR_TASKBE_ERROR_GETTING_BACKING_FILE.get(
+              getExceptionMessage(e)));
 
       resultCode = DirectoryServer.getServerErrorResultCode();
     }
@@ -1289,8 +1277,7 @@ public class TaskBackend
       {
         retentionTime = tmpRetentionTime;
 
-        int msgID = MSGID_TASKBE_UPDATED_RETENTION_TIME;
-        messages.add(getMessage(msgID, retentionTime));
+        messages.add(INFO_TASKBE_UPDATED_RETENTION_TIME.get(retentionTime));
       }
 
 
@@ -1299,8 +1286,7 @@ public class TaskBackend
         taskBackingFile = tmpBackingFile;
         taskScheduler.writeState();
 
-        int msgID = MSGID_TASKBE_UPDATED_BACKING_FILE;
-        messages.add(getMessage(msgID, taskBackingFile));
+        messages.add(INFO_TASKBE_UPDATED_BACKING_FILE.get(taskBackingFile));
       }
     }
 

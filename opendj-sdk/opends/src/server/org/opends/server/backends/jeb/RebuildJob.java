@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
+import org.opends.messages.Message;
 
 import org.opends.server.types.*;
 
@@ -42,22 +43,20 @@ import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.core.DirectoryServer;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_REBUILD_PROGRESS_REPORT;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_REBUILD_FINAL_STATUS;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_REBUILD_CACHE_AND_MEMORY_REPORT;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_REBUILD_INDEX_CONFLICT;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_REBUILD_START;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_VLV_INDEX_NOT_CONFIGURED;
-import static org.opends.server.messages.MessageHandler.getMessage;
-
+import static org.opends.messages.JebMessages.
+    ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED;
+import static org.opends.messages.JebMessages.
+    INFO_JEB_REBUILD_PROGRESS_REPORT;
+import static org.opends.messages.JebMessages.
+    INFO_JEB_REBUILD_FINAL_STATUS;
+import static org.opends.messages.JebMessages.
+    INFO_JEB_REBUILD_CACHE_AND_MEMORY_REPORT;
+import static org.opends.messages.JebMessages.
+    ERR_JEB_REBUILD_INDEX_CONFLICT;
+import static org.opends.messages.JebMessages.
+    INFO_JEB_REBUILD_START;
+import static org.opends.messages.JebMessages.
+    ERR_JEB_VLV_INDEX_NOT_CONFIGURED;
 /**
  * Runs a index rebuild process on the backend. Each index selected for rebuild
  * will be done from scratch by first clearing out the database for that index.
@@ -213,11 +212,9 @@ public class RebuildJob
         completed = 100f*latestProcessed / totalEntries;
       }
 
-      int msgID = MSGID_JEB_REBUILD_PROGRESS_REPORT;
-      String message = getMessage(msgID, completed, latestProcessed,
-                                  totalEntries, rate);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-               message, msgID);
+      Message message = INFO_JEB_REBUILD_PROGRESS_REPORT.get(
+          completed, latestProcessed, totalEntries, rate);
+      logError(message);
 
       try
       {
@@ -235,10 +232,9 @@ public class RebuildJob
           cacheMissRate = nCacheMiss/(float)deltaCount;
         }
 
-        msgID = MSGID_JEB_REBUILD_CACHE_AND_MEMORY_REPORT;
-        message = getMessage(msgID, freeMemory, cacheMissRate);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                 message, msgID);
+        message = INFO_JEB_REBUILD_CACHE_AND_MEMORY_REPORT.get(
+            freeMemory, cacheMissRate);
+        logError(message);
 
         prevEnvStats = envStats;
       }
@@ -287,9 +283,8 @@ public class RebuildJob
                               job.rebuildConfig, otherJob.rebuildConfig);
           }
 
-          int msgID = MSGID_JEB_REBUILD_INDEX_CONFLICT;
-          String msg = getMessage(msgID, conflictIndex);
-          throw new JebException(msgID, msg);
+          Message msg = ERR_JEB_REBUILD_INDEX_CONFLICT.get(conflictIndex);
+          throw new JebException(msg);
         }
       }
 
@@ -369,18 +364,17 @@ public class RebuildJob
           {
             if(lowerName.length() < 5)
             {
-              int msgID = MSGID_JEB_VLV_INDEX_NOT_CONFIGURED;
-              String msg = getMessage(msgID, lowerName);
-              throw new JebException(msgID, msg);
+              Message msg = ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName);
+              throw new JebException(msg);
             }
 
             VLVIndex vlvIndex =
                 entryContainer.getVLVIndex(lowerName.substring(4));
             if(vlvIndex == null)
             {
-              int msgID = MSGID_JEB_VLV_INDEX_NOT_CONFIGURED;
-              String msg = getMessage(msgID, lowerName.substring(4));
-              throw new JebException(msgID, msg);
+              Message msg =
+                  ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName.substring(4));
+              throw new JebException(msg);
             }
 
             rebuildThread = new IndexRebuildThread(entryContainer, vlvIndex);
@@ -390,9 +384,8 @@ public class RebuildJob
             String[] attrIndexParts = lowerName.split("\\.");
             if(attrIndexParts.length <= 0)
             {
-              int msgID = MSGID_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED;
-              String msg = getMessage(msgID, index);
-              throw new JebException(msgID, msg);
+              Message msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+              throw new JebException(msg);
             }
 
             AttributeType attrType =
@@ -400,17 +393,15 @@ public class RebuildJob
 
             if (attrType == null)
             {
-              int msgID = MSGID_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED;
-              String msg = getMessage(msgID, index);
-              throw new JebException(msgID, msg);
+              Message msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+              throw new JebException(msg);
             }
             AttributeIndex attrIndex =
                 entryContainer.getAttributeIndex(attrType);
             if (attrIndex == null)
             {
-              int msgID = MSGID_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED;
-              String msg = getMessage(msgID, index);
-              throw new JebException(msgID, msg);
+              Message msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+              throw new JebException(msg);
             }
 
             if(attrIndexParts.length > 1)
@@ -439,9 +430,8 @@ public class RebuildJob
 
               if(partialAttrIndex == null)
               {
-                int msgID = MSGID_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED;
-                String msg = getMessage(msgID, index);
-                throw new JebException(msgID, msg);
+                Message msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+                throw new JebException(msg);
               }
 
               rebuildThread =
@@ -480,10 +470,9 @@ public class RebuildJob
           }
           sb.append(index);
         }
-        int msgID = MSGID_JEB_REBUILD_START;
-        String message = getMessage(msgID, sb.toString(), totalToProcess);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                 message, msgID);
+        Message message =
+            INFO_JEB_REBUILD_START.get(sb.toString(), totalToProcess);
+        logError(message);
 
         // Make a note of the time we started.
         long startTime = System.currentTimeMillis();
@@ -558,11 +547,9 @@ public class RebuildJob
           rate = 1000f*totalProcessed / totalTime;
         }
 
-        msgID = MSGID_JEB_REBUILD_FINAL_STATUS;
-        message = getMessage(msgID, totalProcessed, totalTime/1000,
-                                    rate);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                 message, msgID);
+        message = INFO_JEB_REBUILD_FINAL_STATUS.get(
+            totalProcessed, totalTime/1000, rate);
+        logError(message);
 
         if(debugEnabled())
         {

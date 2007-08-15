@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.admin;
+import org.opends.messages.Message;
 
 
 
@@ -240,7 +241,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
    *         there is no pattern matching defined for this string
    *         property definition).
    */
-  public String getPatternSynopsis() {
+  public Message getPatternSynopsis() {
     return getPatternSynopsis(Locale.getDefault());
   }
 
@@ -258,7 +259,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
    *         there is no pattern matching defined for this string
    *         property definition).
    */
-  public String getPatternSynopsis(Locale locale) {
+  public Message getPatternSynopsis(Locale locale) {
     ManagedObjectDefinitionI18NResource resource =
       ManagedObjectDefinitionI18NResource.getInstance();
     String property = "property." + getName()

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
@@ -49,8 +50,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ConfigMessages.*;
 
 
 
@@ -140,8 +140,7 @@ public class RootDNConfigManager
         }
         catch (DirectoryException de)
         {
-          throw new InitializationException(de.getMessageID(),
-                                            de.getErrorMessage(), de);
+          throw new InitializationException(de.getMessageObject());
         }
       }
 
@@ -169,7 +168,7 @@ public class RootDNConfigManager
    * {@inheritDoc}
    */
   public boolean isConfigurationAddAcceptable(RootDNUserCfg configuration,
-                                              List<String> unacceptableReasons)
+                                              List<Message> unacceptableReasons)
   {
     // The new root user must not have an alternate bind DN that is already
     // in use.
@@ -179,10 +178,11 @@ public class RootDNConfigManager
       DN existingRootDN = DirectoryServer.getActualRootBindDN(altBindDN);
       if (existingRootDN != null)
       {
-        int    msgID   = MSGID_CONFIG_ROOTDN_CONFLICTING_MAPPING;
-        String message = getMessage(msgID, String.valueOf(altBindDN),
-                                    String.valueOf(configuration.dn()),
-                                    String.valueOf(existingRootDN));
+
+        Message message = ERR_CONFIG_ROOTDN_CONFLICTING_MAPPING.get(
+                String.valueOf(altBindDN),
+                String.valueOf(configuration.dn()),
+                String.valueOf(existingRootDN));
         unacceptableReasons.add(message);
 
         configAcceptable = false;
@@ -203,7 +203,7 @@ public class RootDNConfigManager
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     HashSet<DN> altBindDNs = new HashSet<DN>();
     for (DN altBindDN : configuration.getAlternateBindDN())
@@ -218,7 +218,7 @@ public class RootDNConfigManager
         // This shouldn't happen, since the set of DNs should have already been
         // validated.
         resultCode = DirectoryServer.getServerErrorResultCode();
-        messages.add(de.getErrorMessage());
+        messages.add(de.getMessageObject());
 
         for (DN dn : altBindDNs)
         {
@@ -243,7 +243,7 @@ public class RootDNConfigManager
    * {@inheritDoc}
    */
   public boolean isConfigurationDeleteAcceptable(RootDNUserCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     return true;
   }
@@ -261,7 +261,7 @@ public class RootDNConfigManager
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     HashSet<DN> altBindDNs = alternateBindDNs.remove(configuration.dn());
     if (altBindDNs != null)
@@ -281,7 +281,7 @@ public class RootDNConfigManager
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(RootDNUserCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -293,10 +293,10 @@ public class RootDNConfigManager
       if ((existingRootDN != null) &&
           (! existingRootDN.equals(configuration.dn())))
       {
-        int    msgID   = MSGID_CONFIG_ROOTDN_CONFLICTING_MAPPING;
-        String message = getMessage(msgID, String.valueOf(altBindDN),
-                                    String.valueOf(configuration.dn()),
-                                    String.valueOf(existingRootDN));
+        Message message = ERR_CONFIG_ROOTDN_CONFLICTING_MAPPING.get(
+                String.valueOf(altBindDN),
+                String.valueOf(configuration.dn()),
+                String.valueOf(existingRootDN));
         unacceptableReasons.add(message);
 
         configAcceptable = false;
@@ -316,7 +316,7 @@ public class RootDNConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     HashSet<DN> setDNs = new HashSet<DN>();
     HashSet<DN> addDNs = new HashSet<DN>();
@@ -351,7 +351,7 @@ public class RootDNConfigManager
         // This shouldn't happen, since the set of DNs should have already been
         // validated.
         resultCode = DirectoryServer.getServerErrorResultCode();
-        messages.add(de.getErrorMessage());
+        messages.add(de.getMessageObject());
 
         for (DN addedDN : addedDNs)
         {

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -48,19 +49,15 @@ import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.CoreMessages.*;
 import org.opends.server.types.AbstractOperation;
 
 
@@ -205,11 +202,9 @@ public class TraditionalWorkQueue
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR;
-      String message = getMessage(msgID, TraditionalWorkQueueMonitor.class,
-                                  String.valueOf(e));
-      logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR.get(
+          String.valueOf(TraditionalWorkQueueMonitor.class), String.valueOf(e));
+      logError(message);
     }
   }
 
@@ -219,7 +214,7 @@ public class TraditionalWorkQueue
    * {@inheritDoc}
    */
   @Override()
-  public void finalizeWorkQueue(String reason)
+  public void finalizeWorkQueue(Message reason)
   {
     shutdownRequested = true;
 
@@ -242,9 +237,8 @@ public class TraditionalWorkQueue
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_WARNING,
-                 MSGID_QUEUE_UNABLE_TO_CANCEL, String.valueOf(o),
-                 String.valueOf(e));
+        logError(WARN_QUEUE_UNABLE_TO_CANCEL.get(
+            String.valueOf(o), String.valueOf(e)));
       }
     }
 
@@ -263,9 +257,8 @@ public class TraditionalWorkQueue
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_WARNING,
-                 MSGID_QUEUE_UNABLE_TO_NOTIFY_THREAD, t.getName(),
-                 String.valueOf(e));
+        logError(WARN_QUEUE_UNABLE_TO_NOTIFY_THREAD.get(
+            t.getName(), String.valueOf(e)));
       }
     }
   }
@@ -301,18 +294,16 @@ public class TraditionalWorkQueue
   {
     if (shutdownRequested)
     {
-      int    messageID = MSGID_OP_REJECTED_BY_SHUTDOWN;
-      String message   = getMessage(messageID);
-      throw new DirectoryException(ResultCode.UNAVAILABLE, message, messageID);
+      Message message = WARN_OP_REJECTED_BY_SHUTDOWN.get();
+      throw new DirectoryException(ResultCode.UNAVAILABLE, message);
     }
 
     if (! opQueue.offer(operation))
     {
       queueFullRejects.incrementAndGet();
 
-      int    messageID = MSGID_OP_REJECTED_BY_QUEUE_FULL;
-      String message   = getMessage(messageID, maxCapacity);
-      throw new DirectoryException(ResultCode.UNAVAILABLE, message, messageID);
+      Message message = WARN_OP_REJECTED_BY_QUEUE_FULL.get(maxCapacity);
+      throw new DirectoryException(ResultCode.UNAVAILABLE, message);
     }
 
     opsSubmitted.incrementAndGet();
@@ -401,11 +392,9 @@ public class TraditionalWorkQueue
     {
       if (numFailures > MAX_RETRY_COUNT)
       {
-        int msgID = MSGID_CONFIG_WORK_QUEUE_TOO_MANY_FAILURES;
-        String message = getMessage(msgID, Thread.currentThread().getName(),
-                                    numFailures, MAX_RETRY_COUNT);
-        logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_CONFIG_WORK_QUEUE_TOO_MANY_FAILURES.get(
+            Thread.currentThread().getName(), numFailures, MAX_RETRY_COUNT);
+        logError(message);
       }
 
       return null;
@@ -481,9 +470,8 @@ public class TraditionalWorkQueue
 
       // If we've gotten here, then the worker thread was interrupted for some
       // other reason.  This should not happen, and we need to log a message.
-      logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_WARNING,
-               MSGID_WORKER_INTERRUPTED_WITHOUT_SHUTDOWN,
-               Thread.currentThread().getName(), String.valueOf(ie));
+      logError(WARN_WORKER_INTERRUPTED_WITHOUT_SHUTDOWN.get(
+          Thread.currentThread().getName(), String.valueOf(ie)));
       return retryNextOperation(workerThread, numFailures+1);
     }
     catch (Exception e)
@@ -495,9 +483,8 @@ public class TraditionalWorkQueue
 
       // This should not happen.  The only recourse we have is to log a message
       // and try again.
-      logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_WARNING,
-               MSGID_WORKER_WAITING_UNCAUGHT_EXCEPTION,
-               Thread.currentThread().getName(), String.valueOf(e));
+      logError(WARN_WORKER_WAITING_UNCAUGHT_EXCEPTION.get(
+          Thread.currentThread().getName(), String.valueOf(e)));
       return retryNextOperation(workerThread, numFailures + 1);
     }
   }
@@ -571,7 +558,7 @@ public class TraditionalWorkQueue
    */
   public boolean isConfigurationChangeAcceptable(
                       TraditionalWorkQueueCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // The provided configuration will always be acceptable.
     return true;
@@ -585,7 +572,7 @@ public class TraditionalWorkQueue
   public ConfigChangeResult applyConfigurationChange(
                                  TraditionalWorkQueueCfg configuration)
   {
-    ArrayList<String> resultMessages = new ArrayList<String>();
+    ArrayList<Message> resultMessages = new ArrayList<Message>();
     int newNumThreads  = configuration.getNumWorkerThreads();
     int newMaxCapacity = configuration.getMaxWorkQueueCapacity();
 

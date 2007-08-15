@@ -37,15 +37,14 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
 
 
 /**
@@ -90,27 +89,24 @@ public class GuideSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_OCTET_STRING_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_OCTET_STRING_OID, SYNTAX_GUIDE_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_OCTET_STRING_OID, SYNTAX_GUIDE_NAME));
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_OCTET_STRING_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-               OMR_OCTET_STRING_OID, SYNTAX_GUIDE_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+          OMR_OCTET_STRING_OID, SYNTAX_GUIDE_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_OCTET_STRING_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_OCTET_STRING_OID, SYNTAX_GUIDE_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_OCTET_STRING_OID, SYNTAX_GUIDE_NAME));
     }
   }
 
@@ -226,7 +222,7 @@ public class GuideSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // Get a lowercase string version of the provided value.
     String valueStr = toLowerCase(value.stringValue());
@@ -246,8 +242,8 @@ public class GuideSyntax
     int    ocLength = ocName.length();
     if (ocLength == 0)
     {
-      int msgID = MSGID_ATTR_SYNTAX_GUIDE_NO_OC;
-      invalidReason.append(getMessage(msgID, valueStr));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_NO_OC.get(valueStr));
       return false;
     }
 
@@ -259,7 +255,7 @@ public class GuideSyntax
 
     // The rest of the value must be the criteria.
     return criteriaIsValid(valueStr.substring(sharpPos+1), valueStr,
-                           invalidReason);
+            invalidReason);
   }
 
 
@@ -278,7 +274,7 @@ public class GuideSyntax
    *          criteria, or <CODE>false</CODE> if not.
    */
   public static boolean criteriaIsValid(String criteria, String valueStr,
-                                        StringBuilder invalidReason)
+                                        MessageBuilder invalidReason)
   {
     // See if the criteria starts with a '!'.  If so, then just evaluate
     // everything after that as a criteria.
@@ -327,9 +323,10 @@ public class GuideSyntax
               }
               else
               {
-                int msgID = MSGID_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR;
-                invalidReason.append(getMessage(msgID, valueStr, criteria, c,
-                                                (i+1)));
+
+                invalidReason.append(
+                        ERR_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR.get(
+                                valueStr, criteria, c, (i+1)));
                 return false;
               }
             }
@@ -344,8 +341,9 @@ public class GuideSyntax
 
       // If we've gotten here, then we went through the entire value without
       // finding the appropriate closing parenthesis.
-      int msgID = MSGID_ATTR_SYNTAX_GUIDE_MISSING_CLOSE_PAREN;
-      invalidReason.append(getMessage(msgID, valueStr, criteria));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_MISSING_CLOSE_PAREN.get(
+              valueStr, criteria));
       return false;
     }
 
@@ -371,8 +369,8 @@ public class GuideSyntax
           }
           else
           {
-            int msgID = MSGID_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR;
-            invalidReason.append(getMessage(msgID, valueStr, criteria, c, 5));
+            invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR.get(
+                    valueStr, criteria, c, 5));
             return false;
           }
         }
@@ -394,16 +392,16 @@ public class GuideSyntax
           }
           else
           {
-            int msgID = MSGID_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR;
-            invalidReason.append(getMessage(msgID, valueStr, criteria, c, 6));
+            invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR.get(
+                    valueStr, criteria, c, 6));
             return false;
           }
         }
       }
       else
       {
-        int msgID = MSGID_ATTR_SYNTAX_GUIDE_INVALID_QUESTION_MARK;
-        invalidReason.append(getMessage(msgID, valueStr, criteria));
+        invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_QUESTION_MARK.get(
+                valueStr, criteria));
         return false;
       }
     }
@@ -423,20 +421,20 @@ public class GuideSyntax
     int dollarPos = criteria.indexOf('$');
     if (dollarPos < 0)
     {
-      int msgID = MSGID_ATTR_SYNTAX_GUIDE_NO_DOLLAR;
-      invalidReason.append(getMessage(msgID, valueStr, criteria));
+      invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_NO_DOLLAR.get(
+              valueStr, criteria));
       return false;
     }
     else if (dollarPos == 0)
     {
-      int msgID = MSGID_ATTR_SYNTAX_GUIDE_NO_ATTR;
-      invalidReason.append(getMessage(msgID, valueStr, criteria));
+      invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_NO_ATTR.get(
+              valueStr, criteria));
       return false;
     }
     else if (dollarPos == (criteria.length()-1))
     {
-      int msgID = MSGID_ATTR_SYNTAX_GUIDE_NO_MATCH_TYPE;
-      invalidReason.append(getMessage(msgID, valueStr, criteria));
+      invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_NO_MATCH_TYPE.get(
+              valueStr, criteria));
       return false;
     }
     else
@@ -463,9 +461,8 @@ public class GuideSyntax
         }
         else
         {
-          int msgID = MSGID_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE;
-          invalidReason.append(getMessage(msgID, valueStr, criteria,
-                                          dollarPos+1));
+          invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE.get(
+                  valueStr, criteria, dollarPos+1));
           return false;
         }
 
@@ -477,9 +474,8 @@ public class GuideSyntax
         }
         else
         {
-          int msgID = MSGID_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE;
-          invalidReason.append(getMessage(msgID, valueStr, criteria,
-                                          dollarPos+1));
+          invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE.get(
+                  valueStr, criteria, dollarPos+1));
           return false;
         }
 
@@ -491,9 +487,8 @@ public class GuideSyntax
         }
         else
         {
-          int msgID = MSGID_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE;
-          invalidReason.append(getMessage(msgID, valueStr, criteria,
-                                          dollarPos+1));
+          invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE.get(
+                  valueStr, criteria, dollarPos+1));
           return false;
         }
 
@@ -505,9 +500,8 @@ public class GuideSyntax
         }
         else
         {
-          int msgID = MSGID_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE;
-          invalidReason.append(getMessage(msgID, valueStr, criteria,
-                                          dollarPos+1));
+          invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE.get(
+                  valueStr, criteria, dollarPos+1));
           return false;
         }
 
@@ -519,16 +513,14 @@ public class GuideSyntax
         }
         else
         {
-          int msgID = MSGID_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE;
-          invalidReason.append(getMessage(msgID, valueStr, criteria,
-                                          dollarPos+1));
+          invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE.get(
+                  valueStr, criteria, dollarPos+1));
           return false;
         }
 
       default:
-        int msgID = MSGID_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE;
-        invalidReason.append(getMessage(msgID, valueStr, criteria,
-                                        dollarPos+1));
+        invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE.get(
+                valueStr, criteria, dollarPos+1));
         return false;
     }
 
@@ -549,8 +541,8 @@ public class GuideSyntax
       }
       else
       {
-        int msgID = MSGID_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR;
-        invalidReason.append(getMessage(msgID, valueStr, criteria, c, endPos));
+        invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR.get(
+                valueStr, criteria, c, endPos));
         return false;
       }
     }

@@ -26,6 +26,8 @@
  */
 package org.opends.server.core;
 
+import org.opends.messages.MessageBuilder;
+import org.opends.messages.Message;
 
 
 import static org.opends.server.core.CoreConstants.LOG_ELEMENT_ENTRY_DN;
@@ -38,8 +40,7 @@ import static org.opends.server.loggers.AccessLogger.logModifyRequest;
 import static org.opends.server.loggers.AccessLogger.logModifyResponse;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 
 import java.util.ArrayList;
@@ -56,8 +57,6 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.Operation;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.AbstractOperation;
@@ -222,7 +221,7 @@ public class ModifyOperationBasis
         }
 
         setResultCode(de.getResultCode());
-        appendErrorMessage(de.getErrorMessage());
+        appendErrorMessage(de.getMessageObject());
       }
     }
     return entryDN;
@@ -277,7 +276,7 @@ public class ModifyOperationBasis
           TRACER.debugCaught(DebugLogLevel.ERROR, le);
         }
         setResultCode(ResultCode.valueOf(le.getResultCode()));
-        appendErrorMessage(le.getMessage());
+        appendErrorMessage(le.getMessageObject());
         modifications = null;
       }
     }
@@ -297,16 +296,16 @@ public class ModifyOperationBasis
    * {@inheritDoc}
    */
   public final void disconnectClient(DisconnectReason disconnectReason,
-      boolean sendNotification, String message,
-      int messageID)
+                                     boolean sendNotification, Message message
+  )
   {
     // Before calling clientConnection.disconnect, we need to mark this
     // operation as cancelled so that the attempt to cancel it later won't cause
     // an unnecessary delay.
     setCancelResult(CancelResult.CANCELED);
 
-    clientConnection.disconnect(disconnectReason, sendNotification, message,
-        messageID);
+    clientConnection.disconnect(disconnectReason, sendNotification,
+            message);
   }
 
   /**
@@ -345,7 +344,7 @@ public class ModifyOperationBasis
     String resultCode = String.valueOf(getResultCode().getIntValue());
 
     String errorMessage;
-    StringBuilder errorMessageBuffer = getErrorMessage();
+    MessageBuilder errorMessageBuffer = getErrorMessage();
     if (errorMessageBuffer == null)
     {
       errorMessage = null;
@@ -565,8 +564,7 @@ modifyProcessing:
         // result and return.
         setResultCode(ResultCode.CANCELED);
 
-        int msgID = MSGID_CANCELED_BY_PREPARSE_DISCONNECT;
-        appendErrorMessage(getMessage(msgID));
+        appendErrorMessage(ERR_CANCELED_BY_PREPARSE_DISCONNECT.get());
 
         setProcessingStopTime();
 
@@ -755,13 +753,9 @@ modifyProcessing:
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              int    msgID   = MSGID_MODIFY_ERROR_NOTIFYING_PERSISTENT_SEARCH;
-              String message = getMessage(msgID,
-                                          String.valueOf(persistentSearch),
-                                          getExceptionMessage(e));
-              logError(ErrorLogCategory.CORE_SERVER,
-                       ErrorLogSeverity.SEVERE_ERROR,
-                       message, msgID);
+              Message message = ERR_MODIFY_ERROR_NOTIFYING_PERSISTENT_SEARCH.
+                  get(String.valueOf(persistentSearch), getExceptionMessage(e));
+              logError(message);
 
               DirectoryServer.deregisterPersistentSearch(persistentSearch);
             }
@@ -781,8 +775,8 @@ modifyProcessing:
   private void updateOperationErrMsgAndResCode()
   {
     setResultCode(ResultCode.NO_SUCH_OBJECT);
-    appendErrorMessage(getMessage(MSGID_MODIFY_NO_SUCH_ENTRY,
-                                  String.valueOf(getEntryDN())));
+    appendErrorMessage(
+            ERR_MODIFY_NO_SUCH_ENTRY.get(String.valueOf(getEntryDN())));
   }
 
 

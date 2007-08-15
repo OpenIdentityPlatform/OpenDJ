@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 
@@ -39,8 +40,7 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -657,9 +657,8 @@ public abstract class RawFilter
   {
     if (element == null)
     {
-      int    msgID   = MSGID_LDAP_FILTER_DECODE_NULL;
-      String message = getMessage(msgID);
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_LDAP_FILTER_DECODE_NULL.get();
+      throw new LDAPException(PROTOCOL_ERROR, message);
     }
 
     switch (element.getType())
@@ -687,9 +686,9 @@ public abstract class RawFilter
         return decodeExtensibleMatchFilter(element);
 
       default:
-        int    msgID   = MSGID_LDAP_FILTER_DECODE_INVALID_TYPE;
-        String message = getMessage(msgID, element.getType());
-        throw new LDAPException(PROTOCOL_ERROR, msgID, message);
+        Message message = ERR_LDAP_FILTER_DECODE_INVALID_TYPE.get(
+            element.getType());
+        throw new LDAPException(PROTOCOL_ERROR, message);
     }
   }
 
@@ -743,9 +742,9 @@ public abstract class RawFilter
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_FILTER_DECODE_COMPOUND_SET;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_FILTER_DECODE_COMPOUND_SET.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -769,9 +768,9 @@ public abstract class RawFilter
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_FILTER_DECODE_COMPOUND_COMPONENTS;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message = ERR_LDAP_FILTER_DECODE_COMPOUND_COMPONENTS.
+          get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -807,9 +806,9 @@ public abstract class RawFilter
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_LDAP_FILTER_DECODE_NOT_ELEMENT;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_FILTER_DECODE_NOT_ELEMENT.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -829,9 +828,9 @@ public abstract class RawFilter
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_LDAP_FILTER_DECODE_NOT_COMPONENT;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_FILTER_DECODE_NOT_COMPONENT.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -896,17 +895,18 @@ public abstract class RawFilter
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_LDAP_FILTER_DECODE_TV_SEQUENCE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_FILTER_DECODE_TV_SEQUENCE.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
     if (elements.size() != 2)
     {
-      int msgID = MSGID_LDAP_FILTER_DECODE_TV_INVALID_ELEMENT_COUNT;
-      String message = getMessage(msgID, elements.size());
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message);
+      Message message =
+          ERR_LDAP_FILTER_DECODE_TV_INVALID_ELEMENT_COUNT.
+            get(elements.size());
+      throw new LDAPException(PROTOCOL_ERROR, message);
     }
 
 
@@ -923,9 +923,9 @@ public abstract class RawFilter
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_LDAP_FILTER_DECODE_TV_TYPE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_FILTER_DECODE_TV_TYPE.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -941,9 +941,9 @@ public abstract class RawFilter
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_LDAP_FILTER_DECODE_TV_VALUE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_FILTER_DECODE_TV_VALUE.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -980,18 +980,18 @@ public abstract class RawFilter
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_LDAP_FILTER_DECODE_SUBSTRING_SEQUENCE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message = ERR_LDAP_FILTER_DECODE_SUBSTRING_SEQUENCE.get(
+          String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
     if (elements.size() != 2)
     {
-      int msgID =
-           MSGID_LDAP_FILTER_DECODE_SUBSTRING_INVALID_ELEMENT_COUNT;
-      String message = getMessage(msgID, elements.size());
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message);
+      Message message =
+          ERR_LDAP_FILTER_DECODE_SUBSTRING_INVALID_ELEMENT_COUNT.
+            get(elements.size());
+      throw new LDAPException(PROTOCOL_ERROR, message);
     }
 
 
@@ -1008,9 +1008,9 @@ public abstract class RawFilter
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_LDAP_FILTER_DECODE_SUBSTRING_TYPE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message = ERR_LDAP_FILTER_DECODE_SUBSTRING_TYPE.get(
+          String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -1026,17 +1026,17 @@ public abstract class RawFilter
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_LDAP_FILTER_DECODE_SUBSTRING_ELEMENTS;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message = ERR_LDAP_FILTER_DECODE_SUBSTRING_ELEMENTS.get(
+          String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
     if (subElements.isEmpty())
     {
-      int msgID = MSGID_LDAP_FILTER_DECODE_SUBSTRING_NO_SUBELEMENTS;
-      String message = getMessage(msgID);
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message);
+      Message message =
+          ERR_LDAP_FILTER_DECODE_SUBSTRING_NO_SUBELEMENTS.get();
+      throw new LDAPException(PROTOCOL_ERROR, message);
     }
 
 
@@ -1064,10 +1064,10 @@ public abstract class RawFilter
             subAnyElements.add(e.decodeAsOctetString());
             break;
           default:
-            int msgID =
-                 MSGID_LDAP_FILTER_DECODE_SUBSTRING_INVALID_SUBTYPE;
-            String message = getMessage(msgID);
-            throw new LDAPException(PROTOCOL_ERROR, msgID, message);
+            Message message =
+                ERR_LDAP_FILTER_DECODE_SUBSTRING_INVALID_SUBTYPE.
+                  get(e.getType());
+            throw new LDAPException(PROTOCOL_ERROR, message);
         }
       }
     }
@@ -1082,9 +1082,9 @@ public abstract class RawFilter
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_LDAP_FILTER_DECODE_SUBSTRING_VALUES;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message = ERR_LDAP_FILTER_DECODE_SUBSTRING_VALUES.get(
+          String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -1122,9 +1122,9 @@ public abstract class RawFilter
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_LDAP_FILTER_DECODE_PRESENCE_TYPE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_FILTER_DECODE_PRESENCE_TYPE.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -1162,9 +1162,9 @@ public abstract class RawFilter
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_LDAP_FILTER_DECODE_EXTENSIBLE_SEQUENCE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message = ERR_LDAP_FILTER_DECODE_EXTENSIBLE_SEQUENCE.
+          get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -1191,10 +1191,10 @@ public abstract class RawFilter
             dnAttributes = e.decodeAsBoolean().booleanValue();
             break;
           default:
-            int msgID =
-                 MSGID_LDAP_FILTER_DECODE_EXTENSIBLE_INVALID_TYPE;
-            String message = getMessage(msgID, e.getType());
-            throw new LDAPException(PROTOCOL_ERROR, msgID, message);
+            Message message =
+                ERR_LDAP_FILTER_DECODE_EXTENSIBLE_INVALID_TYPE.
+                  get(e.getType());
+            throw new LDAPException(PROTOCOL_ERROR, message);
         }
       }
     }
@@ -1209,9 +1209,9 @@ public abstract class RawFilter
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_LDAP_FILTER_DECODE_EXTENSIBLE_ELEMENTS;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message = ERR_LDAP_FILTER_DECODE_EXTENSIBLE_ELEMENTS.
+          get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 

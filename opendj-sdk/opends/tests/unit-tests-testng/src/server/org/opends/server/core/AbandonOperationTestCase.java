@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.plugins.DelayPreOpPlugin;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.InvocationCounterPlugin;
@@ -139,7 +140,8 @@ public class AbandonOperationTestCase
          new AbandonOperationBasis(conn, conn.nextOperationID(),
                   conn.nextMessageID(), new ArrayList<Control>(), 1);
 
-    CancelRequest cancelRequest = new CancelRequest(true, "Test Cancel");
+    CancelRequest cancelRequest = new CancelRequest(true,
+            Message.raw("Test Cancel"));
     assertEquals(abandonOperation.cancel(cancelRequest),
                  CancelResult.CANNOT_CANCEL);
   }

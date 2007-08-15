@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
+import org.opends.messages.Message;
 
 
 
@@ -64,8 +65,8 @@ import org.opends.server.util.TimeThread;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.CoreMessages.*;
+
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -514,44 +515,6 @@ public abstract class ClientConnection
    * Closes the connection to the client, optionally sending it a
    * message indicating the reason for the closure.  Note that the
    * ability to send a notice of disconnection may not be available
-   * for all protocols or under all circumstances.
-   *
-   * @param  disconnectReason  The disconnect reason that provides the
-   *                           generic cause for the disconnect.
-   * @param  sendNotification  Indicates whether to try to provide
-   *                           notification to the client that the
-   *                           connection will be closed.
-   * @param  messageID         The unique identifier associated with
-   *                           the message to send to the client.  It
-   *                           may be -1 if no notification is to be
-   *                           sent.
-   * @param  arguments         An optional set of arguments that may
-   *                           be used to customize the format string
-   *                           associated with the provided message
-   *                           ID.
-   */
-  public final void disconnect(DisconnectReason disconnectReason,
-                               boolean sendNotification,
-                               int messageID, Object... arguments)
-  {
-    if (messageID <= 0)
-    {
-      disconnect(disconnectReason, sendNotification, null, -1);
-    }
-    else
-    {
-      String message = getMessage(messageID, arguments);
-      disconnect(disconnectReason, sendNotification, message,
-                 messageID);
-    }
-  }
-
-
-
-  /**
-   * Closes the connection to the client, optionally sending it a
-   * message indicating the reason for the closure.  Note that the
-   * ability to send a notice of disconnection may not be available
    * for all protocols or under all circumstances.  Also note that
    * when attempting to disconnect a client connection as a part of
    * operation processing (e.g., within a plugin or other extension),
@@ -569,14 +532,10 @@ public abstract class ClientConnection
    * @param  message           The message to send to the client.  It
    *                           may be <CODE>null</CODE> if no
    *                           notification is to be sent.
-   * @param  messageID         The unique identifier associated with
-   *                           the message to send to the client.  It
-   *                           may be -1 if no notification is to be
-   *                           sent.
    */
   public abstract void disconnect(DisconnectReason disconnectReason,
                                   boolean sendNotification,
-                                  String message, int messageID);
+                                  Message message);
 
 
 
@@ -984,11 +943,11 @@ public abstract class ClientConnection
       {
         DN authDN = authenticationInfo.getAuthenticationDN();
 
-        int    msgID   = MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGE;
-        String message = getMessage(msgID, getConnectionID(), -1L,
-                                    String.valueOf(authDN),
-                                    privilege.getName(), result);
-        TRACER.debugMessage(DebugLogLevel.INFO, message);
+        Message message = INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGE
+                .get(getConnectionID(), -1L,
+                     String.valueOf(authDN),
+                     privilege.getName(), result);
+        TRACER.debugMessage(DebugLogLevel.INFO, message.toString());
       }
     }
     else
@@ -1002,12 +961,13 @@ public abstract class ClientConnection
         {
           DN authDN = authenticationInfo.getAuthenticationDN();
 
-          int    msgID   = MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGE;
-          String message = getMessage(msgID, getConnectionID(),
-                                      operation.getOperationID(),
-                                      String.valueOf(authDN),
-                                      privilege.getName(), result);
-          TRACER.debugMessage(DebugLogLevel.INFO, message);
+          Message message =
+                  INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGE.get(
+                    getConnectionID(),
+                    operation.getOperationID(),
+                    String.valueOf(authDN),
+                    privilege.getName(), result);
+          TRACER.debugMessage(DebugLogLevel.INFO, message.toString());
         }
       }
       else
@@ -1091,22 +1051,25 @@ public abstract class ClientConnection
       {
         DN authDN = authenticationInfo.getAuthenticationDN();
 
-        int    msgID   = MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGES;
-        String message = getMessage(msgID, getConnectionID(), -1L,
-                                    String.valueOf(authDN),
-                                    buffer.toString(), result);
-        TRACER.debugMessage(DebugLogLevel.INFO, message);
+        Message message =
+                INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGES.get(
+                  getConnectionID(), -1L,
+                  String.valueOf(authDN),
+                  buffer.toString(), result);
+        TRACER.debugMessage(DebugLogLevel.INFO,
+                message.toString());
       }
       else
       {
         DN authDN = authenticationInfo.getAuthenticationDN();
 
-        int    msgID   = MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGES;
-        String message = getMessage(msgID, getConnectionID(),
-                                    operation.getOperationID(),
-                                    String.valueOf(authDN),
-                                    buffer.toString(), result);
-        TRACER.debugMessage(DebugLogLevel.INFO, message);
+        Message message = INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGES
+                .get(
+                  getConnectionID(),
+                  operation.getOperationID(),
+                  String.valueOf(authDN),
+                  buffer.toString(), result);
+        TRACER.debugMessage(DebugLogLevel.INFO, message.toString());
       }
 
       return result;

@@ -33,8 +33,8 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
+import static org.opends.messages.UtilityMessages.*;
+import org.opends.messages.Message;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -76,9 +76,8 @@ public final class EmbeddedUtils
   {
     if (DirectoryServer.isRunning())
     {
-      int    msgID   = MSGID_EMBEDUTILS_SERVER_ALREADY_RUNNING;
-      String message = getMessage(msgID);
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_EMBEDUTILS_SERVER_ALREADY_RUNNING.get());
     }
 
     DirectoryServer directoryServer = DirectoryServer.reinitialize(config);
@@ -93,7 +92,7 @@ public final class EmbeddedUtils
    * @param  className  The name of the class that initiated the shutdown.
    * @param  reason     A message explaining the reason for the shutdown.
    */
-  public static void stopServer(String className, String reason)
+  public static void stopServer(String className, Message reason)
   {
     DirectoryServer.shutDown(className, reason);
   }
@@ -110,7 +109,7 @@ public final class EmbeddedUtils
    * @param  config     The environment configuration to use for the new server
    *                    instance.
    */
-  public static void restartServer(String className, String reason,
+  public static void restartServer(String className, Message reason,
                                    DirectoryEnvironmentConfig config)
   {
     DirectoryServer.restart(className, reason, config);

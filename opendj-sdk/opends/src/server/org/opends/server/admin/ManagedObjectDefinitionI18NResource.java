@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.admin;
+import org.opends.messages.Message;
 
 
 
@@ -127,7 +128,7 @@ public final class ManagedObjectDefinitionI18NResource {
    * @throws MissingResourceException
    *           If the key was not found.
    */
-  public String getMessage(AbstractManagedObjectDefinition<?, ?> d,
+  public Message getMessage(AbstractManagedObjectDefinition<?, ?> d,
       String key) throws MissingResourceException {
     return getMessage(d, key, Locale.getDefault(), (String[]) null);
   }
@@ -149,7 +150,7 @@ public final class ManagedObjectDefinitionI18NResource {
    * @throws MissingResourceException
    *           If the key was not found.
    */
-  public String getMessage(AbstractManagedObjectDefinition<?, ?> d,
+  public Message getMessage(AbstractManagedObjectDefinition<?, ?> d,
       String key, Locale locale) throws MissingResourceException {
     return getMessage(d, key, locale, (String[]) null);
   }
@@ -174,16 +175,17 @@ public final class ManagedObjectDefinitionI18NResource {
    * @throws MissingResourceException
    *           If the key was not found.
    */
-  public String getMessage(AbstractManagedObjectDefinition<?, ?> d,
+  public Message getMessage(AbstractManagedObjectDefinition<?, ?> d,
       String key, Locale locale, String... args)
       throws MissingResourceException {
     ResourceBundle resource = getResourceBundle(d, locale);
 
+    // TODO: use message framework directly
     if (args == null) {
-      return resource.getString(key);
+      return Message.raw(resource.getString(key));
     } else {
       MessageFormat mf = new MessageFormat(resource.getString(key));
-      return mf.format(args);
+      return Message.raw(mf.format(args));
     }
   }
 
@@ -205,7 +207,7 @@ public final class ManagedObjectDefinitionI18NResource {
    * @throws MissingResourceException
    *           If the key was not found.
    */
-  public String getMessage(AbstractManagedObjectDefinition<?, ?> d,
+  public Message getMessage(AbstractManagedObjectDefinition<?, ?> d,
       String key, String... args) throws MissingResourceException {
     return getMessage(d, key, Locale.getDefault(), args);
   }

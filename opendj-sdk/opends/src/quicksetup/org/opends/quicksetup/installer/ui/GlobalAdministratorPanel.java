@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup.installer.ui;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -180,17 +183,17 @@ public class GlobalAdministratorPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected String getInstructions()
+  protected Message getInstructions()
   {
-    return getMsg("global-administrator-panel-instructions");
+    return INFO_GLOBAL_ADMINISTRATOR_PANEL_INSTRUCTIONS.get();
   }
 
   /**
    * {@inheritDoc}
    */
-  protected String getTitle()
+  protected Message getTitle()
   {
-    return getMsg("global-administrator-panel-title");
+    return INFO_GLOBAL_ADMINISTRATOR_PANEL_TITLE.get();
   }
 
   /**
@@ -244,21 +247,21 @@ public class GlobalAdministratorPanel extends QuickSetupStepPanel
         new HashMap<FieldName, LabelFieldDescriptor>();
 
     hm.put(FieldName.GLOBAL_ADMINISTRATOR_UID, new LabelFieldDescriptor(
-        getMsg("global-administrator-uid-label"),
-        getMsg("global-administrator-uid-tooltip"),
+        INFO_GLOBAL_ADMINISTRATOR_UID_LABEL.get(),
+        INFO_GLOBAL_ADMINISTRATOR_UID_TOOLTIP.get(),
         LabelFieldDescriptor.FieldType.TEXTFIELD,
         LabelFieldDescriptor.LabelType.PRIMARY, UIFactory.UID_FIELD_SIZE));
 
     hm.put(FieldName.GLOBAL_ADMINISTRATOR_PWD, new LabelFieldDescriptor(
-        getMsg("global-administrator-pwd-label"),
-        getMsg("global-administrator-pwd-tooltip"),
+        INFO_GLOBAL_ADMINISTRATOR_PWD_LABEL.get(),
+        INFO_GLOBAL_ADMINISTRATOR_PWD_TOOLTIP.get(),
         LabelFieldDescriptor.FieldType.PASSWORD,
         LabelFieldDescriptor.LabelType.PRIMARY, UIFactory.PASSWORD_FIELD_SIZE));
 
     hm.put(FieldName.GLOBAL_ADMINISTRATOR_PWD_CONFIRM,
         new LabelFieldDescriptor(
-        getMsg("global-administrator-pwd-confirm-label"),
-        getMsg("global-administrator-pwd-confirm-tooltip"),
+        INFO_GLOBAL_ADMINISTRATOR_PWD_CONFIRM_LABEL.get(),
+        INFO_GLOBAL_ADMINISTRATOR_PWD_CONFIRM_TOOLTIP.get(),
         LabelFieldDescriptor.FieldType.PASSWORD,
         LabelFieldDescriptor.LabelType.PRIMARY,
         UIFactory.PASSWORD_FIELD_SIZE));

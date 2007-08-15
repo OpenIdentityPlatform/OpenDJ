@@ -25,12 +25,12 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util.args;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
-
+import static org.opends.messages.UtilityMessages.*;
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -52,21 +52,19 @@ public class BooleanArgument
    *                           argument, or <CODE>null</CODE> if there is none.
    * @param  longIdentifier    The long identifier for this argument, or
    *                           <CODE>null</CODE> if there is none.
-   * @param  descriptionID     The unique ID of the description for this
+   * @param  description       Message for the description of this
    *                           argument.
-   * @param  descriptionArgs   The arguments that are to be used when generating
-   *                           the description for this argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
    *                             parameters used to create this argument.
    */
   public BooleanArgument(String name, Character shortIdentifier,
-                         String longIdentifier, int descriptionID,
-                         Object... descriptionArgs)
+                         String longIdentifier,
+                         Message description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, false, false, false, null,
-          null, null, descriptionID, descriptionArgs);
+          null, null, description);
   }
 
 
@@ -83,12 +81,12 @@ public class BooleanArgument
    *          <CODE>false</CODE> if it is not.
    */
   public boolean valueIsAcceptable(String valueString,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // This argument type should never have a value, so any value provided will
     // be unacceptable.
-    int msgID = MSGID_BOOLEANARG_NO_VALUE_ALLOWED;
-    invalidReason.append(getMessage(msgID, getName()));
+
+    invalidReason.append(ERR_BOOLEANARG_NO_VALUE_ALLOWED.get(getName()));
 
     return false;
   }

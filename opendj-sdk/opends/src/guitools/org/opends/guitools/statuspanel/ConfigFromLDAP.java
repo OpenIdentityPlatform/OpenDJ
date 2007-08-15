@@ -43,8 +43,10 @@ import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
+
+import org.opends.messages.Message;
+import static org.opends.messages.AdminToolMessages.*;
 
 /**
  * This class is used to retrieve configuration and monitoring information using
@@ -58,7 +60,7 @@ public class ConfigFromLDAP
   private HashSet<DatabaseDescriptor> databases =
     new HashSet<DatabaseDescriptor>();
   private HashSet<String> administrativeUsers = new HashSet<String>();
-  private String errorMessage;
+  private Message errorMessage;
   private boolean replicationConfigured = false;
   private HashSet<String> replicatedSuffixes = new HashSet<String>();
   private HashMap<String, Integer> hmMissingChanges =
@@ -207,15 +209,13 @@ public class ConfigFromLDAP
       {
         detail = ne.toString();
       }
-      String[] arg = {detail};
-      errorMessage = getMsg("error-reading-config-ldap", arg);
+      errorMessage = INFO_ERROR_READING_CONFIG_LDAP.get(detail);
     }
     catch (Throwable t)
     {
       // Bug
       t.printStackTrace();
-      String[] arg = {t.toString()};
-      errorMessage = getMsg("error-reading-config-ldap", arg);
+      errorMessage = INFO_ERROR_READING_CONFIG_LDAP.get(t.toString());
     }
   }
 
@@ -277,7 +277,7 @@ public class ConfigFromLDAP
    * @return the error message that we got when retrieving the information
    * using LDAP.
    */
-  public String getErrorMessage()
+  public Message getErrorMessage()
   {
     return errorMessage;
   }
@@ -327,7 +327,7 @@ public class ConfigFromLDAP
         }
         else
         {
-          throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+          throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
         }
         break;
       case USE_LDAPS:
@@ -338,7 +338,7 @@ public class ConfigFromLDAP
         }
         else
         {
-          throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+          throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
         }
         break;
       case USE_LDAP:
@@ -349,7 +349,7 @@ public class ConfigFromLDAP
         }
         else
         {
-          throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+          throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
         }
         break;
       case USE_MOST_SECURE_AVAILABLE:
@@ -371,7 +371,7 @@ public class ConfigFromLDAP
         }
         else
         {
-          throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+          throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
         }
         break;
       case USE_LESS_SECURE_AVAILABLE:
@@ -387,7 +387,7 @@ public class ConfigFromLDAP
         }
         else
         {
-          throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+          throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
         }
         break;
         default:
@@ -702,7 +702,7 @@ public class ConfigFromLDAP
    * Returns the number of entries in a given backend using the provided
    * InitialLdapContext.
    * @param ctx the InitialLdapContext to use to update the configuration.
-   * @param backenID the id of the backend.
+   * @param backendID the id of the backend.
    * @return the number of entries in the backend.
    * @throws NamingException if there was an error.
    */
@@ -809,7 +809,7 @@ public class ConfigFromLDAP
         getFirstValue(entry, "ds-cfg-use-ssl"));
 
     ListenerDescriptor.Protocol protocol;
-    String protocolDescription;
+    Message protocolDescription;
 
     ListenerDescriptor.State state;
     if (hasObjectClass(entry, "ds-cfg-ldap-connection-handler"))
@@ -817,12 +817,12 @@ public class ConfigFromLDAP
       addressPort = address+":"+port;
       if (isSecure)
       {
-        protocolDescription = getMsg("ldaps-protocol-label");
+        protocolDescription = INFO_LDAPS_PROTOCOL_LABEL.get();
         protocol = ListenerDescriptor.Protocol.LDAPS;
       }
       else
       {
-        protocolDescription = getMsg("ldap-protocol-label");
+        protocolDescription = INFO_LDAP_PROTOCOL_LABEL.get();
         protocol = ListenerDescriptor.Protocol.LDAP;
       }
       boolean enabled = "true".equalsIgnoreCase(
@@ -841,12 +841,12 @@ public class ConfigFromLDAP
       addressPort = "0.0.0.0:"+port;
       if (isSecure)
       {
-        protocolDescription = getMsg("jmx-secure-protocol-label");
+        protocolDescription = INFO_JMX_SECURE_PROTOCOL_LABEL.get();
         protocol = ListenerDescriptor.Protocol.JMXS;
       }
       else
       {
-        protocolDescription = getMsg("jmx-protocol-label");
+        protocolDescription = INFO_JMX_PROTOCOL_LABEL.get();
         protocol = ListenerDescriptor.Protocol.JMX;
       }
       boolean enabled = "true".equalsIgnoreCase(
@@ -862,7 +862,7 @@ public class ConfigFromLDAP
     }
     else
     {
-      addressPort = getMsg("unknown-label");
+      addressPort = INFO_UNKNOWN_LABEL.get().toString();
       protocolDescription = null;
       protocol = ListenerDescriptor.Protocol.OTHER;
       /* Try to figure a name from the cn */
@@ -872,16 +872,16 @@ public class ConfigFromLDAP
         int index = cn.toLowerCase().indexOf("connection handler");
         if (index > 0)
         {
-          protocolDescription = cn.substring(0, index).trim();
+          protocolDescription = Message.raw(cn.substring(0, index).trim());
         }
         else
         {
-          protocolDescription = cn;
+          protocolDescription = Message.raw(cn);
         }
       }
       else
       {
-        protocolDescription = getMsg("undefined-protocol-label");
+        protocolDescription = INFO_UNDEFINED_PROTOCOL_LABEL.get();
       }
       state = ListenerDescriptor.State.UNKNOWN;
     }
@@ -994,25 +994,6 @@ public class ConfigFromLDAP
     return ConfigFromFile.isConfigBackend(id);
   }
 
-  /**
-   * The following three methods are just commodity methods to get localized
-   * messages.
-   */
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  private String getMsg(String key, String[] args)
-  {
-    return getI18n().getMsg(key, args);
-  }
-
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
-  }
-
   private String getURL(ConfigFromFile offlineConf,
       ConnectionProtocolPolicy policy) throws ConfigException
   {
@@ -1029,7 +1010,7 @@ public class ConfigFromLDAP
       }
       else
       {
-        throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+        throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
       break;
     case USE_LDAPS:
@@ -1039,7 +1020,7 @@ public class ConfigFromLDAP
       }
       else
       {
-        throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+        throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
       break;
     case USE_LDAP:
@@ -1049,7 +1030,7 @@ public class ConfigFromLDAP
       }
       else
       {
-        throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+        throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
       break;
     case USE_MOST_SECURE_AVAILABLE:
@@ -1067,7 +1048,7 @@ public class ConfigFromLDAP
       }
       else
       {
-        throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+        throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
       break;
     case USE_LESS_SECURE_AVAILABLE:
@@ -1081,7 +1062,7 @@ public class ConfigFromLDAP
       }
       else
       {
-        throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+        throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
       break;
       default:

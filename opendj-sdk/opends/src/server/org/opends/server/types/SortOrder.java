@@ -27,13 +27,6 @@
 package org.opends.server.types;
 
 
-
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.util.StaticUtils.*;
-
-
-
 /**
  * This class defines a data structure that defines a set of sort
  * criteria that may be used to order entries in a set of search

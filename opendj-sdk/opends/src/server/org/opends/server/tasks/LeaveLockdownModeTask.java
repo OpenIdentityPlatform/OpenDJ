@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
+import org.opends.messages.Message;
 
 
 
@@ -38,8 +39,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.TaskMessages.*;
+import static org.opends.messages.TaskMessages.*;
 
 
 
@@ -65,20 +65,16 @@ public class LeaveLockdownModeTask
       DN authzDN = operation.getAuthorizationDN();
       if ((authzDN == null) || (! DirectoryServer.isRootDN(authzDN)))
       {
-        int msgID = MSGID_TASK_LEAVELOCKDOWN_NOT_ROOT;
-        String message = getMessage(msgID);
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_TASK_LEAVELOCKDOWN_NOT_ROOT.get();
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
       InetAddress clientAddress =
            operation.getClientConnection().getRemoteAddress();
       if ((clientAddress != null) && (! clientAddress.isLoopbackAddress()))
       {
-        int msgID = MSGID_TASK_LEAVELOCKDOWN_NOT_LOOPBACK;
-        String message = getMessage(msgID);
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_TASK_LEAVELOCKDOWN_NOT_LOOPBACK.get();
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
   }

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
+import org.opends.messages.Message;
 
 
 
@@ -35,8 +36,7 @@ import java.util.Set;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.LDAPException;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 
 
 
@@ -154,10 +154,8 @@ public enum PersistentSearchChangeType
       case 8:
         return MODIFY_DN;
       default:
-        int    msgID   = MSGID_PSEARCH_CHANGETYPES_INVALID_TYPE;
-        String message = getMessage(msgID, intValue);
-        throw new LDAPException(LDAPResultCode.CONSTRAINT_VIOLATION, msgID,
-                                message);
+        Message message = ERR_PSEARCH_CHANGETYPES_INVALID_TYPE.get(intValue);
+        throw new LDAPException(LDAPResultCode.CONSTRAINT_VIOLATION, message);
     }
   }
 
@@ -185,10 +183,8 @@ public enum PersistentSearchChangeType
       case 0:
         // No change types are included.  This won't be allowed because it
         // doesn't make any sense.
-        int    msgID   = MSGID_PSEARCH_CHANGETYPES_NO_TYPES;
-        String message = getMessage(msgID);
-        throw new LDAPException(LDAPResultCode.CONSTRAINT_VIOLATION, msgID,
-                                message);
+        Message message = ERR_PSEARCH_CHANGETYPES_NO_TYPES.get();
+        throw new LDAPException(LDAPResultCode.CONSTRAINT_VIOLATION, message);
       case 1:
         changeTypes.add(ADD);
         break;
@@ -252,10 +248,8 @@ public enum PersistentSearchChangeType
         changeTypes.add(MODIFY_DN);
         break;
      default:
-        msgID   = MSGID_PSEARCH_CHANGETYPES_INVALID_TYPES;
-        message = getMessage(msgID, intValue);
-        throw new LDAPException(LDAPResultCode.CONSTRAINT_VIOLATION, msgID,
-                                message);
+        message = ERR_PSEARCH_CHANGETYPES_INVALID_TYPES.get(intValue);
+        throw new LDAPException(LDAPResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     return changeTypes;

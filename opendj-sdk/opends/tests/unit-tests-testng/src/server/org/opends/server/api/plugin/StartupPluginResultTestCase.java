@@ -32,7 +32,7 @@ import org.testng.annotations.Test;
 import org.testng.annotations.DataProvider;
 
 import static org.testng.Assert.*;
-
+import org.opends.messages.Message;
 
 
 /**
@@ -52,22 +52,22 @@ public class StartupPluginResultTestCase
     return new Object[][]
     {
       new Object[] { StartupPluginResult.SUCCESS },
-      new Object[] { new StartupPluginResult(false, false, 0, null) },
-      new Object[] { new StartupPluginResult(true, false, 0, null) },
-      new Object[] { new StartupPluginResult(false, true, 0, null) },
-      new Object[] { new StartupPluginResult(true, true, 0, null) },
-      new Object[] { new StartupPluginResult(false, false, 1, null) },
-      new Object[] { new StartupPluginResult(true, false, 1, null) },
-      new Object[] { new StartupPluginResult(false, true, 1, null) },
-      new Object[] { new StartupPluginResult(true, true, 1, null) },
-      new Object[] { new StartupPluginResult(false, false, 0, "foo") },
-      new Object[] { new StartupPluginResult(true, false, 0, "foo") },
-      new Object[] { new StartupPluginResult(false, true, 0, "foo") },
-      new Object[] { new StartupPluginResult(true, true, 0, "foo") },
-      new Object[] { new StartupPluginResult(false, false, 1, "foo") },
-      new Object[] { new StartupPluginResult(true, false, 1, "foo") },
-      new Object[] { new StartupPluginResult(false, true, 1, "foo") },
-      new Object[] { new StartupPluginResult(true, true, 1, "foo") },
+      new Object[] { new StartupPluginResult(false, false, null) },
+      new Object[] { new StartupPluginResult(true, false, null) },
+      new Object[] { new StartupPluginResult(false, true, null) },
+      new Object[] { new StartupPluginResult(true, true, null) },
+      new Object[] { new StartupPluginResult(false, false, null) },
+      new Object[] { new StartupPluginResult(true, false, null) },
+      new Object[] { new StartupPluginResult(false, true, null) },
+      new Object[] { new StartupPluginResult(true, true, null) },
+      new Object[] { new StartupPluginResult(false, false, Message.raw("foo")) },
+      new Object[] { new StartupPluginResult(true, false, Message.raw("foo")) },
+      new Object[] { new StartupPluginResult(false, true, Message.raw("foo")) },
+      new Object[] { new StartupPluginResult(true, true, Message.raw("foo")) },
+      new Object[] { new StartupPluginResult(false, false, Message.raw("foo")) },
+      new Object[] { new StartupPluginResult(true, false, Message.raw("foo")) },
+      new Object[] { new StartupPluginResult(false, true, Message.raw("foo")) },
+      new Object[] { new StartupPluginResult(true, true, Message.raw("foo")) },
     };
   }
 
@@ -107,7 +107,7 @@ public class StartupPluginResultTestCase
   @Test(dataProvider = "instances")
   public void testGetErrorID(StartupPluginResult result)
   {
-    result.getErrorID();
+    result.getErrorMessage();
   }
 
 

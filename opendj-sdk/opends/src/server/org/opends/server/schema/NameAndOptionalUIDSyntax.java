@@ -38,18 +38,17 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
 
 
 /**
@@ -98,18 +97,16 @@ public class NameAndOptionalUIDSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_UNIQUE_MEMBER_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_UNIQUE_MEMBER_OID, SYNTAX_NAME_AND_OPTIONAL_UID_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_UNIQUE_MEMBER_OID, SYNTAX_NAME_AND_OPTIONAL_UID_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_CASE_IGNORE_OID, SYNTAX_NAME_AND_OPTIONAL_UID_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_CASE_IGNORE_OID, SYNTAX_NAME_AND_OPTIONAL_UID_NAME));
     }
   }
 
@@ -226,7 +223,7 @@ public class NameAndOptionalUIDSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     String valueString = value.stringValue().trim();
     int    valueLength = valueString.length();
@@ -260,9 +257,9 @@ public class NameAndOptionalUIDSyntax
 
       // We couldn't normalize the DN for some reason.  The value cannot be
       // acceptable.
-      int msgID = MSGID_ATTR_SYNTAX_NAMEANDUID_INVALID_DN;
-      invalidReason.append(getMessage(msgID, valueString,
-                                      getExceptionMessage(e)));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_NAMEANDUID_INVALID_DN.get(
+              valueString, getExceptionMessage(e)));
       return false;
     }
 
@@ -278,8 +275,10 @@ public class NameAndOptionalUIDSyntax
         char c = valueString.charAt(i);
         if (! ((c == '0') || (c == '1')))
         {
-          int msgID = MSGID_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT;
-          invalidReason.append(getMessage(msgID, valueString, c, i));
+
+          invalidReason.append(
+                  ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT.get(
+                          valueString, String.valueOf(c), i));
           return false;
         }
       }

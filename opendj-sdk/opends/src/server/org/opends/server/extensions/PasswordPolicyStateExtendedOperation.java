@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -63,8 +64,7 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -528,7 +528,7 @@ public class PasswordPolicyStateExtendedOperation
     ClientConnection clientConnection = operation.getClientConnection();
     if (! clientConnection.hasPrivilege(Privilege.PASSWORD_RESET, operation))
     {
-      String message = getMessage(MSGID_PWPSTATE_EXTOP_NO_PRIVILEGE);
+      Message message = ERR_PWPSTATE_EXTOP_NO_PRIVILEGE.get();
       operation.appendErrorMessage(message);
       operation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
       return;
@@ -540,7 +540,7 @@ public class PasswordPolicyStateExtendedOperation
     ASN1OctetString requestValue = operation.getRequestValue();
     if (requestValue == null)
     {
-      String message = getMessage(MSGID_PWPSTATE_EXTOP_NO_REQUEST_VALUE);
+      Message message = ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE.get();
       operation.appendErrorMessage(message);
       operation.setResultCode(ResultCode.PROTOCOL_ERROR);
       return;
@@ -571,8 +571,8 @@ public class PasswordPolicyStateExtendedOperation
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      String message = getMessage(MSGID_PWPSTATE_EXTOP_DECODE_FAILURE,
-                                  getExceptionMessage(e));
+      Message message =
+          ERR_PWPSTATE_EXTOP_DECODE_FAILURE.get(getExceptionMessage(e));
       operation.appendErrorMessage(message);
       operation.setResultCode(ResultCode.PROTOCOL_ERROR);
       return;
@@ -626,7 +626,8 @@ public class PasswordPolicyStateExtendedOperation
     }
     else if (matchingEntries.size() > 1)
     {
-      String message = getMessage(MSGID_PWPSTATE_EXTOP_MULTIPLE_ENTRIES);
+      Message message = ERR_PWPSTATE_EXTOP_MULTIPLE_ENTRIES.get(
+              String.valueOf(targetDN));
       operation.appendErrorMessage(message);
       operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
       return;
@@ -706,7 +707,8 @@ public class PasswordPolicyStateExtendedOperation
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          String message = getMessage(MSGID_PWPSTATE_EXTOP_INVALID_OP_ENCODING);
+          Message message = ERR_PWPSTATE_EXTOP_INVALID_OP_ENCODING.get(
+            e.getLocalizedMessage());
           operation.appendErrorMessage(message);
           operation.setResultCode(ResultCode.PROTOCOL_ERROR);
           return;
@@ -725,15 +727,15 @@ public class PasswordPolicyStateExtendedOperation
           case OP_SET_ACCOUNT_DISABLED_STATE:
             if (opValues == null)
             {
-              int msgID = MSGID_PWPSTATE_EXTOP_NO_DISABLED_VALUE;
-              operation.appendErrorMessage(getMessage(msgID));
+              operation.appendErrorMessage(
+                      ERR_PWPSTATE_EXTOP_NO_DISABLED_VALUE.get());
               operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
               return;
             }
             else if (opValues.size() != 1)
             {
-              int msgID = MSGID_PWPSTATE_EXTOP_BAD_DISABLED_VALUE_COUNT;
-              operation.appendErrorMessage(getMessage(msgID));
+              operation.appendErrorMessage(
+                      ERR_PWPSTATE_EXTOP_BAD_DISABLED_VALUE_COUNT.get());
               operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
               return;
             }
@@ -750,8 +752,8 @@ public class PasswordPolicyStateExtendedOperation
               }
               else
               {
-                int msgID = MSGID_PWPSTATE_EXTOP_BAD_DISABLED_VALUE;
-                operation.appendErrorMessage(getMessage(msgID));
+                operation.appendErrorMessage(
+                        ERR_PWPSTATE_EXTOP_BAD_DISABLED_VALUE.get());
                 operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
                 return;
               }
@@ -776,8 +778,8 @@ public class PasswordPolicyStateExtendedOperation
             }
             else if (opValues.size() != 1)
             {
-              int msgID = MSGID_PWPSTATE_EXTOP_BAD_ACCT_EXP_VALUE_COUNT;
-              operation.appendErrorMessage(getMessage(msgID));
+              operation.appendErrorMessage(
+                      ERR_PWPSTATE_EXTOP_BAD_ACCT_EXP_VALUE_COUNT.get());
               operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
               return;
             }
@@ -793,9 +795,10 @@ public class PasswordPolicyStateExtendedOperation
               }
               catch (DirectoryException de)
               {
-                int msgID = MSGID_PWPSTATE_EXTOP_BAD_ACCT_EXP_VALUE;
-                operation.appendErrorMessage(getMessage(msgID, opValues.get(0),
-                                                        de.getErrorMessage()));
+                operation.appendErrorMessage(
+                        ERR_PWPSTATE_EXTOP_BAD_ACCT_EXP_VALUE.get(
+                                opValues.get(0),
+                                de.getMessageObject()));
                 operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
                 return;
               }
@@ -824,8 +827,8 @@ public class PasswordPolicyStateExtendedOperation
             }
             else if (opValues.size() != 1)
             {
-              int msgID = MSGID_PWPSTATE_EXTOP_BAD_PWCHANGETIME_VALUE_COUNT;
-              operation.appendErrorMessage(getMessage(msgID));
+              operation.appendErrorMessage(
+                      ERR_PWPSTATE_EXTOP_BAD_PWCHANGETIME_VALUE_COUNT.get());
               operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
               return;
             }
@@ -841,9 +844,10 @@ public class PasswordPolicyStateExtendedOperation
               }
               catch (DirectoryException de)
               {
-                int msgID = MSGID_PWPSTATE_EXTOP_BAD_PWCHANGETIME_VALUE;
-                operation.appendErrorMessage(getMessage(msgID, opValues.get(0),
-                                                        de.getErrorMessage()));
+                operation.appendErrorMessage(
+                        ERR_PWPSTATE_EXTOP_BAD_PWCHANGETIME_VALUE.get(
+                                opValues.get(0),
+                                de.getMessageObject()));
                 operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
                 return;
               }
@@ -868,8 +872,8 @@ public class PasswordPolicyStateExtendedOperation
             }
             else if (opValues.size() != 1)
             {
-              int msgID = MSGID_PWPSTATE_EXTOP_BAD_PWWARNEDTIME_VALUE_COUNT;
-              operation.appendErrorMessage(getMessage(msgID));
+              operation.appendErrorMessage(
+                      ERR_PWPSTATE_EXTOP_BAD_PWWARNEDTIME_VALUE_COUNT.get());
               operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
               return;
             }
@@ -885,10 +889,10 @@ public class PasswordPolicyStateExtendedOperation
               }
               catch (DirectoryException de)
               {
-                int msgID = MSGID_PWPSTATE_EXTOP_BAD_PWWARNEDTIME_VALUE;
-                operation.appendErrorMessage(getMessage(msgID,
-                                                        opValues.get(0),
-                                                        de.getErrorMessage()));
+                operation.appendErrorMessage(
+                        ERR_PWPSTATE_EXTOP_BAD_PWWARNEDTIME_VALUE.get(
+                                opValues.get(0),
+                                de.getMessageObject()));
                 operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
                 return;
               }
@@ -927,8 +931,8 @@ public class PasswordPolicyStateExtendedOperation
             }
             else if (opValues.size() != 1)
             {
-              int msgID = MSGID_PWPSTATE_EXTOP_BAD_ADD_FAILURE_TIME_COUNT;
-              operation.appendErrorMessage(getMessage(msgID));
+              operation.appendErrorMessage(
+                      ERR_PWPSTATE_EXTOP_BAD_ADD_FAILURE_TIME_COUNT.get());
               operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
               return;
             }
@@ -949,9 +953,9 @@ public class PasswordPolicyStateExtendedOperation
               }
               catch (DirectoryException de)
               {
-                int msgID = MSGID_PWPSTATE_EXTOP_BAD_AUTH_FAILURE_TIME;
-                String message = getMessage(msgID, opValues.get(0),
-                                            de.getErrorMessage());
+                Message message = ERR_PWPSTATE_EXTOP_BAD_AUTH_FAILURE_TIME.get(
+                        opValues.get(0),
+                        de.getMessageObject());
                 operation.setResultCode(de.getResultCode());
                 operation.appendErrorMessage(message);
                 return;
@@ -981,8 +985,10 @@ public class PasswordPolicyStateExtendedOperation
                 }
                 catch (DirectoryException de)
                 {
-                  int msgID = MSGID_PWPSTATE_EXTOP_BAD_AUTH_FAILURE_TIME;
-                  String message = getMessage(msgID, s, de.getErrorMessage());
+                  Message message =
+                          ERR_PWPSTATE_EXTOP_BAD_AUTH_FAILURE_TIME.get(
+                                  s,
+                                  de.getMessageObject());
                   operation.setResultCode(de.getResultCode());
                   operation.appendErrorMessage(message);
                   return;
@@ -1018,8 +1024,8 @@ public class PasswordPolicyStateExtendedOperation
             }
             else if (opValues.size() != 1)
             {
-              int msgID = MSGID_PWPSTATE_EXTOP_BAD_LAST_LOGIN_TIME_COUNT;
-              operation.appendErrorMessage(getMessage(msgID));
+              operation.appendErrorMessage(
+                      ERR_PWPSTATE_EXTOP_BAD_LAST_LOGIN_TIME_COUNT.get());
               operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
               return;
             }
@@ -1035,9 +1041,10 @@ public class PasswordPolicyStateExtendedOperation
               }
               catch (DirectoryException de)
               {
-                int msgID = MSGID_PWPSTATE_EXTOP_BAD_LAST_LOGIN_TIME;
-                operation.appendErrorMessage(getMessage(msgID, opValues.get(0),
-                                                        de.getErrorMessage()));
+                operation.appendErrorMessage(
+                        ERR_PWPSTATE_EXTOP_BAD_LAST_LOGIN_TIME.get(
+                                opValues.get(0),
+                                de.getMessageObject()));
                 operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
                 return;
               }
@@ -1062,15 +1069,15 @@ public class PasswordPolicyStateExtendedOperation
           case OP_SET_PASSWORD_RESET_STATE:
             if (opValues == null)
             {
-              int msgID = MSGID_PWPSTATE_EXTOP_NO_RESET_STATE_VALUE;
-              operation.appendErrorMessage(getMessage(msgID));
+              operation.appendErrorMessage(
+                      ERR_PWPSTATE_EXTOP_NO_RESET_STATE_VALUE.get());
               operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
               return;
             }
             else if (opValues.size() != 1)
             {
-              int msgID = MSGID_PWPSTATE_EXTOP_BAD_RESET_STATE_VALUE_COUNT;
-              operation.appendErrorMessage(getMessage(msgID));
+              operation.appendErrorMessage(
+                      ERR_PWPSTATE_EXTOP_BAD_RESET_STATE_VALUE_COUNT.get());
               operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
               return;
             }
@@ -1087,8 +1094,8 @@ public class PasswordPolicyStateExtendedOperation
               }
               else
               {
-                int msgID = MSGID_PWPSTATE_EXTOP_BAD_RESET_STATE_VALUE;
-                operation.appendErrorMessage(getMessage(msgID));
+                operation.appendErrorMessage(
+                        ERR_PWPSTATE_EXTOP_BAD_RESET_STATE_VALUE.get());
                 operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
                 return;
               }
@@ -1117,8 +1124,8 @@ public class PasswordPolicyStateExtendedOperation
             }
             else if (opValues.size() != 1)
             {
-              int msgID = MSGID_PWPSTATE_EXTOP_BAD_ADD_GRACE_LOGIN_TIME_COUNT;
-              operation.appendErrorMessage(getMessage(msgID));
+              operation.appendErrorMessage(
+                      ERR_PWPSTATE_EXTOP_BAD_ADD_GRACE_LOGIN_TIME_COUNT.get());
               operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
               return;
             }
@@ -1139,9 +1146,9 @@ public class PasswordPolicyStateExtendedOperation
               }
               catch (DirectoryException de)
               {
-                int msgID = MSGID_PWPSTATE_EXTOP_BAD_GRACE_LOGIN_TIME;
-                String message = getMessage(msgID, opValues.get(0),
-                                            de.getErrorMessage());
+                Message message = ERR_PWPSTATE_EXTOP_BAD_GRACE_LOGIN_TIME.get(
+                        opValues.get(0),
+                        de.getMessageObject());
                 operation.setResultCode(de.getResultCode());
                 operation.appendErrorMessage(message);
                 return;
@@ -1171,8 +1178,8 @@ public class PasswordPolicyStateExtendedOperation
                 }
                 catch (DirectoryException de)
                 {
-                  int msgID = MSGID_PWPSTATE_EXTOP_BAD_GRACE_LOGIN_TIME;
-                  String message = getMessage(msgID, s, de.getErrorMessage());
+                  Message message = ERR_PWPSTATE_EXTOP_BAD_GRACE_LOGIN_TIME.get(
+                          s, de.getMessageObject());
                   operation.setResultCode(de.getResultCode());
                   operation.appendErrorMessage(message);
                   return;
@@ -1204,8 +1211,8 @@ public class PasswordPolicyStateExtendedOperation
             }
             else if (opValues.size() != 1)
             {
-              int msgID = MSGID_PWPSTATE_EXTOP_BAD_REQUIRED_CHANGE_TIME_COUNT;
-              operation.appendErrorMessage(getMessage(msgID));
+              operation.appendErrorMessage(
+                      ERR_PWPSTATE_EXTOP_BAD_REQUIRED_CHANGE_TIME_COUNT.get());
               operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
               return;
             }
@@ -1221,9 +1228,10 @@ public class PasswordPolicyStateExtendedOperation
               }
               catch (DirectoryException de)
               {
-                int msgID = MSGID_PWPSTATE_EXTOP_BAD_REQUIRED_CHANGE_TIME;
-                operation.appendErrorMessage(getMessage(msgID, opValues.get(0),
-                                                        de.getErrorMessage()));
+                operation.appendErrorMessage(
+                        ERR_PWPSTATE_EXTOP_BAD_REQUIRED_CHANGE_TIME.get(
+                                opValues.get(0),
+                                de.getMessageObject()));
                 operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
                 return;
               }
@@ -1251,8 +1259,9 @@ public class PasswordPolicyStateExtendedOperation
             break;
 
           default:
-            int msgID = MSGID_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE;
-            operation.appendErrorMessage(getMessage(msgID, opType));
+
+            operation.appendErrorMessage(ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE.get(
+                    String.valueOf(opType)));
             operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
             return;
         }

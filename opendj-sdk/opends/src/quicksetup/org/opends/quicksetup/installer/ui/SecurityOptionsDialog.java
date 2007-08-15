@@ -57,13 +57,14 @@ import javax.swing.text.JTextComponent;
 import org.opends.quicksetup.SecurityOptions;
 import org.opends.quicksetup.event.BrowseActionListener;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
-import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.ui.Utilities;
 import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.CertificateManager;
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * This class is a dialog that appears when the user wants to configure
@@ -112,7 +113,7 @@ public class SecurityOptionsDialog extends JDialog
   throws IllegalArgumentException
   {
     super(parent);
-    setTitle(getMsg("security-options-dialog-title"));
+    setTitle(INFO_SECURITY_OPTIONS_DIALOG_TITLE.get().toString());
     securityOptions = options;
     getContentPane().add(createPanel());
     pack();
@@ -288,7 +289,7 @@ public class SecurityOptionsDialog extends JDialog
     gbc.weightx = 0.0;
     gbc.gridwidth = GridBagConstraints.RELATIVE;
 
-    String title = getMsg("security-options-title");
+    Message title = INFO_SECURITY_OPTIONS_TITLE.get();
     JLabel l =
         UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, title,
             UIFactory.TextStyle.TITLE);
@@ -313,7 +314,7 @@ public class SecurityOptionsDialog extends JDialog
    */
   private Component createInstructionsPane()
   {
-    String instructions = getMsg("security-options-instructions");
+    Message instructions = INFO_SECURITY_OPTIONS_INSTRUCTIONS.get();
 
     JTextComponent instructionsPane =
       UIFactory.makeHtmlPane(instructions, UIFactory.INSTRUCTIONS_FONT);
@@ -341,8 +342,8 @@ public class SecurityOptionsDialog extends JDialog
       }
     };
 
-    cbEnableSSL = UIFactory.makeJCheckBox(getMsg("enable-ssl-label"),
-        getMsg("enable-ssl-tooltip"), UIFactory.TextStyle.PRIMARY_FIELD_VALID);
+    cbEnableSSL = UIFactory.makeJCheckBox(INFO_ENABLE_SSL_LABEL.get(),
+        INFO_ENABLE_SSL_TOOLTIP.get(), UIFactory.TextStyle.PRIMARY_FIELD_VALID);
     cbEnableSSL.addActionListener(l);
     String sPort = "";
     int port = securityOptions.getSslPort();
@@ -350,21 +351,21 @@ public class SecurityOptionsDialog extends JDialog
     {
       sPort = String.valueOf(port);
     }
-    tfPort = UIFactory.makeJTextField(sPort,
-        getMsg("ssl-port-textfield-tooltip"), UIFactory.PORT_FIELD_SIZE,
+    tfPort = UIFactory.makeJTextField(Message.raw(sPort),
+        INFO_SSL_PORT_TEXTFIELD_TOOLTIP.get(), UIFactory.PORT_FIELD_SIZE,
         UIFactory.TextStyle.TEXTFIELD);
-    cbEnableStartTLS = UIFactory.makeJCheckBox(getMsg("enable-starttls-label"),
-        getMsg("enable-starttls-tooltip"),
+    cbEnableStartTLS = UIFactory.makeJCheckBox(INFO_ENABLE_STARTTLS_LABEL.get(),
+        INFO_ENABLE_STARTTLS_TOOLTIP.get(),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     cbEnableStartTLS.addActionListener(l);
     rbUseSelfSignedCertificate = UIFactory.makeJRadioButton(
-        getMsg("use-self-signed-label"),
-        getMsg("use-self-signed-tooltip"),
+        INFO_USE_SELF_SIGNED_LABEL.get(),
+        INFO_USE_SELF_SIGNED_TOOLTIP.get(),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     rbUseSelfSignedCertificate.addActionListener(l);
     rbUseExistingCertificate = UIFactory.makeJRadioButton(
-        getMsg("use-existing-certificate-label"),
-        getMsg("use-existing-certificate-tooltip"),
+        INFO_USE_EXISTING_CERTIFICATE_LABEL.get(),
+        INFO_USE_EXISTING_CERTIFICATE_TOOLTIP.get(),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     rbUseExistingCertificate.addActionListener(l);
     ButtonGroup group1 = new ButtonGroup();
@@ -372,22 +373,22 @@ public class SecurityOptionsDialog extends JDialog
     group1.add(rbUseExistingCertificate);
 
     lKeystoreType = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        getMsg("keystore-type-label"),
+        INFO_KEYSTORE_TYPE_LABEL.get(),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     lKeystoreType.setOpaque(false);
     rbJKS = UIFactory.makeJRadioButton(
-        getMsg("jks-certificate-label"),
-        getMsg("jks-certificate-tooltip"),
+        INFO_JKS_CERTIFICATE_LABEL.get(),
+        INFO_JKS_CERTIFICATE_TOOLTIP.get(),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     rbJKS.addActionListener(l);
     rbPKCS11 = UIFactory.makeJRadioButton(
-        getMsg("pkcs11-certificate-label"),
-        getMsg("pkcs11-certificate-tooltip"),
+        INFO_PKCS11_CERTIFICATE_LABEL.get(),
+        INFO_PKCS11_CERTIFICATE_TOOLTIP.get(),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     rbPKCS11.addActionListener(l);
     rbPKCS12 = UIFactory.makeJRadioButton(
-        getMsg("pkcs12-certificate-label"),
-        getMsg("pkcs12-certificate-tooltip"),
+        INFO_PKCS12_CERTIFICATE_LABEL.get(),
+        INFO_PKCS12_CERTIFICATE_TOOLTIP.get(),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     rbPKCS12.addActionListener(l);
     ButtonGroup group2 = new ButtonGroup();
@@ -397,16 +398,16 @@ public class SecurityOptionsDialog extends JDialog
     lKeystoreType.setLabelFor(rbJKS);
 
     lKeystorePath = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        getMsg("keystore-path-label"),
+        INFO_KEYSTORE_PATH_LABEL.get(),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     lKeystorePath.setOpaque(false);
-    tfKeystorePath = UIFactory.makeJTextField("",
-        getMsg("keystore-path-tooltip"),
+    tfKeystorePath = UIFactory.makeJTextField(Message.EMPTY,
+        INFO_KEYSTORE_PATH_TOOLTIP.get(),
         UIFactory.HOST_FIELD_SIZE, UIFactory.TextStyle.TEXTFIELD);
     lKeystorePath.setLabelFor(tfKeystorePath);
     browseButton =
-      UIFactory.makeJButton(getMsg("browse-button-label"),
-          getMsg("browse-button-tooltip"));
+      UIFactory.makeJButton(INFO_BROWSE_BUTTON_LABEL.get(),
+          INFO_BROWSE_BUTTON_TOOLTIP.get());
 
     BrowseActionListener browseListener =
       new BrowseActionListener(tfKeystorePath,
@@ -415,11 +416,11 @@ public class SecurityOptionsDialog extends JDialog
     browseButton.addActionListener(browseListener);
 
     lKeystorePwd = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        getMsg("keystore-pwd-label"),
+        INFO_KEYSTORE_PWD_LABEL.get(),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     lKeystorePwd.setOpaque(false);
-    tfKeystorePwd = UIFactory.makeJPasswordField("",
-        getMsg("keystore-pwd-tooltip"),
+    tfKeystorePwd = UIFactory.makeJPasswordField(Message.EMPTY,
+        INFO_KEYSTORE_PWD_TOOLTIP.get(),
         UIFactory.PASSWORD_FIELD_SIZE, UIFactory.TextStyle.PASSWORD_FIELD);
     lKeystorePwd.setLabelFor(tfKeystorePwd);
 
@@ -430,7 +431,7 @@ public class SecurityOptionsDialog extends JDialog
     gbc.insets = UIFactory.getEmptyInsets();
     gbc.fill = GridBagConstraints.HORIZONTAL;
     inputPanel.add(UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        getMsg("ssl-access-label"), UIFactory.TextStyle.PRIMARY_FIELD_VALID),
+        INFO_SSL_ACCESS_LABEL.get(), UIFactory.TextStyle.PRIMARY_FIELD_VALID),
         gbc);
 
     JPanel auxPanel = new JPanel(new GridBagLayout());
@@ -458,7 +459,7 @@ public class SecurityOptionsDialog extends JDialog
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     gbc.weightx = 0.0;
     inputPanel.add(UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        getMsg("starttls-access-label"),
+        INFO_STARTTLS_ACCESS_LABEL.get(),
         UIFactory.TextStyle.PRIMARY_FIELD_VALID),
         gbc);
     auxPanel = new JPanel(new GridBagLayout());
@@ -479,7 +480,7 @@ public class SecurityOptionsDialog extends JDialog
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     gbc.weightx = 0.0;
     JLabel lCertificate = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        getMsg("certificate-label"), UIFactory.TextStyle.PRIMARY_FIELD_VALID);
+        INFO_CERTIFICATE_LABEL.get(), UIFactory.TextStyle.PRIMARY_FIELD_VALID);
     int additionalInset = Math.abs(lCertificate.getPreferredSize().height -
         rbUseSelfSignedCertificate.getPreferredSize().height) / 2;
     gbc.insets.top += additionalInset;
@@ -599,8 +600,8 @@ public class SecurityOptionsDialog extends JDialog
     gbc.fill = GridBagConstraints.NONE;
     gbc.weightx = 0.0;
     okButton =
-      UIFactory.makeJButton(getMsg("ok-button-label"),
-          getMsg("security-options-ok-button-tooltip"));
+      UIFactory.makeJButton(INFO_OK_BUTTON_LABEL.get(),
+          INFO_SECURITY_OPTIONS_OK_BUTTON_TOOLTIP.get());
     buttonsPanel.add(okButton, gbc);
     okButton.addActionListener(new ActionListener()
     {
@@ -613,8 +614,8 @@ public class SecurityOptionsDialog extends JDialog
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.insets.left = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
     cancelButton =
-      UIFactory.makeJButton(getMsg("cancel-button-label"),
-          getMsg("security-options-cancel-button-tooltip"));
+      UIFactory.makeJButton(INFO_CANCEL_BUTTON_LABEL.get(),
+          INFO_SECURITY_OPTIONS_CANCEL_BUTTON_TOOLTIP.get());
     buttonsPanel.add(cancelButton, gbc);
     cancelButton.addActionListener(new ActionListener()
     {
@@ -647,7 +648,7 @@ public class SecurityOptionsDialog extends JDialog
     {
       public Object processBackgroundTask()
       {
-        ArrayList<String> errorMsgs = new ArrayList<String>();
+        ArrayList<Message> errorMsgs = new ArrayList<Message>();
 
         errorMsgs.addAll(checkPort());
 
@@ -664,8 +665,8 @@ public class SecurityOptionsDialog extends JDialog
           // Bug
           throwable.printStackTrace();
           displayError(
-              Utils.getThrowableMsg(getI18n(), "bug-msg", null, throwable),
-              getMsg("error-title"));
+              Utils.getThrowableMsg(INFO_BUG_MSG.get(), throwable),
+              INFO_ERROR_TITLE.get());
           cancelButton.setEnabled(true);
           okButton.setEnabled(true);
         }
@@ -677,13 +678,13 @@ public class SecurityOptionsDialog extends JDialog
 
           if (ar.size() > 0)
           {
-            ArrayList<String> errorMsgs = new ArrayList<String>();
+            ArrayList<Message> errorMsgs = new ArrayList<Message>();
             for (Object o: ar)
             {
-              errorMsgs.add((String)o);
+              errorMsgs.add(Message.raw((String)o));
             }
-            displayError(Utils.getStringFromCollection(errorMsgs, "\n"),
-                getMsg("error-title"));
+            displayError(Utils.getMessageFromCollection(errorMsgs, "\n"),
+                INFO_ERROR_TITLE.get());
           }
           else
           {
@@ -734,7 +735,7 @@ public class SecurityOptionsDialog extends JDialog
    * @param title
    *          the title for the dialog.
    */
-  private void displayError(String msg, String title)
+  private void displayError(Message msg, Message title)
   {
     Utilities.displayError(this, msg, title);
     toFront();
@@ -849,40 +850,23 @@ public class SecurityOptionsDialog extends JDialog
    * @return the port help message that we display when we cannot use the
    * default port (636).
    */
-  private String getPortHelpMessage()
+  private Message getPortHelpMessage()
   {
-    String s = "";
+    Message s = Message.EMPTY;
     if (securityOptions.getSslPort() != DEFAULT_PORT)
     {
-      s = getMsg("cannot-use-default-secure-port");
+      s = INFO_CANNOT_USE_DEFAULT_SECURE_PORT.get();
     }
     return s;
-  }
-
-  /* The following three methods are just commodity methods to retrieve
-   * localized messages */
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  private String getMsg(String key, String[] args)
-  {
-    return getI18n().getMsg(key, args);
-  }
-
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
   }
 
   /**
    * Checks the port.
    * @return the error messages found while checking the port.
    */
-  private ArrayList<String> checkPort()
+  private ArrayList<Message> checkPort()
   {
-    ArrayList<String> errorMsgs = new ArrayList<String>();
+    ArrayList<Message> errorMsgs = new ArrayList<Message>();
 
     if (cbEnableSSL.isSelected())
     {
@@ -895,23 +879,22 @@ public class SecurityOptionsDialog extends JDialog
         if ((port < Installer.MIN_PORT_VALUE) ||
             (port > Installer.MAX_PORT_VALUE))
         {
-          String[] args =
-            { String.valueOf(Installer.MIN_PORT_VALUE),
-              String.valueOf(Installer.MAX_PORT_VALUE) };
-          errorMsgs.add(getMsg("invalid-secure-port-value-range", args));
+          errorMsgs.add(INFO_INVALID_SECURE_PORT_VALUE_RANGE.get(
+                  String.valueOf(Installer.MIN_PORT_VALUE),
+                  String.valueOf(Installer.MAX_PORT_VALUE)));
 
         }
         else if (!Utils.canUseAsPort(port))
         {
           if (Utils.isPriviledgedPort(port))
           {
-            errorMsgs.add(getMsg("cannot-bind-priviledged-port", new String[]
-              { String.valueOf(port) }));
+            errorMsgs.add(INFO_CANNOT_BIND_PRIVILEDGED_PORT.get(
+              String.valueOf(port)));
           }
           else
           {
-            errorMsgs.add(getMsg("cannot-bind-port", new String[]
-              { String.valueOf(port) }));
+            errorMsgs.add(INFO_CANNOT_BIND_PORT.get(
+              String.valueOf(port)));
           }
 
         }
@@ -919,10 +902,9 @@ public class SecurityOptionsDialog extends JDialog
       }
       catch (NumberFormatException nfe)
       {
-        String[] args =
-          { String.valueOf(Installer.MIN_PORT_VALUE),
-            String.valueOf(Installer.MAX_PORT_VALUE) };
-        errorMsgs.add(getMsg("invalid-secure-port-value-range", args));
+        errorMsgs.add(INFO_INVALID_SECURE_PORT_VALUE_RANGE.get(
+                String.valueOf(Installer.MIN_PORT_VALUE),
+                String.valueOf(Installer.MAX_PORT_VALUE)));
       }
     }
     setValidLater(cbEnableSSL, errorMsgs.size() == 0);
@@ -934,9 +916,9 @@ public class SecurityOptionsDialog extends JDialog
    * @return the error messages found while checking existing keystore
    * parameters.
    */
-  private ArrayList<String> checkKeystore()
+  private ArrayList<Message> checkKeystore()
   {
-    ArrayList<String> errorMsgs = new ArrayList<String>();
+    ArrayList<Message> errorMsgs = new ArrayList<Message>();
 
     boolean pathValid = true;
     boolean pwdValid = true;
@@ -950,18 +932,18 @@ public class SecurityOptionsDialog extends JDialog
         /* Check the path */
         if ((path == null) || (path.length() == 0))
         {
-          errorMsgs.add(getMsg("keystore-path-not-provided"));
+          errorMsgs.add(INFO_KEYSTORE_PATH_NOT_PROVIDED.get());
         }
         else
         {
           File f = new File(path);
           if (!f.exists())
           {
-            errorMsgs.add(getMsg("keystore-path-does-not-exist"));
+            errorMsgs.add(INFO_KEYSTORE_PATH_DOES_NOT_EXIST.get());
           }
           else if (!f.isFile())
           {
-            errorMsgs.add(getMsg("keystore-path-not-a-file"));
+            errorMsgs.add(INFO_KEYSTORE_PATH_NOT_A_FILE.get());
           }
         }
 
@@ -972,7 +954,7 @@ public class SecurityOptionsDialog extends JDialog
       String pwd = String.valueOf(tfKeystorePwd.getPassword());
       if ((pwd == null) || (pwd.length() == 0))
       {
-        errorMsgs.add(getMsg("keystore-pwd-empty"));
+        errorMsgs.add(INFO_KEYSTORE_PWD_EMPTY.get());
         pwdValid = false;
       }
 
@@ -1012,17 +994,17 @@ public class SecurityOptionsDialog extends JDialog
             // Could not retrieve any certificate
             if (rbPKCS11.isSelected())
             {
-              errorMsgs.add(getMsg("pkcs11-keystore-does-not-exist"));
+              errorMsgs.add(INFO_PKCS11_KEYSTORE_DOES_NOT_EXIST.get());
             }
             else
             {
               if (rbJKS.isSelected())
               {
-                errorMsgs.add(getMsg("jks-keystore-does-not-exist"));
+                errorMsgs.add(INFO_JKS_KEYSTORE_DOES_NOT_EXIST.get());
               }
               else
               {
-                errorMsgs.add(getMsg("pkcs12-keystore-does-not-exist"));
+                errorMsgs.add(INFO_PKCS12_KEYSTORE_DOES_NOT_EXIST.get());
               }
               pathValid = false;
             }
@@ -1039,17 +1021,17 @@ public class SecurityOptionsDialog extends JDialog
           // because the provided file is not a valid keystore, etc.
           if (rbPKCS11.isSelected())
           {
-            errorMsgs.add(getMsg("error-accessing-pkcs11-keystore"));
+            errorMsgs.add(INFO_ERROR_ACCESSING_PKCS11_KEYSTORE.get());
           }
           else
           {
             if (rbJKS.isSelected())
             {
-              errorMsgs.add(getMsg("error-accessing-jks-keystore"));
+              errorMsgs.add(INFO_ERROR_ACCESSING_JKS_KEYSTORE.get());
             }
             else
             {
-              errorMsgs.add(getMsg("error-accessing-pkcs12-keystore"));
+              errorMsgs.add(INFO_ERROR_ACCESSING_PKCS12_KEYSTORE.get());
             }
             pathValid = false;
           }

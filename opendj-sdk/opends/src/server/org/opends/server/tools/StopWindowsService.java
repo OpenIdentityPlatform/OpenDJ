@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -33,8 +34,7 @@ import java.io.PrintStream;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.SetupUtils;
 
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -111,8 +111,8 @@ public class StopWindowsService
     String serviceName = ConfigureWindowsService.getServiceName();
     if (serviceName == null)
     {
-      int msgID = MSGID_WINDOWS_SERVICE_NOT_FOUND;
-      String message = getMessage(msgID, (Object[])null);
+
+      Message message = ERR_WINDOWS_SERVICE_NOT_FOUND.get();
       err.println(message);
       returnValue = SERVICE_NOT_FOUND;
     }
@@ -153,8 +153,8 @@ public class StopWindowsService
       }
       catch (Throwable t)
       {
-        int msgID = MSGID_WINDOWS_SERVICE_STOP_ERROR;
-        String message = getMessage(msgID, (Object[])null);
+
+        Message message = ERR_WINDOWS_SERVICE_STOP_ERROR.get();
         out.println(message);
         returnValue = SERVICE_STOP_ERROR;
       }

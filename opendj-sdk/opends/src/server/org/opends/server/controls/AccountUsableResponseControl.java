@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
+import org.opends.messages.Message;
 
 
 
@@ -43,8 +44,7 @@ import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -493,9 +493,8 @@ public class AccountUsableResponseControl
     if (controlValue == null)
     {
       // The response control must always have a value.
-      int    msgID   = MSGID_ACCTUSABLERES_NO_CONTROL_VALUE;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_ACCTUSABLERES_NO_CONTROL_VALUE.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -541,10 +540,9 @@ public class AccountUsableResponseControl
                 secondsBeforeUnlock = e.decodeAsInteger().intValue();
                 break;
               default:
-                int    msgID   = MSGID_ACCTUSABLERES_UNKNOWN_UNAVAILABLE_TYPE;
-                String message = getMessage(msgID, byteToHex(e.getType()));
-                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                        message);
+                Message message = ERR_ACCTUSABLERES_UNKNOWN_UNAVAILABLE_TYPE.
+                    get(byteToHex(e.getType()));
+                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
           }
 
@@ -557,10 +555,9 @@ public class AccountUsableResponseControl
                                                   controlValue);
 
         default:
-          int    msgID   = MSGID_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE;
-          String message = getMessage(msgID, byteToHex(valueElement.getType()));
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                  message);
+          Message message = ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE.get(
+              byteToHex(valueElement.getType()));
+          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
     }
     catch (LDAPException le)
@@ -574,9 +571,8 @@ public class AccountUsableResponseControl
         TRACER.debugCaught(DebugLogLevel.ERROR, ae);
       }
 
-      int msgID = MSGID_ACCTUSABLERES_DECODE_ERROR;
-      String message = getMessage(msgID, ae.getMessage());
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_ACCTUSABLERES_DECODE_ERROR.get(ae.getMessage());
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
     catch (Exception e)
     {
@@ -585,9 +581,9 @@ public class AccountUsableResponseControl
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_ACCTUSABLERES_DECODE_ERROR;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message =
+          ERR_ACCTUSABLERES_DECODE_ERROR.get(getExceptionMessage(e));
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
   }
 

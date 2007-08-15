@@ -27,6 +27,8 @@
 
 package org.opends.quicksetup.upgrader;
 
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.UserDataException;
 
 import java.util.logging.Logger;
@@ -67,7 +69,7 @@ public class BuildExtractorCliHelper extends UpgraderCliHelper {
       LOG.log(Level.INFO, "obtaining file information interactively");
       while(true) {
         String fileName = promptForString(
-                getMsg("upgrade-file-prompt"), null);
+                INFO_UPGRADE_FILE_PROMPT.get(), null);
         try {
           uud.setInstallPackage(validateInstallPackFile(fileName));
           LOG.log(Level.INFO, "file specified interactively: " +
@@ -79,8 +81,8 @@ public class BuildExtractorCliHelper extends UpgraderCliHelper {
       }
     } else {
       throw new UserDataException(null,
-              getMsg("error-option-required-or-interactive",
-                      "-" + UpgradeLauncher.FILE_OPTION_SHORT + "/--" +
+              INFO_ERROR_OPTION_REQUIRED_OR_INTERACTIVE.get("-" +
+                      UpgradeLauncher.FILE_OPTION_SHORT + "/--" +
                               UpgradeLauncher.FILE_OPTION_LONG));
     }
     return uud;
@@ -92,11 +94,10 @@ public class BuildExtractorCliHelper extends UpgraderCliHelper {
     File f = new File(fileName);
     if (!f.exists()) {
         throw new UserDataException(null,
-                getMsg("build-extractor-error-file-no-exist",
-                        fileName));
+                INFO_BUILD_EXTRACTOR_ERROR_FILE_NO_EXIST.get(fileName));
     } else if (f.isDirectory() || !f.getName().toLowerCase().endsWith(".zip")) {
       throw new UserDataException(null,
-              getMsg("build-extractor-error-file-not-zip", fileName));
+              INFO_BUILD_EXTRACTOR_ERROR_FILE_NOT_ZIP.get(fileName));
     }
     return f;
   }

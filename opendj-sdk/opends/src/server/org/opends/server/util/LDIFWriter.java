@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
+import org.opends.messages.Message;
 
 
 
@@ -49,7 +50,6 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
-
 
 
 /**
@@ -122,7 +122,7 @@ public final class LDIFWriter
    * @throws  IOException  If a problem occurs while attempting to write the
    *                       comment to the LDIF file.
    */
-  public void writeComment(String comment, int wrapColumn)
+  public void writeComment(Message comment, int wrapColumn)
          throws IOException
   {
     ensureNotNull(comment);

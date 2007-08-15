@@ -30,10 +30,9 @@ package org.opends.dsml.protocol;
 
 import java.io.IOException;
 
-import org.opends.server.protocols.asn1.ASN1Element;
+import org.opends.messages.Message;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.ldap.CompareRequestProtocolOp;
 import org.opends.server.protocols.ldap.CompareResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -104,10 +103,11 @@ public class DSMLCompareOperation
     CompareResponseProtocolOp compareOp =
           responseMessage.getCompareResponseProtocolOp();
     int resultCode = compareOp.getResultCode();
-    String errorMessage = compareOp.getErrorMessage();
+    Message errorMessage = compareOp.getErrorMessage();
 
     // Set the response code and error message for the DSML response.
-    compareResponse.setErrorMessage(errorMessage);
+    compareResponse.setErrorMessage(
+            errorMessage != null ? errorMessage.toString() : null);
     ResultCode code = objFactory.createResultCode();
     code.setCode(resultCode);
     compareResponse.setResultCode(code);

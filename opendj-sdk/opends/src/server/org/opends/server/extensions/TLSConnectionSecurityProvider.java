@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -55,8 +56,7 @@ import org.opends.server.util.SelectableCertificateKeyManager;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -216,10 +216,10 @@ public class TLSConnectionSecurityProvider
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_TLS_SECURITY_PROVIDER_CANNOT_INITIALIZE;
-      String message = getMessage(msgID, getExceptionMessage(e));
+      Message message = ERR_TLS_SECURITY_PROVIDER_CANNOT_INITIALIZE.get(
+          getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
     sslEngine = sslContext.createSSLEngine(inetAddress.getHostName(),
@@ -524,7 +524,7 @@ public class TLSConnectionSecurityProvider
         {
           // The client connection has been closed.  Disconnect and return.
           clientConnection.disconnect(DisconnectReason.CLIENT_DISCONNECT, false,
-                                      -1);
+                                      null);
           return false;
         }
 
@@ -554,7 +554,7 @@ handshakeLoop:
                   // The client connection has been closed.  Disconnect and
                   // return.
                   clientConnection.disconnect(
-                       DisconnectReason.CLIENT_DISCONNECT, false, -1);
+                       DisconnectReason.CLIENT_DISCONNECT, false, null);
                   return false;
                 }
               }
@@ -594,14 +594,15 @@ handshakeLoop:
               // FIXME -- Allow for closing the SSL channel without closing the
               //          underlying connection.
               clientConnection.disconnect(DisconnectReason.CLIENT_DISCONNECT,
-                                          false, -1);
+                                          false, null);
               return false;
 
             default:
               // This should not have happened.
               clientConnection.disconnect(DisconnectReason.SECURITY_PROBLEM,
-                   false, MSGID_TLS_SECURITY_PROVIDER_UNEXPECTED_UNWRAP_STATUS,
-                   String.valueOf(unwrapResult.getStatus()));
+                      false,
+                      ERR_TLS_SECURITY_PROVIDER_UNEXPECTED_UNWRAP_STATUS.get(
+                              String.valueOf(unwrapResult.getStatus())));
               return false;
           }
 
@@ -626,7 +627,7 @@ handshakeLoop:
                   // The client connection has been closed.  Disconnect and
                   // return.
                   clientConnection.disconnect(
-                       DisconnectReason.CLIENT_DISCONNECT, false, -1);
+                       DisconnectReason.CLIENT_DISCONNECT, false, null);
                   return false;
                 }
               }
@@ -651,7 +652,7 @@ handshakeLoop:
 
         // An error occurred while trying to communicate with the client.
         // Disconnect and return.
-        clientConnection.disconnect(DisconnectReason.IO_ERROR, false, -1);
+        clientConnection.disconnect(DisconnectReason.IO_ERROR, false, null);
         return false;
       }
       catch (Exception e)
@@ -664,8 +665,8 @@ handshakeLoop:
         // An unexpected error occurred while trying to process the data read.
         // Disconnect and return.
         clientConnection.disconnect(DisconnectReason.SERVER_ERROR, true,
-                                    MSGID_TLS_SECURITY_PROVIDER_READ_ERROR,
-                                    getExceptionMessage(e));
+                                    ERR_TLS_SECURITY_PROVIDER_READ_ERROR.get(
+                                    getExceptionMessage(e)));
         return false;
       }
     }
@@ -781,7 +782,7 @@ handshakeStatusLoop:
                 // The client connection has been closed.  Disconnect and
                 // return.
                 clientConnection.disconnect(
-                     DisconnectReason.CLIENT_DISCONNECT, false, -1);
+                     DisconnectReason.CLIENT_DISCONNECT, false, null);
                 return false;
               }
             }
@@ -803,7 +804,7 @@ handshakeStatusLoop:
               // The client connection is already closed, so we don't need to
               // worry about it.
               clientConnection.disconnect(DisconnectReason.CLIENT_DISCONNECT,
-                                          false, -1);
+                                          false, null);
               return false;
             }
             else if (bytesRead == 0)
@@ -811,7 +812,7 @@ handshakeStatusLoop:
               // We didn't get the data that we need.  We'll have to disconnect
               // to avoid blocking other clients.
               clientConnection.disconnect(DisconnectReason.SECURITY_PROBLEM,
-                   false, MSGID_TLS_SECURITY_PROVIDER_WRITE_NEEDS_UNWRAP);
+                   false, ERR_TLS_SECURITY_PROVIDER_WRITE_NEEDS_UNWRAP.get());
               return false;
             }
             else
@@ -847,14 +848,14 @@ handshakeStatusLoop:
             // FIXME -- Allow for closing the SSL channel without closing the
             //          underlying connection.
             clientConnection.disconnect(DisconnectReason.CLIENT_DISCONNECT,
-                                        false, -1);
+                                        false, null);
             return false;
 
           default:
             // This should not have happened.
             clientConnection.disconnect(DisconnectReason.SECURITY_PROBLEM,
-                 false, MSGID_TLS_SECURITY_PROVIDER_UNEXPECTED_WRAP_STATUS,
-                 String.valueOf(wrapResult.getStatus()));
+                 false, ERR_TLS_SECURITY_PROVIDER_UNEXPECTED_WRAP_STATUS.get(
+                  String.valueOf(wrapResult.getStatus())));
             return false;
         }
 
@@ -881,7 +882,7 @@ handshakeStatusLoop:
                 // The client connection has been closed.  Disconnect and
                 // return.
                 clientConnection.disconnect(
-                     DisconnectReason.CLIENT_DISCONNECT, false, -1);
+                     DisconnectReason.CLIENT_DISCONNECT, false, null);
                 return false;
               }
             }
@@ -903,7 +904,7 @@ handshakeStatusLoop:
               // The client connection is already closed, so we don't need to
               // worry about it.
               clientConnection.disconnect(DisconnectReason.CLIENT_DISCONNECT,
-                                          false, -1);
+                                          false, null);
               return false;
             }
             else if (bytesRead == 0)
@@ -911,7 +912,7 @@ handshakeStatusLoop:
               // We didn't get the data that we need.  We'll have to disconnect
               // to avoid blocking other clients.
               clientConnection.disconnect(DisconnectReason.SECURITY_PROBLEM,
-                   false, MSGID_TLS_SECURITY_PROVIDER_WRITE_NEEDS_UNWRAP);
+                   false, ERR_TLS_SECURITY_PROVIDER_WRITE_NEEDS_UNWRAP.get());
               return false;
             }
             else
@@ -931,7 +932,7 @@ handshakeStatusLoop:
           {
             // The client connection has been closed.
             clientConnection.disconnect(DisconnectReason.CLIENT_DISCONNECT,
-                                        false, -1);
+                                        false, null);
             return false;
           }
         }
@@ -951,7 +952,7 @@ handshakeStatusLoop:
 
       // An error occurred while trying to communicate with the client.
       // Disconnect and return.
-      clientConnection.disconnect(DisconnectReason.IO_ERROR, false, -1);
+      clientConnection.disconnect(DisconnectReason.IO_ERROR, false, null);
       return false;
     }
     catch (Exception e)
@@ -964,8 +965,8 @@ handshakeStatusLoop:
       // An unexpected error occurred while trying to process the data read.
       // Disconnect and return.
       clientConnection.disconnect(DisconnectReason.SERVER_ERROR, true,
-                                  MSGID_TLS_SECURITY_PROVIDER_WRITE_ERROR,
-                                  getExceptionMessage(e));
+              ERR_TLS_SECURITY_PROVIDER_WRITE_ERROR.get(
+                      getExceptionMessage(e)));
       return false;
     }
   }

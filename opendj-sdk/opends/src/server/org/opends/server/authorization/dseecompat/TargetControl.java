@@ -28,7 +28,7 @@
 
 package org.opends.server.authorization.dseecompat;
 
-import static org.opends.server.messages.AciMessages.*;
+import static org.opends.messages.AccessControlMessages.*;
 import java.util.HashSet;
 
 /**
@@ -73,7 +73,8 @@ public class TargetControl {
   public static TargetControl decode(EnumTargetOperator operator, String expr)
           throws AciException {
     HashSet<String> controlOIDs =
-          Aci.decodeOID(expr,MSGID_ACI_SYNTAX_INVALID_TARGETCONTROL_EXPRESSION);
+          Aci.decodeOID(expr,
+                  WARN_ACI_SYNTAX_INVALID_TARGETCONTROL_EXPRESSION.get(expr));
     return new TargetControl(operator, controlOIDs);
   }
 

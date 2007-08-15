@@ -25,15 +25,15 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
+import org.opends.messages.Message;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.JebMessages.MSGID_JEB_CREATE_FAIL;
-import static org.opends.server.messages.JebMessages.
-     MSGID_JEB_DIRECTORY_INVALID;
-import static org.opends.server.messages.JebMessages.MSGID_JEB_REMOVE_FAIL;
+import static org.opends.messages.JebMessages.ERR_JEB_CREATE_FAIL;
+import static org.opends.messages.JebMessages.
+     ERR_JEB_DIRECTORY_INVALID;
+import static org.opends.messages.JebMessages.ERR_JEB_REMOVE_FAIL;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -87,8 +87,8 @@ public class EnvManager
     {
       if (!dir.isDirectory())
       {
-        String message = getMessage(MSGID_JEB_DIRECTORY_INVALID, homeDir);
-        throw new JebException(MSGID_JEB_DIRECTORY_INVALID, message);
+        Message message = ERR_JEB_DIRECTORY_INVALID.get(homeDir);
+        throw new JebException(message);
       }
       removeFiles(homeDir);
     }
@@ -104,8 +104,8 @@ public class EnvManager
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-        String message = getMessage(MSGID_JEB_CREATE_FAIL, e.getMessage());
-        throw new JebException(MSGID_JEB_CREATE_FAIL, message, e);
+        Message message = ERR_JEB_CREATE_FAIL.get(e.getMessage());
+        throw new JebException(message, e);
       }
     }
   }
@@ -123,8 +123,8 @@ public class EnvManager
     File dir = new File(homeDir);
     if (!dir.isDirectory())
     {
-      String message = getMessage(MSGID_JEB_DIRECTORY_INVALID, homeDir);
-      throw new JebException(MSGID_JEB_DIRECTORY_INVALID, message);
+      Message message = ERR_JEB_DIRECTORY_INVALID.get(homeDir);
+      throw new JebException(message);
     }
 
     try
@@ -141,8 +141,8 @@ public class EnvManager
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      String message = getMessage(MSGID_JEB_REMOVE_FAIL, e.getMessage());
-      throw new JebException(MSGID_JEB_REMOVE_FAIL, message, e);
+      Message message = ERR_JEB_REMOVE_FAIL.get(e.getMessage());
+      throw new JebException(message, e);
     }
   }
 

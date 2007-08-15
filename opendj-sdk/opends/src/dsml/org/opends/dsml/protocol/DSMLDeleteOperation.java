@@ -28,10 +28,9 @@ package org.opends.dsml.protocol;
 
 import java.io.IOException;
 
-import org.opends.server.protocols.asn1.ASN1Element;
+import org.opends.messages.Message;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
 import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -99,10 +98,11 @@ public class DSMLDeleteOperation
     DeleteResponseProtocolOp delOp =
           responseMessage.getDeleteResponseProtocolOp();
     int resultCode = delOp.getResultCode();
-    String errorMessage = delOp.getErrorMessage();
+    Message errorMessage = delOp.getErrorMessage();
 
     // Set the result code and error message for the DSML response.
-    delResponse.setErrorMessage(errorMessage);
+    delResponse.setErrorMessage(
+            errorMessage != null ? errorMessage.toString() : null);
     ResultCode code = objFactory.createResultCode();
     code.setCode(resultCode);
     delResponse.setResultCode(code);

@@ -27,7 +27,8 @@
 
 package org.opends.quicksetup;
 
-import org.opends.quicksetup.i18n.ResourceProvider;
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
 
 import java.util.StringTokenizer;
 import java.util.EnumSet;
@@ -51,17 +52,17 @@ public class HistoricalRecord {
   // readable programmatically.                       //
   //--------------------------------------------------//
 
-  static private String OPERATION = getMsg("upgrade-log-field-op");
+  static private Message OPERATION = INFO_UPGRADE_LOG_FIELD_OP.get();
 
-  static private String TIME = getMsg("upgrade-log-field-time");
+  static private Message TIME = INFO_UPGRADE_LOG_FIELD_TIME.get();
 
-  static private String FROM = getMsg("upgrade-log-field-from");
+  static private Message FROM = INFO_UPGRADE_LOG_FIELD_FROM.get();
 
-  static private String TO = getMsg("upgrade-log-field-to");
+  static private Message TO = INFO_UPGRADE_LOG_FIELD_TO.get();
 
-  static private String STATUS = getMsg("upgrade-log-field-status");
+  static private Message STATUS = INFO_UPGRADE_LOG_FIELD_STATUS.get();
 
-  static private String NOTE = getMsg("upgrade-log-field-note");
+  static private Message NOTE = INFO_UPGRADE_LOG_FIELD_NOTE.get();
 
   static private String SEPARATOR = " ";
 
@@ -73,18 +74,18 @@ public class HistoricalRecord {
   public enum Status {
 
     /** Operation has started. */
-    STARTED(getMsg("upgrade-log-status-started")),
+    STARTED(INFO_UPGRADE_LOG_STATUS_STARTED.get()),
 
     /** Operation completed successfully. */
-    SUCCESS(getMsg("upgrade-log-status-success")),
+    SUCCESS(INFO_UPGRADE_LOG_STATUS_SUCCESS.get()),
 
     /** Operation failed. */
-    FAILURE(getMsg("upgrade-log-status-failure")),
+    FAILURE(INFO_UPGRADE_LOG_STATUS_FAILURE.get()),
 
     /** Operation was canceled. */
-    CANCEL(getMsg("upgrade-log-status-cancel"));
+    CANCEL(INFO_UPGRADE_LOG_STATUS_CANCEL.get());
 
-    private String representation;
+    private Message representation;
 
     /**
      * Creates a State from a String.
@@ -106,10 +107,10 @@ public class HistoricalRecord {
      * {@inheritDoc}
      */
     public String toString() {
-      return representation;
+      return String.valueOf(representation);
     }
 
-    private Status(String representation) {
+    private Status(Message representation) {
       this.representation = representation;
     }
 
@@ -285,16 +286,16 @@ public class HistoricalRecord {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append(OPERATION);
-    sb.append(operationId != null ? operationId : getMsg("general-unset"));
+    sb.append(operationId != null ? operationId : INFO_GENERAL_UNSET.get());
     sb.append(SEPARATOR);
     sb.append(TIME);
     sb.append(new SimpleDateFormat(DATE_FORMAT).format(date));
     sb.append(SEPARATOR);
     sb.append(FROM);
-    sb.append(from != null ? from.getBuildString() : getMsg("general-unset"));
+    sb.append(from != null ? from.getBuildString() : INFO_GENERAL_UNSET.get());
     sb.append(SEPARATOR);
     sb.append(TO);
-    sb.append(to != null ? to.getBuildString() : getMsg("general-unset"));
+    sb.append(to != null ? to.getBuildString() : INFO_GENERAL_UNSET.get());
     sb.append(SEPARATOR);
     sb.append(STATUS);
     sb.append(status);
@@ -304,10 +305,6 @@ public class HistoricalRecord {
       .append(note);
     }
     return sb.toString();
-  }
-
-  static private String getMsg(String key) {
-    return ResourceProvider.getInstance().getMsg(key);
   }
 
 }

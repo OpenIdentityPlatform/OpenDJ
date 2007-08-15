@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup.upgrader;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.CliApplicationHelper;
 import org.opends.quicksetup.UserDataException;
 import org.opends.server.util.args.ArgumentParser;
@@ -66,7 +69,7 @@ public class UpgraderCliHelper extends CliApplicationHelper {
       // since this is done by the BuildExtractor
 
     } catch (ArgumentException e) {
-      throw new UserDataException(null, getMsg("error-parsing-options"));
+      throw new UserDataException(null, INFO_ERROR_PARSING_OPTIONS.get());
     }
     return uud;
   }
@@ -75,7 +78,7 @@ public class UpgraderCliHelper extends CliApplicationHelper {
 
     // TODO: get rid of this method and user launcher.getArgumentParser
 
-    String toolDescription = getMsg("upgrade-launcher-description");
+    Message toolDescription = INFO_UPGRADE_LAUNCHER_DESCRIPTION.get();
     ArgumentParser argParser = createArgumentParser(
             "org.opends.quicksetup.upgrader.Upgrader",
             toolDescription,
@@ -88,7 +91,7 @@ public class UpgraderCliHelper extends CliApplicationHelper {
               new StringArgument("install package file",
                       UpgradeLauncher.FILE_OPTION_SHORT,
                       UpgradeLauncher.FILE_OPTION_LONG,
-                      false, true, "{install package file}", 0);
+                      false, true, "{install package file}", null);
       argParser.addArgument(localInstallPackFileNameArg);
     } catch (ArgumentException e) {
       LOG.log(Level.INFO, "error", e);

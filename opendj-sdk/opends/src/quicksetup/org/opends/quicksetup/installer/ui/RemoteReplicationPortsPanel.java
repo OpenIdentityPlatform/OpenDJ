@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup.installer.ui;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -180,17 +183,17 @@ implements Comparator<ServerDescriptor>
   /**
    * {@inheritDoc}
    */
-  protected String getInstructions()
+  protected Message getInstructions()
   {
-    return getMsg("remote-replication-port-instructions");
+    return INFO_REMOTE_REPLICATION_PORT_INSTRUCTIONS.get();
   }
 
   /**
    * {@inheritDoc}
    */
-  protected String getTitle()
+  protected Message getTitle()
   {
-    return getMsg("remote-replication-port-title");
+    return INFO_REMOTE_REPLICATION_PORT_TITLE.get();
   }
 
   /**
@@ -229,9 +232,11 @@ implements Comparator<ServerDescriptor>
       for (ServerDescriptor server : orderedServers)
       {
         LabelFieldDescriptor desc = new LabelFieldDescriptor(
-            server.getHostPort(true), getMsg("replication-port-tooltip"),
-            LabelFieldDescriptor.FieldType.TEXTFIELD,
-            LabelFieldDescriptor.LabelType.PRIMARY, UIFactory.PORT_FIELD_SIZE);
+                Message.raw(server.getHostPort(true)),
+                INFO_REPLICATION_PORT_TOOLTIP.get(),
+                LabelFieldDescriptor.FieldType.TEXTFIELD,
+                LabelFieldDescriptor.LabelType.PRIMARY,
+                UIFactory.PORT_FIELD_SIZE);
         Integer defaultValue =
           data.getRemoteWithNoReplicationPort().get(server);
         JTextComponent field = UIFactory.makeJTextComponent(desc,

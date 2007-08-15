@@ -47,8 +47,9 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.Message;
+
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -547,11 +548,10 @@ public class DN
       // that would be invalid.
       if (pos >= length)
       {
-        int    msgID   = MSGID_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME;
-        String message = getMessage(msgID, dnString.stringValue(),
-                                    attributeName.toString());
+        Message message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(
+            dnString.stringValue(), attributeName.toString());
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
 
 
@@ -566,11 +566,10 @@ public class DN
           // This means that we hit the end of the value before
           // finding a '='.  This is illegal because there is no
           // attribute-value separator.
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME;
-          String message = getMessage(msgID, dnString.stringValue(),
-                                      attributeName.toString());
+          Message message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(
+              dnString.stringValue(), attributeName.toString());
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
         else
         {
@@ -587,12 +586,11 @@ public class DN
       }
       else
       {
-        int    msgID   = MSGID_ATTR_SYNTAX_DN_NO_EQUAL;
-        String message = getMessage(msgID, dnString.stringValue(),
-                                    attributeName.toString(),
-                                    (char) b);
+        Message message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.
+            get(dnString.stringValue(), attributeName.toString(),
+                (char) b);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
 
 
@@ -688,11 +686,10 @@ public class DN
       {
         // This should not happen.  At any rate, it's an illegal
         // character, so throw an exception.
-        int    msgID   = MSGID_ATTR_SYNTAX_DN_INVALID_CHAR;
-        String message = getMessage(msgID, new String(dnBytes),
-                                    (char) b, pos);
+        Message message = ERR_ATTR_SYNTAX_DN_INVALID_CHAR.get(
+            new String(dnBytes), (char) b, pos);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
 
 
@@ -720,11 +717,10 @@ public class DN
         // because that would be invalid.
         if (pos >= length)
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME;
-          String message = getMessage(msgID, dnString.stringValue(),
-                                      attributeName.toString());
+          Message message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(
+              dnString.stringValue(), attributeName.toString());
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
 
@@ -739,11 +735,10 @@ public class DN
             // This means that we hit the end of the value before
             // finding a '='.  This is illegal because there is no
             // attribute-value separator.
-            int    msgID   = MSGID_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME;
-            String message = getMessage(msgID, dnString.stringValue(),
-                                        attributeName.toString());
+            Message message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.
+                get(dnString.stringValue(), attributeName.toString());
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
           else
           {
@@ -760,12 +755,11 @@ public class DN
         }
         else
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_NO_EQUAL;
-          String message = getMessage(msgID, dnString.stringValue(),
-                                      attributeName.toString(),
-                                      (char) b);
+          Message message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.
+              get(dnString.stringValue(), attributeName.toString(),
+                  (char) b);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
 
@@ -859,11 +853,10 @@ public class DN
         {
           // This should not happen.  At any rate, it's an illegal
           // character, so throw an exception.
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_INVALID_CHAR;
-          String message = getMessage(msgID, dnString.stringValue(),
-                                      (char) b, pos);
+          Message message = ERR_ATTR_SYNTAX_DN_INVALID_CHAR.get(
+              dnString.stringValue(), (char) b, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
     }
@@ -935,11 +928,10 @@ public class DN
       // that would be invalid.
       if (pos >= length)
       {
-        int    msgID   = MSGID_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME;
-        String message = getMessage(msgID, dnString,
-                                    attributeName.toString());
+        Message message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(
+            dnString, attributeName.toString());
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
 
 
@@ -954,11 +946,10 @@ public class DN
           // This means that we hit the end of the value before
           // finding a '='.  This is illegal because there is no
           // attribute-value separator.
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME;
-          String message = getMessage(msgID, dnString,
-                                      attributeName.toString());
+          Message message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(
+              dnString, attributeName.toString());
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
         else
         {
@@ -975,11 +966,10 @@ public class DN
       }
       else
       {
-        int    msgID   = MSGID_ATTR_SYNTAX_DN_NO_EQUAL;
-        String message = getMessage(msgID, dnString,
-                                    attributeName.toString(), c);
+        Message message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(
+            dnString, attributeName.toString(), c);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
 
 
@@ -1075,10 +1065,10 @@ public class DN
       {
         // This should not happen.  At any rate, it's an illegal
         // character, so throw an exception.
-        int    msgID   = MSGID_ATTR_SYNTAX_DN_INVALID_CHAR;
-        String message = getMessage(msgID, dnString, c, pos);
+        Message message =
+            ERR_ATTR_SYNTAX_DN_INVALID_CHAR.get(dnString, c, pos);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
 
 
@@ -1106,11 +1096,10 @@ public class DN
         // because that would be invalid.
         if (pos >= length)
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME;
-          String message = getMessage(msgID, dnString,
-                                      attributeName.toString());
+          Message message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(
+              dnString, attributeName.toString());
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
 
@@ -1125,11 +1114,10 @@ public class DN
             // This means that we hit the end of the value before
             // finding a '='.  This is illegal because there is no
             // attribute-value separator.
-            int    msgID   = MSGID_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME;
-            String message = getMessage(msgID, dnString,
-                                        attributeName.toString());
+            Message message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.
+                get(dnString, attributeName.toString());
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
           else
           {
@@ -1146,11 +1134,10 @@ public class DN
         }
         else
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_NO_EQUAL;
-          String message = getMessage(msgID, dnString,
-                                      attributeName.toString(), c);
+          Message message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(
+              dnString, attributeName.toString(), c);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
 
@@ -1244,10 +1231,10 @@ public class DN
         {
           // This should not happen.  At any rate, it's an illegal
           // character, so throw an exception.
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_INVALID_CHAR;
-          String message = getMessage(msgID, dnString, c, pos);
+          Message message =
+              ERR_ATTR_SYNTAX_DN_INVALID_CHAR.get(dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
     }
@@ -1297,10 +1284,10 @@ public class DN
           // know that there is at least one RDN component, and
           // therefore the last non-space character of the DN must
           // have been a comma. This is not acceptable.
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_END_WITH_COMMA;
-          String message = getMessage(msgID, new String(dnBytes));
+          Message message = ERR_ATTR_SYNTAX_DN_END_WITH_COMMA.get(
+              new String(dnBytes));
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
     }
@@ -1343,11 +1330,10 @@ public class DN
         case ',':
           // None of these are allowed in an attribute name or any
           // character immediately following it.
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          String message = getMessage(msgID, new String(dnBytes),
-                                      (char) b, pos);
+          Message msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
+              new String(dnBytes), (char) b, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       msg);
 
 
         case '-':
@@ -1359,11 +1345,10 @@ public class DN
           }
           else
           {
-            msgID = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_DASH;
-            message = getMessage(msgID, new String(dnBytes),
-                                 (char) b);
+            msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_DASH.
+                  get(new String(dnBytes));
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                         message, msgID);
+                                         msg);
           }
           break;
 
@@ -1380,11 +1365,10 @@ public class DN
         case '/':
           // This is not allowed in an attribute name or any character
           // immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, new String(dnBytes),
-                               (char) b, pos);
+          msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
+              new String(dnBytes), (char) b, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       msg);
 
 
         case '0':
@@ -1411,11 +1395,10 @@ public class DN
         case '<':
           // None of these are allowed in an attribute name or any
           // character immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, new String(dnBytes),
-                               (char) b, pos);
+          msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
+              new String(dnBytes), (char) b, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       msg);
 
 
         case '=':
@@ -1429,11 +1412,10 @@ public class DN
         case '@':
           // None of these are allowed in an attribute name or any
           // character immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, new String(dnBytes),
-                               (char) b, pos);
+          msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
+              new String(dnBytes), (char) b, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       msg);
 
 
         case 'A':
@@ -1473,11 +1455,10 @@ public class DN
         case '^':
           // None of these are allowed in an attribute name or any
           // character immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, new String(dnBytes),
-                               (char) b, pos);
+          msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
+              new String(dnBytes), (char) b, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       msg);
 
 
         case '_':
@@ -1486,12 +1467,11 @@ public class DN
           // name exceptions option is enabled.
           if (attributeName.length() == 0)
           {
-            msgID   =
-                 MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_UNDERSCORE;
-            message = getMessage(msgID, new String(dnBytes),
-                           ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
+            msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_UNDERSCORE.
+                  get(new String(dnBytes),
+                      ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                         message, msgID);
+                                         msg);
           }
           else if (allowExceptions)
           {
@@ -1499,11 +1479,11 @@ public class DN
           }
           else
           {
-            msgID = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_UNDERSCORE_CHAR;
-            message = getMessage(msgID, new String(dnBytes),
-                           ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
+            msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_UNDERSCORE_CHAR.
+                  get(new String(dnBytes),
+                      ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                         message, msgID);
+                                         msg);
           }
           break;
 
@@ -1511,11 +1491,10 @@ public class DN
         case '`':
           // This is not allowed in an attribute name or any character
           // immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, new String(dnBytes),
-                               (char) b, pos);
+          msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
+              new String(dnBytes), (char) b, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       msg);
 
 
         case 'a':
@@ -1552,11 +1531,10 @@ public class DN
         default:
           // This is not allowed in an attribute name or any character
           // immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, new String(dnBytes),
-                               (char) b, pos);
+          msg = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
+              new String(dnBytes), (char) b, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       msg);
       }
 
 
@@ -1575,10 +1553,10 @@ public class DN
     // least one character.
     if (attributeName.length() == 0)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_NO_NAME;
-      String message = getMessage(msgID, new String(dnBytes));
+      Message message =
+          ERR_ATTR_SYNTAX_DN_ATTR_NO_NAME.get(new String(dnBytes));
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message, msgID);
+                                   message);
     }
     else if (checkForOID)
     {
@@ -1651,21 +1629,19 @@ public class DN
 
       if (! validOID)
       {
-        int    msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_PERIOD;
-        String message = getMessage(msgID, new String(dnBytes),
-                                    attributeName.toString());
+        Message message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_PERIOD.get(
+            new String(dnBytes), attributeName.toString());
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
     }
     else if (isDigit(attributeName.charAt(0)) && (! allowExceptions))
     {
-      int msgID = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_DIGIT;
-      String message = getMessage(msgID, new String(dnBytes),
-                            attributeName.charAt(0),
-                            ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
+      Message message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_DIGIT.
+          get(new String(dnBytes), attributeName.charAt(0),
+              ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -1715,10 +1691,10 @@ public class DN
           // know that there is at least one RDN component, and
           // therefore the last non-space character of the DN must
           // have been a comma. This is not acceptable.
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_END_WITH_COMMA;
-          String message = getMessage(msgID, dnString);
+          Message message =
+              ERR_ATTR_SYNTAX_DN_END_WITH_COMMA.get(dnString);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
     }
@@ -1760,10 +1736,10 @@ public class DN
         case ',':
           // None of these are allowed in an attribute name or any
           // character immediately following it.
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          String message = getMessage(msgID, dnString, c, pos);
+          Message message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
+              dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
 
 
         case '-':
@@ -1775,10 +1751,10 @@ public class DN
           }
           else
           {
-            msgID = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_DASH;
-            message = getMessage(msgID, dnString, c);
+            message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_DASH.
+                  get(dnString);
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
           break;
 
@@ -1795,10 +1771,10 @@ public class DN
         case '/':
           // This is not allowed in an attribute name or any character
           // immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, dnString, c, pos);
+          message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
+              dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
 
 
         case '0':
@@ -1825,10 +1801,10 @@ public class DN
         case '<':
           // None of these are allowed in an attribute name or any
           // character immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, dnString, c, pos);
+          message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
+              dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
 
 
         case '=':
@@ -1842,10 +1818,10 @@ public class DN
         case '@':
           // None of these are allowed in an attribute name or any
           // character immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, dnString, c, pos);
+          message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
+              dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
 
 
         case 'A':
@@ -1885,10 +1861,10 @@ public class DN
         case '^':
           // None of these are allowed in an attribute name or any
           // character immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, dnString, c, pos);
+          message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
+              dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
 
 
         case '_':
@@ -1897,12 +1873,11 @@ public class DN
           // name exceptions option is enabled.
           if (attributeName.length() == 0)
           {
-            msgID   =
-                 MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_UNDERSCORE;
-            message = getMessage(msgID, dnString,
-                           ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
+            message =
+                   ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_UNDERSCORE.
+                  get(dnString, ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
           else if (allowExceptions)
           {
@@ -1910,11 +1885,10 @@ public class DN
           }
           else
           {
-            msgID = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_UNDERSCORE_CHAR;
-            message = getMessage(msgID, dnString,
-                           ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
+            message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_UNDERSCORE_CHAR.
+                  get(dnString, ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
           break;
 
@@ -1922,10 +1896,10 @@ public class DN
         case '`':
           // This is not allowed in an attribute name or any character
           // immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, dnString, c, pos);
+          message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
+              dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
 
 
         case 'a':
@@ -1962,10 +1936,10 @@ public class DN
         default:
           // This is not allowed in an attribute name or any character
           // immediately following it.
-          msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR;
-          message = getMessage(msgID, dnString, c, pos);
+          message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
+              dnString, c, pos);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
       }
 
 
@@ -1984,10 +1958,9 @@ public class DN
     // have at least one character.
     if (attributeName.length() == 0)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_NO_NAME;
-      String message = getMessage(msgID, dnString);
+      Message message = ERR_ATTR_SYNTAX_DN_ATTR_NO_NAME.get(dnString);
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message, msgID);
+                                   message);
     }
     else if (checkForOID)
     {
@@ -2060,22 +2033,20 @@ public class DN
 
       if (! validOID)
       {
-        int    msgID   = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_PERIOD;
-        String message = getMessage(msgID, dnString,
-                                    attributeName.toString());
+        Message message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_PERIOD.get(
+            dnString, attributeName.toString());
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
     }
     else if (isDigit(attributeName.charAt(0)) &&
              (! allowExceptions))
     {
-      int msgID = MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_DIGIT;
-      String message = getMessage(msgID, dnString,
-                            attributeName.charAt(0),
-                            ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
+      Message message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_DIGIT.
+          get(dnString, attributeName.charAt(0),
+              ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -2127,10 +2098,10 @@ public class DN
       StringBuilder hexString = new StringBuilder();
       if ((pos+2) > length)
       {
-        int    msgID   = MSGID_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT;
-        String message = getMessage(msgID, new String(dnBytes));
+        Message message = ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(
+            new String(dnBytes));
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
 
       for (int i=0; i < 2; i++)
@@ -2142,11 +2113,10 @@ public class DN
         }
         else
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT;
-          String message = getMessage(msgID, new String(dnBytes),
-                                      (char) b);
+          Message message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(
+              new String(dnBytes), (char) b);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
 
@@ -2170,20 +2140,18 @@ public class DN
             }
             else
             {
-              int    msgID   = MSGID_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT;
-              String message = getMessage(msgID, new String(dnBytes),
-                                          (char) b);
+              Message message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.
+                  get(new String(dnBytes), (char) b);
               throw new DirectoryException(
-                             ResultCode.INVALID_DN_SYNTAX, message,
-                             msgID);
+                             ResultCode.INVALID_DN_SYNTAX, message);
             }
           }
           else
           {
-            int    msgID   = MSGID_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT;
-            String message = getMessage(msgID, new String(dnBytes));
+            Message message = ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.
+                get(new String(dnBytes));
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
         }
         else if ((b == ' ') || (b == ',') || (b == ';') || (b == '+'))
@@ -2194,11 +2162,10 @@ public class DN
         }
         else
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT;
-          String message = getMessage(msgID, new String(dnBytes),
-                                      (char) b);
+          Message message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(
+              new String(dnBytes), (char) b);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
 
@@ -2219,11 +2186,11 @@ public class DN
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE;
-        String message = getMessage(msgID, new String(dnBytes),
-                                    String.valueOf(e));
+        Message message =
+            ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
+              get(new String(dnBytes), String.valueOf(e));
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -2241,10 +2208,10 @@ public class DN
         {
           // We hit the end of the DN before the closing quote.
           // That's an error.
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_UNMATCHED_QUOTE;
-          String message = getMessage(msgID, new String(dnBytes));
+          Message message = ERR_ATTR_SYNTAX_DN_UNMATCHED_QUOTE.get(
+              new String(dnBytes));
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
         if (dnBytes[pos++] == '"')
@@ -2398,10 +2365,10 @@ public class DN
       StringBuilder hexString = new StringBuilder();
       if ((pos+2) > length)
       {
-        int    msgID   = MSGID_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT;
-        String message = getMessage(msgID, dnString);
+        Message message =
+            ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(dnString);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
 
       for (int i=0; i < 2; i++)
@@ -2413,10 +2380,10 @@ public class DN
         }
         else
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT;
-          String message = getMessage(msgID, dnString, c);
+          Message message =
+              ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(dnString, c);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
 
@@ -2440,19 +2407,18 @@ public class DN
             }
             else
             {
-              int    msgID   = MSGID_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT;
-              String message = getMessage(msgID, dnString, c);
+              Message message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.
+                  get(dnString, c);
               throw new DirectoryException(
-                             ResultCode.INVALID_DN_SYNTAX, message,
-                             msgID);
+                             ResultCode.INVALID_DN_SYNTAX, message);
             }
           }
           else
           {
-            int    msgID   = MSGID_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT;
-            String message = getMessage(msgID, dnString);
+            Message message =
+                ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(dnString);
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
         }
         else if ((c == ' ') || (c == ',') || (c == ';'))
@@ -2463,10 +2429,10 @@ public class DN
         }
         else
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT;
-          String message = getMessage(msgID, dnString, c);
+          Message message =
+              ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(dnString, c);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
 
@@ -2487,11 +2453,11 @@ public class DN
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE;
-        String message = getMessage(msgID, dnString,
-                                    String.valueOf(e));
+        Message message =
+            ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
+              get(dnString, String.valueOf(e));
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -2510,10 +2476,10 @@ public class DN
         {
           // We hit the end of the DN before the closing quote.
           // That's an error.
-          int    msgID   = MSGID_ATTR_SYNTAX_DN_UNMATCHED_QUOTE;
-          String message = getMessage(msgID, dnString);
+          Message message =
+              ERR_ATTR_SYNTAX_DN_UNMATCHED_QUOTE.get(dnString);
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
         c = dnString.charAt(pos++);
@@ -2599,12 +2565,11 @@ public class DN
             // value.
             if (pos >= length)
             {
-              int    msgID   =
-                   MSGID_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID;
-              String message = getMessage(msgID, dnString);
+              Message message =
+                ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.
+                    get(dnString);
               throw new DirectoryException(
-                             ResultCode.INVALID_DN_SYNTAX, message,
-                             msgID);
+                             ResultCode.INVALID_DN_SYNTAX, message);
             }
             else
             {
@@ -2616,12 +2581,11 @@ public class DN
               }
               else
               {
-                int    msgID   =
-                     MSGID_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID;
-                String message = getMessage(msgID, dnString);
+                Message message =
+                  ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.
+                      get(dnString);
                 throw new DirectoryException(
-                               ResultCode.INVALID_DN_SYNTAX, message,
-                               msgID);
+                               ResultCode.INVALID_DN_SYNTAX, message);
               }
             }
           }
@@ -2719,10 +2683,10 @@ public class DN
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE;
-      String message = getMessage(msgID, dnString, String.valueOf(e));
+      Message message = ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.
+          get(dnString, String.valueOf(e));
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message, msgID);
+                                   message);
     }
   }
 
