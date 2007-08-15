@@ -116,21 +116,15 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'sn: Carter' }
+                      'testString'         : 'sn: Carter' ,
+                      'expectedResult'     : '1' }
                 </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: bypass-acl, alternate root user removing privilege'
@@ -170,12 +164,9 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
-                
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: bypass-acl, alternate root user putting back privilege'
@@ -213,21 +204,15 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'sn: Carter' }
+                      'testString'         : 'sn: Carter' ,
+                      'expectedResult'     : '1' }
                 </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: bypass-acl, alternate root user putting back global search ACI'
@@ -329,21 +314,15 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'sn: Carter' }
+                      'testString'         : 'sn: Carter' ,
+                      'expectedResult'     : '1' }
                 </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: bypass-acl, alternate bind DN, alternate root user removing privilege'
@@ -822,21 +801,15 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: cn=config' }
+                      'testString'         : 'dn: cn=config' ,
+                      'expectedResult'     : '1' }
                 </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'ds-cfg-check-schema:' }
+                      'testString'         : 'ds-cfg-check-schema:' ,
+                      'expectedResult'     : '1' }
                 </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: config-read, alternate root removing privilege'
@@ -1548,14 +1521,11 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=sfish,ou=People,o=Privileges Tests' }
+                      'testString'         : 'dn: uid=sfish,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
-                 <call function="'checktestString'">
+                <call function="'checktestString'">
                     { 'returnString'       : returnString ,
                       'expectedString'     : 'uid: sfish' }
                 </call>
