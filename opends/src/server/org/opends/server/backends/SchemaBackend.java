@@ -89,8 +89,6 @@ import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
@@ -116,17 +114,19 @@ import org.opends.server.util.Validator;
 import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.BackendMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import org.opends.server.loggers.ErrorLogger;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.admin.std.server.SchemaBackendCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.Configuration;
-import static org.opends.server.messages.ConfigMessages.*;
+import static org.opends.messages.ConfigMessages.*;
+import org.opends.messages.Message;
+
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
 
@@ -267,9 +267,8 @@ public class SchemaBackend
     // not be able to complete initialization.
     if (config == null)
     {
-      int    msgID   = MSGID_SCHEMA_CONFIG_ENTRY_NULL;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_SCHEMA_CONFIG_ENTRY_NULL.get();
+      throw new ConfigException(message);
     }
 
     Validator.ensureTrue(config instanceof SchemaBackendCfg);
@@ -403,10 +402,9 @@ public class SchemaBackend
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
-        String message = getMessage(msgID, baseDNs[i].toString(),
-                                    getExceptionMessage(e));
-        throw new InitializationException(msgID, message, e);
+        Message message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
+            baseDNs[i].toString(), getExceptionMessage(e));
+        throw new InitializationException(message, e);
       }
     }
 
@@ -462,12 +460,10 @@ public class SchemaBackend
           }
           else
           {
-            int msgID = MSGID_SCHEMA_CANNOT_FIND_CONCAT_FILE;
-            String message = getMessage(msgID,
-                                        upgradeDirectory.getAbsolutePath(),
-                                        SCHEMA_CONCAT_FILE_NAME,
-                                        concatFile.getName());
-            throw new InitializationException(msgID, message);
+            Message message = ERR_SCHEMA_CANNOT_FIND_CONCAT_FILE.
+                get(upgradeDirectory.getAbsolutePath(), SCHEMA_CONCAT_FILE_NAME,
+                    concatFile.getName());
+            throw new InitializationException(message);
           }
         }
       }
@@ -514,10 +510,9 @@ public class SchemaBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_SCHEMA_ERROR_DETERMINING_SCHEMA_CHANGES;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_SCHEMA_ERROR_DETERMINING_SCHEMA_CHANGES.get(
+          getExceptionMessage(e));
+      ErrorLogger.logError(message);
     }
 
 
@@ -1000,10 +995,9 @@ public class SchemaBackend
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    int    msgID   = MSGID_SCHEMA_ADD_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(entry.getDN()));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message =
+        ERR_SCHEMA_ADD_NOT_SUPPORTED.get(String.valueOf(entry.getDN()));
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -1025,10 +1019,9 @@ public class SchemaBackend
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    int    msgID   = MSGID_SCHEMA_DELETE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(entryDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message =
+        ERR_SCHEMA_DELETE_NOT_SUPPORTED.get(String.valueOf(entryDN));
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -1056,10 +1049,9 @@ public class SchemaBackend
     if (! clientConnection.hasPrivilege(Privilege.UPDATE_SCHEMA,
                                         modifyOperation))
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_INSUFFICIENT_PRIVILEGES;
-      String message = getMessage(msgID);
+      Message message = ERR_SCHEMA_MODIFY_INSUFFICIENT_PRIVILEGES.get();
       throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -1122,12 +1114,11 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE;
-                String message = getMessage(msgID, v.getStringValue(),
-                                            de.getErrorMessage());
+                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
+                    v.getStringValue(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               msgID, de);
+                               de);
               }
 
               addAttributeType(type, newSchema, modifiedSchemaFiles);
@@ -1150,12 +1141,11 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS;
-                String message = getMessage(msgID, v.getStringValue(),
-                                            de.getErrorMessage());
+                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.
+                    get(v.getStringValue(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               msgID, de);
+                               de);
               }
 
               addObjectClass(oc, newSchema, modifiedSchemaFiles);
@@ -1178,12 +1168,11 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM;
-                String message = getMessage(msgID, v.getStringValue(),
-                                            de.getErrorMessage());
+                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
+                    v.getStringValue(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               msgID, de);
+                               de);
               }
 
               addNameForm(nf, newSchema, modifiedSchemaFiles);
@@ -1206,12 +1195,11 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DCR;
-                String message = getMessage(msgID, v.getStringValue(),
-                                            de.getErrorMessage());
+                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DCR.get(
+                    v.getStringValue(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               msgID, de);
+                               de);
               }
 
               addDITContentRule(dcr, newSchema, modifiedSchemaFiles);
@@ -1234,12 +1222,11 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DSR;
-                String message = getMessage(msgID, v.getStringValue(),
-                                            de.getErrorMessage());
+                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
+                    v.getStringValue(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               msgID, de);
+                               de);
               }
 
               addDITStructureRule(dsr, newSchema, modifiedSchemaFiles);
@@ -1262,12 +1249,11 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE;
-                String message = getMessage(msgID, v.getStringValue(),
-                                            de.getErrorMessage());
+                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE.get(
+                    v.getStringValue(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               msgID, de);
+                               de);
               }
 
               addMatchingRuleUse(mru, newSchema, modifiedSchemaFiles);
@@ -1275,10 +1261,10 @@ public class SchemaBackend
           }
           else
           {
-            int    msgID   = MSGID_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE;
-            String message = getMessage(msgID, a.getName());
+            Message message =
+                ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(a.getName());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message, msgID);
+                                         message);
           }
 
           break;
@@ -1288,10 +1274,10 @@ public class SchemaBackend
           values = a.getValues();
           if (values.isEmpty())
           {
-            int    msgID   = MSGID_SCHEMA_MODIFY_DELETE_NO_VALUES;
-            String message = getMessage(msgID, a.getName());
+            Message message =
+                ERR_SCHEMA_MODIFY_DELETE_NO_VALUES.get(a.getName());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message, msgID);
+                                         message);
           }
 
           if (at.equals(attributeTypesType))
@@ -1311,12 +1297,11 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE;
-                String message = getMessage(msgID, v.getStringValue(),
-                                            de.getErrorMessage());
+                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
+                    v.getStringValue(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               msgID, de);
+                               de);
               }
 
               removeAttributeType(type, newSchema, mods, pos,
@@ -1340,12 +1325,11 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS;
-                String message = getMessage(msgID, v.getStringValue(),
-                                            de.getErrorMessage());
+                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.
+                    get(v.getStringValue(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               msgID, de);
+                               de);
               }
 
               removeObjectClass(oc, newSchema, mods, pos, modifiedSchemaFiles);
@@ -1368,12 +1352,11 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM;
-                String message = getMessage(msgID, v.getStringValue(),
-                                            de.getErrorMessage());
+                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
+                    v.getStringValue(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               msgID, de);
+                               de);
               }
 
               removeNameForm(nf, newSchema, mods, pos, modifiedSchemaFiles);
@@ -1396,12 +1379,11 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DCR;
-                String message = getMessage(msgID, v.getStringValue(),
-                                            de.getErrorMessage());
+                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DCR.get(
+                    v.getStringValue(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               msgID, de);
+                               de);
               }
 
               removeDITContentRule(dcr, newSchema, mods, pos,
@@ -1425,12 +1407,11 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DSR;
-                String message = getMessage(msgID, v.getStringValue(),
-                                            de.getErrorMessage());
+                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
+                    v.getStringValue(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               msgID, de);
+                               de);
               }
 
               removeDITStructureRule(dsr, newSchema, mods, pos,
@@ -1454,12 +1435,11 @@ public class SchemaBackend
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE;
-                String message = getMessage(msgID, v.getStringValue(),
-                                            de.getErrorMessage());
+                Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE.get(
+                    v.getStringValue(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               msgID, de);
+                               de);
               }
 
               removeMatchingRuleUse(mru, newSchema, mods, pos,
@@ -1468,10 +1448,10 @@ public class SchemaBackend
           }
           else
           {
-            int    msgID   = MSGID_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE;
-            String message = getMessage(msgID, a.getName());
+            Message message =
+                ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(a.getName());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message, msgID);
+                                         message);
           }
 
           break;
@@ -1480,10 +1460,10 @@ public class SchemaBackend
         default:
           if (!modifyOperation.isSynchronizationOperation())
           {
-            int    msgID   = MSGID_SCHEMA_INVALID_MODIFICATION_TYPE;
-            String message = getMessage(msgID, m.getModificationType());
+            Message message = ERR_SCHEMA_INVALID_MODIFICATION_TYPE.get(
+                String.valueOf(m.getModificationType()));
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message, msgID);
+                                         message);
           }
           else
           {
@@ -1527,10 +1507,10 @@ public class SchemaBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_SCHEMA;
-      String message = getMessage(msgID, getExceptionMessage(e));
+      Message message =
+          ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_SCHEMA.get(getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
     finally
     {
@@ -1600,12 +1580,10 @@ public class SchemaBackend
         // NOTE:  We really do want to use "!=" instead of "! t.equals()"
         // because we want to check whether it's the same object instance, not
         // just a logical equivalent.
-        int msgID = MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_ATTRTYPE;
-        String message = getMessage(msgID, attributeType.getNameOrOID(),
-                                    existingType.getNameOrOID(),
-                                    t.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_ATTRTYPE.
+            get(attributeType.getNameOrOID(), existingType.getNameOrOID(),
+                t.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
 
@@ -1617,19 +1595,15 @@ public class SchemaBackend
     {
       if (! schema.hasAttributeType(superiorType.getOID()))
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_ATTRIBUTE_TYPE;
-        String message = getMessage(msgID, attributeType.getNameOrOID(),
-                                    superiorType.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_ATTRIBUTE_TYPE.
+            get(attributeType.getNameOrOID(), superiorType.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (superiorType.isObsolete())
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_OBSOLETE_SUPERIOR_ATTRIBUTE_TYPE;
-        String message = getMessage(msgID, attributeType.getNameOrOID(),
-                                    superiorType.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_OBSOLETE_SUPERIOR_ATTRIBUTE_TYPE.
+            get(attributeType.getNameOrOID(), superiorType.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
 
@@ -1638,41 +1612,33 @@ public class SchemaBackend
     MatchingRule mr = attributeType.getEqualityMatchingRule();
     if ((mr != null) && mr.isObsolete())
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR;
-      String message = getMessage(msgID, attributeType.getNameOrOID(),
-                                  mr.getNameOrOID());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR.get(
+          attributeType.getNameOrOID(), mr.getNameOrOID());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     mr = attributeType.getOrderingMatchingRule();
     if ((mr != null) && mr.isObsolete())
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR;
-      String message = getMessage(msgID, attributeType.getNameOrOID(),
-                                  mr.getNameOrOID());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR.get(
+          attributeType.getNameOrOID(), mr.getNameOrOID());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     mr = attributeType.getSubstringMatchingRule();
     if ((mr != null) && mr.isObsolete())
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR;
-      String message = getMessage(msgID, attributeType.getNameOrOID(),
-                                  mr.getNameOrOID());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR.get(
+          attributeType.getNameOrOID(), mr.getNameOrOID());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     mr = attributeType.getApproximateMatchingRule();
     if ((mr != null) && mr.isObsolete())
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR;
-      String message = getMessage(msgID, attributeType.getNameOrOID(),
-                                  mr.getNameOrOID());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR.get(
+          attributeType.getNameOrOID(), mr.getNameOrOID());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
 
@@ -1765,10 +1731,9 @@ public class SchemaBackend
     AttributeType removeType = schema.getAttributeType(attributeType.getOID());
     if ((removeType == null) || (! removeType.equals(attributeType)))
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_ATTRIBUTE_TYPE;
-      String message = getMessage(msgID, attributeType.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_ATTRIBUTE_TYPE.get(
+          attributeType.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
 
@@ -1801,12 +1766,11 @@ public class SchemaBackend
             TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
-          int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE;
-          String message = getMessage(msgID, v.getStringValue(),
-                                      de.getErrorMessage());
+          Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
+              v.getStringValue(), de.getMessageObject());
           throw new DirectoryException(
                          ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                         msgID, de);
+                         de);
         }
 
         if (attributeType.getOID().equals(at.getOID()))
@@ -1826,11 +1790,9 @@ public class SchemaBackend
       AttributeType superiorType = at.getSuperiorType();
       if ((superiorType != null) && superiorType.equals(removeType))
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_AT_SUPERIOR_TYPE;
-        String message = getMessage(msgID, removeType.getNameOrOID(),
-                                    superiorType.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_REMOVE_AT_SUPERIOR_TYPE.get(
+            removeType.getNameOrOID(), superiorType.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
 
@@ -1842,11 +1804,9 @@ public class SchemaBackend
       if (oc.getRequiredAttributes().contains(removeType) ||
           oc.getOptionalAttributes().contains(removeType))
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_OC;
-        String message = getMessage(msgID, removeType.getNameOrOID(),
-                                    oc.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_OC.get(
+            removeType.getNameOrOID(), oc.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
 
@@ -1858,11 +1818,9 @@ public class SchemaBackend
       if (nf.getRequiredAttributes().contains(removeType) ||
           nf.getOptionalAttributes().contains(removeType))
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_NF;
-        String message = getMessage(msgID, removeType.getNameOrOID(),
-                                    nf.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_NF.get(
+            removeType.getNameOrOID(), nf.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
 
@@ -1875,11 +1833,9 @@ public class SchemaBackend
           dcr.getOptionalAttributes().contains(removeType) ||
           dcr.getProhibitedAttributes().contains(removeType))
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_DCR;
-        String message = getMessage(msgID, removeType.getNameOrOID(),
-                                    dcr.getName());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_DCR.get(
+            removeType.getNameOrOID(), dcr.getName());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
 
@@ -1890,11 +1846,9 @@ public class SchemaBackend
     {
       if (mru.getAttributes().contains(removeType))
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_MR_USE;
-        String message = getMessage(msgID, removeType.getNameOrOID(),
-                                    mru.getName());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_MR_USE.get(
+            removeType.getNameOrOID(), mru.getName());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
 
@@ -1953,12 +1907,12 @@ public class SchemaBackend
         // NOTE:  We really do want to use "!=" instead of "! t.equals()"
         // because we want to check whether it's the same object instance, not
         // just a logical equivalent.
-        int msgID = MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_OBJECTCLASS;
-        String message = getMessage(msgID, objectClass.getNameOrOID(),
-                                    existingClass.getNameOrOID(),
-                                    oc.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message =
+                ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_OBJECTCLASS
+                        .get(objectClass.getNameOrOID(),
+                                existingClass.getNameOrOID(),
+                                oc.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
 
@@ -1971,19 +1925,15 @@ public class SchemaBackend
     {
       if (! schema.hasObjectClass(superiorClass.getOID()))
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_OBJECTCLASS;
-        String message = getMessage(msgID, objectClass.getNameOrOID(),
-                                    superiorClass.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_OBJECTCLASS.get(
+            objectClass.getNameOrOID(), superiorClass.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (superiorClass.isObsolete())
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_OBSOLETE_SUPERIOR_OBJECTCLASS;
-        String message = getMessage(msgID, objectClass.getNameOrOID(),
-                                    superiorClass.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_OBSOLETE_SUPERIOR_OBJECTCLASS.get(
+            objectClass.getNameOrOID(), superiorClass.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
 
@@ -1991,19 +1941,15 @@ public class SchemaBackend
     {
       if (! schema.hasAttributeType(at.getOID()))
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_OC_UNDEFINED_REQUIRED_ATTR;
-        String message = getMessage(msgID, objectClass.getNameOrOID(),
-                                    at.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_OC_UNDEFINED_REQUIRED_ATTR.get(
+            objectClass.getNameOrOID(), at.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_OC_OBSOLETE_REQUIRED_ATTR;
-        String message = getMessage(msgID, objectClass.getNameOrOID(),
-                                    at.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_OC_OBSOLETE_REQUIRED_ATTR.get(
+            objectClass.getNameOrOID(), at.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
 
@@ -2011,19 +1957,15 @@ public class SchemaBackend
     {
       if (! schema.hasAttributeType(at.getOID()))
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_OC_UNDEFINED_OPTIONAL_ATTR;
-        String message = getMessage(msgID, objectClass.getNameOrOID(),
-                                    at.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_OC_UNDEFINED_OPTIONAL_ATTR.get(
+            objectClass.getNameOrOID(), at.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_OC_OBSOLETE_OPTIONAL_ATTR;
-        String message = getMessage(msgID, objectClass.getNameOrOID(),
-                                    at.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_OC_OBSOLETE_OPTIONAL_ATTR.get(
+            objectClass.getNameOrOID(), at.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
 
@@ -2116,10 +2058,9 @@ public class SchemaBackend
     ObjectClass removeClass = schema.getObjectClass(objectClass.getOID());
     if ((removeClass == null) || (! removeClass.equals(objectClass)))
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_OBJECTCLASS;
-      String message = getMessage(msgID, objectClass.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_OBJECTCLASS.get(
+          objectClass.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
 
@@ -2151,12 +2092,11 @@ public class SchemaBackend
             TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
-          int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS;
-          String message = getMessage(msgID, v.getStringValue(),
-                                      de.getErrorMessage());
+          Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.get(
+              v.getStringValue(), de.getMessageObject());
           throw new DirectoryException(
                          ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                         msgID, de);
+                         de);
         }
 
         if (objectClass.getOID().equals(oc.getOID()))
@@ -2176,11 +2116,9 @@ public class SchemaBackend
       ObjectClass superiorClass = oc.getSuperiorClass();
       if ((superiorClass != null) && superiorClass.equals(removeClass))
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_OC_SUPERIOR_CLASS;
-        String message = getMessage(msgID, removeClass.getNameOrOID(),
-                                    superiorClass.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_REMOVE_OC_SUPERIOR_CLASS.get(
+            removeClass.getNameOrOID(), superiorClass.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
 
@@ -2190,11 +2128,9 @@ public class SchemaBackend
     NameForm nf = schema.getNameForm(removeClass);
     if (nf != null)
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_OC_IN_NF;
-      String message = getMessage(msgID, removeClass.getNameOrOID(),
-                                  nf.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_REMOVE_OC_IN_NF.get(
+          removeClass.getNameOrOID(), nf.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
 
@@ -2205,11 +2141,9 @@ public class SchemaBackend
       if (dcr.getStructuralClass().equals(removeClass) ||
           dcr.getAuxiliaryClasses().contains(removeClass))
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_OC_IN_DCR;
-        String message = getMessage(msgID, removeClass.getNameOrOID(),
-                                    dcr.getName());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_REMOVE_OC_IN_DCR.get(
+            removeClass.getNameOrOID(), dcr.getName());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
 
@@ -2268,12 +2202,11 @@ public class SchemaBackend
         // NOTE:  We really do want to use "!=" instead of "! t.equals()"
         // because we want to check whether it's the same object instance, not
         // just a logical equivalent.
-        int msgID = MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_NAME_FORM;
-        String message = getMessage(msgID, nameForm.getNameOrOID(),
-                                    existingNF.getNameOrOID(),
-                                    nf.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message =
+                ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_NAME_FORM
+                        .get(nameForm.getNameOrOID(), existingNF.getNameOrOID(),
+                  nf.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
 
@@ -2284,57 +2217,45 @@ public class SchemaBackend
     ObjectClass structuralClass = nameForm.getStructuralClass();
     if (! schema.hasObjectClass(structuralClass.getOID()))
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_NF_UNDEFINED_STRUCTURAL_OC;
-      String message = getMessage(msgID, nameForm.getNameOrOID(),
-                                  structuralClass.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_NF_UNDEFINED_STRUCTURAL_OC.get(
+          nameForm.getNameOrOID(), structuralClass.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
     if (structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_NF_OC_NOT_STRUCTURAL;
-      String message = getMessage(msgID, nameForm.getNameOrOID(),
-                                  structuralClass.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_NF_OC_NOT_STRUCTURAL.get(
+          nameForm.getNameOrOID(), structuralClass.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
     if (structuralClass.isObsolete())
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_NF_OC_OBSOLETE;
-      String message = getMessage(msgID, nameForm.getNameOrOID(),
-                                  structuralClass.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_NF_OC_OBSOLETE.get(
+          nameForm.getNameOrOID(), structuralClass.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     NameForm existingNFForClass = schema.getNameForm(structuralClass);
     if ((existingNFForClass != null) && (existingNFForClass != existingNF))
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_STRUCTURAL_OC_CONFLICT_FOR_ADD_NF;
-      String message = getMessage(msgID, nameForm.getNameOrOID(),
-                                  structuralClass.getNameOrOID(),
-                                  existingNFForClass.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_STRUCTURAL_OC_CONFLICT_FOR_ADD_NF.
+          get(nameForm.getNameOrOID(), structuralClass.getNameOrOID(),
+              existingNFForClass.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     for (AttributeType at : nameForm.getRequiredAttributes())
     {
       if (! schema.hasAttributeType(at.getOID()))
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_NF_UNDEFINED_REQUIRED_ATTR;
-        String message = getMessage(msgID, nameForm.getNameOrOID(),
-                                    at.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_NF_UNDEFINED_REQUIRED_ATTR.get(
+            nameForm.getNameOrOID(), at.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_NF_OBSOLETE_REQUIRED_ATTR;
-        String message = getMessage(msgID, nameForm.getNameOrOID(),
-                                    at.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_NF_OBSOLETE_REQUIRED_ATTR.get(
+            nameForm.getNameOrOID(), at.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
 
@@ -2342,19 +2263,15 @@ public class SchemaBackend
     {
       if (! schema.hasAttributeType(at.getOID()))
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_NF_UNDEFINED_OPTIONAL_ATTR;
-        String message = getMessage(msgID, nameForm.getNameOrOID(),
-                                    at.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_NF_UNDEFINED_OPTIONAL_ATTR.get(
+            nameForm.getNameOrOID(), at.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_NF_OBSOLETE_OPTIONAL_ATTR;
-        String message = getMessage(msgID, nameForm.getNameOrOID(),
-                                    at.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_NF_OBSOLETE_OPTIONAL_ATTR.get(
+            nameForm.getNameOrOID(), at.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
 
@@ -2446,10 +2363,9 @@ public class SchemaBackend
     NameForm removeNF = schema.getNameForm(nameForm.getOID());
     if ((removeNF == null) || (! removeNF.equals(nameForm)))
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_NAME_FORM;
-      String message = getMessage(msgID, nameForm.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_NAME_FORM.get(
+          nameForm.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
 
@@ -2481,12 +2397,11 @@ public class SchemaBackend
             TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
-          int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM;
-          String message = getMessage(msgID, v.getStringValue(),
-                                      de.getErrorMessage());
+          Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
+              v.getStringValue(), de.getMessageObject());
           throw new DirectoryException(
                          ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                         msgID, de);
+                         de);
         }
 
         if (nameForm.getOID().equals(nf.getOID()))
@@ -2504,11 +2419,9 @@ public class SchemaBackend
     DITStructureRule dsr = schema.getDITStructureRule(removeNF);
     if (dsr != null)
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_NF_IN_DSR;
-      String message = getMessage(msgID, removeNF.getNameOrOID(),
-                                  dsr.getNameOrRuleID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_REMOVE_NF_IN_DSR.get(
+          removeNF.getNameOrOID(), dsr.getNameOrRuleID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
 
@@ -2562,12 +2475,11 @@ public class SchemaBackend
           }
           else
           {
-            int    msgID   = MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DCR;
-            String message = getMessage(msgID, ditContentRule.getName(),
-                                        existingDCR.getName(),
-                                        dcr.getName());
+            Message message = ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DCR.
+                get(ditContentRule.getName(), existingDCR.getName(),
+                    dcr.getName());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message, msgID);
+                                         message);
           }
         }
       }
@@ -2583,12 +2495,10 @@ public class SchemaBackend
          schema.getDITContentRule(structuralClass);
     if ((existingRuleForClass != null) && (existingRuleForClass != existingDCR))
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_STRUCTURAL_OC_CONFLICT_FOR_ADD_DCR;
-      String message = getMessage(msgID, ditContentRule.getName(),
-                                  structuralClass.getNameOrOID(),
-                                  existingRuleForClass.getName());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_STRUCTURAL_OC_CONFLICT_FOR_ADD_DCR.
+          get(ditContentRule.getName(), structuralClass.getNameOrOID(),
+              existingRuleForClass.getName());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
 
@@ -2597,56 +2507,44 @@ public class SchemaBackend
     // prohibited attribute type.
     if (! schema.hasObjectClass(structuralClass.getOID()))
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_STRUCTURAL_OC;
-      String message = getMessage(msgID, ditContentRule.getName(),
-                                  structuralClass.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_STRUCTURAL_OC.get(
+          ditContentRule.getName(), structuralClass.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     if (structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_DCR_OC_NOT_STRUCTURAL;
-      String message = getMessage(msgID, ditContentRule.getName(),
-                                  structuralClass.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_DCR_OC_NOT_STRUCTURAL.get(
+          ditContentRule.getName(), structuralClass.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     if (structuralClass.isObsolete())
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_DCR_STRUCTURAL_OC_OBSOLETE;
-      String message = getMessage(msgID, ditContentRule.getName(),
-                                  structuralClass.getNameOrOID());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_DCR_STRUCTURAL_OC_OBSOLETE.get(
+          ditContentRule.getName(), structuralClass.getNameOrOID());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     for (ObjectClass oc : ditContentRule.getAuxiliaryClasses())
     {
       if (! schema.hasObjectClass(oc.getOID()))
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_AUXILIARY_OC;
-        String message = getMessage(msgID, ditContentRule.getName(),
-                                    oc.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_AUXILIARY_OC.get(
+            ditContentRule.getName(), oc.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       if (oc.getObjectClassType() != ObjectClassType.AUXILIARY)
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_DCR_OC_NOT_AUXILIARY;
-        String message = getMessage(msgID, ditContentRule.getName(),
-                                    oc.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_DCR_OC_NOT_AUXILIARY.get(
+            ditContentRule.getName(), oc.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       if (oc.isObsolete())
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_AUXILIARY_OC;
-        String message = getMessage(msgID, ditContentRule.getName(),
-                                    oc.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_AUXILIARY_OC.get(
+            ditContentRule.getName(), oc.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
 
@@ -2654,19 +2552,15 @@ public class SchemaBackend
     {
       if (! schema.hasAttributeType(at.getOID()))
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_REQUIRED_ATTR;
-        String message = getMessage(msgID, ditContentRule.getName(),
-                                    at.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_REQUIRED_ATTR.get(
+            ditContentRule.getName(), at.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_REQUIRED_ATTR;
-        String message = getMessage(msgID, ditContentRule.getName(),
-                                    at.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_REQUIRED_ATTR.get(
+            ditContentRule.getName(), at.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
 
@@ -2674,19 +2568,15 @@ public class SchemaBackend
     {
       if (! schema.hasAttributeType(at.getOID()))
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_OPTIONAL_ATTR;
-        String message = getMessage(msgID, ditContentRule.getName(),
-                                    at.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_OPTIONAL_ATTR.get(
+            ditContentRule.getName(), at.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_OPTIONAL_ATTR;
-        String message = getMessage(msgID, ditContentRule.getName(),
-                                    at.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_OPTIONAL_ATTR.get(
+            ditContentRule.getName(), at.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
 
@@ -2694,19 +2584,15 @@ public class SchemaBackend
     {
       if (! schema.hasAttributeType(at.getOID()))
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_PROHIBITED_ATTR;
-        String message = getMessage(msgID, ditContentRule.getName(),
-                                    at.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_PROHIBITED_ATTR.get(
+            ditContentRule.getName(), at.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_PROHIBITED_ATTR;
-        String message = getMessage(msgID, ditContentRule.getName(),
-                                    at.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_PROHIBITED_ATTR.get(
+            ditContentRule.getName(), at.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
 
@@ -2801,10 +2687,9 @@ public class SchemaBackend
          schema.getDITContentRule(ditContentRule.getStructuralClass());
     if ((removeDCR == null) || (! removeDCR.equals(ditContentRule)))
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_DCR;
-      String message = getMessage(msgID, ditContentRule.getName());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message =
+          ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_DCR.get(ditContentRule.getName());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
 
@@ -2860,13 +2745,11 @@ public class SchemaBackend
           // acceptable if we find match for the same object instance.
           if ((existingDSR != null) && (existingDSR != dsr))
           {
-            int    msgID   = MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DSR;
-            String message = getMessage(msgID,
-                                        ditStructureRule.getNameOrRuleID(),
-                                        existingDSR.getNameOrRuleID(),
-                                        dsr.getNameOrRuleID());
+            Message message = ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DSR.
+                get(ditStructureRule.getNameOrRuleID(),
+                    existingDSR.getNameOrRuleID(), dsr.getNameOrRuleID());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message, msgID);
+                                         message);
           }
         }
       }
@@ -2884,12 +2767,10 @@ public class SchemaBackend
     if ((existingRuleForNameForm != null) &&
         (existingRuleForNameForm != existingDSR))
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_NAME_FORM_CONFLICT_FOR_ADD_DSR;
-      String message = getMessage(msgID, ditStructureRule.getNameOrRuleID(),
-                                  nameForm.getNameOrOID(),
-                                  existingRuleForNameForm.getNameOrRuleID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_NAME_FORM_CONFLICT_FOR_ADD_DSR.
+          get(ditStructureRule.getNameOrRuleID(), nameForm.getNameOrOID(),
+              existingRuleForNameForm.getNameOrRuleID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
 
@@ -2897,19 +2778,15 @@ public class SchemaBackend
     // name form or superior DIT structure rule.
     if (! schema.hasNameForm(nameForm.getOID()))
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_DSR_UNDEFINED_NAME_FORM;
-      String message = getMessage(msgID, ditStructureRule.getNameOrRuleID(),
-                                  nameForm.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_DSR_UNDEFINED_NAME_FORM.get(
+          ditStructureRule.getNameOrRuleID(), nameForm.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
     if (nameForm.isObsolete())
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_DSR_OBSOLETE_NAME_FORM;
-      String message = getMessage(msgID, ditStructureRule.getNameOrRuleID(),
-                                  nameForm.getNameOrOID());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_DSR_OBSOLETE_NAME_FORM.get(
+          ditStructureRule.getNameOrRuleID(), nameForm.getNameOrOID());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
 
@@ -2919,11 +2796,9 @@ public class SchemaBackend
     {
       if (dsr.isObsolete())
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_DSR_OBSOLETE_SUPERIOR_RULE;
-        String message = getMessage(msgID, ditStructureRule.getNameOrRuleID(),
-                                    dsr.getNameOrRuleID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_DSR_OBSOLETE_SUPERIOR_RULE.get(
+            ditStructureRule.getNameOrRuleID(), dsr.getNameOrRuleID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
 
@@ -3018,10 +2893,9 @@ public class SchemaBackend
          schema.getDITStructureRule(ditStructureRule.getRuleID());
     if ((removeDSR == null) || (! removeDSR.equals(ditStructureRule)))
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_DSR;
-      String message = getMessage(msgID, ditStructureRule.getNameOrRuleID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_DSR.get(
+          ditStructureRule.getNameOrRuleID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
 
@@ -3054,12 +2928,11 @@ public class SchemaBackend
             TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
-          int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DSR;
-          String message = getMessage(msgID, v.getStringValue(),
-                                      de.getErrorMessage());
+          Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
+              v.getStringValue(), de.getMessageObject());
           throw new DirectoryException(
                          ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                         msgID, de);
+                         de);
         }
 
         if (ditStructureRule.getRuleID() == dsr.getRuleID())
@@ -3078,11 +2951,9 @@ public class SchemaBackend
     {
       if (dsr.getSuperiorRules().contains(removeDSR))
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_DSR_SUPERIOR_RULE;
-        String message = getMessage(msgID, removeDSR.getNameOrRuleID(),
-                                    dsr.getNameOrRuleID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_REMOVE_DSR_SUPERIOR_RULE.get(
+            removeDSR.getNameOrRuleID(), dsr.getNameOrRuleID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
 
@@ -3139,11 +3010,13 @@ public class SchemaBackend
           }
           else
           {
-            int msgID = MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_MR_USE;
-            String message = getMessage(msgID, matchingRuleUse.getName(),
-                                        existingMRU.getName(), mru.getName());
+            Message message =
+                    ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_MR_USE.get(
+                            matchingRuleUse.getName(),
+                            existingMRU.getName(),
+                            mru.getName());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message, msgID);
+                                         message);
           }
         }
       }
@@ -3160,21 +3033,17 @@ public class SchemaBackend
          schema.getMatchingRuleUse(matchingRule);
     if ((existingMRUForRule != null) && (existingMRUForRule != existingMRU))
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_MR_CONFLICT_FOR_ADD_MR_USE;
-      String message = getMessage(msgID, matchingRuleUse.getName(),
-                                  matchingRule.getNameOrOID(),
-                                  existingMRUForRule.getName());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_MR_CONFLICT_FOR_ADD_MR_USE.
+          get(matchingRuleUse.getName(), matchingRule.getNameOrOID(),
+              existingMRUForRule.getName());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     if (matchingRule.isObsolete())
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_MRU_OBSOLETE_MR;
-      String message = getMessage(msgID, matchingRuleUse.getName(),
-                                  matchingRule.getNameOrOID());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_MRU_OBSOLETE_MR.get(
+          matchingRuleUse.getName(), matchingRule.getNameOrOID());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
 
@@ -3184,19 +3053,15 @@ public class SchemaBackend
     {
       if (! schema.hasAttributeType(at.getOID()))
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_MRU_UNDEFINED_ATTR;
-        String message = getMessage(msgID, matchingRuleUse.getName(),
-                                    at.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_MRU_UNDEFINED_ATTR.get(
+            matchingRuleUse.getName(), at.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_MRU_OBSOLETE_ATTR;
-        String message = getMessage(msgID, matchingRuleUse.getName(),
-                                    matchingRule.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                     msgID);
+        Message message = ERR_SCHEMA_MODIFY_MRU_OBSOLETE_ATTR.get(
+            matchingRuleUse.getName(), matchingRule.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
 
@@ -3292,10 +3157,9 @@ public class SchemaBackend
          schema.getMatchingRuleUse(matchingRuleUse.getMatchingRule());
     if ((removeMRU == null) || (! removeMRU.equals(matchingRuleUse)))
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_MR_USE;
-      String message = getMessage(msgID, matchingRuleUse.getName());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_MR_USE.get(
+          matchingRuleUse.getName());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
 
@@ -3574,10 +3438,9 @@ public class SchemaBackend
   {
     if (depth > 20)
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_CIRCULAR_REFERENCE_AT;
-      String message = getMessage(msgID, attributeType.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_CIRCULAR_REFERENCE_AT.get(
+          attributeType.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     if (addedTypes.contains(attributeType))
@@ -3626,10 +3489,9 @@ public class SchemaBackend
   {
     if (depth > 20)
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_CIRCULAR_REFERENCE_OC;
-      String message = getMessage(msgID, objectClass.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_CIRCULAR_REFERENCE_OC.get(
+          objectClass.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     if (addedClasses.contains(objectClass))
@@ -3678,10 +3540,9 @@ public class SchemaBackend
   {
     if (depth > 20)
     {
-      int    msgID   = MSGID_SCHEMA_MODIFY_CIRCULAR_REFERENCE_DSR;
-      String message = getMessage(msgID, ditStructureRule.getNameOrRuleID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_SCHEMA_MODIFY_CIRCULAR_REFERENCE_DSR.get(
+          ditStructureRule.getNameOrRuleID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     if (addedDSRs.contains(ditStructureRule))
@@ -3794,22 +3655,23 @@ public class SchemaBackend
 
       if (allCleaned)
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_CLEANED;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_CLEANED.get(
+            getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
       else
       {
-        int msgID = MSGID_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_NOT_CLEANED;
-        String message = getMessage(msgID, getExceptionMessage(e));
+
+        Message message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_NOT_CLEANED
+                .get(getExceptionMessage(e));
 
         DirectoryServer.sendAlertNotification(this,
-                             ALERT_TYPE_CANNOT_COPY_SCHEMA_FILES, msgID,
+                             ALERT_TYPE_CANNOT_COPY_SCHEMA_FILES,
                              message);
 
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
     }
 
@@ -3879,22 +3741,22 @@ public class SchemaBackend
 
       if (allRestored)
       {
-        int    msgID   = MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_RESTORED;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_RESTORED.get(
+            getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
       else
       {
-        int msgID = MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_NOT_RESTORED;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_NOT_RESTORED
+                .get(getExceptionMessage(e));
 
         DirectoryServer.sendAlertNotification(this,
-                             ALERT_TYPE_CANNOT_WRITE_NEW_SCHEMA_FILES, msgID,
+                             ALERT_TYPE_CANNOT_WRITE_NEW_SCHEMA_FILES,
                              message);
 
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
     }
 
@@ -4047,10 +3909,9 @@ public class SchemaBackend
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    int    msgID   = MSGID_SCHEMA_MODIFY_DN_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(currentDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message =
+        ERR_SCHEMA_MODIFY_DN_NOT_SUPPORTED.get(String.valueOf(currentDN));
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -4089,12 +3950,9 @@ public class SchemaBackend
 
     if (! found)
     {
-      int    msgID   = MSGID_SCHEMA_INVALID_BASE;
-      String message = getMessage(msgID, searchOperation.getConnectionID(),
-                                  searchOperation.getOperationID(),
-                                  String.valueOf(baseDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID,
-                                   matchedDN, null);
+      Message message = ERR_SCHEMA_INVALID_BASE.get(String.valueOf(baseDN));
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
+              matchedDN, null);
     }
 
 
@@ -4178,10 +4036,10 @@ public class SchemaBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_SCHEMA_UNABLE_TO_CREATE_LDIF_WRITER;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      Message message = ERR_SCHEMA_UNABLE_TO_CREATE_LDIF_WRITER.get(
+          stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -4198,10 +4056,10 @@ public class SchemaBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_SCHEMA_UNABLE_TO_EXPORT_BASE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      Message message =
+          ERR_SCHEMA_UNABLE_TO_EXPORT_BASE.get(stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
     finally
     {
@@ -4244,10 +4102,8 @@ public class SchemaBackend
          throws DirectoryException
   {
     // This backend does not support LDIF imports.
-    int    msgID   = MSGID_SCHEMA_IMPORT_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_SCHEMA_IMPORT_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -4345,12 +4201,11 @@ public class SchemaBackend
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_SCHEMA_BACKUP_CANNOT_GET_MAC;
-          String message = getMessage(msgID, macAlgorithm,
-                                      stackTraceToSingleLineString(e));
+          Message message = ERR_SCHEMA_BACKUP_CANNOT_GET_MAC.get(
+              macAlgorithm, stackTraceToSingleLineString(e));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(), message,
-                         msgID, e);
+                         e);
         }
       }
       else
@@ -4369,12 +4224,11 @@ public class SchemaBackend
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_SCHEMA_BACKUP_CANNOT_GET_DIGEST;
-          String message = getMessage(msgID, digestAlgorithm,
-                                      stackTraceToSingleLineString(e));
+          Message message = ERR_SCHEMA_BACKUP_CANNOT_GET_DIGEST.get(
+              digestAlgorithm, stackTraceToSingleLineString(e));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(), message,
-                         msgID, e);
+                         e);
         }
       }
     }
@@ -4422,12 +4276,11 @@ public class SchemaBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_SCHEMA_BACKUP_CANNOT_CREATE_ARCHIVE_FILE;
-      String message = getMessage(msgID, String.valueOf(filename),
-                                  backupDirectory.getPath(),
-                                  getExceptionMessage(e));
+      Message message = ERR_SCHEMA_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
+          get(String.valueOf(filename), backupDirectory.getPath(),
+              getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
 
@@ -4450,11 +4303,10 @@ public class SchemaBackend
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_SCHEMA_BACKUP_CANNOT_GET_CIPHER;
-        String message = getMessage(msgID, cipherAlgorithm,
-                                    stackTraceToSingleLineString(e));
+        Message message = ERR_SCHEMA_BACKUP_CANNOT_GET_CIPHER.get(
+            cipherAlgorithm, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
 
       outputStream = new CipherOutputStream(outputStream, cipher);
@@ -4464,10 +4316,10 @@ public class SchemaBackend
     // Wrap the file output stream in a zip output stream.
     ZipOutputStream zipStream = new ZipOutputStream(outputStream);
 
-    int    msgID   = MSGID_SCHEMA_BACKUP_ZIP_COMMENT;
-    String message = getMessage(msgID, DynamicConstants.PRODUCT_NAME,
-                                backupID);
-    zipStream.setComment(message);
+    Message message = ERR_SCHEMA_BACKUP_ZIP_COMMENT.get(
+            DynamicConstants.PRODUCT_NAME,
+            backupID);
+    zipStream.setComment(String.valueOf(message));
 
     if (compress)
     {
@@ -4495,10 +4347,10 @@ public class SchemaBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID   = MSGID_SCHEMA_BACKUP_CANNOT_LIST_SCHEMA_FILES;
-      message = getMessage(msgID, schemaDirPath, getExceptionMessage(e));
+      message = ERR_SCHEMA_BACKUP_CANNOT_LIST_SCHEMA_FILES.get(
+          schemaDirPath, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
 
@@ -4580,10 +4432,10 @@ public class SchemaBackend
           zipStream.close();
         } catch (Exception e2) {}
 
-        msgID   = MSGID_SCHEMA_BACKUP_CANNOT_BACKUP_SCHEMA_FILE;
-        message = getMessage(msgID, baseName, stackTraceToSingleLineString(e));
+        message = ERR_SCHEMA_BACKUP_CANNOT_BACKUP_SCHEMA_FILE.get(
+            baseName, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
     }
 
@@ -4601,11 +4453,10 @@ public class SchemaBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID   = MSGID_SCHEMA_BACKUP_CANNOT_CLOSE_ZIP_STREAM;
-      message = getMessage(msgID, filename, backupDirectory.getPath(),
-                           stackTraceToSingleLineString(e));
+      message = ERR_SCHEMA_BACKUP_CANNOT_CLOSE_ZIP_STREAM.get(
+          filename, backupDirectory.getPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
 
@@ -4645,11 +4496,10 @@ public class SchemaBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_SCHEMA_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR;
-      message = getMessage(msgID, backupDirectory.getDescriptorPath(),
-                           stackTraceToSingleLineString(e));
+      message = ERR_SCHEMA_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
+          backupDirectory.getDescriptorPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
   }
 
@@ -4672,10 +4522,8 @@ public class SchemaBackend
          throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
-    int    msgID   = MSGID_SCHEMA_BACKUP_AND_RESTORE_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_SCHEMA_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -4707,10 +4555,10 @@ public class SchemaBackend
     BackupInfo      backupInfo      = backupDirectory.getBackupInfo(backupID);
     if (backupInfo == null)
     {
-      int    msgID   = MSGID_SCHEMA_RESTORE_NO_SUCH_BACKUP;
-      String message = getMessage(msgID, backupID, backupPath);
+      Message message =
+          ERR_SCHEMA_RESTORE_NO_SUCH_BACKUP.get(backupID, backupPath);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -4720,10 +4568,10 @@ public class SchemaBackend
          backupInfo.getBackupProperty(BACKUP_PROPERTY_ARCHIVE_FILENAME);
     if (backupFilename == null)
     {
-      int    msgID   = MSGID_SCHEMA_RESTORE_NO_BACKUP_FILE;
-      String message = getMessage(msgID, backupID, backupPath);
+      Message message =
+          ERR_SCHEMA_RESTORE_NO_BACKUP_FILE.get(backupID, backupPath);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
 
     File backupFile = new File(backupPath + File.separator + backupFilename);
@@ -4731,10 +4579,10 @@ public class SchemaBackend
     {
       if (! backupFile.exists())
       {
-        int    msgID   = MSGID_SCHEMA_RESTORE_NO_SUCH_FILE;
-        String message = getMessage(msgID, backupID, backupFile.getPath());
+        Message message =
+            ERR_SCHEMA_RESTORE_NO_SUCH_FILE.get(backupID, backupFile.getPath());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID);
+                                     message);
       }
     }
     catch (DirectoryException de)
@@ -4743,11 +4591,10 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_SCHEMA_RESTORE_CANNOT_CHECK_FOR_ARCHIVE;
-      String message = getMessage(msgID, backupID, backupFile.getPath(),
-                                  stackTraceToSingleLineString(e));
+      Message message = ERR_SCHEMA_RESTORE_CANNOT_CHECK_FOR_ARCHIVE.get(
+          backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
 
@@ -4761,10 +4608,9 @@ public class SchemaBackend
            backupInfo.getBackupProperty(BACKUP_PROPERTY_DIGEST_ALGORITHM);
       if (digestAlgorithm == null)
       {
-        int    msgID   = MSGID_SCHEMA_RESTORE_UNKNOWN_DIGEST;
-        String message = getMessage(msgID, backupID);
+        Message message = ERR_SCHEMA_RESTORE_UNKNOWN_DIGEST.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID);
+                                     message);
       }
 
       try
@@ -4774,10 +4620,10 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_SCHEMA_RESTORE_CANNOT_GET_DIGEST;
-        String message = getMessage(msgID, backupID, digestAlgorithm);
+        Message message =
+            ERR_SCHEMA_RESTORE_CANNOT_GET_DIGEST.get(backupID, digestAlgorithm);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
     }
 
@@ -4791,10 +4637,9 @@ public class SchemaBackend
            backupInfo.getBackupProperty(BACKUP_PROPERTY_MAC_ALGORITHM);
       if (macAlgorithm == null)
       {
-        int    msgID   = MSGID_SCHEMA_RESTORE_UNKNOWN_MAC;
-        String message = getMessage(msgID, backupID);
+        Message message = ERR_SCHEMA_RESTORE_UNKNOWN_MAC.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID);
+                                     message);
       }
 
       try
@@ -4803,11 +4648,10 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_SCHEMA_RESTORE_CANNOT_GET_MAC;
-        String message = getMessage(msgID, backupID, macAlgorithm,
-                                    backupFile.getPath());
+        Message message = ERR_SCHEMA_RESTORE_CANNOT_GET_MAC.get(
+            backupID, macAlgorithm);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
     }
 
@@ -4821,11 +4665,10 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_SCHEMA_RESTORE_CANNOT_OPEN_BACKUP_FILE;
-      String message = getMessage(msgID, backupID, backupFile.getPath(),
-                                  stackTraceToSingleLineString(e));
+      Message message = ERR_SCHEMA_RESTORE_CANNOT_OPEN_BACKUP_FILE.get(
+          backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
     // If the backup is encrypted, then we need to wrap the file input stream
@@ -4836,10 +4679,9 @@ public class SchemaBackend
            backupInfo.getBackupProperty(BACKUP_PROPERTY_CIPHER_ALGORITHM);
       if (cipherAlgorithm == null)
       {
-        int    msgID   = MSGID_SCHEMA_RESTORE_UNKNOWN_CIPHER;
-        String message = getMessage(msgID, backupID);
+        Message message = ERR_SCHEMA_RESTORE_UNKNOWN_CIPHER.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID);
+                                     message);
       }
 
       Cipher cipher;
@@ -4850,12 +4692,10 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_SCHEMA_RESTORE_CANNOT_GET_CIPHER;
-        String message = getMessage(msgID, cipherAlgorithm,
-                                    backupFile.getPath(),
-                                    stackTraceToSingleLineString(e));
+        Message message = ERR_SCHEMA_RESTORE_CANNOT_GET_CIPHER.
+            get(cipherAlgorithm, backupFile.getPath());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
 
       inputStream = new CipherInputStream(inputStream, cipher);
@@ -4909,12 +4749,11 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_SCHEMA_RESTORE_CANNOT_RENAME_CURRENT_DIRECTORY;
-        String message = getMessage(msgID, backupID, schemaDirPath,
-                                    String.valueOf(backupDirPath),
-                                    stackTraceToSingleLineString(e));
+        Message message = ERR_SCHEMA_RESTORE_CANNOT_RENAME_CURRENT_DIRECTORY.
+            get(backupID, schemaDirPath, String.valueOf(backupDirPath),
+                stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
 
 
@@ -4932,26 +4771,23 @@ public class SchemaBackend
           try
           {
             schemaBackupDir.renameTo(schemaDir);
-            int    msgID   = MSGID_SCHEMA_RESTORE_RESTORED_OLD_SCHEMA;
-            String message = getMessage(msgID, schemaDirPath);
-            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                     msgID);
+            Message message =
+                NOTE_SCHEMA_RESTORE_RESTORED_OLD_SCHEMA.get(schemaDirPath);
+            logError(message);
           }
           catch (Exception e2)
           {
-            int msgID = MSGID_SCHEMA_RESTORE_CANNOT_RESTORE_OLD_SCHEMA;
-            String message = getMessage(msgID, schemaBackupDir.getPath());
-            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
+            Message message = ERR_SCHEMA_RESTORE_CANNOT_RESTORE_OLD_SCHEMA.get(
+                schemaBackupDir.getPath());
+            logError(message);
           }
         }
 
 
-        int    msgID   = MSGID_SCHEMA_RESTORE_CANNOT_CREATE_SCHEMA_DIRECTORY;
-        String message = getMessage(msgID, backupID, schemaDirPath,
-                                    stackTraceToSingleLineString(e));
+        Message message = ERR_SCHEMA_RESTORE_CANNOT_CREATE_SCHEMA_DIRECTORY.get(
+            backupID, schemaDirPath, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
     }
 
@@ -4972,17 +4808,15 @@ public class SchemaBackend
         // Tell the user where the previous schema was archived.
         if (schemaBackupDir != null)
         {
-          int    msgID   = MSGID_SCHEMA_RESTORE_OLD_SCHEMA_SAVED;
-          String message = getMessage(msgID, schemaBackupDir.getPath());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                   msgID);
+          Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
+              schemaBackupDir.getPath());
+          logError(message);
         }
 
-        int    msgID   = MSGID_SCHEMA_RESTORE_CANNOT_GET_ZIP_ENTRY;
-        String message = getMessage(msgID, backupID, backupFile.getPath(),
-                                    stackTraceToSingleLineString(e));
+        Message message = ERR_SCHEMA_RESTORE_CANNOT_GET_ZIP_ENTRY.get(
+            backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
 
       if (zipEntry == null)
@@ -5019,18 +4853,16 @@ public class SchemaBackend
           // Tell the user where the previous schema was archived.
           if (schemaBackupDir != null)
           {
-            int    msgID   = MSGID_SCHEMA_RESTORE_OLD_SCHEMA_SAVED;
-            String message = getMessage(msgID, schemaBackupDir.getPath());
-            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                     msgID);
+            Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
+                schemaBackupDir.getPath());
+            logError(message);
           }
 
-          int    msgID   = MSGID_SCHEMA_RESTORE_CANNOT_CREATE_FILE;
-          String message = getMessage(msgID, backupID, filePath,
-                                      stackTraceToSingleLineString(e));
+          Message message = ERR_SCHEMA_RESTORE_CANNOT_CREATE_FILE.get(
+              backupID, filePath, stackTraceToSingleLineString(e));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(), message,
-                         msgID, e);
+                         e);
         }
       }
 
@@ -5082,17 +4914,15 @@ public class SchemaBackend
         // Tell the user where the previous schema was archived.
         if (schemaBackupDir != null)
         {
-          int    msgID   = MSGID_SCHEMA_RESTORE_OLD_SCHEMA_SAVED;
-          String message = getMessage(msgID, schemaBackupDir.getPath());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                   msgID);
+          Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
+              schemaBackupDir.getPath());
+          logError(message);
         }
 
-        int msgID = MSGID_SCHEMA_RESTORE_CANNOT_PROCESS_ARCHIVE_FILE;
-        String message = getMessage(msgID, backupID, fileName,
-                                    stackTraceToSingleLineString(e));
+        Message message = ERR_SCHEMA_RESTORE_CANNOT_PROCESS_ARCHIVE_FILE.get(
+            backupID, fileName, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
     }
 
@@ -5104,11 +4934,10 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_SCHEMA_RESTORE_ERROR_ON_ZIP_STREAM_CLOSE;
-      String message = getMessage(msgID, backupID, backupFile.getPath(),
-                                  stackTraceToSingleLineString(e));
+      Message message = ERR_SCHEMA_RESTORE_ERROR_ON_ZIP_STREAM_CLOSE.get(
+          backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
 
@@ -5120,26 +4949,23 @@ public class SchemaBackend
       byte[] calculatedHash = digest.digest();
       if (Arrays.equals(calculatedHash, unsignedHash))
       {
-        int    msgID = MSGID_SCHEMA_RESTORE_UNSIGNED_HASH_VALID;
-        String message = getMessage(msgID);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                 msgID);
+        Message message = NOTE_SCHEMA_RESTORE_UNSIGNED_HASH_VALID.get();
+        logError(message);
       }
       else
       {
         // Tell the user where the previous schema was archived.
         if (schemaBackupDir != null)
         {
-          int    msgID   = MSGID_SCHEMA_RESTORE_OLD_SCHEMA_SAVED;
-          String message = getMessage(msgID, schemaBackupDir.getPath());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                   msgID);
+          Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
+              schemaBackupDir.getPath());
+          logError(message);
         }
 
-        int    msgID = MSGID_SCHEMA_RESTORE_UNSIGNED_HASH_INVALID;
-        String message = getMessage(msgID, backupID);
+        Message message =
+            ERR_SCHEMA_RESTORE_UNSIGNED_HASH_INVALID.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -5148,26 +4974,23 @@ public class SchemaBackend
       byte[] calculatedSignature = mac.doFinal();
       if (Arrays.equals(calculatedSignature, signedHash))
       {
-        int    msgID = MSGID_SCHEMA_RESTORE_SIGNED_HASH_VALID;
-        String message = getMessage(msgID);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                 msgID);
+        Message message = NOTE_SCHEMA_RESTORE_SIGNED_HASH_VALID.get();
+        logError(message);
       }
       else
       {
         // Tell the user where the previous schema was archived.
         if (schemaBackupDir != null)
         {
-          int    msgID   = MSGID_SCHEMA_RESTORE_OLD_SCHEMA_SAVED;
-          String message = getMessage(msgID, schemaBackupDir.getPath());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                   msgID);
+          Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
+              schemaBackupDir.getPath());
+          logError(message);
         }
 
-        int    msgID = MSGID_SCHEMA_RESTORE_SIGNED_HASH_INVALID;
-        String message = getMessage(msgID);
+        Message message = ERR_SCHEMA_RESTORE_SIGNED_HASH_INVALID.get(
+              schemaBackupDir.getPath());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -5175,10 +4998,9 @@ public class SchemaBackend
     // If we are just verifying the archive, then we're done.
     if (verifyOnly)
     {
-      int    msgID   = MSGID_SCHEMA_RESTORE_VERIFY_SUCCESSFUL;
-      String message = getMessage(msgID, backupID, backupPath);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-               msgID);
+      Message message =
+          NOTE_SCHEMA_RESTORE_VERIFY_SUCCESSFUL.get(backupID, backupPath);
+      logError(message);
       return;
     }
 
@@ -5191,10 +5013,8 @@ public class SchemaBackend
       recursiveDelete(schemaBackupDir);
     }
 
-    int    msgID   = MSGID_SCHEMA_RESTORE_SUCCESSFUL;
-    String message = getMessage(msgID, backupID, backupPath);
-    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-             msgID);
+    Message message = NOTE_SCHEMA_RESTORE_SUCCESSFUL.get(backupID, backupPath);
+    logError(message);
   }
 
 
@@ -5204,7 +5024,7 @@ public class SchemaBackend
    */
   public boolean isConfigurationChangeAcceptable(
        SchemaBackendCfg configEntry,
-       List<String> unacceptableReasons)
+       List<Message> unacceptableReasons)
   {
     return true;
   }
@@ -5219,7 +5039,7 @@ public class SchemaBackend
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Check to see if we should apply a new set of base DNs.
@@ -5239,9 +5059,10 @@ public class SchemaBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_SCHEMA_CANNOT_DETERMINE_BASE_DN;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              getExceptionMessage(e)));
+
+      messages.add(ERR_SCHEMA_CANNOT_DETERMINE_BASE_DN.get(
+              String.valueOf(configEntryDN),
+              getExceptionMessage(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
       newBaseDNs = null;
     }
@@ -5287,9 +5108,9 @@ public class SchemaBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              stackTraceToSingleLineString(e)));
+      messages.add(ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY.get(
+              String.valueOf(configEntryDN),
+              stackTraceToSingleLineString(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
     }
 
@@ -5319,8 +5140,8 @@ public class SchemaBackend
         try
         {
           DirectoryServer.deregisterBaseDN(dn, false);
-          int msgID = MSGID_SCHEMA_DEREGISTERED_BASE_DN;
-          messages.add(getMessage(msgID, String.valueOf(dn)));
+          messages.add(INFO_SCHEMA_DEREGISTERED_BASE_DN.get(
+                  String.valueOf(dn)));
         }
         catch (Exception e)
         {
@@ -5329,9 +5150,9 @@ public class SchemaBackend
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int msgID = MSGID_SCHEMA_CANNOT_DEREGISTER_BASE_DN;
-          messages.add(getMessage(msgID, String.valueOf(dn),
-                                  getExceptionMessage(e)));
+          messages.add(ERR_SCHEMA_CANNOT_DEREGISTER_BASE_DN.get(
+                  String.valueOf(dn),
+                  getExceptionMessage(e)));
           resultCode = DirectoryServer.getServerErrorResultCode();
         }
       }
@@ -5342,8 +5163,7 @@ public class SchemaBackend
         try
         {
           DirectoryServer.registerBaseDN(dn, this, true, false);
-          int msgID = MSGID_SCHEMA_REGISTERED_BASE_DN;
-          messages.add(getMessage(msgID, String.valueOf(dn)));
+          messages.add(INFO_SCHEMA_REGISTERED_BASE_DN.get(String.valueOf(dn)));
         }
         catch (Exception e)
         {
@@ -5352,9 +5172,9 @@ public class SchemaBackend
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int msgID = MSGID_SCHEMA_CANNOT_REGISTER_BASE_DN;
-          messages.add(getMessage(msgID, String.valueOf(dn),
-                                  getExceptionMessage(e)));
+          messages.add(ERR_SCHEMA_CANNOT_REGISTER_BASE_DN.get(
+                  String.valueOf(dn),
+                  getExceptionMessage(e)));
           resultCode = DirectoryServer.getServerErrorResultCode();
         }
       }
@@ -5364,8 +5184,7 @@ public class SchemaBackend
 
 
       userDefinedAttributes = newUserAttrs;
-      int msgID = MSGID_SCHEMA_USING_NEW_USER_ATTRS;
-      String message = getMessage(msgID);
+      Message message = INFO_SCHEMA_USING_NEW_USER_ATTRS.get();
       messages.add(message);
     }
 

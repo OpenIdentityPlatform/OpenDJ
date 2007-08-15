@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup.ui;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.WizardStep;
 import org.opends.quicksetup.event.ButtonActionListener;
@@ -164,35 +167,31 @@ public class ButtonsPanel extends QuickSetupPanel
    */
   private void createButtons()
   {
-    nextButton =
-        createButton(getMsg("next-button-label"), getMsg("next-button-tooltip"),
+    GuiApplication application = getApplication();
+    nextButton = createButton(
+            INFO_NEXT_BUTTON_LABEL.get(),
+            INFO_NEXT_BUTTON_TOOLTIP.get(),
             ButtonName.NEXT);
 
-    previousButton =
-        createButton(getMsg("previous-button-label"),
-            getMsg("previous-button-tooltip"),
+    previousButton = createButton(
+            INFO_PREVIOUS_BUTTON_LABEL.get(),
+            INFO_PREVIOUS_BUTTON_TOOLTIP.get(),
             ButtonName.PREVIOUS);
 
-    String tooltip;
+    quitButton = createButton(
+            INFO_QUIT_BUTTON_LABEL.get(),
+            application.getQuitButtonToolTip(),
+            ButtonName.QUIT);
 
-    GuiApplication application = getApplication();
-    tooltip =
-      application.getI18n().getMsg(application.getQuitButtonToolTipKey());
-    quitButton =
-        createButton(getMsg("quit-button-label"), tooltip, ButtonName.QUIT);
+    closeButton = createButton(
+            INFO_CLOSE_BUTTON_LABEL.get(),
+            application.getCloseButtonToolTip(),
+            ButtonName.CLOSE);
 
-
-
-    tooltip =
-      application.getI18n().getMsg(application.getCloseButtonToolTipKey());
-    closeButton = createButton(getMsg("close-button-label"),
-        tooltip, ButtonName.CLOSE);
-
-    String label =
-      application.getI18n().getMsg(application.getFinishButtonLabelKey());
-    tooltip =
-      application.getI18n().getMsg(application.getFinishButtonToolTipKey());
-    finishButton = createButton(label, tooltip, ButtonName.FINISH);
+    finishButton = createButton(
+            application.getFinishButtonLabel(),
+            application.getFinishButtonToolTip(),
+            ButtonName.FINISH);
 
   }
 
@@ -282,7 +281,7 @@ public class ButtonsPanel extends QuickSetupPanel
    * @param buttonName the ButtonName.
    * @return a new button with the specified parameters.
    */
-  private JButton createButton(String label, String tooltip,
+  private JButton createButton(Message label, Message tooltip,
       ButtonName buttonName)
   {
     JButton b = UIFactory.makeJButton(label, tooltip);

@@ -29,7 +29,7 @@ package org.opends.server.backends.jeb;
 
 
 import org.opends.server.types.IdentifiedException;
-
+import org.opends.messages.Message;
 
 
 /**
@@ -48,26 +48,16 @@ public class JebException
    */
   static final long serialVersionUID = 3110979454298870834L;
 
-  /**
-   * The message ID for the message associated with this initialization
-   * exception.
-   */
-  private int messageID;
-
 
 
   /**
    * Creates a new JE backend exception with the provided message.
    *
-   * @param  messageID  The unique identifier for the associated message.
    * @param  message    The message that explains the problem that occurred.
    */
-  public JebException(int messageID, String message)
+  public JebException(Message message)
   {
     super(message);
-
-
-    this.messageID = messageID;
   }
 
 
@@ -76,28 +66,15 @@ public class JebException
    * Creates a new JE backend exception with the provided message and root
    * cause.
    *
-   * @param  messageID  The unique identifier for the associated message.
    * @param  message    The message that explains the problem that occurred.
    * @param  cause      The exception that was caught to trigger this exception.
    */
-  public JebException(int messageID, String message, Throwable cause)
+  public JebException(Message message, Throwable cause)
   {
     super(message, cause);
-
-
-    this.messageID = messageID;
   }
 
 
-
-  /**
-   * Retrieves the unique identifier for the associated message.
-   * @return The message identifier.
-   */
-  public int getMessageID()
-  {
-    return messageID;
-  }
 
 }
 

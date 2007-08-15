@@ -27,6 +27,8 @@
 
 package org.opends.guitools.statuspanel;
 
+import org.opends.messages.Message;
+
 /**
  * This class is used to represent a Listener and is aimed to be used by the
  * classes in the ListenersTableModel class.
@@ -83,7 +85,7 @@ public class ListenerDescriptor
   private State state;
   private String addressPort;
   private Protocol protocol;
-  private String protocolDescription;
+  private Message protocolDescription;
 
   /**
    * Constructor for thid class.
@@ -93,7 +95,7 @@ public class ListenerDescriptor
    * @param state the state of the listener.
    */
   public ListenerDescriptor(String addressPort, Protocol protocol,
-      String protocolDescription, State state)
+      Message protocolDescription, State state)
   {
     this.addressPort = addressPort;
     this.protocol = protocol;
@@ -123,7 +125,7 @@ public class ListenerDescriptor
    * Returns the protocol description of the listener.
    * @return the protocol description of the listener.
    */
-  public String getProtocolDescription()
+  public Message getProtocolDescription()
   {
     return protocolDescription;
   }

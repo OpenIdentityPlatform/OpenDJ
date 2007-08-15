@@ -39,8 +39,7 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
 

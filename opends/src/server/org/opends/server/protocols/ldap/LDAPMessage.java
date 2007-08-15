@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
+import org.opends.messages.Message;
 
 
 
@@ -40,8 +41,7 @@ import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -594,18 +594,17 @@ public class LDAPMessage
   {
     if (messageSequence == null)
     {
-      int    msgID   = MSGID_LDAP_MESSAGE_DECODE_NULL;
-      String message = getMessage(msgID);
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_LDAP_MESSAGE_DECODE_NULL.get();
+      throw new LDAPException(PROTOCOL_ERROR, message);
     }
 
     ArrayList<ASN1Element> elements = messageSequence.elements();
     int numElements = elements.size();
     if ((numElements < 2) || (numElements > 3))
     {
-      int    msgID   = MSGID_LDAP_MESSAGE_DECODE_INVALID_ELEMENT_COUNT;
-      String message = getMessage(msgID, numElements);
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message);
+      Message message =
+          ERR_LDAP_MESSAGE_DECODE_INVALID_ELEMENT_COUNT.get(numElements);
+      throw new LDAPException(PROTOCOL_ERROR, message);
     }
 
 
@@ -621,9 +620,9 @@ public class LDAPMessage
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_MESSAGE_DECODE_MESSAGE_ID;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_MESSAGE_DECODE_MESSAGE_ID.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -639,9 +638,9 @@ public class LDAPMessage
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_MESSAGE_DECODE_PROTOCOL_OP;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_MESSAGE_DECODE_PROTOCOL_OP.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -659,9 +658,9 @@ public class LDAPMessage
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_LDAP_MESSAGE_DECODE_CONTROLS;
-        String message = getMessage(msgID, String.valueOf(e));
-        throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+        Message message =
+            ERR_LDAP_MESSAGE_DECODE_CONTROLS.get(String.valueOf(e));
+        throw new LDAPException(PROTOCOL_ERROR, message, e);
       }
     }
     else
@@ -713,9 +712,13 @@ public class LDAPMessage
     buffer.append("LDAPMessage(msgID=");
     buffer.append(messageID);
     buffer.append(", protocolOp=");
-    protocolOp.toString(buffer);
+    if (protocolOp != null) {
+      protocolOp.toString(buffer);
+    } else {
+      buffer.append("null");
+    }
 
-    if (! controls.isEmpty())
+    if (controls != null && !controls.isEmpty())
     {
       buffer.append(", controls={ ");
 

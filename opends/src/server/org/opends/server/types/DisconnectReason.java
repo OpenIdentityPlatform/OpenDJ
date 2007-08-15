@@ -25,11 +25,11 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.CoreMessages.*;
 
 
 
@@ -43,7 +43,8 @@ public enum DisconnectReason
    * The disconnect reason that indicates that the client connection
    * was closed because the client unbind from the server.
    */
-  UNBIND(MSGID_DISCONNECT_DUE_TO_UNBIND),
+  UNBIND(
+          INFO_DISCONNECT_DUE_TO_UNBIND.get()),
 
 
 
@@ -51,7 +52,8 @@ public enum DisconnectReason
    * The disconnect reason that indicates that the client connection
    * was closed because the client disconnected without unbinding.
    */
-  CLIENT_DISCONNECT(MSGID_DISCONNECT_DUE_TO_CLIENT_CLOSURE),
+  CLIENT_DISCONNECT(
+          INFO_DISCONNECT_DUE_TO_CLIENT_CLOSURE.get()),
 
 
 
@@ -59,7 +61,8 @@ public enum DisconnectReason
    * The disconnect reason that indicates that the client connection
    * was closed because the client connection was rejected.
    */
-  CONNECTION_REJECTED(MSGID_DISCONNECT_DUE_TO_REJECTED_CLIENT),
+  CONNECTION_REJECTED(
+          INFO_DISCONNECT_DUE_TO_REJECTED_CLIENT.get()),
 
 
 
@@ -67,7 +70,8 @@ public enum DisconnectReason
    * The disconnect reason that indicates that the client connection
    * was closed because of an I/O error.
    */
-  IO_ERROR(MSGID_DISCONNECT_DUE_TO_IO_ERROR),
+  IO_ERROR(
+          INFO_DISCONNECT_DUE_TO_IO_ERROR.get()),
 
 
 
@@ -75,7 +79,8 @@ public enum DisconnectReason
    * The disconnect reason that indicates that the client connection
    * was closed because of a protocol error.
    */
-  PROTOCOL_ERROR(MSGID_DISCONNECT_DUE_TO_PROTOCOL_ERROR),
+  PROTOCOL_ERROR(
+          INFO_DISCONNECT_DUE_TO_PROTOCOL_ERROR.get()),
 
 
 
@@ -83,7 +88,8 @@ public enum DisconnectReason
    * The disconnect reason that indicates that the client connection
    * was closed because the Directory Server shut down.
    */
-  SERVER_SHUTDOWN(MSGID_DISCONNECT_DUE_TO_SERVER_SHUTDOWN),
+  SERVER_SHUTDOWN(
+          INFO_DISCONNECT_DUE_TO_SERVER_SHUTDOWN.get()),
 
 
 
@@ -91,7 +97,8 @@ public enum DisconnectReason
    * The disconnect reason that indicates that the client connection
    * was closed because an administrator terminated the connection.
    */
-  ADMIN_DISCONNECT(MSGID_DISCONNECT_BY_ADMINISTRATOR),
+  ADMIN_DISCONNECT(
+          INFO_DISCONNECT_BY_ADMINISTRATOR.get()),
 
 
 
@@ -99,7 +106,8 @@ public enum DisconnectReason
    * The disconnect reason that indicates that the client connection
    * was closed because of a security problem.
    */
-  SECURITY_PROBLEM(MSGID_DISCONNECT_DUE_TO_SECURITY_PROBLEM),
+  SECURITY_PROBLEM(
+          INFO_DISCONNECT_DUE_TO_SECURITY_PROBLEM.get()),
 
 
 
@@ -107,7 +115,8 @@ public enum DisconnectReason
    * The disconnect reason that indicates that the client connection
    * was closed because the maximum allowed request size was exceeded.
    */
-  MAX_REQUEST_SIZE_EXCEEDED(MSGID_DISCONNECT_DUE_TO_MAX_REQUEST_SIZE),
+  MAX_REQUEST_SIZE_EXCEEDED(
+          INFO_DISCONNECT_DUE_TO_MAX_REQUEST_SIZE.get()),
 
 
 
@@ -115,7 +124,8 @@ public enum DisconnectReason
    * The disconnect reason that indicates that the client connection
    * was closed because an administrative limit was exceeded.
    */
-  ADMIN_LIMIT_EXCEEDED(MSGID_DISCONNECT_DUE_TO_ADMIN_LIMIT),
+  ADMIN_LIMIT_EXCEEDED(
+          INFO_DISCONNECT_DUE_TO_ADMIN_LIMIT.get()),
 
 
 
@@ -123,7 +133,8 @@ public enum DisconnectReason
    * The disconnect reason that indicates that the client connection
    * was closed because the idle time limit was exceeded.
    */
-  IDLE_TIME_LIMIT_EXCEEDED(MSGID_DISCONNECT_DUE_TO_IDLE_TIME_LIMIT),
+  IDLE_TIME_LIMIT_EXCEEDED(
+          INFO_DISCONNECT_DUE_TO_IDLE_TIME_LIMIT.get()),
 
 
 
@@ -131,7 +142,8 @@ public enum DisconnectReason
    * The disconnect reason that indicates that the client connection
    * was closed because of an I/O timeout.
    */
-  IO_TIMEOUT(MSGID_DISCONNECT_DUE_TO_IO_TIMEOUT),
+  IO_TIMEOUT(
+          INFO_DISCONNECT_DUE_TO_IO_TIMEOUT.get()),
 
 
 
@@ -139,7 +151,8 @@ public enum DisconnectReason
    * The disconnect reason that indicates that the client connection
    * was closed because of an internal error within the server.
    */
-  SERVER_ERROR(MSGID_DISCONNECT_DUE_TO_SERVER_ERROR),
+  SERVER_ERROR(
+          INFO_DISCONNECT_DUE_TO_SERVER_ERROR.get()),
 
 
 
@@ -147,7 +160,8 @@ public enum DisconnectReason
    * The disconnect reason that indicates that the client connection
    * was closed by a plugin.
    */
-  CLOSED_BY_PLUGIN(MSGID_DISCONNECT_BY_PLUGIN),
+  CLOSED_BY_PLUGIN(
+          INFO_DISCONNECT_BY_PLUGIN.get()),
 
 
 
@@ -155,40 +169,24 @@ public enum DisconnectReason
    * The disconnect reason that indicates that the client connection
    * was closed for some other reason.
    */
-  OTHER(MSGID_DISCONNECT_OTHER);
+  OTHER(
+          INFO_DISCONNECT_OTHER.get());
 
 
 
-  // The unique ID for this disconnect reason.
-  private int closureID;
-
-  // The short human-readable disconnect reason.
-  private String closureString;
-
+  // The disconnect reason.
+  private Message message;
 
 
   /**
    * Creates a new disconnect reason element with the provided closure
-   * ID.
+   * message.
    *
-   * @param  closureID  The unique ID for this disconnect reason.
+   * @param  message  The message for this disconnect reason.
    */
-  private DisconnectReason(int closureID)
+  private DisconnectReason(Message message)
   {
-    this.closureID     = closureID;
-    this.closureString = null;
-  }
-
-
-
-  /**
-   * Retrieves the unique ID for this disconnect reason.
-   *
-   * @return  The unique ID for this disconnect reason.
-   */
-  public int getClosureID()
-  {
-    return closureID;
+    this.message = message;
   }
 
 
@@ -198,14 +196,9 @@ public enum DisconnectReason
    *
    * @return  The human-readable disconnect reason.
    */
-  public String getClosureString()
+  public Message getClosureMessage()
   {
-    if (closureString == null)
-    {
-      closureString = getMessage(closureID);
-    }
-
-    return closureString;
+    return message;
   }
 
 
@@ -217,7 +210,7 @@ public enum DisconnectReason
    */
   public String toString()
   {
-    return getClosureString();
+    return message.toString();
   }
 }
 

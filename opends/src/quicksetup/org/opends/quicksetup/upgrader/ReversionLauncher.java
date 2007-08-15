@@ -27,17 +27,20 @@
 
 package org.opends.quicksetup.upgrader;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.util.Utils;
-import org.opends.quicksetup.i18n.ResourceProvider;
+
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.ServerConstants;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.OPTION_SHORT_HELP;
 import static org.opends.server.tools.ToolConstants.OPTION_LONG_HELP;
 
@@ -72,8 +75,7 @@ public class ReversionLauncher extends Launcher {
               File.createTempFile(LOG_FILE_PREFIX,
                       QuickSetupLog.LOG_FILE_SUFFIX));
     } catch (Throwable t) {
-      System.err.println(
-              ResourceProvider.getInstance().getMsg("error-initializing-log"));
+      System.err.println(INFO_ERROR_INITIALIZING_LOG.get());
       t.printStackTrace();
     }
     new ReversionLauncher(args).launch();
@@ -120,7 +122,7 @@ public class ReversionLauncher extends Launcher {
   /**
    * {@inheritDoc}
    */
-  protected String getFrameTitle() {
+  protected Message getFrameTitle() {
     return null;
   }
 
@@ -168,7 +170,7 @@ public class ReversionLauncher extends Launcher {
     System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
 
     argParser = new ArgumentParser(getClass().getName(),
-        getI18n().getMsg("revert-launcher-usage-description"), false);
+        INFO_REVERT_LAUNCHER_USAGE_DESCRIPTION.get(), false);
     try
     {
       dir = new FileBasedArgument("directory",
@@ -176,26 +178,26 @@ public class ReversionLauncher extends Launcher {
               DIRECTORY_OPTION_LONG,
               false, false,
               "{directory}",
-              null, null, MSGID_REVERT_DESCRIPTION_DIRECTORY);
+              null, null, INFO_REVERT_DESCRIPTION_DIRECTORY.get());
       argParser.addArgument(dir);
 
       mostRecent = new BooleanArgument("mostRecent",
               MOST_RECENT_OPTION_SHORT,
               MOST_RECENT_OPTION_LONG,
-              MSGID_REVERT_DESCRIPTION_RECENT);
+              INFO_REVERT_DESCRIPTION_RECENT.get());
       argParser.addArgument(mostRecent);
 
       interactive = new BooleanArgument("interactive", 'i', "interactive",
-          MSGID_REVERT_DESCRIPTION_INTERACTIVE);
+          INFO_REVERT_DESCRIPTION_INTERACTIVE.get());
       argParser.addArgument(interactive);
 
       silent = new BooleanArgument("silent", 's', "silent",
-          MSGID_REVERT_DESCRIPTION_SILENT);
+          INFO_REVERT_DESCRIPTION_SILENT.get());
       argParser.addArgument(silent);
 
       showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
         OPTION_LONG_HELP,
-        MSGID_DESCRIPTION_USAGE);
+        INFO_DESCRIPTION_USAGE.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
 

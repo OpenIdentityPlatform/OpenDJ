@@ -26,10 +26,11 @@
  */
 package org.opends.server.tools.dsconfig;
 
+import org.opends.messages.MessageBuilder;
+import org.opends.messages.Message;
 
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -92,15 +93,15 @@ final class HelpSubCommandHandler extends SubCommandHandler {
      *          The property type.
      */
     private static class DefaultVisitor<T> implements
-        DefaultBehaviorProviderVisitor<T, String, PropertyDefinition<T>> {
+        DefaultBehaviorProviderVisitor<T, Message, PropertyDefinition<T>> {
 
       /**
        * {@inheritDoc}
        */
-      public String visitAbsoluteInherited(
+      public Message visitAbsoluteInherited(
           AbsoluteInheritedDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
-        return getMessage(MSGID_DSCFG_HELP_FIELD_INHERITED_ABS, d
+        return INFO_DSCFG_HELP_FIELD_INHERITED_ABS.get(d
             .getPropertyName(), d.getManagedObjectPath()
             .getRelationDefinition().getUserFriendlyName());
       }
@@ -110,7 +111,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       /**
        * {@inheritDoc}
        */
-      public String visitAlias(AliasDefaultBehaviorProvider<T> d,
+      public Message visitAlias(AliasDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
         return d.getSynopsis();
       }
@@ -120,9 +121,9 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       /**
        * {@inheritDoc}
        */
-      public String visitDefined(DefinedDefaultBehaviorProvider<T> d,
+      public Message visitDefined(DefinedDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
-        StringBuilder builder = new StringBuilder();
+        MessageBuilder builder = new MessageBuilder();
         PropertyValuePrinter printer = new PropertyValuePrinter(null, null,
             false);
         boolean isFirst = true;
@@ -135,7 +136,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
           builder.append(printer.print(p, value));
         }
 
-        return builder.toString();
+        return builder.toMessage();
       }
 
 
@@ -143,15 +144,15 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       /**
        * {@inheritDoc}
        */
-      public String visitRelativeInherited(
+      public Message visitRelativeInherited(
           RelativeInheritedDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
         if (d.getRelativeOffset() == 0) {
-          return getMessage(MSGID_DSCFG_HELP_FIELD_INHERITED_THIS, d
+          return INFO_DSCFG_HELP_FIELD_INHERITED_THIS.get(d
               .getPropertyName(), d.getManagedObjectDefinition()
               .getUserFriendlyName());
         } else {
-          return getMessage(MSGID_DSCFG_HELP_FIELD_INHERITED_PARENT, d
+          return INFO_DSCFG_HELP_FIELD_INHERITED_PARENT.get(d
               .getPropertyName(), d.getManagedObjectDefinition()
               .getUserFriendlyName());
         }
@@ -162,9 +163,9 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       /**
        * {@inheritDoc}
        */
-      public String visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
+      public Message visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
-        return getMessage(MSGID_DSCFG_HELP_FIELD_UNDEFINED);
+        return INFO_DSCFG_HELP_FIELD_UNDEFINED.get();
       }
 
     }
@@ -191,7 +192,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
      * @return Returns the user-friendly description of a property's
      *         default behavior.
      */
-    public <T> String print(PropertyDefinition<T> pd) {
+    public <T> Message print(PropertyDefinition<T> pd) {
       DefaultVisitor<T> v = new DefaultVisitor<T>();
       return pd.getDefaultBehaviorProvider().accept(v, pd);
     }
@@ -224,7 +225,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       @Override
       public <E extends Enum<E>> Void visitEnum(EnumPropertyDefinition<E> d,
           PrintStream p) {
-        displayUsage(p, getMessage(MSGID_DSCFG_HELP_FIELD_ENUM));
+        displayUsage(p, INFO_DSCFG_HELP_FIELD_ENUM.get());
         p.println();
 
         TableBuilder builder = new TableBuilder();
@@ -268,7 +269,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
         TableBuilder builder = new TableBuilder();
         builder.startRow();
-        builder.appendCell(getMessage(MSGID_DSCFG_HELP_HEADING_SYNTAX));
+        builder.appendCell(INFO_DSCFG_HELP_HEADING_SYNTAX.get());
         builder.appendCell(HEADING_SEPARATOR);
         builder.appendCell(usageBuilder.getUsage(d));
 
@@ -309,10 +310,10 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
 
       // Common usage.
-      private void displayUsage(PrintStream p, String usage) {
+      private void displayUsage(PrintStream p, Message usage) {
         TableBuilder builder = new TableBuilder();
         builder.startRow();
-        builder.appendCell(getMessage(MSGID_DSCFG_HELP_HEADING_SYNTAX));
+        builder.appendCell(INFO_DSCFG_HELP_HEADING_SYNTAX.get());
         builder.appendCell(HEADING_SEPARATOR);
         builder.appendCell(usage);
 
@@ -396,14 +397,14 @@ final class HelpSubCommandHandler extends SubCommandHandler {
   private static final Character OPTION_DSCFG_SHORT_CATEGORY = 'c';
 
   static {
-    int tmp = getMessage(MSGID_DSCFG_HELP_HEADING_SYNTAX).length();
-    tmp = Math.max(tmp, getMessage(MSGID_DSCFG_HELP_HEADING_DEFAULT).length());
-    tmp = Math.max(tmp, getMessage(MSGID_DSCFG_HELP_HEADING_MULTI_VALUED)
+    int tmp = INFO_DSCFG_HELP_HEADING_SYNTAX.get().length();
+    tmp = Math.max(tmp, INFO_DSCFG_HELP_HEADING_DEFAULT.get().length());
+    tmp = Math.max(tmp, INFO_DSCFG_HELP_HEADING_MULTI_VALUED.get()
         .length());
     tmp = Math
-        .max(tmp, getMessage(MSGID_DSCFG_HELP_HEADING_MANDATORY).length());
+        .max(tmp, INFO_DSCFG_HELP_HEADING_MANDATORY.get().length());
     tmp = Math
-        .max(tmp, getMessage(MSGID_DSCFG_HELP_HEADING_READ_ONLY).length());
+        .max(tmp, INFO_DSCFG_HELP_HEADING_READ_ONLY.get().length());
     HEADING_WIDTH = tmp;
   }
 
@@ -443,7 +444,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     PropertyDefinition<?> pd = d.getPropertyDefinition(name);
 
     // Display the title.
-    out.println(getMessage(MSGID_DSCFG_HELP_HEADING_PROPERTY, name));
+    out.println(INFO_DSCFG_HELP_HEADING_PROPERTY.get(name));
 
     // Display the property synopsis and description.
     out.println();
@@ -466,48 +467,48 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     DefaultBehaviorPrinter defaultPrinter = new DefaultBehaviorPrinter();
 
     builder.startRow();
-    builder.appendCell(getMessage(MSGID_DSCFG_HELP_HEADING_DEFAULT));
+    builder.appendCell(INFO_DSCFG_HELP_HEADING_DEFAULT.get());
     builder.appendCell(HEADING_SEPARATOR);
     builder.appendCell(defaultPrinter.print(pd));
 
     // Display options.
     builder.startRow();
-    builder.appendCell(getMessage(MSGID_DSCFG_HELP_HEADING_ADVANCED));
+    builder.appendCell(INFO_DSCFG_HELP_HEADING_ADVANCED.get());
     builder.appendCell(HEADING_SEPARATOR);
     if (pd.hasOption(PropertyOption.ADVANCED)) {
-      builder.appendCell(getMessage(MSGID_DSCFG_GENERAL_CONFIRM_YES));
+      builder.appendCell(INFO_DSCFG_GENERAL_CONFIRM_YES.get());
     } else {
-      builder.appendCell(getMessage(MSGID_DSCFG_GENERAL_CONFIRM_NO));
+      builder.appendCell(INFO_DSCFG_GENERAL_CONFIRM_NO.get());
     }
 
     builder.startRow();
-    builder.appendCell(getMessage(MSGID_DSCFG_HELP_HEADING_MULTI_VALUED));
+    builder.appendCell(INFO_DSCFG_HELP_HEADING_MULTI_VALUED.get());
     builder.appendCell(HEADING_SEPARATOR);
     if (pd.hasOption(PropertyOption.MULTI_VALUED)) {
-      builder.appendCell(getMessage(MSGID_DSCFG_GENERAL_CONFIRM_YES));
+      builder.appendCell(INFO_DSCFG_GENERAL_CONFIRM_YES.get());
     } else {
-      builder.appendCell(getMessage(MSGID_DSCFG_GENERAL_CONFIRM_NO));
+      builder.appendCell(INFO_DSCFG_GENERAL_CONFIRM_NO.get());
     }
 
     builder.startRow();
-    builder.appendCell(getMessage(MSGID_DSCFG_HELP_HEADING_MANDATORY));
+    builder.appendCell(INFO_DSCFG_HELP_HEADING_MANDATORY.get());
     builder.appendCell(HEADING_SEPARATOR);
     if (pd.hasOption(PropertyOption.MANDATORY)) {
-      builder.appendCell(getMessage(MSGID_DSCFG_GENERAL_CONFIRM_YES));
+      builder.appendCell(INFO_DSCFG_GENERAL_CONFIRM_YES.get());
     } else {
-      builder.appendCell(getMessage(MSGID_DSCFG_GENERAL_CONFIRM_NO));
+      builder.appendCell(INFO_DSCFG_GENERAL_CONFIRM_NO.get());
     }
 
     builder.startRow();
-    builder.appendCell(getMessage(MSGID_DSCFG_HELP_HEADING_READ_ONLY));
+    builder.appendCell(INFO_DSCFG_HELP_HEADING_READ_ONLY.get());
     builder.appendCell(HEADING_SEPARATOR);
     if (pd.hasOption(PropertyOption.MONITORING)) {
-      builder.appendCell(getMessage(MSGID_DSCFG_HELP_FIELD_MONITORING));
+      builder.appendCell(INFO_DSCFG_HELP_FIELD_MONITORING.get());
     } else if (pd.hasOption(PropertyOption.READ_ONLY)) {
-      builder.appendCell(getMessage(MSGID_DSCFG_HELP_FIELD_READ_ONLY, d
+      builder.appendCell(INFO_DSCFG_HELP_FIELD_READ_ONLY.get(d
           .getUserFriendlyName()));
     } else {
-      builder.appendCell(getMessage(MSGID_DSCFG_GENERAL_CONFIRM_NO));
+      builder.appendCell(INFO_DSCFG_GENERAL_CONFIRM_NO.get());
     }
 
     TextTablePrinter factory = new TextTablePrinter(out);
@@ -519,15 +520,15 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
     // Administrator action.
     AdministratorAction action = pd.getAdministratorAction();
-    String synopsis = action.getSynopsis();
+    Message synopsis = action.getSynopsis();
     if (synopsis == null) {
       switch (action.getType()) {
       case COMPONENT_RESTART:
-        synopsis = getMessage(MSGID_DSCFG_HELP_FIELD_COMPONENT_RESTART, d
-            .getUserFriendlyName());
+        synopsis = INFO_DSCFG_HELP_FIELD_COMPONENT_RESTART.get(
+            d.getUserFriendlyName());
         break;
       case SERVER_RESTART:
-        synopsis = getMessage(MSGID_DSCFG_HELP_FIELD_SERVER_RESTART);
+        synopsis = INFO_DSCFG_HELP_FIELD_SERVER_RESTART.get();
         break;
       default:
         // Do nothing.
@@ -574,28 +575,29 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
     // Create the sub-command.
     String name = "list-properties";
-    int descriptionID = MSGID_DSCFG_DESCRIPTION_SUBCMD_HELPPROP;
-    this.subCommand = new SubCommand(parser, name, false, 0, 0, null,
-        descriptionID);
+    Message desc = INFO_DSCFG_DESCRIPTION_SUBCMD_HELPPROP.get();
+    this.subCommand = new SubCommand(parser, name, false, 0, 0, null, desc);
 
     this.categoryArgument = new StringArgument(OPTION_DSCFG_LONG_CATEGORY,
         OPTION_DSCFG_SHORT_CATEGORY, OPTION_DSCFG_LONG_CATEGORY, false, false,
-        true, "{CATEGORY}", null, null, MSGID_DSCFG_DESCRIPTION_HELP_CATEGORY);
+        true, "{CATEGORY}", null, null,
+        INFO_DSCFG_DESCRIPTION_HELP_CATEGORY.get());
     this.subCommand.addArgument(this.categoryArgument);
 
     this.typeArgument = new StringArgument(OPTION_DSCFG_LONG_TYPE,
         OPTION_DSCFG_SHORT_TYPE, OPTION_DSCFG_LONG_TYPE, false, false, true,
-        "{TYPE}", null, null, MSGID_DSCFG_DESCRIPTION_HELP_TYPE);
+        "{TYPE}", null, null, INFO_DSCFG_DESCRIPTION_HELP_TYPE.get());
     this.subCommand.addArgument(this.typeArgument);
 
     this.inheritedModeArgument = new BooleanArgument(
         OPTION_DSCFG_LONG_INHERITED, OPTION_DSCFG_SHORT_INHERITED,
-        OPTION_DSCFG_LONG_INHERITED, MSGID_DSCFG_DESCRIPTION_HELP_INHERITED);
+        OPTION_DSCFG_LONG_INHERITED,
+        INFO_DSCFG_DESCRIPTION_HELP_INHERITED.get());
     subCommand.addArgument(inheritedModeArgument);
 
     // Register common arguments.
     registerAdvancedModeArgument(this.subCommand,
-        MSGID_DSCFG_DESCRIPTION_ADVANCED_HELP);
+        INFO_DSCFG_DESCRIPTION_ADVANCED_HELP.get());
     registerPropertyNameArgument(this.subCommand);
 
     this.categoryMap = new TreeMap<String,
@@ -788,18 +790,18 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       Tag tag, Set<String> propertyNames) {
     PrintStream out = getConsoleApplication().getOutputStream();
     if (!getConsoleApplication().isScriptFriendly()) {
-      out.println(getMessage(MSGID_DSCFG_HELP_DESCRIPTION_OPTION));
+      out.println(INFO_DSCFG_HELP_DESCRIPTION_OPTION.get());
       out.println();
       out.print(" r -- ");
-      out.println(getMessage(MSGID_DSCFG_HELP_DESCRIPTION_READ));
+      out.println(INFO_DSCFG_HELP_DESCRIPTION_READ.get());
       out.print(" w -- ");
-      out.println(getMessage(MSGID_DSCFG_HELP_DESCRIPTION_WRITE));
+      out.println(INFO_DSCFG_HELP_DESCRIPTION_WRITE.get());
       out.print(" m -- ");
-      out.println(getMessage(MSGID_DSCFG_HELP_DESCRIPTION_MANDATORY));
+      out.println(INFO_DSCFG_HELP_DESCRIPTION_MANDATORY.get());
       out.print(" s -- ");
-      out.println(getMessage(MSGID_DSCFG_HELP_DESCRIPTION_SINGLE_VALUED));
+      out.println(INFO_DSCFG_HELP_DESCRIPTION_SINGLE_VALUED.get());
       out.print(" a -- ");
-      out.println(getMessage(MSGID_DSCFG_HELP_DESCRIPTION_ADMIN_ACTION));
+      out.println(INFO_DSCFG_HELP_DESCRIPTION_ADMIN_ACTION.get());
       out.println();
       out.println();
     }
@@ -807,11 +809,11 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     // Headings.
     TableBuilder builder = new TableBuilder();
 
-    builder.appendHeading(getMessage(MSGID_DSCFG_HEADING_COMPONENT_NAME));
-    builder.appendHeading(getMessage(MSGID_DSCFG_HEADING_COMPONENT_TYPE));
-    builder.appendHeading(getMessage(MSGID_DSCFG_HEADING_PROPERTY_NAME));
-    builder.appendHeading(getMessage(MSGID_DSCFG_HEADING_PROPERTY_OPTIONS));
-    builder.appendHeading(getMessage(MSGID_DSCFG_HEADING_PROPERTY_SYNTAX));
+    builder.appendHeading(INFO_DSCFG_HEADING_COMPONENT_NAME.get());
+    builder.appendHeading(INFO_DSCFG_HEADING_COMPONENT_TYPE.get());
+    builder.appendHeading(INFO_DSCFG_HEADING_PROPERTY_NAME.get());
+    builder.appendHeading(INFO_DSCFG_HEADING_PROPERTY_OPTIONS.get());
+    builder.appendHeading(INFO_DSCFG_HEADING_PROPERTY_SYNTAX.get());
 
     // Sort keys.
     builder.addSortKey(0);
@@ -979,8 +981,8 @@ final class HelpSubCommandHandler extends SubCommandHandler {
             }
 
             // Display the title.
-            out.println(wrapText(getMessage(MSGID_DSCFG_HELP_HEADING_COMPONENT,
-                mod.getUserFriendlyName()), MAX_LINE_WIDTH));
+            out.println(wrapText(INFO_DSCFG_HELP_HEADING_COMPONENT.get(
+                    mod.getUserFriendlyName()), MAX_LINE_WIDTH));
 
             out.println();
             out.println(wrapText(mod.getSynopsis(), MAX_LINE_WIDTH));

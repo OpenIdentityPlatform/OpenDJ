@@ -26,10 +26,9 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.AciMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
-
+import static org.opends.messages.AccessControlMessages.*;
 import java.util.*;
 import org.opends.server.types.*;
 import org.opends.server.core.DirectoryServer;
@@ -99,9 +98,9 @@ public class UserDN implements KeywordBindRule {
             try {
                url=LDAPURL.decode(value.toString(), true);
             } catch (DirectoryException de) {
-                int msgID = MSGID_ACI_SYNTAX_INVALID_USERDN_URL;
-                String message = getMessage(msgID, de.getErrorMessage());
-                throw new AciException(msgID, message);
+                Message message = WARN_ACI_SYNTAX_INVALID_USERDN_URL.get(
+                    de.getMessageObject());
+                throw new AciException(message);
             }
             UserDNTypeURL dnTypeURL=new UserDNTypeURL(userDNType, url);
             urlList.add(dnTypeURL);

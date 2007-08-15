@@ -35,6 +35,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -296,7 +297,7 @@ public class SimilarityBasedPasswordValidatorTestCase
                                conn.nextMessageID(), new ArrayList<Control>(),
                                DN.decode("cn=uid=test.user,o=test"), mods);
 
-      StringBuilder invalidReason = new StringBuilder();
+      MessageBuilder invalidReason = new MessageBuilder();
       assertTrue(validator.passwordIsAcceptable(password,
                                                 new HashSet<ByteString>(0),
                                                 op, userEntry, invalidReason));
@@ -372,7 +373,7 @@ public class SimilarityBasedPasswordValidatorTestCase
                                conn.nextMessageID(), new ArrayList<Control>(),
                                DN.decode("cn=uid=test.user,o=test"), mods);
 
-      StringBuilder invalidReason = new StringBuilder();
+      MessageBuilder invalidReason = new MessageBuilder();
       assertEquals((buffer.length() >= 6),
                    validator.passwordIsAcceptable(password,
                                                   currentPassword,

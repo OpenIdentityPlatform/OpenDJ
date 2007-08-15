@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
+import org.opends.messages.Message;
 
 
 import java.io.File;
@@ -50,8 +51,9 @@ import org.opends.server.core.UnbindOperation;
 import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.ConfigMessages.*;
+
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
@@ -131,10 +133,9 @@ public class TextAccessLogPublisher
         }
         else
         {
-          int msgID = MSGID_CONFIG_LOGGER_INVALID_ROTATION_POLICY;
-          String message = getMessage(msgID, dn.toString(),
-                                      config.dn().toString());
-          throw new ConfigException(msgID, message);
+          Message message = ERR_CONFIG_LOGGER_INVALID_ROTATION_POLICY.get(
+              dn.toString(), config.dn().toString());
+          throw new ConfigException(message);
         }
       }
       for(DN dn: config.getRetentionPolicyDN())
@@ -146,10 +147,9 @@ public class TextAccessLogPublisher
         }
         else
         {
-          int msgID = MSGID_CONFIG_LOGGER_INVALID_RETENTION_POLICY;
-          String message = getMessage(msgID, dn.toString(),
-                                      config.dn().toString());
-          throw new ConfigException(msgID, message);
+          Message message = WARN_CONFIG_LOGGER_INVALID_RETENTION_POLICY.get(
+              dn.toString(), config.dn().toString());
+          throw new ConfigException(message);
         }
       }
 
@@ -167,18 +167,16 @@ public class TextAccessLogPublisher
     }
     catch(DirectoryException e)
     {
-      int msgID = MSGID_CONFIG_LOGGING_CANNOT_CREATE_WRITER;
-      String message = getMessage(msgID, config.dn().toString(),
-                                  String.valueOf(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+          config.dn().toString(), String.valueOf(e));
+      throw new InitializationException(message, e);
 
     }
     catch(IOException e)
     {
-      int msgID = MSGID_CONFIG_LOGGING_CANNOT_CREATE_WRITER;
-      String message = getMessage(msgID, config.dn().toString(),
-                                  String.valueOf(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+          config.dn().toString(), String.valueOf(e));
+      throw new InitializationException(message, e);
 
     }
 
@@ -198,7 +196,7 @@ public class TextAccessLogPublisher
    */
   @Override()
   public boolean isConfigurationAcceptable(AccessLogPublisherCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     FileBasedAccessLogPublisherCfg config =
          (FileBasedAccessLogPublisherCfg) configuration;
@@ -209,9 +207,9 @@ public class TextAccessLogPublisher
        RotationPolicy policy = DirectoryServer.getRotationPolicy(dn);
        if(policy == null)
        {
-         int msgID = MSGID_CONFIG_LOGGER_INVALID_ROTATION_POLICY;
-         String message = getMessage(msgID, dn.toString(),
-                                     config.dn().toString());
+         Message message = ERR_CONFIG_LOGGER_INVALID_ROTATION_POLICY.get(
+                 dn.toString(),
+                 config.dn().toString());
          unacceptableReasons.add(message);
          return false;
        }
@@ -221,9 +219,9 @@ public class TextAccessLogPublisher
        RetentionPolicy policy = DirectoryServer.getRetentionPolicy(dn);
        if(policy == null)
        {
-         int msgID = MSGID_CONFIG_LOGGER_INVALID_RETENTION_POLICY;
-         String message = getMessage(msgID, dn.toString(),
-                                     config.dn().toString());
+         Message message = WARN_CONFIG_LOGGER_INVALID_RETENTION_POLICY.get(
+                 dn.toString(),
+                 config.dn().toString());
          unacceptableReasons.add(message);
          return false;
        }
@@ -236,7 +234,7 @@ public class TextAccessLogPublisher
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-       FileBasedAccessLogPublisherCfg config, List<String> unacceptableReasons)
+       FileBasedAccessLogPublisherCfg config, List<Message> unacceptableReasons)
    {
      // Make sure the permission is valid.
      try
@@ -257,9 +255,9 @@ public class TextAccessLogPublisher
      }
      catch(Exception e)
      {
-       int msgID = MSGID_CONFIG_LOGGING_CANNOT_CREATE_WRITER;
-       String message = getMessage(msgID, config.dn().toString(),
-                                    stackTraceToSingleLineString(e));
+       Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+               config.dn().toString(),
+               stackTraceToSingleLineString(e));
        unacceptableReasons.add(message);
        return false;
      }
@@ -276,7 +274,7 @@ public class TextAccessLogPublisher
      // Default result code.
      ResultCode resultCode = ResultCode.SUCCESS;
      boolean adminActionRequired = false;
-     ArrayList<String> messages = new ArrayList<String>();
+     ArrayList<Message> messages = new ArrayList<Message>();
 
      suppressInternalOperations = config.isSuppressInternalOperations();
      suppressSynchronizationOperations =
@@ -328,9 +326,9 @@ public class TextAccessLogPublisher
            }
            else
            {
-             int msgID = MSGID_CONFIG_LOGGER_INVALID_ROTATION_POLICY;
-             String message = getMessage(msgID, dn.toString(),
-                                         config.dn().toString());
+             Message message = ERR_CONFIG_LOGGER_INVALID_ROTATION_POLICY.get(
+                     dn.toString(),
+                     config.dn().toString());
              resultCode = DirectoryServer.getServerErrorResultCode();
              messages.add(message);
            }
@@ -344,9 +342,9 @@ public class TextAccessLogPublisher
            }
            else
            {
-             int msgID = MSGID_CONFIG_LOGGER_INVALID_RETENTION_POLICY;
-             String message = getMessage(msgID, dn.toString(),
-                                         config.dn().toString());
+             Message message = WARN_CONFIG_LOGGER_INVALID_RETENTION_POLICY.get(
+                     dn.toString(),
+                     config.dn().toString());
              resultCode = DirectoryServer.getServerErrorResultCode();
              messages.add(message);
            }
@@ -384,9 +382,9 @@ public class TextAccessLogPublisher
      }
      catch(Exception e)
      {
-       int msgID = MSGID_CONFIG_LOGGING_CANNOT_CREATE_WRITER;
-       String message = getMessage(msgID, config.dn().toString(),
-                                   stackTraceToSingleLineString(e));
+       Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+               config.dn().toString(),
+               stackTraceToSingleLineString(e));
        resultCode = DirectoryServer.getServerErrorResultCode();
        messages.add(message);
 
@@ -457,7 +455,7 @@ public class TextAccessLogPublisher
    */
   public void logDisconnect(ClientConnection clientConnection,
                             DisconnectReason disconnectReason,
-                            String message)
+                            Message message)
   {
     long connectionID = clientConnection.getConnectionID();
     if (connectionID < 0 && suppressInternalOperations)
@@ -574,7 +572,7 @@ public class TextAccessLogPublisher
     buffer.append(" result=");
     buffer.append(abandonOperation.getResultCode());
 
-    StringBuilder msg = abandonOperation.getErrorMessage();
+    MessageBuilder msg = abandonOperation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       buffer.append(" message=\"");
@@ -687,7 +685,7 @@ public class TextAccessLogPublisher
     buffer.append(" result=\"");
     buffer.append(addOperation.getResultCode());
 
-    StringBuilder msg = addOperation.getErrorMessage();
+    MessageBuilder msg = addOperation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       buffer.append("\" message=\"");
@@ -822,25 +820,20 @@ public class TextAccessLogPublisher
     buffer.append(" result=\"");
     buffer.append(bindOperation.getResultCode());
 
-    StringBuilder msg = bindOperation.getErrorMessage();
+    MessageBuilder msg = bindOperation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       buffer.append("\" message=\"");
       buffer.append(msg);
     }
 
-    int failureID = bindOperation.getAuthFailureID();
-    if (failureID > 0)
+    Message failureMessage = bindOperation.getAuthFailureReason();
+    if (failureMessage != null)
     {
       buffer.append("\" authFailureID=");
-      buffer.append(failureID);
+      buffer.append(failureMessage.getDescriptor().getId());
       buffer.append(" authFailureReason=\"");
-
-      String failureReason = bindOperation.getAuthFailureReason();
-      if (failureReason != null)
-      {
-        buffer.append(failureReason);
-      }
+      buffer.append(failureMessage);
     }
 
     msg = bindOperation.getAdditionalLogMessage();
@@ -972,7 +965,7 @@ public class TextAccessLogPublisher
     buffer.append(" result=\"");
     buffer.append(compareOperation.getResultCode());
 
-    StringBuilder msg = compareOperation.getErrorMessage();
+    MessageBuilder msg = compareOperation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       buffer.append("\" message=\"");
@@ -1091,7 +1084,7 @@ public class TextAccessLogPublisher
     buffer.append(" result=\"");
     buffer.append(deleteOperation.getResultCode());
 
-    StringBuilder msg = deleteOperation.getErrorMessage();
+    MessageBuilder msg = deleteOperation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       buffer.append("\" message=\"");
@@ -1220,7 +1213,7 @@ public class TextAccessLogPublisher
     buffer.append(" result=\"");
     buffer.append(extendedOperation.getResultCode());
 
-    StringBuilder msg = extendedOperation.getErrorMessage();
+    MessageBuilder msg = extendedOperation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       buffer.append("\" message=\"");
@@ -1333,7 +1326,7 @@ public class TextAccessLogPublisher
     buffer.append(" result=\"");
     buffer.append(modifyOperation.getResultCode());
 
-    StringBuilder msg = modifyOperation.getErrorMessage();
+    MessageBuilder msg = modifyOperation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       buffer.append("\" message=\"");
@@ -1464,7 +1457,7 @@ public class TextAccessLogPublisher
     buffer.append(" result=\"");
     buffer.append(modifyDNOperation.getResultCode());
 
-    StringBuilder msg = modifyDNOperation.getErrorMessage();
+    MessageBuilder msg = modifyDNOperation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       buffer.append("\" message=\"");
@@ -1638,7 +1631,7 @@ public class TextAccessLogPublisher
     buffer.append(" result=\"");
     buffer.append(searchOperation.getResultCode());
 
-    StringBuilder msg = searchOperation.getErrorMessage();
+    MessageBuilder msg = searchOperation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       buffer.append("\" message=\"");

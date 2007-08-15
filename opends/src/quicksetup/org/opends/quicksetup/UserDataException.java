@@ -27,39 +27,30 @@
 
 package org.opends.quicksetup;
 
+import org.opends.messages.Message;
+import org.opends.server.types.OpenDsException;
+
 /**
  * This exception is used when there is an error with the data provided by
  * the user.  It will be thrown by the class that is in charge of validating
  * the user data (the Application class).
  *
  */
-public class UserDataException extends Exception
-{
+public class UserDataException extends OpenDsException {
+
   private static final long serialVersionUID = 1798143194655443132L;
 
   private WizardStep step;
 
-  private String localizedMessage;
-
   /**
    * Constructor for UserDataException.
    * @param step the step in the wizard where the exception occurred.
-   * @param localizedMessage the localized message describing the error.
+   * @param message the localized message describing the error.
    */
-  public UserDataException(WizardStep step, String localizedMessage)
+  public UserDataException(WizardStep step, Message message)
   {
-    super(localizedMessage);
+    super(message);
     this.step = step;
-    this.localizedMessage = localizedMessage;
-  }
-
-  /**
-   * Returns the localized message describing the error that occurred.
-   * @return the localized message describing the error that occurred.
-   */
-  public String getLocalizedMessage()
-  {
-    return localizedMessage;
   }
 
   /**

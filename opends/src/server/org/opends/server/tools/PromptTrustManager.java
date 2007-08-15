@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 
 
@@ -37,8 +38,7 @@ import java.util.Date;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -104,9 +104,8 @@ public class PromptTrustManager
   public void checkClientTrusted(X509Certificate[] chain, String authType)
          throws CertificateException
   {
-    int    msgID   = MSGID_PROMPTTM_REJECTING_CLIENT_CERT;
-    String message = getMessage(msgID);
-    throw new CertificateException(message);
+    Message message = ERR_PROMPTTM_REJECTING_CLIENT_CERT.get();
+    throw new CertificateException(message.toString());
   }
 
 
@@ -126,7 +125,7 @@ public class PromptTrustManager
   {
     if ((chain == null) || (chain.length == 0))
     {
-      System.out.println(getMessage(MSGID_PROMPTTM_NO_SERVER_CERT_CHAIN));
+      System.out.println(WARN_PROMPTTM_NO_SERVER_CERT_CHAIN.get());
     }
     else
     {
@@ -136,26 +135,26 @@ public class PromptTrustManager
 
       if (currentDate.after(notAfterDate))
       {
-        int    msgID   = MSGID_PROMPTTM_CERT_EXPIRED;
-        String message = getMessage(msgID, String.valueOf(notAfterDate));
+        Message message = WARN_PROMPTTM_CERT_EXPIRED.get(
+                String.valueOf(notAfterDate));
         System.err.println(message);
       }
       else if (currentDate.before(notBeforeDate))
       {
-        int    msgID   = MSGID_PROMPTTM_CERT_NOT_YET_VALID;
-        String message = getMessage(msgID, String.valueOf(notBeforeDate));
+        Message message = WARN_PROMPTTM_CERT_NOT_YET_VALID.get(
+                String.valueOf(notBeforeDate));
         System.err.println(message);
       }
 
-      System.out.println(getMessage(MSGID_PROMPTTM_SERVER_CERT,
-                                    chain[0].getSubjectDN().getName(),
-                                    chain[0].getIssuerDN().getName(),
-                                    String.valueOf(notBeforeDate),
-                                    String.valueOf(notAfterDate)));
+      System.out.println(INFO_PROMPTTM_SERVER_CERT.get(
+              chain[0].getSubjectDN().getName(),
+              chain[0].getIssuerDN().getName(),
+              String.valueOf(notBeforeDate),
+              String.valueOf(notAfterDate)));
     }
 
 
-    String prompt = getMessage(MSGID_PROMPTTM_YESNO_PROMPT);
+    Message prompt = INFO_PROMPTTM_YESNO_PROMPT.get();
     BufferedReader reader =
          new BufferedReader(new InputStreamReader(System.in));
     while (true)
@@ -172,9 +171,8 @@ public class PromptTrustManager
         }
         else if (line.equals("n") || line.equals("no"))
         {
-          int msgID = MSGID_PROMPTTM_USER_REJECTED;
-          String message = getMessage(msgID);
-          throw new CertificateException(message);
+          Message message = ERR_PROMPTTM_USER_REJECTED.get();
+          throw new CertificateException(message.toString());
         }
       } catch (IOException ioe) {}
 

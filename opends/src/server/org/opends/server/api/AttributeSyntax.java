@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
+import org.opends.messages.Message;
 
 
 
@@ -35,6 +36,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.InitializationException;
 
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -90,7 +92,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    */
   public boolean isConfigurationAcceptable(
                       AttributeSyntaxCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by attribute syntax
@@ -205,7 +207,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    *          for use with this syntax, or <CODE>false</CODE> if not.
    */
   public abstract boolean valueIsAcceptable(ByteString value,
-                               StringBuilder invalidReason);
+                               MessageBuilder invalidReason);
 
 
 

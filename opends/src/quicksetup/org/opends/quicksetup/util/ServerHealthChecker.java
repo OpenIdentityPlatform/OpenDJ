@@ -27,11 +27,14 @@
 
 package org.opends.quicksetup.util;
 
+import org.opends.messages.Message;
+
 import org.opends.quicksetup.ApplicationReturnCode;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ApplicationException;
-import org.opends.quicksetup.i18n.ResourceProvider;
+
 import org.opends.server.util.ServerConstants;
+import static org.opends.messages.QuickSetupMessages.*;
 
 import java.util.List;
 
@@ -43,7 +46,7 @@ public class ServerHealthChecker {
 
   private Installation installation = null;
 
-  private List<String> errors = null;
+  private List<Message> errors = null;
 
   /**
    * Regular expression used to determine whether or not a server
@@ -87,8 +90,8 @@ public class ServerHealthChecker {
         throw (ApplicationException)e;
       } else {
         throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.APPLICATION_ERROR, ResourceProvider
-                .getInstance().getMsg("error-server-health-check-failure"), e);
+            ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
+                INFO_ERROR_SERVER_HEALTH_CHECK_FAILURE.get(), e);
       }
     } finally {
       if (control != null) {
@@ -103,7 +106,7 @@ public class ServerHealthChecker {
    * has not been called.
    * @return List of strings containing error messages
    */
-  public List<String> getProblemMessages() {
+  public List<Message> getProblemMessages() {
     return errors;
   }
 

@@ -27,12 +27,14 @@
 
 package org.opends.guitools.statuspanel;
 
+import org.opends.messages.Message;
+import org.opends.server.types.OpenDsException;
 
 /**
  * Exception thrown when there is an error with the configuration (for instance
  * a valid URL for the requested protocol could not be found).
  */
-public class ConfigException extends Exception
+public class ConfigException extends OpenDsException
 {
   private static final long serialVersionUID = 1266482779183126905L;
 
@@ -40,7 +42,7 @@ public class ConfigException extends Exception
    * Constructor for the exception.
    * @param msg the localized message to be used.
    */
-  public ConfigException(String msg)
+  public ConfigException(Message msg)
   {
     super(msg);
   }

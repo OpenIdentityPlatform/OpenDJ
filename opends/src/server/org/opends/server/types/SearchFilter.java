@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 
@@ -47,8 +48,7 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -537,11 +537,10 @@ public class SearchFilter
   {
     if ((attributeType == null) && (matchingRuleID == null))
     {
-      int msgID =
-           MSGID_SEARCH_FILTER_CREATE_EXTENSIBLE_MATCH_NO_AT_OR_MR;
-      String message = getMessage(msgID);
-      throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message,
-                                   msgID);
+      Message message =
+          ERR_SEARCH_FILTER_CREATE_EXTENSIBLE_MATCH_NO_AT_OR_MR.get();
+      throw new DirectoryException(
+              ResultCode.PROTOCOL_ERROR, message);
     }
 
     return new SearchFilter(FilterType.EXTENSIBLE_MATCH, null, null,
@@ -583,11 +582,10 @@ public class SearchFilter
   {
     if ((attributeType == null) && (matchingRuleID == null))
     {
-      int msgID =
-           MSGID_SEARCH_FILTER_CREATE_EXTENSIBLE_MATCH_NO_AT_OR_MR;
-      String message = getMessage(msgID);
-      throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message,
-                                   msgID);
+      Message message =
+          ERR_SEARCH_FILTER_CREATE_EXTENSIBLE_MATCH_NO_AT_OR_MR.get();
+      throw new DirectoryException(
+              ResultCode.PROTOCOL_ERROR, message);
     }
 
     return new SearchFilter(FilterType.EXTENSIBLE_MATCH, null, null,
@@ -616,10 +614,9 @@ public class SearchFilter
   {
     if (filterString == null)
     {
-      int msgID = MSGID_SEARCH_FILTER_NULL;
-      String message = getMessage(msgID);
-      throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message,
-                                   msgID);
+      Message message = ERR_SEARCH_FILTER_NULL.get();
+      throw new DirectoryException(
+              ResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -644,11 +641,10 @@ public class SearchFilter
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_SEARCH_FILTER_UNCAUGHT_EXCEPTION;
-      String message = getMessage(msgID, filterString,
-                                  String.valueOf(e));
+      Message message = ERR_SEARCH_FILTER_UNCAUGHT_EXCEPTION.get(
+          filterString, String.valueOf(e));
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message,
-                                   msgID, e);
+                                   e);
     }
   }
 
@@ -682,10 +678,9 @@ public class SearchFilter
     int length = endPos - startPos;
     if (length <= 0)
     {
-      int msgID = MSGID_SEARCH_FILTER_NULL;
-      String message = getMessage(msgID);
-      throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message,
-                                   msgID);
+      Message message = ERR_SEARCH_FILTER_NULL.get();
+      throw new DirectoryException(
+              ResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -700,11 +695,10 @@ public class SearchFilter
       }
       else
       {
-        int    msgID   = MSGID_SEARCH_FILTER_MISMATCHED_PARENTHESES;
-        String message = getMessage(msgID, filterString, startPos,
-                                    endPos);
+        Message message = ERR_SEARCH_FILTER_MISMATCHED_PARENTHESES.
+            get(filterString, startPos, endPos);
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -744,11 +738,10 @@ public class SearchFilter
 
     if (equalPos <= startPos)
     {
-      int    msgID   = MSGID_SEARCH_FILTER_NO_EQUAL_SIGN;
-      String message = getMessage(msgID, filterString, startPos,
-                                  endPos);
+      Message message = ERR_SEARCH_FILTER_NO_EQUAL_SIGN.get(
+          filterString, startPos, endPos);
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -873,11 +866,11 @@ public class SearchFilter
             // comprise the binary value.
             if ((i + 2) >= valueBytes.length)
             {
-              int msgID = MSGID_SEARCH_FILTER_INVALID_ESCAPED_BYTE;
-              String message = getMessage(msgID, filterString,
-                                          equalPos+i+1);
+              Message message =
+                  ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
+                    get(filterString, equalPos+i+1);
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                           message, msgID);
+                                           message);
             }
 
             byte byteValue = 0;
@@ -937,12 +930,11 @@ public class SearchFilter
                 byteValue = (byte) 0xF0;
                 break;
               default:
-                int msgID = MSGID_SEARCH_FILTER_INVALID_ESCAPED_BYTE;
-                String message = getMessage(msgID, filterString,
-                                            equalPos+i+1);
+                Message message =
+                    ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
+                      get(filterString, equalPos+i+1);
                 throw new DirectoryException(
-                               ResultCode.PROTOCOL_ERROR, message,
-                               msgID);
+                               ResultCode.PROTOCOL_ERROR, message);
             }
 
             switch (valueBytes[++i])
@@ -1001,12 +993,11 @@ public class SearchFilter
                 byteValue |= (byte) 0x0F;
                 break;
               default:
-                int msgID = MSGID_SEARCH_FILTER_INVALID_ESCAPED_BYTE;
-                String message = getMessage(msgID, filterString,
-                                            equalPos+i+1);
+                Message message =
+                    ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
+                      get(filterString, equalPos+i+1);
                 throw new DirectoryException(
-                               ResultCode.PROTOCOL_ERROR, message,
-                               msgID);
+                               ResultCode.PROTOCOL_ERROR, message);
             }
 
             valueBuffer.put(byteValue);
@@ -1072,11 +1063,10 @@ public class SearchFilter
     {
       if (filterType == FilterType.NOT)
       {
-        int    msgID   = MSGID_SEARCH_FILTER_NOT_EXACTLY_ONE;
-        String message = getMessage(msgID, filterString, startPos,
-                                    endPos);
+        Message message = ERR_SEARCH_FILTER_NOT_EXACTLY_ONE.get(
+            filterString, startPos, endPos);
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                     message, msgID);
+                                     message);
       }
       else
       {
@@ -1093,11 +1083,11 @@ public class SearchFilter
     if ((filterString.charAt(startPos) != '(') ||
         (filterString.charAt(endPos-1) != ')'))
     {
-      int msgID = MSGID_SEARCH_FILTER_COMPOUND_MISSING_PARENTHESES;
-      String message = getMessage(msgID, filterString, startPos,
-                                  endPos);
-      throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message,
-                                   msgID);
+      Message message =
+          ERR_SEARCH_FILTER_COMPOUND_MISSING_PARENTHESES.
+            get(filterString, startPos, endPos);
+      throw new DirectoryException(
+              ResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -1130,20 +1120,20 @@ public class SearchFilter
         }
         else if (pendingOpens < 0)
         {
-          int msgID =
-               MSGID_SEARCH_FILTER_NO_CORRESPONDING_OPEN_PARENTHESIS;
-          String message = getMessage(msgID, filterString, i);
+          Message message =
+              ERR_SEARCH_FILTER_NO_CORRESPONDING_OPEN_PARENTHESIS.
+                get(filterString, i);
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message, msgID);
+                                       message);
         }
       }
       else if (pendingOpens <= 0)
       {
-        int msgID = MSGID_SEARCH_FILTER_COMPOUND_MISSING_PARENTHESES;
-        String message = getMessage(msgID, filterString, startPos,
-                                    endPos);
+        Message message =
+            ERR_SEARCH_FILTER_COMPOUND_MISSING_PARENTHESES.
+              get(filterString, startPos, endPos);
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -1153,11 +1143,11 @@ public class SearchFilter
     // empty.
     if (pendingOpens != 0)
     {
-      int msgID =
-           MSGID_SEARCH_FILTER_NO_CORRESPONDING_CLOSE_PARENTHESIS;
-      String message = getMessage(msgID, filterString, openPos);
-      throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message,
-                                   msgID);
+      Message message =
+          ERR_SEARCH_FILTER_NO_CORRESPONDING_CLOSE_PARENTHESIS.
+            get(filterString, openPos);
+      throw new DirectoryException(
+              ResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -1166,11 +1156,10 @@ public class SearchFilter
     {
       if (filterComponents.size() != 1)
       {
-        int    msgID   = MSGID_SEARCH_FILTER_NOT_EXACTLY_ONE;
-        String message = getMessage(msgID, filterString, startPos,
-                                    endPos);
+        Message message = ERR_SEARCH_FILTER_NOT_EXACTLY_ONE.get(
+            filterString, startPos, endPos);
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                     message, msgID);
+                                     message);
       }
       SearchFilter notComponent = filterComponents.get(0);
       return new SearchFilter(filterType, null, notComponent, null,
@@ -1239,11 +1228,10 @@ public class SearchFilter
     // If there were no asterisks, then this isn't a substring filter.
     if (asteriskPositions.isEmpty())
     {
-      int msgID = MSGID_SEARCH_FILTER_SUBSTRING_NO_ASTERISKS;
-      String message = getMessage(msgID, filterString, equalPos+1,
-                                  endPos);
-      throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message,
-                                   msgID);
+      Message message = ERR_SEARCH_FILTER_SUBSTRING_NO_ASTERISKS.get(
+          filterString, equalPos+1, endPos);
+      throw new DirectoryException(
+              ResultCode.PROTOCOL_ERROR, message);
     }
     else
     {
@@ -1274,11 +1262,11 @@ public class SearchFilter
             // comprise the binary value.
             if ((i + 2) >= valueBytes.length)
             {
-              int msgID = MSGID_SEARCH_FILTER_INVALID_ESCAPED_BYTE;
-              String message =
-                   getMessage(msgID, filterString, equalPos+i+1);
+              Message message =
+                  ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
+                    get(filterString, equalPos+i+1);
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                           message, msgID);
+                                           message);
             }
 
             byte byteValue = 0;
@@ -1338,12 +1326,11 @@ public class SearchFilter
                 byteValue = (byte) 0xF0;
                 break;
               default:
-                int msgID = MSGID_SEARCH_FILTER_INVALID_ESCAPED_BYTE;
-                String message = getMessage(msgID, filterString,
-                                            equalPos+i+1);
+                Message message =
+                    ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
+                      get(filterString, equalPos+i+1);
                 throw new DirectoryException(
-                               ResultCode.PROTOCOL_ERROR, message,
-                               msgID);
+                               ResultCode.PROTOCOL_ERROR, message);
             }
 
             switch (valueBytes[++i])
@@ -1402,12 +1389,11 @@ public class SearchFilter
                 byteValue |= (byte) 0x0F;
                 break;
               default:
-                int msgID = MSGID_SEARCH_FILTER_INVALID_ESCAPED_BYTE;
-                String message = getMessage(msgID, filterString,
-                                            equalPos+i+1);
+                Message message =
+                    ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
+                      get(filterString, equalPos+i+1);
                 throw new DirectoryException(
-                               ResultCode.PROTOCOL_ERROR, message,
-                               msgID);
+                               ResultCode.PROTOCOL_ERROR, message);
             }
 
             buffer.put(byteValue);
@@ -1450,11 +1436,11 @@ public class SearchFilter
             // comprise the binary value.
             if ((i + 2) >= valueBytes.length)
             {
-              int msgID = MSGID_SEARCH_FILTER_INVALID_ESCAPED_BYTE;
-              String message = getMessage(msgID, filterString,
-                                          equalPos+i+1);
+              Message message =
+                  ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
+                    get(filterString, equalPos+i+1);
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                           message, msgID);
+                                           message);
             }
 
             byte byteValue = 0;
@@ -1514,12 +1500,11 @@ public class SearchFilter
                 byteValue = (byte) 0xF0;
                 break;
               default:
-                int  msgID = MSGID_SEARCH_FILTER_INVALID_ESCAPED_BYTE;
-                String message = getMessage(msgID, filterString,
-                                            equalPos+i+1);
+                Message message =
+                    ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
+                      get(filterString, equalPos+i+1);
                 throw new DirectoryException(
-                               ResultCode.PROTOCOL_ERROR, message,
-                               msgID);
+                               ResultCode.PROTOCOL_ERROR, message);
             }
 
             switch (valueBytes[++i])
@@ -1578,12 +1563,11 @@ public class SearchFilter
                 byteValue |= (byte) 0x0F;
                 break;
               default:
-                int msgID = MSGID_SEARCH_FILTER_INVALID_ESCAPED_BYTE;
-                String message = getMessage(msgID, filterString,
-                                            equalPos+i+1);
+                Message message =
+                    ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
+                      get(filterString, equalPos+i+1);
                 throw new DirectoryException(
-                               ResultCode.PROTOCOL_ERROR, message,
-                               msgID);
+                               ResultCode.PROTOCOL_ERROR, message);
             }
 
             buffer.put(byteValue);
@@ -1634,11 +1618,11 @@ public class SearchFilter
             // comprise the binary value.
             if ((i + 2) >= valueBytes.length)
             {
-              int msgID = MSGID_SEARCH_FILTER_INVALID_ESCAPED_BYTE;
-              String message = getMessage(msgID, filterString,
-                                          equalPos+i+1);
+              Message message =
+                  ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
+                    get(filterString, equalPos+i+1);
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                           message, msgID);
+                                           message);
             }
 
             byte byteValue = 0;
@@ -1698,12 +1682,11 @@ public class SearchFilter
                 byteValue = (byte) 0xF0;
                 break;
               default:
-                int msgID = MSGID_SEARCH_FILTER_INVALID_ESCAPED_BYTE;
-                String message = getMessage(msgID, filterString,
-                                            equalPos+i+1);
+                Message message =
+                    ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
+                      get(filterString, equalPos+i+1);
                 throw new DirectoryException(
-                               ResultCode.PROTOCOL_ERROR, message,
-                               msgID);
+                               ResultCode.PROTOCOL_ERROR, message);
             }
 
             switch (valueBytes[++i])
@@ -1762,12 +1745,11 @@ public class SearchFilter
                 byteValue |= (byte) 0x0F;
                 break;
               default:
-                int msgID = MSGID_SEARCH_FILTER_INVALID_ESCAPED_BYTE;
-                String message = getMessage(msgID, filterString,
-                                            equalPos+i+1);
+                Message message =
+                    ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
+                      get(filterString, equalPos+i+1);
                 throw new DirectoryException(
-                               ResultCode.PROTOCOL_ERROR, message,
-                               msgID);
+                               ResultCode.PROTOCOL_ERROR, message);
             }
 
             buffer.put(byteValue);
@@ -1859,10 +1841,10 @@ public class SearchFilter
       int colonPos = filterString.indexOf(':',startPos);
       if (colonPos < 0)
       {
-        int msgID = MSGID_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_COLON;
-        String message = getMessage(msgID, filterString, startPos);
+        Message message = ERR_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_COLON.
+            get(filterString, startPos);
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                     message, msgID);
+                                     message);
       }
 
 
@@ -1956,11 +1938,10 @@ public class SearchFilter
           // comprise the binary value.
           if ((i + 2) >= valueBytes.length)
           {
-            int msgID = MSGID_SEARCH_FILTER_INVALID_ESCAPED_BYTE;
-            String message = getMessage(msgID, filterString,
-                                        equalPos+i+1);
+            Message message = ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
+                get(filterString, equalPos+i+1);
             throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                         message, msgID);
+                                         message);
           }
 
           byte byteValue = 0;
@@ -2020,11 +2001,11 @@ public class SearchFilter
               byteValue = (byte) 0xF0;
               break;
             default:
-              int msgID = MSGID_SEARCH_FILTER_INVALID_ESCAPED_BYTE;
-              String message = getMessage(msgID, filterString,
-                                          equalPos+i+1);
+              Message message =
+                  ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
+                    get(filterString, equalPos+i+1);
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                           message, msgID);
+                                           message);
           }
 
           switch (valueBytes[++i])
@@ -2083,11 +2064,11 @@ public class SearchFilter
               byteValue |= (byte) 0x0F;
               break;
             default:
-              int  msgID = MSGID_SEARCH_FILTER_INVALID_ESCAPED_BYTE;
-              String message = getMessage(msgID, filterString,
-                                          equalPos+i+1);
+              Message message =
+                  ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
+                    get(filterString, equalPos+i+1);
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                           message, msgID);
+                                           message);
           }
 
           valueBuffer.put(byteValue);
@@ -2116,10 +2097,11 @@ public class SearchFilter
     {
       if (matchingRuleID == null)
       {
-        int msgID = MSGID_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR;
-        String message = getMessage(msgID, filterString, startPos);
+        Message message =
+            ERR_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR.
+              get(filterString, startPos);
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                     message, msgID);
+                                     message);
       }
       else
       {
@@ -2127,11 +2109,11 @@ public class SearchFilter
                                toLowerCase(matchingRuleID));
         if (mr == null)
         {
-          int msgID = MSGID_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_SUCH_MR;
-          String message = getMessage(msgID, filterString, startPos,
-                                      matchingRuleID);
+          Message message =
+              ERR_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_SUCH_MR.
+                get(filterString, startPos, matchingRuleID);
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message, msgID);
+                                       message);
         }
         else
         {
@@ -2306,13 +2288,10 @@ public class SearchFilter
       case UNDEFINED:
         return false;
       default:
-        int msgID = MSGID_SEARCH_FILTER_INVALID_RESULT_TYPE;
-        String message = getMessage(msgID,
-                                    String.valueOf(entry.getDN()),
-                                    toString(),
-                                    String.valueOf(result));
-        logError(ErrorLogCategory.REQUEST_HANDLING,
-                 ErrorLogSeverity.MILD_ERROR, message, msgID);
+        Message message = ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
+            get(String.valueOf(entry.getDN()), toString(),
+                String.valueOf(result));
+        logError(message);
         return false;
     }
   }
@@ -2350,14 +2329,14 @@ public class SearchFilter
         if (filterComponents == null)
         {
           // The set of subcomponents was null.  This is not allowed.
-          int msgID = MSGID_SEARCH_FILTER_COMPOUND_COMPONENTS_NULL;
-          String message = getMessage(msgID,
-                                      String.valueOf(entry.getDN()),
-                                      String.valueOf(completeFilter),
-                                      String.valueOf(filterType));
+          Message message =
+              ERR_SEARCH_FILTER_COMPOUND_COMPONENTS_NULL.
+                get(String.valueOf(entry.getDN()),
+                    String.valueOf(completeFilter),
+                    String.valueOf(filterType));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(),
-                         message, msgID);
+                         message);
         }
         else if (filterComponents.isEmpty())
         {
@@ -2379,13 +2358,12 @@ public class SearchFilter
           // nesting too deep.
           if (depth >= MAX_NESTED_FILTER_DEPTH)
           {
-            int    msgID   = MSGID_SEARCH_FILTER_NESTED_TOO_DEEP;
-            String message = getMessage(msgID,
-                                  String.valueOf(entry.getDN()),
-                                  String.valueOf(completeFilter));
+            Message message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
+                get(String.valueOf(entry.getDN()),
+                    String.valueOf(completeFilter));
             throw new DirectoryException(
                            DirectoryServer.getServerErrorResultCode(),
-                           message, msgID);
+                           message);
           }
 
           for (SearchFilter f : filterComponents)
@@ -2415,15 +2393,15 @@ public class SearchFilter
                 }
                 return result;
               default:
-                int msgID = MSGID_SEARCH_FILTER_INVALID_RESULT_TYPE;
-                String message = getMessage(msgID,
-                                      String.valueOf(entry.getDN()),
-                                      String.valueOf(completeFilter),
-                                      String.valueOf(result));
+                Message message =
+                    ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
+                      get(String.valueOf(entry.getDN()),
+                          String.valueOf(completeFilter),
+                          String.valueOf(result));
                 throw new
                      DirectoryException(
                           DirectoryServer.getServerErrorResultCode(),
-                          message, msgID);
+                          message);
             }
           }
 
@@ -2443,14 +2421,14 @@ public class SearchFilter
         if (filterComponents == null)
         {
           // The set of subcomponents was null.  This is not allowed.
-          int msgID = MSGID_SEARCH_FILTER_COMPOUND_COMPONENTS_NULL;
-          String message = getMessage(msgID,
-                                      String.valueOf(entry.getDN()),
-                                      String.valueOf(completeFilter),
-                                      String.valueOf(filterType));
+          Message message =
+              ERR_SEARCH_FILTER_COMPOUND_COMPONENTS_NULL.
+                get(String.valueOf(entry.getDN()),
+                    String.valueOf(completeFilter),
+                    String.valueOf(filterType));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(),
-                         message, msgID);
+                         message);
         }
         else if (filterComponents.isEmpty())
         {
@@ -2472,13 +2450,12 @@ public class SearchFilter
           // nesting too deep.
           if (depth >= MAX_NESTED_FILTER_DEPTH)
           {
-            int    msgID   = MSGID_SEARCH_FILTER_NESTED_TOO_DEEP;
-            String message = getMessage(msgID,
-                                  String.valueOf(entry.getDN()),
-                                  String.valueOf(completeFilter));
+            Message message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
+                get(String.valueOf(entry.getDN()),
+                    String.valueOf(completeFilter));
             throw new DirectoryException(
                            DirectoryServer.getServerErrorResultCode(),
-                           message, msgID);
+                           message);
           }
 
           ConditionResult result = ConditionResult.FALSE;
@@ -2509,15 +2486,15 @@ public class SearchFilter
                 result = ConditionResult.UNDEFINED;
                 break;
               default:
-                int msgID = MSGID_SEARCH_FILTER_INVALID_RESULT_TYPE;
-                String message = getMessage(msgID,
-                                      String.valueOf(entry.getDN()),
-                                      String.valueOf(completeFilter),
-                                      String.valueOf(result));
+                Message message =
+                    ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
+                      get(String.valueOf(entry.getDN()),
+                          String.valueOf(completeFilter),
+                          String.valueOf(result));
                 throw new
                      DirectoryException(
                           DirectoryServer.getServerErrorResultCode(),
-                          message, msgID);
+                          message);
             }
           }
 
@@ -2537,13 +2514,12 @@ public class SearchFilter
         if (notComponent == null)
         {
           // The NOT subcomponent was null.  This is not allowed.
-          int    msgID   = MSGID_SEARCH_FILTER_NOT_COMPONENT_NULL;
-          String message = getMessage(msgID,
-                                      String.valueOf(entry.getDN()),
-                                      String.valueOf(completeFilter));
+          Message message = ERR_SEARCH_FILTER_NOT_COMPONENT_NULL.
+              get(String.valueOf(entry.getDN()),
+                  String.valueOf(completeFilter));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(),
-                         message, msgID);
+                         message);
         }
         else
         {
@@ -2552,13 +2528,12 @@ public class SearchFilter
           // that we don't go too deep.
           if (depth >= MAX_NESTED_FILTER_DEPTH)
           {
-            int    msgID   = MSGID_SEARCH_FILTER_NESTED_TOO_DEEP;
-            String message = getMessage(msgID,
-                                  String.valueOf(entry.getDN()),
-                                  String.valueOf(completeFilter));
+            Message message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
+                get(String.valueOf(entry.getDN()),
+                    String.valueOf(completeFilter));
             throw new DirectoryException(
                            DirectoryServer.getServerErrorResultCode(),
-                           message, msgID);
+                           message);
           }
 
           ConditionResult result =
@@ -2594,15 +2569,14 @@ public class SearchFilter
               }
               return ConditionResult.UNDEFINED;
             default:
-              int msgID = MSGID_SEARCH_FILTER_INVALID_RESULT_TYPE;
-              String message =
-                   getMessage(msgID, String.valueOf(entry.getDN()),
-                              String.valueOf(completeFilter),
-                              String.valueOf(result));
+              Message message = ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
+                  get(String.valueOf(entry.getDN()),
+                      String.valueOf(completeFilter),
+                      String.valueOf(result));
               throw new
                    DirectoryException(
                         DirectoryServer.getServerErrorResultCode(),
-                        message, msgID);
+                        message);
           }
         }
 
@@ -2611,24 +2585,22 @@ public class SearchFilter
         // Make sure that an attribute type has been defined.
         if (attributeType == null)
         {
-          int msgID = MSGID_SEARCH_FILTER_EQUALITY_NO_ATTRIBUTE_TYPE;
-          String message = getMessage(msgID,
-                                      String.valueOf(entry.getDN()),
-                                      toString());
+          Message message =
+              ERR_SEARCH_FILTER_EQUALITY_NO_ATTRIBUTE_TYPE.
+                get(String.valueOf(entry.getDN()), toString());
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message, msgID);
+                                       message);
         }
 
         // Make sure that an assertion value has been defined.
         if (assertionValue == null)
         {
-          int msgID = MSGID_SEARCH_FILTER_EQUALITY_NO_ASSERTION_VALUE;
-          String message = getMessage(msgID,
-                                      String.valueOf(entry.getDN()),
-                                      toString(),
-                                      attributeType.getNameOrOID());
+          Message message =
+              ERR_SEARCH_FILTER_EQUALITY_NO_ASSERTION_VALUE.
+                get(String.valueOf(entry.getDN()), toString(),
+                    attributeType.getNameOrOID());
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message, msgID);
+                                       message);
         }
 
         // See if the entry has an attribute with the requested type.
@@ -2682,12 +2654,11 @@ public class SearchFilter
         // Make sure that an attribute type has been defined.
         if (attributeType == null)
         {
-          int msgID = MSGID_SEARCH_FILTER_SUBSTRING_NO_ATTRIBUTE_TYPE;
-          String message = getMessage(msgID,
-                                      String.valueOf(entry.getDN()),
-                                      toString());
+          Message message =
+              ERR_SEARCH_FILTER_SUBSTRING_NO_ATTRIBUTE_TYPE.
+                get(String.valueOf(entry.getDN()), toString());
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message, msgID);
+                                       message);
         }
 
         // Make sure that at least one substring element has been
@@ -2696,14 +2667,12 @@ public class SearchFilter
             (subFinalElement == null) &&
             ((subAnyElements == null) || subAnyElements.isEmpty()))
         {
-          int msgID =
-               MSGID_SEARCH_FILTER_SUBSTRING_NO_SUBSTRING_COMPONENTS;
-          String message = getMessage(msgID,
-                                      String.valueOf(entry.getDN()),
-                                      toString(),
-                                      attributeType.getNameOrOID());
+          Message message =
+              ERR_SEARCH_FILTER_SUBSTRING_NO_SUBSTRING_COMPONENTS.
+                get(String.valueOf(entry.getDN()), toString(),
+                    attributeType.getNameOrOID());
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message, msgID);
+                                       message);
         }
 
         // See if the entry has an attribute with the requested type.
@@ -2770,25 +2739,22 @@ public class SearchFilter
         // Make sure that an attribute type has been defined.
         if (attributeType == null)
         {
-          int msgID =
-               MSGID_SEARCH_FILTER_GREATER_OR_EQUAL_NO_ATTRIBUTE_TYPE;
-          String message = getMessage(msgID,
-                                      String.valueOf(entry.getDN()),
-                                      toString());
+          Message message =
+              ERR_SEARCH_FILTER_GREATER_OR_EQUAL_NO_ATTRIBUTE_TYPE.
+                get(String.valueOf(entry.getDN()), toString());
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message, msgID);
+                                       message);
         }
 
         // Make sure that an assertion value has been defined.
         if (assertionValue == null)
         {
-          int msgID = MSGID_SEARCH_FILTER_GREATER_OR_EQUAL_NO_VALUE;
-          String message = getMessage(msgID,
-                                      String.valueOf(entry.getDN()),
-                                      toString(),
-                                      attributeType.getNameOrOID());
+          Message message =
+              ERR_SEARCH_FILTER_GREATER_OR_EQUAL_NO_VALUE.
+                get(String.valueOf(entry.getDN()), toString(),
+                    attributeType.getNameOrOID());
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message, msgID);
+                                       message);
         }
 
         // See if the entry has an attribute with the requested type.
@@ -2853,26 +2819,22 @@ public class SearchFilter
         // Make sure that an attribute type has been defined.
         if (attributeType == null)
         {
-          int msgID =
-               MSGID_SEARCH_FILTER_LESS_OR_EQUAL_NO_ATTRIBUTE_TYPE;
-          String message = getMessage(msgID,
-                                      String.valueOf(entry.getDN()),
-                                      toString());
+          Message message =
+              ERR_SEARCH_FILTER_LESS_OR_EQUAL_NO_ATTRIBUTE_TYPE.
+                get(String.valueOf(entry.getDN()), toString());
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message, msgID);
+                                       message);
         }
 
         // Make sure that an assertion value has been defined.
         if (assertionValue == null)
         {
-          int msgID =
-               MSGID_SEARCH_FILTER_LESS_OR_EQUAL_NO_ASSERTION_VALUE;
-          String message = getMessage(msgID,
-                                      String.valueOf(entry.getDN()),
-                                      toString(),
-                                      attributeType.getNameOrOID());
+          Message message =
+              ERR_SEARCH_FILTER_LESS_OR_EQUAL_NO_ASSERTION_VALUE.
+                get(String.valueOf(entry.getDN()), toString(),
+                    attributeType.getNameOrOID());
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message, msgID);
+                                       message);
         }
 
         // See if the entry has an attribute with the requested type.
@@ -2937,13 +2899,11 @@ public class SearchFilter
         // Make sure that an attribute type has been defined.
         if (attributeType == null)
         {
-          int msgID =
-               MSGID_SEARCH_FILTER_PRESENCE_NO_ATTRIBUTE_TYPE;
-          String message = getMessage(msgID,
-                                      String.valueOf(entry.getDN()),
-                                      toString());
+          Message message =
+              ERR_SEARCH_FILTER_PRESENCE_NO_ATTRIBUTE_TYPE.
+                get(String.valueOf(entry.getDN()), toString());
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message, msgID);
+                                       message);
         }
 
 
@@ -2977,26 +2937,22 @@ public class SearchFilter
         // Make sure that an attribute type has been defined.
         if (attributeType == null)
         {
-          int msgID =
-               MSGID_SEARCH_FILTER_APPROXIMATE_NO_ATTRIBUTE_TYPE;
-          String message = getMessage(msgID,
-                                      String.valueOf(entry.getDN()),
-                                      toString());
+          Message message =
+              ERR_SEARCH_FILTER_APPROXIMATE_NO_ATTRIBUTE_TYPE.
+                get(String.valueOf(entry.getDN()), toString());
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message, msgID);
+                                       message);
         }
 
         // Make sure that an assertion value has been defined.
         if (assertionValue == null)
         {
-          int msgID =
-               MSGID_SEARCH_FILTER_APPROXIMATE_NO_ASSERTION_VALUE;
-          String message = getMessage(msgID,
-                                      String.valueOf(entry.getDN()),
-                                      toString(),
-                                      attributeType.getNameOrOID());
+          Message message =
+              ERR_SEARCH_FILTER_APPROXIMATE_NO_ASSERTION_VALUE.
+                get(String.valueOf(entry.getDN()), toString(),
+                    attributeType.getNameOrOID());
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message, msgID);
+                                       message);
         }
 
         // See if the entry has an attribute with the requested type.
@@ -3062,13 +3018,11 @@ public class SearchFilter
 
       default:
         // This is an invalid filter type.
-        int msgID = MSGID_SEARCH_FILTER_INVALID_FILTER_TYPE;
-        String message = getMessage(msgID,
-                                    String.valueOf(entry.getDN()),
-                                    toString(),
-                                    filterType.toString());
+        Message message = ERR_SEARCH_FILTER_INVALID_FILTER_TYPE.
+            get(String.valueOf(entry.getDN()), toString(),
+                filterType.toString());
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                     message, msgID);
+                                     message);
     }
   }
 
@@ -3102,13 +3056,12 @@ public class SearchFilter
     // determination.
     if (assertionValue == null)
     {
-      int msgID =
-           MSGID_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_ASSERTION_VALUE;
-      String message = getMessage(msgID,
-                                  String.valueOf(entry.getDN()),
-                                  String.valueOf(completeFilter));
+      Message message =
+          ERR_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_ASSERTION_VALUE.
+            get(String.valueOf(entry.getDN()),
+                String.valueOf(completeFilter));
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -3135,13 +3088,12 @@ public class SearchFilter
     {
       if (attributeType == null)
       {
-        int msgID =
-             MSGID_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_RULE_OR_TYPE;
-        String message = getMessage(msgID,
-                                    String.valueOf(entry.getDN()),
-                                    String.valueOf(completeFilter));
+        Message message =
+            ERR_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_RULE_OR_TYPE.
+              get(String.valueOf(entry.getDN()),
+                  String.valueOf(completeFilter));
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                     message, msgID);
+                                     message);
       }
       else
       {
@@ -3235,15 +3187,13 @@ public class SearchFilter
                   result = ConditionResult.UNDEFINED;
                   break;
                 default:
-                  int msgID = MSGID_SEARCH_FILTER_INVALID_RESULT_TYPE;
-                  String message =
-                       getMessage(msgID,
-                                  String.valueOf(entry.getDN()),
-                                  String.valueOf(completeFilter),
-                                  String.valueOf(r));
+                  Message message =
+                      ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
+                        get(String.valueOf(entry.getDN()),
+                            String.valueOf(completeFilter),
+                            String.valueOf(r));
                   throw new DirectoryException(
-                                 ResultCode.PROTOCOL_ERROR, message,
-                                 msgID);
+                                 ResultCode.PROTOCOL_ERROR, message);
               }
             }
             catch (Exception e)
@@ -3285,15 +3235,13 @@ public class SearchFilter
                   result = ConditionResult.UNDEFINED;
                   break;
                 default:
-                  int msgID = MSGID_SEARCH_FILTER_INVALID_RESULT_TYPE;
-                  String message =
-                       getMessage(msgID,
-                               String.valueOf(entry.getDN()),
-                               String.valueOf(completeFilter),
-                               String.valueOf(r));
+                  Message message =
+                      ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
+                        get(String.valueOf(entry.getDN()),
+                            String.valueOf(completeFilter),
+                            String.valueOf(r));
                   throw new DirectoryException(
-                                 ResultCode.PROTOCOL_ERROR, message,
-                                 msgID);
+                                 ResultCode.PROTOCOL_ERROR, message);
               }
             }
             catch (Exception e)
@@ -3330,13 +3278,12 @@ public class SearchFilter
               result = ConditionResult.UNDEFINED;
               break;
             default:
-              int msgID = MSGID_SEARCH_FILTER_INVALID_RESULT_TYPE;
-              String message =
-                   getMessage(msgID, String.valueOf(entry.getDN()),
-                              String.valueOf(completeFilter),
-                              String.valueOf(r));
+              Message message = ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
+                  get(String.valueOf(entry.getDN()),
+                      String.valueOf(completeFilter),
+                      String.valueOf(r));
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                           message, msgID);
+                                           message);
           }
         }
         catch (Exception e)
@@ -3378,15 +3325,13 @@ public class SearchFilter
                   result = ConditionResult.UNDEFINED;
                   break;
                 default:
-                  int msgID = MSGID_SEARCH_FILTER_INVALID_RESULT_TYPE;
-                  String message =
-                       getMessage(msgID,
-                                  String.valueOf(entry.getDN()),
-                                  String.valueOf(completeFilter),
-                                  String.valueOf(r));
+                  Message message =
+                      ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
+                        get(String.valueOf(entry.getDN()),
+                            String.valueOf(completeFilter),
+                            String.valueOf(r));
                   throw new DirectoryException(
-                                 ResultCode.PROTOCOL_ERROR, message,
-                                 msgID);
+                                 ResultCode.PROTOCOL_ERROR, message);
               }
             }
             catch (Exception e)
@@ -3441,15 +3386,13 @@ public class SearchFilter
                   result = ConditionResult.UNDEFINED;
                   break;
                 default:
-                  int msgID = MSGID_SEARCH_FILTER_INVALID_RESULT_TYPE;
-                  String message =
-                       getMessage(msgID,
-                                  String.valueOf(entry.getDN()),
-                                  String.valueOf(completeFilter),
-                                  String.valueOf(r));
+                  Message message =
+                      ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
+                        get(String.valueOf(entry.getDN()),
+                            String.valueOf(completeFilter),
+                            String.valueOf(r));
                   throw new DirectoryException(
-                                 ResultCode.PROTOCOL_ERROR, message,
-                                 msgID);
+                                 ResultCode.PROTOCOL_ERROR, message);
               }
             }
           }

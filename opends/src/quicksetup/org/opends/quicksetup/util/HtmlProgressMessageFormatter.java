@@ -33,9 +33,13 @@ import java.net.URLEncoder;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.opends.quicksetup.i18n.ResourceProvider;
+
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.Constants;
+
+import static org.opends.messages.QuickSetupMessages.*;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 /**
  * This is an implementation of the ProgressMessageFormatter class that
@@ -47,8 +51,8 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   static private final Logger LOG =
           Logger.getLogger(HtmlProgressMessageFormatter.class.getName());
 
-  private String doneHtml;
-  private String errorHtml;
+  private Message doneHtml;
+  private Message errorHtml;
 
   /**
    * The constant used to separate parameters in an URL.
@@ -58,7 +62,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   /**
    * The space in HTML.
    */
-  private static String SPACE = "&nbsp;";
+  private static Message SPACE = Message.raw("&nbsp;");
 
   /**
    * Returns the HTML representation of the text without providing any style.
@@ -66,9 +70,9 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * representation
    * @return the HTML representation for the given text.
    */
-  public String getFormattedText(String text)
+  public Message getFormattedText(Message text)
   {
-    return getHtml(text);
+    return Message.raw(getHtml(String.valueOf(text)));
   }
 
   /**
@@ -79,9 +83,12 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * representation
    * @return the HTML representation of the summary for the given text.
    */
-  public String getFormattedSummary(String text)
+  public Message getFormattedSummary(Message text)
   {
-    return "<html>"+UIFactory.applyFontToHtml(text, UIFactory.PROGRESS_FONT);
+    return new MessageBuilder("<html>")
+            .append(UIFactory.applyFontToHtml(
+                    String.valueOf(text), UIFactory.PROGRESS_FONT))
+            .toMessage();
   }
 
   /**
@@ -92,19 +99,20 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * resulting HTML.
    * @return the HTML representation of an error for the given text.
    */
-  public String getFormattedError(String text, boolean applyMargin)
+  public Message getFormattedError(Message text, boolean applyMargin)
   {
     String html;
-    if (!Utils.containsHtml(text)) {
+    if (!Utils.containsHtml(String.valueOf(text))) {
       html = UIFactory.getIconHtml(UIFactory.IconType.ERROR_LARGE)
           + SPACE
           + SPACE
-          + UIFactory.applyFontToHtml(getHtml(text),
+          + UIFactory.applyFontToHtml(getHtml(String.valueOf(text)),
               UIFactory.PROGRESS_ERROR_FONT);
     } else {
       html =
           UIFactory.getIconHtml(UIFactory.IconType.ERROR_LARGE) + SPACE
-          + SPACE + UIFactory.applyFontToHtml(text, UIFactory.PROGRESS_FONT);
+          + SPACE + UIFactory.applyFontToHtml(
+                  String.valueOf(text), UIFactory.PROGRESS_FONT);
     }
 
     String result = UIFactory.applyErrorBackgroundToHtml(html);
@@ -114,7 +122,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
           UIFactory.applyMargin(result,
               UIFactory.TOP_INSET_ERROR_MESSAGE, 0, 0, 0);
     }
-    return result;
+    return Message.raw(result);
   }
 
   /**
@@ -125,20 +133,21 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * resulting HTML.
    * @return the HTML representation of a warning for the given text.
    */
-  public String getFormattedWarning(String text, boolean applyMargin)
+  public Message getFormattedWarning(Message text, boolean applyMargin)
   {
     String html;
-    if (!Utils.containsHtml(text)) {
+    if (!Utils.containsHtml(String.valueOf(text))) {
       html =
         UIFactory.getIconHtml(UIFactory.IconType.WARNING_LARGE)
             + SPACE
             + SPACE
-            + UIFactory.applyFontToHtml(getHtml(text),
+            + UIFactory.applyFontToHtml(getHtml(String.valueOf(text)),
                 UIFactory.PROGRESS_WARNING_FONT);
     } else {
       html =
           UIFactory.getIconHtml(UIFactory.IconType.WARNING_LARGE) + SPACE
-          + SPACE + UIFactory.applyFontToHtml(text, UIFactory.PROGRESS_FONT);
+          + SPACE + UIFactory.applyFontToHtml(
+                  String.valueOf(text), UIFactory.PROGRESS_FONT);
     }
 
     String result = UIFactory.applyWarningBackgroundToHtml(html);
@@ -148,7 +157,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
           UIFactory.applyMargin(result,
               UIFactory.TOP_INSET_ERROR_MESSAGE, 0, 0, 0);
     }
-    return result;
+    return Message.raw(result);
   }
 
   /**
@@ -157,14 +166,15 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * representation
    * @return the HTML representation of a success message for the given text.
    */
-  public String getFormattedSuccess(String text)
+  public Message getFormattedSuccess(Message text)
   {
     // Note: the text we get already is in HTML form
     String html =
         UIFactory.getIconHtml(UIFactory.IconType.INFORMATION_LARGE) + SPACE
-        + SPACE + UIFactory.applyFontToHtml(text, UIFactory.PROGRESS_FONT);
+        + SPACE + UIFactory.applyFontToHtml(String.valueOf(text),
+                UIFactory.PROGRESS_FONT);
 
-    return UIFactory.applySuccessfulBackgroundToHtml(html);
+    return Message.raw(UIFactory.applySuccessfulBackgroundToHtml(html));
   }
 
   /**
@@ -175,11 +185,11 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * @return the HTML representation of a log error message for the given
    * text.
    */
-  public String getFormattedLogError(String text)
+  public Message getFormattedLogError(Message text)
   {
-    String html = getHtml(text);
-    return UIFactory.applyFontToHtml(html,
-        UIFactory.PROGRESS_LOG_ERROR_FONT);
+    String html = getHtml(String.valueOf(text));
+    return Message.raw(UIFactory.applyFontToHtml(html,
+        UIFactory.PROGRESS_LOG_ERROR_FONT));
   }
 
 
@@ -189,39 +199,40 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * representation
    * @return the HTML representation of a log message for the given text.
    */
-  public String getFormattedLog(String text)
+  public Message getFormattedLog(Message text)
   {
-    String html = getHtml(text);
-    return UIFactory.applyFontToHtml(html, UIFactory.PROGRESS_LOG_FONT);
+    String html = getHtml(String.valueOf(text));
+    return Message.raw(UIFactory.applyFontToHtml(html,
+            UIFactory.PROGRESS_LOG_FONT));
   }
 
   /**
    * Returns the HTML representation of the 'Done' text string.
    * @return the HTML representation of the 'Done' text string.
    */
-  public String getFormattedDone()
+  public Message getFormattedDone()
   {
     if (doneHtml == null)
     {
-      String html = getHtml(getMsg("progress-done"));
-      doneHtml = UIFactory.applyFontToHtml(html,
-          UIFactory.PROGRESS_DONE_FONT);
+      String html = getHtml(INFO_PROGRESS_DONE.get().toString());
+      doneHtml = Message.raw(UIFactory.applyFontToHtml(html,
+          UIFactory.PROGRESS_DONE_FONT));
     }
-    return doneHtml;
+    return Message.raw(doneHtml);
   }
 
   /**
    * Returns the HTML representation of the 'Error' text string.
    * @return the HTML representation of the 'Error' text string.
    */
-  public String getFormattedError() {
+  public Message getFormattedError() {
     if (errorHtml == null)
     {
-      String html = getHtml(getMsg("progress-error"));
-      errorHtml = UIFactory.applyFontToHtml(html,
-          UIFactory.PROGRESS_ERROR_FONT);
+      String html = getHtml(INFO_PROGRESS_ERROR.get().toString());
+      errorHtml = Message.raw(UIFactory.applyFontToHtml(html,
+          UIFactory.PROGRESS_ERROR_FONT));
     }
-    return errorHtml;
+    return Message.raw(errorHtml);
   }
 
   /**
@@ -231,17 +242,18 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * @param text the String to which add points.
    * @return the HTML representation of the '.....' text string.
    */
-  public String getFormattedWithPoints(String text)
+  public Message getFormattedWithPoints(Message text)
   {
-    String html = getHtml(text);
-    String points = SPACE + getHtml(getMsg("progress-points")) + SPACE;
+    String html = getHtml(String.valueOf(text));
+    String points = SPACE +
+            getHtml(INFO_PROGRESS_POINTS.get().toString()) + SPACE;
 
-    StringBuilder buf = new StringBuilder();
+    MessageBuilder buf = new MessageBuilder();
     buf.append(UIFactory.applyFontToHtml(html, UIFactory.PROGRESS_FONT))
         .append(
             UIFactory.applyFontToHtml(points, UIFactory.PROGRESS_POINTS_FONT));
 
-    return buf.toString();
+    return buf.toMessage();
   }
 
   /**
@@ -252,10 +264,10 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * @return the formatted representation of a progress message for the given
    * text.
    */
-  public String getFormattedProgress(String text)
+  public Message getFormattedProgress(Message text)
   {
-    return UIFactory.applyFontToHtml(getHtml(text),
-        UIFactory.PROGRESS_FONT);
+    return Message.raw(UIFactory.applyFontToHtml(getHtml(String.valueOf(text)),
+        UIFactory.PROGRESS_FONT));
   }
 
   /**
@@ -268,14 +280,14 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * @return the HTML representation of an error message for the given
    * exception.
    */
-  public String getFormattedError(Throwable t, boolean applyMargin)
+  public Message getFormattedError(Throwable t, boolean applyMargin)
   {
     String openDiv = "<div style=\"margin-left:5px; margin-top:10px\">";
     String hideText =
-        UIFactory.applyFontToHtml(getMsg("hide-exception-details"),
+        UIFactory.applyFontToHtml(INFO_HIDE_EXCEPTION_DETAILS.get().toString(),
             UIFactory.PROGRESS_FONT);
     String showText =
-        UIFactory.applyFontToHtml(getMsg("show-exception-details"),
+        UIFactory.applyFontToHtml(INFO_SHOW_EXCEPTION_DETAILS.get().toString(),
             UIFactory.PROGRESS_FONT);
     String closeDiv = "</div>";
 
@@ -284,7 +296,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     Throwable root = t.getCause();
     while (root != null)
     {
-      stackBuf.append(getHtml(getMsg("exception-root-cause")))
+      stackBuf.append(getHtml(INFO_EXCEPTION_ROOT_CAUSE.get().toString()))
               .append(Constants.HTML_LINE_BREAK);
       stackBuf.append(getHtmlStack(root));
       root = root.getCause();
@@ -320,34 +332,39 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     {
       result = UIFactory.applyErrorBackgroundToHtml(html);
     }
-    return result;
+    return Message.raw(result);
   }
 
   /**
    * Returns the line break in HTML.
    * @return the line break in HTML.
    */
-  public String getLineBreak()
+  public Message getLineBreak()
   {
-    return Constants.HTML_LINE_BREAK;
+    return Message.raw(Constants.HTML_LINE_BREAK);
   }
 
   /**
    * Returns the tab in HTML.
    * @return the tab in HTML.
    */
-  public String getTab()
+  public Message getTab()
   {
-    return SPACE+SPACE+SPACE+SPACE+SPACE;
+    return new MessageBuilder(SPACE)
+            .append(SPACE)
+            .append(SPACE)
+            .append(SPACE)
+            .append(SPACE)
+            .toMessage();
   }
 
   /**
    * Returns the task separator in HTML.
    * @return the task separator in HTML.
    */
-  public String getTaskSeparator()
+  public Message getTaskSeparator()
   {
-    return UIFactory.HTML_SEPARATOR;
+    return Message.raw(UIFactory.HTML_SEPARATOR);
   }
 
   /**
@@ -359,23 +376,24 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * url.
    * @return the log HTML representation after the user has clicked on a url.
    */
-  public String getFormattedAfterUrlClick(String url, String lastText)
+  public Message getFormattedAfterUrlClick(String url, Message lastText)
   {
     String urlText = getErrorWithStackHtml(url, false);
     String newUrlText = getErrorWithStackHtml(url, true);
+    String lastTextStr = String.valueOf(lastText);
 
-    int index = lastText.indexOf(urlText);
+    int index = lastTextStr.indexOf(urlText);
     if (index == -1)
     {
       LOG.log(Level.FINE, "lastText: " + lastText +
               "does not contain: " + urlText);
     } else
     {
-      lastText =
-          lastText.substring(0, index) + newUrlText
-              + lastText.substring(index + urlText.length());
+      lastTextStr =
+          lastTextStr.substring(0, index) + newUrlText
+              + lastTextStr.substring(index + urlText.length());
     }
-    return lastText;
+    return Message.raw(lastText);
   }
 
   /**
@@ -445,30 +463,6 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     }
 
     return buffer.toString();
-  }
-
-  /**
-   * Returns a localized message for a key value.  In  the properties file we
-   * have something of type:
-   * key=value
-   *
-   * @see ResourceProvider#getMsg(String)
-   * @param key the key in the properties file.
-   * @return the value associated to the key in the properties file.
-   * properties file.
-   */
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  /**
-   * Returns a ResourceProvider instance.
-   * @return a ResourceProvider instance.
-   */
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
   }
 
   /**

@@ -34,11 +34,8 @@ import static org.opends.server.config.ConfigConstants.ATTR_TASK_STATE;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ReplicationMessages.MSGID_INVALID_IMPORT_SOURCE;
-import static org.opends.server.messages.ReplicationMessages.MSGID_NO_MATCHING_DOMAIN;
-import static org.opends.server.messages.ReplicationMessages.MSGID_NO_REACHABLE_PEER_IN_THE_DOMAIN;
-import static org.opends.server.messages.ReplicationMessages.MSGID_SIMULTANEOUS_IMPORT_EXPORT_REJECTED;
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.messages.TaskMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -58,7 +55,9 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.messages.TaskMessages;
+import org.opends.messages.Category;
+import org.opends.messages.Message;
+import org.opends.messages.Severity;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.plugin.ReplicationBroker;
@@ -77,8 +76,6 @@ import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
@@ -148,9 +145,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
   private void log(String s)
   {
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.NOTICE,
-        "InitOnLineTests/" + s, 1);
+    logError(Message.raw("InitOnLineTests/" + s, Category.SYNC, Severity.INFORMATION));
     if (debugEnabled())
     {
       TRACER.debugInfo(s);
@@ -286,11 +281,11 @@ public class InitOnLineTest extends ReplicationTestCase
    * Add a task to the configuration of the current running DS.
    * @param taskEntry The task to add.
    * @param expectedResult The expected result code for the ADD.
-   * @param errorMessageID The expected error messageID when the expected
+   * @param errorMessage The expected error messageID when the expected
    * result code is not SUCCESS
    */
   private void addTask(Entry taskEntry, ResultCode expectedResult,
-      int errorMessageID)
+      Message errorMessage)
   {
     try
     {
@@ -318,17 +313,18 @@ public class InitOnLineTest extends ReplicationTestCase
       if (expectedResult != ResultCode.SUCCESS)
       {
         assertTrue(addOperation.getErrorMessage().toString().
-            startsWith(getMessage(errorMessageID).toString()),
+            startsWith(errorMessage.toString()),
             "Error MsgID of the task <"
             + addOperation.getErrorMessage()
             + "> equals <"
-            + getMessage(errorMessageID) + ">");
-        log("Create config task: <"+ errorMessageID + addOperation.getErrorMessage() + ">");
+            + errorMessage + ">");
+        log("Create config task: <"+ errorMessage.getDescriptor().getId()
+                + addOperation.getErrorMessage() + ">");
 
       }
       else
       {
-        waitTaskState(taskEntry, TaskState.RUNNING, -1);
+        waitTaskState(taskEntry, TaskState.RUNNING, null);
       }
 
       // Entry will be removed at the end of the test
@@ -459,7 +455,7 @@ public class InitOnLineTest extends ReplicationTestCase
   }
 
   private void waitTaskState(Entry taskEntry, TaskState expectedTaskState,
-      int expectedMessage)
+      Message expectedMessage)
   {
     TaskState taskState = null;
     try
@@ -542,12 +538,12 @@ public class InitOnLineTest extends ReplicationTestCase
         }
         else
         {
-          if (expectedMessage > 0)
+          if (expectedMessage != null)
           {
             log(logMessages.get(0));
-            log(getMessage(expectedMessage));
+            log(expectedMessage.toString());
             assertTrue(logMessages.get(0).indexOf(
-                getMessage(expectedMessage))>0);
+                expectedMessage.toString())>0);
           }
         }
       }
@@ -713,7 +709,6 @@ public class InitOnLineTest extends ReplicationTestCase
         {
           ErrorMessage em = (ErrorMessage)msg;
           log("Broker " + serverID + "  receives ERROR "
-              + getMessage(em.getMsgID())
               + " " + em.getDetails());
           break;
         }
@@ -875,7 +870,7 @@ public class InitOnLineTest extends ReplicationTestCase
       Thread.sleep(2000);
 
       // In S1 launch the total update
-      addTask(taskInitFromS2, ResultCode.SUCCESS, 0);
+      addTask(taskInitFromS2, ResultCode.SUCCESS, null);
 
       // S2 should receive init msg
       ReplicationMessage msg;
@@ -967,10 +962,10 @@ public class InitOnLineTest extends ReplicationTestCase
     Thread.sleep(1000);
 
     // Launch in S1 the task that will initialize S2
-    addTask(taskInitTargetS2, ResultCode.SUCCESS, 0);
+    addTask(taskInitTargetS2, ResultCode.SUCCESS, null);
 
     // Wait for task completion
-    waitTaskState(taskInitTargetS2, TaskState.COMPLETED_SUCCESSFULLY, -1);
+    waitTaskState(taskInitTargetS2, TaskState.COMPLETED_SUCCESSFULLY, null);
 
     // Tests that entries have been received by S2
     receiveUpdatedEntries(server2, server2ID, updatedEntries);
@@ -1010,10 +1005,10 @@ public class InitOnLineTest extends ReplicationTestCase
     Thread.sleep(1000);
 
     // Launch in S1 the task that will initialize S2
-    addTask(taskInitTargetAll, ResultCode.SUCCESS, 0);
+    addTask(taskInitTargetAll, ResultCode.SUCCESS, null);
 
     // Wait for task completion
-    waitTaskState(taskInitTargetAll, TaskState.COMPLETED_SUCCESSFULLY, -1);
+    waitTaskState(taskInitTargetAll, TaskState.COMPLETED_SUCCESSFULLY, null);
 
     // Tests that entries have been received by S2
     receiveUpdatedEntries(server2, server2ID, updatedEntries);
@@ -1089,7 +1084,7 @@ public class InitOnLineTest extends ReplicationTestCase
           "ds-task-initialize-domain-dn: foo",
           "ds-task-initialize-remote-replica-server-id: " + server2ID);
       addTask(taskInitTarget, ResultCode.INVALID_DN_SYNTAX,
-          TaskMessages.MSGID_TASK_INITIALIZE_INVALID_DN);
+          ERR_TASK_INITIALIZE_INVALID_DN.get());
 
       // Domain base dn not related to any domain
       taskInitTarget = TestCaseUtils.makeEntry(
@@ -1102,7 +1097,7 @@ public class InitOnLineTest extends ReplicationTestCase
           "ds-task-initialize-domain-dn: dc=foo",
           "ds-task-initialize-remote-replica-server-id: " + server2ID);
       addTask(taskInitTarget, ResultCode.OTHER,
-          MSGID_NO_MATCHING_DOMAIN);
+          ERR_NO_MATCHING_DOMAIN.get());
 
       // Invalid scope
       // createTask(taskInitTargetS2);
@@ -1149,7 +1144,7 @@ public class InitOnLineTest extends ReplicationTestCase
           "ds-task-initialize-domain-dn: foo",
           "ds-task-initialize-replica-server-id: " + server2ID);
       addTask(taskInit, ResultCode.INVALID_DN_SYNTAX,
-          TaskMessages.MSGID_TASK_INITIALIZE_INVALID_DN);
+          ERR_TASK_INITIALIZE_INVALID_DN.get());
 
       // Domain base dn not related to any domain
       taskInit = TestCaseUtils.makeEntry(
@@ -1161,7 +1156,7 @@ public class InitOnLineTest extends ReplicationTestCase
           "ds-task-class-name: org.opends.server.tasks.InitializeTask",
           "ds-task-initialize-domain-dn: dc=foo",
           "ds-task-initialize-replica-server-id: " + server2ID);
-      addTask(taskInit, ResultCode.OTHER, MSGID_NO_MATCHING_DOMAIN);
+      addTask(taskInit, ResultCode.OTHER, ERR_NO_MATCHING_DOMAIN.get());
 
       // Invalid Source
       taskInit = TestCaseUtils.makeEntry(
@@ -1174,7 +1169,7 @@ public class InitOnLineTest extends ReplicationTestCase
           "ds-task-initialize-domain-dn: " + baseDn,
           "ds-task-initialize-replica-server-id: -3");
       addTask(taskInit, ResultCode.OTHER,
-          MSGID_INVALID_IMPORT_SOURCE);
+          ERR_INVALID_IMPORT_SOURCE.get());
 
       // Scope containing a serverID absent from the domain
       // createTask(taskInitTargetS2);
@@ -1312,10 +1307,10 @@ public class InitOnLineTest extends ReplicationTestCase
     Thread.sleep(1000);
 
     // Launch in S1 the task that will initialize S2
-    addTask(taskInitTargetS2, ResultCode.SUCCESS, 0);
+    addTask(taskInitTargetS2, ResultCode.SUCCESS, null);
 
     // Wait for task completion
-    waitTaskState(taskInitTargetS2, TaskState.COMPLETED_SUCCESSFULLY, -1);
+    waitTaskState(taskInitTargetS2, TaskState.COMPLETED_SUCCESSFULLY, null);
 
     // Tests that entries have been received by S2
     receiveUpdatedEntries(server2, server2ID, updatedEntries);
@@ -1408,10 +1403,10 @@ public class InitOnLineTest extends ReplicationTestCase
         "ds-task-initialize-domain-dn: "+baseDn,
         "ds-task-initialize-replica-server-id: " + 20);
 
-    addTask(taskInit, ResultCode.SUCCESS, 0);
+    addTask(taskInit, ResultCode.SUCCESS, null);
 
     waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR,
-        MSGID_NO_REACHABLE_PEER_IN_THE_DOMAIN);
+        ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get());
 
     // Test 2
     taskInit = TestCaseUtils.makeEntry(
@@ -1424,7 +1419,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "ds-task-initialize-domain-dn: "+baseDn,
         "ds-task-initialize-replica-server-id: " + server1ID);
 
-    addTask(taskInit, ResultCode.OTHER, MSGID_INVALID_IMPORT_SOURCE);
+    addTask(taskInit, ResultCode.OTHER, ERR_INVALID_IMPORT_SOURCE.get());
 
     if (sd != null)
     {
@@ -1460,10 +1455,10 @@ public class InitOnLineTest extends ReplicationTestCase
         "ds-task-initialize-domain-dn: "+baseDn,
         "ds-task-initialize-replica-server-id: " + 0);
 
-    addTask(taskInit, ResultCode.SUCCESS, 0);
+    addTask(taskInit, ResultCode.SUCCESS, null);
 
     waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR,
-        MSGID_NO_REACHABLE_PEER_IN_THE_DOMAIN);
+        ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get());
 
     if (sd != null)
     {
@@ -1527,7 +1522,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "ds-task-initialize-domain-dn: "+baseDn,
         "ds-task-initialize-replica-server-id: " + server2ID);
 
-    addTask(taskInit, ResultCode.SUCCESS, 0);
+    addTask(taskInit, ResultCode.SUCCESS, null);
 
     Thread.sleep(3000);
 
@@ -1542,24 +1537,24 @@ public class InitOnLineTest extends ReplicationTestCase
         "ds-task-initialize-replica-server-id: " + server2ID);
 
     // Second task is expected to be rejected
-    addTask(taskInit2, ResultCode.SUCCESS, 0);
+    addTask(taskInit2, ResultCode.SUCCESS, null);
 
     waitTaskState(taskInit2, TaskState.STOPPED_BY_ERROR,
-        MSGID_SIMULTANEOUS_IMPORT_EXPORT_REJECTED);
+        ERR_SIMULTANEOUS_IMPORT_EXPORT_REJECTED.get());
 
     // First task is stilll running
-    waitTaskState(taskInit, TaskState.RUNNING, -1);
+    waitTaskState(taskInit, TaskState.RUNNING, null);
 
     // External request is supposed to be rejected
 
     // Now tests error in the middle of an import
     // S2 sends init request
     ErrorMessage msg =
-      new ErrorMessage(server1ID, 1, "");
+      new ErrorMessage(server1ID, (short) 1, Message.EMPTY);
     server2.publish(msg);
 
     waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR,
-        1);
+        null);
 
     cleanEntries();
 
@@ -1569,7 +1564,6 @@ public class InitOnLineTest extends ReplicationTestCase
 
   /**
    * Disconnect broker and remove entries from the local DB
-   * @throws Exception
    */
   protected void cleanEntries()
   {

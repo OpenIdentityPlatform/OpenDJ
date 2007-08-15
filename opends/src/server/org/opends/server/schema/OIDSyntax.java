@@ -37,14 +37,14 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
 
 
 /**
@@ -85,18 +85,16 @@ public class OIDSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_OID_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_OID_OID, SYNTAX_OID_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_OID_OID, SYNTAX_OID_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_CASE_IGNORE_OID, SYNTAX_OID_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_CASE_IGNORE_OID, SYNTAX_OID_NAME));
     }
   }
 
@@ -213,11 +211,11 @@ public class OIDSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     String lowerValue = toLowerCase(value.stringValue());
     return isValidSchemaElement(lowerValue, 0, lowerValue.length(),
-                                invalidReason);
+            invalidReason);
   }
 }
 

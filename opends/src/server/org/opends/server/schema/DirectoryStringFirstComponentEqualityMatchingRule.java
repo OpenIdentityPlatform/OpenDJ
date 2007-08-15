@@ -37,8 +37,6 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 

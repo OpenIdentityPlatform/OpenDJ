@@ -41,17 +41,14 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
-
 
 
 /**
@@ -117,18 +114,16 @@ public class DistinguishedNameSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_DN_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE, EMR_DN_OID,
-               SYNTAX_DN_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_DN_OID, SYNTAX_DN_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_CASE_IGNORE_OID, SYNTAX_DN_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_CASE_IGNORE_OID, SYNTAX_DN_NAME));
     }
   }
 
@@ -245,7 +240,7 @@ public class DistinguishedNameSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // Use the DN code to make this determination.
     try
@@ -261,7 +256,7 @@ public class DistinguishedNameSyntax
         TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
-      invalidReason.append(de.getErrorMessage());
+      invalidReason.append(de.getMessageObject());
       return false;
     }
     catch (Exception e)
@@ -271,8 +266,8 @@ public class DistinguishedNameSyntax
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_ATTR_SYNTAX_DN_INVALID;
-      invalidReason.append(getMessage(msgID, value.stringValue(),
+
+      invalidReason.append(ERR_ATTR_SYNTAX_DN_INVALID.get(value.stringValue(),
                                       String.valueOf(e)));
 
       return false;

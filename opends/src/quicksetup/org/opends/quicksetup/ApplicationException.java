@@ -26,7 +26,9 @@
  */
 
 package org.opends.quicksetup;
+import org.opends.messages.Message;
 
+import org.opends.server.types.OpenDsException;
 import static org.opends.quicksetup.ApplicationReturnCode.ReturnCode;
 
 /**
@@ -38,11 +40,9 @@ import static org.opends.quicksetup.ApplicationReturnCode.ReturnCode;
  * @see org.opends.quicksetup.installer.offline.OfflineInstaller
  *
  */
-public class ApplicationException extends Exception
-{
-  private static final long serialVersionUID = -3527273444231560341L;
+public class ApplicationException extends OpenDsException {
 
-  private String formattedMsg = null;
+  private static final long serialVersionUID = -3527273444231560341L;
 
   private ReturnCode type;
 
@@ -52,7 +52,7 @@ public class ApplicationException extends Exception
    * @param e Exception cause
    * @return ApplicationException with Type property being FILE_SYSTEM_ERROR
    */
-  public static ApplicationException createFileSystemException(String msg,
+  public static ApplicationException createFileSystemException(Message msg,
       Exception e)
   {
     return new ApplicationException(ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
@@ -69,25 +69,10 @@ public class ApplicationException extends Exception
    * @param rootCause
    *          the root cause of this exception.
    */
-  public ApplicationException(ReturnCode type, String localizedMsg,
+  public ApplicationException(ReturnCode type, Message localizedMsg,
                               Throwable rootCause)
   {
     super(localizedMsg, rootCause);
-    this.type = type;
-  }
-
-  /**
-   * The constructor of the ApplicationException.
-   * @param type the type of error we have.
-   * @param localizedMsg a localized string describing the problem.
-   * @param formattedMsg a localized message with extra formatting
-   * @param rootCause the root cause of this exception.
-   */
-  public ApplicationException(ReturnCode type, String localizedMsg,
-                              String formattedMsg, Throwable rootCause)
-  {
-    super(localizedMsg, rootCause);
-    this.formattedMsg = formattedMsg;
     this.type = type;
   }
 
@@ -98,14 +83,6 @@ public class ApplicationException extends Exception
   public ReturnCode getType()
   {
     return type;
-  }
-
-  /**
-   * Gets the localized message with extra formatting markup.
-   * @return String representing a formatted message.
-   */
-  public String getFormattedMessage() {
-    return formattedMsg;
   }
 
   /**

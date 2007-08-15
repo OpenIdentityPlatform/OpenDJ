@@ -26,9 +26,9 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.AciMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.AccessControlMessages.*;
 import org.opends.server.util.TimeThread;
 import java.util.regex.Pattern;
 
@@ -73,16 +73,14 @@ public class TimeOfDay implements KeywordBindRule {
     throws AciException  {
         if (!Pattern.matches(timeofdayRegex, expr))
         {
-            int msgID = MSGID_ACI_SYNTAX_INVALID_TIMEOFDAY;
-            String message = getMessage(msgID,expr);
-            throw new AciException(msgID, message);
+            Message message = WARN_ACI_SYNTAX_INVALID_TIMEOFDAY.get(expr);
+            throw new AciException(message);
          }
         int valueAsInt = Integer.parseInt(expr);
         if ((valueAsInt < 0) || (valueAsInt > 2359))
         {
-            int msgID = MSGID_ACI_SYNTAX_INVALID_TIMEOFDAY_RANGE;
-            String message = getMessage(msgID,expr);
-            throw new AciException(msgID, message);
+            Message message = WARN_ACI_SYNTAX_INVALID_TIMEOFDAY_RANGE.get(expr);
+            throw new AciException(message);
         }
 
         return new TimeOfDay(valueAsInt, type);

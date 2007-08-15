@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
@@ -49,8 +50,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.MatchingRuleUse;
@@ -63,11 +62,10 @@ import org.opends.server.util.LDIFReader;
 
 import static org.opends.server.config.ConfigConstants.*;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -216,15 +214,14 @@ public class SchemaConfigManager
     {
       if (! schemaDir.exists())
       {
-        int    msgID   = MSGID_CONFIG_SCHEMA_NO_SCHEMA_DIR;
-        String message = getMessage(msgID, schemaDirPath);
-        throw new InitializationException(msgID, message);
+        Message message = ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR.get(schemaDirPath);
+        throw new InitializationException(message);
       }
       else if (! schemaDir.isDirectory())
       {
-        int    msgID   = MSGID_CONFIG_SCHEMA_DIR_NOT_DIRECTORY;
-        String message = getMessage(msgID, schemaDirPath);
-        throw new InitializationException(msgID, message);
+        Message message =
+            ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY.get(schemaDirPath);
+        throw new InitializationException(message);
       }
 
       File[] schemaDirFiles = schemaDir.listFiles();
@@ -270,10 +267,9 @@ public class SchemaConfigManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_LIST_FILES;
-      String message = getMessage(msgID, schemaDirPath,
-                                  getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES.get(
+          schemaDirPath, getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
 
 
@@ -376,18 +372,16 @@ public class SchemaConfigManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_OPEN_FILE;
-      String message = getMessage(msgID, schemaFile, schemaDirPath,
-                                  getExceptionMessage(e));
+      Message message = WARN_CONFIG_SCHEMA_CANNOT_OPEN_FILE.get(
+              schemaFile, schemaDirPath, getExceptionMessage(e));
 
       if (failOnError)
       {
-        throw new ConfigException(msgID, message);
+        throw new ConfigException(message);
       }
       else
       {
-        logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        logError(message);
         return null;
       }
     }
@@ -413,18 +407,16 @@ public class SchemaConfigManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_READ_LDIF_ENTRY;
-      String message = getMessage(msgID, schemaFile, schemaDirPath,
-                                  getExceptionMessage(e));
+      Message message = WARN_CONFIG_SCHEMA_CANNOT_READ_LDIF_ENTRY.get(
+              schemaFile, schemaDirPath, getExceptionMessage(e));
 
       if (failOnError)
       {
-        throw new InitializationException(msgID, message, e);
+        throw new InitializationException(message, e);
       }
       else
       {
-        logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        logError(message);
         return null;
       }
     }
@@ -435,10 +427,9 @@ public class SchemaConfigManager
       Entry e = reader.readEntry(false);
       if (e != null)
       {
-        int    msgID   = MSGID_CONFIG_SCHEMA_MULTIPLE_ENTRIES_IN_FILE;
-        String message = getMessage(msgID, schemaFile, schemaDirPath);
-        logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                 message, msgID);
+        Message message = WARN_CONFIG_SCHEMA_MULTIPLE_ENTRIES_IN_FILE.get(
+            schemaFile, schemaDirPath);
+        logError(message);
       }
     }
     catch (Exception e)
@@ -448,11 +439,9 @@ public class SchemaConfigManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_SCHEMA_UNPARSEABLE_EXTRA_DATA_IN_FILE;
-      String message = getMessage(msgID, schemaFile, schemaDirPath,
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-               message, msgID);
+      Message message = WARN_CONFIG_SCHEMA_UNPARSEABLE_EXTRA_DATA_IN_FILE.get(
+          schemaFile, schemaDirPath, getExceptionMessage(e));
+      logError(message);
     }
 
     try
@@ -755,18 +744,16 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE;
-            String message = getMessage(msgID, schemaFile,
-                                        de.getErrorMessage());
+            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE.get(
+                    schemaFile, de.getMessageObject());
 
             if (failOnError)
             {
-              throw new ConfigException(msgID, message, de);
+              throw new ConfigException(message, de);
             }
             else
             {
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
+              logError(message);
               continue;
             }
           }
@@ -777,18 +764,16 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE;
-            String message = getMessage(msgID, schemaFile,
-                                        v.getStringValue() + ":  " +
-                                        getExceptionMessage(e));
+            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE.get(
+                    schemaFile, v.getStringValue() + ":  " +
+                    getExceptionMessage(e));
             if (failOnError)
             {
-              throw new ConfigException(msgID, message, e);
+              throw new ConfigException(message, e);
             }
             else
             {
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
+              logError(message);
               continue;
             }
           }
@@ -807,12 +792,9 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_ATTR_TYPE;
-            String message = getMessage(msgID, schemaFile,
-                                        de.getErrorMessage());
-
-            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                     message, msgID);
+            Message message = WARN_CONFIG_SCHEMA_CONFLICTING_ATTR_TYPE.get(
+                schemaFile, de.getMessageObject());
+            logError(message);
 
             try
             {
@@ -854,18 +836,17 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_OC;
-            String message = getMessage(msgID, schemaFile,
-                                        de.getErrorMessage());
+            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_OC.get(
+                    schemaFile,
+                    de.getMessageObject());
 
             if (failOnError)
             {
-              throw new ConfigException(msgID, message, de);
+              throw new ConfigException(message, de);
             }
             else
             {
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
+              logError(message);
               continue;
             }
           }
@@ -876,19 +857,17 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_OC;
-            String message = getMessage(msgID, schemaFile,
-                                        v.getStringValue() + ":  " +
-                                        getExceptionMessage(e));
+            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_OC.get(
+                    schemaFile,
+                    v.getStringValue() + ":  " + getExceptionMessage(e));
 
             if (failOnError)
             {
-              throw new ConfigException(msgID, message, e);
+              throw new ConfigException(message, e);
             }
             else
             {
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
+              logError(message);
               continue;
             }
           }
@@ -907,11 +886,9 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_OC;
-            String message = getMessage(msgID, schemaFile,
-                                        de.getErrorMessage());
-            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                     message, msgID);
+            Message message = WARN_CONFIG_SCHEMA_CONFLICTING_OC.get(
+                schemaFile, de.getMessageObject());
+            logError(message);
 
             try
             {
@@ -953,18 +930,15 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM;
-            String message = getMessage(msgID, schemaFile,
-                                        de.getErrorMessage());
-
+            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM.get(
+                    schemaFile, de.getMessageObject());
             if (failOnError)
             {
-              throw new ConfigException(msgID, message, de);
+              throw new ConfigException(message, de);
             }
             else
             {
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
+              logError(message);
               continue;
             }
           }
@@ -975,19 +949,17 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM;
-            String message = getMessage(msgID, schemaFile,
-                                        v.getStringValue() + ":  " +
-                                        getExceptionMessage(e));
+            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM.get(
+                    schemaFile,  v.getStringValue() + ":  " +
+                    getExceptionMessage(e));
 
             if (failOnError)
             {
-              throw new ConfigException(msgID, message, e);
+              throw new ConfigException(message, e);
             }
             else
             {
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
+              logError(message);
               continue;
             }
           }
@@ -1006,11 +978,9 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_NAME_FORM;
-            String message = getMessage(msgID, schemaFile,
-                                        de.getErrorMessage());
-            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                     message, msgID);
+            Message message = WARN_CONFIG_SCHEMA_CONFLICTING_NAME_FORM.get(
+                schemaFile, de.getMessageObject());
+            logError(message);
 
             try
             {
@@ -1052,18 +1022,16 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DCR;
-            String message = getMessage(msgID, schemaFile,
-                                        de.getErrorMessage());
+            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DCR.get(
+                    schemaFile, de.getMessageObject());
 
             if (failOnError)
             {
-              throw new ConfigException(msgID, message, de);
+              throw new ConfigException(message, de);
             }
             else
             {
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
+              logError(message);
               continue;
             }
           }
@@ -1074,19 +1042,17 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DCR;
-            String message = getMessage(msgID, schemaFile,
-                                        v.getStringValue() + ":  " +
-                                        getExceptionMessage(e));
+            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DCR.get(
+                    schemaFile,v.getStringValue() + ":  " +
+                    getExceptionMessage(e));
 
             if (failOnError)
             {
-              throw new ConfigException(msgID, message, e);
+              throw new ConfigException(message, e);
             }
             else
             {
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
+              logError(message);
               continue;
             }
           }
@@ -1105,11 +1071,9 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_DCR;
-            String message = getMessage(msgID, schemaFile,
-                                        de.getErrorMessage());
-            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                     message, msgID);
+            Message message = WARN_CONFIG_SCHEMA_CONFLICTING_DCR.get(
+                schemaFile, de.getMessageObject());
+            logError(message);
 
             try
             {
@@ -1152,18 +1116,16 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DSR;
-            String message = getMessage(msgID, schemaFile,
-                                        de.getErrorMessage());
+            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DSR.get(
+                    schemaFile, de.getMessageObject());
 
             if (failOnError)
             {
-              throw new ConfigException(msgID, message, de);
+              throw new ConfigException(message, de);
             }
             else
             {
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
+              logError(message);
               continue;
             }
           }
@@ -1174,19 +1136,17 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DSR;
-            String message = getMessage(msgID, schemaFile,
-                                        v.getStringValue() + ":  " +
+            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DSR.get(
+                    schemaFile, v.getStringValue() + ":  " +
                                         getExceptionMessage(e));
 
             if (failOnError)
             {
-              throw new ConfigException(msgID, message, e);
+              throw new ConfigException(message, e);
             }
             else
             {
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
+              logError(message);
               continue;
             }
           }
@@ -1205,11 +1165,9 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_DSR;
-            String message = getMessage(msgID, schemaFile,
-                                        de.getErrorMessage());
-            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                     message, msgID);
+            Message message = WARN_CONFIG_SCHEMA_CONFLICTING_DSR.get(
+                schemaFile, de.getMessageObject());
+            logError(message);
 
             try
             {
@@ -1252,18 +1210,16 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_MRU;
-            String message = getMessage(msgID, schemaFile,
-                                        de.getErrorMessage());
+            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_MRU.get(
+                    schemaFile, de.getMessageObject());
 
             if (failOnError)
             {
-              throw new ConfigException(msgID, message, de);
+              throw new ConfigException(message, de);
             }
             else
             {
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
+              logError(message);
               continue;
             }
           }
@@ -1274,19 +1230,18 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_MRU;
-            String message = getMessage(msgID, schemaFile,
-                                        v.getStringValue() + ":  " +
-                                        getExceptionMessage(e));
+            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_MRU.get(
+                    schemaFile,
+                    v.getStringValue() + ":  " +
+                    getExceptionMessage(e));
 
             if (failOnError)
             {
-              throw new ConfigException(msgID, message, e);
+              throw new ConfigException(message, e);
             }
             else
             {
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
+              logError(message);
               continue;
             }
           }
@@ -1305,11 +1260,9 @@ public class SchemaConfigManager
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_MRU;
-            String message = getMessage(msgID, schemaFile,
-                                        de.getErrorMessage());
-            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                     message, msgID);
+            Message message = WARN_CONFIG_SCHEMA_CONFLICTING_MRU.get(
+                schemaFile, de.getMessageObject());
+            logError(message);
 
             try
             {

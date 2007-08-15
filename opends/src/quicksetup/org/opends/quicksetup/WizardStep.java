@@ -27,6 +27,8 @@
 
 package org.opends.quicksetup;
 
+import org.opends.messages.Message;
+
 /**
  * Step in a QuickSetup wizard application.
  */
@@ -37,7 +39,7 @@ public interface WizardStep {
    * @return String message key for accessing this step's display name
    * in a message bundle
    */
-  String getMessageKey();
+  Message getDisplayMessage();
 
   /**
    * Indicates that when this step is displayed the application will

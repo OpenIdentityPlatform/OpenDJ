@@ -28,14 +28,14 @@ package org.opends.server.backends.jeb;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.loggers.ErrorLogger;
+import static org.opends.server.loggers.ErrorLogger.*;
 
 import com.sleepycat.je.*;
 
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
-import static org.opends.server.messages.JebMessages.*;
+import static org.opends.messages.JebMessages.*;
 
 import java.util.*;
 
@@ -163,9 +163,7 @@ public class Index extends DatabaseContainer
     // Issue warning if this index is not trusted
     if(!trusted)
     {
-      int msgID = MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
-      ErrorLogger.logError(ErrorLogCategory.BACKEND,
-                           ErrorLogSeverity.NOTICE, msgID, name);
+      logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(name));
     }
 
   }
@@ -282,10 +280,7 @@ public class Index extends DatabaseContainer
                                 name, builder.toString());
             }
 
-            int msgID = MSGID_JEB_INDEX_CORRUPT_REQUIRES_REBUILD;
-            ErrorLogger.logError(ErrorLogCategory.BACKEND,
-                                 ErrorLogSeverity.SEVERE_ERROR,
-                                 msgID, name);
+            logError(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
           }
         }
         else
@@ -322,10 +317,7 @@ public class Index extends DatabaseContainer
               "index %s.\nKey:%s", name, builder.toString());
         }
 
-        int msgID = MSGID_JEB_INDEX_CORRUPT_REQUIRES_REBUILD;
-        ErrorLogger.logError(ErrorLogCategory.BACKEND,
-                             ErrorLogSeverity.SEVERE_ERROR,
-                             msgID, name);
+        logError(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
       }
     }
   }

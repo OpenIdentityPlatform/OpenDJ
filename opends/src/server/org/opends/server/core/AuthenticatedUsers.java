@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
@@ -41,11 +42,7 @@ import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-
-
-
+import static org.opends.messages.CoreMessages.*;
 /**
  * This class provides a data structure which maps an authenticated user DN to
  * the set of client connections authenticated as that user.  Note that a single
@@ -183,10 +180,10 @@ public class AuthenticatedUsers
     {
       for (ClientConnection conn : connectionSet)
       {
-        int    msgID   = MSGID_CLIENTCONNECTION_DISCONNECT_DUE_TO_DELETE;
-        String message = getMessage(msgID, String.valueOf(entry.getDN()));
+        Message message = WARN_CLIENTCONNECTION_DISCONNECT_DUE_TO_DELETE.get(
+                String.valueOf(entry.getDN()));
 
-        conn.disconnect(DisconnectReason.OTHER, true, message, msgID);
+        conn.disconnect(DisconnectReason.OTHER, true, message);
       }
     }
   }

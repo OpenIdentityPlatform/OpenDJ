@@ -26,6 +26,7 @@
  */
 
 package org.opends.quicksetup.util;
+import org.opends.messages.Message;
 
 import javax.swing.JFrame;
 
@@ -73,7 +74,8 @@ public class URLWorker extends BackgroundTask
       WebBrowserLauncher.openURL(url);
     } catch (Throwable t)
     {
-      throw new WebBrowserException(url, "Bug: throwable", t);
+      // TODO: i18n
+      throw new WebBrowserException(url, Message.raw("Bug: throwable"), t);
     }
     return null;
   }

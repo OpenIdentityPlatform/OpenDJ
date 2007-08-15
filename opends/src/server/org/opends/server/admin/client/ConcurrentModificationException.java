@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.admin.client;
+import org.opends.messages.Message;
 
 
 
@@ -77,7 +78,7 @@ public class ConcurrentModificationException extends OperationsException {
    * @param cause
    *          The cause.
    */
-  public ConcurrentModificationException(String message, Throwable cause) {
+  public ConcurrentModificationException(Message message, Throwable cause) {
     super(message, cause);
   }
 
@@ -89,7 +90,7 @@ public class ConcurrentModificationException extends OperationsException {
    * @param message
    *          The message.
    */
-  public ConcurrentModificationException(String message) {
+  public ConcurrentModificationException(Message message) {
     super(message);
   }
 }

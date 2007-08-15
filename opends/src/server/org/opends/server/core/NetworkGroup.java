@@ -25,10 +25,8 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
-
-
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import org.opends.messages.Message;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.Validator.ensureNotNull;
 
 import java.util.TreeMap;
@@ -124,10 +122,10 @@ public class NetworkGroup
       // The network group must not be already registered
       if (registeredNetworkGroups.containsKey(networkGroupID))
       {
-        int msgID = MSGID_REGISTER_NETWORK_GROUP_ALREADY_EXISTS;
-        String message = getMessage(msgID, networkGroupID);
+        Message message = ERR_REGISTER_NETWORK_GROUP_ALREADY_EXISTS.get(
+                          networkGroupID);
         throw new DirectoryException(
-            ResultCode.UNWILLING_TO_PERFORM, message, msgID);
+            ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
       TreeMap<String, NetworkGroup> newRegisteredNetworkGroups =
@@ -341,11 +339,9 @@ public class NetworkGroup
   /**
    * Deregisters a workflow node with the network group.
    *
-   * @param workflowNode  the workflow node to deregister
+   * @param workflow  the workflow node to deregister
    */
-  private void deregisterWorkflow(
-      Workflow workflow
-      )
+  private void deregisterWorkflow(Workflow workflow)
   {
     // true as soon as the workflow has been deregistered
     boolean deregistered = false;
@@ -401,10 +397,10 @@ public class NetworkGroup
       // The workflow must not be already registered
       if (registeredWorkflowNodes.containsKey(workflowID))
       {
-        int msgID = MSGID_REGISTER_WORKFLOW_NODE_ALREADY_EXISTS;
-        String message = getMessage(msgID, workflowID, networkGroupID);
+        Message message = ERR_REGISTER_WORKFLOW_NODE_ALREADY_EXISTS.get(
+          workflowID, networkGroupID);
         throw new DirectoryException(
-            ResultCode.UNWILLING_TO_PERFORM, message, msgID);
+            ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
       TreeMap<String, WorkflowTopologyNode> newRegisteredWorkflowNodes =

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AuthenticationInfo;
@@ -33,6 +34,7 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Operation;
+
 
 /**
  * This interface defines an operation that may be used to authenticate a user
@@ -191,26 +193,15 @@ public interface BindOperation extends Operation
    * @return  A human-readable message providing the reason that the
    *          authentication failed, or <CODE>null</CODE> if none is available.
    */
-  public abstract String getAuthFailureReason();
-
-  /**
-   * Retrieves the unique identifier for the authentication failure reason, if
-   * available.
-   *
-   * @return  The unique identifier for the authentication failure reason, or
-   *          zero if none is available.
-   */
-  public abstract int getAuthFailureID();
+  public abstract Message getAuthFailureReason();
 
   /**
    * Specifies the reason that the authentication failed.
    *
-   * @param  id      The unique identifier for the authentication failure
-   *                 reason.
-   * @param  reason  A human-readable message providing the reason that the
+   * @param  message providing the reason that the
    *                 authentication failed.
    */
-  public abstract void setAuthFailureReason(int id, String reason);
+  public abstract void setAuthFailureReason(Message message);
 
   /**
    * Retrieves the user entry DN for this bind operation.  It will only be

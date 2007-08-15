@@ -25,7 +25,8 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
-
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 
 import static org.opends.server.core.CoreConstants.LOG_ELEMENT_AUTH_TYPE;
@@ -39,8 +40,7 @@ import static org.opends.server.core.CoreConstants.LOG_ELEMENT_SASL_MECHANISM;
 import static org.opends.server.loggers.AccessLogger.logBindRequest;
 import static org.opends.server.loggers.AccessLogger.logBindResponse;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.CoreMessages.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -61,11 +61,11 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.operation.PreParseBindOperation;
 import org.opends.server.workflowelement.localbackend.*;
 
@@ -120,14 +120,11 @@ public class BindOperationBasis
   // password policy state information.
   private Entry saslAuthUserEntry;
 
-  // The unique ID associated with the failure reason message.
-  private int authFailureID;
-
   // The set of response controls for this bind operation.
   private List<Control> responseControls;
 
   // A message explaining the reason for the authentication failure.
-  private String authFailureReason;
+  private Message authFailureReason;
 
   // The SASL mechanism used for SASL authentication.
   private String saslMechanism;
@@ -185,7 +182,6 @@ public class BindOperationBasis
     bindDN                   = null;
     userEntryDN              = null;
     responseControls         = new ArrayList<Control>(0);
-    authFailureID            = 0;
     authFailureReason        = null;
     saslAuthUserEntry        = null;
   }
@@ -235,7 +231,6 @@ public class BindOperationBasis
     bindDN                 = null;
     userEntryDN            = null;
     responseControls       = new ArrayList<Control>(0);
-    authFailureID          = 0;
     authFailureReason      = null;
     saslAuthUserEntry      = null;
   }
@@ -290,7 +285,6 @@ public class BindOperationBasis
     }
 
     responseControls         = new ArrayList<Control>(0);
-    authFailureID            = 0;
     authFailureReason        = null;
     saslAuthUserEntry        = null;
     userEntryDN              = null;
@@ -339,7 +333,6 @@ public class BindOperationBasis
     }
 
     responseControls       = new ArrayList<Control>(0);
-    authFailureID          = 0;
     authFailureReason      = null;
     saslAuthUserEntry      = null;
     userEntryDN            = null;
@@ -401,7 +394,7 @@ public class BindOperationBasis
       }
 
       setResultCode(ResultCode.INVALID_CREDENTIALS);
-      setAuthFailureReason(de.getMessageID(), de.getErrorMessage());
+      setAuthFailureReason(de.getMessageObject());
     }
     return bindDN;
   }
@@ -498,7 +491,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
-  public final String getAuthFailureReason()
+  public final Message getAuthFailureReason()
   {
     return authFailureReason;
   }
@@ -506,32 +499,15 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
-  public final int getAuthFailureID()
-  {
-    return authFailureID;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public final void setAuthFailureReason(int id, String reason)
+  public final void setAuthFailureReason(Message message)
   {
     if (DirectoryServer.returnBindErrorMessages())
     {
-      appendErrorMessage(reason);
+      appendErrorMessage(message);
     }
     else
     {
-      if (id < 0)
-      {
-        authFailureID = 0;
-      }
-      else
-      {
-        authFailureID = id;
-      }
-
-      authFailureReason = reason;
+      authFailureReason = message;
     }
   }
 
@@ -576,13 +552,13 @@ public class BindOperationBasis
    */
   @Override()
   public final void disconnectClient(DisconnectReason disconnectReason,
-                                     boolean sendNotification, String message,
-                                     int messageID)
+                                     boolean sendNotification, Message message
+  )
   {
     // Since bind operations can't be cancelled, we don't need to do anything
     // but forward the request on to the client connection.
-    clientConnection.disconnect(disconnectReason, sendNotification, message,
-                                messageID);
+    clientConnection.disconnect(disconnectReason, sendNotification,
+            message);
   }
 
   /**
@@ -625,7 +601,7 @@ public class BindOperationBasis
     String resultCode = String.valueOf(getResultCode().getIntValue());
 
     String errorMessage;
-    StringBuilder errorMessageBuffer = getErrorMessage();
+    MessageBuilder errorMessageBuffer = getErrorMessage();
     if (errorMessageBuffer == null)
     {
       errorMessage = null;
@@ -713,7 +689,7 @@ public class BindOperationBasis
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-    cancelRequest.addResponseMessage(getMessage(MSGID_CANNOT_CANCEL_BIND));
+    cancelRequest.addResponseMessage(ERR_CANNOT_CANCEL_BIND.get());
     return CancelResult.CANNOT_CANCEL;
   }
 
@@ -804,7 +780,7 @@ public class BindOperationBasis
     clientConnection.setUnauthenticated();
 
     // Abandon any operations that may be in progress for the client.
-    String cancelReason = getMessage(MSGID_CANCELED_BY_BIND_REQUEST);
+    Message cancelReason = INFO_CANCELED_BY_BIND_REQUEST.get();
     CancelRequest cancelRequest = new CancelRequest(true, cancelReason);
     clientConnection.cancelAllOperationsExcept(cancelRequest, getMessageID());
 
@@ -831,8 +807,7 @@ bindProcessing:
         // result and return.
         setResultCode(ResultCode.CANCELED);
 
-        int msgID = MSGID_CANCELED_BY_PREPARSE_DISCONNECT;
-        appendErrorMessage(getMessage(msgID));
+        appendErrorMessage(ERR_CANCELED_BY_PREPARSE_DISCONNECT.get());
 
         setProcessingStopTime();
 
@@ -974,11 +949,10 @@ bindProcessing:
    */
   private void updateOperationErrMsgAndResCode()
   {
-    int    msgID   = MSGID_BIND_OPERATION_UNKNOWN_USER;
-    String message = getMessage(msgID, String.valueOf(getBindDN()));
-
+    Message message = ERR_BIND_OPERATION_UNKNOWN_USER.get(
+            String.valueOf(getBindDN()));
     setResultCode(ResultCode.INVALID_CREDENTIALS);
-    setAuthFailureReason(msgID, message);
+    setAuthFailureReason(message);
   }
 
 }

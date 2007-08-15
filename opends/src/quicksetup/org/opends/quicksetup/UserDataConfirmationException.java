@@ -27,6 +27,8 @@
 
 package org.opends.quicksetup;
 
+import org.opends.messages.Message;
+
 /**
  * This exception is used when there is an confirmation to be asked
  * concerning the data provided by the user.  It will be thrown by the class
@@ -40,11 +42,11 @@ public class UserDataConfirmationException extends UserDataException
   /**
    * Constructor for UserDataConfirmationException.
    * @param step the step in the wizard where the exception occurred.
-   * @param localizedMessage the localized message describing the error.
+   * @param message the localized message describing the error.
    */
-  public UserDataConfirmationException(WizardStep step, String localizedMessage)
+  public UserDataConfirmationException(WizardStep step, Message message)
   {
-    super(step, localizedMessage);
+    super(step, message);
   }
 }
 

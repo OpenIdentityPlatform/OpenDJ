@@ -25,12 +25,12 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
+import org.opends.messages.Message;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.getAttributeType;
-import static org.opends.server.messages.TaskMessages.*;
-import static org.opends.server.messages.ToolMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.TaskMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.DATE_FORMAT_GMT_TIME;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.ServerConstants.
@@ -50,8 +50,6 @@ import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
@@ -108,10 +106,9 @@ public class BackupTask extends Task
       ClientConnection clientConnection = operation.getClientConnection();
       if (! clientConnection.hasPrivilege(Privilege.BACKEND_BACKUP, operation))
       {
-        int    msgID   = MSGID_TASK_BACKUP_INSUFFICIENT_PRIVILEGES;
-        String message = getMessage(msgID);
+        Message message = ERR_TASK_BACKUP_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -207,21 +204,17 @@ public class BackupTask extends Task
     {
       if (!backendIDList.isEmpty())
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_MIX_BACKUP_ALL_AND_BACKEND_ID;
-        String message = getMessage(msgID, ATTR_TASK_BACKUP_ALL,
-                                    ATTR_TASK_BACKUP_BACKEND_ID);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_BACKUPDB_CANNOT_MIX_BACKUP_ALL_AND_BACKEND_ID.get(
+            ATTR_TASK_BACKUP_ALL, ATTR_TASK_BACKUP_BACKEND_ID);
+        logError(message);
         return false;
       }
     }
     else if (backendIDList.isEmpty())
     {
-      int    msgID   = MSGID_BACKUPDB_NEED_BACKUP_ALL_OR_BACKEND_ID;
-      String message = getMessage(msgID, ATTR_TASK_BACKUP_ALL,
-                                  ATTR_TASK_BACKUP_BACKEND_ID);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_BACKUPDB_NEED_BACKUP_ALL_OR_BACKEND_ID.get(
+          ATTR_TASK_BACKUP_ALL, ATTR_TASK_BACKUP_BACKEND_ID);
+      logError(message);
       return false;
     }
 
@@ -241,12 +234,10 @@ public class BackupTask extends Task
     {
       if (! incremental)
       {
-        int    msgID   = MSGID_BACKUPDB_INCREMENTAL_BASE_REQUIRES_INCREMENTAL;
-        String message = getMessage(msgID,
-                                    ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID,
-                                    ATTR_TASK_BACKUP_INCREMENTAL);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_BACKUPDB_INCREMENTAL_BASE_REQUIRES_INCREMENTAL.
+            get(ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID,
+                ATTR_TASK_BACKUP_INCREMENTAL);
+        logError(message);
         return false;
       }
     }
@@ -256,12 +247,9 @@ public class BackupTask extends Task
     // was given.
     if (signHash && (! hash))
     {
-      int    msgID   = MSGID_BACKUPDB_SIGN_REQUIRES_HASH;
-      String message = getMessage(msgID,
-                                  ATTR_TASK_BACKUP_SIGN_HASH,
-                                  ATTR_TASK_BACKUP_HASH);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_BACKUPDB_SIGN_REQUIRES_HASH.get(
+          ATTR_TASK_BACKUP_SIGN_HASH, ATTR_TASK_BACKUP_HASH);
+      logError(message);
       return false;
     }
 
@@ -275,9 +263,8 @@ public class BackupTask extends Task
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_CREATE_BACKUP_DIR;
-        String message = getMessage(msgID, backupDirectory.getPath(),
-                                    getExceptionMessage(e));
+        Message message = ERR_BACKUPDB_CANNOT_CREATE_BACKUP_DIR.get(
+                backupDirectory.getPath(), getExceptionMessage(e));
         System.err.println(message);
         return false;
       }
@@ -308,17 +295,14 @@ public class BackupTask extends Task
         Backend b = DirectoryServer.getBackend(id);
         if (b == null || configEntries.get(id) == null)
         {
-          int    msgID   = MSGID_BACKUPDB_NO_BACKENDS_FOR_ID;
-          String message = getMessage(msgID, id);
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_BACKUPDB_NO_BACKENDS_FOR_ID.get(id);
+          logError(message);
         }
         else if (! b.supportsBackup())
         {
-          int    msgID   = MSGID_BACKUPDB_BACKUP_NOT_SUPPORTED;
-          String message = getMessage(msgID, b.getBackendID());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                   msgID);
+          Message message =
+              WARN_BACKUPDB_BACKUP_NOT_SUPPORTED.get(b.getBackendID());
+          logError(message);
         }
         else
         {
@@ -337,10 +321,8 @@ public class BackupTask extends Task
     // If there are no backends to archive, then print an error and exit.
     if (backendsToArchive.isEmpty())
     {
-      int    msgID   = MSGID_BACKUPDB_NO_BACKENDS_TO_ARCHIVE;
-      String message = getMessage(msgID);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = WARN_BACKUPDB_NO_BACKENDS_TO_ARCHIVE.get();
+      logError(message);
       return false;
     }
 
@@ -378,19 +360,16 @@ public class BackupTask extends Task
         }
         catch (ConfigException ce)
         {
-          int msgID   = MSGID_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR;
-          String message = getMessage(msgID, descriptorPath, ce.getMessage());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR.get(
+              descriptorPath, ce.getMessage());
+          logError(message);
           return false;
         }
         catch (Exception e)
         {
-          int msgID   = MSGID_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR;
-          String message = getMessage(msgID, descriptorPath,
-                                      getExceptionMessage(e));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR.get(
+              descriptorPath, getExceptionMessage(e));
+          logError(message);
           return false;
         }
       }
@@ -407,11 +386,9 @@ public class BackupTask extends Task
       }
       catch (Exception e)
       {
-        int msgID   = MSGID_BACKUPDB_CANNOT_CREATE_BACKUP_DIR;
-        String message = getMessage(msgID, backupLocation.getPath(),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_BACKUPDB_CANNOT_CREATE_BACKUP_DIR.get(
+            backupLocation.getPath(), getExceptionMessage(e));
+        logError(message);
         return false;
       }
 
@@ -440,21 +417,17 @@ public class BackupTask extends Task
     catch (DirectoryException de)
     {
       DirectoryServer.notifyBackupEnded(b, backupConfig, false);
-      int msgID   = MSGID_BACKUPDB_ERROR_DURING_BACKUP;
-      String message = getMessage(msgID, b.getBackendID(),
-                                  de.getErrorMessage());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_BACKUPDB_ERROR_DURING_BACKUP.get(
+          b.getBackendID(), de.getMessageObject());
+      logError(message);
       return false;
     }
     catch (Exception e)
     {
       DirectoryServer.notifyBackupEnded(b, backupConfig, false);
-      int msgID   = MSGID_BACKUPDB_ERROR_DURING_BACKUP;
-      String message = getMessage(msgID, b.getBackendID(),
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_BACKUPDB_ERROR_DURING_BACKUP.get(
+          b.getBackendID(), getExceptionMessage(e));
+      logError(message);
       return false;
     }
 
@@ -474,21 +447,17 @@ public class BackupTask extends Task
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_LOCK_BACKEND;
-        String message = getMessage(msgID, b.getBackendID(),
-                                    String.valueOf(failureReason));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_BACKUPDB_CANNOT_LOCK_BACKEND.get(
+            b.getBackendID(), String.valueOf(failureReason));
+        logError(message);
         return false;
       }
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_BACKUPDB_CANNOT_LOCK_BACKEND;
-      String message = getMessage(msgID, b.getBackendID(),
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_BACKUPDB_CANNOT_LOCK_BACKEND.get(
+          b.getBackendID(), getExceptionMessage(e));
+      logError(message);
       return false;
     }
 
@@ -508,21 +477,17 @@ public class BackupTask extends Task
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        int msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-        String message = getMessage(msgID, b.getBackendID(),
-                             String.valueOf(failureReason));
-        logError(ErrorLogCategory.BACKEND,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+        Message message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
+            b.getBackendID(), String.valueOf(failureReason));
+        logError(message);
         return false;
       }
     }
     catch (Exception e)
     {
-      int msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-      String message = getMessage(msgID, b.getBackendID(),
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND,
-               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+      Message message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
+          b.getBackendID(), getExceptionMessage(e));
+      logError(message);
       return false;
     }
 
@@ -568,10 +533,8 @@ public class BackupTask extends Task
 
       try
       {
-        int    msgID = MSGID_BACKUPDB_STARTING_BACKUP;
-        String message = getMessage(msgID, b.getBackendID());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                 msgID);
+        Message message = NOTE_BACKUPDB_STARTING_BACKUP.get(b.getBackendID());
+        logError(message);
 
 
         // Get the path to the directory to use for this backup.  If we will be
@@ -610,18 +573,14 @@ public class BackupTask extends Task
     // in the process.
     if (errorsEncountered)
     {
-      int    msgID = MSGID_BACKUPDB_COMPLETED_WITH_ERRORS;
-      String message = getMessage(msgID);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-               msgID);
+      Message message = NOTE_BACKUPDB_COMPLETED_WITH_ERRORS.get();
+      logError(message);
       return TaskState.COMPLETED_WITH_ERRORS;
     }
     else
     {
-      int    msgID = MSGID_BACKUPDB_COMPLETED_SUCCESSFULLY;
-      String message = getMessage(msgID);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-               msgID);
+      Message message = NOTE_BACKUPDB_COMPLETED_SUCCESSFULLY.get();
+      logError(message);
       return TaskState.COMPLETED_SUCCESSFULLY;
     }
   }

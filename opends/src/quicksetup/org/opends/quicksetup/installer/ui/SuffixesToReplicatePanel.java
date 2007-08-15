@@ -66,6 +66,10 @@ import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import static org.opends.messages.QuickSetupMessages.*;
+
 /**
  * This class is used to provide a data model for the list of suffixes that
  * we have to replicate on the new server.
@@ -227,17 +231,17 @@ implements Comparator<SuffixDescriptor>
   /**
    * {@inheritDoc}
    */
-  protected String getInstructions()
+  protected Message getInstructions()
   {
-    return getMsg("suffixes-to-replicate-panel-instructions");
+    return INFO_SUFFIXES_TO_REPLICATE_PANEL_INSTRUCTIONS.get();
   }
 
   /**
    * {@inheritDoc}
    */
-  protected String getTitle()
+  protected Message getTitle()
   {
-    return getMsg("suffixes-to-replicate-panel-title");
+    return INFO_SUFFIXES_TO_REPLICATE_PANEL_TITLE.get();
   }
 
   /**
@@ -267,8 +271,8 @@ implements Comparator<SuffixDescriptor>
       hmCheckBoxes.clear();
       for (SuffixDescriptor suffix : orderedSuffixes)
       {
-        JCheckBox cb = UIFactory.makeJCheckBox(suffix.getDN(),
-            getMsg("suffixes-to-replicate-dn-tooltip"),
+        JCheckBox cb = UIFactory.makeJCheckBox(Message.raw(suffix.getDN()),
+            INFO_SUFFIXES_TO_REPLICATE_DN_TOOLTIP.get(),
             UIFactory.TextStyle.SECONDARY_FIELD_VALID);
         cb.setOpaque(false);
         Boolean v = hmOldValues.get(suffix.getId());
@@ -322,13 +326,13 @@ implements Comparator<SuffixDescriptor>
   {
     ButtonGroup buttonGroup = new ButtonGroup();
     rbCreateNewSuffix =
-      UIFactory.makeJRadioButton(getMsg("create-new-suffix-label"),
-          getMsg("create-new-suffix-tooltip"),
+      UIFactory.makeJRadioButton(INFO_CREATE_NEW_SUFFIX_LABEL.get(),
+          INFO_CREATE_NEW_SUFFIX_TOOLTIP.get(),
           UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     rbCreateNewSuffix.setOpaque(false);
     rbReplicate =
-      UIFactory.makeJRadioButton(getMsg("replicate-with-suffixes-label"),
-          getMsg("replicate-with-suffixes-tooltip"),
+      UIFactory.makeJRadioButton(INFO_REPLICATE_WITH_SUFFIXES_LABEL.get(),
+          INFO_REPLICATE_WITH_SUFFIXES_TOOLTIP.get(),
           UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     rbReplicate.setOpaque(false);
     buttonGroup.add(rbCreateNewSuffix);
@@ -342,7 +346,7 @@ implements Comparator<SuffixDescriptor>
       SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES);
 
     noSuffixLabel = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        getMsg("suffix-list-empty"),
+        INFO_SUFFIX_LIST_EMPTY.get(),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
 
     ActionListener l = new ActionListener()
@@ -404,13 +408,15 @@ implements Comparator<SuffixDescriptor>
       gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
       gbc.weightx = 1.0;
       gbc.gridwidth = GridBagConstraints.REMAINDER;
-      JEditorPane l = UIFactory.makeTextPane(getSuffixString(suffix),
-          UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+      JEditorPane l = UIFactory.makeTextPane(
+              Message.raw(getSuffixString(suffix)),
+              UIFactory.TextStyle.SECONDARY_FIELD_VALID);
       l.setOpaque(false);
       suffixLabels.add(l);
 
       /* Use a prototype label to get the additional insets */
-      JEditorPane proto = UIFactory.makeTextPane(suffix.getDN(),
+      JEditorPane proto = UIFactory.makeTextPane(
+              Message.raw(suffix.getDN()),
           UIFactory.TextStyle.SECONDARY_FIELD_VALID);
 
       gbc.insets.top += Math.abs(cb.getPreferredSize().height -
@@ -423,13 +429,13 @@ implements Comparator<SuffixDescriptor>
 
   private String getSuffixString(SuffixDescriptor desc)
   {
-    TreeSet<String> replicaDisplays = new TreeSet<String>();
+    TreeSet<Message> replicaDisplays = new TreeSet<Message>();
     for (ReplicaDescriptor rep: desc.getReplicas())
     {
       replicaDisplays.add(getReplicaDisplay(rep));
     }
-    StringBuilder buf = new StringBuilder();
-    for (String display: replicaDisplays)
+    MessageBuilder buf = new MessageBuilder();
+    for (Message display: replicaDisplays)
     {
       if (buf.length() > 0)
       {
@@ -440,9 +446,9 @@ implements Comparator<SuffixDescriptor>
     return buf.toString();
   }
 
-  private String getReplicaDisplay(ReplicaDescriptor replica)
+  private Message getReplicaDisplay(ReplicaDescriptor replica)
   {
-    String display;
+    Message display;
 
     ServerDescriptor server = replica.getServer();
 
@@ -452,19 +458,17 @@ implements Comparator<SuffixDescriptor>
 
     if (nEntries > 0)
     {
-      String[] args = {serverDisplay, String.valueOf(nEntries)};
-      display = getMsg("suffix-list-replica-display-entries", args);
+      display = INFO_SUFFIX_LIST_REPLICA_DISPLAY_ENTRIES.get(
+              serverDisplay, String.valueOf(nEntries));
     }
     else if (nEntries == 0)
     {
-      String[] arg = {serverDisplay};
-      display = getMsg("suffix-list-replica-display-no-entries", arg);
+      display = INFO_SUFFIX_LIST_REPLICA_DISPLAY_NO_ENTRIES.get(serverDisplay);
     }
     else
     {
-      String[] arg = {serverDisplay};
-      display = getMsg("suffix-list-replica-display-entries-not-available",
-          arg);
+      display = INFO_SUFFIX_LIST_REPLICA_DISPLAY_ENTRIES_NOT_AVAILABLE.get(
+              serverDisplay);
     }
 
     return display;

@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
+import org.opends.messages.Message;
 
 
 
@@ -42,14 +43,11 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.TaskMessages.*;
+import static org.opends.messages.TaskMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -69,7 +67,7 @@ public class DisconnectClientTask
   private long connectionID;
 
   // The disconnect message to send to the client.
-  private String disconnectMessage;
+  private Message disconnectMessage;
 
 
 
@@ -88,10 +86,9 @@ public class DisconnectClientTask
       ClientConnection conn = operation.getClientConnection();
       if (! conn.hasPrivilege(Privilege.DISCONNECT_CLIENT, operation))
       {
-        int    msgID   = MSGID_TASK_DISCONNECT_NO_PRIVILEGE;
-        String message = getMessage(msgID);
+        Message message = ERR_TASK_DISCONNECT_NO_PRIVILEGE.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -116,10 +113,10 @@ connIDLoop:
           }
           catch (Exception e)
           {
-            int    msgID   = MSGID_TASK_DISCONNECT_INVALID_CONN_ID;
-            String message = getMessage(msgID, v.getStringValue());
+            Message message =
+                ERR_TASK_DISCONNECT_INVALID_CONN_ID.get(v.getStringValue());
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID, e);
+                                         message, e);
           }
         }
       }
@@ -127,10 +124,10 @@ connIDLoop:
 
     if (connectionID < 0)
     {
-      int    msgID   = MSGID_TASK_DISCONNECT_NO_CONN_ID;
-      String message = getMessage(msgID, ATTR_TASK_DISCONNECT_CONN_ID);
+      Message message =
+          ERR_TASK_DISCONNECT_NO_CONN_ID.get(ATTR_TASK_DISCONNECT_CONN_ID);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -159,10 +156,10 @@ notifyClientLoop:
           }
           else
           {
-            int    msgID   = MSGID_TASK_DISCONNECT_INVALID_NOTIFY_CLIENT;
-            String message = getMessage(msgID, stringValue);
+            Message message =
+                ERR_TASK_DISCONNECT_INVALID_NOTIFY_CLIENT.get(stringValue);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
         }
       }
@@ -170,7 +167,7 @@ notifyClientLoop:
 
 
     // Get the disconnect message.
-    disconnectMessage = getMessage(MSGID_TASK_DISCONNECT_GENERIC_MESSAGE);
+    disconnectMessage = INFO_TASK_DISCONNECT_GENERIC_MESSAGE.get();
     attrType = DirectoryServer.getAttributeType(ATTR_TASK_DISCONNECT_MESSAGE,
                                                 true);
     attrList = taskEntry.getAttribute(attrType);
@@ -181,7 +178,7 @@ disconnectMessageLoop:
       {
         for (AttributeValue v : a.getValues())
         {
-          disconnectMessage = v.getStringValue();
+          disconnectMessage = Message.raw(v.getStringValue());
           break disconnectMessageLoop;
         }
       }
@@ -216,19 +213,17 @@ disconnectMessageLoop:
     // terminate it.
     if (clientConnection == null)
     {
-      int    msgID   = MSGID_TASK_DISCONNECT_NO_SUCH_CONNECTION;
-      String message = getMessage(msgID, connectionID);
-
-      logError(ErrorLogCategory.TASK, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message =
+          ERR_TASK_DISCONNECT_NO_SUCH_CONNECTION.get(
+                  String.valueOf(connectionID));
+      logError(message);
 
       return TaskState.COMPLETED_WITH_ERRORS;
     }
     else
     {
       clientConnection.disconnect(DisconnectReason.ADMIN_DISCONNECT,
-                                  notifyClient, disconnectMessage,
-                                  MSGID_TASK_DISCONNECT_MESSAGE);
+                                  notifyClient, disconnectMessage);
       return TaskState.COMPLETED_SUCCESSFULLY;
     }
   }

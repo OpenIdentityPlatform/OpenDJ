@@ -25,14 +25,14 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.asn1;
+import org.opends.messages.Message;
 
 
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -212,9 +212,8 @@ public class ASN1Sequence
   {
     if (value == null)
     {
-      int    msgID   = MSGID_ASN1_SEQUENCE_SET_VALUE_NULL;
-      String message = getMessage(msgID);
-      throw new ASN1Exception(msgID, message);
+      Message message = ERR_ASN1_SEQUENCE_SET_VALUE_NULL.get();
+      throw new ASN1Exception(message);
     }
 
     elements = decodeElements(value);
@@ -238,9 +237,8 @@ public class ASN1Sequence
   {
     if (element == null)
     {
-      int    msgID   = MSGID_ASN1_SEQUENCE_DECODE_ELEMENT_NULL;
-      String message = getMessage(msgID);
-      throw new ASN1Exception(msgID, message);
+      Message message = ERR_ASN1_SEQUENCE_DECODE_ELEMENT_NULL.get();
+      throw new ASN1Exception(message);
     }
 
     byte[] value = element.value();
@@ -268,16 +266,14 @@ public class ASN1Sequence
     // a valid ASN.1 sequence element.
     if (encodedElement == null)
     {
-      int    msgID   = MSGID_ASN1_SEQUENCE_DECODE_ARRAY_NULL;
-      String message = getMessage(msgID);
-      throw new ASN1Exception(msgID, message);
+      Message message = ERR_ASN1_SEQUENCE_DECODE_ARRAY_NULL.get();
+      throw new ASN1Exception(message);
     }
 
     if (encodedElement.length < 2)
     {
-      int    msgID   = MSGID_ASN1_SHORT_ELEMENT;
-      String message = getMessage(msgID, encodedElement.length);
-      throw new ASN1Exception(msgID, message);
+      Message message = ERR_ASN1_SHORT_ELEMENT.get(encodedElement.length);
+      throw new ASN1Exception(message);
     }
 
 
@@ -291,15 +287,13 @@ public class ASN1Sequence
       int numLengthBytes = length;
       if (numLengthBytes > 4)
       {
-        int    msgID   = MSGID_ASN1_INVALID_NUM_LENGTH_BYTES;
-        String message = getMessage(msgID, numLengthBytes);
-        throw new ASN1Exception(msgID, message);
+        Message message = ERR_ASN1_INVALID_NUM_LENGTH_BYTES.get(numLengthBytes);
+        throw new ASN1Exception(message);
       }
       else if (encodedElement.length < (2 + numLengthBytes))
       {
-        int    msgID   = MSGID_ASN1_TRUNCATED_LENGTH;
-        String message = getMessage(msgID, numLengthBytes);
-        throw new ASN1Exception(msgID, message);
+        Message message = ERR_ASN1_TRUNCATED_LENGTH.get(numLengthBytes);
+        throw new ASN1Exception(message);
       }
 
       length = 0x00;
@@ -315,10 +309,9 @@ public class ASN1Sequence
     // in the value.
     if ((encodedElement.length - valueStartPos) != length)
     {
-      int    msgID   = MSGID_ASN1_LENGTH_MISMATCH;
-      String message = getMessage(msgID, length,
-                                  (encodedElement.length - valueStartPos));
-      throw new ASN1Exception(msgID, message);
+      Message message = ERR_ASN1_LENGTH_MISMATCH.get(
+          length, (encodedElement.length - valueStartPos));
+      throw new ASN1Exception(message);
     }
 
 

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 
 
@@ -59,8 +60,7 @@ import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -168,40 +168,45 @@ public class LDIFDiff
     StringArgument  targetLDIF;
 
 
-    String toolDescription = getMessage(MSGID_LDIFDIFF_TOOL_DESCRIPTION);
+    Message toolDescription = INFO_LDIFDIFF_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false);
     try
     {
-      sourceLDIF = new StringArgument("sourceldif", 's', "sourceLDIF", true,
-                                      false, true, "{filename}", null, null,
-                                      MSGID_LDIFDIFF_DESCRIPTION_SOURCE_LDIF);
+      sourceLDIF = new StringArgument(
+              "sourceldif", 's', "sourceLDIF", true,
+              false, true, "{filename}", null, null,
+              INFO_LDIFDIFF_DESCRIPTION_SOURCE_LDIF.get());
       argParser.addArgument(sourceLDIF);
 
-      targetLDIF = new StringArgument("targetldif", 't', "targetLDIF", true,
-                                      false, true, "{filename}", null, null,
-                                      MSGID_LDIFDIFF_DESCRIPTION_TARGET_LDIF);
+      targetLDIF = new StringArgument(
+              "targetldif", 't', "targetLDIF", true,
+              false, true, "{filename}", null, null,
+              INFO_LDIFDIFF_DESCRIPTION_TARGET_LDIF.get());
       argParser.addArgument(targetLDIF);
 
-      outputLDIF = new StringArgument("outputldif", 'o', "outputLDIF", false,
-                                      false, true, "{filename}", null, null,
-                                      MSGID_LDIFDIFF_DESCRIPTION_OUTPUT_LDIF);
+      outputLDIF = new StringArgument(
+              "outputldif", 'o', "outputLDIF", false,
+              false, true, "{filename}", null, null,
+              INFO_LDIFDIFF_DESCRIPTION_OUTPUT_LDIF.get());
       argParser.addArgument(outputLDIF);
 
       overwriteExisting =
-           new BooleanArgument("overwriteexisting", 'O',
-                               "overwriteExisting",
-                               MSGID_LDIFDIFF_DESCRIPTION_OVERWRITE_EXISTING);
+           new BooleanArgument(
+                   "overwriteexisting", 'O',
+                   "overwriteExisting",
+                   INFO_LDIFDIFF_DESCRIPTION_OVERWRITE_EXISTING.get());
       argParser.addArgument(overwriteExisting);
 
       singleValueChanges =
-           new BooleanArgument("singlevaluechanges", 'S', "singleValueChanges",
-                               MSGID_LDIFDIFF_DESCRIPTION_SINGLE_VALUE_CHANGES);
+           new BooleanArgument(
+                   "singlevaluechanges", 'S', "singleValueChanges",
+                   INFO_LDIFDIFF_DESCRIPTION_SINGLE_VALUE_CHANGES.get());
       argParser.addArgument(singleValueChanges);
 
       configFile = new StringArgument("configfile", 'c', "configFile", false,
                                       false, true, "{configFile}", null, null,
-                                      MSGID_DESCRIPTION_CONFIG_FILE);
+                                      INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
@@ -209,20 +214,20 @@ public class LDIFDiff
                              OPTION_LONG_CONFIG_CLASS, false,
                              false, true, OPTION_VALUE_CONFIG_CLASS,
                              ConfigFileHandler.class.getName(), null,
-                             MSGID_DESCRIPTION_CONFIG_CLASS);
+                             INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
       showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
                                       OPTION_LONG_HELP,
-                                      MSGID_DESCRIPTION_USAGE);
+                                      INFO_DESCRIPTION_USAGE.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       err.println(message);
       return 1;
     }
@@ -235,8 +240,8 @@ public class LDIFDiff
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(message);
       err.println(argParser.getUsage());
@@ -270,9 +275,9 @@ public class LDIFDiff
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_LDIFDIFF_CANNOT_INITIALIZE_JMX;
-          String message = getMessage(msgID,
-                                      String.valueOf(configFile.getValue()),
+
+          Message message = ERR_LDIFDIFF_CANNOT_INITIALIZE_JMX.get(
+                  String.valueOf(configFile.getValue()),
                                       e.getMessage());
           err.println(message);
           return 1;
@@ -285,9 +290,8 @@ public class LDIFDiff
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_LDIFDIFF_CANNOT_INITIALIZE_CONFIG;
-          String message = getMessage(msgID,
-                                      String.valueOf(configFile.getValue()),
+          Message message = ERR_LDIFDIFF_CANNOT_INITIALIZE_CONFIG.get(
+                  String.valueOf(configFile.getValue()),
                                       e.getMessage());
           err.println(message);
           return 1;
@@ -299,10 +303,9 @@ public class LDIFDiff
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_LDIFDIFF_CANNOT_INITIALIZE_SCHEMA;
-          String message = getMessage(msgID,
-                                      String.valueOf(configFile.getValue()),
-                                      e.getMessage());
+          Message message = ERR_LDIFDIFF_CANNOT_INITIALIZE_SCHEMA.get(
+                  String.valueOf(configFile.getValue()),
+                  e.getMessage());
           err.println(message);
           return 1;
         }
@@ -319,9 +322,9 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDIFDIFF_CANNOT_OPEN_SOURCE_LDIF;
-      String message = getMessage(msgID, sourceLDIF.getValue(),
-                                  String.valueOf(e));
+      Message message = ERR_LDIFDIFF_CANNOT_OPEN_SOURCE_LDIF.get(
+              sourceLDIF.getValue(),
+              String.valueOf(e));
       err.println(message);
       return 1;
     }
@@ -342,9 +345,9 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDIFDIFF_ERROR_READING_SOURCE_LDIF;
-      String message = getMessage(msgID, sourceLDIF.getValue(),
-                                  String.valueOf(e));
+      Message message = ERR_LDIFDIFF_ERROR_READING_SOURCE_LDIF.get(
+              sourceLDIF.getValue(),
+              String.valueOf(e));
       err.println(message);
       return 1;
     }
@@ -365,9 +368,9 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDIFDIFF_CANNOT_OPEN_TARGET_LDIF;
-      String message = getMessage(msgID, targetLDIF.getValue(),
-                                  String.valueOf(e));
+      Message message = ERR_LDIFDIFF_CANNOT_OPEN_TARGET_LDIF.get(
+              targetLDIF.getValue(),
+              String.valueOf(e));
       err.println(message);
       return 1;
     }
@@ -388,9 +391,9 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDIFDIFF_ERROR_READING_TARGET_LDIF;
-      String message = getMessage(msgID, targetLDIF.getValue(),
-                                  String.valueOf(e));
+      Message message = ERR_LDIFDIFF_ERROR_READING_TARGET_LDIF.get(
+              targetLDIF.getValue(),
+              String.valueOf(e));
       err.println(message);
       return 1;
     }
@@ -430,8 +433,7 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDIFDIFF_CANNOT_OPEN_OUTPUT;
-      String message = getMessage(msgID, String.valueOf(e));
+      Message message = ERR_LDIFDIFF_CANNOT_OPEN_OUTPUT.get(String.valueOf(e));
       err.println(message);
       return 1;
     }
@@ -445,8 +447,7 @@ public class LDIFDiff
         if (targetMap.isEmpty())
         {
           // They're both empty, so there are no differences.
-          int    msgID   = MSGID_LDIFDIFF_NO_DIFFERENCES;
-          String message = getMessage(msgID);
+          Message message = INFO_LDIFDIFF_NO_DIFFERENCES.get();
           writer.writeComment(message, 0);
           return 0;
         }
@@ -599,16 +600,15 @@ public class LDIFDiff
 
         if (! differenceFound)
         {
-          int    msgID   = MSGID_LDIFDIFF_NO_DIFFERENCES;
-          String message = getMessage(msgID);
+          Message message = INFO_LDIFDIFF_NO_DIFFERENCES.get();
           writer.writeComment(message, 0);
         }
       }
     }
     catch (IOException e)
     {
-      int    msgID   = MSGID_LDIFDIFF_ERROR_WRITING_OUTPUT;
-      String message = getMessage(msgID, String.valueOf(e));
+      Message message =
+              ERR_LDIFDIFF_ERROR_WRITING_OUTPUT.get(String.valueOf(e));
       err.println(message);
       return 1;
     }

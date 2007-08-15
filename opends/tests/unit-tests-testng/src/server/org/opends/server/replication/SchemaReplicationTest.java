@@ -38,6 +38,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
+import org.opends.messages.Category;
+import org.opends.messages.Severity;
 import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
@@ -52,8 +55,6 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.Operation;
@@ -130,9 +131,8 @@ public class SchemaReplicationTest extends ReplicationTestCase
   @Test()
   public void pushSchemaChange() throws Exception
   {
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.NOTICE,
-        "Starting replication test : pushSchemaChange ", 1);
+    logError(Message.raw("Starting replication test : pushSchemaChange ",
+            Category.SYNC, Severity.NOTICE));
 
     final DN baseDn = DN.decode("cn=schema");
 
@@ -216,9 +216,8 @@ public class SchemaReplicationTest extends ReplicationTestCase
   @Test(dependsOnMethods = { "pushSchemaChange" })
   public void replaySchemaChange() throws Exception
   {
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.NOTICE,
-        "Starting replication test : pushSchemaChange ", 1);
+    logError(Message.raw("Starting replication test : pushSchemaChange ",
+            Category.SYNC, Severity.NOTICE));
 
     final DN baseDn = DN.decode("cn=schema");
 
@@ -250,9 +249,8 @@ public class SchemaReplicationTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "replaySchemaChange" })
   public void pushSchemaFilesChange() throws Exception
   {
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.NOTICE,
-        "Starting replication test : pushSchemaFilesChange ", 1);
+    logError(Message.raw("Starting replication test : pushSchemaFilesChange ",
+            Category.SYNC, Severity.NOTICE));
 
     final DN baseDn = DN.decode("cn=schema");
 

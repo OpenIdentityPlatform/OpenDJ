@@ -26,10 +26,10 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.AciMessages.*;
+import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
 import org.opends.server.types.*;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
@@ -148,9 +148,10 @@ public class TargAttrFilters {
         Matcher matcher = fullPattern.matcher(expression);
         //First match for overall correctness and to get the first operation.
         if(!matcher.find()) {
-            int msgID = MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION;
-            String message = getMessage(msgID, expression);
-            throw new AciException(msgID, message);
+            Message message =
+              WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION.
+                  get(expression);
+            throw new AciException(message);
         }
         String firstOp=matcher.group(firstOpPos);
         String subExpression=matcher.group(restOfExpressionPos);
@@ -171,10 +172,9 @@ public class TargAttrFilters {
          * This is invalid.
          */
         if(temp.length > 1) {
-            int msgID =
-                    MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_OPS_MATCH;
-            String message = getMessage(msgID, expression);
-            throw new AciException(msgID, message);
+            Message message = WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_OPS_MATCH.
+                get(expression);
+            throw new AciException(message);
         }
         /**
          * Check that there are not too many filter lists. There can only
@@ -183,18 +183,19 @@ public class TargAttrFilters {
         String[] filterLists=
                 subExpression.split(secondOp, -1);
         if(filterLists.length > 2) {
-          int msgID =
-                  MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_MAX_FILTER_LISTS;
-          String message = getMessage(msgID, expression);
-          throw new AciException(msgID, message);
+          Message message =
+              WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_MAX_FILTER_LISTS.
+                get(expression);
+          throw new AciException(message);
         } else if (filterLists.length == 1) {
           //Check if the there is something like ") , deel=". A bad token
           //that the regular expression didn't pick up.
           String [] filterList2=subExpression.split(secondOpSeparator);
           if(filterList2.length == 2) {
-              int msgID = MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION;
-              String message = getMessage(msgID, expression);
-              throw new AciException(msgID, message);
+              Message message =
+                  WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION.
+                    get(expression);
+              throw new AciException(message);
           }
           String sOp="del";
           if(getMask(firstOp) == TARGATTRFILTERS_DELETE)
@@ -203,17 +204,19 @@ public class TargAttrFilters {
           //This check catches the case where there might not be a
           //',' character between the first filter list and the second.
           if(subExpression.indexOf(rg) != -1) {
-            int msgID = MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION;
-            String message = getMessage(msgID, expression);
-            throw new AciException(msgID, message);
+            Message message =
+                WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION.
+                  get(expression);
+            throw new AciException(message);
           }
         }
         filterLists[0]=filterLists[0].trim();
         //First filter list must end in an ')' character.
         if(!filterLists[0].endsWith(")")) {
-            int msgID = MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION;
-            String message = getMessage(msgID, expression);
-            throw new AciException(msgID, message);
+            Message message =
+                WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION.
+                  get(expression);
+            throw new AciException(message);
         }
         TargAttrFilterList firstFilterList =
                 TargAttrFilterList.decode(getMask(firstOp), filterLists[0]);
@@ -223,9 +226,10 @@ public class TargAttrFilters {
             String filterList=filterLists[1].trim();
             //Second filter list must start with a '='.
             if(!filterList.startsWith("=")) {
-              int msgID = MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION;
-              String message = getMessage(msgID, expression);
-              throw new AciException(msgID, message);
+              Message message =
+                  WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION.
+                    get(expression);
+              throw new AciException(message);
             }
             String temp2= filterList.substring(1,filterList.length());
             //Assume the first op is an "add" so this has to be a "del".

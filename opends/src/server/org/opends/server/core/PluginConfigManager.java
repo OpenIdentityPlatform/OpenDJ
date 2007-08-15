@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
@@ -69,8 +70,8 @@ import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.LDIFExportConfig;
@@ -123,12 +124,13 @@ import org.opends.server.types.operation.SearchReferenceSearchOperation;
 import org.opends.server.types.operation.SubordinateModifyDNOperation;
 import org.opends.server.workflowelement.localbackend.*;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.PluginMessages.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.PluginMessages.*;
+
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -351,8 +353,7 @@ public class PluginConfigManager
       }
       catch (InitializationException ie)
       {
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 ie.getMessage(), ie.getMessageID());
+        logError(ie.getMessageObject());
         continue;
       }
     }
@@ -416,15 +417,15 @@ public class PluginConfigManager
                                                     PluginCfg.class,
                                                     List.class);
 
-        List<String> unacceptableReasons = new ArrayList<String>();
+        List<Message> unacceptableReasons = new ArrayList<Message>();
         Boolean acceptable = (Boolean) method.invoke(plugin, configuration,
                                                      unacceptableReasons);
         if (! acceptable)
         {
-          StringBuilder buffer = new StringBuilder();
+          MessageBuilder buffer = new MessageBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<String> iterator = unacceptableReasons.iterator();
+            Iterator<Message> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -433,10 +434,9 @@ public class PluginConfigManager
             }
           }
 
-          int    msgID   = MSGID_CONFIG_PLUGIN_CONFIG_NOT_ACCEPTABLE;
-          String message = getMessage(msgID, String.valueOf(configuration.dn()),
-                                      buffer.toString());
-          throw new InitializationException(msgID, message);
+          Message message = ERR_CONFIG_PLUGIN_CONFIG_NOT_ACCEPTABLE.get(
+              String.valueOf(configuration.dn()), buffer.toString());
+          throw new InitializationException(message);
         }
       }
 
@@ -444,11 +444,10 @@ public class PluginConfigManager
     }
     catch (Exception e)
     {
-      int msgID = MSGID_CONFIG_PLUGIN_CANNOT_INITIALIZE;
-      String message = getMessage(msgID, className,
-                                  String.valueOf(configuration.dn()),
-                                  stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_PLUGIN_CANNOT_INITIALIZE.
+          get(className, String.valueOf(configuration.dn()),
+              stackTraceToSingleLineString(e));
+      throw new InitializationException(message, e);
     }
   }
 
@@ -908,10 +907,9 @@ public class PluginConfigManager
           // determination.
           if (pluginArray.length == 0)
           {
-            int    msgID   = MSGID_CONFIG_PLUGIN_EMPTY_ELEMENT_IN_ORDER;
-            String message = getMessage(msgID, pluginType.getName());
-            logError(ErrorLogCategory.CONFIGURATION,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+            Message message = WARN_CONFIG_PLUGIN_EMPTY_ELEMENT_IN_ORDER.get(
+                pluginType.getName());
+            logError(message);
           }
         }
         else if (token.equals("*"))
@@ -923,10 +921,9 @@ public class PluginConfigManager
             // determination.
             if (pluginArray.length == 0)
             {
-              int    msgID   = MSGID_CONFIG_PLUGIN_MULTIPLE_WILDCARDS_IN_ORDER;
-              String message = getMessage(msgID, pluginType.getName());
-              logError(ErrorLogCategory.CONFIGURATION,
-                       ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+              Message message = WARN_CONFIG_PLUGIN_MULTIPLE_WILDCARDS_IN_ORDER.
+                  get(pluginType.getName());
+              logError(message);
             }
           }
           else
@@ -947,10 +944,9 @@ public class PluginConfigManager
               // make the determination.
               if (pluginArray.length == 0)
               {
-                int    msgID   = MSGID_CONFIG_PLUGIN_LISTED_MULTIPLE_TIMES;
-                String message = getMessage(msgID, pluginType.getName(), token);
-                logError(ErrorLogCategory.CONFIGURATION,
-                         ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                Message message = WARN_CONFIG_PLUGIN_LISTED_MULTIPLE_TIMES.get(
+                    pluginType.getName(), token);
+                logError(message);
               }
             }
 
@@ -965,10 +961,9 @@ public class PluginConfigManager
               // make the determination.
               if (pluginArray.length == 0)
               {
-                int    msgID   = MSGID_CONFIG_PLUGIN_LISTED_MULTIPLE_TIMES;
-                String message = getMessage(msgID, pluginType.getName(), token);
-                logError(ErrorLogCategory.CONFIGURATION,
-                         ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                Message message = WARN_CONFIG_PLUGIN_LISTED_MULTIPLE_TIMES.get(
+                    pluginType.getName(), token);
+                logError(message);
               }
             }
 
@@ -984,10 +979,9 @@ public class PluginConfigManager
         // determination.
         if (pluginArray.length == 0)
         {
-          int    msgID   = MSGID_CONFIG_PLUGIN_ORDER_NO_WILDCARD;
-          String message = getMessage(msgID, pluginType.getName());
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          Message message =
+              WARN_CONFIG_PLUGIN_ORDER_NO_WILDCARD.get(pluginType.getName());
+          logError(message);
         }
       }
 
@@ -1360,45 +1354,38 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_STARTUP_PLUGIN_EXCEPTION;
-        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
-                                    stackTraceToSingleLineString(e));
+        Message message = ERR_PLUGIN_STARTUP_PLUGIN_EXCEPTION.get(
+                String.valueOf(p.getPluginEntryDN()),
+                stackTraceToSingleLineString(e));
 
-        result = new StartupPluginResult(false, false, msgID, message);
+        result = new StartupPluginResult(false, false, message);
         break;
       }
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_STARTUP_PLUGIN_RETURNED_NULL;
-        String message = getMessage(msgID,
-                                    String.valueOf(p.getPluginEntryDN()));
-
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.FATAL_ERROR,
-                 message, msgID);
-        return new StartupPluginResult(false, false, msgID,message);
+        Message message = ERR_PLUGIN_STARTUP_PLUGIN_RETURNED_NULL.get(
+            String.valueOf(p.getPluginEntryDN()));
+        logError(message);
+        return new StartupPluginResult(false, false, message);
       }
       else if (! result.completedSuccessfully())
       {
         if (result.continueStartup())
         {
-          int    msgID   = MSGID_PLUGIN_STARTUP_PLUGIN_FAIL_CONTINUE;
-          String message = getMessage(msgID,
-                                      String.valueOf(p.getPluginEntryDN()),
-                                      result.getErrorMessage(),
-                                      result.getErrorID());
-          logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_PLUGIN_STARTUP_PLUGIN_FAIL_CONTINUE.
+              get(String.valueOf(p.getPluginEntryDN()),
+                  result.getErrorMessage(),
+                  result.getErrorMessage().getDescriptor().getId());
+          logError(message);
         }
         else
         {
-          int    msgID   = MSGID_PLUGIN_STARTUP_PLUGIN_FAIL_ABORT;
-          String message = getMessage(msgID,
-                                      String.valueOf(p.getPluginEntryDN()),
-                                      result.getErrorMessage(),
-                                      result.getErrorID());
-          logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.FATAL_ERROR,
-                   message, msgID);
+          Message message = ERR_PLUGIN_STARTUP_PLUGIN_FAIL_ABORT.
+              get(String.valueOf(p.getPluginEntryDN()),
+                  result.getErrorMessage(),
+                  result.getErrorMessage().getDescriptor().getId());
+          logError(message);
           return result;
         }
       }
@@ -1422,7 +1409,7 @@ public class PluginConfigManager
    *
    * @param  reason  The human-readable reason for the shutdown.
    */
-  public void invokeShutdownPlugins(String reason)
+  public void invokeShutdownPlugins(Message reason)
   {
     for (DirectoryServerPlugin p : shutdownPlugins)
     {
@@ -1437,11 +1424,10 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_SHUTDOWN_PLUGIN_EXCEPTION;
-        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_SHUTDOWN_PLUGIN_EXCEPTION.
+            get(String.valueOf(p.getPluginEntryDN()),
+                stackTraceToSingleLineString(e));
+        logError(message);
       }
     }
   }
@@ -1474,18 +1460,17 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_PLUGIN_POST_CONNECT_PLUGIN_EXCEPTION;
-        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
-                                    clientConnection.getConnectionID(),
-                                    clientConnection.getClientAddress(),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_CONNECT_PLUGIN_EXCEPTION.
+            get(String.valueOf(p.getPluginEntryDN()),
+                clientConnection.getConnectionID(),
+                clientConnection.getClientAddress(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         try
         {
           clientConnection.disconnect(DisconnectReason.SERVER_ERROR, true,
-                                      message, msgID);
+                  message);
         }
         catch (Exception e2)
         {
@@ -1501,18 +1486,16 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_POST_CONNECT_PLUGIN_RETURNED_NULL;
-        String message = getMessage(msgID,
-                                    String.valueOf(p.getPluginEntryDN()),
-                                    clientConnection.getConnectionID(),
-                                    clientConnection.getClientAddress());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_CONNECT_PLUGIN_RETURNED_NULL.
+            get(String.valueOf(p.getPluginEntryDN()),
+                clientConnection.getConnectionID(),
+                clientConnection.getClientAddress());
+        logError(message);
 
         try
         {
           clientConnection.disconnect(DisconnectReason.SERVER_ERROR, true,
-                                      message, msgID);
+                  message);
         }
         catch (Exception e)
         {
@@ -1550,17 +1533,15 @@ public class PluginConfigManager
    * @param  clientConnection  The client connection that has been closed.
    * @param  disconnectReason  The general reason that the connection was
    *                           closed.
-   * @param  messageID         The unique ID for the closure message, or a
-   *                           negative value if there was no message.
    * @param  message           A human-readable message that may provide
    *                           additional information about the closure.
    *
    * @return  The result of processing the post-connect plugins.
    */
   public PostDisconnectPluginResult invokePostDisconnectPlugins(
-                                         ClientConnection clientConnection,
-                                         DisconnectReason disconnectReason,
-                                         int messageID, String message)
+                                        ClientConnection clientConnection,
+                                        DisconnectReason disconnectReason,
+                                        Message message)
   {
     PostDisconnectPluginResult result = null;
 
@@ -1569,7 +1550,7 @@ public class PluginConfigManager
       try
       {
         result = p.doPostDisconnect(clientConnection, disconnectReason,
-                                    messageID, message);
+                message);
       }
       catch (Exception e)
       {
@@ -1578,13 +1559,12 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID = MSGID_PLUGIN_POST_DISCONNECT_PLUGIN_EXCEPTION;
-        String msg   = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
-                                  clientConnection.getConnectionID(),
-                                  clientConnection.getClientAddress(),
-                                  stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR, msg,
-                 msgID);
+        Message msg = ERR_PLUGIN_POST_DISCONNECT_PLUGIN_EXCEPTION.
+            get(String.valueOf(p.getPluginEntryDN()),
+                clientConnection.getConnectionID(),
+                clientConnection.getClientAddress(),
+                stackTraceToSingleLineString(e));
+        logError(msg);
 
         return new PostDisconnectPluginResult(false);
       }
@@ -1592,12 +1572,11 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID = MSGID_PLUGIN_POST_DISCONNECT_PLUGIN_RETURNED_NULL;
-        String msg   = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
-                                  clientConnection.getConnectionID(),
-                                  clientConnection.getClientAddress());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR, msg,
-                 msgID);
+        Message msg = ERR_PLUGIN_POST_DISCONNECT_PLUGIN_RETURNED_NULL.
+            get(String.valueOf(p.getPluginEntryDN()),
+                clientConnection.getConnectionID(),
+                clientConnection.getClientAddress());
+        logError(msg);
 
         return new PostDisconnectPluginResult(false);
       }
@@ -1647,23 +1626,20 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_LDIF_IMPORT_PLUGIN_EXCEPTION;
-        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
-                                    String.valueOf(entry.getDN()),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_LDIF_IMPORT_PLUGIN_EXCEPTION.
+            get(String.valueOf(p.getPluginEntryDN()),
+                String.valueOf(entry.getDN()), stackTraceToSingleLineString(e));
+        logError(message);
 
         return new LDIFPluginResult(false, false);
       }
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_LDIF_IMPORT_PLUGIN_RETURNED_NULL;
-        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
-                                    String.valueOf(entry.getDN()));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_LDIF_IMPORT_PLUGIN_RETURNED_NULL.
+            get(String.valueOf(p.getPluginEntryDN()),
+                String.valueOf(entry.getDN()));
+        logError(message);
 
         return new LDIFPluginResult(false, false);
       }
@@ -1713,23 +1689,20 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_LDIF_EXPORT_PLUGIN_EXCEPTION;
-        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
-                                    String.valueOf(entry.getDN()),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_LDIF_EXPORT_PLUGIN_EXCEPTION.
+            get(String.valueOf(p.getPluginEntryDN()),
+                String.valueOf(entry.getDN()), stackTraceToSingleLineString(e));
+        logError(message);
 
         return new LDIFPluginResult(false, false);
       }
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_LDIF_EXPORT_PLUGIN_RETURNED_NULL;
-        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
-                                    String.valueOf(entry.getDN()));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_LDIF_EXPORT_PLUGIN_RETURNED_NULL.
+            get(String.valueOf(p.getPluginEntryDN()),
+                String.valueOf(entry.getDN()));
+        logError(message);
 
         return new LDIFPluginResult(false, false);
       }
@@ -1778,16 +1751,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        abandonOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        abandonOperation.getConnectionID(),
-                        abandonOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
+            get(abandonOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                abandonOperation.getConnectionID(),
+                abandonOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         abandonOperation.setResultCode(
                               DirectoryServer.getServerErrorResultCode());
@@ -1798,15 +1768,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        abandonOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        abandonOperation.getConnectionID(),
-                        abandonOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
+            get(abandonOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                abandonOperation.getConnectionID(),
+                String.valueOf(abandonOperation.getOperationID()));
+        logError(message);
 
         abandonOperation.setResultCode(
              DirectoryServer.getServerErrorResultCode());
@@ -1860,16 +1827,12 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        addOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        addOperation.getConnectionID(),
-                        addOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
+            get(addOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                addOperation.getConnectionID(), addOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         addOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
         addOperation.appendErrorMessage(message);
@@ -1879,15 +1842,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        addOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        addOperation.getConnectionID(),
-                        addOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
+            get(addOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                addOperation.getConnectionID(),
+                String.valueOf(addOperation.getOperationID()));
+        logError(message);
 
         addOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
         addOperation.appendErrorMessage(message);
@@ -1940,16 +1900,12 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        bindOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        bindOperation.getConnectionID(),
-                        bindOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
+            get(bindOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                bindOperation.getConnectionID(), bindOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         bindOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
         bindOperation.appendErrorMessage(message);
@@ -1959,15 +1915,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        bindOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        bindOperation.getConnectionID(),
-                        bindOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
+            get(bindOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                bindOperation.getConnectionID(),
+                String.valueOf(bindOperation.getOperationID()));
+        logError(message);
 
         bindOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
         bindOperation.appendErrorMessage(message);
@@ -2020,16 +1973,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        compareOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        compareOperation.getConnectionID(),
-                        compareOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
+            get(compareOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                compareOperation.getConnectionID(),
+                compareOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         compareOperation.setResultCode(
                               DirectoryServer.getServerErrorResultCode());
@@ -2040,15 +1990,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        compareOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        compareOperation.getConnectionID(),
-                        compareOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
+            get(compareOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                compareOperation.getConnectionID(),
+                String.valueOf(compareOperation.getOperationID()));
+        logError(message);
 
         compareOperation.setResultCode(
                               DirectoryServer.getServerErrorResultCode());
@@ -2102,16 +2049,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        deleteOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        deleteOperation.getConnectionID(),
-                        deleteOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
+            get(deleteOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                deleteOperation.getConnectionID(),
+                deleteOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         deleteOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -2122,15 +2066,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        deleteOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        deleteOperation.getConnectionID(),
-                        deleteOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
+            get(deleteOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                deleteOperation.getConnectionID(),
+                String.valueOf(deleteOperation.getOperationID()));
+        logError(message);
 
         deleteOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -2184,16 +2125,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        extendedOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        extendedOperation.getConnectionID(),
-                        extendedOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
+            get(extendedOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                extendedOperation.getConnectionID(),
+                extendedOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         extendedOperation.setResultCode(
                                DirectoryServer.getServerErrorResultCode());
@@ -2204,15 +2142,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        extendedOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        extendedOperation.getConnectionID(),
-                        extendedOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
+            get(extendedOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                extendedOperation.getConnectionID(),
+                String.valueOf(extendedOperation.getOperationID()));
+        logError(message);
 
         extendedOperation.setResultCode(
                                DirectoryServer.getServerErrorResultCode());
@@ -2266,16 +2201,12 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        operation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        operation.getConnectionID(),
-                        operation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
+            get(operation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                operation.getConnectionID(), operation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         operation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -2286,15 +2217,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        operation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        operation.getConnectionID(),
-                        operation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
+            get(operation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                operation.getConnectionID(),
+                String.valueOf(operation.getOperationID()));
+        logError(message);
 
         operation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -2348,16 +2276,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        modifyDNOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        modifyDNOperation.getConnectionID(),
-                        modifyDNOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
+            get(modifyDNOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                modifyDNOperation.getConnectionID(),
+                modifyDNOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         modifyDNOperation.setResultCode(
                                DirectoryServer.getServerErrorResultCode());
@@ -2368,15 +2293,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        modifyDNOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        modifyDNOperation.getConnectionID(),
-                        modifyDNOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
+            get(modifyDNOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                modifyDNOperation.getConnectionID(),
+                String.valueOf(modifyDNOperation.getOperationID()));
+        logError(message);
 
         modifyDNOperation.setResultCode(
                                DirectoryServer.getServerErrorResultCode());
@@ -2430,16 +2352,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        searchOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        searchOperation.getConnectionID(),
-                        searchOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
+            get(searchOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                searchOperation.getConnectionID(),
+                searchOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         searchOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -2450,15 +2369,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        searchOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        searchOperation.getConnectionID(),
-                        searchOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
+            get(searchOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                searchOperation.getConnectionID(),
+                String.valueOf(searchOperation.getOperationID()));
+        logError(message);
 
         searchOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -2512,16 +2428,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        unbindOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        unbindOperation.getConnectionID(),
-                        unbindOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
+            get(unbindOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                unbindOperation.getConnectionID(),
+                unbindOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         unbindOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -2532,15 +2445,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        unbindOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        unbindOperation.getConnectionID(),
-                        unbindOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
+            get(unbindOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                unbindOperation.getConnectionID(),
+                String.valueOf(unbindOperation.getOperationID()));
+        logError(message);
 
         unbindOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -2594,16 +2504,12 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        addOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        addOperation.getConnectionID(),
-                        addOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION.
+            get(addOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                addOperation.getConnectionID(), addOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         addOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
         addOperation.appendErrorMessage(message);
@@ -2613,15 +2519,11 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        addOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        addOperation.getConnectionID(),
-                        addOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL.
+            get(addOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                addOperation.getConnectionID(), addOperation.getOperationID());
+        logError(message);
 
         addOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
         addOperation.appendErrorMessage(message);
@@ -2674,16 +2576,12 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        bindOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        bindOperation.getConnectionID(),
-                        bindOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION.
+            get(bindOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                bindOperation.getConnectionID(), bindOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         bindOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
         bindOperation.appendErrorMessage(message);
@@ -2693,15 +2591,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        bindOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        bindOperation.getConnectionID(),
-                        bindOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL.
+            get(bindOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                bindOperation.getConnectionID(),
+                bindOperation.getOperationID());
+        logError(message);
 
         bindOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
         bindOperation.appendErrorMessage(message);
@@ -2754,16 +2649,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        compareOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        compareOperation.getConnectionID(),
-                        compareOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION.
+            get(compareOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                compareOperation.getConnectionID(),
+                compareOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         compareOperation.setResultCode(
                               DirectoryServer.getServerErrorResultCode());
@@ -2774,15 +2666,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        compareOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        compareOperation.getConnectionID(),
-                        compareOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL.
+            get(compareOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                compareOperation.getConnectionID(),
+                compareOperation.getOperationID());
+        logError(message);
 
         compareOperation.setResultCode(
                               DirectoryServer.getServerErrorResultCode());
@@ -2836,16 +2725,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        deleteOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        deleteOperation.getConnectionID(),
-                        deleteOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION.
+            get(deleteOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                deleteOperation.getConnectionID(),
+                deleteOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         deleteOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -2856,15 +2742,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        deleteOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        deleteOperation.getConnectionID(),
-                        deleteOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL.
+            get(deleteOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                deleteOperation.getConnectionID(),
+                deleteOperation.getOperationID());
+        logError(message);
 
         deleteOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -2918,16 +2801,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        extendedOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        extendedOperation.getConnectionID(),
-                        extendedOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION.
+            get(extendedOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                extendedOperation.getConnectionID(),
+                extendedOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         extendedOperation.setResultCode(
                                DirectoryServer.getServerErrorResultCode());
@@ -2938,15 +2818,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        extendedOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        extendedOperation.getConnectionID(),
-                        extendedOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL.
+            get(extendedOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                extendedOperation.getConnectionID(),
+                extendedOperation.getOperationID());
+        logError(message);
 
         extendedOperation.setResultCode(
                                DirectoryServer.getServerErrorResultCode());
@@ -3000,16 +2877,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        modifyOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        modifyOperation.getConnectionID(),
-                        modifyOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION.
+            get(modifyOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                modifyOperation.getConnectionID(),
+                modifyOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         modifyOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -3020,15 +2894,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        modifyOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        modifyOperation.getConnectionID(),
-                        modifyOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL.
+            get(modifyOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                modifyOperation.getConnectionID(),
+                modifyOperation.getOperationID());
+        logError(message);
 
         modifyOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -3082,16 +2953,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        modifyDNOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        modifyDNOperation.getConnectionID(),
-                        modifyDNOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION.
+            get(modifyDNOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                modifyDNOperation.getConnectionID(),
+                modifyDNOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         modifyDNOperation.setResultCode(
                                DirectoryServer.getServerErrorResultCode());
@@ -3102,15 +2970,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        modifyDNOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        modifyDNOperation.getConnectionID(),
-                        modifyDNOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL.
+            get(modifyDNOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                modifyDNOperation.getConnectionID(),
+                modifyDNOperation.getOperationID());
+        logError(message);
 
         modifyDNOperation.setResultCode(
                                DirectoryServer.getServerErrorResultCode());
@@ -3164,16 +3029,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        searchOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        searchOperation.getConnectionID(),
-                        searchOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION.
+            get(searchOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                searchOperation.getConnectionID(),
+                searchOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         searchOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -3184,15 +3046,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        searchOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        searchOperation.getConnectionID(),
-                        searchOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL.
+            get(searchOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                searchOperation.getConnectionID(),
+                searchOperation.getOperationID());
+        logError(message);
 
         searchOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -3246,16 +3105,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        abandonOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        abandonOperation.getConnectionID(),
-                        abandonOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
+            get(abandonOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                abandonOperation.getConnectionID(),
+                abandonOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         abandonOperation.setResultCode(
                               DirectoryServer.getServerErrorResultCode());
@@ -3266,15 +3122,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        abandonOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        abandonOperation.getConnectionID(),
-                        abandonOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
+            get(abandonOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                abandonOperation.getConnectionID(),
+                abandonOperation.getOperationID());
+        logError(message);
 
         abandonOperation.setResultCode(
                               DirectoryServer.getServerErrorResultCode());
@@ -3328,16 +3181,12 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        addOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        addOperation.getConnectionID(),
-                        addOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
+            get(addOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                addOperation.getConnectionID(), addOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         addOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
         addOperation.appendErrorMessage(message);
@@ -3347,15 +3196,11 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        addOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        addOperation.getConnectionID(),
-                        addOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
+            get(addOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                addOperation.getConnectionID(), addOperation.getOperationID());
+        logError(message);
 
         addOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
         addOperation.appendErrorMessage(message);
@@ -3408,16 +3253,12 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        bindOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        bindOperation.getConnectionID(),
-                        bindOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
+            get(bindOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                bindOperation.getConnectionID(), bindOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         bindOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
         bindOperation.appendErrorMessage(message);
@@ -3427,15 +3268,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        bindOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        bindOperation.getConnectionID(),
-                        bindOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
+            get(bindOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                bindOperation.getConnectionID(),
+                bindOperation.getOperationID());
+        logError(message);
 
         bindOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
         bindOperation.appendErrorMessage(message);
@@ -3488,16 +3326,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        compareOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        compareOperation.getConnectionID(),
-                        compareOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
+            get(compareOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                compareOperation.getConnectionID(),
+                compareOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         compareOperation.setResultCode(
                               DirectoryServer.getServerErrorResultCode());
@@ -3508,15 +3343,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        compareOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        compareOperation.getConnectionID(),
-                        compareOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
+            get(compareOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                compareOperation.getConnectionID(),
+                compareOperation.getOperationID());
+        logError(message);
 
         compareOperation.setResultCode(
                               DirectoryServer.getServerErrorResultCode());
@@ -3570,16 +3402,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        deleteOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        deleteOperation.getConnectionID(),
-                        deleteOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
+            get(deleteOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                deleteOperation.getConnectionID(),
+                deleteOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         deleteOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -3590,15 +3419,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        deleteOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        deleteOperation.getConnectionID(),
-                        deleteOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
+            get(deleteOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                deleteOperation.getConnectionID(),
+                deleteOperation.getOperationID());
+        logError(message);
 
         deleteOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -3652,16 +3478,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        extendedOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        extendedOperation.getConnectionID(),
-                        extendedOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
+            get(extendedOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                extendedOperation.getConnectionID(),
+                extendedOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         extendedOperation.setResultCode(
                                DirectoryServer.getServerErrorResultCode());
@@ -3672,15 +3495,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        extendedOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        extendedOperation.getConnectionID(),
-                        extendedOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
+            get(extendedOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                extendedOperation.getConnectionID(),
+                extendedOperation.getOperationID());
+        logError(message);
 
         extendedOperation.setResultCode(
                                DirectoryServer.getServerErrorResultCode());
@@ -3734,16 +3554,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        modifyOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        modifyOperation.getConnectionID(),
-                        modifyOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
+            get(modifyOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                modifyOperation.getConnectionID(),
+                modifyOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         modifyOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -3754,15 +3571,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        modifyOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        modifyOperation.getConnectionID(),
-                        modifyOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
+            get(modifyOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                modifyOperation.getConnectionID(),
+                modifyOperation.getOperationID());
+        logError(message);
 
         modifyOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -3816,16 +3630,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        modifyDNOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        modifyDNOperation.getConnectionID(),
-                        modifyDNOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
+            get(modifyDNOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                modifyDNOperation.getConnectionID(),
+                modifyDNOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         modifyDNOperation.setResultCode(
                                DirectoryServer.getServerErrorResultCode());
@@ -3836,15 +3647,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        modifyDNOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        modifyDNOperation.getConnectionID(),
-                        modifyDNOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
+            get(modifyDNOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                modifyDNOperation.getConnectionID(),
+                modifyDNOperation.getOperationID());
+        logError(message);
 
         modifyDNOperation.setResultCode(
                                DirectoryServer.getServerErrorResultCode());
@@ -3898,16 +3706,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        searchOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        searchOperation.getConnectionID(),
-                        searchOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
+            get(searchOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                searchOperation.getConnectionID(),
+                searchOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         searchOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -3918,15 +3723,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        searchOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        searchOperation.getConnectionID(),
-                        searchOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
+            get(searchOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                searchOperation.getConnectionID(),
+                searchOperation.getOperationID());
+        logError(message);
 
         searchOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -3980,16 +3782,13 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        unbindOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        unbindOperation.getConnectionID(),
-                        unbindOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
+            get(unbindOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                unbindOperation.getConnectionID(),
+                unbindOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         unbindOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -4000,15 +3799,12 @@ public class PluginConfigManager
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        unbindOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        unbindOperation.getConnectionID(),
-                        unbindOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
+            get(unbindOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                unbindOperation.getConnectionID(),
+                unbindOperation.getOperationID());
+        logError(message);
 
         unbindOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
@@ -4062,31 +3858,23 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        addOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        addOperation.getConnectionID(),
-                        addOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
+            get(addOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                addOperation.getConnectionID(), addOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         return new PostResponsePluginResult(false, false);
       }
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        addOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        addOperation.getConnectionID(),
-                        addOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
+            get(addOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                addOperation.getConnectionID(), addOperation.getOperationID());
+        logError(message);
 
         return new PostResponsePluginResult(false, false);
       }
@@ -4136,31 +3924,24 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        bindOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        bindOperation.getConnectionID(),
-                        bindOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
+            get(bindOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                bindOperation.getConnectionID(), bindOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         return new PostResponsePluginResult(false, false);
       }
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        bindOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        bindOperation.getConnectionID(),
-                        bindOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
+            get(bindOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                bindOperation.getConnectionID(),
+                bindOperation.getOperationID());
+        logError(message);
 
         return new PostResponsePluginResult(false, false);
       }
@@ -4210,31 +3991,25 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        compareOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        compareOperation.getConnectionID(),
-                        compareOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
+            get(compareOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                compareOperation.getConnectionID(),
+                compareOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         return new PostResponsePluginResult(false, false);
       }
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        compareOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        compareOperation.getConnectionID(),
-                        compareOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
+            get(compareOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                compareOperation.getConnectionID(),
+                compareOperation.getOperationID());
+        logError(message);
 
         return new PostResponsePluginResult(false, false);
       }
@@ -4284,31 +4059,25 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        deleteOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        deleteOperation.getConnectionID(),
-                        deleteOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
+            get(deleteOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                deleteOperation.getConnectionID(),
+                deleteOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         return new PostResponsePluginResult(false, false);
       }
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        deleteOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        deleteOperation.getConnectionID(),
-                        deleteOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
+            get(deleteOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                deleteOperation.getConnectionID(),
+                deleteOperation.getOperationID());
+        logError(message);
 
         return new PostResponsePluginResult(false, false);
       }
@@ -4358,31 +4127,25 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        extendedOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        extendedOperation.getConnectionID(),
-                        extendedOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
+            get(extendedOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                extendedOperation.getConnectionID(),
+                extendedOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         return new PostResponsePluginResult(false, false);
       }
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        extendedOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        extendedOperation.getConnectionID(),
-                        extendedOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
+            get(extendedOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                extendedOperation.getConnectionID(),
+                extendedOperation.getOperationID());
+        logError(message);
 
         return new PostResponsePluginResult(false, false);
       }
@@ -4432,31 +4195,25 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        modifyOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        modifyOperation.getConnectionID(),
-                        modifyOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
+            get(modifyOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                modifyOperation.getConnectionID(),
+                modifyOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         return new PostResponsePluginResult(false, false);
       }
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        modifyOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        modifyOperation.getConnectionID(),
-                        modifyOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
+            get(modifyOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                modifyOperation.getConnectionID(),
+                modifyOperation.getOperationID());
+        logError(message);
 
         return new PostResponsePluginResult(false, false);
       }
@@ -4506,31 +4263,25 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        modifyDNOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        modifyDNOperation.getConnectionID(),
-                        modifyDNOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
+            get(modifyDNOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                modifyDNOperation.getConnectionID(),
+                modifyDNOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         return new PostResponsePluginResult(false, false);
       }
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        modifyDNOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        modifyDNOperation.getConnectionID(),
-                        modifyDNOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
+            get(modifyDNOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                modifyDNOperation.getConnectionID(),
+                modifyDNOperation.getOperationID());
+        logError(message);
 
         return new PostResponsePluginResult(false, false);
       }
@@ -4580,31 +4331,25 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        searchOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        searchOperation.getConnectionID(),
-                        searchOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
+            get(searchOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                searchOperation.getConnectionID(),
+                searchOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         return new PostResponsePluginResult(false, false);
       }
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
-                        searchOperation.getOperationType().getOperationName(),
-                        String.valueOf(p.getPluginEntryDN()),
-                        searchOperation.getConnectionID(),
-                        searchOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
+            get(searchOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                searchOperation.getConnectionID(),
+                searchOperation.getOperationID());
+        logError(message);
 
         return new PostResponsePluginResult(false, false);
       }
@@ -4654,27 +4399,25 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_SEARCH_ENTRY_PLUGIN_EXCEPTION;
-        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
-                                    searchOperation.getConnectionID(),
-                                    searchOperation.getOperationID(),
-                                    String.valueOf(searchEntry.getDN()),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_SEARCH_ENTRY_PLUGIN_EXCEPTION.
+            get(String.valueOf(p.getPluginEntryDN()),
+                searchOperation.getConnectionID(),
+                searchOperation.getOperationID(),
+                String.valueOf(searchEntry.getDN()),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         return new SearchEntryPluginResult(false, false, false, false);
       }
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_SEARCH_ENTRY_PLUGIN_RETURNED_NULL;
-        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
-                                    searchOperation.getConnectionID(),
-                                    searchOperation.getOperationID(),
-                                    String.valueOf(searchEntry.getDN()));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_SEARCH_ENTRY_PLUGIN_RETURNED_NULL.
+            get(String.valueOf(p.getPluginEntryDN()),
+                searchOperation.getConnectionID(),
+                searchOperation.getOperationID(),
+                String.valueOf(searchEntry.getDN()));
+        logError(message);
 
         return new SearchEntryPluginResult(false, false, false, false);
       }
@@ -4724,27 +4467,25 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_SEARCH_ENTRY_PLUGIN_EXCEPTION;
-        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
-                                    searchOperation.getConnectionID(),
-                                    searchOperation.getOperationID(),
-                                    String.valueOf(searchEntry.getDN()),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_SEARCH_ENTRY_PLUGIN_EXCEPTION.
+            get(String.valueOf(p.getPluginEntryDN()),
+                searchOperation.getConnectionID(),
+                searchOperation.getOperationID(),
+                String.valueOf(searchEntry.getDN()),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         return new SearchEntryPluginResult(false, false, false, false);
       }
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_SEARCH_ENTRY_PLUGIN_RETURNED_NULL;
-        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
-                                    searchOperation.getConnectionID(),
-                                    searchOperation.getOperationID(),
-                                    String.valueOf(searchEntry.getDN()));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_SEARCH_ENTRY_PLUGIN_RETURNED_NULL.
+            get(String.valueOf(p.getPluginEntryDN()),
+                searchOperation.getConnectionID(),
+                searchOperation.getOperationID(),
+                String.valueOf(searchEntry.getDN()));
+        logError(message);
 
         return new SearchEntryPluginResult(false, false, false, false);
       }
@@ -4794,27 +4535,25 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_SEARCH_REFERENCE_PLUGIN_EXCEPTION;
-        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
-                                    searchOperation.getConnectionID(),
-                                    searchOperation.getOperationID(),
-                                    searchReference.getReferralURLString(),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_SEARCH_REFERENCE_PLUGIN_EXCEPTION.
+            get(String.valueOf(p.getPluginEntryDN()),
+                searchOperation.getConnectionID(),
+                searchOperation.getOperationID(),
+                searchReference.getReferralURLString(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         return new SearchReferencePluginResult(false, false, false, false);
       }
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_SEARCH_REFERENCE_PLUGIN_RETURNED_NULL;
-        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
-                                    searchOperation.getConnectionID(),
-                                    searchOperation.getOperationID(),
-                                    searchReference.getReferralURLString());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_SEARCH_REFERENCE_PLUGIN_RETURNED_NULL.
+            get(String.valueOf(p.getPluginEntryDN()),
+                searchOperation.getConnectionID(),
+                searchOperation.getOperationID(),
+                searchReference.getReferralURLString());
+        logError(message);
 
         return new SearchReferencePluginResult(false, false, false, false);
       }
@@ -4864,27 +4603,25 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_SEARCH_REFERENCE_PLUGIN_EXCEPTION;
-        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
-                                    searchOperation.getConnectionID(),
-                                    searchOperation.getOperationID(),
-                                    searchReference.getReferralURLString(),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_SEARCH_REFERENCE_PLUGIN_EXCEPTION.
+            get(String.valueOf(p.getPluginEntryDN()),
+                searchOperation.getConnectionID(),
+                searchOperation.getOperationID(),
+                searchReference.getReferralURLString(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         return new SearchReferencePluginResult(false, false, false, false);
       }
 
       if (result == null)
       {
-        int    msgID   = MSGID_PLUGIN_SEARCH_REFERENCE_PLUGIN_RETURNED_NULL;
-        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
-                                    searchOperation.getConnectionID(),
-                                    searchOperation.getOperationID(),
-                                    searchReference.getReferralURLString());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_SEARCH_REFERENCE_PLUGIN_RETURNED_NULL.
+            get(String.valueOf(p.getPluginEntryDN()),
+                searchOperation.getConnectionID(),
+                searchOperation.getOperationID(),
+                searchReference.getReferralURLString());
+        logError(message);
 
         return new SearchReferencePluginResult(false, false, false, false);
       }
@@ -4943,30 +4680,21 @@ public class PluginConfigManager
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-
-        int    msgID   = MSGID_PLUGIN_SUBORDINATE_MODIFY_DN_PLUGIN_EXCEPTION;
-        String message =
-             getMessage(msgID,
-                        String.valueOf(p.getPluginEntryDN()),
-                        modifyDNOperation.getConnectionID(),
-                        modifyDNOperation.getOperationID(),
-                        stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        logError(ERR_PLUGIN_SUBORDINATE_MODIFY_DN_PLUGIN_EXCEPTION.get(
+                String.valueOf(p.getPluginEntryDN()),
+                modifyDNOperation.getConnectionID(),
+                modifyDNOperation.getOperationID(),
+                stackTraceToSingleLineString(e)));
 
         return new SubordinateModifyDNPluginResult(false, false, true);
       }
 
       if (result == null)
       {
-        int msgID = MSGID_PLUGIN_SUBORDINATE_MODIFY_DN_PLUGIN_RETURNED_NULL;
-        String message =
-             getMessage(msgID,
+        logError(ERR_PLUGIN_SUBORDINATE_MODIFY_DN_PLUGIN_RETURNED_NULL.get(
                         String.valueOf(p.getPluginEntryDN()),
                         modifyDNOperation.getConnectionID(),
-                        modifyDNOperation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+                        String.valueOf(modifyDNOperation.getOperationID())));
 
         return new SubordinateModifyDNPluginResult(false, false, true);
       }
@@ -5018,25 +4746,21 @@ public class PluginConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_PLUGIN_INTERMEDIATE_RESPONSE_PLUGIN_EXCEPTION;
-        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
-                                    operation.getConnectionID(),
-                                    operation.getOperationID(),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_INTERMEDIATE_RESPONSE_PLUGIN_EXCEPTION.
+            get(String.valueOf(p.getPluginEntryDN()),
+                operation.getConnectionID(), operation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         return new IntermediateResponsePluginResult(false, false, false, false);
       }
 
       if (result == null)
       {
-        int msgID = MSGID_PLUGIN_INTERMEDIATE_RESPONSE_PLUGIN_RETURNED_NULL;
-        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
-                                    operation.getConnectionID(),
-                                    operation.getOperationID());
-        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_PLUGIN_INTERMEDIATE_RESPONSE_PLUGIN_RETURNED_NULL.
+            get(String.valueOf(p.getPluginEntryDN()),
+                operation.getConnectionID(), operation.getOperationID());
+        logError(message);
 
         return new IntermediateResponsePluginResult(false, false, false, false);
       }
@@ -5063,7 +4787,7 @@ public class PluginConfigManager
    * {@inheritDoc}
    */
   public boolean isConfigurationAddAcceptable(PluginCfg configuration,
-                                              List<String> unacceptableReasons)
+                                              List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -5084,7 +4808,7 @@ public class PluginConfigManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add(ie.getMessage());
+        unacceptableReasons.add(ie.getMessageObject());
         return false;
       }
     }
@@ -5103,7 +4827,7 @@ public class PluginConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     configuration.addChangeListener(this);
 
@@ -5135,7 +4859,7 @@ public class PluginConfigManager
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
 
-      messages.add(ie.getMessage());
+      messages.add(ie.getMessageObject());
     }
 
     if (resultCode == ResultCode.SUCCESS)
@@ -5153,7 +4877,7 @@ public class PluginConfigManager
    */
   public boolean isConfigurationDeleteAcceptable(
                       PluginCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // We will always allow plugins to be removed.
     return true;
@@ -5169,7 +4893,7 @@ public class PluginConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     deregisterPlugin(configuration.dn());
 
@@ -5183,7 +4907,7 @@ public class PluginConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
                       PluginCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -5204,7 +4928,7 @@ public class PluginConfigManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add(ie.getMessage());
+        unacceptableReasons.add(ie.getMessageObject());
         return false;
       }
     }
@@ -5223,7 +4947,7 @@ public class PluginConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Get the existing plugin if it's already enabled.
@@ -5280,7 +5004,7 @@ public class PluginConfigManager
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
 
-      messages.add(ie.getMessage());
+      messages.add(ie.getMessageObject());
     }
 
     if (resultCode == ResultCode.SUCCESS)

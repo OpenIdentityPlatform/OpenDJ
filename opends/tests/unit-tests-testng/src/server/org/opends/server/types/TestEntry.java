@@ -35,6 +35,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.api.SubtreeSpecificationSet;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.RFC3672SubtreeSpecification;
@@ -331,7 +332,7 @@ public final class TestEntry extends TypesTestCase {
          "modifyTimestamp: 20070101000001Z");
 
     assertTrue(e.conformsToSchema(null, false, false, false,
-                                  new StringBuilder()));
+                                  new MessageBuilder()));
 
     AttributeType ocType   = DirectoryServer.getAttributeType("objectclass");
     AttributeType cnType   = DirectoryServer.getAttributeType("cn");
@@ -413,7 +414,7 @@ public final class TestEntry extends TypesTestCase {
          "modifyTimestamp: 20070101000001Z");
 
     assertTrue(e.conformsToSchema(null, false, false, false,
-                                  new StringBuilder()));
+                                  new MessageBuilder()));
 
     AttributeType ocType   = DirectoryServer.getAttributeType("objectclass");
     AttributeType cnType   = DirectoryServer.getAttributeType("cn");
@@ -459,7 +460,7 @@ public final class TestEntry extends TypesTestCase {
          "modifyTimestamp: 20070101000001Z");
 
     assertTrue(e.conformsToSchema(null, false, false, false,
-                                  new StringBuilder()));
+                                  new MessageBuilder()));
 
     AttributeType ocType   = DirectoryServer.getAttributeType("objectclass");
     AttributeType cnType   = DirectoryServer.getAttributeType("cn");
@@ -505,7 +506,7 @@ public final class TestEntry extends TypesTestCase {
          "modifyTimestamp: 20070101000001Z");
 
     assertTrue(e.conformsToSchema(null, false, false, false,
-                                  new StringBuilder()));
+                                  new MessageBuilder()));
 
     AttributeType ocType   = DirectoryServer.getAttributeType("objectclass");
     AttributeType cnType   = DirectoryServer.getAttributeType("cn");
@@ -748,7 +749,7 @@ public final class TestEntry extends TypesTestCase {
          "modifyTimestamp: 20070101000001Z");
 
     assertTrue(e.conformsToSchema(null, false, false, false,
-                                  new StringBuilder()));
+                                  new MessageBuilder()));
 
     AttributeType ocType   = DirectoryServer.getAttributeType("objectclass");
     AttributeType cnType   = DirectoryServer.getAttributeType("cn");
@@ -897,7 +898,7 @@ public final class TestEntry extends TypesTestCase {
          "modifyTimestamp: 20070101000001Z");
 
     assertTrue(e.conformsToSchema(null, false, false, false,
-                                  new StringBuilder()));
+                                  new MessageBuilder()));
 
     AttributeType ocType   = DirectoryServer.getAttributeType("objectclass");
     AttributeType cnType   = DirectoryServer.getAttributeType("cn");

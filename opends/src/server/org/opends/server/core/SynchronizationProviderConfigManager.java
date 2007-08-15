@@ -25,13 +25,14 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.ConfigMessages.*;
+
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.lang.reflect.Method;
@@ -165,7 +166,7 @@ public class SynchronizationProviderConfigManager
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     // Attempt to get the existing synchronization provider. This will only
     // succeed if it is currently enabled.
@@ -199,7 +200,7 @@ public class SynchronizationProviderConfigManager
           if (debugEnabled())
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            messages.add(e.getMessage());
+            messages.add(e.getMessageObject());
             resultCode = DirectoryServer.getServerErrorResultCode();
           }
         }
@@ -209,11 +210,10 @@ public class SynchronizationProviderConfigManager
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
-          int msgID = MSGID_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER;
-          messages.add(getMessage(msgID, String.valueOf(
-                             configuration.getJavaImplementationClass()),
-                             String.valueOf(configuration.dn()),
-                             stackTraceToSingleLineString(e)));
+
+          messages.add(ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
+                  String.valueOf(configuration.getJavaImplementationClass()),
+                  String.valueOf(configuration.dn())));
           resultCode = DirectoryServer.getServerErrorResultCode();
         }
       }
@@ -255,7 +255,7 @@ public class SynchronizationProviderConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
       SynchronizationProviderCfg configuration,
-      List<String> unacceptableReasons)
+      List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -279,7 +279,7 @@ public class SynchronizationProviderConfigManager
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     // Register as a change listener for this synchronization provider entry
     // so that we will be notified if when it is disabled or enabled.
@@ -307,7 +307,7 @@ public class SynchronizationProviderConfigManager
         if (debugEnabled())
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          messages.add(e.getMessage());
+          messages.add(e.getMessageObject());
           resultCode = DirectoryServer.getServerErrorResultCode();
         }
       }
@@ -317,11 +317,10 @@ public class SynchronizationProviderConfigManager
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-        int msgID = MSGID_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER;
-        messages.add(getMessage(msgID, String.valueOf(
-                           configuration.getJavaImplementationClass()),
-                           String.valueOf(configuration.dn()),
-                           stackTraceToSingleLineString(e)));
+
+        messages.add(ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
+                String.valueOf(configuration.getJavaImplementationClass()),
+                           String.valueOf(configuration.dn())));
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
     }
@@ -338,7 +337,7 @@ public class SynchronizationProviderConfigManager
    */
   public boolean isConfigurationAddAcceptable(
       SynchronizationProviderCfg configuration,
-      List<String> unacceptableReasons)
+      List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -359,9 +358,6 @@ public class SynchronizationProviderConfigManager
    *
    * @param configuration       The configuration for which the class must be
    *                            checked.
-   * @param unacceptableReasons A list containing the reasons why the class is
-   *                            not acceptable.
-   *
    * @return                    true if the class is acceptable or false if not.
    */
   @SuppressWarnings("unchecked")
@@ -384,11 +380,10 @@ public class SynchronizationProviderConfigManager
     } catch (Exception e)
     {
        // Handle the exception: put a message in the unacceptable reasons.
-       int msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS;
-       String message = getMessage(msgID, String.valueOf(className),
-                                   String.valueOf(configuration.dn()),
-                                   stackTraceToSingleLineString(e));
-       throw new ConfigException(msgID, message, e);
+       Message message = ERR_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS.
+           get(String.valueOf(className), String.valueOf(configuration.dn()),
+               stackTraceToSingleLineString(e));
+       throw new ConfigException(message, e);
     }
     try
     {
@@ -397,11 +392,10 @@ public class SynchronizationProviderConfigManager
     } catch (Exception e)
     {
       // Handle the exception: put a message in the unacceptable reasons.
-      int msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_INSTANTIATE_PROVIDER;
-      String message = getMessage(msgID, String.valueOf(className),
-                                  String.valueOf(configuration.dn()),
-                                  stackTraceToSingleLineString(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = ERR_CONFIG_SYNCH_UNABLE_TO_INSTANTIATE_PROVIDER.
+          get(String.valueOf(className), String.valueOf(configuration.dn()),
+              stackTraceToSingleLineString(e));
+      throw new ConfigException(message, e);
     }
     try
     {
@@ -410,11 +404,9 @@ public class SynchronizationProviderConfigManager
     } catch (Exception e)
     {
       // Handle the exception: put a message in the unacceptable reasons.
-      int msgID = MSGID_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER;
-      String message = getMessage(msgID, String.valueOf(className),
-                                  String.valueOf(configuration.dn()),
-                                  stackTraceToSingleLineString(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
+              String.valueOf(className), String.valueOf(configuration.dn()));
+      throw new ConfigException(message, e);
     }
     return provider;
   }
@@ -432,7 +424,7 @@ public class SynchronizationProviderConfigManager
    */
   private boolean isJavaClassAcceptable(
       SynchronizationProviderCfg configuration,
-      List<String> unacceptableReasons)
+      List<Message> unacceptableReasons)
   {
     String className = configuration.getJavaImplementationClass();
     SynchronizationProviderCfgDefn d =
@@ -450,10 +442,10 @@ public class SynchronizationProviderConfigManager
     } catch (Exception e)
     {
        // Handle the exception: put a message in the unacceptable reasons.
-       int msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS;
-       String message = getMessage(msgID, String.valueOf(className),
-                                   String.valueOf(configuration.dn()),
-                                   stackTraceToSingleLineString(e));
+       Message message = ERR_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS.get(
+               String.valueOf(className),
+               String.valueOf(configuration.dn()),
+               stackTraceToSingleLineString(e));
        unacceptableReasons.add(message);
        return false;
     }
@@ -476,10 +468,10 @@ public class SynchronizationProviderConfigManager
     } catch (Exception e)
     {
       // Handle the exception: put a message in the unacceptable reasons.
-      int msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_INSTANTIATE_PROVIDER;
-      String message = getMessage(msgID, String.valueOf(className),
-                                  String.valueOf(configuration.dn()),
-                                  stackTraceToSingleLineString(e));
+      Message message = ERR_CONFIG_SYNCH_UNABLE_TO_INSTANTIATE_PROVIDER.get(
+              String.valueOf(className),
+              String.valueOf(configuration.dn()),
+              stackTraceToSingleLineString(e));
       unacceptableReasons.add(message);
       return false;
     }
@@ -517,7 +509,7 @@ public class SynchronizationProviderConfigManager
    */
   public boolean isConfigurationDeleteAcceptable(
       SynchronizationProviderCfg configuration,
-      List<String> unacceptableReasons)
+      List<Message> unacceptableReasons)
   {
     // A delete should always be acceptable, so just return true.
     return true;

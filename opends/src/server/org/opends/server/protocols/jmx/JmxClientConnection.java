@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.jmx;
+import org.opends.messages.Message;
 
 
 
@@ -70,8 +71,9 @@ import org.opends.server.types.SearchScope;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ProtocolMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.ProtocolMessages.*;
+
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -149,7 +151,7 @@ public class JmxClientConnection
       disconnect(
           DisconnectReason.ADMIN_LIMIT_EXCEEDED,
           true,
-          MSGID_LDAP_CONNHANDLER_REJECTED_BY_SERVER);
+          ERR_LDAP_CONNHANDLER_REJECTED_BY_SERVER.get());
     }
     operationList = new LinkedList<AbstractOperation>();
 
@@ -211,7 +213,7 @@ public class JmxClientConnection
 
     //
     // Ok, we can perform the unbind: call finalize
-    disconnect(DisconnectReason.CLIENT_DISCONNECT, false, null, -1);
+    disconnect(DisconnectReason.CLIENT_DISCONNECT, false, null);
   }
 
 
@@ -487,9 +489,8 @@ public class JmxClientConnection
     // Check if we have enough privilege
     if (! hasPrivilege(Privilege.JMX_WRITE, null))
     {
-      int msgID = MSGID_JMX_ADD_INSUFFICIENT_PRIVILEGES;
-      String message = getMessage(msgID);
-      addOperation.setErrorMessage(new StringBuilder(message));
+      Message message = ERR_JMX_ADD_INSUFFICIENT_PRIVILEGES.get();
+      addOperation.setErrorMessage(new MessageBuilder(message));
       addOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -531,9 +532,8 @@ public class JmxClientConnection
     // Check if we have enough privilege
     if (! hasPrivilege(Privilege.JMX_WRITE, null))
     {
-      int msgID = MSGID_JMX_ADD_INSUFFICIENT_PRIVILEGES;
-      String message = getMessage(msgID);
-      addOperation.setErrorMessage(new StringBuilder(message));
+      Message message = ERR_JMX_ADD_INSUFFICIENT_PRIVILEGES.get();
+      addOperation.setErrorMessage(new MessageBuilder(message));
       addOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -562,9 +562,8 @@ public class JmxClientConnection
     // Check if we have enough privilege
     if (! hasPrivilege(Privilege.JMX_WRITE, null))
     {
-      int msgID = MSGID_JMX_DELETE_INSUFFICIENT_PRIVILEGES;
-      String message = getMessage(msgID);
-      deleteOperation.setErrorMessage(new StringBuilder(message));
+      Message message = ERR_JMX_DELETE_INSUFFICIENT_PRIVILEGES.get();
+      deleteOperation.setErrorMessage(new MessageBuilder(message));
       deleteOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -597,9 +596,8 @@ public class JmxClientConnection
     // Check if we have enough privilege
     if (! hasPrivilege(Privilege.JMX_READ, null))
     {
-      int msgID = MSGID_JMX_SEARCH_INSUFFICIENT_PRIVILEGES;
-      String message = getMessage(msgID);
-      compareOperation.setErrorMessage(new StringBuilder(message));
+      Message message = ERR_JMX_SEARCH_INSUFFICIENT_PRIVILEGES.get();
+      compareOperation.setErrorMessage(new MessageBuilder(message));
       compareOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -628,9 +626,8 @@ public class JmxClientConnection
     // Check if we have enough privilege
     if (! hasPrivilege(Privilege.JMX_WRITE, null))
     {
-      int msgID = MSGID_JMX_DELETE_INSUFFICIENT_PRIVILEGES;
-      String message = getMessage(msgID);
-      deleteOperation.setErrorMessage(new StringBuilder(message));
+      Message message = ERR_JMX_DELETE_INSUFFICIENT_PRIVILEGES.get();
+      deleteOperation.setErrorMessage(new MessageBuilder(message));
       deleteOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -686,9 +683,8 @@ public class JmxClientConnection
 
     if (! hasPrivilege(Privilege.JMX_WRITE, null))
     {
-      int msgID = MSGID_JMX_MODIFY_INSUFFICIENT_PRIVILEGES;
-      String message = getMessage(msgID);
-      modifyOperation.setErrorMessage(new StringBuilder(message));
+      Message message = ERR_JMX_MODIFY_INSUFFICIENT_PRIVILEGES.get();
+      modifyOperation.setErrorMessage(new MessageBuilder(message));
       modifyOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -721,9 +717,8 @@ public class JmxClientConnection
                              modifications);
     if (! hasPrivilege(Privilege.JMX_WRITE, null))
     {
-      int msgID = MSGID_JMX_MODIFY_INSUFFICIENT_PRIVILEGES;
-      String message = getMessage(msgID);
-      modifyOperation.setErrorMessage(new StringBuilder(message));
+      Message message = ERR_JMX_MODIFY_INSUFFICIENT_PRIVILEGES.get();
+      modifyOperation.setErrorMessage(new MessageBuilder(message));
       modifyOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -779,9 +774,8 @@ public class JmxClientConnection
 
     if (! hasPrivilege(Privilege.JMX_WRITE, null))
     {
-      int msgID = MSGID_JMX_MODDN_INSUFFICIENT_PRIVILEGES;
-      String message = getMessage(msgID);
-      modifyDNOperation.setErrorMessage(new StringBuilder(message));
+      Message message = ERR_JMX_MODDN_INSUFFICIENT_PRIVILEGES.get();
+      modifyDNOperation.setErrorMessage(new MessageBuilder(message));
       modifyDNOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -819,9 +813,8 @@ public class JmxClientConnection
 
     if (! hasPrivilege(Privilege.JMX_WRITE, null))
     {
-      int msgID = MSGID_JMX_MODDN_INSUFFICIENT_PRIVILEGES;
-      String message = getMessage(msgID);
-      modifyDNOperation.setErrorMessage(new StringBuilder(message));
+      Message message = ERR_JMX_MODDN_INSUFFICIENT_PRIVILEGES.get();
+      modifyDNOperation.setErrorMessage(new MessageBuilder(message));
       modifyDNOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -885,9 +878,8 @@ public class JmxClientConnection
 
     if (! hasPrivilege(Privilege.JMX_READ, null))
     {
-      int msgID = MSGID_JMX_SEARCH_INSUFFICIENT_PRIVILEGES;
-      String message = getMessage(msgID);
-      searchOperation.setErrorMessage(new StringBuilder(message));
+      Message message = ERR_JMX_SEARCH_INSUFFICIENT_PRIVILEGES.get();
+      searchOperation.setErrorMessage(new MessageBuilder(message));
       searchOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
     }
     else
@@ -1018,13 +1010,10 @@ public class JmxClientConnection
    * @param  message           The message to send to the client.  It may be
    *                           <CODE>null</CODE> if no notification is to be
    *                           sent.
-   * @param  messageID         The unique identifier associated with the message
-   *                           to send to the client.  It may be -1 if no
-   *                           notification is to be sent.
    */
   public void disconnect(DisconnectReason disconnectReason,
-                         boolean sendNotification, String message,
-                         int messageID)
+                         boolean sendNotification,
+                         Message message)
   {
     // we are already performing a disconnect
     if (disconnectStarted)
@@ -1061,7 +1050,7 @@ public class JmxClientConnection
       PluginConfigManager pluginManager =
            DirectoryServer.getPluginConfigManager();
       pluginManager.invokePostDisconnectPlugins(this, disconnectReason,
-                                                messageID, message);
+                                                message);
     }
     catch (Exception e)
     {
@@ -1266,7 +1255,7 @@ public class JmxClientConnection
   protected void finalize()
   {
     super.finalize();
-    disconnect(DisconnectReason.OTHER, false, null, -1);
+    disconnect(DisconnectReason.OTHER, false, null);
   }
 }
 

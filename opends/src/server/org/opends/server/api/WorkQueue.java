@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
+import org.opends.messages.Message;
 
 
 
@@ -80,7 +81,7 @@ public abstract class WorkQueue<T extends WorkQueueCfg>
    * @param  reason  The human-readable reason that the work queue is
    *                 being shut down.
    */
-  public abstract void finalizeWorkQueue(String reason);
+  public abstract void finalizeWorkQueue(Message reason);
 
 
 

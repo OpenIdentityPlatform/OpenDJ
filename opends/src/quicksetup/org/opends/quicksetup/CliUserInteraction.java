@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.StaticUtils;
 
@@ -69,44 +72,47 @@ public class CliUserInteraction extends CliApplicationHelper
   /**
    * {@inheritDoc}
    */
-  public Object confirm(String summary, String details,
-                        String title, MessageType type, String[] options,
-                        String def) {
+  public Object confirm(Message summary, Message details,
+                        Message title, MessageType type, Message[] options,
+                        Message def) {
     return confirm(summary, details, null, title, type, options, def, null);
   }
 
   /**
    * {@inheritDoc}
    */
-  public Object confirm(String summary, String details, String fineDetails,
-                        String title, MessageType type, String[] options,
-                        String def, String viewDetailsOption) {
+  public Object confirm(Message summary, Message details, Message fineDetails,
+                        Message title, MessageType type, Message[] options,
+                        Message def, Message viewDetailsOption) {
     List<String> sOptions = new ArrayList<String>();
     int defInt = -1;
     for (int i = 0; i < options.length; i++) {
-      sOptions.add(createOption(i + 1, options[i]));
+      sOptions.add(createOption(i + 1, options[i].toString()));
       if (options[i].equals(def)) {
         defInt = i + 1;
       }
     }
     if (fineDetails != null) {
       sOptions.add(createOption(options.length + 1,
-              viewDetailsOption != null ? viewDetailsOption : "View Details"));
+              viewDetailsOption != null ?
+                      viewDetailsOption.toString() :
+                      "View Details")); // TODO: i18n
     }
 
-    println(summary);
+    println(String.valueOf(summary));
     println();
-    println(details);
+    println(String.valueOf(details));
 
-    String returnValue = null;
+    Object returnValue = null;
     while (returnValue == null) {
       println();
       for (String o : sOptions) {
         println(o);
       }
-      System.out.print(getMsg("cli-uninstall-confirm-prompt",
-              "Enter a number or press Enter to accept the default",
-              Integer.toString(defInt)));
+      System.out.print( // TODO: i18n
+              Message.raw(CliUserInteraction.PROMPT_FORMAT,
+                      "Enter a number or press Enter to accept the default",
+                      Integer.toString(defInt)));
 
       System.out.flush();
 
@@ -122,11 +128,11 @@ public class CliUserInteraction extends CliApplicationHelper
         }
       }
       if (fineDetails != null && respInt == options.length + 1) {
-        println(fineDetails);
+        println(String.valueOf(fineDetails));
       } else if (respInt > 0 && respInt <= options.length) {
         returnValue = options[respInt - 1];
       } else {
-        println("Illegal response " + response);
+        println("Illegal response " + response); // TODO: i18n
       }
     }
     return returnValue;

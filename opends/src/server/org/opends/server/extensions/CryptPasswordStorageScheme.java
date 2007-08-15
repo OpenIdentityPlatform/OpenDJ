@@ -25,12 +25,12 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.util.Arrays;
@@ -125,12 +125,10 @@ public class CryptPasswordStorageScheme
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_PWSCHEME_CANNOT_ENCODE_PASSWORD;
-      String message = getMessage(msgID, CLASS_NAME,
-                                  stackTraceToSingleLineString(e));
-
+      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+          CLASS_NAME, stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
     return ByteStringFactory.create(digestBytes);
@@ -227,10 +225,9 @@ public class CryptPasswordStorageScheme
   public ByteString encodeAuthPassword(ByteString plaintext)
          throws DirectoryException
   {
-    int    msgID   = MSGID_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD;
-    String message = getMessage(msgID, getStorageSchemeName());
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message =
+        ERR_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD.get(getStorageSchemeName());
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -266,10 +263,9 @@ public class CryptPasswordStorageScheme
   public ByteString getPlaintextValue(ByteString storedPassword)
          throws DirectoryException
   {
-    int msgID = MSGID_PWSCHEME_NOT_REVERSIBLE;
-    String message = getMessage(msgID, STORAGE_SCHEME_NAME_CRYPT);
-    throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                 msgID);
+    Message message =
+        ERR_PWSCHEME_NOT_REVERSIBLE.get(STORAGE_SCHEME_NAME_CRYPT);
+    throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
 
 
@@ -282,10 +278,9 @@ public class CryptPasswordStorageScheme
                                                   String authValue)
          throws DirectoryException
   {
-    int    msgID   = MSGID_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD;
-    String message = getMessage(msgID, getStorageSchemeName());
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message =
+        ERR_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD.get(getStorageSchemeName());
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 

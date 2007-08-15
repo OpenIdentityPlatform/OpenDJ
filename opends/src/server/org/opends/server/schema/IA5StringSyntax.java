@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+import org.opends.messages.Message;
 
 
 
@@ -37,14 +38,13 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
-
 
 
 /**
@@ -93,36 +93,32 @@ public class IA5StringSyntax
          DirectoryServer.getApproximateMatchingRule(AMR_DOUBLE_METAPHONE_OID);
     if (defaultApproximateMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_APPROXIMATE_MATCHING_RULE,
-               AMR_DOUBLE_METAPHONE_OID, SYNTAX_IA5_STRING_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_APPROXIMATE_MATCHING_RULE.get(
+          AMR_DOUBLE_METAPHONE_OID, SYNTAX_IA5_STRING_NAME));
     }
 
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_IA5_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_CASE_IGNORE_IA5_OID, SYNTAX_IA5_STRING_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_CASE_IGNORE_IA5_OID, SYNTAX_IA5_STRING_NAME));
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-               OMR_CASE_IGNORE_OID, SYNTAX_IA5_STRING_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+          OMR_CASE_IGNORE_OID, SYNTAX_IA5_STRING_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_IA5_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_CASE_IGNORE_IA5_OID, SYNTAX_IA5_STRING_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_CASE_IGNORE_IA5_OID, SYNTAX_IA5_STRING_NAME));
     }
   }
 
@@ -237,7 +233,7 @@ public class IA5StringSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // We will allow any value that does not contain any non-ASCII characters.
     // Empty values are acceptable as well.
@@ -245,8 +241,9 @@ public class IA5StringSyntax
     {
       if ((b & 0x7F) != b)
       {
-        int    msgID   = MSGID_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
-        String message = getMessage(msgID, value.stringValue(), ((char) b));
+
+        Message message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
+                value.stringValue(), String.valueOf(b));
         invalidReason.append(message);
         return false;
       }

@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
+import org.opends.messages.Message;
 
 
 
@@ -43,7 +44,7 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.ResultCode;
-
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -148,7 +149,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
    * {@inheritDoc}
    */
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
-      StringBuilder unacceptableReason) {
+      MessageBuilder unacceptableReason) {
     DN dn = configEntry.getDN();
     AttributeValue av = dn.getRDN().getAttributeValue(0);
     String name = av.getStringValue().trim();
@@ -182,9 +183,8 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
     }
 
     cachedConfiguration = mo.getConfiguration();
-    List<String> reasons = new LinkedList<String>();
-    if (listener.isConfigurationAddAcceptable(cachedConfiguration,
-        reasons)) {
+    List<Message> reasons = new LinkedList<Message>();
+    if (listener.isConfigurationAddAcceptable(cachedConfiguration, reasons)) {
       return true;
     } else {
       generateUnacceptableReason(reasons, unacceptableReason);

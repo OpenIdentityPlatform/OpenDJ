@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
@@ -44,8 +45,8 @@ import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ConfigMessages.*;
+
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -118,11 +119,11 @@ public class WorkQueueConfigManager
     }
     catch (Exception e)
     {
-      int msgID = MSGID_CONFIG_WORK_QUEUE_INITIALIZATION_FAILED;
-      String message = getMessage(msgID, workQueueConfig.getWorkQueueClass(),
-                                  String.valueOf(workQueueConfig.dn()),
-                                  stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_WORK_QUEUE_INITIALIZATION_FAILED.
+          get(workQueueConfig.getWorkQueueClass(),
+              String.valueOf(workQueueConfig.dn()),
+              stackTraceToSingleLineString(e));
+      throw new InitializationException(message, e);
     }
   }
 
@@ -132,7 +133,7 @@ public class WorkQueueConfigManager
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(WorkQueueCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // Changes to the work queue configuration will always be acceptable to this
     // generic implementation.
@@ -148,7 +149,7 @@ public class WorkQueueConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // If the work queue class has been changed, then we should warn the user
@@ -157,9 +158,10 @@ public class WorkQueueConfigManager
     String workQueueClass = configuration.getWorkQueueClass();
     if (! workQueueClass.equals(workQueue.getClass().getName()))
     {
-      int msgID = MSGID_CONFIG_WORK_QUEUE_CLASS_CHANGE_REQUIRES_RESTART;
-      messages.add(getMessage(msgID, workQueue.getClass().getName(),
-                              workQueueClass));
+
+      messages.add(INFO_CONFIG_WORK_QUEUE_CLASS_CHANGE_REQUIRES_RESTART.get(
+              workQueue.getClass().getName(),
+              workQueueClass));
 
       adminActionRequired = true;
     }

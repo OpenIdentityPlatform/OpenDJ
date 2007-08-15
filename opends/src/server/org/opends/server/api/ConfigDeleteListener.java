@@ -30,7 +30,7 @@ package org.opends.server.api;
 
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.types.ConfigChangeResult;
-
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -55,7 +55,7 @@ public interface ConfigDeleteListener
    *          from the configuration, or <CODE>false</CODE> if not.
    */
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
-                      StringBuilder unacceptableReason);
+                      MessageBuilder unacceptableReason);
 
 
 

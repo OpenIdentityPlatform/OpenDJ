@@ -27,6 +27,8 @@
 
 package org.opends.quicksetup;
 
+import org.opends.messages.Message;
+
 /**
  * This class is used to describe the current state of the installation.
  * It contains the step in which the installation is, the current progress
@@ -48,9 +50,9 @@ public class ProgressDescriptor {
 
   private Integer progressBarRatio;
 
-  private String progressBarMsg;
+  private Message progressBarMsg;
 
-  private String detailsMsg;
+  private Message detailsMsg;
 
   /**
    * Constructor for the ProgressDescriptor.
@@ -60,7 +62,7 @@ public class ProgressDescriptor {
    * @param detailsMsg the logs.
    */
   public ProgressDescriptor(ProgressStep step,
-      Integer progressBarRatio, String progressBarMsg, String detailsMsg)
+      Integer progressBarRatio, Message progressBarMsg, Message detailsMsg)
   {
     this.step = step;
     this.progressBarRatio = progressBarRatio;
@@ -72,7 +74,7 @@ public class ProgressDescriptor {
    * Returns the details message (the log message) of the install.
    * @return the details message (the log message) of the install.
    */
-  public String getDetailsMsg()
+  public Message getDetailsMsg()
   {
     return detailsMsg;
   }
@@ -81,7 +83,7 @@ public class ProgressDescriptor {
    * Returns the progress bar message.
    * @return the progress bar message.
    */
-  public String getProgressBarMsg()
+  public Message getProgressBarMsg()
   {
     return progressBarMsg;
   }

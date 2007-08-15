@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+import org.opends.messages.Message;
 
 
 
@@ -45,8 +46,7 @@ import org.opends.server.types.ResultCode;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -187,11 +187,10 @@ public class DistinguishedNameEqualityMatchingRule
       if (DirectoryServer.getSyntaxEnforcementPolicy() ==
           AcceptRejectWarn.REJECT)
       {
-        int msgID = MSGID_ATTR_SYNTAX_DN_INVALID;
-        String message = getMessage(msgID, value.stringValue(),
-                                    String.valueOf(e));
+        Message message = ERR_ATTR_SYNTAX_DN_INVALID.get(
+            value.stringValue(), String.valueOf(e));
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
       else
       {

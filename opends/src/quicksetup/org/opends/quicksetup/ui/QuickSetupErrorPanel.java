@@ -42,6 +42,7 @@ import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
+import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * This class is a panel that contains an error message and a quit button.
@@ -82,8 +83,9 @@ public class QuickSetupErrorPanel extends QuickSetupPanel
     gbc.fill = GridBagConstraints.BOTH;
     gbc.insets.left = 0;
     JTextComponent tf =
-        UIFactory.makeHtmlPane(installStatus.getInstallationMsg(),
-            UIFactory.INSTRUCTIONS_FONT);
+            UIFactory.makeHtmlPane(
+                    installStatus.getInstallationMsg(),
+                    UIFactory.INSTRUCTIONS_FONT);
     tf.setOpaque(false);
     tf.setEditable(false);
     p1.add(tf, gbc);
@@ -100,8 +102,8 @@ public class QuickSetupErrorPanel extends QuickSetupPanel
     gbc.gridwidth = 3;
     p2.add(Box.createHorizontalGlue(), gbc);
     quitButton =
-        UIFactory.makeJButton(getMsg("quit-button-label"),
-            getMsg("quit-button-install-tooltip"));
+        UIFactory.makeJButton(INFO_QUIT_BUTTON_LABEL.get(),
+            INFO_QUIT_BUTTON_INSTALL_TOOLTIP.get());
 
     final ButtonName fQuitButtonName = ButtonName.QUIT;
 
@@ -119,8 +121,8 @@ public class QuickSetupErrorPanel extends QuickSetupPanel
     quitButton.addActionListener(quitListener);
 
     continueButton =
-      UIFactory.makeJButton(getMsg("continue-button-label"),
-          getMsg("continue-button-install-tooltip"));
+      UIFactory.makeJButton(INFO_CONTINUE_BUTTON_LABEL.get(),
+          INFO_CONTINUE_BUTTON_INSTALL_TOOLTIP.get());
     final ButtonName fContinueButtonName = ButtonName.CONTINUE_INSTALL;
 
     ActionListener continueListener = new ActionListener()

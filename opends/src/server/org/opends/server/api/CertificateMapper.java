@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
+import org.opends.messages.Message;
 
 
 
@@ -36,7 +37,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-
 
 
 /**
@@ -94,7 +94,7 @@ public abstract class CertificateMapper
    */
   public boolean isConfigurationAcceptable(
                       CertificateMapperCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by certificate mapper

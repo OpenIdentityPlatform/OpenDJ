@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup.installer.offline;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import java.io.PrintStream;
 import java.io.File;
 import java.util.ArrayList;
@@ -68,8 +71,8 @@ public class OfflineInstaller extends Installer
       new HashMap<InstallProgressStep, Integer>();
 
   /* This map contains the summary associated with each step */
-  private HashMap<InstallProgressStep, String> hmSummary =
-      new HashMap<InstallProgressStep, String>();
+  private HashMap<InstallProgressStep, Message> hmSummary =
+      new HashMap<InstallProgressStep, Message>();
 
   private static final Logger LOG =
     Logger.getLogger(OfflineInstaller.class.getName());
@@ -177,7 +180,7 @@ public class OfflineInstaller extends Installer
         notifyListenersOfLog();
         updateSummaryWithServerState(hmSummary);
         setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
-        String html = getFormattedError(ex, true);
+        Message html = getFormattedError(ex, true);
         notifyListeners(html);
         LOG.log(Level.SEVERE, "Error installing.", ex);
       }
@@ -199,8 +202,8 @@ public class OfflineInstaller extends Installer
       setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
       ApplicationException ex = new ApplicationException(
           ApplicationReturnCode.ReturnCode.BUG,
-          getThrowableMsg("bug-msg", t), t);
-      String msg = getFormattedError(ex, true);
+          Utils.getThrowableMsg(INFO_BUG_MSG.get(), t), t);
+      Message msg = getFormattedError(ex, true);
       notifyListeners(msg);
       LOG.log(Level.SEVERE, "Error installing.", t);
     }
@@ -219,7 +222,7 @@ public class OfflineInstaller extends Installer
   /**
    * {@inheritDoc}
    */
-  public String getSummary(ProgressStep status)
+  public Message getSummary(ProgressStep status)
   {
     return hmSummary.get(status);
   }

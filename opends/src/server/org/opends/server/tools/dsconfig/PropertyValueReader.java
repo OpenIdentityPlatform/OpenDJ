@@ -25,11 +25,11 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 
-
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -170,16 +170,16 @@ final class PropertyValueReader {
         new PropertyValuePrinter(null, null, false);
       SortedSet<T> values = mo.getPropertyValues(pd);
 
-      List<String> descriptions = new ArrayList<String>(values.size());
+      List<Message> descriptions = new ArrayList<Message>(values.size());
       List<T> lvalues = new ArrayList<T>(values.size());
 
       for (T value : values) {
-        descriptions.add(printer.print(pd, value));
+        descriptions.add(Message.raw(printer.print(pd, value)));
         lvalues.add(value);
       }
 
-      String promptMsg =
-        getMessage(MSGID_DSCFG_VALUE_READER_PROMPT_REMOVE, pd.getName());
+      Message promptMsg =
+          INFO_DSCFG_VALUE_READER_PROMPT_REMOVE.get(pd.getName());
       T value = app.readChoice(promptMsg, descriptions, lvalues, null);
       values.remove(value);
       mo.setPropertyValues(pd, values);
@@ -268,10 +268,13 @@ final class PropertyValueReader {
       List<String> values = Arrays.asList(new String[] {
           "false", "true"
       });
+      List<Message> descriptions = Arrays.asList(new Message[] {
+        Message.raw("false"), Message.raw("true")
+      });
       try {
-        String promptMsg = getMessage(
-            MSGID_DSCFG_VALUE_READER_PROMPT_SELECT_VALUE, d.getName());
-        return app.readChoice(promptMsg, values, values, null);
+        Message promptMsg = INFO_DSCFG_VALUE_READER_PROMPT_SELECT_VALUE.get(
+                d.getName());
+        return app.readChoice(promptMsg, descriptions, values, null);
       } catch (ArgumentException e) {
         ae = e;
         return null;
@@ -293,11 +296,16 @@ final class PropertyValueReader {
         map.put(value.toString(), s);
       }
 
-      List<String> descriptions = new ArrayList<String>(map.values());
+      List<String> descStrings = new ArrayList<String>(map.values());
+      List<Message> descriptions = new ArrayList<Message>(descStrings.size());
+      for (String s : descStrings) {
+        descriptions.add(Message.raw(s));
+      }
+
       List<String> values = new ArrayList<String>(map.keySet());
       try {
-        String promptMsg = getMessage(
-            MSGID_DSCFG_VALUE_READER_PROMPT_SELECT_VALUE, d.getName());
+        Message promptMsg =
+                INFO_DSCFG_VALUE_READER_PROMPT_SELECT_VALUE.get(d.getName());
         return app.readChoice(promptMsg, descriptions, values, null);
       } catch (ArgumentException e) {
         ae = e;
@@ -314,8 +322,8 @@ final class PropertyValueReader {
     public String visitUnknown(PropertyDefinition<?> d, Void p)
         throws UnknownPropertyDefinitionException {
       try {
-        String promptMsg = getMessage(
-            MSGID_DSCFG_VALUE_READER_PROMPT_ENTER_VALUE, d.getName());
+        Message promptMsg = INFO_DSCFG_VALUE_READER_PROMPT_ENTER_VALUE.get(
+                d.getName());
         return app.readLineOfInput(promptMsg);
       } catch (ArgumentException e) {
         ae = e;
@@ -370,8 +378,9 @@ final class PropertyValueReader {
         return pd.decodeValue(value);
       } catch (IllegalPropertyValueStringException e) {
         app.println();
-        app.printMessage(ArgumentExceptionFactory.adaptPropertyException(e,
-            mo.getManagedObjectDefinition()).getMessage());
+        app.printMessage(Message.raw(
+                ArgumentExceptionFactory.adaptPropertyException(e,
+            mo.getManagedObjectDefinition()).getMessage()));
       }
     }
   }
@@ -412,8 +421,8 @@ final class PropertyValueReader {
       // Display a menu allowing users to edit individual options.
       TableBuilder builder = new TableBuilder();
       builder.appendHeading();
-      builder.appendHeading(getMessage(MSGID_DSCFG_HEADING_PROPERTY_NAME));
-      builder.appendHeading(getMessage(MSGID_DSCFG_HEADING_PROPERTY_VALUE));
+      builder.appendHeading(INFO_DSCFG_HEADING_PROPERTY_NAME.get());
+      builder.appendHeading(INFO_DSCFG_HEADING_PROPERTY_VALUE.get());
 
       int i = 0;
       List<PropertyDefinition<?>> pl = new ArrayList<PropertyDefinition<?>>(c);
@@ -422,7 +431,7 @@ final class PropertyValueReader {
         builder.appendCell("[" + i + "]");
         builder.appendCell(pd.getName());
 
-        String values = getPropertyValuesAsString(mo, pd, valuePrinter);
+        Message values = getPropertyValuesAsString(mo, pd, valuePrinter);
         builder.appendCell(values);
         i++;
       }
@@ -430,11 +439,11 @@ final class PropertyValueReader {
       builder.startRow();
       builder.startRow();
       builder.appendCell("[" + i + "]");
-      builder.appendCell(getMessage(MSGID_DSCFG_VALUE_READER_MENU_CONTINUE));
+      builder.appendCell(INFO_DSCFG_VALUE_READER_MENU_CONTINUE.get());
 
       // Display the menu.
       app.println();
-      app.printMessage(getMessage(MSGID_DSCFG_VALUE_READER_MENU_TITLE, i));
+      app.printMessage(INFO_DSCFG_VALUE_READER_MENU_TITLE.get(i));
       app.println();
 
       TextTablePrinter printer = new TextTablePrinter(app.getErrorStream());
@@ -443,8 +452,7 @@ final class PropertyValueReader {
 
       // Get the user input.
       final int size = i;
-      String promptMsg =
-        getMessage(MSGID_DSCFG_GENERAL_CHOICE_PROMPT_NOHELP, i);
+      Message promptMsg = INFO_DSCFG_GENERAL_CHOICE_PROMPT_NOHELP.get(i);
       ValidationCallback<Integer> validator =
         new ValidationCallback<Integer>() {
 
@@ -459,7 +467,7 @@ final class PropertyValueReader {
             return j;
           } catch (NumberFormatException e) {
             app.println();
-            String errMsg = getMessage(MSGID_DSCFG_ERROR_GENERAL_CHOICE, size);
+            Message errMsg = ERR_DSCFG_ERROR_GENERAL_CHOICE.get(size);
             app.printMessage(errMsg);
             return null;
           }
@@ -493,8 +501,8 @@ final class PropertyValueReader {
     if (pd.hasOption(PropertyOption.MANDATORY)) {
       if (mo.getPropertyValues(pd).isEmpty()) {
         app.println();
-        String promptMsg = getMessage(
-            MSGID_DSCFG_VALUE_READER_PROMPT_MANDATORY, pd.getName());
+        Message promptMsg = INFO_DSCFG_VALUE_READER_PROMPT_MANDATORY.get(
+                pd.getName());
         app.printMessage(promptMsg);
         T value = read(mo, pd);
         mo.setPropertyValue(pd, value);
@@ -504,35 +512,35 @@ final class PropertyValueReader {
     boolean isFinished = false;
     while (!isFinished) {
       // Construct a list of menu options and their call-backs.
-      List<String> descriptions = new ArrayList<String>();
+      List<Message> descriptions = new ArrayList<Message>();
       List<MenuCallback> callbacks = new ArrayList<MenuCallback>();
 
       if (pd.hasOption(PropertyOption.MULTI_VALUED)) {
-        descriptions.add(getMessage(MSGID_DSCFG_VALUE_READER_MENU_ADD));
+        descriptions.add(INFO_DSCFG_VALUE_READER_MENU_ADD.get());
         callbacks.add(new AddValueMenuCallback());
 
         if (!mo.getPropertyValues(pd).isEmpty()) {
-          descriptions.add(getMessage(MSGID_DSCFG_VALUE_READER_MENU_REMOVE));
+          descriptions.add(INFO_DSCFG_VALUE_READER_MENU_REMOVE.get());
           callbacks.add(new RemoveValueMenuCallback());
         }
       } else {
-        descriptions.add(getMessage(MSGID_DSCFG_VALUE_READER_MENU_SET));
+        descriptions.add(INFO_DSCFG_VALUE_READER_MENU_SET.get());
         callbacks.add(new SetValueMenuCallback());
       }
 
       if (!pd.hasOption(PropertyOption.MANDATORY)
           || !(pd.getDefaultBehaviorProvider()
               instanceof UndefinedDefaultBehaviorProvider)) {
-        descriptions.add(getMessage(MSGID_DSCFG_VALUE_READER_MENU_RESET));
+        descriptions.add(INFO_DSCFG_VALUE_READER_MENU_RESET.get());
         callbacks.add(new ResetValueMenuCallback());
       }
 
-      descriptions.add(getMessage(MSGID_DSCFG_VALUE_READER_MENU_CONTINUE));
+      descriptions.add(INFO_DSCFG_VALUE_READER_MENU_CONTINUE.get());
       callbacks.add(null);
 
       // FIXME: display current values of the property.
-      String promptMsg = getMessage(
-          MSGID_DSCFG_VALUE_READER_PROMPT_MODIFY_MENU, pd.getName());
+      Message promptMsg = INFO_DSCFG_VALUE_READER_PROMPT_MODIFY_MENU.get(
+              pd.getName());
       MenuCallback callback = app.readChoice(promptMsg, descriptions,
           callbacks, new PropertyHelpCallback(mo, pd));
 
@@ -547,16 +555,16 @@ final class PropertyValueReader {
 
 
   // Display the set of values associated with a property.
-  private <T> String getPropertyValuesAsString(ManagedObject<?> mo,
+  private <T> Message getPropertyValuesAsString(ManagedObject<?> mo,
       PropertyDefinition<T> pd, PropertyValuePrinter valuePrinter) {
     SortedSet<T> values = mo.getPropertyValues(pd);
     if (values.isEmpty()) {
       // There are no values or default values. Display the default
       // behavior for alias values.
-      DefaultBehaviorProviderVisitor<T, String, Void> visitor =
-        new DefaultBehaviorProviderVisitor<T, String, Void>() {
+      DefaultBehaviorProviderVisitor<T, Message, Void> visitor =
+        new DefaultBehaviorProviderVisitor<T, Message, Void>() {
 
-        public String visitAbsoluteInherited(
+        public Message visitAbsoluteInherited(
             AbsoluteInheritedDefaultBehaviorProvider<T> d, Void p) {
           // Should not happen - inherited default values are
           // displayed as normal values.
@@ -565,7 +573,7 @@ final class PropertyValueReader {
 
 
 
-        public String visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
+        public Message visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
           if (app.isVerbose()) {
             return d.getSynopsis();
           } else {
@@ -575,7 +583,7 @@ final class PropertyValueReader {
 
 
 
-        public String visitDefined(
+        public Message visitDefined(
             DefinedDefaultBehaviorProvider<T> d, Void p) {
           // Should not happen - real default values are displayed as
           // normal values.
@@ -584,7 +592,7 @@ final class PropertyValueReader {
 
 
 
-        public String visitRelativeInherited(
+        public Message visitRelativeInherited(
             RelativeInheritedDefaultBehaviorProvider<T> d, Void p) {
           // Should not happen - inherited default values are
           // displayed as normal values.
@@ -593,20 +601,20 @@ final class PropertyValueReader {
 
 
 
-        public String visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
+        public Message visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
             Void p) {
           return null;
         }
       };
 
-      String content = pd.getDefaultBehaviorProvider().accept(visitor, null);
+      Message content = pd.getDefaultBehaviorProvider().accept(visitor, null);
       if (content == null) {
-        return "-";
+        return Message.raw("-");
       } else {
         return content;
       }
     } else {
-      StringBuilder sb = new StringBuilder();
+      MessageBuilder sb = new MessageBuilder();
       boolean isFirst = true;
       for (T value : values) {
         if (!isFirst) {
@@ -616,7 +624,7 @@ final class PropertyValueReader {
         isFirst = false;
       }
 
-      return sb.toString();
+      return sb.toMessage();
     }
   }
 }

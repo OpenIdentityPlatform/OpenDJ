@@ -44,6 +44,10 @@ import java.util.concurrent.locks.Lock;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.MessageBuilder;
+import org.opends.messages.Message;
+import org.opends.messages.Category;
+import org.opends.messages.Severity;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperationBasis;
@@ -62,8 +66,6 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
@@ -171,10 +173,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       }
       catch (Exception e)
       {
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-            ErrorLogSeverity.NOTICE,
-            "ReplicationTestCase/openChangelogSession " + e.getMessage()
-            + " when emptying old changes", 1);
+        logError(new MessageBuilder(
+            "ReplicationTestCase/openChangelogSession ").append(e.getMessage())
+            .append(" when emptying old changes").toMessage());
       }
     }
     return broker;
@@ -249,9 +250,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void cleanConfigEntries()
   {
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.NOTICE,
-        "ReplicationTestCase/Cleaning config entries" , 1);
+    logError(Message.raw("ReplicationTestCase/Cleaning config entries",
+            Category.SYNC, Severity.NOTICE));
 
     DeleteOperationBasis op;
     // Delete entries
@@ -260,9 +260,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       while (true)
       {
         DN dn = configEntryList.removeLast();
-             logError(ErrorLogCategory.SYNCHRONIZATION,
-            ErrorLogSeverity.NOTICE,
-            "cleaning config entry " + dn, 1);
+             logError(Message.raw("cleaning config entry " + dn,
+                     Category.SYNC, Severity.NOTICE));
 
         op = new DeleteOperationBasis(connection, InternalClientConnection
             .nextOperationID(), InternalClientConnection.nextMessageID(), null,
@@ -280,9 +279,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void cleanRealEntries()
   {
-  	logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.NOTICE,
-        "ReplicationTestCase/Cleaning entries" , 1);
+  	logError(Message.raw("ReplicationTestCase/Cleaning entries",
+            Category.SYNC, Severity.NOTICE));
 
     DeleteOperationBasis op;
     // Delete entries
@@ -291,9 +289,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       while (true)
       {
         DN dn = entryList.removeLast();
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-            ErrorLogSeverity.NOTICE,
-            "cleaning entry " + dn, 1);
+        logError(Message.raw("cleaning entry " + dn,
+                Category.SYNC, Severity.NOTICE));
 
         op = new DeleteOperationBasis(connection, InternalClientConnection
             .nextOperationID(), InternalClientConnection.nextMessageID(), null,

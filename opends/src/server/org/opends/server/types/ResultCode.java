@@ -25,12 +25,12 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 import org.opends.server.protocols.ldap.LDAPResultCode;
 
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.CoreMessages.*;
 
 
 
@@ -45,7 +45,7 @@ public enum ResultCode
    * The result code that should only be used if the actual result
    * code has not yet been determined.
    */
-  UNDEFINED(-1, -1),
+  UNDEFINED(-1, null),
 
 
 
@@ -53,7 +53,7 @@ public enum ResultCode
    * The result code that indicates that the operation completed
    * successfully.
    */
-  SUCCESS(LDAPResultCode.SUCCESS, MSGID_RESULT_SUCCESS),
+  SUCCESS(LDAPResultCode.SUCCESS, INFO_RESULT_SUCCESS.get()),
 
 
 
@@ -62,7 +62,7 @@ public enum ResultCode
    * the operation from being processed properly.
    */
   OPERATIONS_ERROR(LDAPResultCode.OPERATIONS_ERROR,
-                   MSGID_RESULT_OPERATIONS_ERROR),
+                   INFO_RESULT_OPERATIONS_ERROR.get()),
 
 
 
@@ -71,7 +71,7 @@ public enum ResultCode
    * or illegal request to the server.
    */
   PROTOCOL_ERROR(LDAPResultCode.PROTOCOL_ERROR,
-                 MSGID_RESULT_PROTOCOL_ERROR),
+                 INFO_RESULT_PROTOCOL_ERROR.get()),
 
 
 
@@ -80,7 +80,7 @@ public enum ResultCode
    * while attempting to process the request.
    */
   TIME_LIMIT_EXCEEDED(LDAPResultCode.TIME_LIMIT_EXCEEDED,
-                      MSGID_RESULT_TIME_LIMIT_EXCEEDED),
+                      INFO_RESULT_TIME_LIMIT_EXCEEDED.get()),
 
 
 
@@ -89,7 +89,7 @@ public enum ResultCode
    * while attempting to process the request.
    */
   SIZE_LIMIT_EXCEEDED(LDAPResultCode.SIZE_LIMIT_EXCEEDED,
-                      MSGID_RESULT_SIZE_LIMIT_EXCEEDED),
+                      INFO_RESULT_SIZE_LIMIT_EXCEEDED.get()),
 
 
 
@@ -98,7 +98,7 @@ public enum ResultCode
    * included in a compare request did not match the targeted entry.
    */
   COMPARE_FALSE(LDAPResultCode.COMPARE_FALSE,
-                MSGID_RESULT_COMPARE_FALSE),
+                INFO_RESULT_COMPARE_FALSE.get()),
 
 
 
@@ -107,7 +107,7 @@ public enum ResultCode
    * included in a compare request did match the targeted entry.
    */
   COMPARE_TRUE(LDAPResultCode.COMPARE_TRUE,
-               MSGID_RESULT_COMPARE_TRUE),
+               INFO_RESULT_COMPARE_TRUE.get()),
 
 
 
@@ -116,7 +116,7 @@ public enum ResultCode
    * attempt failed because it referenced an invalid SASL mechanism.
    */
   AUTH_METHOD_NOT_SUPPORTED(LDAPResultCode.AUTH_METHOD_NOT_SUPPORTED,
-                            MSGID_RESULT_AUTH_METHOD_NOT_SUPPORTED),
+                         INFO_RESULT_AUTH_METHOD_NOT_SUPPORTED.get()),
 
 
 
@@ -126,14 +126,14 @@ public enum ResultCode
    * completed a strong form of authentication.
    */
   STRONG_AUTH_REQUIRED(LDAPResultCode.STRONG_AUTH_REQUIRED,
-                       MSGID_RESULT_STRONG_AUTH_REQUIRED),
+                       INFO_RESULT_STRONG_AUTH_REQUIRED.get()),
 
 
 
   /**
    * The result code that indicates that a referral was encountered.
    */
-  REFERRAL(LDAPResultCode.REFERRAL, MSGID_RESULT_REFERRAL),
+  REFERRAL(LDAPResultCode.REFERRAL, INFO_RESULT_REFERRAL.get()),
 
 
 
@@ -143,7 +143,7 @@ public enum ResultCode
    * exceeded.
    */
   ADMIN_LIMIT_EXCEEDED(LDAPResultCode.ADMIN_LIMIT_EXCEEDED,
-                       MSGID_RESULT_ADMIN_LIMIT_EXCEEDED),
+                       INFO_RESULT_ADMIN_LIMIT_EXCEEDED.get()),
 
 
 
@@ -154,7 +154,7 @@ public enum ResultCode
    */
   UNAVAILABLE_CRITICAL_EXTENSION(
        LDAPResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-       MSGID_RESULT_UNAVAILABLE_CRITICAL_EXTENSION),
+       INFO_RESULT_UNAVAILABLE_CRITICAL_EXTENSION.get()),
 
 
 
@@ -164,7 +164,7 @@ public enum ResultCode
    * communication between the client and the server.
    */
   CONFIDENTIALITY_REQUIRED(LDAPResultCode.CONFIDENTIALITY_REQUIRED,
-                           MSGID_RESULT_CONFIDENTIALITY_REQUIRED),
+                          INFO_RESULT_CONFIDENTIALITY_REQUIRED.get()),
 
 
 
@@ -173,7 +173,7 @@ public enum ResultCode
    * multi-stage SASL bind operations.
    */
   SASL_BIND_IN_PROGRESS(LDAPResultCode.SASL_BIND_IN_PROGRESS,
-                        MSGID_RESULT_SASL_BIND_IN_PROGRESS),
+                        INFO_RESULT_SASL_BIND_IN_PROGRESS.get()),
 
 
 
@@ -183,7 +183,7 @@ public enum ResultCode
    * did not exist in the specified entry.
    */
   NO_SUCH_ATTRIBUTE(LDAPResultCode.NO_SUCH_ATTRIBUTE,
-                    MSGID_RESULT_NO_SUCH_ATTRIBUTE),
+                    INFO_RESULT_NO_SUCH_ATTRIBUTE.get()),
 
 
 
@@ -193,7 +193,7 @@ public enum ResultCode
    * the server schema.
    */
   UNDEFINED_ATTRIBUTE_TYPE(LDAPResultCode.UNDEFINED_ATTRIBUTE_TYPE,
-                           MSGID_RESULT_UNDEFINED_ATTRIBUTE_TYPE),
+                          INFO_RESULT_UNDEFINED_ATTRIBUTE_TYPE.get()),
 
 
 
@@ -203,7 +203,7 @@ public enum ResultCode
    * matching against an attribute.
    */
   INAPPROPRIATE_MATCHING(LDAPResultCode.INAPPROPRIATE_MATCHING,
-                         MSGID_RESULT_INAPPROPRIATE_MATCHING),
+                         INFO_RESULT_INAPPROPRIATE_MATCHING.get()),
 
 
 
@@ -213,7 +213,7 @@ public enum ResultCode
    * the server.
    */
   CONSTRAINT_VIOLATION(LDAPResultCode.CONSTRAINT_VIOLATION,
-                       MSGID_RESULT_CONSTRAINT_VIOLATION),
+                       INFO_RESULT_CONSTRAINT_VIOLATION.get()),
 
 
 
@@ -223,7 +223,7 @@ public enum ResultCode
    * existing attribute or attribute value in the target entry.
    */
   ATTRIBUTE_OR_VALUE_EXISTS(LDAPResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
-                            MSGID_RESULT_ATTRIBUTE_OR_VALUE_EXISTS),
+                         INFO_RESULT_ATTRIBUTE_OR_VALUE_EXISTS.get()),
 
 
 
@@ -232,7 +232,7 @@ public enum ResultCode
    * failed because it violated the syntax for a specified attribute.
    */
   INVALID_ATTRIBUTE_SYNTAX(LDAPResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                           MSGID_RESULT_INVALID_ATTRIBUTE_SYNTAX),
+                          INFO_RESULT_INVALID_ATTRIBUTE_SYNTAX.get()),
 
 
 
@@ -241,7 +241,7 @@ public enum ResultCode
    * failed because it referenced an entry that does not exist.
    */
   NO_SUCH_OBJECT(LDAPResultCode.NO_SUCH_OBJECT,
-                 MSGID_RESULT_NO_SUCH_OBJECT),
+                 INFO_RESULT_NO_SUCH_OBJECT.get()),
 
 
 
@@ -251,7 +251,7 @@ public enum ResultCode
    * alias.
    */
   ALIAS_PROBLEM(LDAPResultCode.ALIAS_PROBLEM,
-                MSGID_RESULT_ALIAS_PROBLEM),
+                INFO_RESULT_ALIAS_PROBLEM.get()),
 
 
 
@@ -261,7 +261,7 @@ public enum ResultCode
    * or malformed DN.
    */
   INVALID_DN_SYNTAX(LDAPResultCode.INVALID_DN_SYNTAX,
-                    MSGID_RESULT_INVALID_DN_SYNTAX),
+                    INFO_RESULT_INVALID_DN_SYNTAX.get()),
 
 
 
@@ -271,7 +271,7 @@ public enum ResultCode
    */
   ALIAS_DEREFERENCING_PROBLEM(
        LDAPResultCode.ALIAS_DEREFERENCING_PROBLEM,
-       MSGID_RESULT_ALIAS_DEREFERENCING_PROBLEM),
+       INFO_RESULT_ALIAS_DEREFERENCING_PROBLEM.get()),
 
 
 
@@ -282,7 +282,7 @@ public enum ResultCode
    */
   INAPPROPRIATE_AUTHENTICATION(
        LDAPResultCode.INAPPROPRIATE_AUTHENTICATION,
-       MSGID_RESULT_INAPPROPRIATE_AUTHENTICATION),
+       INFO_RESULT_INAPPROPRIATE_AUTHENTICATION.get()),
 
 
 
@@ -292,7 +292,7 @@ public enum ResultCode
    * credentials.
    */
   INVALID_CREDENTIALS(LDAPResultCode.INVALID_CREDENTIALS,
-                      MSGID_RESULT_INVALID_CREDENTIALS),
+                      INFO_RESULT_INVALID_CREDENTIALS.get()),
 
 
 
@@ -302,7 +302,7 @@ public enum ResultCode
    */
   INSUFFICIENT_ACCESS_RIGHTS(
        LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-       MSGID_RESULT_INSUFFICIENT_ACCESS_RIGHTS),
+       INFO_RESULT_INSUFFICIENT_ACCESS_RIGHTS.get()),
 
 
 
@@ -310,7 +310,7 @@ public enum ResultCode
    * The result code that indicates that the server is too busy to
    * process the requested operation.
    */
-  BUSY(LDAPResultCode.BUSY, MSGID_RESULT_BUSY),
+  BUSY(LDAPResultCode.BUSY, INFO_RESULT_BUSY.get()),
 
 
 
@@ -319,7 +319,8 @@ public enum ResultCode
    * one or more required resources were not available for use in
    * processing the request.
    */
-  UNAVAILABLE(LDAPResultCode.UNAVAILABLE, MSGID_RESULT_UNAVAILABLE),
+  UNAVAILABLE(LDAPResultCode.UNAVAILABLE,
+          INFO_RESULT_UNAVAILABLE.get()),
 
 
 
@@ -328,7 +329,7 @@ public enum ResultCode
    * perform the requested operation.
    */
   UNWILLING_TO_PERFORM(LDAPResultCode.UNWILLING_TO_PERFORM,
-                       MSGID_RESULT_UNWILLING_TO_PERFORM),
+                       INFO_RESULT_UNWILLING_TO_PERFORM.get()),
 
 
 
@@ -336,7 +337,8 @@ public enum ResultCode
    * The result code that indicates that a referral or chaining
    * loop was detected while processing the request.
    */
-  LOOP_DETECT(LDAPResultCode.LOOP_DETECT, MSGID_RESULT_LOOP_DETECT),
+  LOOP_DETECT(LDAPResultCode.LOOP_DETECT,
+          INFO_RESULT_LOOP_DETECT.get()),
 
 
 
@@ -345,7 +347,7 @@ public enum ResultCode
    * VLV request control without a server-side sort control.
    */
   SORT_CONTROL_MISSING(LDAPResultCode.SORT_CONTROL_MISSING,
-                       MSGID_RESULT_SORT_CONTROL_MISSING),
+                       INFO_RESULT_SORT_CONTROL_MISSING.get()),
 
 
 
@@ -354,7 +356,7 @@ public enum ResultCode
    * VLV request control with an invalid offset.
    */
   OFFSET_RANGE_ERROR(LDAPResultCode.OFFSET_RANGE_ERROR,
-                     MSGID_RESULT_OFFSET_RANGE_ERROR),
+                     INFO_RESULT_OFFSET_RANGE_ERROR.get()),
 
 
 
@@ -364,7 +366,7 @@ public enum ResultCode
    * configuration.
    */
   NAMING_VIOLATION(LDAPResultCode.NAMING_VIOLATION,
-                   MSGID_RESULT_NAMING_VIOLATION),
+                   INFO_RESULT_NAMING_VIOLATION.get()),
 
 
 
@@ -374,7 +376,7 @@ public enum ResultCode
    * the server schema.
    */
   OBJECTCLASS_VIOLATION(LDAPResultCode.OBJECTCLASS_VIOLATION,
-                        MSGID_RESULT_OBJECTCLASS_VIOLATION),
+                        INFO_RESULT_OBJECTCLASS_VIOLATION.get()),
 
 
 
@@ -383,7 +385,7 @@ public enum ResultCode
    * not allowed for non-leaf entries.
    */
   NOT_ALLOWED_ON_NONLEAF(LDAPResultCode.NOT_ALLOWED_ON_NONLEAF,
-                         MSGID_RESULT_NOT_ALLOWED_ON_NONLEAF),
+                         INFO_RESULT_NOT_ALLOWED_ON_NONLEAF.get()),
 
 
 
@@ -392,7 +394,7 @@ public enum ResultCode
    * not allowed on an RDN attribute.
    */
   NOT_ALLOWED_ON_RDN(LDAPResultCode.NOT_ALLOWED_ON_RDN,
-                     MSGID_RESULT_NOT_ALLOWED_ON_RDN),
+                     INFO_RESULT_NOT_ALLOWED_ON_RDN.get()),
 
 
 
@@ -402,7 +404,7 @@ public enum ResultCode
    * with an entry that already exists.
    */
   ENTRY_ALREADY_EXISTS(LDAPResultCode.ENTRY_ALREADY_EXISTS,
-                       MSGID_RESULT_ENTRY_ALREADY_EXISTS),
+                       INFO_RESULT_ENTRY_ALREADY_EXISTS.get()),
 
 
 
@@ -413,7 +415,7 @@ public enum ResultCode
    */
   OBJECTCLASS_MODS_PROHIBITED(
        LDAPResultCode.OBJECTCLASS_MODS_PROHIBITED,
-       MSGID_RESULT_OBJECTCLASS_MODS_PROHIBITED),
+       INFO_RESULT_OBJECTCLASS_MODS_PROHIBITED.get()),
 
 
 
@@ -423,7 +425,7 @@ public enum ResultCode
    * repositories.
    */
   AFFECTS_MULTIPLE_DSAS(LDAPResultCode.AFFECTS_MULTIPLE_DSAS,
-                        MSGID_RESULT_AFFECTS_MULTIPLE_DSAS),
+                        INFO_RESULT_AFFECTS_MULTIPLE_DSAS.get()),
 
 
 
@@ -433,7 +435,7 @@ public enum ResultCode
    * list view control.
    */
   VIRTUAL_LIST_VIEW_ERROR(LDAPResultCode.VIRTUAL_LIST_VIEW_ERROR,
-                          MSGID_RESULT_VIRTUAL_LIST_VIEW_ERROR),
+                          INFO_RESULT_VIRTUAL_LIST_VIEW_ERROR.get()),
 
 
 
@@ -441,7 +443,7 @@ public enum ResultCode
    * The result code that should be used if no other result code is
    * appropriate.
    */
-  OTHER(LDAPResultCode.OTHER, MSGID_RESULT_OTHER),
+  OTHER(LDAPResultCode.OTHER, INFO_RESULT_OTHER.get()),
 
 
 
@@ -450,7 +452,7 @@ public enum ResultCode
    * connection is lost.  This should not be used over protocol.
    */
   CLIENT_SIDE_SERVER_DOWN(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
-                          MSGID_RESULT_CLIENT_SIDE_SERVER_DOWN),
+                          INFO_RESULT_CLIENT_SIDE_SERVER_DOWN.get()),
 
 
 
@@ -460,7 +462,7 @@ public enum ResultCode
    * protocol.
    */
   CLIENT_SIDE_LOCAL_ERROR(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                          MSGID_RESULT_CLIENT_SIDE_LOCAL_ERROR),
+                          INFO_RESULT_CLIENT_SIDE_LOCAL_ERROR.get()),
 
 
 
@@ -471,7 +473,7 @@ public enum ResultCode
    */
   CLIENT_SIDE_ENCODING_ERROR(
        LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
-       MSGID_RESULT_CLIENT_SIDE_ENCODING_ERROR),
+       INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get()),
 
 
 
@@ -482,7 +484,7 @@ public enum ResultCode
    */
   CLIENT_SIDE_DECODING_ERROR(
        LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
-       MSGID_RESULT_CLIENT_SIDE_DECODING_ERROR),
+       INFO_RESULT_CLIENT_SIDE_DECODING_ERROR.get()),
 
 
 
@@ -491,7 +493,7 @@ public enum ResultCode
    * timeout occurs.  This should not be used over protocol.
    */
   CLIENT_SIDE_TIMEOUT(LDAPResultCode.CLIENT_SIDE_TIMEOUT,
-                      MSGID_RESULT_CLIENT_SIDE_TIMEOUT),
+                      INFO_RESULT_CLIENT_SIDE_TIMEOUT.get()),
 
 
 
@@ -501,7 +503,7 @@ public enum ResultCode
    * not be used over protocol.
    */
   CLIENT_SIDE_AUTH_UNKNOWN(LDAPResultCode.CLIENT_SIDE_AUTH_UNKNOWN,
-                           MSGID_RESULT_CLIENT_SIDE_AUTH_UNKNOWN),
+                         INFO_RESULT_CLIENT_SIDE_AUTH_UNKNOWN.get()),
 
 
 
@@ -511,7 +513,7 @@ public enum ResultCode
    * protocol.
    */
   CLIENT_SIDE_FILTER_ERROR(LDAPResultCode.CLIENT_SIDE_FILTER_ERROR,
-                           MSGID_RESULT_CLIENT_SIDE_FILTER_ERROR),
+                         INFO_RESULT_CLIENT_SIDE_FILTER_ERROR.get()),
 
 
 
@@ -522,7 +524,7 @@ public enum ResultCode
    */
   CLIENT_SIDE_USER_CANCELLED(
        LDAPResultCode.CLIENT_SIDE_USER_CANCELLED,
-       MSGID_RESULT_CLIENT_SIDE_USER_CANCELLED),
+       INFO_RESULT_CLIENT_SIDE_USER_CANCELLED.get()),
 
 
 
@@ -532,7 +534,7 @@ public enum ResultCode
    * protocol.
    */
   CLIENT_SIDE_PARAM_ERROR(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
-                          MSGID_RESULT_CLIENT_SIDE_PARAM_ERROR),
+                          INFO_RESULT_CLIENT_SIDE_PARAM_ERROR.get()),
 
 
 
@@ -542,7 +544,7 @@ public enum ResultCode
    * This should not be used over protocol.
    */
   CLIENT_SIDE_NO_MEMORY(LDAPResultCode.CLIENT_SIDE_NO_MEMORY,
-                        MSGID_RESULT_CLIENT_SIDE_NO_MEMORY),
+                        INFO_RESULT_CLIENT_SIDE_NO_MEMORY.get()),
 
 
 
@@ -551,7 +553,7 @@ public enum ResultCode
    * cannot be established.  This should not be used over protocol.
    */
   CLIENT_SIDE_CONNECT_ERROR(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
-                            MSGID_RESULT_CLIENT_SIDE_CONNECT_ERROR),
+                         INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get()),
 
 
 
@@ -561,7 +563,7 @@ public enum ResultCode
    * protocol.
    */
   CLIENT_SIDE_NOT_SUPPORTED(LDAPResultCode.CLIENT_SIDE_NOT_SUPPORTED,
-                            MSGID_RESULT_CLIENT_SIDE_NOT_SUPPORTED),
+                         INFO_RESULT_CLIENT_SIDE_NOT_SUPPORTED.get()),
 
 
 
@@ -572,7 +574,7 @@ public enum ResultCode
    */
   CLIENT_SIDE_CONTROL_NOT_FOUND(
        LDAPResultCode.CLIENT_SIDE_CONTROL_NOT_FOUND,
-       MSGID_RESULT_CLIENT_SIDE_CONTROL_NOT_FOUND),
+       INFO_RESULT_CLIENT_SIDE_CONTROL_NOT_FOUND.get()),
 
 
 
@@ -583,7 +585,7 @@ public enum ResultCode
    */
   CLIENT_SIDE_NO_RESULTS_RETURNED(
        LDAPResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
-       MSGID_RESULT_CLIENT_SIDE_NO_RESULTS_RETURNED),
+       INFO_RESULT_CLIENT_SIDE_NO_RESULTS_RETURNED.get()),
 
 
 
@@ -593,7 +595,7 @@ public enum ResultCode
    */
   CLIENT_SIDE_MORE_RESULTS_TO_RETURN(
        LDAPResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN,
-       MSGID_RESULT_CLIENT_SIDE_MORE_RESULTS_TO_RETURN),
+       INFO_RESULT_CLIENT_SIDE_MORE_RESULTS_TO_RETURN.get()),
 
 
 
@@ -602,7 +604,7 @@ public enum ResultCode
    * loop is detected.  This should not be used over protocol.
    */
   CLIENT_SIDE_CLIENT_LOOP(LDAPResultCode.CLIENT_SIDE_CLIENT_LOOP,
-                          MSGID_RESULT_CLIENT_SIDE_CLIENT_LOOP),
+                          INFO_RESULT_CLIENT_SIDE_CLIENT_LOOP.get()),
 
 
 
@@ -612,7 +614,7 @@ public enum ResultCode
    */
   CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED(
        LDAPResultCode.CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED,
-       MSGID_RESULT_CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED),
+       INFO_RESULT_CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED.get()),
 
 
 
@@ -620,7 +622,7 @@ public enum ResultCode
    * The result code that indicates that a cancel request was
    * successful, or that the specified operation was canceled.
    */
-  CANCELED(LDAPResultCode.CANCELED, MSGID_RESULT_CANCELED),
+  CANCELED(LDAPResultCode.CANCELED, INFO_RESULT_CANCELED.get()),
 
 
 
@@ -630,7 +632,7 @@ public enum ResultCode
    * already completed.
    */
   NO_SUCH_OPERATION(LDAPResultCode.NO_SUCH_OPERATION,
-                    MSGID_RESULT_NO_SUCH_OPERATION),
+                    INFO_RESULT_NO_SUCH_OPERATION.get()),
 
 
 
@@ -639,7 +641,7 @@ public enum ResultCode
    * unsuccessful because processing on the targeted operation had
    * already reached a point at which it could not be canceled.
    */
-  TOO_LATE(LDAPResultCode.TOO_LATE, MSGID_RESULT_TOO_LATE),
+  TOO_LATE(LDAPResultCode.TOO_LATE, INFO_RESULT_TOO_LATE.get()),
 
 
 
@@ -649,7 +651,7 @@ public enum ResultCode
    * not be canceled.
    */
   CANNOT_CANCEL(LDAPResultCode.CANNOT_CANCEL,
-                MSGID_RESULT_CANNOT_CANCEL),
+                INFO_RESULT_CANNOT_CANCEL.get()),
 
 
 
@@ -658,7 +660,7 @@ public enum ResultCode
    * assertion control failed to match the target entry.
    */
   ASSERTION_FAILED(LDAPResultCode.ASSERTION_FAILED,
-                   MSGID_RESULT_ASSERTION_FAILED),
+                   INFO_RESULT_ASSERTION_FAILED.get()),
 
 
 
@@ -667,7 +669,7 @@ public enum ResultCode
    * the client to use the requested authorization.
    */
   AUTHORIZATION_DENIED(LDAPResultCode.AUTHORIZATION_DENIED,
-                       MSGID_RESULT_AUTHORIZATION_DENIED),
+                       INFO_RESULT_AUTHORIZATION_DENIED.get()),
 
 
 
@@ -677,19 +679,15 @@ public enum ResultCode
    * the request included the LDAP No-Op control.
    */
   NO_OPERATION(LDAPResultCode.NO_OPERATION,
-               MSGID_RESULT_NO_OPERATION);
+               INFO_RESULT_NO_OPERATION.get());
 
 
 
   // The integer value for this result code.
   private int intValue;
 
-  // The unique ID that can be used to obtain the human-readable name
-  // for this result code.
-  private int resultCodeID;
-
   // The short human-readable name for this result code.
-  private String resultCodeName;
+  private Message resultCodeName;
 
 
 
@@ -698,15 +696,12 @@ public enum ResultCode
    * identifier.
    *
    * @param  intValue      The integer value for this result code.
-   * @param  resultCodeID  The unique identifier that can be used to
-   *                       obtain the human-readable name for this
-   *                       result code.
+   * @param  name          The name for this result code.
    */
-  private ResultCode(int intValue, int resultCodeID)
+  private ResultCode(int intValue, Message name)
   {
     this.intValue       = intValue;
-    this.resultCodeID   = resultCodeID;
-    this.resultCodeName = null;
+    this.resultCodeName = name;
   }
 
 
@@ -877,31 +872,12 @@ public enum ResultCode
 
 
   /**
-   * Retrieves the unique identifier that can be used to obtain the
-   * human-readable name for this result code.
-   *
-   * @return  The unique identifier that can be used to obtain the
-   *          human-readable name for this result code.
-   */
-  public int getResultCodeID()
-  {
-    return resultCodeID;
-  }
-
-
-
-  /**
    * Retrieves the short human-readable name for this result code.
    *
    * @return  The short human-readable name for this result code.
    */
-  public String getResultCodeName()
+  public Message getResultCodeName()
   {
-    if (resultCodeName == null)
-    {
-      resultCodeName = getMessage(resultCodeID);
-    }
-
     return resultCodeName;
   }
 
@@ -914,7 +890,7 @@ public enum ResultCode
    */
   public String toString()
   {
-    return getResultCodeName();
+    return resultCodeName != null ? resultCodeName.toString() : null;
   }
 }
 

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.config;
+import org.opends.messages.Message;
 
 
 
@@ -42,10 +43,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-
-
+import static org.opends.messages.ConfigMessages.*;
 /**
  * This class defines a configuration attribute that is only intended for use
  * in displaying information.  It will not allow its value to be altered.
@@ -71,7 +69,7 @@ public class ReadOnlyConfigAttribute
    * @param  isMultiValued  Indicates whether this configuration attribute may
    *                        have multiple values.
    */
-  public ReadOnlyConfigAttribute(String name, String description,
+  public ReadOnlyConfigAttribute(String name, Message description,
                                  boolean isMultiValued)
   {
     super(name, description, false, isMultiValued, false);
@@ -90,7 +88,7 @@ public class ReadOnlyConfigAttribute
    * @param  description  The description for this configuration attribute.
    * @param  value        The value for this configuration attribute.
    */
-  public ReadOnlyConfigAttribute(String name, String description, String value)
+  public ReadOnlyConfigAttribute(String name, Message description, String value)
   {
     super(name, description, false, false, false, getValueSet(value));
 
@@ -116,7 +114,7 @@ public class ReadOnlyConfigAttribute
    * @param  description  The description for this configuration attribute.
    * @param  values       The set of values for this configuration attribute.
    */
-  public ReadOnlyConfigAttribute(String name, String description,
+  public ReadOnlyConfigAttribute(String name, Message description,
                                  List<String> values)
   {
     super(name, description, false, true, false, getValueSet(values));
@@ -175,16 +173,14 @@ public class ReadOnlyConfigAttribute
   {
     if ((values == null) || values.isEmpty())
     {
-      int    msgID   = MSGID_CONFIG_ATTR_NO_STRING_VALUE;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
+      throw new ConfigException(message);
     }
 
     if (values.size() > 1)
     {
-      int    msgID   = MSGID_CONFIG_ATTR_MULTIPLE_STRING_VALUES;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
+      throw new ConfigException(message);
     }
 
     return values.get(0);
@@ -247,9 +243,8 @@ public class ReadOnlyConfigAttribute
   public void setValue(String value)
          throws ConfigException
   {
-    int    msgID   = MSGID_CONFIG_ATTR_READ_ONLY;
-    String message = getMessage(msgID, getName());
-    throw new ConfigException(msgID, message);
+    Message message = ERR_CONFIG_ATTR_READ_ONLY.get(getName());
+    throw new ConfigException(message);
   }
 
 
@@ -265,9 +260,8 @@ public class ReadOnlyConfigAttribute
   public void setValues(List<String> values)
          throws ConfigException
   {
-    int    msgID   = MSGID_CONFIG_ATTR_READ_ONLY;
-    String message = getMessage(msgID, getName());
-    throw new ConfigException(msgID, message);
+    Message message = ERR_CONFIG_ATTR_READ_ONLY.get(getName());
+    throw new ConfigException(message);
   }
 
 
@@ -346,7 +340,7 @@ public class ReadOnlyConfigAttribute
   public boolean valueIsAcceptable(AttributeValue value,
                                    StringBuilder rejectReason)
   {
-    rejectReason.append(getMessage(MSGID_CONFIG_ATTR_READ_ONLY, getName()));
+    rejectReason.append(ERR_CONFIG_ATTR_READ_ONLY.get(getName()));
     return false;
   }
 
@@ -547,15 +541,17 @@ public class ReadOnlyConfigAttribute
     {
       attributeInfoList.add(new MBeanAttributeInfo(getName(),
                                                    JMX_TYPE_STRING_ARRAY,
-                                                   getDescription(), true,
-                                                   false, false));
+                                                   String.valueOf(
+                                                           getDescription()),
+                                                   true, false, false));
     }
     else
     {
       attributeInfoList.add(new MBeanAttributeInfo(getName(),
                                                    String.class.getName(),
-                                                   getDescription(), true,
-                                                   false, false));
+                                                   String.valueOf(
+                                                           getDescription()),
+                                                   true, false, false));
     }
   }
 
@@ -573,12 +569,12 @@ public class ReadOnlyConfigAttribute
     if (isMultiValued())
     {
       return new MBeanParameterInfo(getName(), JMX_TYPE_STRING_ARRAY,
-                                    getDescription());
+                                    String.valueOf(getDescription()));
     }
     else
     {
       return new MBeanParameterInfo(getName(), String.class.getName(),
-                                    getDescription());
+                                    String.valueOf(getDescription()));
     }
   }
 
@@ -598,9 +594,8 @@ public class ReadOnlyConfigAttribute
   public void setValue(javax.management.Attribute jmxAttribute)
          throws ConfigException
   {
-    int    msgID   = MSGID_CONFIG_ATTR_READ_ONLY;
-    String message = getMessage(msgID, getName());
-    throw new ConfigException(msgID, message);
+    Message message = ERR_CONFIG_ATTR_READ_ONLY.get(getName());
+    throw new ConfigException(message);
   }
 
 

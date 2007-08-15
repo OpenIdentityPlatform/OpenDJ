@@ -31,6 +31,7 @@ package org.opends.server.types;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 
 import static org.testng.Assert.*;
 
@@ -48,19 +49,10 @@ public class InitializationExceptionTestCase
   @Test()
   public void testConstructor1()
   {
-    String message = "Test Constructor 1";
+    Message message = Message.raw("Test Constructor 1");
 
-    validateException(new InitializationException(1, message), 1, message);
-    validateException(new InitializationException(1, ""), 1, "");
-    validateException(new InitializationException(1, null), 1, null);
-
-    validateException(new InitializationException(0, message), 0, message);
-    validateException(new InitializationException(0, ""), 0, "");
-    validateException(new InitializationException(0, null), 0, null);
-
-    validateException(new InitializationException(-1, message), -1, message);
-    validateException(new InitializationException(-1, ""), -1, "");
-    validateException(new InitializationException(-1, null), -1, null);
+    validateException(new InitializationException(message), message);
+    validateException(new InitializationException(null), null);
   }
 
 
@@ -72,35 +64,15 @@ public class InitializationExceptionTestCase
   @Test()
   public void testConstructor2()
   {
-    String    message = "Test Constructor 2";
+    Message   message = Message.raw("Test Constructor 2");
     Exception e       = new Exception("Test Constructor 2 Exception");
 
-    validateException(new InitializationException(1, message, e), 1, message);
-    validateException(new InitializationException(1, "", e), 1, "");
-    validateException(new InitializationException(1, null, e), 1, null);
+    validateException(new InitializationException(message, e), message);
+    validateException(new InitializationException(null, e), null);
 
-    validateException(new InitializationException(0, message, e), 0, message);
-    validateException(new InitializationException(0, "", e), 0, "");
-    validateException(new InitializationException(0, null, e), 0, null);
-
-    validateException(new InitializationException(-1, message, e), -1, message);
-    validateException(new InitializationException(-1, "", e), -1, "");
-    validateException(new InitializationException(-1, null, e), -1, null);
-
-    validateException(new InitializationException(1, message, null), 1,
+    validateException(new InitializationException(message, null),
                       message);
-    validateException(new InitializationException(1, "", null), 1, "");
-    validateException(new InitializationException(1, null, null), 1, null);
-
-    validateException(new InitializationException(0, message, null), 0,
-                      message);
-    validateException(new InitializationException(0, "", null), 0, "");
-    validateException(new InitializationException(0, null, null), 0, null);
-
-    validateException(new InitializationException(-1, message, null), -1,
-                      message);
-    validateException(new InitializationException(-1, "", null), -1, "");
-    validateException(new InitializationException(-1, null, null), -1, null);
+    validateException(new InitializationException(null, null), null);
   }
 
 
@@ -109,21 +81,18 @@ public class InitializationExceptionTestCase
    * Verifies the contents of the provided initialization exception.
    *
    * @param  ie         The initialization exception to verify.
-   * @param  messageID  The expected message ID for the exception.
    * @param  message    The expected message for the exception.
    */
-  private void validateException(InitializationException ie, int messageID,
-                                 String message)
+  private void validateException(InitializationException ie,
+                                 Message message)
   {
-    assertEquals(ie.getMessageID(), messageID);
-
     if (message == null)
     {
-      assertNull(ie.getMessage());
+      assertNull(ie.getMessageObject());
     }
     else
     {
-      assertEquals(ie.getMessage(), message);
+      assertEquals(ie.getMessageObject(), message);
     }
   }
 }

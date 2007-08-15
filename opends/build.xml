@@ -135,6 +135,11 @@
   <property name="admin.src.dir"   location="src/admin/generated" />
   <property name="admin.rules.dir" location="resource/admin" />
 
+  <!-- Properties for generating messages. -->
+  <property name="msg.prop.dir"    location="src/messages/messages" />
+  <property name="msg.javagen.dir" location="src/messages/generated" />
+  <property name="msg.package.dir" location="${classes.dir}/messages" />
+  <property name="msg.src.dir"     location="src/messages/src" />
 
 
   <!-- Create a package bundle containing the DSML library. -->
@@ -177,10 +182,85 @@
   </target>
 
 
+  <target name="generatemessages" depends="buildtools">
+    <typedef name="genmsg"
+             classname="org.opends.build.tools.GenerateMessageFile" >
+      <classpath>
+        <fileset dir="${build.dir}/build-tools">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </typedef>
+    <!--
+    <genmsg sourceProps="${msg.prop.dir}/xxx.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/XxxMessages.java">
+    </genmsg>
+    -->
+    <genmsg sourceProps="${msg.prop.dir}/access_control.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/AccessControlMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/admin.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/AdminMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/admin_tool.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/AdminToolMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/backend.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/BackendMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/config.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/ConfigMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/core.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/CoreMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/extension.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/ExtensionMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/jeb.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/JebMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/log.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/LoggerMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/plugin.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/PluginMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/protocol.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/ProtocolMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/quicksetup.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/QuickSetupMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/replication.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/ReplicationMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/schema.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/SchemaMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/task.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/TaskMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/third_party.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/ThirdPartyMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/tools.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/ToolMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/user_defined.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/UserDefinedMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/utility.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/UtilityMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/version.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/VersionMessages.java">
+    </genmsg>
+  </target>
 
 
   <!-- Remove all dynamically-generated build files. -->
-  <target name="clean" depends="cleanadmin"
+  <target name="clean" depends="cleanadmin,cleanmessages"
        description="Clean up any files generated during the build process">
 
     <delete dir="${build.dir}"           />
@@ -373,8 +453,16 @@
 
     <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
          failOnViolation="true">
-      <fileset dir="${src.dir}" includes="**/*.java"
-           excludes="**/PublicAPI.java" />
+      <fileset dir="${src.dir}">
+        <include name="**/*.java"/>
+        <exclude name="**/PublicAPI.java" />
+      </fileset>
+      <formatter type="plain" />
+    </checkstyle>
+
+    <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
+         failOnViolation="true">
+      <fileset dir="${msg.src.dir}" includes="**/*.java" />
       <formatter type="plain" />
     </checkstyle>
 
@@ -430,11 +518,11 @@
 
   <!-- Compile the Directory Server source files. -->
   <target name="compile"
-       depends="init,checkjavaversion,dynamicconstants,compileadmin"
+       depends="init,checkjavaversion,dynamicconstants,generatemessages,compileadmin"
        description="Compile the Directory Server source files.">
     <mkdir dir="${classes.dir}" />
 
-    <javac srcdir="${src.dir}:${admin.src.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}" destdir="${classes.dir}"
+    <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}" destdir="${classes.dir}"
          excludes="**/package-info.java"
          debug="on" debuglevel="${build.debuglevel}" source="1.5" target="1.5"
          deprecation="true" fork="true" memoryInitialSize="${MEM}"
@@ -506,7 +594,7 @@
         <pathelement path="${classes.dir}"/>
       </classpath>
     </javac>
-    <javac srcdir="${src.dir}" destdir="${quicksetup.classes.dir}"
+    <javac srcdir="${src.dir}:${msg.src.dir}" destdir="${quicksetup.classes.dir}"
                debug="on" debuglevel="${build.debuglevel}" source="1.5"
                target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
                memoryMaximumSize="${MEM}">
@@ -514,6 +602,18 @@
       <include name="**/org/opends/server/util/CertificateManager.java"/>
       <include name="**/org/opends/server/util/DynamicConstants.java"/>
       <include name="**/org/opends/server/types/OperatingSystem.java"/>
+      <include name="**/org/opends/messages/Message.java"/>
+      <include name="**/org/opends/messages/MessageDescriptor.java"/>
+      <include name="**/org/opends/messages/Severity.java"/>
+      <include name="**/org/opends/messages/Category.java"/>
+      <include name="**/org/opends/messages/gen/QuickSetupMessages.java"/>
+      <include name="**/messages/quicksetup.properties"/>
+      <include name="**/org/opends/messages/gen/ToolMessages.java"/>
+      <include name="**/messages/tools.properties"/>
+      <include name="**/org/opends/messages/gen/CoreMessages.java"/>
+      <include name="**/messages/core.properties"/>
+      <include name="**/org/opends/messages/gen/ReplicationMessages.java"/>
+      <include name="**/messages/replication.properties"/>
       <compilerarg value="-Xlint:all" />
     </javac>
     <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}"
@@ -602,6 +702,12 @@
       <fileset dir="${guitools.src.dir}" includes="**/*.properties, **/*.gif, **/*.png" />
     </copy>
 
+    <!-- copy the message properties files -->
+    <mkdir dir="${msg.package.dir}"/>
+    <copy todir="${msg.package.dir}">
+      <fileset dir="${msg.prop.dir}"/>
+    </copy>
+
     <!-- Generate the OpenDS.jar file -->
     <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
          basedir="${classes.dir}"
@@ -688,6 +794,13 @@
     <mkdir dir="${pdir}/lib/extensions"  />
     <mkdir dir="${pdir}/locks"           />
     <mkdir dir="${pdir}/logs"            />
+
+
+    <!-- copy the message properties files -->
+    <mkdir dir="${msg.package.dir}"/>
+    <copy todir="${msg.package.dir}">
+      <fileset dir="${msg.prop.dir}"/>
+    </copy>
 
     <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
          basedir="${classes.dir}" 
@@ -1307,7 +1420,7 @@
         <pathelement location="${classes.dir}" />
         <pathelement location="${quicksetup.classes.dir}" />
         <pathelement location="${unittest.classes.dir}" />
-
+        <pathelement location="${resource.dir}" />
         <path refid="run.classpath" />
         <path refid="emma.lib" />
 
@@ -1433,6 +1546,18 @@
     </condition>
 
     <mkdir dir="${buildtools.classes.dir}" />
+
+    <javac srcdir="${src.dir}:${msg.src.dir}" destdir="${buildtools.classes.dir}"
+           sourcepath=""
+           includes="org/opends/messages/Severity.java,
+                     org/opends/messages/Category.java,
+                     org/opends/messages/Message.java,
+                     org/opends/messages/MessagePropertyKey.java,
+                     org/opends/messages/MessageDescriptor.java"
+           debug="on" debuglevel="${build.debuglevel}" source="1.5"
+           target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+           memoryMaximumSize="${MEM}"/>
+
 
     <javac srcdir="${buildtools.src.dir}" destdir="${buildtools.classes.dir}"
            debug="on" debuglevel="${build.debuglevel}" source="1.5"
@@ -1560,8 +1685,6 @@
     </delete>
   </target>
 
-
-
   <!-- Validate core administration component XML definition files. -->
   <target name="validateadmin" description="Validate core administration component XML definition files.">
     <schemavalidate>
@@ -1572,8 +1695,12 @@
     </schemavalidate>
   </target>
 
-
-
+  <!-- Remove all dynamically-generated build files. -->
+  <target name="cleanmessages" description="Clean up any generated source files for messages">
+    <delete includeemptydirs="true">
+      <fileset dir="${msg.javagen.dir}" includes="**/*" />
+    </delete>
+  </target>
 
   <!-- Generate a src.zip file containing all the server source. -->
   <target name="srczip" depends="compileadmin"

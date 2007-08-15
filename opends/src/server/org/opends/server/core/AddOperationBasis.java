@@ -25,7 +25,8 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
-
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 
 import static org.opends.server.config.ConfigConstants.ATTR_OBJECTCLASS;
@@ -39,8 +40,7 @@ import static org.opends.server.loggers.AccessLogger.logAddRequest;
 import static org.opends.server.loggers.AccessLogger.logAddResponse;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 
@@ -58,8 +58,6 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
@@ -275,7 +273,7 @@ public class AddOperationBasis
       }
 
       setResultCode(de.getResultCode());
-      appendErrorMessage(de.getErrorMessage());
+      appendErrorMessage(de.getMessageObject());
       setMatchedDN(de.getMatchedDN());
       setReferralURLs(de.getReferralURLs());
     }
@@ -403,9 +401,9 @@ public class AddOperationBasis
             if (! (isInternalOperation() || isSynchronizationOperation()))
             {
               setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-              appendErrorMessage(getMessage(MSGID_ADD_ATTR_IS_NO_USER_MOD,
-                  String.valueOf(entryDN),
-                  attr.getName()));
+              appendErrorMessage(ERR_ADD_ATTR_IS_NO_USER_MOD.get(
+                      String.valueOf(entryDN),
+                      attr.getName()));
 
               objectClasses = null;
               userAttributes = null;
@@ -478,7 +476,7 @@ public class AddOperationBasis
         catch (LDAPException le)
         {
           setResultCode(ResultCode.valueOf(le.getResultCode()));
-          appendErrorMessage(le.getMessage());
+          appendErrorMessage(le.getMessageObject());
 
           objectClasses = null;
           userAttributes = null;
@@ -569,16 +567,16 @@ public class AddOperationBasis
    * {@inheritDoc}
    */
   public final void disconnectClient(DisconnectReason disconnectReason,
-                                     boolean sendNotification, String message,
-                                     int messageID)
+                                     boolean sendNotification, Message message
+  )
   {
     // Before calling clientConnection.disconnect, we need to mark this
     // operation as cancelled so that the attempt to cancel it later won't cause
     // an unnecessary delay.
     setCancelResult(CancelResult.CANCELED);
 
-    clientConnection.disconnect(disconnectReason, sendNotification, message,
-                                messageID);
+    clientConnection.disconnect(disconnectReason, sendNotification,
+            message);
   }
 
 
@@ -609,7 +607,7 @@ public class AddOperationBasis
     String resultCode = String.valueOf(getResultCode().getIntValue());
 
     String errorMessage;
-    StringBuilder errorMessageBuffer = getErrorMessage();
+    MessageBuilder errorMessageBuffer = getErrorMessage();
     if (errorMessageBuffer == null)
     {
       errorMessage = null;
@@ -826,8 +824,7 @@ addProcessing:
         // result and return.
         setResultCode(ResultCode.CANCELED);
 
-        int msgID = MSGID_CANCELED_BY_PREPARSE_DISCONNECT;
-        appendErrorMessage(getMessage(msgID));
+        appendErrorMessage(ERR_CANCELED_BY_PREPARSE_DISCONNECT.get());
 
         setProcessingStopTime();
 
@@ -1017,13 +1014,9 @@ addProcessing:
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              int    msgID   = MSGID_ADD_ERROR_NOTIFYING_PERSISTENT_SEARCH;
-              String message = getMessage(msgID,
-                  String.valueOf(persistentSearch),
-                  getExceptionMessage(e));
-              logError(ErrorLogCategory.CORE_SERVER,
-                  ErrorLogSeverity.SEVERE_ERROR,
-                  message, msgID);
+              Message message = ERR_ADD_ERROR_NOTIFYING_PERSISTENT_SEARCH.get(
+                  String.valueOf(persistentSearch), getExceptionMessage(e));
+              logError(message);
 
               DirectoryServer.deregisterPersistentSearch(persistentSearch);
             }
@@ -1055,15 +1048,15 @@ addProcessing:
       {
         // This is not fine.  The root DSE cannot be added.
         setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-        appendErrorMessage(getMessage(MSGID_ADD_CANNOT_ADD_ROOT_DSE));
+        appendErrorMessage(ERR_ADD_CANNOT_ADD_ROOT_DSE.get());
       }
       else
       {
         // The entry doesn't have a parent but isn't a suffix.  This is not
         // allowed.
         setResultCode(ResultCode.NO_SUCH_OBJECT);
-        appendErrorMessage(getMessage(MSGID_ADD_ENTRY_NOT_SUFFIX,
-                                      String.valueOf(entryDN)));
+        appendErrorMessage(ERR_ADD_ENTRY_NOT_SUFFIX.get(
+                String.valueOf(entryDN)));
       }
     }
   }

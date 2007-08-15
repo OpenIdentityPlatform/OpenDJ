@@ -25,6 +25,9 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
+
+
 
 
 
@@ -53,18 +56,12 @@ public class DirectoryException
   // The matched DN for this directory exception.
   private final DN matchedDN;
 
-  // The message ID for the error message.
-  private final int errorMessageID;
-
   // The set of referral URLs for this directory exception.
   private final List<String> referralURLs;
 
   // The result code for this directory exception.
   private final ResultCode resultCode;
 
-  // The error message for this directory exception.
-  private final String errorMessage;
-
 
 
   /**
@@ -74,17 +71,14 @@ public class DirectoryException
    *                         exception.
    * @param  errorMessage    The error message for this directory
    *                         exception.
-   * @param  errorMessageID  The unique ID for the error message.
    */
   public DirectoryException(ResultCode resultCode,
-                            String errorMessage, int errorMessageID)
+                            Message errorMessage)
   {
     super(errorMessage);
 
 
     this.resultCode     = resultCode;
-    this.errorMessage   = errorMessage;
-    this.errorMessageID = errorMessageID;
     this.matchedDN      = null;
     this.referralURLs   = null;
   }
@@ -98,24 +92,42 @@ public class DirectoryException
    *                         exception.
    * @param  errorMessage    The error message for this directory
    *                         exception.
-   * @param  errorMessageID  The unique ID for the error message.
    * @param  cause           The exception that was caught to trigger
    *                         this directory exception.
    */
   public DirectoryException(ResultCode resultCode,
-                            String errorMessage, int errorMessageID,
+                            Message errorMessage,
                             Throwable cause)
   {
     super(errorMessage, cause);
 
 
     this.resultCode     = resultCode;
-    this.errorMessage   = errorMessage;
-    this.errorMessageID = errorMessageID;
     this.matchedDN      = null;
     this.referralURLs   = null;
   }
 
+
+  /**
+   * Creates a new directory exception with the provided information.
+   *
+   * @param  resultCode     The result code for this directory
+   *                        exception.
+   * @param  cause          The exception that was caught to trigger
+   *                        this directory exception.  The message of
+   *                        this exception will be set to that of this
+   *                        parameter.
+   */
+  public DirectoryException(ResultCode resultCode,
+                            OpenDsException cause)
+  {
+    super(cause.getMessageObject(), cause);
+
+
+    this.resultCode     = resultCode;
+    this.matchedDN      = null;
+    this.referralURLs   = null;
+  }
 
 
   /**
@@ -125,22 +137,19 @@ public class DirectoryException
    *                         exception.
    * @param  errorMessage    The error message for this directory
    *                         exception.
-   * @param  errorMessageID  The unique ID for the error message.
    * @param  matchedDN       The matched DN for this directory
    *                         exception.
    * @param  cause           The exception that was caught to trigger
    *                         this directory exception.
    */
   public DirectoryException(ResultCode resultCode,
-                            String errorMessage, int errorMessageID,
+                            Message errorMessage,
                             DN matchedDN, Throwable cause)
   {
     super(errorMessage, cause);
 
 
     this.resultCode     = resultCode;
-    this.errorMessage   = errorMessage;
-    this.errorMessageID = errorMessageID;
     this.matchedDN      = matchedDN;
     this.referralURLs   = null;
   }
@@ -153,8 +162,6 @@ public class DirectoryException
    * @param  resultCode      The result code for this directory
    *                         exception.
    * @param  errorMessage    The error message for this directory
-   *                         exception.
-   * @param  errorMessageID  The unique ID for the error message.
    * @param  matchedDN       The matched DN for this directory
    *                         exception.
    * @param  referralURLs    The set of referral URLs for this
@@ -163,7 +170,7 @@ public class DirectoryException
    *                         this directory exception.
    */
   public DirectoryException(ResultCode resultCode,
-                            String errorMessage, int errorMessageID,
+                            Message errorMessage,
                             DN matchedDN, List<String> referralURLs,
                             Throwable cause)
   {
@@ -171,8 +178,6 @@ public class DirectoryException
 
 
     this.resultCode     = resultCode;
-    this.errorMessage   = errorMessage;
-    this.errorMessageID = errorMessageID;
     this.matchedDN      = matchedDN;
     this.referralURLs   = referralURLs;
   }
@@ -187,32 +192,6 @@ public class DirectoryException
   public final ResultCode getResultCode()
   {
     return resultCode;
-  }
-
-
-
-  /**
-   * Retrieves the error message for this directory exception.
-   *
-   * @return  The error message for this directory exception.
-   */
-  public final String getErrorMessage()
-  {
-    return errorMessage;
-  }
-
-
-
-  /**
-   * Retrieves the unique ID for the error message associated with
-   * this directory exception.
-   *
-   * @return  The unique ID for the error message associated with this
-   *          directory exception.
-   */
-  public final int getMessageID()
-  {
-    return errorMessageID;
   }
 
 

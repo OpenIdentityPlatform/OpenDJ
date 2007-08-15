@@ -53,9 +53,13 @@ import javax.swing.text.JTextComponent;
 
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
-import org.opends.quicksetup.i18n.ResourceProvider;
+
 import org.opends.quicksetup.util.BackgroundTask;
-import org.opends.quicksetup.util.Utils;
+import static org.opends.quicksetup.util.Utils.*;
+import static org.opends.quicksetup.ui.Utilities.*;
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 
 /**
  * This class is a dialog that appears when the user must provide authentication
@@ -93,7 +97,7 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
   public DirectoryManagerAuthenticationDialog(JFrame parent)
   {
     super(parent);
-    setTitle(getMsg("shutdown-directory-manager-dialog-title"));
+    setTitle(INFO_SHUTDOWN_DIRECTORY_MANAGER_DIALOG_TITLE.get().toString());
     this.parent = parent;
     getContentPane().add(createPanel());
   }
@@ -157,23 +161,6 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
     return tfPwd.getText();
   }
 
-  /* The following three methods are just commodity methods to retrieve
-   * localized messages */
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  private String getMsg(String key, String[] args)
-  {
-    return getI18n().getMsg(key, args);
-  }
-
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
-  }
-
   /**
    * Creates and returns the panel of the dialog.
    * @return the panel of the dialog.
@@ -193,7 +180,7 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
     gbc.fill = GridBagConstraints.BOTH;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.insets.left = 0;
-    String msg = getMsg("shutdown-directory-manager-dialog-msg");
+    Message msg = INFO_SHUTDOWN_DIRECTORY_MANAGER_DIALOG_MSG.get();
     JTextComponent textPane =
       UIFactory.makeHtmlPane(msg, UIFactory.INSTRUCTIONS_FONT);
     textPane.setOpaque(false);
@@ -209,15 +196,16 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
     gbc.anchor = GridBagConstraints.WEST;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     lDn = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        getMsg("shutdown-directory-manager-dn-label"),
+        INFO_SHUTDOWN_DIRECTORY_MANAGER_DN_LABEL.get(),
         UIFactory.TextStyle.PRIMARY_FIELD_VALID);
     p2.add(lDn, gbc);
     gbc.weightx = 1.0;
     gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
-    tfDn = UIFactory.makeJTextField(getProposedDirectoryManagerDn(),
-        getMsg("shutdown-directory-manager-dn-tooltip"),
-        UIFactory.DN_FIELD_SIZE, UIFactory.TextStyle.TEXTFIELD);
+    tfDn = UIFactory.makeJTextField(
+            Message.raw(getProposedDirectoryManagerDn()),
+            INFO_SHUTDOWN_DIRECTORY_MANAGER_DN_TOOLTIP.get(),
+            UIFactory.DN_FIELD_SIZE, UIFactory.TextStyle.TEXTFIELD);
     p2.add(tfDn, gbc);
 
     gbc.insets.top = 0;
@@ -225,7 +213,7 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
     gbc.weightx = 0.0;
     gbc.insets.left = 0;
     lPwd = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        getMsg("shutdown-directory-manager-pwd-label"),
+        INFO_SHUTDOWN_DIRECTORY_MANAGER_PWD_LABEL.get(),
         UIFactory.TextStyle.PRIMARY_FIELD_VALID);
     p2.add(lPwd, gbc);
     gbc.weightx = 1.0;
@@ -235,7 +223,7 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
     JPanel p3 = new JPanel(new GridBagLayout());
     p3.setOpaque(false);
     tfPwd = UIFactory.makeJPasswordField(null,
-        getMsg("shutdown-directory-manager-pwd-tooltip"),
+        INFO_SHUTDOWN_DIRECTORY_MANAGER_PWD_TOOLTIP.get(),
         UIFactory.PASSWORD_FIELD_SIZE, UIFactory.TextStyle.PASSWORD_FIELD);
     p2.add(tfPwd, gbc);
     p2.add(p3, gbc);
@@ -271,8 +259,8 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
     gbc.fill = GridBagConstraints.NONE;
     gbc.weightx = 0.0;
     shutDownButton =
-      UIFactory.makeJButton(getMsg("shutdown-button-label"),
-          getMsg("shutdown-directory-manager-shutdown-button-tooltip"));
+      UIFactory.makeJButton(INFO_SHUTDOWN_BUTTON_LABEL.get(),
+          INFO_SHUTDOWN_DIRECTORY_MANAGER_SHUTDOWN_BUTTON_TOOLTIP.get());
     buttonPanel.add(shutDownButton, gbc);
     shutDownButton.addActionListener(new ActionListener()
     {
@@ -285,8 +273,8 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.insets.left = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
     cancelButton =
-      UIFactory.makeJButton(getMsg("cancel-button-label"),
-          getMsg("shutdown-directory-manager-cancel-button-tooltip"));
+      UIFactory.makeJButton(INFO_CANCEL_BUTTON_LABEL.get(),
+          INFO_SHUTDOWN_DIRECTORY_MANAGER_CANCEL_BUTTON_TOOLTIP.get());
     buttonPanel.add(cancelButton, gbc);
     cancelButton.addActionListener(new ActionListener()
     {
@@ -348,13 +336,13 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
         Boolean isServerRunning = Boolean.TRUE;
         try
         {
-          String installPath = Utils.getInstallPathFromClasspath();
+          String installPath = getInstallPathFromClasspath();
           Installation installation = new Installation(installPath);
           int port = installation.getCurrentConfiguration().getPort();
           String ldapUrl = "ldap://localhost:"+port;
           InitialLdapContext ctx =
-            Utils.createLdapContext(ldapUrl, tfDn.getText(),
-              tfPwd.getText(), Utils.getDefaultLDAPTimeout(), null);
+            createLdapContext(ldapUrl, tfDn.getText(),
+              tfPwd.getText(), getDefaultLDAPTimeout(), null);
 
           /*
            * Search for the config to check that it is the directory manager.
@@ -392,16 +380,16 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
             boolean pwdInvalid = false;
 
             String dn = tfDn.getText();
-            ArrayList<String> possibleCauses = new ArrayList<String>();
+            ArrayList<Message> possibleCauses = new ArrayList<Message>();
             if ("".equals(dn.trim()))
             {
               dnInvalid = true;
-              possibleCauses.add(getMsg("empty-directory-manager-dn"));
+              possibleCauses.add(INFO_EMPTY_DIRECTORY_MANAGER_DN.get());
             }
-            else if (!Utils.isDn(dn))
+            else if (!isDn(dn))
             {
               dnInvalid = true;
-              possibleCauses.add(getMsg("not-a-directory-manager-dn"));
+              possibleCauses.add(INFO_NOT_A_DIRECTORY_MANAGER_DN.get());
             }
             else
             {
@@ -413,7 +401,7 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
                 Iterator<String> it = dns.iterator();
                 while (it.hasNext() && !found)
                 {
-                  found = Utils.areDnsEqual(dn, it.next());
+                  found = areDnsEqual(dn, it.next());
                 }
               } catch (IOException ioe) {
                 LOG.log(Level.INFO, "error obtaining dirmanager DNs", ioe);
@@ -421,14 +409,15 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
               if (!found)
               {
                 dnInvalid = true;
-                possibleCauses.add(getMsg("not-a-directory-manager-in-config"));
+                possibleCauses.add(
+                        INFO_NOT_A_DIRECTORY_MANAGER_IN_CONFIG.get());
               }
             }
 
             if ("".equals(tfPwd.getText()))
             {
               pwdInvalid = true;
-              possibleCauses.add(getMsg("empty-pwd"));
+              possibleCauses.add(INFO_EMPTY_PWD.get());
             }
 
             if (dnInvalid)
@@ -455,29 +444,26 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
 
             if (possibleCauses.size() > 0)
             {
-              // Message with causes
-              String[] arg = {
-                  Utils.getStringFromCollection(possibleCauses, "\n")
-              };
-              displayError(
-                  getMsg("cannot-connect-to-shutdown-with-cause", arg),
-                  getMsg("error-title"));
+              displayError(parent,
+                  INFO_CANNOT_CONNECT_TO_SHUTDOWN_WITH_CAUSE.get(
+                          getMessageFromCollection(possibleCauses, "\n")),
+                  INFO_ERROR_TITLE.get());
             }
             else
             {
               // Generic message
-              displayError(
-                  getMsg("cannot-connect-to-shutdown-without-cause"),
-                  getMsg("error-title"));
+              displayError(parent,
+                  INFO_CANNOT_CONNECT_TO_SHUTDOWN_WITHOUT_CAUSE.get(),
+                  INFO_ERROR_TITLE.get());
             }
           }
           else
           {
             // This is a bug
             throwable.printStackTrace();
-            displayError(
-                Utils.getThrowableMsg(getI18n(), "bug-msg", null, throwable),
-                getMsg("error-title"));
+            displayError(parent,
+                getThrowableMsg(INFO_BUG_MSG.get(), throwable),
+                INFO_ERROR_TITLE.get());
           }
           cancelButton.setEnabled(true);
           shutDownButton.setEnabled(true);
@@ -486,8 +472,8 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
           isServerRunning = Boolean.TRUE.equals(returnValue);
           if (!isServerRunning)
           {
-            displayInformationMessage(getMsg("server-not-running-msg"),
-                getMsg("server-not-running-title"));
+            displayInformationMessage(parent, INFO_SERVER_NOT_RUNNING_MSG.get(),
+                INFO_SERVER_NOT_RUNNING_TITLE.get());
           }
           isCancelled = false;
           dispose();
@@ -497,32 +483,6 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
     cancelButton.setEnabled(false);
     shutDownButton.setEnabled(false);
     worker.startBackgroundTask();
-  }
-
-  /**
-   * Displays an error message dialog.
-   *
-   * @param msg
-   *          the error message.
-   * @param title
-   *          the title for the dialog.
-   */
-  private void displayError(String msg, String title)
-  {
-    Utilities.displayError(parent, msg, title);
-  }
-
-  /**
-   * Displays an information message dialog.
-   *
-   * @param msg
-   *          the information message.
-   * @param title
-   *          the title for the dialog.
-   */
-  private void displayInformationMessage(String msg, String title)
-  {
-    Utilities.displayInformationMessage(parent, msg, title);
   }
 
   /**

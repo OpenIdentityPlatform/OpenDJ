@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -38,8 +39,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.MembershipException;
 import org.opends.server.types.ResultCode;
@@ -48,11 +47,8 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.SearchScope;
 
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-
-
+import static org.opends.messages.ExtensionMessages.*;
+import org.opends.server.loggers.ErrorLogger;
 
 /**
  * This class implements a Directory Server thread that will be used to perform
@@ -134,25 +130,23 @@ public class DynamicGroupSearchThread
       {
         if (resultCode == ResultCode.NO_SUCH_OBJECT)
         {
-          int    msgID   = MSGID_DYNAMICGROUP_NONEXISTENT_BASE_DN;
-          String message =
-               getMessage(msgID, String.valueOf(baseDNs[searchCounter]),
-                          String.valueOf(memberList.getDynamicGroupDN()));
-          logError(ErrorLogCategory.EXTENSIONS, ErrorLogSeverity.MILD_WARNING,
-                   message, msgID);
+          Message message = WARN_DYNAMICGROUP_NONEXISTENT_BASE_DN.
+              get(String.valueOf(baseDNs[searchCounter]),
+                  String.valueOf(memberList.getDynamicGroupDN()));
+          ErrorLogger.logError(message);
           continue;
         }
         else
         {
-          int    msgID   = MSGID_DYNAMICGROUP_INTERNAL_SEARCH_FAILED;
-          String message =
-               getMessage(msgID, String.valueOf(baseDNs[searchCounter]),
-                          String.valueOf(searchFilters[searchCounter]),
-                          String.valueOf(memberList.getDynamicGroupDN()),
-                          String.valueOf(resultCode),
-                          String.valueOf(searchOperation.getErrorMessage()));
+          Message message =
+               ERR_DYNAMICGROUP_INTERNAL_SEARCH_FAILED.get(
+                       String.valueOf(baseDNs[searchCounter]),
+                       String.valueOf(searchFilters[searchCounter]),
+                       String.valueOf(memberList.getDynamicGroupDN()),
+                       String.valueOf(resultCode),
+                       String.valueOf(searchOperation.getErrorMessage()));
           if (! memberList.addResult(
-                     new MembershipException(msgID, message, true)))
+                     new MembershipException(message, true)))
           {
             memberList.setSearchesCompleted();
             return;
@@ -179,13 +173,11 @@ public class DynamicGroupSearchThread
       {
         if (! memberList.addResult(searchEntry))
         {
-          int msgID = MSGID_DYNAMICGROUP_CANNOT_RETURN_ENTRY;
-          String message = getMessage(msgID,
-                                String.valueOf(searchEntry.getDN()),
-                                String.valueOf(memberList.getDynamicGroupDN()));
+          Message message = ERR_DYNAMICGROUP_CANNOT_RETURN_ENTRY.
+              get(String.valueOf(searchEntry.getDN()),
+                  String.valueOf(memberList.getDynamicGroupDN()));
           throw new DirectoryException(
-                         DirectoryServer.getServerErrorResultCode(), message,
-                         msgID);
+                         DirectoryServer.getServerErrorResultCode(), message);
         }
 
         return;

@@ -33,7 +33,6 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.ApplicationReturnCode.ReturnCode;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
-import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -136,33 +135,4 @@ public class QuickSetupCli {
     return returnValue;
   }
 
-  /**
-   * The following three methods are just commodity methods to get localized
-   * messages.
-   * @param key String key
-   * @return String message
-   */
-  protected static String getMsg(String key)
-  {
-    return org.opends.server.util.StaticUtils.wrapText(getI18n().getMsg(key),
-        Utils.getCommandLineMaxLineWidth());
-  }
-
-  /**
-   * The following three methods are just commodity methods to get localized
-   * messages.
-   * @param key String key
-   * @param args String[] args
-   * @return String message
-   */
-  protected static String getMsg(String key, String[] args)
-  {
-    return org.opends.server.util.StaticUtils.wrapText(
-        getI18n().getMsg(key, args), Utils.getCommandLineMaxLineWidth());
-  }
-
-  private static ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
-  }
 }

@@ -25,6 +25,9 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
+
+
 
 
 /**
@@ -42,12 +45,9 @@ public class AccountStatusNotification
   // The DN of the user entry to which this notification applies.
   private DN userDN;
 
-  // The message ID for the account status notification message.
-  private int messageID;
-
   // A message that provides additional information for this account
   // status notification.
-  private String message;
+  private Message message;
 
 
 
@@ -59,17 +59,15 @@ public class AccountStatusNotification
    *                           notification.
    * @param  userDN            The DN of the user entry to which
    *                           this notification applies.
-   * @param  messageID         The unique ID for this notification.
    * @param  message           The human-readable message for this
    *                           notification.
    */
   public AccountStatusNotification(
               AccountStatusNotificationType notificationType,
-              DN userDN, int messageID, String message)
+              DN userDN, Message message)
   {
     this.notificationType = notificationType;
     this.userDN           = userDN;
-    this.messageID        = messageID;
     this.message          = message;
   }
 
@@ -104,27 +102,13 @@ public class AccountStatusNotification
 
 
   /**
-   * Retrieves the message ID for the account status notification
-   * message.
-   *
-   * @return  The message ID for the account status notification
-   *          message.
-   */
-  public int getMessageID()
-  {
-    return messageID;
-  }
-
-
-
-  /**
    * Retrieves a message that provides additional information for this
    * account status notification.
    *
    * @return  A message that provides additional information for this
    *          account status notification.
    */
-  public String getMessage()
+  public Message getMessage()
   {
     return message;
   }
@@ -141,8 +125,8 @@ public class AccountStatusNotification
   public String toString()
   {
     return "AccountStatusNotification(type=" +
-           notificationType.getNotificationTypeName() + ",dn=" +
-           userDN + ",id=" + messageID + ",message=" + message + ")";
+           notificationType.getNotificationName() + ",dn=" +
+           userDN + ",message=" + message + ")";
   }
 }
 

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.config;
+import org.opends.messages.Message;
 
 
 
@@ -42,18 +43,13 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-
-
+import org.opends.server.loggers.ErrorLogger;
+import static org.opends.messages.ConfigMessages.*;
 /**
  * This class defines a multi-choice configuration attribute, which can hold
  * zero or more string values.  A user-defined set of allowed values will be
@@ -101,7 +97,7 @@ public class MultiChoiceConfigAttribute
    *                              All values in this set should be represented
    *                              entirely in lowercase characters.
    */
-  public MultiChoiceConfigAttribute(String name, String description,
+  public MultiChoiceConfigAttribute(String name, Message description,
                                     boolean isRequired, boolean isMultiValued,
                                     boolean requiresAdminAction,
                                     Set<String> allowedValues)
@@ -138,7 +134,7 @@ public class MultiChoiceConfigAttribute
    * @param  value                The value for this string configuration
    *                              attribute.
    */
-  public MultiChoiceConfigAttribute(String name, String description,
+  public MultiChoiceConfigAttribute(String name, Message description,
                                     boolean isRequired, boolean isMultiValued,
                                     boolean requiresAdminAction,
                                     Set<String> allowedValues, String value)
@@ -185,7 +181,7 @@ public class MultiChoiceConfigAttribute
    * @param  values               The set of values for this configuration
    *                              attribute.
    */
-  public MultiChoiceConfigAttribute(String name, String description,
+  public MultiChoiceConfigAttribute(String name, Message description,
                                     boolean isRequired, boolean isMultiValued,
                                     boolean requiresAdminAction,
                                     Set<String> allowedValues,
@@ -234,7 +230,7 @@ public class MultiChoiceConfigAttribute
    * @param  pendingValues        The set of pending values for this
    *                              configuration attribute.
    */
-  public MultiChoiceConfigAttribute(String name, String description,
+  public MultiChoiceConfigAttribute(String name, Message description,
                                     boolean isRequired, boolean isMultiValued,
                                     boolean requiresAdminAction,
                                     Set<String> allowedValues,
@@ -310,16 +306,14 @@ public class MultiChoiceConfigAttribute
   {
     if ((activeValues == null) || activeValues.isEmpty())
     {
-      int    msgID   = MSGID_CONFIG_ATTR_NO_STRING_VALUE;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
+      throw new ConfigException(message);
     }
 
     if (activeValues.size() > 1)
     {
-      int    msgID   = MSGID_CONFIG_ATTR_MULTIPLE_STRING_VALUES;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
+      throw new ConfigException(message);
     }
 
     return activeValues.get(0);
@@ -360,16 +354,14 @@ public class MultiChoiceConfigAttribute
 
     if ((pendingValues == null) || pendingValues.isEmpty())
     {
-      int    msgID   = MSGID_CONFIG_ATTR_NO_STRING_VALUE;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
+      throw new ConfigException(message);
     }
 
     if (pendingValues.size() > 1)
     {
-      int    msgID   = MSGID_CONFIG_ATTR_MULTIPLE_STRING_VALUES;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
+      throw new ConfigException(message);
     }
 
     return pendingValues.get(0);
@@ -422,16 +414,14 @@ public class MultiChoiceConfigAttribute
   {
     if ((value == null) || (value.length() == 0))
     {
-      int    msgID   = MSGID_CONFIG_ATTR_EMPTY_STRING_VALUE;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
+      throw new ConfigException(message);
     }
 
     if (! allowedValues.contains(value.toLowerCase()))
     {
-      int    msgID   = MSGID_CONFIG_ATTR_VALUE_NOT_ALLOWED;
-      String message = getMessage(msgID, value, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(value, getName());
+      throw new ConfigException(message);
     }
 
     if (requiresAdminAction())
@@ -467,9 +457,8 @@ public class MultiChoiceConfigAttribute
     {
       if (isRequired())
       {
-        int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-        String message = getMessage(msgID, getName());
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+        throw new ConfigException(message);
       }
       else
       {
@@ -491,9 +480,9 @@ public class MultiChoiceConfigAttribute
     int numValues = values.size();
     if ((! isMultiValued()) && (numValues > 1))
     {
-      int    msgID   = MSGID_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message =
+          ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
+      throw new ConfigException(message);
     }
 
 
@@ -505,17 +494,16 @@ public class MultiChoiceConfigAttribute
     {
       if ((value == null) || (value.length() == 0))
       {
-        int    msgID   = MSGID_CONFIG_ATTR_EMPTY_STRING_VALUE;
-        String message = getMessage(msgID, getName());
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
+        throw new ConfigException(message);
       }
 
 
       if (! allowedValues.contains(value.toLowerCase()))
       {
-        int    msgID   = MSGID_CONFIG_ATTR_VALUE_NOT_ALLOWED;
-        String message = getMessage(msgID, value, getName());
-        throw new ConfigException(msgID, message);
+        Message message =
+            ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(value, getName());
+        throw new ConfigException(message);
       }
 
       AttributeValue attrValue =
@@ -524,9 +512,9 @@ public class MultiChoiceConfigAttribute
 
       if (valueSet.contains(attrValue))
       {
-        int    msgID   = MSGID_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS;
-        String message = getMessage(msgID, getName(), value);
-        throw new ConfigException(msgID, message);
+        Message message =
+            ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(getName(), value);
+        throw new ConfigException(message);
       }
 
       valueSet.add(attrValue);
@@ -635,8 +623,7 @@ public class MultiChoiceConfigAttribute
     if ((value == null) ||
         ((stringValue = value.getStringValue()).length() == 0))
     {
-      rejectReason.append(getMessage(MSGID_CONFIG_ATTR_EMPTY_STRING_VALUE,
-                                     getName()));
+      rejectReason.append(ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName()));
       return false;
     }
 
@@ -644,8 +631,8 @@ public class MultiChoiceConfigAttribute
     // Make sure that the value is in the allowed value set.
     if (! allowedValues.contains(stringValue.toLowerCase()))
     {
-      rejectReason.append(getMessage(MSGID_CONFIG_ATTR_VALUE_NOT_ALLOWED,
-                                     stringValue, getName()));
+      rejectReason.append(ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(
+              stringValue, getName()));
       return false;
     }
 
@@ -683,9 +670,8 @@ public class MultiChoiceConfigAttribute
     {
       if (isRequired())
       {
-        int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-        String message = getMessage(msgID, getName());
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+        throw new ConfigException(message);
       }
       else
       {
@@ -697,9 +683,9 @@ public class MultiChoiceConfigAttribute
     int numValues = valueStrings.size();
     if ((! isMultiValued()) && (numValues > 1))
     {
-      int    msgID   = MSGID_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message =
+          ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
+      throw new ConfigException(message);
     }
 
 
@@ -709,35 +695,30 @@ public class MultiChoiceConfigAttribute
     {
       if ((valueString == null) || (valueString.length() == 0))
       {
-        int    msgID   = MSGID_CONFIG_ATTR_EMPTY_STRING_VALUE;
-        String message = getMessage(msgID, getName());
-
+        Message message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
         if (allowFailures)
         {
-          logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
-                   message, msgID);
+          ErrorLogger.logError(message);
           continue;
         }
         else
         {
-          throw new ConfigException(msgID, message);
+          throw new ConfigException(message);
         }
       }
 
       if (! allowedValues.contains(valueString.toLowerCase()))
       {
-        int    msgID   = MSGID_CONFIG_ATTR_VALUE_NOT_ALLOWED;
-        String message = getMessage(msgID, valueString, getName());
-
+        Message message = ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(
+                valueString, getName());
         if (allowFailures)
         {
-          logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
-                   message, msgID);
+          ErrorLogger.logError(message);
           continue;
         }
         else
         {
-          throw new ConfigException(msgID, message);
+          throw new ConfigException(message);
         }
       }
 
@@ -751,9 +732,8 @@ public class MultiChoiceConfigAttribute
     // attribute and if so deal with it accordingly.
     if ((isRequired()) && valueSet.isEmpty())
     {
-      int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
+      throw new ConfigException(message);
     }
 
 
@@ -841,9 +821,9 @@ public class MultiChoiceConfigAttribute
           if (pendingValues != null)
           {
             // We cannot have multiple pending value sets.
-            int    msgID   = MSGID_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS;
-            String message = getMessage(msgID, a.getName());
-            throw new ConfigException(msgID, message);
+            Message message =
+                ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(a.getName());
+            throw new ConfigException(message);
           }
 
 
@@ -853,9 +833,8 @@ public class MultiChoiceConfigAttribute
             if (isRequired())
             {
               // This is illegal -- it must have a value.
-              int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-              String message = getMessage(msgID, a.getName());
-              throw new ConfigException(msgID, message);
+              Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
+              throw new ConfigException(message);
             }
             else
             {
@@ -869,9 +848,9 @@ public class MultiChoiceConfigAttribute
             if ((numValues > 1) && (! isMultiValued()))
             {
               // This is illegal -- the attribute is single-valued.
-              int    msgID   = MSGID_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED;
-              String message = getMessage(msgID, a.getName());
-              throw new ConfigException(msgID, message);
+              Message message =
+                  ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
+              throw new ConfigException(message);
             }
 
             pendingValues = new ArrayList<String>(numValues);
@@ -881,10 +860,9 @@ public class MultiChoiceConfigAttribute
               if (! allowedValues.contains(lowerValue))
               {
                 // This is illegal -- the value is not allowed.
-                int    msgID   = MSGID_CONFIG_ATTR_VALUE_NOT_ALLOWED;
-                String message = getMessage(msgID, v.getStringValue(),
-                                            a.getName());
-                throw new ConfigException(msgID, message);
+                Message message = ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(
+                    v.getStringValue(), a.getName());
+                throw new ConfigException(message);
               }
 
               pendingValues.add(v.getStringValue());
@@ -895,9 +873,9 @@ public class MultiChoiceConfigAttribute
         {
           // This is illegal -- only the pending option is allowed for
           // configuration attributes.
-          int    msgID   = MSGID_CONFIG_ATTR_OPTIONS_NOT_ALLOWED;
-          String message = getMessage(msgID, a.getName());
-          throw new ConfigException(msgID, message);
+          Message message =
+              ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(a.getName());
+          throw new ConfigException(message);
         }
       }
       else
@@ -906,9 +884,9 @@ public class MultiChoiceConfigAttribute
         if (activeValues!= null)
         {
           // We cannot have multiple active value sets.
-          int    msgID   = MSGID_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS;
-          String message = getMessage(msgID, a.getName());
-          throw new ConfigException(msgID, message);
+          Message message =
+              ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(a.getName());
+          throw new ConfigException(message);
         }
 
 
@@ -918,9 +896,8 @@ public class MultiChoiceConfigAttribute
           if (isRequired())
           {
             // This is illegal -- it must have a value.
-            int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-            String message = getMessage(msgID, a.getName());
-            throw new ConfigException(msgID, message);
+            Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
+            throw new ConfigException(message);
           }
           else
           {
@@ -934,9 +911,9 @@ public class MultiChoiceConfigAttribute
           if ((numValues > 1) && (! isMultiValued()))
           {
             // This is illegal -- the attribute is single-valued.
-            int    msgID   = MSGID_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED;
-            String message = getMessage(msgID, a.getName());
-            throw new ConfigException(msgID, message);
+            Message message =
+                ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
+            throw new ConfigException(message);
           }
 
           activeValues = new ArrayList<String>(numValues);
@@ -946,10 +923,9 @@ public class MultiChoiceConfigAttribute
             if (! allowedValues.contains(lowerValue))
             {
               // This is illegal -- the value is not allowed.
-              int    msgID   = MSGID_CONFIG_ATTR_VALUE_NOT_ALLOWED;
-              String message = getMessage(msgID, v.getStringValue(),
-                                          a.getName());
-              throw new ConfigException(msgID, message);
+              Message message = ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(
+                  v.getStringValue(), a.getName());
+              throw new ConfigException(message);
             }
 
             activeValues.add(v.getStringValue());
@@ -961,9 +937,8 @@ public class MultiChoiceConfigAttribute
     if (activeValues == null)
     {
       // This is not OK.  The value set must contain an active value.
-      int    msgID   = MSGID_CONFIG_ATTR_NO_ACTIVE_VALUE_SET;
-      String message = getMessage(msgID, getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_NO_ACTIVE_VALUE_SET.get(getName());
+      throw new ConfigException(message);
     }
 
     if (pendingValues == null)
@@ -1134,14 +1109,18 @@ public class MultiChoiceConfigAttribute
     {
       attributeInfoList.add(new MBeanAttributeInfo(getName(),
                                                    JMX_TYPE_STRING_ARRAY,
-                                                   getDescription(), true, true,
+                                                   String.valueOf(
+                                                           getDescription()),
+                                                   true, true,
                                                    false));
     }
     else
     {
       attributeInfoList.add(new MBeanAttributeInfo(getName(),
                                                    String.class.getName(),
-                                                   getDescription(), true, true,
+                                                   String.valueOf(
+                                                           getDescription()),
+                                                   true, true,
                                                    false));
     }
 
@@ -1154,15 +1133,17 @@ public class MultiChoiceConfigAttribute
       {
         attributeInfoList.add(new MBeanAttributeInfo(name,
                                                      JMX_TYPE_STRING_ARRAY,
-                                                     getDescription(), true,
-                                                     false, false));
+                                                     String.valueOf(
+                                                             getDescription()),
+                                                     true, false, false));
       }
       else
       {
         attributeInfoList.add(new MBeanAttributeInfo(name,
                                                      String.class.getName(),
-                                                     getDescription(), true,
-                                                     false, false));
+                                                     String.valueOf(
+                                                             getDescription()),
+                                                     true, false, false));
       }
     }
   }
@@ -1181,12 +1162,12 @@ public class MultiChoiceConfigAttribute
     if (isMultiValued())
     {
       return new MBeanParameterInfo(getName(), JMX_TYPE_STRING_ARRAY,
-                                    getDescription());
+                                    String.valueOf(getDescription()));
     }
     else
     {
       return new MBeanParameterInfo(getName(), String.class.getName(),
-                                    getDescription());
+                                    String.valueOf(getDescription()));
     }
   }
 
@@ -1245,25 +1226,24 @@ public class MultiChoiceConfigAttribute
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int msgID = MSGID_CONFIG_ATTR_INVALID_STRING_VALUE;
-          String message = getMessage(msgID, getName(), String.valueOf(value),
-                                      String.valueOf(e));
-          throw new ConfigException(msgID, message, e);
+          Message message = ERR_CONFIG_ATTR_INVALID_STRING_VALUE.get(
+              getName(), String.valueOf(value), String.valueOf(e));
+          throw new ConfigException(message, e);
         }
       }
       else
       {
-        int    msgID   = MSGID_CONFIG_ATTR_STRING_INVALID_ARRAY_TYPE;
-        String message = getMessage(msgID, componentType);
-        throw new ConfigException(msgID, message);
+        Message message =
+            ERR_CONFIG_ATTR_STRING_INVALID_ARRAY_TYPE.get(
+                    getName(), componentType);
+        throw new ConfigException(message);
       }
     }
     else
     {
-      int    msgID   = MSGID_CONFIG_ATTR_STRING_INVALID_TYPE;
-      String message = getMessage(msgID, String.valueOf(value), getName(),
-                                  value.getClass().getName());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_STRING_INVALID_TYPE.get(
+          String.valueOf(value), getName(), value.getClass().getName());
+      throw new ConfigException(message);
     }
   }
 

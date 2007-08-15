@@ -50,6 +50,7 @@ import org.opends.server.types.Control;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.operation.*;
+import org.opends.messages.Message;
 
 
 /**
@@ -119,8 +120,8 @@ public class ShortCircuitPlugin
           // This is fine.
           break;
         default:
-          throw new ConfigException(-1, "Invalid plugin type " + t +
-                                    " for the short circuit plugin.");
+          throw new ConfigException(Message.raw("Invalid plugin type " + t +
+                                    " for the short circuit plugin."));
       }
     }
   }
@@ -138,7 +139,8 @@ public class ShortCircuitPlugin
     if (resultCode >= 0)
     {
       abandonOperation.setResultCode(ResultCode.valueOf(resultCode));
-      abandonOperation.appendErrorMessage("Short-circuit in pre-parse");
+      abandonOperation.appendErrorMessage(
+              Message.raw("Short-circuit in pre-parse"));
       return new PreParsePluginResult(false, false, true);
     }
     else
@@ -159,7 +161,7 @@ public class ShortCircuitPlugin
     if (resultCode >= 0)
     {
       addOperation.setResultCode(ResultCode.valueOf(resultCode));
-      addOperation.appendErrorMessage("Short-circuit in pre-parse");
+      addOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
       return new PreParsePluginResult(false, false, true);
     }
     else
@@ -180,7 +182,7 @@ public class ShortCircuitPlugin
     if (resultCode >= 0)
     {
       bindOperation.setResultCode(ResultCode.valueOf(resultCode));
-      bindOperation.appendErrorMessage("Short-circuit in pre-parse");
+      bindOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
       return new PreParsePluginResult(false, false, true);
     }
     else
@@ -202,7 +204,7 @@ public class ShortCircuitPlugin
     if (resultCode >= 0)
     {
       compareOperation.setResultCode(ResultCode.valueOf(resultCode));
-      compareOperation.appendErrorMessage("Short-circuit in pre-parse");
+      compareOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
       return new PreParsePluginResult(false, false, true);
     }
     else
@@ -224,7 +226,7 @@ public class ShortCircuitPlugin
     if (resultCode >= 0)
     {
       deleteOperation.setResultCode(ResultCode.valueOf(resultCode));
-      deleteOperation.appendErrorMessage("Short-circuit in pre-parse");
+      deleteOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
       return new PreParsePluginResult(false, false, true);
     }
     else
@@ -246,7 +248,7 @@ public class ShortCircuitPlugin
     if (resultCode >= 0)
     {
       extendedOperation.setResultCode(ResultCode.valueOf(resultCode));
-      extendedOperation.appendErrorMessage("Short-circuit in pre-parse");
+      extendedOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
       return new PreParsePluginResult(false, false, true);
     }
     else
@@ -268,7 +270,7 @@ public class ShortCircuitPlugin
     if (resultCode >= 0)
     {
       modifyOperation.setResultCode(ResultCode.valueOf(resultCode));
-      modifyOperation.appendErrorMessage("Short-circuit in pre-parse");
+      modifyOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
       return new PreParsePluginResult(false, false, true);
     }
     else
@@ -290,7 +292,7 @@ public class ShortCircuitPlugin
     if (resultCode >= 0)
     {
       modifyDNOperation.setResultCode(ResultCode.valueOf(resultCode));
-      modifyDNOperation.appendErrorMessage("Short-circuit in pre-parse");
+      modifyDNOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
       return new PreParsePluginResult(false, false, true);
     }
     else
@@ -312,7 +314,7 @@ public class ShortCircuitPlugin
     if (resultCode >= 0)
     {
       searchOperation.setResultCode(ResultCode.valueOf(resultCode));
-      searchOperation.appendErrorMessage("Short-circuit in pre-parse");
+      searchOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
       return new PreParsePluginResult(false, false, true);
     }
     else
@@ -334,7 +336,7 @@ public class ShortCircuitPlugin
     if (resultCode >= 0)
     {
       unbindOperation.setResultCode(ResultCode.valueOf(resultCode));
-      unbindOperation.appendErrorMessage("Short-circuit in pre-parse");
+      unbindOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
       return new PreParsePluginResult(false, false, true);
     }
     else
@@ -356,7 +358,7 @@ public class ShortCircuitPlugin
     if (resultCode >= 0)
     {
       addOperation.setResultCode(ResultCode.valueOf(resultCode));
-      addOperation.appendErrorMessage("Short-circuit in pre-parse");
+      addOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
       return new PreOperationPluginResult(false, false, true);
     }
     else
@@ -378,7 +380,7 @@ public class ShortCircuitPlugin
     if (resultCode >= 0)
     {
       bindOperation.setResultCode(ResultCode.valueOf(resultCode));
-      bindOperation.appendErrorMessage("Short-circuit in pre-parse");
+      bindOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
       return new PreOperationPluginResult(false, false, true);
     }
     else
@@ -400,7 +402,7 @@ public class ShortCircuitPlugin
     if (resultCode >= 0)
     {
       compareOperation.setResultCode(ResultCode.valueOf(resultCode));
-      compareOperation.appendErrorMessage("Short-circuit in pre-parse");
+      compareOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
       return new PreOperationPluginResult(false, false, true);
     }
     else
@@ -422,7 +424,7 @@ public class ShortCircuitPlugin
     if (resultCode >= 0)
     {
       deleteOperation.setResultCode(ResultCode.valueOf(resultCode));
-      deleteOperation.appendErrorMessage("Short-circuit in pre-parse");
+      deleteOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
       return new PreOperationPluginResult(false, false, true);
     }
     else
@@ -444,7 +446,7 @@ public class ShortCircuitPlugin
     if (resultCode >= 0)
     {
       extendedOperation.setResultCode(ResultCode.valueOf(resultCode));
-      extendedOperation.appendErrorMessage("Short-circuit in pre-parse");
+      extendedOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
       return new PreOperationPluginResult(false, false, true);
     }
     else
@@ -466,7 +468,7 @@ public class ShortCircuitPlugin
     if (resultCode >= 0)
     {
       modifyOperation.setResultCode(ResultCode.valueOf(resultCode));
-      modifyOperation.appendErrorMessage("Short-circuit in pre-parse");
+      modifyOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
       return new PreOperationPluginResult(false, false, true);
     }
     else
@@ -488,7 +490,7 @@ public class ShortCircuitPlugin
     if (resultCode >= 0)
     {
       modifyDNOperation.setResultCode(ResultCode.valueOf(resultCode));
-      modifyDNOperation.appendErrorMessage("Short-circuit in pre-parse");
+      modifyDNOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
       return new PreOperationPluginResult(false, false, true);
     }
     else
@@ -510,7 +512,8 @@ public class ShortCircuitPlugin
     if (resultCode >= 0)
     {
       searchOperation.setResultCode(ResultCode.valueOf(resultCode));
-      searchOperation.appendErrorMessage("Short-circuit in pre-parse");
+      searchOperation.appendErrorMessage(
+              Message.raw("Short-circuit in pre-parse"));
       return new PreOperationPluginResult(false, false, true);
     }
     else

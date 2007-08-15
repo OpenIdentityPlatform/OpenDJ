@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -37,14 +38,11 @@ import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -189,13 +187,10 @@ public class TraditionalWorkerThread
 
         try
         {
-          int msgID = MSGID_UNCAUGHT_WORKER_THREAD_EXCEPTION;
-          String message = getMessage(msgID, getName(),
-                                      String.valueOf(operation),
-                                      stackTraceToSingleLineString(e));
-
-          logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_UNCAUGHT_WORKER_THREAD_EXCEPTION.
+              get(getName(), String.valueOf(operation),
+                  stackTraceToSingleLineString(e));
+          logError(message);
 
           operation.setResultCode(DirectoryServer.getServerErrorResultCode());
           operation.appendErrorMessage(message);
@@ -216,14 +211,13 @@ public class TraditionalWorkerThread
 
         try
         {
-          int msgID = MSGID_UNCAUGHT_WORKER_THREAD_EXCEPTION;
-          String message = getMessage(msgID, getName(),
+          Message message = ERR_UNCAUGHT_WORKER_THREAD_EXCEPTION.get(getName(),
                                       String.valueOf(operation),
                                       stackTraceToSingleLineString(e));
 
           operation.disconnectClient(
                                      DisconnectReason.SERVER_ERROR,
-                                     true, message, msgID);
+                                     true, message);
         }
         catch (Exception e2)
         {
@@ -240,13 +234,11 @@ public class TraditionalWorkerThread
     // and we will want to log a message.
     if (stoppedByReducedThreadNumber)
     {
-      logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.INFORMATIONAL,
-               MSGID_WORKER_STOPPED_BY_REDUCED_THREADNUMBER, getName());
+      logError(INFO_WORKER_STOPPED_BY_REDUCED_THREADNUMBER.get(getName()));
     }
     else if (! workQueue.shutdownRequested())
     {
-      logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_WARNING,
-               MSGID_UNEXPECTED_WORKER_THREAD_EXIT, getName());
+      logError(WARN_UNEXPECTED_WORKER_THREAD_EXIT.get(getName()));
     }
 
 
@@ -297,7 +289,7 @@ public class TraditionalWorkerThread
       try
       {
         CancelRequest cancelRequest =
-          new CancelRequest(true, getMessage(MSGID_CANCELED_BY_SHUTDOWN));
+          new CancelRequest(true, INFO_CANCELED_BY_SHUTDOWN.get());
         operation.cancel(cancelRequest);
       }
       catch (Exception e)

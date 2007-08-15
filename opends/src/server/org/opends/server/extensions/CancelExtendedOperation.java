@@ -25,7 +25,8 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
-
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 
 import org.opends.server.api.ClientConnection;
@@ -43,8 +44,7 @@ import org.opends.server.types.ResultCode;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
@@ -138,8 +138,7 @@ public class CancelExtendedOperation
     {
       operation.setResultCode(ResultCode.PROTOCOL_ERROR);
 
-      int msgID = MSGID_EXTOP_CANCEL_NO_REQUEST_VALUE;
-      operation.appendErrorMessage(getMessage(msgID));
+      operation.appendErrorMessage(ERR_EXTOP_CANCEL_NO_REQUEST_VALUE.get());
       return;
     }
     else
@@ -160,8 +159,8 @@ public class CancelExtendedOperation
 
         operation.setResultCode(ResultCode.PROTOCOL_ERROR);
 
-        int    msgID   = MSGID_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE.get(
+                getExceptionMessage(e));
         operation.appendErrorMessage(message);
 
         return;
@@ -170,9 +169,9 @@ public class CancelExtendedOperation
 
 
     // Create the cancel request for the target operation.
-    String cancelReason = getMessage(MSGID_EXTOP_CANCEL_REASON,
-                                     operation.getMessageID());
-    StringBuilder cancelResultMessage = new StringBuilder();
+    Message cancelReason =
+        INFO_EXTOP_CANCEL_REASON.get(operation.getMessageID());
+    MessageBuilder cancelResultMessage = new MessageBuilder();
     CancelRequest cancelRequest = new CancelRequest(true, cancelReason,
                                                     cancelResultMessage);
 

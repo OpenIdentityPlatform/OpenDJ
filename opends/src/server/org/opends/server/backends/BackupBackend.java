@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
+import org.opends.messages.Message;
 
 
 
@@ -67,8 +68,8 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.BackendMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.BackendMessages.*;
+
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.util.Validator;
@@ -139,9 +140,8 @@ public class BackupBackend
     // not be able to complete initialization.
     if (config == null)
     {
-      int    msgID   = MSGID_BACKUP_CONFIG_ENTRY_NULL;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_BACKUP_CONFIG_ENTRY_NULL.get();
+      throw new ConfigException(message);
     }
 
 
@@ -169,9 +169,9 @@ public class BackupBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_BACKUP_CANNOT_DECODE_BACKUP_ROOT_DN;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message =
+          ERR_BACKUP_CANNOT_DECODE_BACKUP_ROOT_DN.get(getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
 
     // FIXME -- Deal with this more correctly.
@@ -242,10 +242,9 @@ public class BackupBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
-      String message = getMessage(msgID, backupBaseDN.toString(),
-                                  getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
+          backupBaseDN.toString(), getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
   }
 
@@ -361,10 +360,9 @@ public class BackupBackend
     // If the requested entry was null, then throw an exception.
     if (entryDN == null)
     {
-      int    msgID   = MSGID_BACKUP_GET_ENTRY_NULL;
-      String message = getMessage(msgID);
+      Message message = ERR_BACKUP_GET_ENTRY_NULL.get();
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -382,9 +380,8 @@ public class BackupBackend
     DN parentDN = entryDN.getParentDNInSuffix();
     if (parentDN == null)
     {
-      int    msgID   = MSGID_BACKUP_INVALID_BASE;
-      String message = getMessage(msgID, String.valueOf(entryDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+      Message message = ERR_BACKUP_INVALID_BASE.get(String.valueOf(entryDN));
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
     else if (parentDN.equals(backupBaseDN))
     {
@@ -396,10 +393,9 @@ public class BackupBackend
     }
     else
     {
-      int    msgID   = MSGID_BACKUP_INVALID_BASE;
-      String message = getMessage(msgID, String.valueOf(entryDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID,
-                                   backupBaseDN, null);
+      Message message = ERR_BACKUP_INVALID_BASE.get(String.valueOf(entryDN));
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+              message, backupBaseDN, null);
     }
   }
 
@@ -427,10 +423,10 @@ public class BackupBackend
     AttributeValue v = entryDN.getRDN().getAttributeValue(t);
     if (v == null)
     {
-      int    msgID   = MSGID_BACKUP_DN_DOES_NOT_SPECIFY_DIRECTORY;
-      String message = getMessage(msgID, String.valueOf(entryDN));
+      Message message =
+          ERR_BACKUP_DN_DOES_NOT_SPECIFY_DIRECTORY.get(String.valueOf(entryDN));
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID, backupBaseDN, null);
+                                   backupBaseDN, null);
     }
 
 
@@ -449,11 +445,9 @@ public class BackupBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, ce);
       }
 
-      int msgID = MSGID_BACKUP_INVALID_BACKUP_DIRECTORY;
-      String message = getMessage(msgID, String.valueOf(entryDN),
-                                  ce.getMessage());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_BACKUP_INVALID_BACKUP_DIRECTORY.get(
+          String.valueOf(entryDN), ce.getMessage());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
     catch (Exception e)
     {
@@ -462,10 +456,10 @@ public class BackupBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY;
-      String message = getMessage(msgID, getExceptionMessage(e));
+      Message message =
+          ERR_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY.get(getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -529,10 +523,9 @@ public class BackupBackend
     AttributeValue idValue = entryDN.getRDN().getAttributeValue(idType);
     if (idValue == null)
     {
-      int    msgID   = MSGID_BACKUP_NO_BACKUP_ID_IN_DN;
-      String message = getMessage(msgID, String.valueOf(entryDN));
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message =
+          ERR_BACKUP_NO_BACKUP_ID_IN_DN.get(String.valueOf(entryDN));
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
     String backupID = idValue.getStringValue();
 
@@ -541,10 +534,9 @@ public class BackupBackend
     DN parentDN = entryDN.getParentDNInSuffix();
     if (parentDN == null)
     {
-      int    msgID   = MSGID_BACKUP_NO_BACKUP_PARENT_DN;
-      String message = getMessage(msgID, String.valueOf(entryDN));
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message =
+          ERR_BACKUP_NO_BACKUP_PARENT_DN.get(String.valueOf(entryDN));
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     AttributeType t =
@@ -552,10 +544,9 @@ public class BackupBackend
     AttributeValue v = parentDN.getRDN().getAttributeValue(t);
     if (v == null)
     {
-      int    msgID   = MSGID_BACKUP_NO_BACKUP_DIR_IN_DN;
-      String message = getMessage(msgID, String.valueOf(entryDN));
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message =
+          ERR_BACKUP_NO_BACKUP_DIR_IN_DN.get(String.valueOf(entryDN));
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
 
@@ -572,10 +563,10 @@ public class BackupBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, ce);
       }
 
-      int msgID = MSGID_BACKUP_INVALID_BACKUP_DIRECTORY;
-      String message = getMessage(msgID, ce.getMessage());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message =
+          ERR_BACKUP_INVALID_BACKUP_DIRECTORY.get(
+                  String.valueOf(entryDN), ce.getMessageObject());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
     catch (Exception e)
     {
@@ -584,19 +575,19 @@ public class BackupBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY;
-      String message = getMessage(msgID, getExceptionMessage(e));
+      Message message =
+          ERR_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY.get(getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
 
     BackupInfo backupInfo = backupDirectory.getBackupInfo(backupID);
     if (backupInfo == null)
     {
-      int    msgID   = MSGID_BACKUP_NO_SUCH_BACKUP;
-      String message = getMessage(msgID, backupID, backupDirectory.getPath());
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID,
-                                   parentDN, null);
+      Message message =
+          ERR_BACKUP_NO_SUCH_BACKUP.get(backupID, backupDirectory.getPath());
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+              message, parentDN, null);
     }
 
 
@@ -747,10 +738,8 @@ public class BackupBackend
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    int    msgID   = MSGID_BACKUP_ADD_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_BACKUP_ADD_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -772,10 +761,8 @@ public class BackupBackend
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    int    msgID   = MSGID_BACKUP_DELETE_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_BACKUP_DELETE_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -797,10 +784,8 @@ public class BackupBackend
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
          throws DirectoryException
   {
-    int    msgID   = MSGID_BACKUP_MODIFY_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_BACKUP_MODIFY_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -824,10 +809,8 @@ public class BackupBackend
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    int    msgID   = MSGID_BACKUP_MODIFY_DN_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_BACKUP_MODIFY_DN_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -1007,9 +990,10 @@ public class BackupBackend
       if ((parentDN == null)
           || (! backupBaseDN.equals(parentDN.getParentDNInSuffix())))
       {
-        int    msgID   = MSGID_BACKUP_NO_SUCH_ENTRY;
-        String message = getMessage(msgID);
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+        Message message = ERR_BACKUP_NO_SUCH_ENTRY.get(
+                String.valueOf(backupBaseDN)
+        );
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
 
       if ((scope == SearchScope.BASE_OBJECT) ||
@@ -1018,10 +1002,9 @@ public class BackupBackend
         Entry backupEntry = getBackupEntry(baseDN);
         if (backupEntry == null)
         {
-          int    msgID   = MSGID_BACKUP_NO_SUCH_ENTRY;
-          String message = getMessage(msgID);
-          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
-                                       msgID);
+          Message message = ERR_BACKUP_NO_SUCH_ENTRY.get(
+                  String.valueOf(backupBaseDN));
+          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
         }
 
         if (filter.matchesEntry(backupEntry))
@@ -1079,10 +1062,8 @@ public class BackupBackend
   public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
-    int    msgID   = MSGID_BACKUP_EXPORT_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_BACKUP_EXPORT_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -1109,10 +1090,8 @@ public class BackupBackend
          throws DirectoryException
   {
     // This backend does not support LDIF imports.
-    int    msgID   = MSGID_BACKUP_IMPORT_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_BACKUP_IMPORT_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -1167,10 +1146,8 @@ public class BackupBackend
   throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
-    int    msgID   = MSGID_BACKUP_BACKUP_AND_RESTORE_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_BACKUP_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -1192,10 +1169,8 @@ public class BackupBackend
          throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
-    int    msgID   = MSGID_BACKUP_BACKUP_AND_RESTORE_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_BACKUP_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -1221,10 +1196,8 @@ public class BackupBackend
          throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
-    int    msgID   = MSGID_BACKUP_BACKUP_AND_RESTORE_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_BACKUP_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -1233,7 +1206,7 @@ public class BackupBackend
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-       BackupBackendCfg cfg, List<String> unacceptableReasons)
+       BackupBackendCfg cfg, List<Message> unacceptableReasons)
   {
     // We'll accept anything here.  The only configurable attribute is the
     // default set of backup directories, but that doesn't require any
@@ -1247,9 +1220,9 @@ public class BackupBackend
    */
   public ConfigChangeResult applyConfigurationChange(BackupBackendCfg cfg)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ResultCode         resultCode          = ResultCode.SUCCESS;
+    boolean            adminActionRequired = false;
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     Set<String> values = cfg.getBackupDirectory();

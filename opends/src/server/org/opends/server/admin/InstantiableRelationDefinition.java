@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.admin;
+import org.opends.messages.Message;
 
 
 
@@ -184,7 +185,7 @@ public final class InstantiableRelationDefinition
    * @return Returns the user friendly plural name of this relation
    *         definition in the default locale.
    */
-  public final String getUserFriendlyPluralName() {
+  public final Message getUserFriendlyPluralName() {
     return getUserFriendlyPluralName(Locale.getDefault());
   }
 
@@ -199,7 +200,7 @@ public final class InstantiableRelationDefinition
    * @return Returns the user friendly plural name of this relation
    *         definition in the specified locale.
    */
-  public final String getUserFriendlyPluralName(Locale locale) {
+  public final Message getUserFriendlyPluralName(Locale locale) {
     String property = "relation." + getName() + ".user-friendly-plural-name";
     return ManagedObjectDefinitionI18NResource.getInstance().getMessage(
         getParentDefinition(), property, locale);

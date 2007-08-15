@@ -34,6 +34,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.DummyAlertHandler;
@@ -51,12 +52,6 @@ public class AlertHandlerTestCase
        extends APITestCase
        implements AlertGenerator
 {
-  /**
-   * The alert ID to use for these tests.
-   */
-  public static final int ALERT_ID = 12345;
-
-
 
   /**
    * The alert type to use for these tests.
@@ -76,7 +71,7 @@ public class AlertHandlerTestCase
   /**
    * The alert message to use for these tests.
    */
-  public static final String ALERT_MESSAGE = "This is the alert message";
+  public static final Message ALERT_MESSAGE = Message.raw("This is the alert message");
 
 
 
@@ -105,7 +100,7 @@ public class AlertHandlerTestCase
   {
     int count = DummyAlertHandler.getAlertCount();
 
-    DirectoryServer.sendAlertNotification(this, ALERT_TYPE, ALERT_ID,
+    DirectoryServer.sendAlertNotification(this, ALERT_TYPE,
                                           ALERT_MESSAGE);
     assertEquals(DummyAlertHandler.getAlertCount(), (count+1));
   }
@@ -127,7 +122,7 @@ public class AlertHandlerTestCase
     {
       int count = DummyAlertHandler.getAlertCount();
 
-      DirectoryServer.sendAlertNotification(this, ALERT_TYPE, ALERT_ID,
+      DirectoryServer.sendAlertNotification(this, ALERT_TYPE,
                                             ALERT_MESSAGE);
       assertEquals(DummyAlertHandler.getAlertCount(), (count+1));
     }
@@ -158,7 +153,7 @@ public class AlertHandlerTestCase
     {
       int count = DummyAlertHandler.getAlertCount();
 
-      DirectoryServer.sendAlertNotification(this, ALERT_TYPE, ALERT_ID,
+      DirectoryServer.sendAlertNotification(this, ALERT_TYPE,
                                             ALERT_MESSAGE);
       assertEquals(DummyAlertHandler.getAlertCount(), count);
     }
@@ -189,7 +184,7 @@ public class AlertHandlerTestCase
     {
       int count = DummyAlertHandler.getAlertCount();
 
-      DirectoryServer.sendAlertNotification(this, ALERT_TYPE, ALERT_ID,
+      DirectoryServer.sendAlertNotification(this, ALERT_TYPE,
                                             ALERT_MESSAGE);
       assertEquals(DummyAlertHandler.getAlertCount(), count);
     }
@@ -220,7 +215,7 @@ public class AlertHandlerTestCase
     {
       int count = DummyAlertHandler.getAlertCount();
 
-      DirectoryServer.sendAlertNotification(this, ALERT_TYPE, ALERT_ID,
+      DirectoryServer.sendAlertNotification(this, ALERT_TYPE,
                                             ALERT_MESSAGE);
       assertEquals(DummyAlertHandler.getAlertCount(), (count+1));
     }
@@ -252,7 +247,7 @@ public class AlertHandlerTestCase
     {
       int count = DummyAlertHandler.getAlertCount();
 
-      DirectoryServer.sendAlertNotification(this, ALERT_TYPE, ALERT_ID,
+      DirectoryServer.sendAlertNotification(this, ALERT_TYPE,
                                             ALERT_MESSAGE);
       assertEquals(DummyAlertHandler.getAlertCount(), count);
     }

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
+import org.opends.messages.Message;
 
 
 
@@ -75,9 +76,8 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.BackendMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ConfigMessages.*;
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -157,9 +157,8 @@ public class MonitorBackend
     // not be able to complete initialization.
     if (configEntry == null)
     {
-      int    msgID   = MSGID_MONITOR_CONFIG_ENTRY_NULL;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_MONITOR_CONFIG_ENTRY_NULL.get();
+      throw new ConfigException(message);
     }
 
     configEntryDN = configEntry.getDN();
@@ -220,9 +219,9 @@ public class MonitorBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_MONITOR_CANNOT_DECODE_MONITOR_ROOT_DN;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new ConfigException(msgID, message, e);
+      Message message =
+          ERR_MONITOR_CANNOT_DECODE_MONITOR_ROOT_DN.get(getExceptionMessage(e));
+      throw new ConfigException(message, e);
     }
 
     // FIXME -- Deal with this more correctly.
@@ -254,10 +253,9 @@ public class MonitorBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
-      String message = getMessage(msgID, baseMonitorDN.toString(),
-                                  getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
+          baseMonitorDN.toString(), getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
   }
 
@@ -376,10 +374,9 @@ public class MonitorBackend
     // If the requested entry was null, then throw an exception.
     if (entryDN == null)
     {
-      int    msgID   = MSGID_MONITOR_GET_ENTRY_NULL;
-      String message = getMessage(msgID);
+      Message message = ERR_MONITOR_GET_ENTRY_NULL.get();
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -397,18 +394,16 @@ public class MonitorBackend
     {
       if (baseMonitorDN.isAncestorOf(entryDN))
       {
-        int    msgID   = MSGID_MONITOR_BASE_TOO_DEEP;
-        String message = getMessage(msgID, String.valueOf(entryDN),
-                                    String.valueOf(baseMonitorDN));
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID,
-                                     baseMonitorDN, null);
+        Message message = ERR_MONITOR_BASE_TOO_DEEP.get(
+            String.valueOf(entryDN), String.valueOf(baseMonitorDN));
+        throw new DirectoryException(
+                ResultCode.NO_SUCH_OBJECT, message, baseMonitorDN, null);
       }
       else
       {
-        int    msgID   = MSGID_MONITOR_INVALID_BASE;
-        String message = getMessage(msgID, String.valueOf(entryDN),
-                                    String.valueOf(baseMonitorDN));
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+        Message message = ERR_MONITOR_INVALID_BASE.get(
+            String.valueOf(entryDN), String.valueOf(baseMonitorDN));
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
     }
 
@@ -417,10 +412,10 @@ public class MonitorBackend
     RDN entryRDN = entryDN.getRDN();
     if (entryRDN.isMultiValued())
     {
-      int msgID = MSGID_MONITOR_MULTIVALUED_RDN;
-      String message = getMessage(msgID, String.valueOf(entryDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID,
-                                   baseMonitorDN, null);
+      Message message =
+          ERR_MONITOR_MULTIVALUED_RDN.get(String.valueOf(entryDN));
+      throw new DirectoryException(
+              ResultCode.NO_SUCH_OBJECT, message, baseMonitorDN, null);
     }
 
 
@@ -431,10 +426,10 @@ public class MonitorBackend
          DirectoryServer.getMonitorProvider(rdnValue.toLowerCase());
     if (monitorProvider == null)
     {
-      int    msgID   = MSGID_MONITOR_NO_SUCH_PROVIDER;
-      String message = getMessage(msgID, String.valueOf(rdnValue));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID,
-                                   baseMonitorDN, null);
+      Message message =
+          ERR_MONITOR_NO_SUCH_PROVIDER.get(String.valueOf(rdnValue));
+      throw new DirectoryException(
+              ResultCode.NO_SUCH_OBJECT, message, baseMonitorDN, null);
     }
 
 
@@ -571,10 +566,10 @@ public class MonitorBackend
     upSeconds %= 3600;
     long upMinutes = (upSeconds / 60);
     upSeconds %= 60;
-    String upTimeStr = getMessage(MSGID_MONITOR_UPTIME, upDays, upHours,
-                                  upMinutes, upSeconds);
+    Message upTimeStr =
+        INFO_MONITOR_UPTIME.get(upDays, upHours, upMinutes, upSeconds);
     Attribute upTimeAttr = createAttribute(ATTR_UP_TIME, ATTR_UP_TIME_LC,
-                                           upTimeStr);
+                                           upTimeStr.toString());
     ArrayList<Attribute> upTimeList = new ArrayList<Attribute>(1);
     upTimeList.add(upTimeAttr);
     monitorUserAttrs.put(upTimeAttr.getAttributeType(), upTimeList);
@@ -769,10 +764,9 @@ public class MonitorBackend
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    int    msgID   = MSGID_MONITOR_ADD_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(entry.getDN()));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message =
+        ERR_MONITOR_ADD_NOT_SUPPORTED.get(String.valueOf(entry.getDN()));
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -794,10 +788,9 @@ public class MonitorBackend
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    int    msgID   = MSGID_MONITOR_DELETE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(entryDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message =
+        ERR_MONITOR_DELETE_NOT_SUPPORTED.get(String.valueOf(entryDN));
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -819,11 +812,9 @@ public class MonitorBackend
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
          throws DirectoryException
   {
-    int    msgID   = MSGID_MONITOR_MODIFY_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(entry.getDN()),
-                                String.valueOf(configEntryDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_MONITOR_MODIFY_NOT_SUPPORTED.get(
+        String.valueOf(entry.getDN()), String.valueOf(configEntryDN));
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -847,10 +838,9 @@ public class MonitorBackend
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    int    msgID   = MSGID_MONITOR_MODIFY_DN_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(currentDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message =
+        ERR_MONITOR_MODIFY_DN_NOT_SUPPORTED.get(String.valueOf(currentDN));
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -991,10 +981,10 @@ public class MonitorBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_ROOTDSE_UNABLE_TO_CREATE_LDIF_WRITER;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      Message message = ERR_ROOTDSE_UNABLE_TO_CREATE_LDIF_WRITER.get(
+          stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -1022,10 +1012,10 @@ public class MonitorBackend
         }
       }
 
-      int    msgID   = MSGID_MONITOR_UNABLE_TO_EXPORT_BASE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      Message message = ERR_MONITOR_UNABLE_TO_EXPORT_BASE.get(
+          stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -1057,12 +1047,11 @@ public class MonitorBackend
           }
         }
 
-        int    msgID   = MSGID_MONITOR_UNABLE_TO_EXPORT_PROVIDER_ENTRY;
-        String message = getMessage(msgID,
-                                    monitorProvider.getMonitorInstanceName(),
-                                    stackTraceToSingleLineString(e));
+        Message message = ERR_MONITOR_UNABLE_TO_EXPORT_PROVIDER_ENTRY.
+            get(monitorProvider.getMonitorInstanceName(),
+                stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -1105,10 +1094,8 @@ public class MonitorBackend
          throws DirectoryException
   {
     // This backend does not support LDIF imports.
-    int    msgID   = MSGID_MONITOR_IMPORT_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_MONITOR_IMPORT_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -1163,10 +1150,8 @@ public class MonitorBackend
          throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
-    int    msgID   = MSGID_MONITOR_BACKUP_AND_RESTORE_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_MONITOR_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -1188,10 +1173,8 @@ public class MonitorBackend
          throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
-    int    msgID   = MSGID_MONITOR_BACKUP_AND_RESTORE_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_MONITOR_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -1217,10 +1200,8 @@ public class MonitorBackend
          throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
-    int    msgID   = MSGID_MONITOR_BACKUP_AND_RESTORE_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_MONITOR_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -1241,7 +1222,7 @@ public class MonitorBackend
    */
   public boolean isConfigurationChangeAcceptable(
        BackendCfg backendCfg,
-       List<String> unacceptableReasons)
+       List<Message> unacceptableReasons)
   {
     // We'll pretty much accept anything here as long as it isn't one of our
     // private attributes.
@@ -1257,7 +1238,7 @@ public class MonitorBackend
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Check to see if there is a new set of user-defined attributes.
@@ -1295,17 +1276,17 @@ public class MonitorBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              stackTraceToSingleLineString(e)));
+
+      messages.add(ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY.get(
+              String.valueOf(configEntryDN),
+              stackTraceToSingleLineString(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
     }
 
 
     userDefinedAttributes = userAttrs;
 
-    int    msgID   = MSGID_MONITOR_USING_NEW_USER_ATTRS;
-    String message = getMessage(msgID);
+    Message message = INFO_MONITOR_USING_NEW_USER_ATTRS.get();
     messages.add(message);
 
 

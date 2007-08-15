@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+import org.opends.messages.Message;
 
 
 
@@ -45,16 +46,16 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -143,27 +144,24 @@ public class UTCTimeSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_GENERALIZED_TIME_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_GENERALIZED_TIME_OID, SYNTAX_UTC_TIME_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_GENERALIZED_TIME_OID, SYNTAX_UTC_TIME_NAME));
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_GENERALIZED_TIME_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-               OMR_GENERALIZED_TIME_OID, SYNTAX_UTC_TIME_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+          OMR_GENERALIZED_TIME_OID, SYNTAX_UTC_TIME_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_CASE_IGNORE_OID, SYNTAX_UTC_TIME_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_CASE_IGNORE_OID, SYNTAX_UTC_TIME_NAME));
     }
   }
 
@@ -279,7 +277,7 @@ public class UTCTimeSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // Get the value as a string and verify that it is at least long enough for
     // "YYYYMMDDhhmmZ", which is the shortest allowed value.
@@ -287,8 +285,7 @@ public class UTCTimeSyntax
     int    length      = valueString.length();
     if (length < 11)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_TOO_SHORT;
-      String message = getMessage(msgID, valueString);
+      Message message = ERR_ATTR_SYNTAX_UTC_TIME_TOO_SHORT.get(valueString);
       invalidReason.append(message);
       return false;
     }
@@ -313,9 +310,8 @@ public class UTCTimeSyntax
           // These are all fine.
           break;
         default:
-          int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_YEAR;
-          String message = getMessage(msgID, valueString,
-                                      valueString.charAt(i));
+          Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_YEAR.get(
+                  valueString, String.valueOf(valueString.charAt(i)));
           invalidReason.append(message);
           return false;
       }
@@ -344,9 +340,8 @@ public class UTCTimeSyntax
             // These are all fine.
             break;
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH;
-            String message = getMessage(msgID, valueString,
-                                        valueString.substring(2, 4));
+            Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH.get(
+                    valueString, valueString.substring(2, 4));
             invalidReason.append(message);
             return false;
         }
@@ -361,17 +356,15 @@ public class UTCTimeSyntax
             // These are all fine.
             break;
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH;
-            String message = getMessage(msgID, valueString,
-                                        valueString.substring(2, 4));
+            Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH.get(
+                    valueString, valueString.substring(2, 4));
             invalidReason.append(message);
             return false;
         }
         break;
       default:
-        int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH;
-        String message = getMessage(msgID, valueString,
-                                    valueString.substring(2, 4));
+        Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH.get(
+                valueString, valueString.substring(2, 4));
         invalidReason.append(message);
         return false;
     }
@@ -402,9 +395,8 @@ public class UTCTimeSyntax
             // These are all fine.
             break;
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_DAY;
-            String message = getMessage(msgID, valueString,
-                                        valueString.substring(4, 6));
+            Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_DAY.get(
+                    valueString, valueString.substring(4, 6));
             invalidReason.append(message);
             return false;
         }
@@ -428,9 +420,8 @@ public class UTCTimeSyntax
             // These are all fine.
             break;
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_DAY;
-            String message = getMessage(msgID, valueString,
-                                        valueString.substring(4, 6));
+            Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_DAY.get(
+                    valueString, valueString.substring(4, 6));
             invalidReason.append(message);
             return false;
         }
@@ -444,16 +435,14 @@ public class UTCTimeSyntax
             // These are all fine.
             break;
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_DAY;
-            String message = getMessage(msgID, valueString,
-                                        valueString.substring(4, 6));
+            Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_DAY.get(
+                    valueString, valueString.substring(4, 6));
             invalidReason.append(message);
             return false;
         }
         break;
       default:
-        int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_DAY;
-        String message = getMessage(msgID, valueString,
+        Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_DAY.get(valueString,
                                     valueString.substring(4, 6));
         invalidReason.append(message);
         return false;
@@ -484,9 +473,8 @@ public class UTCTimeSyntax
             // These are all fine.
             break;
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR;
-            String message = getMessage(msgID, valueString,
-                                        valueString.substring(6, 8));
+            Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR.get(
+                    valueString, valueString.substring(6, 8));
             invalidReason.append(message);
             return false;
         }
@@ -502,16 +490,14 @@ public class UTCTimeSyntax
             // These are all fine.
             break;
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR;
-            String message = getMessage(msgID, valueString,
-                                        valueString.substring(6, 8));
+            Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR.get(
+                    valueString, valueString.substring(6, 8));
             invalidReason.append(message);
             return false;
         }
         break;
       default:
-        int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR;
-        String message = getMessage(msgID, valueString,
+        Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR.get(valueString,
                                     valueString.substring(6, 8));
         invalidReason.append(message);
         return false;
@@ -533,8 +519,8 @@ public class UTCTimeSyntax
         // be a digit between 0 and 9.
         if (length < 11)
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString, m1, 8);
+          Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
+                  valueString, String.valueOf(m1), 8);
           invalidReason.append(message);
           return false;
         }
@@ -554,9 +540,8 @@ public class UTCTimeSyntax
             // These are all fine.
             break;
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_MINUTE;
-            String message = getMessage(msgID, valueString,
-                                        valueString.substring(8, 10));
+            Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_MINUTE.get(
+                    valueString, valueString.substring(8, 10));
             invalidReason.append(message);
             return false;
         }
@@ -564,8 +549,8 @@ public class UTCTimeSyntax
         break;
 
       default:
-        int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
-        String message = getMessage(msgID, valueString, m1, 8);
+        Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
+                valueString, String.valueOf(m1), 8);
         invalidReason.append(message);
         return false;
     }
@@ -588,8 +573,8 @@ public class UTCTimeSyntax
         // be a digit between 0 and 9.
         if (length < 13)
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString, s1, 10);
+          Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
+                  valueString, String.valueOf(s1), 10);
           invalidReason.append(message);
           return false;
         }
@@ -609,9 +594,8 @@ public class UTCTimeSyntax
             // These are all fine.
             break;
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_SECOND;
-            String message = getMessage(msgID, valueString,
-                                        valueString.substring(10, 12));
+            Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_SECOND.get(
+                    valueString, valueString.substring(10, 12));
             invalidReason.append(message);
             return false;
         }
@@ -622,17 +606,17 @@ public class UTCTimeSyntax
         // a 0.
         if (length < 13)
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString, s1, 10);
+
+          Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
+                  valueString, String.valueOf(s1), 10);
           invalidReason.append(message);
           return false;
         }
 
         if (valueString.charAt(11) != '0')
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_SECOND;
-          String message = getMessage(msgID, valueString,
-                                      valueString.substring(10, 12));
+          Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_SECOND.get(
+                  valueString, valueString.substring(10, 12));
           invalidReason.append(message);
           return false;
         }
@@ -646,8 +630,8 @@ public class UTCTimeSyntax
         }
         else
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString, s1, 10);
+          Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
+                  valueString, String.valueOf(s1), 10);
           invalidReason.append(message);
           return false;
         }
@@ -662,15 +646,15 @@ public class UTCTimeSyntax
         }
         else
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString, s1, 10);
+          Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
+                  valueString, String.valueOf(s1), 10);
           invalidReason.append(message);
           return false;
         }
 
       default:
-        int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
-        String message = getMessage(msgID, valueString, s1, 10);
+        Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
+                valueString, String.valueOf(s1), 10);
         invalidReason.append(message);
         return false;
     }
@@ -688,9 +672,8 @@ public class UTCTimeSyntax
         }
         else
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString,
-                                      valueString.charAt(12), 12);
+          Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
+                  valueString, String.valueOf(valueString.charAt(12)), 12);
           invalidReason.append(message);
           return false;
         }
@@ -705,17 +688,15 @@ public class UTCTimeSyntax
         }
         else
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString,
-                                      valueString.charAt(12), 12);
+          Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
+                  valueString, String.valueOf(valueString.charAt(12)), 12);
           invalidReason.append(message);
           return false;
         }
 
       default:
-        int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
-        String message = getMessage(msgID, valueString, valueString.charAt(12),
-                                    12);
+        Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(
+                valueString, String.valueOf(valueString.charAt(12)), 12);
         invalidReason.append(message);
         return false;
     }
@@ -739,13 +720,12 @@ public class UTCTimeSyntax
    *          <CODE>false</CODE> if it is not.
    */
   private boolean hasValidOffset(String value, int startPos,
-                                 StringBuilder invalidReason)
+                                 MessageBuilder invalidReason)
   {
     int offsetLength = value.length() - startPos;
     if (offsetLength < 2)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_TOO_SHORT;
-      String message = getMessage(msgID, value);
+      Message message = ERR_ATTR_SYNTAX_UTC_TIME_TOO_SHORT.get(value);
       invalidReason.append(message);
       return false;
     }
@@ -770,8 +750,7 @@ public class UTCTimeSyntax
             // These are all fine.
             break;
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET;
-            String message = getMessage(msgID, value,
+            Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET.get(value,
                                         value.substring(startPos,
                                                         startPos+offsetLength));
             invalidReason.append(message);
@@ -788,8 +767,7 @@ public class UTCTimeSyntax
             // These are all fine.
             break;
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET;
-            String message = getMessage(msgID, value,
+            Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET.get(value,
                                         value.substring(startPos,
                                                         startPos+offsetLength));
             invalidReason.append(message);
@@ -797,8 +775,7 @@ public class UTCTimeSyntax
         }
         break;
       default:
-        int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET;
-        String message = getMessage(msgID, value,
+        Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET.get(value,
                                     value.substring(startPos,
                                                     startPos+offsetLength));
         invalidReason.append(message);
@@ -833,17 +810,16 @@ public class UTCTimeSyntax
               // These are all fine.
               break;
             default:
-              int msgID = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET;
-              String message =
-                   getMessage(msgID, value,value.substring(startPos,
-                                                      startPos+offsetLength));
+              Message message =
+                   ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET.get(
+                           value,value.substring(startPos,
+                           startPos+offsetLength));
               invalidReason.append(message);
               return false;
           }
           break;
         default:
-          int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET;
-          String message = getMessage(msgID, value,
+          Message message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET.get(value,
                                       value.substring(startPos,
                                                       startPos+offsetLength));
           invalidReason.append(message);
@@ -937,11 +913,10 @@ public class UTCTimeSyntax
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_CANNOT_PARSE;
-      String message = getMessage(msgID, valueString, String.valueOf(e));
-
+      Message message = ERR_ATTR_SYNTAX_UTC_TIME_CANNOT_PARSE.get(
+          valueString, String.valueOf(e));
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                   message, msgID, e);
+                                   message, e);
     }
   }
 }

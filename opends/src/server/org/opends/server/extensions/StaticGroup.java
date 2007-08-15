@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -36,13 +37,28 @@ import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryConfig;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.MemberList;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ModificationType;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchScope;
 
 import org.opends.server.types.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import org.opends.server.loggers.ErrorLogger;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.Validator.*;
 
@@ -155,12 +171,10 @@ public class StaticGroup
     {
       if (groupEntry.hasObjectClass(groupOfUniqueNamesClass))
       {
-        int    msgID   = MSGID_STATICGROUP_INVALID_OC_COMBINATION;
-        String message = getMessage(msgID, String.valueOf(groupEntry.getDN()),
-                                    OC_GROUP_OF_NAMES,
-                                    OC_GROUP_OF_UNIQUE_NAMES);
-        throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message,
-                                     msgID);
+        Message message = ERR_STATICGROUP_INVALID_OC_COMBINATION.
+            get(String.valueOf(groupEntry.getDN()), OC_GROUP_OF_NAMES,
+                OC_GROUP_OF_UNIQUE_NAMES);
+        throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
       }
 
       memberAttributeType = DirectoryConfig.getAttributeType(ATTR_MEMBER, true);
@@ -172,11 +186,10 @@ public class StaticGroup
     }
     else
     {
-      int    msgID   = MSGID_STATICGROUP_NO_VALID_OC;
-      String message = getMessage(msgID, String.valueOf(groupEntry.getDN()),
-                                  OC_GROUP_OF_NAMES, OC_GROUP_OF_UNIQUE_NAMES);
-      throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_STATICGROUP_NO_VALID_OC.
+          get(String.valueOf(groupEntry.getDN()), OC_GROUP_OF_NAMES,
+              OC_GROUP_OF_UNIQUE_NAMES);
+      throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
     }
 
 
@@ -201,14 +214,10 @@ public class StaticGroup
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            int    msgID   = MSGID_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN;
-            String message =
-                 getMessage(msgID, v.getStringValue(),
-                            memberAttributeType.getNameOrOID(),
-                            String.valueOf(groupEntry.getDN()),
-                            de.getErrorMessage());
-            logError(ErrorLogCategory.EXTENSIONS, ErrorLogSeverity.MILD_ERROR,
-                     message, msgID);
+            Message message = ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN.
+                get(v.getStringValue(), memberAttributeType.getNameOrOID(),
+                    String.valueOf(groupEntry.getDN()), de.getMessageObject());
+            ErrorLogger.logError(message);
           }
         }
       }
@@ -330,11 +339,11 @@ public class StaticGroup
     {
       if (nestedGroups.contains(nestedGroupDN))
       {
-        int    msgID   = MSGID_STATICGROUP_ADD_NESTED_GROUP_ALREADY_EXISTS;
-        String message = getMessage(msgID,String.valueOf(nestedGroupDN),
-                                    String.valueOf(groupEntryDN));
-        throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
-                                     message, msgID);
+        Message msg = ERR_STATICGROUP_ADD_NESTED_GROUP_ALREADY_EXISTS.get(
+                String.valueOf(nestedGroupDN),
+                String.valueOf(groupEntryDN));
+        throw new DirectoryException(
+                ResultCode.ATTRIBUTE_OR_VALUE_EXISTS, msg);
       }
 
       LinkedHashSet<AttributeValue> values =
@@ -363,12 +372,12 @@ public class StaticGroup
       modifyOperation.run();
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
       {
-        int    msgID   = MSGID_STATICGROUP_ADD_MEMBER_UPDATE_FAILED;
-        String message = getMessage(msgID, String.valueOf(nestedGroupDN),
-                              String.valueOf(groupEntryDN),
-                              modifyOperation.getErrorMessage().toString());
-        throw new DirectoryException(modifyOperation.getResultCode(), message,
-                                     msgID);
+        Message msg = ERR_STATICGROUP_ADD_MEMBER_UPDATE_FAILED.get(
+                String.valueOf(nestedGroupDN),
+                String.valueOf(groupEntryDN),
+                modifyOperation.getErrorMessage().toString());
+        throw new DirectoryException(modifyOperation.getResultCode(),
+                                     msg);
       }
 
 
@@ -397,11 +406,11 @@ public class StaticGroup
     {
       if (! nestedGroups.contains(nestedGroupDN))
       {
-        int    msgID   = MSGID_STATICGROUP_REMOVE_NESTED_GROUP_NO_SUCH_GROUP;
-        String message = getMessage(msgID, String.valueOf(nestedGroupDN),
-                                    String.valueOf(groupEntryDN));
-        throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, message,
-                                     msgID);
+        throw new DirectoryException(
+                ResultCode.NO_SUCH_ATTRIBUTE,
+                ERR_STATICGROUP_REMOVE_NESTED_GROUP_NO_SUCH_GROUP.get(
+                  String.valueOf(nestedGroupDN),
+                  String.valueOf(groupEntryDN)));
       }
 
       LinkedHashSet<AttributeValue> values =
@@ -430,12 +439,12 @@ public class StaticGroup
       modifyOperation.run();
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
       {
-        int    msgID   = MSGID_STATICGROUP_REMOVE_MEMBER_UPDATE_FAILED;
-        String message = getMessage(msgID,String.valueOf(nestedGroupDN),
-                              String.valueOf(groupEntryDN),
-                              modifyOperation.getErrorMessage().toString());
-        throw new DirectoryException(modifyOperation.getResultCode(), message,
-                                     msgID);
+        throw new DirectoryException(
+                modifyOperation.getResultCode(),
+                ERR_STATICGROUP_REMOVE_MEMBER_UPDATE_FAILED.get(
+                        String.valueOf(nestedGroupDN),
+                        String.valueOf(groupEntryDN),
+                        modifyOperation.getErrorMessage()));
       }
 
 
@@ -515,10 +524,10 @@ public class StaticGroup
                DirectoryServer.getGroupManager().getGroupInstance(groupEntryDN);
         //Check if the group itself has been removed
         if(thisGroup == null) {
-          int    msgID   = MSGID_STATICGROUP_GROUP_INSTANCE_INVALID;
-          String message = getMessage(msgID, String.valueOf(groupEntryDN));
-          throw new
-               DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, message, msgID);
+          throw new DirectoryException(
+                  ResultCode.NO_SUCH_ATTRIBUTE,
+                  ERR_STATICGROUP_GROUP_INSTANCE_INVALID.get(
+                    String.valueOf(groupEntryDN)));
         } else if(thisGroup != this) {
           LinkedHashSet<DN> newMemberDNs = new LinkedHashSet<DN>();
           MemberList memberList=thisGroup.getMembers();
@@ -606,11 +615,10 @@ public class StaticGroup
       DN userDN = userEntry.getDN();
       if (memberDNs.contains(userDN))
       {
-        int    msgID   = MSGID_STATICGROUP_ADD_MEMBER_ALREADY_EXISTS;
-        String message = getMessage(msgID, String.valueOf(userDN),
-                                    String.valueOf(groupEntryDN));
+        Message message = ERR_STATICGROUP_ADD_MEMBER_ALREADY_EXISTS.get(
+            String.valueOf(userDN), String.valueOf(groupEntryDN));
         throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
-                                     message, msgID);
+                                     message);
       }
 
       LinkedHashSet<AttributeValue> values =
@@ -637,12 +645,10 @@ public class StaticGroup
       modifyOperation.run();
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
       {
-        int    msgID   = MSGID_STATICGROUP_ADD_MEMBER_UPDATE_FAILED;
-        String message = getMessage(msgID, String.valueOf(userDN),
-                              String.valueOf(groupEntryDN),
-                              modifyOperation.getErrorMessage().toString());
-        throw new DirectoryException(modifyOperation.getResultCode(), message,
-                                     msgID);
+        Message message = ERR_STATICGROUP_ADD_MEMBER_UPDATE_FAILED.
+            get(String.valueOf(userDN), String.valueOf(groupEntryDN),
+                modifyOperation.getErrorMessage().toString());
+        throw new DirectoryException(modifyOperation.getResultCode(), message);
       }
 
 
@@ -669,11 +675,9 @@ public class StaticGroup
     {
       if (! memberDNs.contains(userDN))
       {
-        int    msgID   = MSGID_STATICGROUP_REMOVE_MEMBER_NO_SUCH_MEMBER;
-        String message = getMessage(msgID, String.valueOf(userDN),
-                                    String.valueOf(groupEntryDN));
-        throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, message,
-                                     msgID);
+        Message message = ERR_STATICGROUP_REMOVE_MEMBER_NO_SUCH_MEMBER.get(
+            String.valueOf(userDN), String.valueOf(groupEntryDN));
+        throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, message);
       }
 
 
@@ -701,12 +705,10 @@ public class StaticGroup
       modifyOperation.run();
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
       {
-        int    msgID   = MSGID_STATICGROUP_REMOVE_MEMBER_UPDATE_FAILED;
-        String message = getMessage(msgID, String.valueOf(userDN),
-                              String.valueOf(groupEntryDN),
-                              modifyOperation.getErrorMessage().toString());
-        throw new DirectoryException(modifyOperation.getResultCode(), message,
-                                     msgID);
+        Message message = ERR_STATICGROUP_REMOVE_MEMBER_UPDATE_FAILED.
+            get(String.valueOf(userDN), String.valueOf(groupEntryDN),
+                modifyOperation.getErrorMessage().toString());
+        throw new DirectoryException(modifyOperation.getResultCode(), message);
       }
 
 

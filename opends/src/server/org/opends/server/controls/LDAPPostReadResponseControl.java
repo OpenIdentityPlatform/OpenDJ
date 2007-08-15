@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
+import org.opends.messages.Message;
 
 
 
@@ -40,8 +41,7 @@ import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -147,9 +147,8 @@ public class LDAPPostReadResponseControl
   {
     if (! control.hasValue())
     {
-      int    msgID   = MSGID_POSTREADRESP_NO_CONTROL_VALUE;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_POSTREADRESP_NO_CONTROL_VALUE.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -169,9 +168,9 @@ public class LDAPPostReadResponseControl
         TRACER.debugCaught(DebugLogLevel.ERROR, ae);
       }
 
-      int    msgID   = MSGID_POSTREADRESP_CANNOT_DECODE_VALUE;
-      String message = getMessage(msgID, ae.getMessage());
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message,
+      Message message =
+          ERR_POSTREADRESP_CANNOT_DECODE_VALUE.get(ae.getMessage());
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message,
                               ae);
     }
     catch (LDAPException le)
@@ -181,9 +180,9 @@ public class LDAPPostReadResponseControl
         TRACER.debugCaught(DebugLogLevel.ERROR, le);
       }
 
-      int    msgID   = MSGID_POSTREADRESP_CANNOT_DECODE_VALUE;
-      String message = getMessage(msgID, le.getMessage());
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message,
+      Message message =
+          ERR_POSTREADRESP_CANNOT_DECODE_VALUE.get(le.getMessage());
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message,
                               le);
     }
 

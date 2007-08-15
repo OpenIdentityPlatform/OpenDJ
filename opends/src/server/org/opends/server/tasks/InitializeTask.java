@@ -25,21 +25,19 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
+import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.getAttributeType;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
-
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.messages.TaskMessages;
+import org.opends.messages.TaskMessages;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.replication.plugin.ReplicationDomain;
 import org.opends.server.types.Attribute;
@@ -48,8 +46,6 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ResultCode;
@@ -113,10 +109,11 @@ public class InitializeTask extends Task
     }
     catch(Exception e)
     {
-      int    msgID   = TaskMessages.MSGID_TASK_INITIALIZE_INVALID_DN;
-      String message = getMessage(msgID) + e.getMessage();
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(TaskMessages.ERR_TASK_INITIALIZE_INVALID_DN.get());
+      mb.append(e.getMessage());
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-          message, msgID);
+          mb.toMessage());
     }
 
     domain = ReplicationDomain.retrievesReplicationDomain(domainDN);
@@ -161,10 +158,7 @@ public class InitializeTask extends Task
     catch(InterruptedException ie) {}
     catch(DirectoryException de)
     {
-      int msgID   = de.getMessageID();
-      String message = getMessage(msgID, de.getErrorMessage());
-      logError(ErrorLogCategory.TASK, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      logError(de.getMessageObject());
       initState = TaskState.STOPPED_BY_ERROR;
     }
 
@@ -189,10 +183,7 @@ public class InitializeTask extends Task
     {
       if (de != null)
       {
-        int msgID   = de.getMessageID();
-        String message = getMessage(msgID, de.getErrorMessage());
-        logError(ErrorLogCategory.TASK, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        logError(de.getMessageObject());
       }
       if (debugEnabled())
       {

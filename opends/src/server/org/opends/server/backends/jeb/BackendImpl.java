@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
+import org.opends.messages.Message;
 
 import java.io.IOException;
 import java.io.File;
@@ -55,9 +56,8 @@ import org.opends.server.util.LDIFException;
 import org.opends.server.util.Validator;
 import static org.opends.server.util.StaticUtils.*;
 
-import static org.opends.server.messages.BackendMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.JebMessages.*;
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.JebMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -320,11 +320,9 @@ public class BackendImpl
     try
     {
       // Log an informational message about the number of entries.
-      int msgID = MSGID_JEB_BACKEND_STARTED;
-      String message = getMessage(msgID, cfg.getBackendId(),
-                                  rootContainer.getEntryCount());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-               msgID);
+      Message message = NOTE_JEB_BACKEND_STARTED.get(
+          cfg.getBackendId(), rootContainer.getEntryCount());
+      logError(message);
     }
     catch(DatabaseException databaseException)
     {
@@ -332,9 +330,9 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, databaseException);
       }
-      String message = getMessage(MSGID_JEB_GET_ENTRY_COUNT_FAILED,
-                                  databaseException.getMessage());
-      throw new InitializationException(MSGID_JEB_GET_ENTRY_COUNT_FAILED,
+      Message message =
+          WARN_JEB_GET_ENTRY_COUNT_FAILED.get(databaseException.getMessage());
+      throw new InitializationException(
                                         message, databaseException);
     }
 
@@ -351,10 +349,9 @@ public class BackendImpl
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
-        String message = getMessage(msgID, String.valueOf(dn),
-                                    String.valueOf(e));
-        throw new InitializationException(msgID, message, e);
+        Message message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
+            String.valueOf(dn), String.valueOf(e));
+        throw new InitializationException(message, e);
       }
     }
 
@@ -425,10 +422,8 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      int msgID = MSGID_JEB_DATABASE_EXCEPTION;
-      String message = getMessage(msgID, e.getMessage());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_JEB_DATABASE_EXCEPTION.get(e.getMessage());
+      logError(message);
     }
 
     // Checksum this db environment and register its offline state id/checksum.
@@ -640,8 +635,7 @@ public class BackendImpl
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessage(),
-                                   e.getMessageID());
+                                   e.getMessageObject());
     }
     finally
     {
@@ -692,8 +686,7 @@ public class BackendImpl
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessage(),
-                                   e.getMessageID());
+                                   e.getMessageObject());
     }
     finally
     {
@@ -743,8 +736,7 @@ public class BackendImpl
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessage(),
-                                   e.getMessageID());
+                                   e.getMessageObject());
     }
     finally
     {
@@ -796,8 +788,7 @@ public class BackendImpl
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessage(),
-                                   e.getMessageID());
+                                   e.getMessageObject());
     }
     finally
     {
@@ -839,10 +830,9 @@ public class BackendImpl
     {
       // FIXME: No reason why we cannot implement a move between containers
       // since the containers share the same database environment.
-      int msgID = MSGID_JEB_FUNCTION_NOT_SUPPORTED;
-      String msg = getMessage(MSGID_JEB_FUNCTION_NOT_SUPPORTED);
+      Message msg = WARN_JEB_FUNCTION_NOT_SUPPORTED.get();
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                   msg, msgID);
+                                   msg);
     }
     try
     {
@@ -865,8 +855,7 @@ public class BackendImpl
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessage(),
-                                   e.getMessageID());
+                                   e.getMessageObject());
     }
     finally
     {
@@ -912,9 +901,9 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION, e.getMessage());
+      Message message = ERR_JEB_DATABASE_EXCEPTION.get(e.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, MSGID_JEB_DATABASE_EXCEPTION);
+                                   message);
     }
     finally
     {
@@ -962,10 +951,9 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
       }
-      int msgID = MSGID_JEB_IO_ERROR;
-      String message = getMessage(msgID, ioe.getMessage());
+      Message message = ERR_JEB_IO_ERROR.get(ioe.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
     catch (JebException je)
     {
@@ -974,8 +962,7 @@ public class BackendImpl
         TRACER.debugCaught(DebugLogLevel.ERROR, je);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   je.getMessage(),
-                                   je.getMessageID());
+                                   je.getMessageObject());
     }
     catch (DatabaseException de)
     {
@@ -992,8 +979,7 @@ public class BackendImpl
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessage(),
-                                   e.getMessageID());
+                                   e.getMessageObject());
     }
     catch (InitializationException ie)
     {
@@ -1002,8 +988,7 @@ public class BackendImpl
         TRACER.debugCaught(DebugLogLevel.ERROR, ie);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   ie.getMessage(),
-                                   ie.getMessageID());
+                                   ie.getMessageObject());
     }
     catch (ConfigException ce)
     {
@@ -1012,8 +997,7 @@ public class BackendImpl
         TRACER.debugCaught(DebugLogLevel.ERROR, ce);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   ce.getMessage(),
-                                   ce.getMessageID());
+                                   ce.getMessageObject());
     }
     finally
     {
@@ -1054,9 +1038,9 @@ public class BackendImpl
     // We can't do import while the backend is online.
     if(!openRootContainer)
     {
-      String message = getMessage(MSGID_JEB_IMPORT_BACKEND_ONLINE);
+      Message message = ERR_JEB_IMPORT_BACKEND_ONLINE.get();
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, MSGID_JEB_IMPORT_BACKEND_ONLINE);
+                                   message);
     }
 
     try
@@ -1108,10 +1092,9 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
       }
-      int msgID = MSGID_JEB_IO_ERROR;
-      String message = getMessage(msgID, ioe.getMessage());
+      Message message = ERR_JEB_IO_ERROR.get(ioe.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
     catch (JebException je)
     {
@@ -1120,8 +1103,7 @@ public class BackendImpl
         TRACER.debugCaught(DebugLogLevel.ERROR, je);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   je.getMessage(),
-                                   je.getMessageID());
+                                   je.getMessageObject());
     }
     catch (DatabaseException de)
     {
@@ -1138,8 +1120,7 @@ public class BackendImpl
         TRACER.debugCaught(DebugLogLevel.ERROR, ie);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   ie.getMessage(),
-                                   ie.getMessageID());
+                                   ie.getMessageObject());
     }
     catch (ConfigException ce)
     {
@@ -1148,8 +1129,7 @@ public class BackendImpl
         TRACER.debugCaught(DebugLogLevel.ERROR, ce);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   ce.getMessage(),
-                                   ce.getMessageID());
+                                   ce.getMessageObject());
     }
     finally
     {
@@ -1162,9 +1142,8 @@ public class BackendImpl
         // Sync the environment to disk.
         if (debugEnabled())
         {
-          int msgID = MSGID_JEB_IMPORT_CLOSING_DATABASE;
-          String message = getMessage(msgID);
-          TRACER.debugInfo(message);
+          Message message = INFO_JEB_IMPORT_CLOSING_DATABASE.get();
+          TRACER.debugInfo(message.toString());
         }
       }
       catch (DatabaseException de)
@@ -1234,8 +1213,7 @@ public class BackendImpl
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessage(),
-                                   e.getMessageID());
+                                   e.getMessageObject());
     }
     finally
     {
@@ -1285,9 +1263,9 @@ public class BackendImpl
     // backend. Throw error. TODO: Need to make baseDNs disablable.
     if(!openRootContainer && rebuildConfig.includesSystemIndex())
     {
-      String message = getMessage(MSGID_JEB_REBUILD_BACKEND_ONLINE);
+      Message message = ERR_JEB_REBUILD_BACKEND_ONLINE.get();
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, MSGID_JEB_REBUILD_BACKEND_ONLINE);
+                                   message);
     }
 
     try
@@ -1318,8 +1296,7 @@ public class BackendImpl
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessage(),
-                                   e.getMessageID());
+                                   e.getMessageObject());
     }
     finally
     {
@@ -1389,7 +1366,7 @@ public class BackendImpl
    */
   @Override()
   public boolean isConfigurationAcceptable(Configuration configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     JEBackendCfg config = (JEBackendCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
@@ -1402,24 +1379,24 @@ public class BackendImpl
    */
   public boolean isConfigurationChangeAcceptable(
       JEBackendCfg cfg,
-      List<String> unacceptableReasons)
+      List<Message> unacceptableReasons)
   {
     // Make sure that the logging level value is acceptable.
     String loggingLevel = cfg.getDatabaseLoggingLevel();
     if (! (loggingLevel.equals("OFF") ||
            loggingLevel.equals("SEVERE") ||
            loggingLevel.equals("WARNING") ||
-           loggingLevel.equals("INFO") ||
+           loggingLevel.equals("INFORMATION") ||
            loggingLevel.equals("CONFIG") ||
            loggingLevel.equals("FINE") ||
            loggingLevel.equals("FINER") ||
            loggingLevel.equals("FINEST") ||
            loggingLevel.equals("OFF")))
     {
-      int    msgID   = MSGID_JEB_INVALID_LOGGING_LEVEL;
-      String message = getMessage(msgID,
-                                  String.valueOf(cfg.getDatabaseLoggingLevel()),
-                                  String.valueOf(cfg.dn()));
+
+      Message message = ERR_JEB_INVALID_LOGGING_LEVEL.get(
+              String.valueOf(cfg.getDatabaseLoggingLevel()),
+              String.valueOf(cfg.dn()));
       unacceptableReasons.add(message);
       return false;
     }
@@ -1436,7 +1413,7 @@ public class BackendImpl
   {
     ConfigChangeResult ccr;
     ResultCode resultCode = ResultCode.SUCCESS;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
 
     try
@@ -1488,9 +1465,10 @@ public class BackendImpl
 
               resultCode = DirectoryServer.getServerErrorResultCode();
 
-              int msgID   = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
-              messages.add(getMessage(msgID, String.valueOf(baseDN),
-                                      String.valueOf(e)));
+
+              messages.add(ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
+                      String.valueOf(baseDN),
+                      String.valueOf(e)));
               ccr = new ConfigChangeResult(resultCode, false, messages);
               return ccr;
             }
@@ -1502,7 +1480,7 @@ public class BackendImpl
     }
     catch (Exception e)
     {
-      messages.add(stackTraceToSingleLineString(e));
+      messages.add(Message.raw(stackTraceToSingleLineString(e)));
       ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
                                    false, messages);
       return ccr;
@@ -1550,25 +1528,22 @@ public class BackendImpl
   DirectoryException createDirectoryException(DatabaseException e)
   {
     ResultCode resultCode = DirectoryServer.getServerErrorResultCode();
-    String message = null;
+    Message message = null;
     if(e instanceof RunRecoveryException)
     {
-      int msgID   = MSGID_BACKEND_ENVIRONMENT_UNUSABLE;
-      message = getMessage(msgID,getBackendID());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-              message,msgID);
+      message = NOTE_BACKEND_ENVIRONMENT_UNUSABLE.get(getBackendID());
+      logError(message);
       DirectoryServer.sendAlertNotification(DirectoryServer.getInstance(),
-              ALERT_TYPE_BACKEND_ENVIRONMENT_UNUSABLE, msgID, message);
+              ALERT_TYPE_BACKEND_ENVIRONMENT_UNUSABLE, message);
     }
 
-    int msgID = MSGID_JEB_DATABASE_EXCEPTION;
     String jeMessage = e.getMessage();
     if (jeMessage == null)
     {
       jeMessage = stackTraceToSingleLineString(e);
     }
-    message = getMessage(msgID, jeMessage);
-    return new DirectoryException(resultCode, message, msgID, e);
+    message = ERR_JEB_DATABASE_EXCEPTION.get(jeMessage);
+    return new DirectoryException(resultCode, message, e);
   }
 
    /**
@@ -1629,9 +1604,8 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      String message = getMessage(MSGID_JEB_OPEN_ENV_FAIL,
-                                  e.getMessage());
-      throw new InitializationException(MSGID_JEB_OPEN_ENV_FAIL, message, e);
+      Message message = ERR_JEB_OPEN_ENV_FAIL.get(e.getMessage());
+      throw new InitializationException(message, e);
     }
   }
 }

@@ -34,17 +34,16 @@ import org.opends.server.admin.std.server.SubstringMatchingRuleCfg;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.Message;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
@@ -182,19 +181,18 @@ public class CaseExactIA5SubstringMatchingRule
         // This is not a valid character for an IA5 string.  If strict syntax
         // enforcement is enabled, then we'll throw an exception.  Otherwise,
         // we'll get rid of the character.
-        int    msgID   = MSGID_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
-        String message = getMessage(msgID, value.stringValue(), c);
+        Message message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
+                value.stringValue(), String.valueOf(c));
 
         switch (DirectoryServer.getSyntaxEnforcementPolicy())
         {
           case REJECT:
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
           case WARN:
             if (! logged)
             {
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
+              logError(message);
               logged = true;
             }
 
@@ -268,19 +266,18 @@ public class CaseExactIA5SubstringMatchingRule
         // This is not a valid character for an IA5 string.  If strict syntax
         // enforcement is enabled, then we'll throw an exception.  Otherwise,
         // we'll get rid of the character.
-        int    msgID   = MSGID_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
-        String message = getMessage(msgID, substring.stringValue(), c);
+        Message message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
+                substring.stringValue(), String.valueOf(c));
 
         switch (DirectoryServer.getSyntaxEnforcementPolicy())
         {
           case REJECT:
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
           case WARN:
             if (! logged)
             {
-              logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
+              logError(message);
               logged = true;
             }
 

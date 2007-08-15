@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.asn1;
+import org.opends.messages.Message;
 
 
 
@@ -35,8 +36,7 @@ import java.net.Socket;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 
 
 
@@ -217,9 +217,9 @@ public class ASN1Reader
       // Make sure that there are an acceptable number of bytes in the length.
       if (numLengthBytes > 4)
       {
-        int    msgID   = MSGID_ASN1_ELEMENT_SET_INVALID_NUM_LENGTH_BYTES;
-        String message = getMessage(msgID, numLengthBytes);
-        throw new ASN1Exception(msgID, message);
+        Message message =
+            ERR_ASN1_ELEMENT_SET_INVALID_NUM_LENGTH_BYTES.get(numLengthBytes);
+        throw new ASN1Exception(message);
       }
 
 
@@ -231,9 +231,9 @@ public class ASN1Reader
         {
           // We've reached the end of the stream in the middle of the value.
           // This is not good, so throw an exception.
-          int    msgID   = MSGID_ASN1_ELEMENT_SET_TRUNCATED_LENGTH;
-          String message = getMessage(msgID, numLengthBytes);
-          throw new IOException(message);
+          Message message =
+              ERR_ASN1_ELEMENT_SET_TRUNCATED_LENGTH.get(numLengthBytes);
+          throw new IOException(message.toString());
         }
 
         length = (length << 8) | lengthByte;
@@ -250,9 +250,9 @@ public class ASN1Reader
     }
     else if ((maxElementSize > 0) && (length > maxElementSize))
     {
-      int    msgID   = MSGID_ASN1_READER_MAX_SIZE_EXCEEDED;
-      String message = getMessage(msgID, length, maxElementSize);
-      throw new ASN1Exception(msgID, message);
+      Message message =
+          ERR_ASN1_READER_MAX_SIZE_EXCEEDED.get(length, maxElementSize);
+      throw new ASN1Exception(message);
     }
 
 
@@ -266,9 +266,9 @@ public class ASN1Reader
       int bytesRead = inputStream.read(value, readPos, bytesNeeded);
       if (bytesRead < 0)
       {
-        int    msgID   = MSGID_ASN1_ELEMENT_SET_TRUNCATED_VALUE;
-        String message = getMessage(msgID, length, bytesNeeded);
-        throw new IOException(message);
+        Message message =
+            ERR_ASN1_ELEMENT_SET_TRUNCATED_VALUE.get(length, bytesNeeded);
+        throw new IOException(message.toString());
       }
 
       bytesNeeded -= bytesRead;

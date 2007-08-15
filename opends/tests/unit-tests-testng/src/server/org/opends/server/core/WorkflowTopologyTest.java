@@ -27,7 +27,8 @@
 package org.opends.server.core;
 
 
-import static org.opends.server.messages.CoreMessages.*;
+import static org.opends.messages.CoreMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertNotNull;
@@ -932,10 +933,10 @@ public class WorkflowTopologyTest extends UtilTestCase
   {
     // Check the function that elaborates the global result code
     WorkflowResultCode globalResultCode = new WorkflowResultCode (
-        initialResultCode, new StringBuilder("")
+        initialResultCode, new MessageBuilder("")
         );
     globalResultCode.elaborateGlobalResultCode (
-        receivedResultCode, new StringBuilder("")
+        receivedResultCode, new MessageBuilder("")
         );
     assertEquals (globalResultCode.resultCode(), expectedGlobalResultCode);
   }
@@ -972,7 +973,7 @@ public class WorkflowTopologyTest extends UtilTestCase
     catch (DirectoryException e)
     {
       exceptionRaised = true;
-      assertEquals(e.getMessageID(), MSGID_REGISTER_WORKFLOW_ALREADY_EXISTS);
+      assertEquals(e.getMessageObject().getDescriptor(), ERR_REGISTER_WORKFLOW_ALREADY_EXISTS);
     }
     assertEquals(exceptionRaised, true);
   }

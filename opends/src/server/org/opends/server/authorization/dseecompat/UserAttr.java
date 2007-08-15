@@ -26,9 +26,9 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.AciMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.AccessControlMessages.*;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -144,9 +144,9 @@ public class UserAttr implements KeywordBindRule {
     throws AciException {
         String[] vals=expression.split("#");
         if(vals.length != 2) {
-            int msgID = MSGID_ACI_SYNTAX_INVALID_USERATTR_EXPRESSION;
-            String message = getMessage(msgID, expression);
-            throw new AciException(msgID, message);
+            Message message =
+                WARN_ACI_SYNTAX_INVALID_USERATTR_EXPRESSION.get(expression);
+            throw new AciException(message);
         }
         UserAttrType userAttrType=getType(vals[1]);
         switch (userAttrType) {
@@ -159,9 +159,9 @@ public class UserAttr implements KeywordBindRule {
                 case ROLEDN: {
                   //The roledn keyword is not supported. Throw an exception with
                   //a message if it is seen in the expression.
-                  int msgID=MSGID_ACI_SYNTAX_ROLEDN_NOT_SUPPORTED;
-                  String message = getMessage(msgID, expression);
-                  throw new AciException(msgID, message);
+                  Message message =
+                      WARN_ACI_SYNTAX_ROLEDN_NOT_SUPPORTED.get(expression);
+                  throw new AciException(message);
                 }
          }
          return new UserAttr(vals[0], vals[1], userAttrType, type);
@@ -247,18 +247,18 @@ public class UserAttr implements KeywordBindRule {
         else if(expr.equalsIgnoreCase("groupdn")) {
              userAttrType=UserAttrType.GROUPDN;
       /*
-            int msgID = MSGID_ACI_SYNTAX_INVALID_USERATTR_KEYWORD;
-            String message = getMessage(msgID, "The groupdn userattr" +
+            Message message = WARN_ACI_SYNTAX_INVALID_USERATTR_KEYWORD.get(
+                "The groupdn userattr" +
                     "keyword is not supported.");
-            throw new AciException(msgID, message);
+            throw new AciException(message);
         */
         } else if(expr.equalsIgnoreCase("roledn")) {
             userAttrType=UserAttrType.ROLEDN;
             /*
-            int msgID = MSGID_ACI_SYNTAX_INVALID_USERATTR_KEYWORD;
-            String message = getMessage(msgID, "The roledn userattr" +
+            Message message = WARN_ACI_SYNTAX_INVALID_USERATTR_KEYWORD.get(
+                "The roledn userattr" +
                     "keyword is not supported.");
-            throw new AciException(msgID, message);
+            throw new AciException(message);
             */
         } else if(expr.equalsIgnoreCase("ldapurl"))
             userAttrType=UserAttrType.URL;

@@ -25,14 +25,15 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.CoreMessages.*;
+
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.lang.reflect.Method;
@@ -97,7 +98,7 @@ public class ConnectionHandlerConfigManager implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     // Register as a change listener for this connection handler entry
     // so that we will be notified of any changes that may be made to
@@ -126,7 +127,7 @@ public class ConnectionHandlerConfigManager implements
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        messages.add(e.getMessage());
+        messages.add(e.getMessageObject());
         resultCode = DirectoryServer.getServerErrorResultCode();
       } catch (Exception e) {
         if (debugEnabled())
@@ -134,9 +135,10 @@ public class ConnectionHandlerConfigManager implements
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_CONFIG_CONNHANDLER_CANNOT_INITIALIZE;
-        messages.add(getMessage(msgID, String.valueOf(configuration
-            .getJavaImplementationClass()), String.valueOf(dn),
+
+        messages.add(ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
+                String.valueOf(configuration.getJavaImplementationClass()),
+                String.valueOf(dn),
             stackTraceToSingleLineString(e)));
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
@@ -162,7 +164,7 @@ public class ConnectionHandlerConfigManager implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     // See whether the connection handler should be enabled.
     if (connectionHandler == null) {
@@ -188,7 +190,7 @@ public class ConnectionHandlerConfigManager implements
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          messages.add(e.getMessage());
+          messages.add(e.getMessageObject());
           resultCode = DirectoryServer.getServerErrorResultCode();
         } catch (Exception e) {
           if (debugEnabled())
@@ -196,8 +198,8 @@ public class ConnectionHandlerConfigManager implements
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int msgID = MSGID_CONFIG_CONNHANDLER_CANNOT_INITIALIZE;
-          messages.add(getMessage(msgID, String.valueOf(configuration
+          messages.add(ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
+                  String.valueOf(configuration
               .getJavaImplementationClass()), String.valueOf(dn),
               stackTraceToSingleLineString(e)));
           resultCode = DirectoryServer.getServerErrorResultCode();
@@ -220,9 +222,9 @@ public class ConnectionHandlerConfigManager implements
             .deregisterConnectionHandler(connectionHandler);
         connectionHandlers.remove(dn);
 
-        int id = MSGID_CONNHANDLER_CLOSED_BY_DISABLE;
-        connectionHandler.finalizeConnectionHandler(getMessage(id),
-            false);
+
+        connectionHandler.finalizeConnectionHandler(
+                INFO_CONNHANDLER_CLOSED_BY_DISABLE.get(), false);
       }
     }
 
@@ -251,9 +253,9 @@ public class ConnectionHandlerConfigManager implements
     if (connectionHandler != null) {
       DirectoryServer.deregisterConnectionHandler(connectionHandler);
 
-      int id = MSGID_CONNHANDLER_CLOSED_BY_DELETE;
-      connectionHandler.finalizeConnectionHandler(getMessage(id),
-          false);
+      connectionHandler.finalizeConnectionHandler(
+              INFO_CONNHANDLER_CLOSED_BY_DELETE.get(),
+              false);
     }
 
     return new ConfigChangeResult(resultCode, adminActionRequired);
@@ -326,7 +328,7 @@ public class ConnectionHandlerConfigManager implements
    */
   public boolean isConfigurationAddAcceptable(
       ConnectionHandlerCfg configuration,
-      List<String> unacceptableReasons) {
+      List<Message> unacceptableReasons) {
     if (configuration.isEnabled()) {
       // It's enabled so always validate the class.
       return isJavaClassAcceptable(configuration, unacceptableReasons);
@@ -343,7 +345,7 @@ public class ConnectionHandlerConfigManager implements
    */
   public boolean isConfigurationChangeAcceptable(
       ConnectionHandlerCfg configuration,
-      List<String> unacceptableReasons) {
+      List<Message> unacceptableReasons) {
     if (configuration.isEnabled()) {
       // It's enabled so always validate the class.
       return isJavaClassAcceptable(configuration, unacceptableReasons);
@@ -360,7 +362,7 @@ public class ConnectionHandlerConfigManager implements
    */
   public boolean isConfigurationDeleteAcceptable(
       ConnectionHandlerCfg configuration,
-      List<String> unacceptableReasons) {
+      List<Message> unacceptableReasons) {
     // A delete should always be acceptable, so just return true.
     return true;
   }
@@ -391,11 +393,10 @@ public class ConnectionHandlerConfigManager implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_CONNHANDLER_CANNOT_INITIALIZE;
-      String message = getMessage(msgID, String.valueOf(className),
-          String.valueOf(config.dn()),
-          stackTraceToSingleLineString(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.
+          get(String.valueOf(className), String.valueOf(config.dn()),
+              stackTraceToSingleLineString(e));
+      throw new ConfigException(message, e);
     }
 
     // Perform the necessary initialization for the connection
@@ -415,11 +416,10 @@ public class ConnectionHandlerConfigManager implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_CONNHANDLER_CANNOT_INITIALIZE;
-      String message = getMessage(msgID, String.valueOf(className),
-          String.valueOf(config.dn()),
-          stackTraceToSingleLineString(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.
+          get(String.valueOf(className), String.valueOf(config.dn()),
+              stackTraceToSingleLineString(e));
+      throw new ConfigException(message, e);
     }
 
     // The connection handler has been successfully initialized.
@@ -433,7 +433,7 @@ public class ConnectionHandlerConfigManager implements
   // class is acceptable.
   private boolean isJavaClassAcceptable(
       ConnectionHandlerCfg config,
-      List<String> unacceptableReasons) {
+      List<Message> unacceptableReasons) {
     String className = config.getJavaImplementationClass();
     ConnectionHandlerCfgDefn d =
       ConnectionHandlerCfgDefn.getInstance();
@@ -452,10 +452,11 @@ public class ConnectionHandlerConfigManager implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_CONNHANDLER_CANNOT_INITIALIZE;
-      unacceptableReasons.add(getMessage(msgID, String
-          .valueOf(className), String.valueOf(config.dn()),
-          stackTraceToSingleLineString(e)));
+      unacceptableReasons.add(
+              ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
+                      String.valueOf(className),
+                      String.valueOf(config.dn()),
+                      stackTraceToSingleLineString(e)));
       return false;
     }
 
@@ -481,10 +482,9 @@ public class ConnectionHandlerConfigManager implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_CONNHANDLER_CANNOT_INITIALIZE;
-      unacceptableReasons.add(getMessage(msgID, String
-          .valueOf(className), String.valueOf(config.dn()),
-          stackTraceToSingleLineString(e)));
+      unacceptableReasons.add(ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
+              String.valueOf(className), String.valueOf(config.dn()),
+              stackTraceToSingleLineString(e)));
       return false;
     }
 

@@ -25,10 +25,11 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ReplicationMessages.*;
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.File;
@@ -36,8 +37,6 @@ import java.io.UnsupportedEncodingException;
 
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.Database;
@@ -134,11 +133,9 @@ public class ReplicationDbEnv
             baseDn = DN.decode(str[1]);
           } catch (DirectoryException e)
           {
-            int    msgID   = MSGID_IGNORE_BAD_DN_IN_DATABASE_IDENTIFIER;
-            String message = getMessage(msgID, str[1]);
-            logError(ErrorLogCategory.SYNCHRONIZATION,
-                     ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
+            Message message =
+                ERR_IGNORE_BAD_DN_IN_DATABASE_IDENTIFIER.get(str[1]);
+            logError(message);
           }
           DbHandler dbHandler =
             new DbHandler(serverId, baseDn, replicationServer, this);
@@ -147,12 +144,15 @@ public class ReplicationDbEnv
         } catch (NumberFormatException e)
         {
           // should never happen
-          throw new ReplicationDBException(0,
-              "replicationServer state database has a wrong format");
+          // TODO: i18n
+          throw new ReplicationDBException(Message.raw(
+              "replicationServer state database has a wrong format"));
         } catch (UnsupportedEncodingException e)
         {
           // should never happens
-          throw new ReplicationDBException(0, "need UTF-8 support");
+          // TODO: i18n
+          throw new ReplicationDBException(Message.raw(
+                  "need UTF-8 support"));
         }
         status = cursor.getNext(key, data, LockMode.DEFAULT);
       }
@@ -236,11 +236,10 @@ public class ReplicationDbEnv
       dbEnvironment.close();
     } catch (DatabaseException e)
     {
-      int    msgID   = MSGID_ERROR_CLOSING_CHANGELOG_ENV;
-      String message = getMessage(msgID) + stackTraceToSingleLineString(e);
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-               ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(ERR_ERROR_CLOSING_CHANGELOG_ENV.get());
+      mb.append(stackTraceToSingleLineString(e));
+      logError(mb.toMessage());
     }
   }
 

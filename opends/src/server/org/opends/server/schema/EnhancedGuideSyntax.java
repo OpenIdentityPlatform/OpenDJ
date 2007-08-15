@@ -37,15 +37,14 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
 
 
 /**
@@ -90,27 +89,24 @@ public class EnhancedGuideSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_OCTET_STRING_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_OCTET_STRING_OID, SYNTAX_ENHANCED_GUIDE_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_OCTET_STRING_OID, SYNTAX_ENHANCED_GUIDE_NAME));
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_OCTET_STRING_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-               OMR_OCTET_STRING_OID, SYNTAX_ENHANCED_GUIDE_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+          OMR_OCTET_STRING_OID, SYNTAX_ENHANCED_GUIDE_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_OCTET_STRING_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_OCTET_STRING_OID, SYNTAX_ENHANCED_GUIDE_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_OCTET_STRING_OID, SYNTAX_ENHANCED_GUIDE_NAME));
     }
   }
 
@@ -226,7 +222,7 @@ public class EnhancedGuideSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // Get a lowercase string version of the provided value.
     String valueStr = toLowerCase(value.stringValue());
@@ -237,8 +233,9 @@ public class EnhancedGuideSyntax
     int sharpPos = valueStr.indexOf('#');
     if (sharpPos < 0)
     {
-      int msgID = MSGID_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SHARP;
-      invalidReason.append(getMessage(msgID, valueStr));
+
+      invalidReason.append(
+              ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SHARP.get(valueStr));
       return false;
     }
 
@@ -248,8 +245,8 @@ public class EnhancedGuideSyntax
     int    ocLength = ocName.length();
     if (ocLength == 0)
     {
-      int msgID = MSGID_ATTR_SYNTAX_ENHANCEDGUIDE_NO_OC;
-      invalidReason.append(getMessage(msgID, valueStr));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_OC.get(valueStr));
       return false;
     }
 
@@ -263,8 +260,9 @@ public class EnhancedGuideSyntax
     int lastSharpPos = valueStr.lastIndexOf('#');
     if (lastSharpPos == sharpPos)
     {
-      int msgID = MSGID_ATTR_SYNTAX_ENHANCEDGUIDE_NO_FINAL_SHARP;
-      invalidReason.append(getMessage(msgID, valueStr));
+
+      invalidReason.append(
+              ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_FINAL_SHARP.get(valueStr));
       return false;
     }
 
@@ -275,13 +273,16 @@ public class EnhancedGuideSyntax
     {
       if (scopeStr.length() == 0)
       {
-        int msgID = MSGID_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SCOPE;
-        invalidReason.append(getMessage(msgID, valueStr));
+
+        invalidReason.append(
+                ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SCOPE.get(valueStr));
       }
       else
       {
-        int msgID = MSGID_ATTR_SYNTAX_ENHANCEDGUIDE_INVALID_SCOPE;
-        invalidReason.append(getMessage(msgID, valueStr, scopeStr));
+
+        invalidReason.append(
+                ERR_ATTR_SYNTAX_ENHANCEDGUIDE_INVALID_SCOPE.get(
+                        valueStr, scopeStr));
       }
 
       return false;
@@ -294,8 +295,9 @@ public class EnhancedGuideSyntax
     int    criteriaLength = criteria.length();
     if (criteriaLength == 0)
     {
-      int msgID = MSGID_ATTR_SYNTAX_ENHANCEDGUIDE_NO_CRITERIA;
-      invalidReason.append(getMessage(msgID, valueStr));
+
+      invalidReason.append(
+              ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_CRITERIA.get(valueStr));
       return false;
     }
 

@@ -26,13 +26,15 @@
  */
 
 package org.opends.quicksetup.upgrader;
+import org.opends.messages.Message;
 
 import org.opends.quicksetup.BuildInformation;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.UserInteraction;
-import org.opends.quicksetup.i18n.ResourceProvider;
+
 import org.opends.server.util.VersionCompatibilityIssue;
 import org.opends.server.util.BuildVersion;
+import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.server.util.VersionCompatibilityIssue.*;
 
 import java.util.List;
@@ -78,7 +80,7 @@ public abstract class VersionIssueNotifier {
   protected class Directive {
 
     DirectiveType type;
-    String msg;
+    Message msg;
 
     /**
      * Creates a parameterized instance.
@@ -86,7 +88,7 @@ public abstract class VersionIssueNotifier {
      * @param type of directive
      * @param localizedMsg for displaying to the user
      */
-    public Directive(DirectiveType type, String localizedMsg) {
+    public Directive(DirectiveType type, Message localizedMsg) {
       this.type = type;
       this.msg = localizedMsg;
     }
@@ -104,7 +106,7 @@ public abstract class VersionIssueNotifier {
      * @return string message
      */
 
-    public String getMessage() {
+    public Message getMessage() {
       return this.msg;
     }
 
@@ -230,7 +232,7 @@ public abstract class VersionIssueNotifier {
    * @param cause of issue
    * @return message for presenting to the user
    */
-  protected abstract String getLocalizedDetailMessage(
+  protected abstract Message getLocalizedDetailMessage(
           VersionCompatibilityIssue.Cause cause);
 
   /**
@@ -276,7 +278,7 @@ public abstract class VersionIssueNotifier {
   protected boolean isNotification(Cause cause) {
     boolean isNotification = false;
     if (cause != null) {
-      String msg = getLocalizedDetailMessage(cause);
+      Message msg = getLocalizedDetailMessage(cause);
       if (msg != null && !isWarning(cause) && !isActionRequired(cause)) {
         isNotification = true;
       }
@@ -290,46 +292,13 @@ public abstract class VersionIssueNotifier {
    *
    * @return List containing strings representing intruction steps
    */
-  protected List<String> getExportImportInstructions() {
-
-    // Creates the steps by accessing messages starting with
-    // 'oracle-ei-action-step' starting with 'oracle-ei-action-step1'
-    // until there are no more message having
-
-    List<String> instructions = new ArrayList<String>();
-    try {
-      int i = 1;
-      while (true) {
-        String m = getMsg("oracle-ei-action-step" + i++);
-        if (m != null) {
-          instructions.add(m);
-        } else {
-          break;
-        }
-      }
-    } catch (Exception e) {
-      // ignore
-    }
+  protected List<Message> getExportImportInstructions() {
+    List<Message> instructions = new ArrayList<Message>();
+    instructions.add(INFO_ORACLE_EI_ACTION_STEP1.get());
+    instructions.add(INFO_ORACLE_EI_ACTION_STEP2.get());
+    instructions.add(INFO_ORACLE_EI_ACTION_STEP3.get());
+    instructions.add(INFO_ORACLE_EI_ACTION_STEP4.get());
     return instructions;
-  }
-
-  /**
-   * Returns a localized message for a key value.  In  the properties file we
-   * have something of type:
-   * key=value
-   *
-   * For instance if we pass as key "mykey" and as arguments {"value1"} and
-   * in the properties file we have:
-   * mykey=value with argument {0}.
-   *
-   * This method will return "value with argument value1".
-   * @see org.opends.quicksetup.i18n.ResourceProvider#getMsg(String, String[])
-   * @param key the key in the properties file.
-   * @param args the arguments to be passed to generate the resulting value.
-   * @return the value associated to the key in the properties file.
-   */
-  protected String getMsg(String key, String... args) {
-    return ResourceProvider.getInstance().getMsg(key, args);
   }
 
   /**
@@ -347,7 +316,7 @@ public abstract class VersionIssueNotifier {
       for (VersionCompatibilityIssue evt : compatibilityIssues) {
         VersionCompatibilityIssue.Cause cause = evt.getCause();
         Set<Effect> effects = cause.getEffects();
-        String msg = getLocalizedDetailMessage(cause);
+        Message msg = getLocalizedDetailMessage(cause);
         if (isUnsupported(cause)) {
           isSupported = false;
           directives.add(new Directive(DirectiveType.NOT_SUPPORTED, msg));

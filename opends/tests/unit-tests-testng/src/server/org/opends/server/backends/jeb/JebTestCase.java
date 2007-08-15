@@ -43,6 +43,7 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.types.Entry;
 import org.opends.server.util.LDIFReader;
 import org.testng.annotations.Test;
@@ -73,7 +74,7 @@ public abstract class JebTestCase extends DirectoryServerTestCase {
         File.separator + "resource"+File.separator+"MakeLDIF";
         TemplateFile templateFile = 
             new TemplateFile(makeLDIFPath, new Random());
-        ArrayList<String> warnings = new ArrayList<String>();
+        ArrayList<Message> warnings = new ArrayList<Message>();
         templateFile.parse(template, warnings);
         MakeLDIFInputStream ldifEntryStream = 
             new MakeLDIFInputStream(templateFile);

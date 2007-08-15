@@ -26,7 +26,7 @@
  */
 
 package org.opends.server.admin;
-
+import org.opends.messages.Message;
 
 
 /**
@@ -51,6 +51,6 @@ public final class ManagedObjectAlreadyExistsException extends
    * Create a managed object already exists exception.
    */
   public ManagedObjectAlreadyExistsException() {
-    super(MSG);
+    super(Message.raw(MSG));
   }
 }

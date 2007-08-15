@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.client.cli;
+import org.opends.messages.Message;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -37,9 +38,9 @@ import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.args.ArgumentException;
 
 import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.AdminMessages.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.AdminMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -166,15 +167,14 @@ public class DsFrameworkCliMain
     DsFrameworkCliParser argParser ;
     try
     {
-      String toolDescription = getMessage(MSGID_ADMIN_TOOL_DESCRIPTION);
+      Message toolDescription = INFO_ADMIN_TOOL_DESCRIPTION.get();
       argParser = new DsFrameworkCliParser(CLASS_NAME,
           toolDescription, false);
       argParser.initializeParser(out);
     }
     catch (ArgumentException ae)
     {
-      int msgID = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return CANNOT_INITIALIZE_ARGS.getReturnCode();
@@ -187,8 +187,7 @@ public class DsFrameworkCliMain
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -203,9 +202,8 @@ public class DsFrameworkCliMain
 
     if (argParser.getSubCommand() == null)
     {
-      int msgID = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID,
-          getMessage(MSGID_DSCFG_ERROR_MISSING_SUBCOMMAND));
+      Message message = ERR_ERROR_PARSING_ARGS.get(
+              ERR_DSCFG_ERROR_MISSING_SUBCOMMAND.get());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println();
       err.println(argParser.getHelpUsageReference());
@@ -265,30 +263,29 @@ public class DsFrameworkCliMain
     }
     catch (ArgumentException ae)
     {
-      int msgID = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return CANNOT_INITIALIZE_ARGS.getReturnCode();
     }
 
-    int msgID = returnCode.getMessageId();
-    String message = "" ;
+    Message msg = returnCode.getMessage();
     if ( (returnCode == SUCCESSFUL)
          ||
          (returnCode == SUCCESSFUL_NOP))
     {
       if (argParser.isVerbose())
       {
-        out.println(wrapText(getMessage(msgID), MAX_LINE_WIDTH));
+        out.println(wrapText(msg.toString(), MAX_LINE_WIDTH));
       }
     }
     else
-    if (msgID != MSGID_ADMIN_NO_MESSAGE)
+    if (msg != null &&
+            msg.getDescriptor().getId() != ERR_ADMIN_NO_MESSAGE.getId())
     {
-      message = getMessage(MSGID_ADMIN_ERROR);
-      message = message + getMessage(msgID);
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      MessageBuilder mb = new MessageBuilder(INFO_ADMIN_ERROR.get());
+      mb.append(msg);
+      err.println(wrapText(mb.toString(), MAX_LINE_WIDTH));
       if (argParser.isVerbose() && (adsException != null))
       {
         adsException.printStackTrace();

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 
 
@@ -59,8 +60,7 @@ import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.MultiChoiceArgument;
 import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
 
@@ -188,33 +188,37 @@ public class LDIFSearch
     StringArgument      outputFile;
 
 
-    String toolDescription = getMessage(MSGID_LDIFSEARCH_TOOL_DESCRIPTION);
+    Message toolDescription = INFO_LDIFSEARCH_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false, true, 0, 0,
                                                   "[filter] [attributes ...]");
 
     try
     {
-      ldifFile = new StringArgument("ldiffile", 'l', "ldifFile", false, true,
-                                    true, "{ldifFile}", null, null,
-                                    MSGID_LDIFSEARCH_DESCRIPTION_LDIF_FILE);
+      ldifFile = new StringArgument(
+              "ldiffile", 'l', "ldifFile", false, true,
+              true, "{ldifFile}", null, null,
+              INFO_LDIFSEARCH_DESCRIPTION_LDIF_FILE.get());
       argParser.addArgument(ldifFile);
 
-      baseDNString = new StringArgument("basedn", OPTION_SHORT_BASEDN,
-                                        OPTION_LONG_BASEDN, false, true,
-                                        true, OPTION_VALUE_BASEDN, "", null,
-                                        MSGID_LDIFSEARCH_DESCRIPTION_BASEDN);
+      baseDNString = new StringArgument(
+              "basedn", OPTION_SHORT_BASEDN,
+              OPTION_LONG_BASEDN, false, true,
+              true, OPTION_VALUE_BASEDN, "", null,
+              INFO_LDIFSEARCH_DESCRIPTION_BASEDN.get());
       argParser.addArgument(baseDNString);
 
-      scopeString = new MultiChoiceArgument("scope", 's', "scope", false, false,
-                                            true, "{scope}", SCOPE_STRING_SUB,
-                                            null, scopeStrings, false,
-                                            MSGID_LDIFSEARCH_DESCRIPTION_SCOPE);
+      scopeString = new MultiChoiceArgument(
+              "scope", 's', "scope", false, false,
+              true, "{scope}", SCOPE_STRING_SUB,
+              null, scopeStrings, false,
+              INFO_LDIFSEARCH_DESCRIPTION_SCOPE.get());
       argParser.addArgument(scopeString);
 
-      configFile = new StringArgument("configfile", 'c', "configFile", false,
-                                      false, true, "{configFile}", null, null,
-                                      MSGID_DESCRIPTION_CONFIG_FILE);
+      configFile = new StringArgument(
+              "configfile", 'c', "configFile", false,
+              false, true, "{configFile}", null, null,
+              INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
@@ -222,52 +226,57 @@ public class LDIFSearch
                              OPTION_LONG_CONFIG_CLASS, false,
                              false, true, OPTION_VALUE_CONFIG_CLASS,
                              ConfigFileHandler.class.getName(), null,
-                             MSGID_DESCRIPTION_CONFIG_CLASS);
+                             INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
       filterFile = new FileBasedArgument("filterfile", 'f', "filterFile", false,
                             false, "{filterFile}", null, null,
-                            MSGID_LDIFSEARCH_DESCRIPTION_FILTER_FILE);
+                            INFO_LDIFSEARCH_DESCRIPTION_FILTER_FILE.get());
       argParser.addArgument(filterFile);
 
-      outputFile = new StringArgument("outputfile", 'o', "outputFile", false,
-                                      false, true, "{outputFile}", null, null,
-                                      MSGID_LDIFSEARCH_DESCRIPTION_OUTPUT_FILE);
+      outputFile = new StringArgument(
+              "outputfile", 'o', "outputFile", false,
+              false, true, "{outputFile}", null, null,
+              INFO_LDIFSEARCH_DESCRIPTION_OUTPUT_FILE.get());
       argParser.addArgument(outputFile);
 
       overwriteExisting =
-           new BooleanArgument("overwriteexisting", 'O',"overwriteExisting",
-                               MSGID_LDIFSEARCH_DESCRIPTION_OVERWRITE_EXISTING);
+           new BooleanArgument(
+                   "overwriteexisting", 'O',"overwriteExisting",
+                   INFO_LDIFSEARCH_DESCRIPTION_OVERWRITE_EXISTING.get());
       argParser.addArgument(overwriteExisting);
 
-      dontWrap = new BooleanArgument("dontwrap", 'T', "dontWrap",
-                                     MSGID_LDIFSEARCH_DESCRIPTION_DONT_WRAP);
+      dontWrap = new BooleanArgument(
+              "dontwrap", 'T', "dontWrap",
+              INFO_LDIFSEARCH_DESCRIPTION_DONT_WRAP.get());
       argParser.addArgument(dontWrap);
 
-      sizeLimit = new IntegerArgument("sizelimit", 'z', "sizeLimit", false,
-                                      false, true, "{sizeLimit}", 0, null,
-                                      true, 0, false, 0,
-                                      MSGID_LDIFSEARCH_DESCRIPTION_SIZE_LIMIT);
+      sizeLimit = new IntegerArgument(
+              "sizelimit", 'z', "sizeLimit", false,
+              false, true, "{sizeLimit}", 0, null,
+              true, 0, false, 0,
+              INFO_LDIFSEARCH_DESCRIPTION_SIZE_LIMIT.get());
       argParser.addArgument(sizeLimit);
 
-      timeLimit = new IntegerArgument("timelimit", 't', "timeLimit", false,
-                                      false, true, "{timeLimit}", 0, null,
-                                      true, 0, false, 0,
-                                      MSGID_LDIFSEARCH_DESCRIPTION_TIME_LIMIT);
+      timeLimit = new IntegerArgument(
+              "timelimit", 't', "timeLimit", false,
+              false, true, "{timeLimit}", 0, null,
+              true, 0, false, 0,
+              INFO_LDIFSEARCH_DESCRIPTION_TIME_LIMIT.get());
       argParser.addArgument(timeLimit);
 
 
-      showUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
-                                      OPTION_LONG_HELP,
-                                      MSGID_DESCRIPTION_USAGE);
+      showUsage = new BooleanArgument(
+              "help", OPTION_SHORT_HELP,
+              OPTION_LONG_HELP,
+              INFO_DESCRIPTION_USAGE.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       err.println(message);
       return 1;
     }
@@ -280,8 +289,7 @@ public class LDIFSearch
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(message);
       err.println(argParser.getUsage());
@@ -347,8 +355,7 @@ public class LDIFSearch
       ArrayList<String> trailingArguments = argParser.getTrailingArguments();
       if ((trailingArguments == null) || trailingArguments.isEmpty())
       {
-        int    msgID   = MSGID_LDIFSEARCH_NO_FILTER;
-        String message = getMessage(msgID);
+        Message message = ERR_LDIFSEARCH_NO_FILTER.get();
         err.println(message);
         return 1;
       }
@@ -424,10 +431,9 @@ public class LDIFSearch
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDIFSEARCH_CANNOT_INITIALIZE_JMX;
-        String message = getMessage(msgID,
-                                    String.valueOf(configFile.getValue()),
-                                    e.getMessage());
+        Message message = ERR_LDIFSEARCH_CANNOT_INITIALIZE_JMX.get(
+                String.valueOf(configFile.getValue()),
+                e.getMessage());
         err.println(message);
         return 1;
       }
@@ -439,10 +445,9 @@ public class LDIFSearch
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDIFSEARCH_CANNOT_INITIALIZE_CONFIG;
-        String message = getMessage(msgID,
-                                    String.valueOf(configFile.getValue()),
-                                    e.getMessage());
+        Message message = ERR_LDIFSEARCH_CANNOT_INITIALIZE_CONFIG.get(
+                String.valueOf(configFile.getValue()),
+                e.getMessage());
         err.println(message);
         return 1;
       }
@@ -453,10 +458,9 @@ public class LDIFSearch
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDIFSEARCH_CANNOT_INITIALIZE_SCHEMA;
-        String message = getMessage(msgID,
-                                    String.valueOf(configFile.getValue()),
-                                    e.getMessage());
+        Message message = ERR_LDIFSEARCH_CANNOT_INITIALIZE_SCHEMA.get(
+                String.valueOf(configFile.getValue()),
+                e.getMessage());
         err.println(message);
         return 1;
       }
@@ -501,8 +505,8 @@ public class LDIFSearch
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDIFSEARCH_CANNOT_PARSE_FILTER;
-        String message = getMessage(msgID, filterString, e.getMessage());
+        Message message = ERR_LDIFSEARCH_CANNOT_PARSE_FILTER.get(
+                filterString, e.getMessage());
         err.println(message);
         return 1;
       }
@@ -568,8 +572,8 @@ public class LDIFSearch
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_LDIFSEARCH_CANNOT_PARSE_BASE_DN;
-          String message = getMessage(msgID, dnString, e.getMessage());
+          Message message = ERR_LDIFSEARCH_CANNOT_PARSE_BASE_DN.get(
+                  dnString, e.getMessage());
           err.println(message);
           return 1;
         }
@@ -596,8 +600,8 @@ public class LDIFSearch
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDIFSEARCH_CANNOT_PARSE_TIME_LIMIT;
-      String message = getMessage(msgID, String.valueOf(e));
+      Message message = ERR_LDIFSEARCH_CANNOT_PARSE_TIME_LIMIT.get(
+              String.valueOf(e));
       err.println(message);
       return 1;
     }
@@ -618,8 +622,8 @@ public class LDIFSearch
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDIFSEARCH_CANNOT_PARSE_SIZE_LIMIT;
-      String message = getMessage(msgID, String.valueOf(e));
+      Message message = ERR_LDIFSEARCH_CANNOT_PARSE_SIZE_LIMIT.get(
+              String.valueOf(e));
       err.println(message);
       return 1;
     }
@@ -679,8 +683,8 @@ public class LDIFSearch
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDIFSEARCH_CANNOT_CREATE_READER;
-      String message = getMessage(msgID, String.valueOf(e));
+      Message message = ERR_LDIFSEARCH_CANNOT_CREATE_READER.get(
+              String.valueOf(e));
       err.println(message);
       return 1;
     }
@@ -696,8 +700,8 @@ public class LDIFSearch
         reader.close();
       } catch (Exception e2) {}
 
-      int    msgID   = MSGID_LDIFSEARCH_CANNOT_CREATE_WRITER;
-      String message = getMessage(msgID, String.valueOf(e));
+      Message message = ERR_LDIFSEARCH_CANNOT_CREATE_WRITER.get(
+              String.valueOf(e));
       err.println(message);
       return 1;
     }
@@ -715,8 +719,7 @@ public class LDIFSearch
       {
         resultCode = LDAPResultCode.TIME_LIMIT_EXCEEDED;
 
-        int    msgID   = MSGID_LDIFSEARCH_TIME_LIMIT_EXCEEDED;
-        String message = getMessage(msgID);
+        Message message = WARN_LDIFSEARCH_TIME_LIMIT_EXCEEDED.get();
         err.println(message);
         break;
       }
@@ -803,8 +806,7 @@ public class LDIFSearch
         {
           resultCode = LDAPResultCode.SIZE_LIMIT_EXCEEDED;
 
-          int    msgID   = MSGID_LDIFSEARCH_SIZE_LIMIT_EXCEEDED;
-          String message = getMessage(msgID);
+          Message message = WARN_LDIFSEARCH_SIZE_LIMIT_EXCEEDED.get();
           err.println(message);
           break;
         }
@@ -813,14 +815,14 @@ public class LDIFSearch
       {
         if (le.canContinueReading())
         {
-          int    msgID   = MSGID_LDIFSEARCH_CANNOT_READ_ENTRY_RECOVERABLE;
-          String message = getMessage(msgID, le.getMessage());
+          Message message = ERR_LDIFSEARCH_CANNOT_READ_ENTRY_RECOVERABLE.get(
+                  le.getMessage());
           err.println(message);
         }
         else
         {
-          int    msgID   = MSGID_LDIFSEARCH_CANNOT_READ_ENTRY_FATAL;
-          String message = getMessage(msgID, le.getMessage());
+          Message message = ERR_LDIFSEARCH_CANNOT_READ_ENTRY_FATAL.get(
+                  le.getMessage());
           err.println(message);
           resultCode = LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
           break;
@@ -828,8 +830,8 @@ public class LDIFSearch
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDIFSEARCH_ERROR_DURING_PROCESSING;
-        String message = getMessage(msgID, String.valueOf(e));
+        Message message = ERR_LDIFSEARCH_ERROR_DURING_PROCESSING.get(
+                String.valueOf(e));
         err.println(message);
         resultCode = LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
         break;

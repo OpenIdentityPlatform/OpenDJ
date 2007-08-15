@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -172,7 +173,7 @@ public class UserDefinedVirtualAttributeProvider
    */
   public boolean isConfigurationChangeAcceptable(
                       UserDefinedVirtualAttributeCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // The new configuration should always be acceptable.
     return true;

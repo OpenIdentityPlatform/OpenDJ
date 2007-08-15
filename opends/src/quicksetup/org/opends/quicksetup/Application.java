@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
@@ -35,10 +38,11 @@ import org.opends.admin.ads.util.ServerLoader;
 import org.opends.quicksetup.event.ProgressNotifier;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.util.ServerController;
-import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
-import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.ui.GuiApplication;
+
+import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.quicksetup.util.Utils.*;
 
 import java.io.PrintStream;
 import java.io.ByteArrayOutputStream;
@@ -216,7 +220,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
   public void notifyListenersDone(Integer ratioWhenCompleted) {
     notifyListeners(ratioWhenCompleted,
             getSummary(getCurrentProgressStep()),
-            formatter.getFormattedDone() + formatter.getLineBreak());
+            getFormattedDoneWithLineBreak());
   }
 
   /**
@@ -229,8 +233,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @param newLogDetail the new log messages that we have for the
    * installation in formatted form.
    */
-  public void notifyListeners(Integer ratio, String currentPhaseSummary,
-      String newLogDetail)
+  public void notifyListeners(Integer ratio, Message currentPhaseSummary,
+      Message newLogDetail)
   {
     listenerDelegate.notifyListeners(getCurrentProgressStep(),
             ratio, currentPhaseSummary, newLogDetail);
@@ -244,77 +248,9 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @param currentPhaseSummary the localized summary message for the
    * current installation progress in formatted form.
    */
-  public void notifyListeners(Integer ratio, String currentPhaseSummary) {
+  public void notifyListeners(Integer ratio, Message currentPhaseSummary) {
     notifyListeners(ratio, getSummary(getCurrentProgressStep()),
         formatter.getFormattedWithPoints(currentPhaseSummary));
-  }
-
-  /**
-   * Returns a localized message for a key value.  In  the properties file we
-   * have something of type:
-   * key=value
-   *
-   * @see org.opends.quicksetup.i18n.ResourceProvider#getMsg(String)
-   * @param key the key in the properties file.
-   * @return the value associated to the key in the properties file.
-   * properties file.
-   */
-  public String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  /**
-   * Returns a localized message for a key value.  In  the properties file we
-   * have something of type:
-   * key=value
-   *
-   * For instance if we pass as key "mykey" and as arguments {"value1"} and
-   * in the properties file we have:
-   * mykey=value with argument {0}.
-   *
-   * This method will return "value with argument value1".
-   * @see org.opends.quicksetup.i18n.ResourceProvider#getMsg(String, String[])
-   * @param key the key in the properties file.
-   * @param args the arguments to be passed to generate the resulting value.
-   * @return the value associated to the key in the properties file.
-   */
-  public String getMsg(String key, String... args)
-  {
-    return getI18n().getMsg(key, args);
-  }
-
-  /**
-   * Returns a ResourceProvider instance.
-   * @return a ResourceProvider instance.
-   */
-  public ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
-  }
-
-  /**
-   * Returns a localized message for a given properties key and throwable.
-   * @param key the key of the message in the properties file.
-   * @param t the throwable for which we want to get a message.
-   * @return a localized message for a given properties key and throwable.
-   */
-  public String getThrowableMsg(String key, Throwable t)
-  {
-    return getThrowableMsg(key, null, t);
-  }
-
-  /**
-   * Returns a localized message for a given properties key and throwable.
-   * @param key the key of the message in the properties file.
-   * @param args the arguments of the message in the properties file.
-   * @param t the throwable for which we want to get a message.
-   *
-   * @return a localized message for a given properties key and throwable.
-   */
-  protected String getThrowableMsg(String key, String[] args, Throwable t)
-  {
-    return Utils.getThrowableMsg(getI18n(), key, args, t);
   }
 
   /**
@@ -345,9 +281,18 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * representation
    * @return the formatted representation of an error for the given text.
    */
-  protected String getFormattedSummary(String text)
+  protected Message getFormattedSummary(Message text)
   {
     return formatter.getFormattedSummary(text);
+  }
+
+  /**
+   * Returns the formatted text string 'Error' with a line break at the end.
+   * @return formatted 'Error'
+   */
+  protected Message getFormattedErrorWithLineBreak() {
+    return new MessageBuilder(formatter.getFormattedError())
+            .append(formatter.getLineBreak()).toMessage();
   }
 
   /**
@@ -356,10 +301,43 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * representation
    * @return the formatted representation of an error for the given text.
    */
-  protected String getFormattedError(String text)
+  protected Message getFormattedError(Message text)
   {
     return formatter.getFormattedError(text, false);
   }
+
+  /**
+   * Returns the formatted representation of an error message for a given
+   * exception.
+   * This method applies a margin if the applyMargin parameter is
+   * <CODE>true</CODE>.
+   * @param m the exception.
+   * @param b specifies whether we apply a margin or not to the
+   * resulting formatted text.
+   * @return the formatted representation of an error message for the given
+   * exception.
+   */
+  protected Message getFormattedErrorWithLineBreak(Message m, boolean b) {
+    return new MessageBuilder(formatter.getFormattedError(m,b))
+            .append(formatter.getLineBreak()).toMessage();
+  }
+
+  /**
+   * Returns the formatted representation of an error message for a given
+   * exception.
+   * This method applies a margin if the applyMargin parameter is
+   * <CODE>true</CODE>.
+   * @param t the exception.
+   * @param b specifies whether we apply a margin or not to the
+   * resulting formatted text.
+   * @return the formatted representation of an error message for the given
+   * exception.
+   */
+  protected Message getFormattedErrorWithLineBreak(Throwable t, boolean b) {
+    return new MessageBuilder(formatter.getFormattedError(t,b))
+            .append(formatter.getLineBreak()).toMessage();
+  }
+
 
   /**
    * Returns the formatted representation of an warning for a given text.
@@ -367,7 +345,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * representation
    * @return the formatted representation of an warning for the given text.
    */
-  public String getFormattedWarning(String text)
+  public Message getFormattedWarning(Message text)
   {
     return formatter.getFormattedWarning(text, false);
   }
@@ -379,7 +357,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return the formatted representation of an success message for the given
    * text.
    */
-  protected String getFormattedSuccess(String text)
+  protected Message getFormattedSuccess(Message text)
   {
     return formatter.getFormattedSuccess(text);
   }
@@ -392,7 +370,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return the formatted representation of a log error message for the given
    * text.
    */
-  public String getFormattedLogError(String text)
+  public Message getFormattedLogError(Message text)
   {
     return formatter.getFormattedLogError(text);
   }
@@ -403,7 +381,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * representation
    * @return the formatted representation of a log message for the given text.
    */
-  public String getFormattedLog(String text)
+  public Message getFormattedLog(Message text)
   {
     return formatter.getFormattedLog(text);
   }
@@ -412,9 +390,19 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * Returns the formatted representation of the 'Done' text string.
    * @return the formatted representation of the 'Done' text string.
    */
-  public String getFormattedDone()
+  public Message getFormattedDone()
   {
-    return formatter.getFormattedDone();
+    return Message.raw(formatter.getFormattedDone());
+  }
+
+  /**
+   * Returns the formatted representation of the 'Done' text string
+   * with a line break at the end.
+   * @return the formatted representation of the 'Done' text string.
+   */
+  public Message getFormattedDoneWithLineBreak() {
+    return new MessageBuilder(formatter.getFormattedDone())
+            .append(formatter.getLineBreak()).toMessage();
   }
 
   /**
@@ -424,7 +412,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @param text the String to which add points.
    * @return the formatted representation of the '.....' text string.
    */
-  public String getFormattedWithPoints(String text)
+  public Message getFormattedWithPoints(Message text)
   {
     return formatter.getFormattedWithPoints(text);
   }
@@ -437,9 +425,23 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return the formatted representation of a progress message for the given
    * text.
    */
-  public String getFormattedProgress(String text)
+  public Message getFormattedProgress(Message text)
   {
     return formatter.getFormattedProgress(text);
+  }
+
+  /**
+   * Returns the formatted representation of a progress message for a given
+   * text with a line break.
+   * @param text the source text from which we want to get the formatted
+   * representation
+   * @return the formatted representation of a progress message for the given
+   * text.
+   */
+  public Message getFormattedProgressWithLineBreak(Message text)
+  {
+    return new MessageBuilder(formatter.getFormattedProgress(text))
+            .append(getLineBreak()).toMessage();
   }
 
   /**
@@ -453,16 +455,32 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return the formatted representation of an error message for the given
    * exception.
    */
-  protected String getFormattedError(Throwable t, boolean applyMargin)
+  protected Message getFormattedError(Throwable t, boolean applyMargin)
   {
     return formatter.getFormattedError(t, applyMargin);
+  }
+
+  /**
+   * Returns the formatted representation of an error message for a given
+   * exception.
+   * This method applies a margin if the applyMargin parameter is
+   * <CODE>true</CODE>.
+   * @param m the message.
+   * @param applyMargin specifies whether we apply a margin or not to the
+   * resulting formatted text.
+   * @return the formatted representation of an error message for the given
+   * exception.
+   */
+  protected Message getFormattedError(Message m, boolean applyMargin)
+  {
+    return formatter.getFormattedError(m, applyMargin);
   }
 
   /**
    * Returns the line break formatted.
    * @return the line break formatted.
    */
-  public String getLineBreak()
+  public Message getLineBreak()
   {
     return formatter.getLineBreak();
   }
@@ -471,7 +489,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * Returns the task separator formatted.
    * @return the task separator formatted.
    */
-  protected String getTaskSeparator()
+  protected Message getTaskSeparator()
   {
     return formatter.getTaskSeparator();
   }
@@ -481,10 +499,10 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * notify the ProgressUpdateListeners of this fact.
    * @param newLogDetail the new log detail.
    */
-  public void notifyListeners(String newLogDetail)
+  public void notifyListeners(Message newLogDetail)
   {
     Integer ratio = getRatio(getCurrentProgressStep());
-    String currentPhaseSummary = getSummary(getCurrentProgressStep());
+    Message currentPhaseSummary = getSummary(getCurrentProgressStep());
     notifyListeners(ratio, currentPhaseSummary, newLogDetail);
   }
 
@@ -515,7 +533,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @param step ProgressStop for which a summary is needed
    * @return String representing the summary
    */
-  public abstract String getSummary(ProgressStep step);
+  public abstract Message getSummary(ProgressStep step);
 
   /**
    * Sets the current install status for this application.
@@ -596,10 +614,10 @@ public abstract class Application implements ProgressNotifier, Runnable {
   protected void notifyListenersOfLog() {
     File logFile = QuickSetupLog.getLogFile();
     if (logFile != null) {
-      notifyListeners(
-          getFormattedProgress(getMsg("general-see-for-details",
-              logFile.getPath())) +
-          formatter.getLineBreak());
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(INFO_GENERAL_SEE_FOR_DETAILS.get(logFile.getPath()));
+      mb.append(formatter.getLineBreak());
+      notifyListeners(mb.toMessage());
     }
   }
 
@@ -623,7 +641,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
               HistoricalRecord.Status.STARTED,
               "log file '" + QuickSetupLog.getLogFile().getPath() + "'");
     } catch (IOException e) {
-      String msg = getMsg("error-logging-operation");
+      Message msg = INFO_ERROR_LOGGING_OPERATION.get();
       throw ApplicationException.createFileSystemException(
               msg, e);
     }
@@ -653,7 +671,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
               new HistoricalLog(getInstallation().getHistoryLogFile());
       log.append(id, from, to, status, note);
     } catch (IOException e) {
-      String msg = getMsg("error-logging-operation");
+      Message msg = INFO_ERROR_LOGGING_OPERATION.get();
       throw ApplicationException.createFileSystemException(msg, e);
     }
   }
@@ -665,22 +683,23 @@ public abstract class Application implements ProgressNotifier, Runnable {
    */
   protected String getStringRepresentation(TopologyCacheException e)
   {
-    StringBuilder buf = new StringBuilder();
+    MessageBuilder buf = new MessageBuilder();
 
     String ldapUrl = e.getLdapUrl();
     if (ldapUrl != null)
     {
       String hostName = ldapUrl.substring(ldapUrl.indexOf("://") + 3);
-      buf.append(getMsg("server-error", hostName) + " ");
+      buf.append(INFO_SERVER_ERROR.get(hostName));
+      buf.append(" ");
     }
     if (e.getCause() instanceof NamingException)
     {
-      buf.append(getThrowableMsg("bug-msg", null, e.getCause()));
+      buf.append(getThrowableMsg(INFO_BUG_MSG.get(), e.getCause()));
     }
     else
     {
       // This is unexpected.
-      buf.append(getThrowableMsg("bug-msg", null, e.getCause()));
+      buf.append(getThrowableMsg(INFO_BUG_MSG.get(), e.getCause()));
     }
     return buf.toString();
   }
@@ -713,7 +732,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
     }
     catch (NamingException ne)
     {
-      String errorMessage = getMsg("cannot-connect-to-remote-generic",
+      Message errorMessage = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
           server.getHostPort(true), ne.toString(true));
       throw new ApplicationException(
           ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR, errorMessage,
@@ -749,15 +768,18 @@ public abstract class Application implements ProgressNotifier, Runnable {
     /**
      * {@inheritDoc}
      */
-    public void println(String msg)
+    public void println(Message msg)
     {
+      MessageBuilder mb = new MessageBuilder();
       if (isFirstLine)
       {
-        notifyListeners(getFormattedLogError(msg));
+        mb.append(getFormattedLogError(msg));
       } else
       {
-        notifyListeners(formatter.getLineBreak() + getFormattedLogError(msg));
+        mb.append(formatter.getLineBreak());
+        mb.append(getFormattedLogError(msg));
       }
+      notifyListeners(mb.toMessage());
       isFirstLine = false;
     }
 
@@ -808,15 +830,18 @@ public abstract class Application implements ProgressNotifier, Runnable {
     /**
      * {@inheritDoc}
      */
-    public void println(String msg)
+    public void println(Message msg)
     {
+      MessageBuilder mb = new MessageBuilder();
       if (isFirstLine)
       {
-        notifyListeners(getFormattedLog(msg));
+        mb.append(getFormattedLog(Message.raw(msg)));
       } else
       {
-        notifyListeners(formatter.getLineBreak() + getFormattedLog(msg));
+        mb.append(formatter.getLineBreak());
+        mb.append(getFormattedLog(Message.raw(msg)));
       }
+      notifyListeners(mb.toMessage());
       isFirstLine = false;
     }
 

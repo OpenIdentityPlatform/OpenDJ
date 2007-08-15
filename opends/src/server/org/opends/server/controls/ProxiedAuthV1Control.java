@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
+import org.opends.messages.Message;
 
 
 
@@ -48,8 +49,7 @@ import org.opends.server.types.ResultCode;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
@@ -192,17 +192,14 @@ public class ProxiedAuthV1Control
 
     if (! control.isCritical())
     {
-      int    msgID   = MSGID_PROXYAUTH1_CONTROL_NOT_CRITICAL;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                              message);
+      Message message = ERR_PROXYAUTH1_CONTROL_NOT_CRITICAL.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
     if (! control.hasValue())
     {
-      int    msgID   = MSGID_PROXYAUTH1_NO_CONTROL_VALUE;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_PROXYAUTH1_NO_CONTROL_VALUE.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -213,9 +210,9 @@ public class ProxiedAuthV1Control
            ASN1Sequence.decodeAsSequence(control.getValue().value()).elements();
       if (elements.size() != 1)
       {
-        int    msgID   = MSGID_PROXYAUTH1_INVALID_ELEMENT_COUNT;
-        String message = getMessage(msgID, elements.size());
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+        Message message =
+            ERR_PROXYAUTH1_INVALID_ELEMENT_COUNT.get(elements.size());
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
 
       rawAuthorizationDN = elements.get(0).decodeAsOctetString();
@@ -231,9 +228,9 @@ public class ProxiedAuthV1Control
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_PROXYAUTH1_CANNOT_DECODE_VALUE;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_PROXYAUTH1_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message, e);
     }
 
     return new ProxiedAuthV1Control(control.getOID(), control.isCritical(),
@@ -355,10 +352,9 @@ public class ProxiedAuthV1Control
 
     if (entryLock == null)
     {
-      int    msgID   = MSGID_PROXYAUTH1_CANNOT_LOCK_USER;
-      String message = getMessage(msgID, String.valueOf(authzDN));
-      throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message,
-                                   msgID);
+      Message message =
+          ERR_PROXYAUTH1_CANNOT_LOCK_USER.get(String.valueOf(authzDN));
+      throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
     }
 
     try
@@ -367,10 +363,9 @@ public class ProxiedAuthV1Control
       if (userEntry == null)
       {
         // The requested user does not exist.
-        int    msgID   = MSGID_PROXYAUTH1_NO_SUCH_USER;
-        String message = getMessage(msgID, String.valueOf(authzDN));
-        throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message,
-                                     msgID);
+        Message message =
+            ERR_PROXYAUTH1_NO_SUCH_USER.get(String.valueOf(authzDN));
+        throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
       }
 
 
@@ -384,10 +379,9 @@ public class ProxiedAuthV1Control
           pwpState.lockedDueToMaximumResetAge() ||
           pwpState.isPasswordExpired())
       {
-        int    msgID   = MSGID_PROXYAUTH1_UNUSABLE_ACCOUNT;
-        String message = getMessage(msgID, String.valueOf(authzDN));
-        throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message,
-                                     msgID);
+        Message message =
+            ERR_PROXYAUTH1_UNUSABLE_ACCOUNT.get(String.valueOf(authzDN));
+        throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
       }
 
 

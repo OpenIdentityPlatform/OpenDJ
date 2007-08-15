@@ -28,6 +28,7 @@ package org.opends.server.authorization.dseecompat;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.tools.*;
@@ -1732,7 +1733,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
       ByteArrayOutputStream updatedEntriesStream = new ByteArrayOutputStream();
       LDIFWriter ldifWriter = new LDIFWriter(new LDIFExportConfig(updatedEntriesStream));
 
-      List<String> errors = new ArrayList<String>();
+      List<Message> errors = new ArrayList<Message>();
       LDIFModify.modifyLDIF(baseReader, changesReader, ldifWriter, errors);
       Assert.assertTrue(errors.isEmpty(), "Unexpected errors applying LDIF changes: " + errors);
       ldifWriter.flush();

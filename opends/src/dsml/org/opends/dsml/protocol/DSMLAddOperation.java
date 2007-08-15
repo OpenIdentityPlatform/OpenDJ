@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.opends.messages.Message;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
@@ -111,10 +112,11 @@ public class DSMLAddOperation
 
     AddResponseProtocolOp addOp = responseMessage.getAddResponseProtocolOp();
     int resultCode = addOp.getResultCode();
-    String errorMessage = addOp.getErrorMessage();
+    Message errorMessage = addOp.getErrorMessage();
 
     // Set the result code and error message for the DSML response.
-    addResponse.setErrorMessage(errorMessage);
+    addResponse.setErrorMessage(
+            errorMessage != null ? errorMessage.toString() : null);
     ResultCode code = objFactory.createResultCode();
     code.setCode(resultCode);
     addResponse.setResultCode(code);

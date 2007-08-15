@@ -26,13 +26,15 @@
  */
 
 package org.opends.server.admin;
+import org.opends.messages.Message;
 
+import org.opends.server.types.OpenDsException;
 
 
 /**
  * Exceptions thrown when interacting with administration framework.
  */
-public abstract class AdminException extends Exception {
+public abstract class AdminException extends OpenDsException {
 
   /**
    * Create an admin exception.
@@ -63,7 +65,7 @@ public abstract class AdminException extends Exception {
    * @param cause
    *          The cause.
    */
-  protected AdminException(String message, Throwable cause) {
+  protected AdminException(Message message, Throwable cause) {
     super(message, cause);
   }
 
@@ -75,7 +77,7 @@ public abstract class AdminException extends Exception {
    * @param message
    *          The message.
    */
-  protected AdminException(String message) {
+  protected AdminException(Message message) {
     super(message);
   }
 }

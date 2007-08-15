@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util.args;
+import org.opends.messages.Message;
 
 
 
@@ -32,8 +33,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
+import static org.opends.messages.UtilityMessages.*;
+
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -57,14 +58,11 @@ public class SubCommand
   // subcommand.
   private HashMap<String,Argument> longIDMap;
 
-  // The unique identifier for the description of this subcommand.
-  private int descriptionID;
-
   // The list of arguments associated with this subcommand.
   private LinkedList<Argument> arguments;
 
   // The description for this subcommand.
-  private String description;
+  private Message description;
 
   // The name of this subcommand.
   private String name;
@@ -98,19 +96,16 @@ public class SubCommand
    *          associated.
    * @param name
    *          The name of this subcommand.
-   * @param descriptionID
-   *          The unique ID for the description of this subcommand.
-   * @param descriptionArgs
-   *          The arguments to use to generate the description string
-   *          for this subcommand.
+   * @param description
+   *          The description of this subcommand.
    * @throws ArgumentException
    *           If the associated argument parser already has a
    *           subcommand with the same name.
    */
   public SubCommand(SubCommandArgumentParser parser, String name,
-      int descriptionID, Object... descriptionArgs) throws ArgumentException
+      Message description) throws ArgumentException
   {
-    this(parser, name, false, 0, 0, null, descriptionID, descriptionArgs);
+    this(parser, name, false, 0, 0, null, description);
   }
 
 
@@ -140,11 +135,8 @@ public class SubCommand
    *          The display name that should be used as a placeholder
    *          for unnamed trailing arguments in the generated usage
    *          information.
-   * @param descriptionID
-   *          The unique ID for the description of this subcommand.
-   * @param descriptionArgs
-   *          The arguments to use to generate the description string
-   *          for this subcommand.
+   * @param description
+   *          The description of this subcommand.
    * @throws ArgumentException
    *           If the associated argument parser already has a
    *           subcommand with the same name.
@@ -152,11 +144,11 @@ public class SubCommand
   public SubCommand(SubCommandArgumentParser parser, String name,
       boolean allowsTrailingArguments, int minTrailingArguments,
       int maxTrailingArguments, String trailingArgsDisplayName,
-      int descriptionID, Object... descriptionArgs) throws ArgumentException
+      Message description) throws ArgumentException
   {
     this.parser = parser;
     this.name = name;
-    this.descriptionID = descriptionID;
+    this.description = description;
     this.allowsTrailingArguments = allowsTrailingArguments;
     this.minTrailingArguments = minTrailingArguments;
     this.maxTrailingArguments = maxTrailingArguments;
@@ -171,13 +163,11 @@ public class SubCommand
 
     if (parser.hasSubCommand(nameToCheck))
     {
-      int    msgID   = MSGID_ARG_SUBCOMMAND_DUPLICATE_SUBCOMMAND;
-      String message = getMessage(msgID, name);
-      throw new ArgumentException(msgID, message);
+      Message message = ERR_ARG_SUBCOMMAND_DUPLICATE_SUBCOMMAND.get(name);
+      throw new ArgumentException(message);
     }
 
     parser.addSubCommand(this);
-    description = getMessage(descriptionID, descriptionArgs);
     shortIDMap  = new HashMap<Character,Argument>();
     longIDMap   = new HashMap<String,Argument>();
     arguments   = new LinkedList<Argument>();
@@ -196,25 +186,12 @@ public class SubCommand
   }
 
 
-
-  /**
-   * Retrieves the unique ID for the description of this subcommand.
-   *
-   * @return  The unique ID for the description of this subcommand.
-   */
-  public int getDescriptionID()
-  {
-    return descriptionID;
-  }
-
-
-
   /**
    * Retrieves the description for this subcommand.
    *
    * @return  The description for this subcommand.
    */
-  public String getDescription()
+  public Message getDescription()
   {
     return description;
   }
@@ -304,17 +281,17 @@ public class SubCommand
     {
       if (argumentName.equals(a.getName()))
       {
-        int    msgID   = MSGID_ARG_SUBCOMMAND_DUPLICATE_ARGUMENT_NAME;
-        String message = getMessage(msgID, name, argumentName);
-        throw new ArgumentException(msgID, message);
+        Message message =
+            ERR_ARG_SUBCOMMAND_DUPLICATE_ARGUMENT_NAME.get(name, argumentName);
+        throw new ArgumentException(message);
       }
     }
 
     if (parser.hasGlobalArgument(argumentName))
     {
-      int    msgID   = MSGID_ARG_SUBCOMMAND_ARGUMENT_GLOBAL_CONFLICT;
-      String message = getMessage(msgID, argumentName, name);
-      throw new ArgumentException(msgID, message);
+      Message message =
+          ERR_ARG_SUBCOMMAND_ARGUMENT_GLOBAL_CONFLICT.get(argumentName, name);
+      throw new ArgumentException(message);
     }
 
 
@@ -323,20 +300,18 @@ public class SubCommand
     {
       if (shortIDMap.containsKey(shortID))
       {
-        int    msgID   = MSGID_ARG_SUBCOMMAND_DUPLICATE_SHORT_ID;
-        String message = getMessage(msgID, argumentName, name,
-                                    String.valueOf(shortID),
-                                    shortIDMap.get(shortID).getName());
-        throw new ArgumentException(msgID, message);
+        Message message = ERR_ARG_SUBCOMMAND_DUPLICATE_SHORT_ID.
+            get(argumentName, name, String.valueOf(shortID),
+                shortIDMap.get(shortID).getName());
+        throw new ArgumentException(message);
       }
 
       Argument arg = parser.getGlobalArgumentForShortID(shortID);
       if (arg != null)
       {
-        int    msgID   = MSGID_ARG_SUBCOMMAND_ARGUMENT_SHORT_ID_GLOBAL_CONFLICT;
-        String message = getMessage(msgID, argumentName, name,
-                                    String.valueOf(shortID), arg.getName());
-        throw new ArgumentException(msgID, message);
+        Message message = ERR_ARG_SUBCOMMAND_ARGUMENT_SHORT_ID_GLOBAL_CONFLICT.
+            get(argumentName, name, String.valueOf(shortID), arg.getName());
+        throw new ArgumentException(message);
       }
     }
 
@@ -351,19 +326,17 @@ public class SubCommand
 
       if (longIDMap.containsKey(longID))
       {
-        int    msgID   = MSGID_ARG_SUBCOMMAND_DUPLICATE_LONG_ID;
-        String message = getMessage(msgID, argumentName, name, longID,
-                                    longIDMap.get(longID).getName());
-        throw new ArgumentException(msgID, message);
+        Message message = ERR_ARG_SUBCOMMAND_DUPLICATE_LONG_ID.get(
+            argumentName, name, longID, longIDMap.get(longID).getName());
+        throw new ArgumentException(message);
       }
 
       Argument arg = parser.getGlobalArgumentForLongID(longID);
       if (arg != null)
       {
-        int    msgID   = MSGID_ARG_SUBCOMMAND_ARGUMENT_LONG_ID_GLOBAL_CONFLICT;
-        String message = getMessage(msgID, argumentName, name, longID,
-                                    arg.getName());
-        throw new ArgumentException(msgID, message);
+        Message message = ERR_ARG_SUBCOMMAND_ARGUMENT_LONG_ID_GLOBAL_CONFLICT.
+            get(argumentName, name, longID, arg.getName());
+        throw new ArgumentException(message);
       }
     }
 

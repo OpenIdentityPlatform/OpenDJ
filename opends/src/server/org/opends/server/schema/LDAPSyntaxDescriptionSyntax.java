@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+import org.opends.messages.Message;
 
 
 
@@ -38,19 +39,18 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
 
 
 /**
@@ -103,27 +103,24 @@ public class LDAPSyntaxDescriptionSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_CASE_IGNORE_OID, SYNTAX_LDAP_SYNTAX_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_CASE_IGNORE_OID, SYNTAX_LDAP_SYNTAX_NAME));
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-               OMR_CASE_IGNORE_OID, SYNTAX_LDAP_SYNTAX_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+          OMR_CASE_IGNORE_OID, SYNTAX_LDAP_SYNTAX_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_CASE_IGNORE_OID, SYNTAX_LDAP_SYNTAX_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_CASE_IGNORE_OID, SYNTAX_LDAP_SYNTAX_NAME));
     }
   }
 
@@ -239,7 +236,7 @@ public class LDAPSyntaxDescriptionSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // Get string representations of the provided value using the provided form
     // and with all lowercase characters.
@@ -260,8 +257,8 @@ public class LDAPSyntaxDescriptionSyntax
     {
       // This means that the value was empty or contained only whitespace.  That
       // is illegal.
-      int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE;
-      invalidReason.append(getMessage(msgID));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE.get());
       return false;
     }
 
@@ -271,8 +268,10 @@ public class LDAPSyntaxDescriptionSyntax
     char c = valueStr.charAt(pos++);
     if (c != '(')
     {
-      int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS;
-      invalidReason.append(getMessage(msgID, valueStr, (pos-1), c));
+
+      invalidReason.append(
+              ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(
+                      valueStr, (pos-1), String.valueOf(c)));
       return false;
     }
 
@@ -287,8 +286,8 @@ public class LDAPSyntaxDescriptionSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE;
-      invalidReason.append(getMessage(msgID, valueStr));
+      invalidReason.append(ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(
+              valueStr));
       return false;
     }
 
@@ -309,9 +308,9 @@ public class LDAPSyntaxDescriptionSyntax
         {
           if (lastWasPeriod)
           {
-            int msgID =
-                 MSGID_ATTR_SYNTAX_ATTRSYNTAX_DOUBLE_PERIOD_IN_NUMERIC_OID;
-            invalidReason.append(getMessage(msgID, valueStr, (pos-1)));
+            invalidReason.append(
+                    ERR_ATTR_SYNTAX_ATTRSYNTAX_DOUBLE_PERIOD_IN_NUMERIC_OID.get(
+                            valueStr, (pos-1)));
             return false;
           }
           else
@@ -322,8 +321,9 @@ public class LDAPSyntaxDescriptionSyntax
         else if (! isDigit(c))
         {
           // This must have been an illegal character.
-          int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_CHAR_IN_NUMERIC_OID;
-          invalidReason.append(getMessage(msgID, valueStr, c, (pos-1)));
+          invalidReason.append(
+                  ERR_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_CHAR_IN_NUMERIC_OID.get(
+                          valueStr, String.valueOf(c), (pos-1)));
           return false;
         }
         else
@@ -346,8 +346,10 @@ public class LDAPSyntaxDescriptionSyntax
         else
         {
           // This must have been an illegal character.
-          int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_CHAR_IN_STRING_OID;
-          invalidReason.append(getMessage(msgID, valueStr, c, (pos-1)));
+
+          invalidReason.append(
+                  ERR_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(
+                          valueStr, String.valueOf(c), (pos-1)));
           return false;
         }
       }
@@ -359,8 +361,8 @@ public class LDAPSyntaxDescriptionSyntax
     String oid;
     if (pos >= length)
     {
-      int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE;
-      invalidReason.append(getMessage(msgID, valueStr));
+      invalidReason.append(ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(
+              valueStr));
       return false;
     }
     else
@@ -379,8 +381,8 @@ public class LDAPSyntaxDescriptionSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE;
-      invalidReason.append(getMessage(msgID, valueStr));
+      invalidReason.append(ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(
+              valueStr));
       return false;
     }
 
@@ -391,8 +393,9 @@ public class LDAPSyntaxDescriptionSyntax
     {
       if (pos < length)
       {
-        int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_UNEXPECTED_CLOSE_PARENTHESIS;
-        invalidReason.append(getMessage(msgID, valueStr, (pos-1)));
+        invalidReason.append(
+                ERR_ATTR_SYNTAX_ATTRSYNTAX_UNEXPECTED_CLOSE_PARENTHESIS.get(
+                        valueStr, (pos-1)));
         return false;
       }
 
@@ -415,16 +418,16 @@ public class LDAPSyntaxDescriptionSyntax
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_CANNOT_READ_DESC_TOKEN;
-      invalidReason.append(getMessage(msgID, valueStr, pos,
-                                      getExceptionMessage(e)));
+      invalidReason.append(
+              ERR_ATTR_SYNTAX_ATTRSYNTAX_CANNOT_READ_DESC_TOKEN.get(
+                      valueStr, pos, getExceptionMessage(e)));
       return false;
     }
 
     if (! tokenName.equals("desc"))
     {
-      int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_TOKEN_NOT_DESC;
-      invalidReason.append(getMessage(msgID, valueStr, tokenName));
+      invalidReason.append(ERR_ATTR_SYNTAX_ATTRSYNTAX_TOKEN_NOT_DESC.get(
+              valueStr, tokenName));
       return false;
     }
 
@@ -442,9 +445,9 @@ public class LDAPSyntaxDescriptionSyntax
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_CANNOT_READ_DESC_VALUE;
-      invalidReason.append(getMessage(msgID, valueStr, pos,
-                                      getExceptionMessage(e)));
+      invalidReason.append(
+              ERR_ATTR_SYNTAX_ATTRSYNTAX_CANNOT_READ_DESC_VALUE.get(
+                      valueStr, pos, getExceptionMessage(e)));
       return false;
     }
     //Check if we have a RFC 4512 style extension.
@@ -457,8 +460,9 @@ public class LDAPSyntaxDescriptionSyntax
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
-            int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_INVALID_EXTENSION;
-            invalidReason.append(getMessage(msgID, getExceptionMessage(e)));
+            invalidReason.append(
+                    ERR_ATTR_SYNTAX_ATTRSYNTAX_INVALID_EXTENSION.get(
+                            getExceptionMessage(e)));
             return false;
         }
     }
@@ -467,8 +471,10 @@ public class LDAPSyntaxDescriptionSyntax
     // be anything after it (except maybe some spaces).
     if ((c = valueStr.charAt(pos++)) != ')')
     {
-      int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_CLOSE_PARENTHESIS;
-      invalidReason.append(getMessage(msgID, valueStr, pos, c));
+
+      invalidReason.append(
+              ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_CLOSE_PARENTHESIS.get(
+                      valueStr, pos, String.valueOf(c)));
       return false;
     }
 
@@ -477,8 +483,10 @@ public class LDAPSyntaxDescriptionSyntax
       c = valueStr.charAt(pos++);
       if (c != ' ')
       {
-        int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_CHAR_AFTER_CLOSE;
-        invalidReason.append(getMessage(msgID, valueStr, c, pos));
+
+        invalidReason.append(
+                ERR_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_CHAR_AFTER_CLOSE.get(
+                        valueStr, String.valueOf(c), pos));
         return false;
       }
     }
@@ -520,10 +528,10 @@ public class LDAPSyntaxDescriptionSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message =
+          ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -579,20 +587,20 @@ public class LDAPSyntaxDescriptionSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message =
+          ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
     // The next character must be a single quote.
     if (c != '\'')
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_QUOTE_AT_POS;
-      String message = getMessage(msgID, valueStr, startPos, c);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = WARN_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_QUOTE_AT_POS.get(
+          valueStr, startPos, String.valueOf(c));
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -616,10 +624,10 @@ public class LDAPSyntaxDescriptionSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message =
+          ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -662,21 +670,21 @@ private static int parseExtension(String valueStr, int startPos)
           String tokenName = tokenNameBuffer.toString();
           if((tokenName.length() <= 2) || (!tokenName.startsWith("X-")))
           {
-              int    msgID  =
-                  MSGID_ATTR_SYNTAX_ATTRSYNTAX_EXTENSION_INVALID_CHARACTER;
-              String message = getMessage(msgID, valueStr);
+              Message message =
+                ERR_ATTR_SYNTAX_ATTRSYNTAX_EXTENSION_INVALID_CHARACTER.get(
+                        valueStr, pos);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                      message, msgID);
+                      message);
           }
           String xstring = tokenName.substring(2);
           //Only allow a-z,A-Z,-,_ characters after X-
           if(xstring.split("^[A-Za-z_-]+").length > 0)
           {
-              int    msgID   =
-                  MSGID_ATTR_SYNTAX_ATTRSYNTAX_EXTENSION_INVALID_CHARACTER;
-              String message = getMessage(msgID, valueStr);
+              Message message =
+                ERR_ATTR_SYNTAX_ATTRSYNTAX_EXTENSION_INVALID_CHARACTER.get(
+                        valueStr, pos);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                      message, msgID);
+                      message);
           }
           if((c=valueStr.charAt(pos)) == '\'')
           {
@@ -692,18 +700,18 @@ private static int parseExtension(String valueStr, int startPos)
               pos++;
           } else
           {
-              int    msgID   =
-                  MSGID_ATTR_SYNTAX_ATTRSYNTAX_EXTENSION_INVALID_CHARACTER;
-              String message = getMessage(msgID, valueStr);
+              Message message =
+                ERR_ATTR_SYNTAX_ATTRSYNTAX_EXTENSION_INVALID_CHARACTER.get(
+                        valueStr, pos);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                      message, msgID);
+                      message);
           }
           if (pos >= len)
           {
-            int    msgID   = MSGID_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE;
-            String message = getMessage(msgID, valueStr);
+            Message message =
+                ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(valueStr);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
           if(valueStr.charAt(pos) == ')')
               break;

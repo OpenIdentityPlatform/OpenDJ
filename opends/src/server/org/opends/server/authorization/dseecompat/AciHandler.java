@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
 
 
@@ -34,11 +35,9 @@ import static org.opends.server.config.ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.messages.AciMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_DN_OID;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import java.util.*;
@@ -224,8 +223,7 @@ public class AciHandler
     private void processGlobalAcis(
         DseeCompatAccessControlHandlerCfg configuration)
     throws InitializationException {
-        int msgID;
-        LinkedList<String>failedACIMsgs=new LinkedList<String>();
+        LinkedList<Message>failedACIMsgs=new LinkedList<Message>();
         SortedSet<String> globalAci = configuration.getGlobalACI();
         try {
             if (globalAci != null)   {
@@ -243,26 +241,20 @@ public class AciHandler
                 int aciCount =  aciList.addAci(e, false, true, failedACIMsgs);
                 if(!failedACIMsgs.isEmpty())
                     aciListenerMgr.logMsgsSetLockDownMode(failedACIMsgs);
-                msgID  = MSGID_ACI_ADD_LIST_GLOBAL_ACIS;
-                String message = getMessage(msgID, Integer.toString(aciCount));
-                logError(ErrorLogCategory.ACCESS_CONTROL,
-                        ErrorLogSeverity.INFORMATIONAL,
-                        message, msgID);
+                Message message = INFO_ACI_ADD_LIST_GLOBAL_ACIS.get(
+                    Integer.toString(aciCount));
+                logError(message);
             }  else {
-                msgID  = MSGID_ACI_ADD_LIST_NO_GLOBAL_ACIS;
-                String message = getMessage(msgID);
-                logError(ErrorLogCategory.ACCESS_CONTROL,
-                        ErrorLogSeverity.INFORMATIONAL, message, msgID);
+                Message message = INFO_ACI_ADD_LIST_NO_GLOBAL_ACIS.get();
+                logError(message);
 
             }
         }  catch (Exception e) {
             if (debugEnabled())
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            msgID = MSGID_ACI_HANDLER_FAIL_PROCESS_GLOBAL_ACI;
-            String message =
-                    getMessage(msgID, String.valueOf(configuration.dn()),
-                    stackTraceToSingleLineString(e));
-            throw new InitializationException(msgID, message, e);
+            Message message = INFO_ACI_HANDLER_FAIL_PROCESS_GLOBAL_ACI.
+                get(String.valueOf(configuration.dn()));
+            throw new InitializationException(message, e);
         }
     }
 
@@ -281,7 +273,7 @@ public class AciHandler
             DN configDN=DN.decode("cn=config");
             LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
             attrs.add("aci");
-            LinkedList<String>failedACIMsgs=new LinkedList<String>();
+            LinkedList<Message>failedACIMsgs=new LinkedList<Message>();
             InternalClientConnection conn =
                     InternalClientConnection.getRootConnection();
             InternalSearchOperation op = conn.processSearch(configDN,
@@ -289,26 +281,21 @@ public class AciHandler
                     DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                     SearchFilter.createFilterFromString("aci=*"), attrs);
             if(op.getSearchEntries().isEmpty()) {
-                int    msgID  = MSGID_ACI_ADD_LIST_NO_ACIS;
-                String message = getMessage(msgID, String.valueOf(configDN));
-                logError(ErrorLogCategory.ACCESS_CONTROL,
-                        ErrorLogSeverity.INFORMATIONAL, message, msgID);
+                Message message =
+                    INFO_ACI_ADD_LIST_NO_ACIS.get(String.valueOf(configDN));
+                logError(message);
             } else {
                 int validAcis =
                            aciList.addAci(op.getSearchEntries(), failedACIMsgs);
                 if(!failedACIMsgs.isEmpty())
                     aciListenerMgr.logMsgsSetLockDownMode(failedACIMsgs);
-                int    msgID  = MSGID_ACI_ADD_LIST_ACIS;
-                String message = getMessage(msgID, Integer.toString(validAcis),
-                        String.valueOf(configDN));
-                logError(ErrorLogCategory.ACCESS_CONTROL,
-                        ErrorLogSeverity.INFORMATIONAL,
-                        message, msgID);
+                Message message = INFO_ACI_ADD_LIST_ACIS.get(
+                    Integer.toString(validAcis), String.valueOf(configDN));
+                logError(message);
             }
         } catch (DirectoryException e) {
-            int  msgID = MSGID_ACI_HANDLER_FAIL_PROCESS_ACI;
-            String message = getMessage(msgID, stackTraceToSingleLineString(e));
-            throw new InitializationException(msgID, message, e);
+            Message message = INFO_ACI_HANDLER_FAIL_PROCESS_ACI.get();
+            throw new InitializationException(message, e);
         }
     }
 
@@ -339,14 +326,10 @@ public class AciHandler
                */
               if (!operation.getClientConnection().
                    hasPrivilege(Privilege.MODIFY_ACL, operation)) {
-                int  msgID  = MSGID_ACI_MODIFY_FAILED_PRIVILEGE;
-                String message =
-                     getMessage(msgID,
-                                String.valueOf(container.getResourceDN()),
-                                String.valueOf(container.getClientDN()));
-                logError(ErrorLogCategory.ACCESS_CONTROL,
-                         ErrorLogSeverity.INFORMATIONAL,
-                         message, msgID);
+                Message message = INFO_ACI_MODIFY_FAILED_PRIVILEGE.
+                    get(String.valueOf(container.getResourceDN()),
+                        String.valueOf(container.getClientDN()));
+                logError(message);
                 return false;
               }
             }
@@ -430,13 +413,9 @@ public class AciHandler
                                dn=DN.nullDN();
                            Aci.decode(v.getValue(),dn);
                        } catch (AciException ex) {
-                           int    msgID  = MSGID_ACI_MODIFY_FAILED_DECODE;
-                           String message = getMessage(msgID,
-                                   String.valueOf(dn),
-                                   ex.getMessage());
-                           logError(ErrorLogCategory.ACCESS_CONTROL,
-                                   ErrorLogSeverity.INFORMATIONAL,
-                                   message, msgID);
+                           Message message = WARN_ACI_MODIFY_FAILED_DECODE.get(
+                               String.valueOf(dn), ex.getMessage());
+                           logError(message);
                            return false;
                        }
                    }
@@ -598,10 +577,8 @@ public class AciHandler
             }
           } catch (DirectoryException ex) {
              //Log a message and keep going.
-             int  msgID  = MSGID_ACI_NOT_VALID_DN;
-             String message = getMessage(msgID, DNString);
-             logError(ErrorLogCategory.ACCESS_CONTROL,
-                     ErrorLogSeverity.INFORMATIONAL, message, msgID);
+             Message message = WARN_ACI_NOT_VALID_DN.get(DNString);
+             logError(message);
           }
         }
 
@@ -864,13 +841,9 @@ public class AciHandler
          */
         if (!operation.getClientConnection().
              hasPrivilege(Privilege.MODIFY_ACL, operation))  {
-          int    msgID  = MSGID_ACI_ADD_FAILED_PRIVILEGE;
-          String message = getMessage(msgID,
-                                      String.valueOf(entry.getDN()),
-                                      String.valueOf(clientDN));
-          logError(ErrorLogCategory.ACCESS_CONTROL,
-                   ErrorLogSeverity.INFORMATIONAL,
-                   message, msgID);
+          Message message = INFO_ACI_ADD_FAILED_PRIVILEGE.get(
+              String.valueOf(entry.getDN()), String.valueOf(clientDN));
+          logError(message);
           return false;
         }
         List<Attribute> attributeList =
@@ -883,13 +856,9 @@ public class AciHandler
               DN dn=entry.getDN();
               Aci.decode(value.getValue(),dn);
             } catch (AciException ex) {
-              int    msgID  = MSGID_ACI_ADD_FAILED_DECODE;
-              String message = getMessage(msgID,
-                                          String.valueOf(entry.getDN()),
-                                          ex.getMessage());
-              logError(ErrorLogCategory.ACCESS_CONTROL,
-                       ErrorLogSeverity.INFORMATIONAL,
-                       message, msgID);
+              Message message = WARN_ACI_ADD_FAILED_DECODE.get(
+                  String.valueOf(entry.getDN()), ex.getMessage());
+              logError(message);
               return false;
             }
           }
@@ -1136,10 +1105,9 @@ public class AciHandler
         break;
     }
     if (entryLock == null) {
-      int    msgID   = MSGID_ACI_HANDLER_CANNOT_LOCK_NEW_SUPERIOR_USER;
-      String message = getMessage(msgID, String.valueOf(superiorDN));
-       logError(ErrorLogCategory.ACCESS_CONTROL, ErrorLogSeverity.INFORMATIONAL,
-                message, msgID);
+      Message message = WARN_ACI_HANDLER_CANNOT_LOCK_NEW_SUPERIOR_USER.get(
+          String.valueOf(superiorDN));
+      logError(message);
       return false;
     }
     try {
@@ -1222,11 +1190,9 @@ public class AciHandler
                 GetEffectiveRights.decodeControl(control);
         op.setAttachment(OID_GET_EFFECTIVE_RIGHTS, getEffectiveRightsControl);
       } catch  (LDAPException le)  {
-        int msgID=MSGID_ACI_SYNTAX_DECODE_EFFECTIVERIGHTS_FAIL;
-        String message = getMessage(msgID, le.getMessage());
-        logError(ErrorLogCategory.ACCESS_CONTROL,
-                 ErrorLogSeverity.INFORMATIONAL,
-                 message, msgID);
+        Message message =
+            WARN_ACI_SYNTAX_DECODE_EFFECTIVERIGHTS_FAIL.get(le.getMessage());
+        logError(message);
         ret=false;
       }
     }

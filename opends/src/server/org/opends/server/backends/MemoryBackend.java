@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
+import org.opends.messages.Message;
 
 
 
@@ -63,8 +64,7 @@ import org.opends.server.util.Validator;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.BackendMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.admin.std.server.BackendCfg;
@@ -181,9 +181,8 @@ public class MemoryBackend
     // map.
     if ((baseDNs == null) || (baseDNs.length != 1))
     {
-      int    msgID   = MSGID_MEMORYBACKEND_REQUIRE_EXACTLY_ONE_BASE;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_MEMORYBACKEND_REQUIRE_EXACTLY_ONE_BASE.get();
+      throw new ConfigException(message);
     }
 
     baseDNSet = new HashSet<DN>();
@@ -213,10 +212,9 @@ public class MemoryBackend
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
-        String message = getMessage(msgID, dn.toString(),
-                                    getExceptionMessage(e));
-        throw new InitializationException(msgID, message, e);
+        Message message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
+            dn.toString(), getExceptionMessage(e));
+        throw new InitializationException(message, e);
       }
     }
   }
@@ -333,10 +331,9 @@ public class MemoryBackend
     DN entryDN = e.getDN();
     if (entryMap.containsKey(entryDN))
     {
-      int    msgID   = MSGID_MEMORYBACKEND_ENTRY_ALREADY_EXISTS;
-      String message = getMessage(msgID, String.valueOf(entryDN));
-      throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message,
-                                   msgID);
+      Message message =
+          ERR_MEMORYBACKEND_ENTRY_ALREADY_EXISTS.get(String.valueOf(entryDN));
+      throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
     }
 
 
@@ -352,16 +349,15 @@ public class MemoryBackend
     DN parentDN = entryDN.getParentDNInSuffix();
     if (parentDN == null)
     {
-      int    msgID   = MSGID_MEMORYBACKEND_ENTRY_DOESNT_BELONG;
-      String message = getMessage(msgID, String.valueOf(entryDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+      Message message =
+          ERR_MEMORYBACKEND_ENTRY_DOESNT_BELONG.get(String.valueOf(entryDN));
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
     else if (! entryMap.containsKey(parentDN))
     {
-      int    msgID   = MSGID_MEMORYBACKEND_PARENT_DOESNT_EXIST;
-      String message = getMessage(msgID, String.valueOf(entryDN),
-                                  String.valueOf(parentDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+      Message message = ERR_MEMORYBACKEND_PARENT_DOESNT_EXIST.get(
+          String.valueOf(entryDN), String.valueOf(parentDN));
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
 
     entryMap.put(entryDN, e);
@@ -387,9 +383,9 @@ public class MemoryBackend
     // Make sure the entry exists.  If not, then throw an exception.
     if (! entryMap.containsKey(entryDN))
     {
-      int    msgID   = MSGID_MEMORYBACKEND_ENTRY_DOESNT_EXIST;
-      String message = getMessage(msgID, String.valueOf(entryDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+      Message message =
+          ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(String.valueOf(entryDN));
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
 
 
@@ -436,10 +432,10 @@ public class MemoryBackend
       // an exception.
       if ((children != null) && (! children.isEmpty()))
       {
-        int    msgID   = MSGID_MEMORYBACKEND_CANNOT_DELETE_ENTRY_WITH_CHILDREN;
-        String message = getMessage(msgID, String.valueOf(entryDN));
-        throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF, message,
-                                     msgID);
+        Message message = ERR_MEMORYBACKEND_CANNOT_DELETE_ENTRY_WITH_CHILDREN.
+            get(String.valueOf(entryDN));
+        throw new DirectoryException(
+                ResultCode.NOT_ALLOWED_ON_NONLEAF, message);
       }
     }
 
@@ -479,9 +475,9 @@ public class MemoryBackend
     DN entryDN = e.getDN();
     if (! entryMap.containsKey(entryDN))
     {
-      int    msgID   = MSGID_MEMORYBACKEND_ENTRY_DOESNT_EXIST;
-      String message = getMessage(msgID, String.valueOf(entryDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+      Message message =
+          ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(String.valueOf(entryDN));
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
 
 
@@ -503,9 +499,9 @@ public class MemoryBackend
     // Make sure that the target entry exists.
     if (! entryMap.containsKey(currentDN))
     {
-      int    msgID   = MSGID_MEMORYBACKEND_ENTRY_DOESNT_EXIST;
-      String message = getMessage(msgID, String.valueOf(currentDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+      Message message =
+          ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(String.valueOf(currentDN));
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
 
 
@@ -519,10 +515,10 @@ public class MemoryBackend
       }
       else
       {
-        int    msgID   = MSGID_MEMORYBACKEND_CANNOT_RENAME_ENRY_WITH_CHILDREN;
-        String message = getMessage(msgID, String.valueOf(currentDN));
-        throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF, message,
-                                     msgID);
+        Message message = ERR_MEMORYBACKEND_CANNOT_RENAME_ENRY_WITH_CHILDREN.
+            get(String.valueOf(currentDN));
+        throw new DirectoryException(
+                ResultCode.NOT_ALLOWED_ON_NONLEAF, message);
       }
     }
 
@@ -530,9 +526,9 @@ public class MemoryBackend
     // Make sure that no entry exists with the new DN.
     if (entryMap.containsKey(e.getDN()))
     {
-      int    msgID   = MSGID_MEMORYBACKEND_ENTRY_ALREADY_EXISTS;
-      String message = getMessage(msgID, String.valueOf(e.getDN()));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+      Message message =
+          ERR_MEMORYBACKEND_ENTRY_ALREADY_EXISTS.get(String.valueOf(e.getDN()));
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
 
 
@@ -549,10 +545,9 @@ public class MemoryBackend
 
     if (! matchFound)
     {
-      int    msgID   = MSGID_MEMORYBACKEND_CANNOT_RENAME_TO_ANOTHER_BACKEND;
-      String message = getMessage(msgID, String.valueOf(currentDN));
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_MEMORYBACKEND_CANNOT_RENAME_TO_ANOTHER_BACKEND.get(
+          String.valueOf(currentDN));
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
 
@@ -560,11 +555,9 @@ public class MemoryBackend
     DN parentDN = e.getDN().getParentDNInSuffix();
     if ((parentDN == null) || (! entryMap.containsKey(parentDN)))
     {
-      int    msgID   = MSGID_MEMORYBACKEND_RENAME_PARENT_DOESNT_EXIST;
-      String message = getMessage(msgID, String.valueOf(currentDN),
-                                  String.valueOf(parentDN));
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_MEMORYBACKEND_RENAME_PARENT_DOESNT_EXIST.get(
+          String.valueOf(currentDN), String.valueOf(parentDN));
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
 
@@ -602,10 +595,10 @@ public class MemoryBackend
         matchedDN = matchedDN.getParentDNInSuffix();
       }
 
-      int    msgID   = MSGID_MEMORYBACKEND_ENTRY_DOESNT_EXIST;
-      String message = getMessage(msgID, String.valueOf(baseDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID,
-                                   matchedDN, null);
+      Message message =
+          ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(String.valueOf(baseDN));
+      throw new DirectoryException(
+              ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
     }
 
     if (baseEntry != null)
@@ -688,10 +681,10 @@ public class MemoryBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_MEMORYBACKEND_CANNOT_CREATE_LDIF_WRITER;
-      String message = getMessage(msgID, String.valueOf(e));
+      Message message =
+          ERR_MEMORYBACKEND_CANNOT_CREATE_LDIF_WRITER.get(String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
 
@@ -707,11 +700,10 @@ public class MemoryBackend
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_MEMORYBACKEND_CANNOT_WRITE_ENTRY_TO_LDIF;
-      String message = getMessage(msgID, String.valueOf(entryDN),
-                                  String.valueOf(e));
+      Message message = ERR_MEMORYBACKEND_CANNOT_WRITE_ENTRY_TO_LDIF.get(
+          String.valueOf(entryDN), String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
     finally
     {
@@ -756,10 +748,10 @@ public class MemoryBackend
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_MEMORYBACKEND_CANNOT_CREATE_LDIF_READER;
-      String message = getMessage(msgID, String.valueOf(e));
+      Message message =
+          ERR_MEMORYBACKEND_CANNOT_CREATE_LDIF_READER.get(String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
 
@@ -780,11 +772,11 @@ public class MemoryBackend
         {
           if (! le.canContinueReading())
           {
-            int    msgID   = MSGID_MEMORYBACKEND_ERROR_READING_LDIF;
-            String message = getMessage(msgID, String.valueOf(e));
+            Message message =
+                ERR_MEMORYBACKEND_ERROR_READING_LDIF.get(String.valueOf(e));
             throw new DirectoryException(
                            DirectoryServer.getServerErrorResultCode(),
-                           message, msgID, le);
+                           message, le);
           }
           else
           {
@@ -798,7 +790,7 @@ public class MemoryBackend
         }
         catch (DirectoryException de)
         {
-          reader.rejectLastEntry(de.getErrorMessage());
+          reader.rejectLastEntry(de.getMessageObject());
         }
       }
 
@@ -812,10 +804,10 @@ public class MemoryBackend
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_MEMORYBACKEND_ERROR_DURING_IMPORT;
-      String message = getMessage(msgID, String.valueOf(e));
+      Message message =
+          ERR_MEMORYBACKEND_ERROR_DURING_IMPORT.get(String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
     finally
     {
@@ -854,10 +846,8 @@ public class MemoryBackend
   public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
-    int    msgID   = MSGID_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -869,10 +859,8 @@ public class MemoryBackend
                            String backupID)
          throws DirectoryException
   {
-    int    msgID   = MSGID_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -894,10 +882,8 @@ public class MemoryBackend
   public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
-    int    msgID   = MSGID_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 }
 

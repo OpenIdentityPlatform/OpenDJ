@@ -39,7 +39,6 @@ import org.opends.server.types.ByteString;
 
 import static org.testng.Assert.*;
 
-import static org.opends.server.messages.ProtocolMessages.*;
 
 
 

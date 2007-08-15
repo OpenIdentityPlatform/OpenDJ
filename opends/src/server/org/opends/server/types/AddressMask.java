@@ -25,10 +25,10 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 import org.opends.server.config.ConfigException;
-import static org.opends.server.messages.ProtocolMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ProtocolMessages.*;
 import java.util.BitSet;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -135,9 +135,9 @@ public final class AddressMask
         //Rule ending with '.' is invalid'
         if(ruleString.endsWith("."))
         {
-            int msgID=MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR;
-            String message = getMessage(msgID);
-            throw new ConfigException(msgID, message);
+            Message message =
+                ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
+            throw new ConfigException(message);
         }
         else if(ruleString.startsWith("."))
         {
@@ -221,9 +221,9 @@ public final class AddressMask
         String s[]=rule.split("^[0-9a-zA-z-.]+");
         if(s.length > 0)
         {
-            int msgID=MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR;
-            String message = getMessage(msgID);
-            throw new ConfigException(msgID,  message);
+            Message message =
+                ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
+            throw new ConfigException(message);
         }
         hostPattern=rule;
     }
@@ -242,9 +242,9 @@ public final class AddressMask
         String s[]=rule.split("^[0-9a-zA-z-.*]+");
         if(s.length > 0)
         {
-            int msgID=MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR;
-            String message = getMessage(msgID);
-            throw new ConfigException(msgID, message);
+            Message message =
+                ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
+            throw new ConfigException(message);
         }
         hostName=rule.split("\\.", -1);
     }
@@ -277,9 +277,9 @@ public final class AddressMask
         try {
             //Make sure we have four parts
             if(s.length != IN4ADDRSZ) {
-                int id=MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR;
-                String message = getMessage(id);
-                throw new ConfigException(id, message);
+                Message message =
+                    ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
+                throw new ConfigException(message);
             }
             for(int i=0; i < IN4ADDRSZ; i++)
             {
@@ -292,18 +292,18 @@ public final class AddressMask
                     //must be between 0-255
                     if((val < 0) ||  (val > 0xff))
                     {
-                        int id=MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR;
-                        String message = getMessage(id);
-                        throw new ConfigException(id, message);
+                        Message message =
+                            ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
+                        throw new ConfigException(message);
                     }
                     ruleMask[i] = (byte) (val & 0xff);
                 }
             }
         } catch (NumberFormatException nfex)
         {
-            int id=MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR;
-            String message = getMessage(id);
-            throw new ConfigException(id, message);
+            Message message =
+                ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
+            throw new ConfigException(message);
         }
     }
 
@@ -323,34 +323,33 @@ public final class AddressMask
             //can only have one prefix value and a subnet string
             if((s.length  < 1) || (s.length > 2) )
             {
-                int msgID=MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR;
-                String message = getMessage(msgID);
-                throw new ConfigException(msgID, message);
+                Message message =
+                    ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
+                throw new ConfigException(message);
             }
             else  if(s.length == 2)
             {
                 //can't have wildcard with a prefix
                 if(s[0].indexOf('*') > -1)
                 {
-                    int msgID=MSGID_ADDRESSMASK_WILDCARD_DECODE_ERROR;
-                    String message = getMessage(msgID);
-                    throw new ConfigException(msgID, message);
+                    Message message =
+                        ERR_ADDRESSMASK_WILDCARD_DECODE_ERROR.get();
+                    throw new ConfigException(message);
                 }
                 prefix = Integer.parseInt(s[1]);
             }
             //must be between 0-maxprefix
             if((prefix < 0) || (prefix > maxPrefix))
             {
-                int msgID=MSGID_ADDRESSMASK_PREFIX_DECODE_ERROR;
-                String message = getMessage(msgID);
-                throw new ConfigException(msgID, message);
+                Message message =
+                    ERR_ADDRESSMASK_PREFIX_DECODE_ERROR.get();
+                throw new ConfigException(message);
             }
         }
         catch(NumberFormatException nfex)
         {
-            int msgID=MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR;
-            String msg = getMessage(msgID);
-            throw new ConfigException(msgID,msg);
+            Message msg = ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
+            throw new ConfigException(msg);
         }
         return prefix;
     }
@@ -522,9 +521,9 @@ public final class AddressMask
         try {
             addr = InetAddress.getByName(s[0]);
         } catch (UnknownHostException ex) {
-            int msgID=MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR;
-            String message = getMessage(msgID);
-            throw new ConfigException(msgID, message);
+            Message message =
+                ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
+            throw new ConfigException(message);
         }
         if(addr instanceof Inet6Address) {
             this.ruleType=RuleType.IPv6;
@@ -536,9 +535,9 @@ public final class AddressMask
            //The address might be an IPv4-compat address.
            //Throw an error if the rule has a prefix.
             if(s.length == 2) {
-                int msgID = MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR;
-                String message = getMessage(msgID);
-                throw new ConfigException(msgID,  message);
+                Message message =
+                    ERR_ADDRESSMASK_FORMAT_DECODE_ERROR.get();
+                throw new ConfigException(message);
             }
             this.ruleMask=addr.getAddress();
             this.ruleType=RuleType.IPv4;

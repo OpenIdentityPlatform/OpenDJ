@@ -31,7 +31,7 @@ package org.opends.quicksetup.installer;
  * This class is used to provide a data model for the different parameters used
  * to connect to a server that we want to replicate contents with.
  *
- * @see DataReplicationOptions.
+ * @see DataReplicationOptions
  *
  */
 public class AuthenticationData

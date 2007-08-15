@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.task;
+import org.opends.messages.Message;
 
 
 
@@ -50,8 +51,6 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
@@ -66,12 +65,11 @@ import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.BackendMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -222,10 +220,9 @@ public class TaskScheduler
 
       if (recurringTasks.containsKey(id))
       {
-        int    msgID   = MSGID_TASKSCHED_DUPLICATE_RECURRING_ID;
-        String message = getMessage(msgID, String.valueOf(id));
-        throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message,
-                                     msgID);
+        Message message =
+            ERR_TASKSCHED_DUPLICATE_RECURRING_ID.get(String.valueOf(id));
+        throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
       }
 
       recurringTasks.put(id, recurringTask);
@@ -274,11 +271,11 @@ public class TaskScheduler
             (t.getRecurringTaskID().equals(recurringTaskID)) &&
             (! TaskState.isDone(t.getTaskState())))
         {
-          int    msgID   = MSGID_TASKSCHED_REMOVE_RECURRING_EXISTING_ITERATION;
-          String message = getMessage(msgID, String.valueOf(recurringTaskID),
-                                      String.valueOf(t.getTaskID()));
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                       msgID);
+          Message message = ERR_TASKSCHED_REMOVE_RECURRING_EXISTING_ITERATION.
+              get(String.valueOf(recurringTaskID),
+                  String.valueOf(t.getTaskID()));
+          throw new DirectoryException(
+                  ResultCode.UNWILLING_TO_PERFORM, message);
         }
       }
 
@@ -323,10 +320,9 @@ public class TaskScheduler
 
       if (tasks.containsKey(id))
       {
-        int    msgID   = MSGID_TASKSCHED_DUPLICATE_TASK_ID;
-        String message = getMessage(msgID, String.valueOf(id));
-        throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message,
-                                     msgID);
+        Message message =
+            ERR_TASKSCHED_DUPLICATE_TASK_ID.get(String.valueOf(id));
+        throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
       }
 
       tasks.put(id, task);
@@ -432,9 +428,9 @@ public class TaskScheduler
       Task t = tasks.get(taskID);
       if (t == null)
       {
-        int    msgID   = MSGID_TASKSCHED_REMOVE_PENDING_NO_SUCH_TASK;
-        String message = getMessage(msgID, String.valueOf(taskID));
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+        Message message = ERR_TASKSCHED_REMOVE_PENDING_NO_SUCH_TASK.get(
+            String.valueOf(taskID));
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
 
       if (TaskState.isPending(t.getTaskState()))
@@ -446,10 +442,9 @@ public class TaskScheduler
       }
       else
       {
-        int   msgID    = MSGID_TASKSCHED_REMOVE_PENDING_NOT_PENDING;
-        String message = getMessage(msgID, String.valueOf(taskID));
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_TASKSCHED_REMOVE_PENDING_NOT_PENDING.get(
+            String.valueOf(taskID));
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
     finally
@@ -489,9 +484,9 @@ public class TaskScheduler
         }
       }
 
-      int    msgID   = MSGID_TASKSCHED_REMOVE_COMPLETED_NO_SUCH_TASK;
-      String message = getMessage(msgID, String.valueOf(taskID));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+      Message message = ERR_TASKSCHED_REMOVE_COMPLETED_NO_SUCH_TASK.get(
+          String.valueOf(taskID));
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
     finally
     {
@@ -538,15 +533,13 @@ public class TaskScheduler
         if (recurringTask == null)
         {
           // This shouldn't happen, but handle it anyway.
-          int    msgID   = MSGID_TASKSCHED_CANNOT_FIND_RECURRING_TASK;
-          String message = getMessage(msgID, String.valueOf(taskID),
-                                      String.valueOf(recurringTaskID));
-          logError(ErrorLogCategory.TASK, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_TASKSCHED_CANNOT_FIND_RECURRING_TASK.get(
+              String.valueOf(taskID), String.valueOf(recurringTaskID));
+          logError(message);
 
           DirectoryServer.sendAlertNotification(this,
-                               ALERT_TYPE_CANNOT_FIND_RECURRING_TASK, msgID,
-                               message);
+                               ALERT_TYPE_CANNOT_FIND_RECURRING_TASK,
+                  message);
         }
         else
         {
@@ -566,15 +559,14 @@ public class TaskScheduler
                 TRACER.debugCaught(DebugLogLevel.ERROR, de);
               }
 
-              int msgID = MSGID_TASKSCHED_ERROR_SCHEDULING_RECURRING_ITERATION;
-              String message = getMessage(msgID, recurringTaskID,
-                                          de.getErrorMessage());
-              logError(ErrorLogCategory.TASK, ErrorLogSeverity.SEVERE_ERROR,
-                       message, msgID);
+              Message message =
+                  ERR_TASKSCHED_ERROR_SCHEDULING_RECURRING_ITERATION.
+                    get(recurringTaskID, de.getMessageObject());
+              logError(message);
 
               DirectoryServer.sendAlertNotification(this,
-                   ALERT_TYPE_CANNOT_SCHEDULE_RECURRING_ITERATION, msgID,
-                   message);
+                   ALERT_TYPE_CANNOT_SCHEDULE_RECURRING_ITERATION,
+                      message);
             }
           }
         }
@@ -669,8 +661,7 @@ public class TaskScheduler
 
     for (TaskThread thread : idleThreads)
     {
-      int    msgID   = MSGID_TASKBE_INTERRUPTED_BY_SHUTDOWN;
-      String message = getMessage(msgID);
+      Message message = INFO_TASKBE_INTERRUPTED_BY_SHUTDOWN.get();
       thread.interruptTask(TaskState.STOPPED_BY_SHUTDOWN, message, true);
     }
   }
@@ -683,13 +674,14 @@ public class TaskScheduler
    *
    * @param  interruptState   The state that should be assigned to the tasks if
    *                          they are successfully interrupted.
-   * @param  interruptReason  A human-readable message indicating the reason
-   *                          that the tasks are to be interrupted.
+   * @param  interruptReason  A message indicating the reason that the tasks
+   *                          are to be interrupted.
    * @param  waitForStop      Indicates whether this method should wait until
    *                          all active tasks have stopped before returning.
    */
   public void interruptRunningTasks(TaskState interruptState,
-                                    String interruptReason, boolean waitForStop)
+                                    Message interruptReason,
+                                    boolean waitForStop)
   {
     // Grab a copy of the running threads so that we can operate on them without
     // holding the lock.
@@ -955,11 +947,9 @@ public class TaskScheduler
 
           if (le.canContinueReading())
           {
-            int    msgID   = MSGID_TASKSCHED_CANNOT_PARSE_ENTRY_RECOVERABLE;
-            String message = getMessage(msgID, backingFilePath,
-                                        le.getLineNumber(), le.getMessage());
-            logError(ErrorLogCategory.TASK, ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
+            Message message = ERR_TASKSCHED_CANNOT_PARSE_ENTRY_RECOVERABLE.get(
+                backingFilePath, le.getLineNumber(), le.getMessage());
+            logError(message);
 
             continue;
           }
@@ -977,10 +967,9 @@ public class TaskScheduler
               }
             }
 
-            int    msgID   = MSGID_TASKSCHED_CANNOT_PARSE_ENTRY_FATAL;
-            String message = getMessage(msgID, backingFilePath,
-                                        le.getLineNumber(), le.getMessage());
-            throw new InitializationException(msgID, message);
+            Message message = ERR_TASKSCHED_CANNOT_PARSE_ENTRY_FATAL.get(
+                backingFilePath, le.getLineNumber(), le.getMessage());
+            throw new InitializationException(message);
           }
         }
 
@@ -1007,11 +996,10 @@ public class TaskScheduler
           DN parentDN = entryDN.getParentDNInSuffix();
           if (parentDN == null)
           {
-            int    msgID   = MSGID_TASKSCHED_ENTRY_HAS_NO_PARENT;
-            String message = getMessage(msgID, String.valueOf(entryDN),
-                                  String.valueOf(taskBackend.getTaskRootDN()));
-            logError(ErrorLogCategory.TASK, ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
+            Message message = ERR_TASKSCHED_ENTRY_HAS_NO_PARENT.
+                get(String.valueOf(entryDN),
+                    String.valueOf(taskBackend.getTaskRootDN()));
+            logError(message);
           }
           else if (parentDN.equals(taskBackend.getRecurringTasksParentDN()))
           {
@@ -1027,12 +1015,10 @@ public class TaskScheduler
                 TRACER.debugCaught(DebugLogLevel.ERROR, de);
               }
 
-              int msgID =
-                   MSGID_TASKSCHED_CANNOT_SCHEDULE_RECURRING_TASK_FROM_ENTRY;
-              String message = getMessage(msgID, String.valueOf(entryDN),
-                                          de.getErrorMessage());
-              logError(ErrorLogCategory.TASK, ErrorLogSeverity.SEVERE_ERROR,
-                       message, msgID);
+              Message message =
+                  ERR_TASKSCHED_CANNOT_SCHEDULE_RECURRING_TASK_FROM_ENTRY.
+                    get(String.valueOf(entryDN), de.getMessageObject());
+              logError(message);
             }
           }
           else if (parentDN.equals(taskBackend.getScheduledTasksParentDN()))
@@ -1056,20 +1042,16 @@ public class TaskScheduler
                 TRACER.debugCaught(DebugLogLevel.ERROR, de);
               }
 
-              int    msgID   = MSGID_TASKSCHED_CANNOT_SCHEDULE_TASK_FROM_ENTRY;
-              String message = getMessage(msgID, String.valueOf(entryDN),
-                                          de.getErrorMessage());
-              logError(ErrorLogCategory.TASK, ErrorLogSeverity.SEVERE_ERROR,
-                       message, msgID);
+              Message message = ERR_TASKSCHED_CANNOT_SCHEDULE_TASK_FROM_ENTRY.
+                  get(String.valueOf(entryDN), de.getMessageObject());
+              logError(message);
             }
           }
           else
           {
-            int    msgID   = MSGID_TASKSCHED_INVALID_TASK_ENTRY_DN;
-            String message = getMessage(msgID, String.valueOf(entryDN),
-                                        backingFilePath);
-            logError(ErrorLogCategory.TASK, ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
+            Message message = ERR_TASKSCHED_INVALID_TASK_ENTRY_DN.get(
+                String.valueOf(entryDN), backingFilePath);
+            logError(message);
           }
         }
       }
@@ -1083,10 +1065,9 @@ public class TaskScheduler
         TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
       }
 
-      int msgID = MSGID_TASKSCHED_ERROR_READING_TASK_BACKING_FILE;
-      String message = getMessage(msgID, String.valueOf(backingFilePath),
-                                  stackTraceToSingleLineString(ioe));
-      throw new InitializationException(msgID, message, ioe);
+      Message message = ERR_TASKSCHED_ERROR_READING_TASK_BACKING_FILE.get(
+          String.valueOf(backingFilePath), stackTraceToSingleLineString(ioe));
+      throw new InitializationException(message, ioe);
     }
   }
 
@@ -1113,7 +1094,7 @@ public class TaskScheduler
 
       // First, write a header to the top of the file to indicate that it should
       // not be manually edited.
-      writer.writeComment(getMessage(MSGID_TASKBE_BACKING_FILE_HEADER), 80);
+      writer.writeComment(INFO_TASKBE_BACKING_FILE_HEADER.get(), 80);
 
 
       // Next, create the required hierarchical entries and add them to the
@@ -1140,10 +1121,9 @@ public class TaskScheduler
         TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
       }
 
-      int    msgID   = MSGID_TASKSCHED_CANNOT_CREATE_BACKING_FILE;
-      String message = getMessage(msgID, backingFile,
-                                  stackTraceToSingleLineString(ioe));
-      throw new InitializationException(msgID, message, ioe);
+      Message message = ERR_TASKSCHED_CANNOT_CREATE_BACKING_FILE.get(
+          backingFile, stackTraceToSingleLineString(ioe));
+      throw new InitializationException(message, ioe);
     }
     catch (LDIFException le)
     {
@@ -1153,9 +1133,9 @@ public class TaskScheduler
       }
 
 
-      int    msgID   = MSGID_TASKSCHED_CANNOT_CREATE_BACKING_FILE;
-      String message = getMessage(msgID, backingFile, le.getMessage());
-      throw new InitializationException(msgID, message, le);
+      Message message = ERR_TASKSCHED_CANNOT_CREATE_BACKING_FILE.get(
+          backingFile, le.getMessage());
+      throw new InitializationException(message, le);
     }
   }
 
@@ -1180,7 +1160,7 @@ public class TaskScheduler
 
       // First, write a header to the top of the file to indicate that it should
       // not be manually edited.
-      writer.writeComment(getMessage(MSGID_TASKBE_BACKING_FILE_HEADER), 80);
+      writer.writeComment(INFO_TASKBE_BACKING_FILE_HEADER.get(), 80);
 
 
       // Next, write the structural entries to the top of the LDIF.
@@ -1241,16 +1221,15 @@ public class TaskScheduler
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_TASKSCHED_CANNOT_RENAME_CURRENT_BACKING_FILE;
-        String message = getMessage(msgID, String.valueOf(backingFilePath),
-                                    String.valueOf(saveFile.getAbsolutePath()),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.TASK, ErrorLogSeverity.SEVERE_WARNING,
-                 message, msgID);
+        Message message = WARN_TASKSCHED_CANNOT_RENAME_CURRENT_BACKING_FILE.
+            get(String.valueOf(backingFilePath),
+                String.valueOf(saveFile.getAbsolutePath()),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         DirectoryServer.sendAlertNotification(this,
-                             ALERT_TYPE_CANNOT_RENAME_CURRENT_TASK_FILE, msgID,
-                             message);
+                             ALERT_TYPE_CANNOT_RENAME_CURRENT_TASK_FILE,
+                message);
       }
 
 
@@ -1267,16 +1246,14 @@ public class TaskScheduler
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_TASKSCHED_CANNOT_RENAME_NEW_BACKING_FILE;
-        String message = getMessage(msgID, String.valueOf(tmpFilePath),
-                                    String.valueOf(backingFilePath),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.TASK, ErrorLogSeverity.SEVERE_ERROR, message,
-                 msgID);
+        Message message = ERR_TASKSCHED_CANNOT_RENAME_NEW_BACKING_FILE.
+            get(String.valueOf(tmpFilePath), String.valueOf(backingFilePath),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         DirectoryServer.sendAlertNotification(this,
-                             ALERT_TYPE_CANNOT_RENAME_NEW_TASK_FILE, msgID,
-                             message);
+                             ALERT_TYPE_CANNOT_RENAME_NEW_TASK_FILE,
+                message);
       }
     }
     catch (IOException ioe)
@@ -1286,14 +1263,11 @@ public class TaskScheduler
         TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
       }
 
-      int    msgID   = MSGID_TASKSCHED_CANNOT_WRITE_BACKING_FILE;
-      String message = getMessage(msgID, tmpFilePath,
-                                  stackTraceToSingleLineString(ioe));
-
-      logError(ErrorLogCategory.TASK, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_TASKSCHED_CANNOT_WRITE_BACKING_FILE.get(
+          tmpFilePath, stackTraceToSingleLineString(ioe));
+      logError(message);
       DirectoryServer.sendAlertNotification(this,
-                           ALERT_TYPE_CANNOT_WRITE_TASK_FILE, msgID, message);
+                           ALERT_TYPE_CANNOT_WRITE_TASK_FILE, message);
     }
     catch (LDIFException le)
     {
@@ -1303,13 +1277,11 @@ public class TaskScheduler
       }
 
 
-      int    msgID   = MSGID_TASKSCHED_CANNOT_WRITE_BACKING_FILE;
-      String message = getMessage(msgID, tmpFilePath, le.getMessage());
-
-      logError(ErrorLogCategory.TASK, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_TASKSCHED_CANNOT_WRITE_BACKING_FILE.get(
+          tmpFilePath, le.getMessage());
+      logError(message);
       DirectoryServer.sendAlertNotification(this,
-                           ALERT_TYPE_CANNOT_WRITE_TASK_FILE, msgID, message);
+                           ALERT_TYPE_CANNOT_WRITE_TASK_FILE, message);
     }
     catch (Exception e)
     {
@@ -1318,14 +1290,11 @@ public class TaskScheduler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_TASKSCHED_CANNOT_WRITE_BACKING_FILE;
-      String message = getMessage(msgID, tmpFilePath,
-                                  stackTraceToSingleLineString(e));
-
-      logError(ErrorLogCategory.TASK, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_TASKSCHED_CANNOT_WRITE_BACKING_FILE.get(
+          tmpFilePath, stackTraceToSingleLineString(e));
+      logError(message);
       DirectoryServer.sendAlertNotification(this,
-                           ALERT_TYPE_CANNOT_WRITE_TASK_FILE, msgID, message);
+                           ALERT_TYPE_CANNOT_WRITE_TASK_FILE, message);
     }
     finally
     {
@@ -1522,10 +1491,10 @@ public class TaskScheduler
 
     if (lock == null)
     {
-      int    msgID   = MSGID_BACKEND_CANNOT_LOCK_ENTRY;
-      String message = getMessage(msgID, String.valueOf(entryDN));
+      Message message =
+          ERR_BACKEND_CANNOT_LOCK_ENTRY.get(String.valueOf(entryDN));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
     else
     {
@@ -1819,47 +1788,37 @@ public class TaskScheduler
     List<Attribute> attrList = entry.getAttribute(attrType);
     if ((attrList == null) || attrList.isEmpty())
     {
-      int    msgID   = MSGID_TASKSCHED_NO_CLASS_ATTRIBUTE;
-      String message = getMessage(msgID, ATTR_TASK_ID);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_TASKSCHED_NO_CLASS_ATTRIBUTE.get(ATTR_TASK_ID);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     if (attrList.size() > 1)
     {
-      int    msgID   = MSGID_TASKSCHED_MULTIPLE_CLASS_TYPES;
-      String message = getMessage(msgID, ATTR_TASK_ID);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_TASKSCHED_MULTIPLE_CLASS_TYPES.get(ATTR_TASK_ID);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     Attribute attr = attrList.get(0);
     LinkedHashSet<AttributeValue> values = attr.getValues();
     if ((values == null) || values.isEmpty())
     {
-      int    msgID   = MSGID_TASKSCHED_NO_CLASS_VALUES;
-      String message = getMessage(msgID, ATTR_TASK_ID);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_TASKSCHED_NO_CLASS_VALUES.get(ATTR_TASK_ID);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     Iterator<AttributeValue> iterator = values.iterator();
     AttributeValue value = iterator.next();
     if (iterator.hasNext())
     {
-      int    msgID   = MSGID_TASKSCHED_MULTIPLE_CLASS_VALUES;
-      String message = getMessage(msgID, ATTR_TASK_ID);
-      throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_TASKSCHED_MULTIPLE_CLASS_VALUES.get(ATTR_TASK_ID);
+      throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
     }
 
     String taskClassName = value.getStringValue();
     if (! DirectoryServer.getAllowedTasks().contains(taskClassName))
     {
-      int    msgID   = MSGID_TASKSCHED_NOT_ALLOWED_TASK;
-      String message = getMessage(msgID, taskClassName);
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_TASKSCHED_NOT_ALLOWED_TASK.get(taskClassName);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
 
@@ -1876,12 +1835,11 @@ public class TaskScheduler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_TASKSCHED_CANNOT_LOAD_CLASS;
-      String message = getMessage(msgID, String.valueOf(taskClassName),
-                                  ATTR_TASK_CLASS,
-                                  stackTraceToSingleLineString(e));
+      Message message = ERR_TASKSCHED_CANNOT_LOAD_CLASS.
+          get(String.valueOf(taskClassName), ATTR_TASK_CLASS,
+              stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -1898,10 +1856,10 @@ public class TaskScheduler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_TASKSCHED_CANNOT_INSTANTIATE_CLASS_AS_TASK;
-      String message = getMessage(msgID, String.valueOf(taskClassName));
+      Message message = ERR_TASKSCHED_CANNOT_INSTANTIATE_CLASS_AS_TASK.get(
+          String.valueOf(taskClassName), Task.class.getName());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -1917,19 +1875,17 @@ public class TaskScheduler
         TRACER.debugCaught(DebugLogLevel.ERROR, ie);
       }
 
-      int    msgID   = MSGID_TASKSCHED_CANNOT_INITIALIZE_INTERNAL;
-      String message = getMessage(msgID, String.valueOf(taskClassName),
-                                  ie.getMessage());
+      Message message = ERR_TASKSCHED_CANNOT_INITIALIZE_INTERNAL.get(
+          String.valueOf(taskClassName), ie.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_TASKSCHED_CANNOT_INITIALIZE_INTERNAL;
-      String message = getMessage(msgID, String.valueOf(taskClassName),
-                                  stackTraceToSingleLineString(e));
+      Message message = ERR_TASKSCHED_CANNOT_INITIALIZE_INTERNAL.get(
+          String.valueOf(taskClassName), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
 
 

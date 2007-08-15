@@ -25,26 +25,27 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
+import org.opends.messages.Message;
 
 import com.sleepycat.je.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import org.opends.server.loggers.ErrorLogger;
+import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.types.*;
 import org.opends.server.admin.std.server.VLVJEIndexCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
-import static org.opends.server.messages.JebMessages.
-    MSGID_ENTRYIDSORTER_NEGATIVE_START_POS;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_CONFIG_VLV_INDEX_BAD_FILTER;
+import static org.opends.messages.JebMessages.
+    NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD;
+import static org.opends.messages.JebMessages.
+    ERR_ENTRYIDSORTER_NEGATIVE_START_POS;
+import static org.opends.messages.JebMessages.
+    ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR;
+import static org.opends.messages.JebMessages.
+    ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER;
 
-import static org.opends.server.messages.MessageHandler.getMessage;
+
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.util.StaticUtils;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -160,10 +161,9 @@ public class VLVIndex extends DatabaseContainer
     }
     catch(Exception e)
     {
-      int msgID = MSGID_JEB_CONFIG_VLV_INDEX_BAD_FILTER;
-      String msg = getMessage(msgID, config.getVLVIndexFilter(), name,
-                              stackTraceToSingleLineString(e));
-      throw new ConfigException(msgID, msg);
+      Message msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
+          config.getVLVIndexFilter(), name, stackTraceToSingleLineString(e));
+      throw new ConfigException(msg);
     }
 
     String[] sortAttrs = config.getVLVIndexSortOrder().split(" ");
@@ -191,18 +191,20 @@ public class VLVIndex extends DatabaseContainer
       }
       catch(Exception e)
       {
-        int msgID = MSGID_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR;
-        String msg = getMessage(msgID, sortKeys[i], name);
-        throw new ConfigException(msgID, msg);
+        Message msg =
+            ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
+                    String.valueOf(sortKeys[i]), name);
+        throw new ConfigException(msg);
       }
 
       AttributeType attrType =
           DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
       if(attrType == null)
       {
-        int msgID = MSGID_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR;
-        String msg = getMessage(msgID, sortKeys[i], name);
-        throw new ConfigException(msgID, msg);
+        Message msg =
+            ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
+                    String.valueOf(sortKeys[i]), name);
+        throw new ConfigException(msg);
       }
       sortKeys[i] = new SortKey(attrType, ascending[i]);
       orderingRules[i] = attrType.getOrderingMatchingRule();
@@ -248,9 +250,7 @@ public class VLVIndex extends DatabaseContainer
     // Issue warning if this vlvIndex is not trusted
     if(!trusted)
     {
-      int msgID = MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
-      ErrorLogger.logError(ErrorLogCategory.BACKEND,
-                           ErrorLogSeverity.NOTICE, msgID, name);
+      logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(name));
     }
 
     this.count = new AtomicInteger(0);
@@ -771,10 +771,9 @@ public class VLVIndex extends DatabaseContainer
               new VLVResponseControl(targetOffset, currentCount,
                                      LDAPResultCode.OFFSET_RANGE_ERROR));
 
-          int    msgID   = MSGID_ENTRYIDSORTER_NEGATIVE_START_POS;
-          String message = getMessage(msgID);
+          Message message = ERR_ENTRYIDSORTER_NEGATIVE_START_POS.get();
           throw new DirectoryException(ResultCode.VIRTUAL_LIST_VIEW_ERROR,
-                                       message, msgID);
+                                       message);
         }
         else if (targetOffset == 0)
         {
@@ -1235,7 +1234,7 @@ public class VLVIndex extends DatabaseContainer
    */
   public synchronized boolean isConfigurationChangeAcceptable(
       VLVJEIndexCfg cfg,
-      List<String> unacceptableReasons)
+      List<Message> unacceptableReasons)
   {
     try
     {
@@ -1244,9 +1243,9 @@ public class VLVIndex extends DatabaseContainer
     }
     catch(Exception e)
     {
-      int msgID = MSGID_JEB_CONFIG_VLV_INDEX_BAD_FILTER;
-      String msg = getMessage(msgID, config.getVLVIndexFilter(), name,
-                              stackTraceToSingleLineString(e));
+      Message msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
+              config.getVLVIndexFilter(), name,
+              stackTraceToSingleLineString(e));
       unacceptableReasons.add(msg);
       return false;
     }
@@ -1276,8 +1275,9 @@ public class VLVIndex extends DatabaseContainer
       }
       catch(Exception e)
       {
-        int msgID = MSGID_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR;
-        String msg = getMessage(msgID, sortKeys[i], name);
+        Message msg =
+                ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
+                        String.valueOf(sortKeys[i]), name);
         unacceptableReasons.add(msg);
         return false;
       }
@@ -1286,8 +1286,8 @@ public class VLVIndex extends DatabaseContainer
           DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
       if(attrType == null)
       {
-        int msgID = MSGID_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR;
-        String msg = getMessage(msgID, sortKeys[i], name);
+        Message msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
+                String.valueOf(sortKeys[i]), name);
         unacceptableReasons.add(msg);
         return false;
       }
@@ -1306,7 +1306,7 @@ public class VLVIndex extends DatabaseContainer
   {
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     // Update base DN only if changed..
     if(!config.getVLVIndexBaseDN().equals(cfg.getVLVIndexBaseDN()))
@@ -1348,9 +1348,9 @@ public class VLVIndex extends DatabaseContainer
       }
       catch(Exception e)
       {
-        int msgID = MSGID_JEB_CONFIG_VLV_INDEX_BAD_FILTER;
-        String msg = getMessage(msgID, config.getVLVIndexFilter(), name,
-                                stackTraceToSingleLineString(e));
+        Message msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
+                config.getVLVIndexFilter(), name,
+                stackTraceToSingleLineString(e));
         messages.add(msg);
         if(resultCode == ResultCode.SUCCESS)
         {
@@ -1388,8 +1388,8 @@ public class VLVIndex extends DatabaseContainer
         }
         catch(Exception e)
         {
-          int msgID = MSGID_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR;
-          String msg = getMessage(msgID, sortKeys[i], name);
+          Message msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
+                  String.valueOf(String.valueOf(sortKeys[i])), name);
           messages.add(msg);
           if(resultCode == ResultCode.SUCCESS)
           {
@@ -1401,8 +1401,8 @@ public class VLVIndex extends DatabaseContainer
             DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
         if(attrType == null)
         {
-          int msgID = MSGID_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR;
-          String msg = getMessage(msgID, sortKeys[i], name);
+          Message msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
+                  String.valueOf(String.valueOf(sortKeys[i])), name);
           messages.add(msg);
           if(resultCode == ResultCode.SUCCESS)
           {
@@ -1426,7 +1426,7 @@ public class VLVIndex extends DatabaseContainer
       }
       catch(DatabaseException de)
       {
-        messages.add(StaticUtils.stackTraceToSingleLineString(de));
+        messages.add(Message.raw(StaticUtils.stackTraceToSingleLineString(de)));
         if(resultCode == ResultCode.SUCCESS)
         {
           resultCode = DirectoryServer.getServerErrorResultCode();
@@ -1444,8 +1444,7 @@ public class VLVIndex extends DatabaseContainer
     if(adminActionRequired)
     {
       trusted = false;
-      int msgID = MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
-      String message = getMessage(msgID, name);
+      Message message = NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(name);
       messages.add(message);
       try
       {
@@ -1453,7 +1452,7 @@ public class VLVIndex extends DatabaseContainer
       }
       catch(DatabaseException de)
       {
-        messages.add(StaticUtils.stackTraceToSingleLineString(de));
+        messages.add(Message.raw(StaticUtils.stackTraceToSingleLineString(de)));
         if(resultCode == ResultCode.SUCCESS)
         {
           resultCode = DirectoryServer.getServerErrorResultCode();

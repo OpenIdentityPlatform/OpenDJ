@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
@@ -46,14 +47,12 @@ import org.opends.server.api.PasswordGenerator;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
+import static org.opends.messages.ConfigMessages.*;
+
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 
@@ -134,9 +133,7 @@ public class PasswordGeneratorConfigManager
         }
         catch (InitializationException ie)
         {
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_ERROR,
-                   ie.getMessage(), ie.getMessageID());
+          logError(ie.getMessageObject());
           continue;
         }
       }
@@ -148,7 +145,7 @@ public class PasswordGeneratorConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
                       PasswordGeneratorCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -161,7 +158,7 @@ public class PasswordGeneratorConfigManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add(ie.getMessage());
+        unacceptableReasons.add(ie.getMessageObject());
         return false;
       }
     }
@@ -179,7 +176,7 @@ public class PasswordGeneratorConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Get the existing generator if it's already enabled.
@@ -236,7 +233,7 @@ public class PasswordGeneratorConfigManager
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
 
-      messages.add(ie.getMessage());
+      messages.add(ie.getMessageObject());
     }
 
     if (resultCode == ResultCode.SUCCESS)
@@ -253,7 +250,7 @@ public class PasswordGeneratorConfigManager
    */
   public boolean isConfigurationAddAcceptable(
                       PasswordGeneratorCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -266,7 +263,7 @@ public class PasswordGeneratorConfigManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add(ie.getMessage());
+        unacceptableReasons.add(ie.getMessageObject());
         return false;
       }
     }
@@ -284,7 +281,7 @@ public class PasswordGeneratorConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     configuration.addChangeListener(this);
 
@@ -310,7 +307,7 @@ public class PasswordGeneratorConfigManager
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
 
-      messages.add(ie.getMessage());
+      messages.add(ie.getMessageObject());
     }
 
     if (resultCode == ResultCode.SUCCESS)
@@ -327,7 +324,7 @@ public class PasswordGeneratorConfigManager
    * {@inheritDoc}
    */
   public boolean isConfigurationDeleteAcceptable(
-      PasswordGeneratorCfg configuration, List<String> unacceptableReasons)
+      PasswordGeneratorCfg configuration, List<Message> unacceptableReasons)
   {
     // A delete should always be acceptable, so just return true.
     return true;
@@ -407,7 +404,7 @@ public class PasswordGeneratorConfigManager
                                             PasswordGeneratorCfg.class,
                                             List.class);
 
-        List<String> unacceptableReasons = new ArrayList<String>();
+        List<Message> unacceptableReasons = new ArrayList<Message>();
         Boolean acceptable = (Boolean) method.invoke(generator, configuration,
                                                      unacceptableReasons);
         if (! acceptable)
@@ -415,7 +412,7 @@ public class PasswordGeneratorConfigManager
           StringBuilder buffer = new StringBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<String> iterator = unacceptableReasons.iterator();
+            Iterator<Message> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -424,10 +421,9 @@ public class PasswordGeneratorConfigManager
             }
           }
 
-          int    msgID   = MSGID_CONFIG_PWGENERATOR_CONFIG_NOT_ACCEPTABLE;
-          String message = getMessage(msgID, String.valueOf(configuration.dn()),
-                                      buffer.toString());
-          throw new InitializationException(msgID, message);
+          Message message = ERR_CONFIG_PWGENERATOR_CONFIG_NOT_ACCEPTABLE.get(
+              String.valueOf(configuration.dn()), buffer.toString());
+          throw new InitializationException(message);
         }
       }
 
@@ -435,11 +431,10 @@ public class PasswordGeneratorConfigManager
     }
     catch (Exception e)
     {
-      int msgID = MSGID_CONFIG_PWGENERATOR_INITIALIZATION_FAILED;
-      String message = getMessage(msgID, className,
-                                  String.valueOf(configuration.dn()),
-                                  stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_PWGENERATOR_INITIALIZATION_FAILED.
+          get(className, String.valueOf(configuration.dn()),
+              stackTraceToSingleLineString(e));
+      throw new InitializationException(message, e);
     }
   }
 }

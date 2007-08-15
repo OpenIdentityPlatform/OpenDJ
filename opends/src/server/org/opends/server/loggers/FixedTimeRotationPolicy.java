@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
+import org.opends.messages.Message;
 
 import java.util.*;
 
@@ -36,6 +37,7 @@ import org.opends.server.admin.std.server.FixedTimeLogRotationPolicyCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
+
 
 /**
  * This class implements a rotation policy based on fixed
@@ -81,7 +83,7 @@ public class FixedTimeRotationPolicy implements
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-      FixedTimeLogRotationPolicyCfg config, List<String> unacceptableReasons)
+      FixedTimeLogRotationPolicyCfg config, List<Message> unacceptableReasons)
   {
     // Changes should always be OK
     return true;
@@ -96,7 +98,7 @@ public class FixedTimeRotationPolicy implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     rotationTimes = new long[config.getTimeOfDay().size()];
 

@@ -27,9 +27,12 @@
 
 package org.opends.quicksetup.ui;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.UserInteraction;
 import org.opends.quicksetup.Constants;
-import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
 
 import javax.swing.*;
@@ -60,18 +63,18 @@ public class GuiUserInteraction implements UserInteraction {
   /**
    * {@inheritDoc}
    */
-  public Object confirm(String summary, String details,
-                        String title, MessageType type, String[] options,
-                        String def) {
+  public Object confirm(Message summary, Message details,
+                        Message title, MessageType type, Message[] options,
+                        Message def) {
     return confirm(summary, details, null, title, type, options, def, null);
   }
 
   /**
    * {@inheritDoc}
    */
-  public Object confirm(String summary, String details, String fineDetails,
-                        String title, MessageType type, String[] options,
-                        String def, String viewDetailsOption) {
+  public Object confirm(Message summary, Message details, Message fineDetails,
+                        Message title, MessageType type, Message[] options,
+                        Message def, Message viewDetailsOption) {
     int optionType;
     if (options != null) {
       if (options.length == 2) {
@@ -105,14 +108,16 @@ public class GuiUserInteraction implements UserInteraction {
     // characters per line functionality of the extends options
     // pane does not affect message that are components so we
     // have to format this ourselves.
-    StringBuilder sb = new StringBuilder(Constants.HTML_BOLD_OPEN);
+    MessageBuilder sb = new MessageBuilder();
+    sb.append(Constants.HTML_BOLD_OPEN);
     sb.append(Utils.breakHtmlString(summary, MAX_CHARS_PER_LINE));
     sb.append(Constants.HTML_BOLD_CLOSE);
     sb.append(Constants.HTML_LINE_BREAK);
     sb.append(Constants.HTML_LINE_BREAK);
+
     sb.append(Utils.breakHtmlString(details, MAX_CHARS_PER_LINE));
     JEditorPane ep = UIFactory.makeHtmlPane(
-            sb.toString(),
+            sb.toMessage(),
             UIFactory.INSTRUCTIONS_FONT);
     ep.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
     op.setMessage(ep);
@@ -120,7 +125,7 @@ public class GuiUserInteraction implements UserInteraction {
     op.setMessageType(msgType);
     op.setOptions(options);
     op.setInitialValue(def);
-    JDialog dlg = op.createDialog(parent, title);
+    JDialog dlg = op.createDialog(parent, String.valueOf(title));
     dlg.setVisible(true);
     return op.getValue();
   }
@@ -195,7 +200,7 @@ public class GuiUserInteraction implements UserInteraction {
      *        dialog.
      */
     public DetailsOptionPane(int maxCharactersPerLine,
-                                         String details) {
+                                         Message details) {
       super(maxCharactersPerLine);
       detailsComponent = createDetailsComponent(details);
     }
@@ -209,9 +214,9 @@ public class GuiUserInteraction implements UserInteraction {
         detailsButtonsPanel.setLayout(
                 new BoxLayout(detailsButtonsPanel,
                               BoxLayout.LINE_AXIS));
-        final String showDetailsLabel = getMsg("show-details-button-label");
-        final String hideDetailsLabel = getMsg("hide-details-button-label");
-        final JButton btnDetails = new JButton(showDetailsLabel);
+        final Message showDetailsLabel = INFO_SHOW_DETAILS_BUTTON_LABEL.get();
+        final Message hideDetailsLabel = INFO_HIDE_DETAILS_BUTTON_LABEL.get();
+        final JButton btnDetails = new JButton(showDetailsLabel.toString());
         btnDetails.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent e) {
             Dimension current = dialog.getSize();
@@ -219,12 +224,12 @@ public class GuiUserInteraction implements UserInteraction {
               // detailsComponent.setVisible(true);
               dialog.setSize(current.width,
                       current.height + getExpansionHeight());
-              btnDetails.setText(hideDetailsLabel);
+              btnDetails.setText(hideDetailsLabel.toString());
             } else {
               // detailsComponent.setVisible(false);
               dialog.setSize(current.width,
                       current.height - getExpansionHeight());
-              btnDetails.setText(showDetailsLabel);
+              btnDetails.setText(showDetailsLabel.toString());
             }
             detailsShowing = !detailsShowing;
           }
@@ -264,7 +269,7 @@ public class GuiUserInteraction implements UserInteraction {
       return dialog;
     }
 
-    private Component createDetailsComponent(String details) {
+    private Component createDetailsComponent(Message details) {
       JPanel detailsPanel = new JPanel();
       detailsPanel.setLayout(new GridBagLayout());
       GridBagConstraints gbc = new GridBagConstraints();
@@ -272,7 +277,7 @@ public class GuiUserInteraction implements UserInteraction {
       gbc.insets = new Insets(15, 0, 0, 0);
       gbc.fill = GridBagConstraints.HORIZONTAL;
       detailsPanel.add(UIFactory.makeJLabel(null,
-              getMsg("details-label"),
+              INFO_DETAILS_LABEL.get(),
               UIFactory.TextStyle.PRIMARY_FIELD_VALID), gbc);
 
       gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
@@ -282,7 +287,7 @@ public class GuiUserInteraction implements UserInteraction {
       gbc.fill = GridBagConstraints.BOTH;
 
       JEditorPane ep;
-      if (Utils.containsHtml(details)) {
+      if (Utils.containsHtml(String.valueOf(details))) {
         ep = UIFactory.makeHtmlPane(details, UIFactory.INSTRUCTIONS_FONT);
       } else {
         ep = UIFactory.makeTextPane(details, UIFactory.TextStyle.INSTRUCTIONS);
@@ -298,10 +303,6 @@ public class GuiUserInteraction implements UserInteraction {
               MAX_DETAILS_COMPONENT_HEIGHT);
     }
 
-  }
-
-  private static String getMsg(String key) {
-    return ResourceProvider.getInstance().getMsg(key);
   }
 
 //  public static void main(String[] args) {

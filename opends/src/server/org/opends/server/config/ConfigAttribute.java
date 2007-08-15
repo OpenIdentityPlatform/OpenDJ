@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.config;
+import org.opends.messages.Message;
 
 
 
@@ -39,11 +40,7 @@ import org.opends.server.api.AttributeSyntax;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-
-
-
+import static org.opends.messages.ConfigMessages.*;
 /**
  * This class defines a configuration attribute, which can hold zero or more
  * values associated with a configurable property within the Directory Server.
@@ -77,7 +74,7 @@ public abstract class ConfigAttribute
   private LinkedHashSet<AttributeValue> pendingValues;
 
   // The description for this configuration attribute.
-  private String description;
+  private Message description;
 
   // The name for this configuration attribute.
   private String name;
@@ -100,8 +97,9 @@ public abstract class ConfigAttribute
    *                              configuration attribute require administrative
    *                              action before they will take effect.
    */
-  protected ConfigAttribute(String name, String description, boolean isRequired,
-                            boolean isMultiValued, boolean requiresAdminAction)
+  protected ConfigAttribute(String name, Message description,
+                            boolean isRequired, boolean isMultiValued,
+                            boolean requiresAdminAction)
   {
     this.name                = name;
     this.description         = description;
@@ -132,8 +130,9 @@ public abstract class ConfigAttribute
    * @param  activeValues         The set of values for this attribute that are
    *                              currently active.
    */
-  protected ConfigAttribute(String name, String description, boolean isRequired,
-                            boolean isMultiValued, boolean requiresAdminAction,
+  protected ConfigAttribute(String name, Message description,
+                            boolean isRequired, boolean isMultiValued,
+                            boolean requiresAdminAction,
                             LinkedHashSet<AttributeValue> activeValues)
   {
     this.name                = name;
@@ -181,8 +180,9 @@ public abstract class ConfigAttribute
    *                              <CODE>null</CODE> if changes will take effect
    *                              immediately.
    */
-  protected ConfigAttribute(String name, String description, boolean isRequired,
-                            boolean isMultiValued, boolean requiresAdminAction,
+  protected ConfigAttribute(String name, Message description,
+                            boolean isRequired, boolean isMultiValued,
+                            boolean requiresAdminAction,
                             LinkedHashSet<AttributeValue> activeValues,
                             boolean hasPendingValues,
                             LinkedHashSet<AttributeValue> pendingValues)
@@ -240,7 +240,7 @@ public abstract class ConfigAttribute
    * @return  The description for this configuration attribute, or
    *          <CODE>null</CODE> if there is no description.
    */
-  public String getDescription()
+  public Message getDescription()
   {
     return description;
   }
@@ -401,9 +401,8 @@ public abstract class ConfigAttribute
     {
       if (isRequired)
       {
-        int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-        String message = getMessage(msgID, name);
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(name);
+        throw new ConfigException(message);
       }
       else
       {
@@ -447,10 +446,9 @@ public abstract class ConfigAttribute
 
     if (! valueIsAcceptable(value, rejectReason))
     {
-      int    msgID   = MSGID_CONFIG_ATTR_REJECTED_VALUE;
-      String message = getMessage(msgID, value.getStringValue(), name,
-                                  rejectReason.toString());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_REJECTED_VALUE.get(
+          value.getStringValue(), name, rejectReason.toString());
+      throw new ConfigException(message);
     }
 
 
@@ -458,9 +456,8 @@ public abstract class ConfigAttribute
     // provided, then reject it.
     if ((! isMultiValued) && iterator.hasNext())
     {
-      int    msgID   = MSGID_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED;
-      String message = getMessage(msgID, name);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(name);
+      throw new ConfigException(message);
     }
 
 
@@ -470,10 +467,9 @@ public abstract class ConfigAttribute
       value = iterator.next();
       if (! valueIsAcceptable(value, rejectReason))
       {
-        int    msgID   = MSGID_CONFIG_ATTR_REJECTED_VALUE;
-        String message = getMessage(msgID, value.getStringValue(), name,
-                                    rejectReason.toString());
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CONFIG_ATTR_REJECTED_VALUE.get(
+            value.getStringValue(), name, rejectReason.toString());
+        throw new ConfigException(message);
       }
     }
 
@@ -560,9 +556,8 @@ public abstract class ConfigAttribute
       if ((numValues > 1) || (hasPendingValues && (pendingValues.size() > 0)) ||
           ((! hasPendingValues) && (activeValues.size() > 0)))
       {
-        int    msgID   = MSGID_CONFIG_ATTR_ADD_VALUES_IS_SINGLE_VALUED;
-        String message = getMessage(msgID, name);
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CONFIG_ATTR_ADD_VALUES_IS_SINGLE_VALUED.get(name);
+        throw new ConfigException(message);
       }
     }
 
@@ -591,17 +586,16 @@ public abstract class ConfigAttribute
     {
       if (tempValues.contains(value))
       {
-        int    msgID   = MSGID_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS;
-        String message = getMessage(msgID, name, value.getStringValue());
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(
+            name, value.getStringValue());
+        throw new ConfigException(message);
       }
 
       if (! valueIsAcceptable(value, rejectReason))
       {
-        int    msgID   = MSGID_CONFIG_ATTR_REJECTED_VALUE;
-        String message = getMessage(msgID, value.getStringValue(), name,
-                                    rejectReason.toString());
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CONFIG_ATTR_REJECTED_VALUE.get(
+            value.getStringValue(), name, rejectReason.toString());
+        throw new ConfigException(message);
       }
     }
 
@@ -660,9 +654,9 @@ public abstract class ConfigAttribute
     {
       if (! tempValues.remove(value))
       {
-        int msgID = MSGID_CONFIG_ATTR_NO_SUCH_VALUE;
-        String message = getMessage(msgID, name, value.getStringValue());
-        throw new ConfigException(msgID, message);
+        Message message =
+            ERR_CONFIG_ATTR_NO_SUCH_VALUE.get(name, value.getStringValue());
+        throw new ConfigException(message);
       }
     }
 
@@ -671,9 +665,8 @@ public abstract class ConfigAttribute
     // least one value.
     if (isRequired && tempValues.isEmpty())
     {
-      int msgID = MSGID_CONFIG_ATTR_IS_REQUIRED;
-      String message = getMessage(msgID, name);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(name);
+      throw new ConfigException(message);
     }
 
 
@@ -705,9 +698,8 @@ public abstract class ConfigAttribute
   {
     if (isRequired)
     {
-      int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
-      String message = getMessage(msgID, name);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(name);
+      throw new ConfigException(message);
     }
 
 

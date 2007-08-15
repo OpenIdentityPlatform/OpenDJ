@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 
 
@@ -37,8 +38,7 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -126,7 +126,7 @@ public class WaitForFileDelete
     StringArgument  targetFilePath = null;
     StringArgument  outputFilePath = null;
 
-    String toolDescription = getMessage(MSGID_WAIT4DEL_TOOL_DESCRIPTION);
+    Message toolDescription = INFO_WAIT4DEL_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false);
 
@@ -135,38 +135,39 @@ public class WaitForFileDelete
       targetFilePath =
            new StringArgument("targetfile", 'f', "targetFile", true, false,
                               true, "{path}", null, null,
-                              MSGID_WAIT4DEL_DESCRIPTION_TARGET_FILE);
+                              INFO_WAIT4DEL_DESCRIPTION_TARGET_FILE.get());
       argParser.addArgument(targetFilePath);
 
 
-      logFilePath = new StringArgument("logfile", 'l', "logFile", false, false,
-                                       true, "{path}", null, null,
-                                       MSGID_WAIT4DEL_DESCRIPTION_LOG_FILE);
+      logFilePath = new StringArgument(
+              "logfile", 'l', "logFile", false, false,
+              true, "{path}", null, null,
+              INFO_WAIT4DEL_DESCRIPTION_LOG_FILE.get());
       argParser.addArgument(logFilePath);
 
 
-      outputFilePath = new StringArgument("outputfile", 'o', "outputFile",
-                                        false, false,
-                                        true, "{path}", null, null,
-                                        MSGID_WAIT4DEL_DESCRIPTION_OUTPUT_FILE);
+      outputFilePath = new StringArgument(
+              "outputfile", 'o', "outputFile",
+              false, false,
+              true, "{path}", null, null,
+              INFO_WAIT4DEL_DESCRIPTION_OUTPUT_FILE.get());
       argParser.addArgument(outputFilePath);
 
 
       timeout = new IntegerArgument("timeout", 't', "timeout", true, false,
                                     true, "{seconds}", 60, null, true, 0, false,
-                                    0, MSGID_WAIT4DEL_DESCRIPTION_TIMEOUT);
+                                    0, INFO_WAIT4DEL_DESCRIPTION_TIMEOUT.get());
       argParser.addArgument(timeout);
 
 
       showUsage = new BooleanArgument("help", 'H', "help",
-                                      MSGID_WAIT4DEL_DESCRIPTION_HELP);
+                                      INFO_WAIT4DEL_DESCRIPTION_HELP.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return EXIT_CODE_INTERNAL_ERROR;
     }
@@ -179,8 +180,7 @@ public class WaitForFileDelete
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.err.println(argParser.getUsage());
@@ -221,9 +221,8 @@ public class WaitForFileDelete
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_WAIT4DEL_CANNOT_OPEN_LOG_FILE;
-        String message = getMessage(msgID, logFilePath.getValue(),
-                                    String.valueOf(e));
+        Message message = WARN_WAIT4DEL_CANNOT_OPEN_LOG_FILE.get(
+                logFilePath.getValue(), String.valueOf(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
 
         logFile = null;
@@ -251,9 +250,8 @@ public class WaitForFileDelete
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_WAIT4DEL_CANNOT_OPEN_OUTPUT_FILE;
-          String message = getMessage(msgID, outputFilePath.getValue(),
-                                    String.valueOf(e));
+          Message message = WARN_WAIT4DEL_CANNOT_OPEN_OUTPUT_FILE.get(
+                  outputFilePath.getValue(), String.valueOf(e));
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
 
           outputFile = null;

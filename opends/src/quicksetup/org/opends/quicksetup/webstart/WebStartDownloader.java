@@ -26,6 +26,7 @@
  */
 
 package org.opends.quicksetup.webstart;
+import org.opends.messages.Message;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -36,10 +37,11 @@ import javax.jnlp.DownloadServiceListener;
 import javax.jnlp.ServiceManager;
 import javax.jnlp.UnavailableServiceException;
 
-import org.opends.quicksetup.i18n.ResourceProvider;
+
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.ApplicationReturnCode;
-import org.opends.quicksetup.util.Utils;
+import static org.opends.quicksetup.util.Utils.*;
+import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * This class is used to download the files that have been marked as lazy
@@ -82,7 +84,7 @@ public class WebStartDownloader implements DownloadServiceListener,
 
   private Status status = Status.DOWNLOADING;
 
-  private String summary = null;
+  private Message summary = null;
 
   /**
    * This enumeration contains the different Status on which
@@ -109,7 +111,7 @@ public class WebStartDownloader implements DownloadServiceListener,
    * Creates a default instance.
    */
   public WebStartDownloader() {
-    this.summary = getMsg("downloading");
+    this.summary = INFO_DOWNLOADING.get();
   }
 
   /**
@@ -136,8 +138,7 @@ public class WebStartDownloader implements DownloadServiceListener,
           // This is a bug
           ex =
               new ApplicationException(ApplicationReturnCode.ReturnCode.BUG,
-                      getExceptionMsg(
-                  "bug-msg", mfe), mfe);
+                      getThrowableMsg(INFO_BUG_MSG.get(),mfe), mfe);
         } catch (IOException ioe)
         {
           StringBuilder buf = new StringBuilder();
@@ -150,19 +151,17 @@ public class WebStartDownloader implements DownloadServiceListener,
             }
             buf.append(jars[i]);
           }
-          String[] arg =
-            { buf.toString() };
           ex =
               new ApplicationException(
               ApplicationReturnCode.ReturnCode.DOWNLOAD_ERROR,
-              getExceptionMsg("downloading-error", arg, ioe), ioe);
+              getThrowableMsg(
+                      INFO_DOWNLOADING_ERROR.get(buf.toString()), ioe), ioe);
         } catch (Throwable t)
         {
           // This is a bug
           ex =
               new ApplicationException(ApplicationReturnCode.ReturnCode.BUG,
-                      getExceptionMsg(
-                  "bug-msg", t), t);
+                      getThrowableMsg(INFO_BUG_MSG.get(), t), t);
         }
       }
     });
@@ -173,7 +172,7 @@ public class WebStartDownloader implements DownloadServiceListener,
    * Gets a summary message of the downloader's current progress.
    * @return String for showing the user progress
    */
-  public String getSummary() {
+  public Message getSummary() {
     return this.summary;
   }
 
@@ -181,7 +180,7 @@ public class WebStartDownloader implements DownloadServiceListener,
    * Sets a summary message of the downloader's current progress.
    * @param summary String for showing the user progress
    */
-  public void setSummary(String summary) {
+  public void setSummary(Message summary) {
     this.summary = summary;
   }
 
@@ -366,8 +365,8 @@ public class WebStartDownloader implements DownloadServiceListener,
   {
     ex =
         new ApplicationException(
-        ApplicationReturnCode.ReturnCode.DOWNLOAD_ERROR, getMsg(
-            "downloading-error", new String[] { url.toString() }), null);
+        ApplicationReturnCode.ReturnCode.DOWNLOAD_ERROR,
+                INFO_DOWNLOADING_ERROR.get(url.toString()), null);
   }
 
   /**
@@ -443,27 +442,6 @@ public class WebStartDownloader implements DownloadServiceListener,
   private String[] getJarVersions()
   {
     return new String[getJarUrls().length];
-  }
-
-  /* Some commodity methods to get localized messages */
-  private String getExceptionMsg(String key, Throwable t)
-  {
-    return getExceptionMsg(key, null, t);
-  }
-
-  private String getExceptionMsg(String key, String[] args, Throwable t)
-  {
-    return Utils.getThrowableMsg(ResourceProvider.getInstance(), key, args, t);
-  }
-
-  private String getMsg(String key, String[] args)
-  {
-    return ResourceProvider.getInstance().getMsg(key, args);
-  }
-
-  private String getMsg(String key)
-  {
-    return ResourceProvider.getInstance().getMsg(key);
   }
 
 }

@@ -33,15 +33,16 @@ import java.io.PrintStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.Installation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.ServerConstants;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 
 /**
@@ -125,12 +126,16 @@ public class StatusPanelLauncher
         }
         if (logFileName != null)
         {
-          System.err.println(getMsg(
-              "status-panel-launcher-gui-launch-failed-details", logFileName));
+          System.err.println(StaticUtils.wrapText(
+                  INFO_STATUS_PANEL_LAUNCHER_GUI_LAUNCH_FAILED_DETAILS.get(
+                          logFileName),
+                  Utils.getCommandLineMaxLineWidth()));
         }
         else
         {
-          System.err.println(getMsg("status-panel-launcher-gui-launch-failed"));
+          System.err.println(StaticUtils.wrapText(
+                  INFO_STATUS_PANEL_LAUNCHER_GUI_LAUNCH_FAILED.get(),
+                  Utils.getCommandLineMaxLineWidth()));
         }
         System.exit(exitCode);
       }
@@ -163,7 +168,7 @@ public class StatusPanelLauncher
         try
         {
           // Setup MacOSX native menu bar before AWT is loaded.
-          Utils.setMacOSXMenuBar(getMsg("statuspanel-dialog-title"));
+          Utils.setMacOSXMenuBar(INFO_STATUSPANEL_DIALOG_TITLE.get());
           SplashScreen.main(args);
           returnValue[0] = 0;
         }
@@ -216,7 +221,7 @@ public class StatusPanelLauncher
   {
     ArgumentParser argParser =
       new ArgumentParser(StatusPanelLauncher.class.getName(),
-        getI18n().getMsg("status-panel-launcher-usage-description"), false);
+        INFO_STATUS_PANEL_LAUNCHER_USAGE_DESCRIPTION.get(), false);
     BooleanArgument showUsage;
     String scriptName;
     if (Utils.isWindows()) {
@@ -229,7 +234,7 @@ public class StatusPanelLauncher
     {
       showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
         OPTION_LONG_HELP,
-        MSGID_DESCRIPTION_USAGE);
+        INFO_DESCRIPTION_USAGE.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
 
@@ -241,35 +246,6 @@ public class StatusPanelLauncher
       System.out.println("ERROR: "+t);
       t.printStackTrace();
     }
-  }
-
-  /**
-   * The following three methods are just commodity methods to get localized
-   * messages.
-   */
-  private static String getMsg(String key)
-  {
-    return org.opends.server.util.StaticUtils.wrapText(getI18n().getMsg(key),
-        Utils.getCommandLineMaxLineWidth());
-  }
-
-  /**
-   * Creates an internationaized message based on the input key and
-   * properly formatted for the terminal.
-   * @param key for the message in the bundle
-   * @param args String... arguments for the message
-   * @return String message properly formatted for the terminal
-   */
-  private static String getMsg(String key, String... args)
-  {
-    return org.opends.server.util.StaticUtils.wrapText(
-        getI18n().getMsg(key, args),
-        Utils.getCommandLineMaxLineWidth());
-  }
-
-  private static ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
   }
 
   /**

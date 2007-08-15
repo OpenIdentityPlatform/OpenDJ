@@ -27,10 +27,12 @@
 
 package org.opends.quicksetup.upgrader.ui;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.BuildInformation;
 import org.opends.quicksetup.ApplicationException;
-import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.ui.FieldName;
 import org.opends.quicksetup.ui.LabelFieldDescriptor;
 import org.opends.quicksetup.ui.ReviewPanel;
@@ -103,15 +105,15 @@ public class UpgraderReviewPanel extends ReviewPanel {
   /**
    * {@inheritDoc}
    */
-  protected String getTitle() {
-    return getMsg("upgrade-review-panel-title");
+  protected Message getTitle() {
+    return INFO_UPGRADE_REVIEW_PANEL_TITLE.get();
   }
 
   /**
    * {@inheritDoc}
    */
-  protected String getInstructions() {
-    return getMsg("upgrade-review-panel-instructions");
+  protected Message getInstructions() {
+    return INFO_UPGRADE_REVIEW_PANEL_INSTRUCTIONS.get();
   }
 
   /**
@@ -121,24 +123,24 @@ public class UpgraderReviewPanel extends ReviewPanel {
     JPanel p = UIFactory.makeJPanel();
 
     LabelFieldDescriptor serverDescriptor = new LabelFieldDescriptor(
-      getMsg("upgrade-review-panel-server-label"),
-      getMsg("upgrade-review-panel-server-tooltip"),
+      INFO_UPGRADE_REVIEW_PANEL_SERVER_LABEL.get(),
+      INFO_UPGRADE_REVIEW_PANEL_SERVER_TOOLTIP.get(),
       LabelFieldDescriptor.FieldType.READ_ONLY,
       LabelFieldDescriptor.LabelType.PRIMARY,
       0
     );
 
     LabelFieldDescriptor oldVersionDescriptor = new LabelFieldDescriptor(
-      getMsg("upgrade-review-panel-old-version-label"),
-      getMsg("upgrade-review-panel-old-version-tooltip"),
+      INFO_UPGRADE_REVIEW_PANEL_OLD_VERSION_LABEL.get(),
+      INFO_UPGRADE_REVIEW_PANEL_OLD_VERSION_TOOLTIP.get(),
       LabelFieldDescriptor.FieldType.READ_ONLY,
       LabelFieldDescriptor.LabelType.PRIMARY,
       0
     );
 
     LabelFieldDescriptor newVersionDescriptor = new LabelFieldDescriptor(
-      getMsg("upgrade-review-panel-new-version-label"),
-      getMsg("upgrade-review-panel-new-version-tooltip"),
+      INFO_UPGRADE_REVIEW_PANEL_NEW_VERSION_LABEL.get(),
+      INFO_UPGRADE_REVIEW_PANEL_NEW_VERSION_TOOLTIP.get(),
       LabelFieldDescriptor.FieldType.READ_ONLY,
       LabelFieldDescriptor.LabelType.PRIMARY,
       0
@@ -213,8 +215,7 @@ public class UpgraderReviewPanel extends ReviewPanel {
       LOG.log(Level.INFO, "error trying to determine new build string", e);
     }
     if (b == null) {
-      b = ResourceProvider.getInstance().
-              getMsg("upgrade-build-id-unknown");
+      b = INFO_UPGRADE_BUILD_ID_UNKNOWN.get().toString();
     }
     return b;
   }
@@ -227,8 +228,8 @@ public class UpgraderReviewPanel extends ReviewPanel {
     if (checkBox == null)
     {
       checkBox =
-          UIFactory.makeJCheckBox(getMsg("upgrade-review-panel-start-server"),
-              getMsg("start-server-tooltip"), UIFactory.TextStyle.CHECKBOX);
+          UIFactory.makeJCheckBox(INFO_UPGRADE_REVIEW_PANEL_START_SERVER.get(),
+              INFO_START_SERVER_TOOLTIP.get(), UIFactory.TextStyle.CHECKBOX);
       checkBox.setSelected(getApplication().getUserData().getStartServer());
     }
     return checkBox;

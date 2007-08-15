@@ -25,8 +25,10 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.client.cli;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.AdminMessages.*;
+import static org.opends.messages.AdminMessages.*;
+
 
 import java.util.HashMap;
 
@@ -42,128 +44,128 @@ import org.opends.admin.ads.ADSContextException.ErrorType;
     /**
      * successful.
      */
-    SUCCESSFUL(0, MSGID_ADMIN_SUCCESSFUL),
+    SUCCESSFUL(0, INFO_ADMIN_SUCCESSFUL.get()),
 
     /**
      * successful but no operation was performed.
      */
-    SUCCESSFUL_NOP(SUCCESSFUL.getReturnCode(), MSGID_ADMIN_SUCCESSFUL_NOP),
+    SUCCESSFUL_NOP(SUCCESSFUL.getReturnCode(), INFO_ADMIN_SUCCESSFUL_NOP.get()),
 
     /**
      * Unable to initialize arguments.
      */
-    CANNOT_INITIALIZE_ARGS(1, MSGID_ADMIN_NO_MESSAGE),
+    CANNOT_INITIALIZE_ARGS(1, ERR_ADMIN_NO_MESSAGE.get()),
 
     /**
      * Cannot parse argument.
      */
-    ERROR_PARSING_ARGS(2, MSGID_ADMIN_NO_MESSAGE),
+    ERROR_PARSING_ARGS(2, ERR_ADMIN_NO_MESSAGE.get()),
     /**
      * Return code: Cannot get the connection to the ADS.
      */
-    CANNOT_CONNECT_TO_ADS(3, MSGID_ADMIN_NO_MESSAGE),
+    CANNOT_CONNECT_TO_ADS(3, ERR_ADMIN_NO_MESSAGE.get()),
 
     /**
      * The host name is missing.
      */
-    MISSING_HOSTNAME(4, MSGID_ADMIN_MISSING_HOSTNAME),
+    MISSING_HOSTNAME(4, ERR_ADMIN_MISSING_HOSTNAME.get()),
 
     /**
      * The host name is not valid.
      */
-    NOVALID_HOSTNAME(5, MSGID_ADMIN_NOVALID_HOSTNAME),
+    NOVALID_HOSTNAME(5, ERR_ADMIN_NOVALID_HOSTNAME.get()),
 
     /**
      * The installation path is missing.
      */
-    MISSING_IPATH(6, MSGID_ADMIN_MISSING_IPATH),
+    MISSING_IPATH(6, ERR_ADMIN_MISSING_IPATH.get()),
 
     /**
      * The installation path is not valid.
      */
-    NOVALID_IPATH(7, MSGID_ADMIN_NOVALID_IPATH),
+    NOVALID_IPATH(7, ERR_ADMIN_NOVALID_IPATH.get()),
 
     /**
      * An access permission error.
      */
-    ACCESS_PERMISSION(8, MSGID_ADMIN_ACCESS_PERMISSION),
+    ACCESS_PERMISSION(8, ERR_ADMIN_ACCESS_PERMISSION.get()),
 
     /**
      * The entity is already registered.
      */
-    ALREADY_REGISTERED(9, MSGID_ADMIN_ALREADY_REGISTERED),
+    ALREADY_REGISTERED(9, ERR_ADMIN_ALREADY_REGISTERED.get()),
 
     /**
      * The installation is broken.
      */
-    BROKEN_INSTALL(10, MSGID_ADMIN_BROKEN_INSTALL),
+    BROKEN_INSTALL(10, ERR_ADMIN_BROKEN_INSTALL.get()),
 
     /**
      * The entity is not yet registered.
      */
-    NOT_YET_REGISTERED(11, MSGID_ADMIN_NOT_YET_REGISTERED),
+    NOT_YET_REGISTERED(11, ERR_ADMIN_NOT_YET_REGISTERED.get()),
 
     /**
      * The port is missing.
      */
-    MISSING_PORT(12, MSGID_ADMIN_MISSING_PORT),
+    MISSING_PORT(12, ERR_ADMIN_MISSING_PORT.get()),
 
     /**
      * The port is not valid.
      */
-    NOVALID_PORT(13, MSGID_ADMIN_NOVALID_PORT),
+    NOVALID_PORT(13, ERR_ADMIN_NOVALID_PORT.get()),
 
     /**
      * The name is missing.
      */
-    MISSING_NAME(14, MSGID_ADMIN_MISSING_NAME),
+    MISSING_NAME(14, ERR_ADMIN_MISSING_NAME.get()),
 
     /**
      * The administration UID is missing.
      */
-    MISSING_ADMIN_UID(15, MSGID_ADMIN_MISSING_ADMIN_UID),
+    MISSING_ADMIN_UID(15, ERR_ADMIN_MISSING_ADMIN_UID.get()),
 
     /**
      * The administrator password is missing.
      */
-    MISSING_ADMIN_PASSWORD(16, MSGID_ADMIN_MISSING_ADMIN_PASSWORD),
+    MISSING_ADMIN_PASSWORD(16, ERR_ADMIN_MISSING_ADMIN_PASSWORD.get()),
 
     /**
      * Unexpected error (potential bug).
      */
-    ERROR_UNEXPECTED(17, MSGID_ADMIN_ERROR_UNEXPECTED),
+    ERROR_UNEXPECTED(17, ERR_ADMIN_ERROR_UNEXPECTED.get()),
 
     /**
      * Unexpected error (potential bug).
      */
-    CONFLICTING_ARGS(18, MSGID_ADMIN_NO_MESSAGE),
+    CONFLICTING_ARGS(18, ERR_ADMIN_NO_MESSAGE.get()),
 
     /**
      * The server entity is not yet registered.
      */
-    SERVER_NOT_REGISTERED(19, MSGID_ADMIN_SERVER_NOT_REGISTERED);
+    SERVER_NOT_REGISTERED(19, ERR_ADMIN_SERVER_NOT_REGISTERED.get());
 
     // The retunCodevalue of the value.
     private final int returnCode;
 
     // The message id to be used of the value.
-    private final int messageId;
+    private final Message message;
 
     // Private constructor.
-    private DsFrameworkCliReturnCode(int returnCode, int messageId)
+    private DsFrameworkCliReturnCode(int returnCode, Message message)
     {
       this.returnCode = returnCode;
-      this.messageId = messageId;
+      this.message = message;
     }
 
     /**
-     * Get the corresponding message Id.
+     * Get the corresponding message.
      *
-     * @return The corresponding message Id.
+     * @return The corresponding message.
      */
-    public int getMessageId()
+    public Message getMessage()
     {
-      return messageId;
+      return message;
     }
 
     /**

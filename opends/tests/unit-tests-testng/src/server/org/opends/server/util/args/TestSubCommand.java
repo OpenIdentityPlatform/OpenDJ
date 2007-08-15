@@ -32,7 +32,7 @@ import java.util.Arrays;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
+import org.opends.messages.Message;
 
 
 /**
@@ -49,8 +49,8 @@ public final class TestSubCommand extends ArgsTestCase {
   @Test
   public void testAllowsTrailingArgumentsFalse1() throws Exception {
     SubCommandArgumentParser parser = new SubCommandArgumentParser(this
-        .getClass().getName(), "test description", true);
-    SubCommand sc = new SubCommand(parser, "sub-command1", 1000);
+        .getClass().getName(), Message.raw("test description"), true);
+    SubCommand sc = new SubCommand(parser, "sub-command1", Message.raw("XXX"));
     Assert.assertFalse(sc.allowsTrailingArguments());
   }
 
@@ -65,9 +65,9 @@ public final class TestSubCommand extends ArgsTestCase {
   @Test
   public void testAllowsTrailingArgumentsFalse2() throws Exception {
     SubCommandArgumentParser parser = new SubCommandArgumentParser(this
-        .getClass().getName(), "test description", true);
+        .getClass().getName(), Message.raw("test description"), true);
     SubCommand sc = new SubCommand(parser, "sub-command2", false, 0, 0, null,
-        2000);
+        Message.raw("XXX"));
     Assert.assertFalse(sc.allowsTrailingArguments());
   }
 
@@ -82,9 +82,9 @@ public final class TestSubCommand extends ArgsTestCase {
   @Test
   public void testAllowsTrailingArgumentsTrue() throws Exception {
     SubCommandArgumentParser parser = new SubCommandArgumentParser(this
-        .getClass().getName(), "test description", true);
+        .getClass().getName(), Message.raw("test description"), true);
     SubCommand sc = new SubCommand(parser, "sub-command2", true, 2, 4,
-        "args1 arg2 [arg3 arg4]", 2000);
+        "args1 arg2 [arg3 arg4]", Message.raw("XXX"));
     Assert.assertTrue(sc.allowsTrailingArguments());
   }
 
@@ -99,8 +99,8 @@ public final class TestSubCommand extends ArgsTestCase {
   @Test
   public void testGetMaxTrailingArguments1() throws Exception {
     SubCommandArgumentParser parser = new SubCommandArgumentParser(this
-        .getClass().getName(), "test description", true);
-    SubCommand sc = new SubCommand(parser, "sub-command1", 1000);
+        .getClass().getName(), Message.raw("test description"), true);
+    SubCommand sc = new SubCommand(parser, "sub-command1", Message.raw("XXX"));
     Assert.assertEquals(sc.getMaxTrailingArguments(), 0);
   }
 
@@ -115,9 +115,9 @@ public final class TestSubCommand extends ArgsTestCase {
   @Test
   public void testGetMaxTrailingArguments2() throws Exception {
     SubCommandArgumentParser parser = new SubCommandArgumentParser(this
-        .getClass().getName(), "test description", true);
+        .getClass().getName(), Message.raw("test description"), true);
     SubCommand sc = new SubCommand(parser, "sub-command2", false, 0, 0, null,
-        2000);
+        Message.raw("XXX"));
     Assert.assertEquals(sc.getMaxTrailingArguments(), 0);
   }
 
@@ -132,9 +132,9 @@ public final class TestSubCommand extends ArgsTestCase {
   @Test
   public void testGetMaxTrailingArguments3() throws Exception {
     SubCommandArgumentParser parser = new SubCommandArgumentParser(this
-        .getClass().getName(), "test description", true);
+        .getClass().getName(), Message.raw("test description"), true);
     SubCommand sc = new SubCommand(parser, "sub-command2", true, 2, 4,
-        "args1 arg2 [arg3 arg4]", 2000);
+        "args1 arg2 [arg3 arg4]", Message.raw("XXX"));
     Assert.assertEquals(sc.getMaxTrailingArguments(), 4);
   }
 
@@ -149,8 +149,8 @@ public final class TestSubCommand extends ArgsTestCase {
   @Test
   public void testGetMinTrailingArguments1() throws Exception {
     SubCommandArgumentParser parser = new SubCommandArgumentParser(this
-        .getClass().getName(), "test description", true);
-    SubCommand sc = new SubCommand(parser, "sub-command1", 1000);
+        .getClass().getName(), Message.raw("test description"), true);
+    SubCommand sc = new SubCommand(parser, "sub-command1", Message.raw("XXX"));
     Assert.assertEquals(sc.getMinTrailingArguments(), 0);
   }
 
@@ -165,9 +165,9 @@ public final class TestSubCommand extends ArgsTestCase {
   @Test
   public void testGetMinTrailingArguments2() throws Exception {
     SubCommandArgumentParser parser = new SubCommandArgumentParser(this
-        .getClass().getName(), "test description", true);
+        .getClass().getName(), Message.raw("test description"), true);
     SubCommand sc = new SubCommand(parser, "sub-command2", false, 0, 0, null,
-        2000);
+        Message.raw("XXX"));
     Assert.assertEquals(sc.getMinTrailingArguments(), 0);
   }
 
@@ -182,9 +182,9 @@ public final class TestSubCommand extends ArgsTestCase {
   @Test
   public void testGetMinTrailingArguments3() throws Exception {
     SubCommandArgumentParser parser = new SubCommandArgumentParser(this
-        .getClass().getName(), "test description", true);
+        .getClass().getName(), Message.raw("test description"), true);
     SubCommand sc = new SubCommand(parser, "sub-command2", true, 2, 4,
-        "args1 arg2 [arg3 arg4]", 2000);
+        "args1 arg2 [arg3 arg4]", Message.raw("XXX"));
     Assert.assertEquals(sc.getMinTrailingArguments(), 2);
   }
 
@@ -199,8 +199,8 @@ public final class TestSubCommand extends ArgsTestCase {
   @Test
   public void testGetTrailingArgumentsDisplayName1() throws Exception {
     SubCommandArgumentParser parser = new SubCommandArgumentParser(this
-        .getClass().getName(), "test description", true);
-    SubCommand sc = new SubCommand(parser, "sub-command1", 1000);
+        .getClass().getName(), Message.raw("test description"), true);
+    SubCommand sc = new SubCommand(parser, "sub-command1", Message.raw("XXX"));
     Assert.assertNull(sc.getTrailingArgumentsDisplayName());
   }
 
@@ -215,9 +215,9 @@ public final class TestSubCommand extends ArgsTestCase {
   @Test
   public void testGetTrailingArgumentsDisplayName2() throws Exception {
     SubCommandArgumentParser parser = new SubCommandArgumentParser(this
-        .getClass().getName(), "test description", true);
+        .getClass().getName(), Message.raw("test description"), true);
     SubCommand sc = new SubCommand(parser, "sub-command2", false, 0, 0, null,
-        2000);
+        Message.raw("XXX"));
     Assert.assertNull(sc.getTrailingArgumentsDisplayName());
   }
 
@@ -232,9 +232,9 @@ public final class TestSubCommand extends ArgsTestCase {
   @Test
   public void testGetTrailingArgumentsDisplayName3() throws Exception {
     SubCommandArgumentParser parser = new SubCommandArgumentParser(this
-        .getClass().getName(), "test description", true);
+        .getClass().getName(), Message.raw("test description"), true);
     SubCommand sc = new SubCommand(parser, "sub-command2", true, 2, 4,
-        "args1 arg2 [arg3 arg4]", 2000);
+        "args1 arg2 [arg3 arg4]", Message.raw("XXX"));
     Assert.assertEquals(sc.getTrailingArgumentsDisplayName(),
         "args1 arg2 [arg3 arg4]");
   }
@@ -250,8 +250,8 @@ public final class TestSubCommand extends ArgsTestCase {
   @Test
   public void testGetTrailingArguments1() throws Exception {
     SubCommandArgumentParser parser = new SubCommandArgumentParser(this
-        .getClass().getName(), "test description", true);
-    SubCommand sc = new SubCommand(parser, "sub-command1", 1000);
+        .getClass().getName(), Message.raw("test description"), true);
+    SubCommand sc = new SubCommand(parser, "sub-command1", Message.raw("XXX"));
     parser.parseArguments(new String[] { "sub-command1" });
     Assert.assertTrue(sc.getTrailingArguments().isEmpty());
   }
@@ -267,9 +267,9 @@ public final class TestSubCommand extends ArgsTestCase {
   @Test
   public void testGetTrailingArguments2() throws Exception {
     SubCommandArgumentParser parser = new SubCommandArgumentParser(this
-        .getClass().getName(), "test description", true);
+        .getClass().getName(), Message.raw("test description"), true);
     SubCommand sc = new SubCommand(parser, "sub-command2", false, 0, 0, null,
-        2000);
+        Message.raw("XXX"));
     parser.parseArguments(new String[] { "sub-command2" });
     Assert.assertTrue(sc.getTrailingArguments().isEmpty());
   }
@@ -285,9 +285,9 @@ public final class TestSubCommand extends ArgsTestCase {
   @Test
   public void testGetTrailingArguments3() throws Exception {
     SubCommandArgumentParser parser = new SubCommandArgumentParser(this
-        .getClass().getName(), "test description", true);
+        .getClass().getName(), Message.raw("test description"), true);
     SubCommand sc = new SubCommand(parser, "sub-command2", true, 2, 4,
-        "args1 arg2 [arg3 arg4]", 2000);
+        "args1 arg2 [arg3 arg4]", Message.raw("XXX"));
     parser
         .parseArguments(new String[] { "sub-command2", "arg1", "arg2", "arg3" });
     Assert.assertEquals(sc.getTrailingArguments(), Arrays.asList(new String[] {

@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.admin;
+import org.opends.messages.Message;
 
 
 
@@ -253,7 +254,7 @@ public abstract class RelationDefinition
    *         the default locale, or <code>null</code> if there is no
    *         description.
    */
-  public final String getDescription() {
+  public final Message getDescription() {
     return getDescription(Locale.getDefault());
   }
 
@@ -269,7 +270,7 @@ public abstract class RelationDefinition
    *         the specified locale, or <code>null</code> if there is
    *         no description.
    */
-  public final String getDescription(Locale locale) {
+  public final Message getDescription(Locale locale) {
     try {
       String property = "relation." + common.name + ".description";
       return ManagedObjectDefinitionI18NResource.getInstance().getMessage(
@@ -310,7 +311,7 @@ public abstract class RelationDefinition
    * @return Returns the synopsis of this relation definition in the
    *         default locale.
    */
-  public final String getSynopsis() {
+  public final Message getSynopsis() {
     return getSynopsis(Locale.getDefault());
   }
 
@@ -325,7 +326,7 @@ public abstract class RelationDefinition
    * @return Returns the synopsis of this relation definition in the
    *         specified locale.
    */
-  public final String getSynopsis(Locale locale) {
+  public final Message getSynopsis(Locale locale) {
     String property = "relation." + common.name + ".synopsis";
     return ManagedObjectDefinitionI18NResource.getInstance().getMessage(
         getParentDefinition(), property, locale);
@@ -340,7 +341,7 @@ public abstract class RelationDefinition
    * @return Returns the user friendly name of this relation
    *         definition in the default locale.
    */
-  public final String getUserFriendlyName() {
+  public final Message getUserFriendlyName() {
     return getUserFriendlyName(Locale.getDefault());
   }
 
@@ -355,7 +356,7 @@ public abstract class RelationDefinition
    * @return Returns the user friendly name of this relation
    *         definition in the specified locale.
    */
-  public final String getUserFriendlyName(Locale locale) {
+  public final Message getUserFriendlyName(Locale locale) {
     String property = "relation." + common.name + ".user-friendly-name";
     return ManagedObjectDefinitionI18NResource.getInstance().getMessage(
         getParentDefinition(), property, locale);

@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -42,9 +43,8 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-
+import static org.opends.messages.ExtensionMessages.*;
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -106,7 +106,7 @@ public class RepeatedCharactersPasswordValidator
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
-                                      StringBuilder invalidReason)
+                                      MessageBuilder invalidReason)
   {
     // Get a handle to the current configuration and see if we need to count
     // the number of repeated characters in the password.
@@ -144,8 +144,9 @@ public class RepeatedCharactersPasswordValidator
         consecutiveCount++;
         if (consecutiveCount > maxRepeats)
         {
-          int    msgID   = MSGID_REPEATEDCHARS_VALIDATOR_TOO_MANY_CONSECUTIVE;
-          String message = getMessage(msgID, maxRepeats);
+          Message message =
+                  ERR_REPEATEDCHARS_VALIDATOR_TOO_MANY_CONSECUTIVE.get(
+                          maxRepeats);
           invalidReason.append(message);
           return false;
         }
@@ -167,7 +168,7 @@ public class RepeatedCharactersPasswordValidator
    */
   public boolean isConfigurationChangeAcceptable(
                       RepeatedCharactersPasswordValidatorCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // All of the necessary validation should have been performed automatically,
     // so if we get to this point then the new configuration will be acceptable.
@@ -184,7 +185,7 @@ public class RepeatedCharactersPasswordValidator
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     // For this password validator, we will always be able to successfully apply
     // the new configuration.

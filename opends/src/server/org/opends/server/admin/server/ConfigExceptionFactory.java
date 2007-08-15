@@ -25,15 +25,15 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.config.ConfigException;
-import org.opends.server.messages.AdminMessages;
+import org.opends.messages.AdminMessages;
 import org.opends.server.types.DN;
 
 
@@ -78,10 +78,9 @@ final class ConfigExceptionFactory {
    */
   public ConfigException createDecodingExceptionAdaptor(DN dn,
       DefinitionDecodingException e) {
-    int msgID = AdminMessages.MSGID_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM;
-    String message = getMessage(msgID, String.valueOf(dn),
-        stackTraceToSingleLineString(e));
-    return new ConfigException(msgID, message, e);
+    Message message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.
+        get(String.valueOf(dn), stackTraceToSingleLineString(e));
+    return new ConfigException(message, e);
   }
 
 
@@ -97,11 +96,13 @@ final class ConfigExceptionFactory {
 
   public ConfigException createDecodingExceptionAdaptor(
       ServerManagedObjectDecodingException e) {
-    int msgID = AdminMessages.MSGID_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM;
+
     DN dn = e.getPartialManagedObject().getDN();
-    String message = getMessage(msgID, String.valueOf(dn),
+    Message message =
+            AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(
+                    String.valueOf(dn),
         stackTraceToSingleLineString(e));
-    return new ConfigException(msgID, message, e);
+    return new ConfigException(message, e);
   }
 
 
@@ -121,9 +122,9 @@ final class ConfigExceptionFactory {
 
   public ConfigException createClassLoadingExceptionAdaptor(DN dn,
       String className, Exception e) {
-    int msgID = AdminMessages.MSGID_ADMIN_CANNOT_INSTANTIATE_CLASS;
-    String message = getMessage(msgID, String.valueOf(className), String
-        .valueOf(dn), stackTraceToSingleLineString(e));
-    return new ConfigException(msgID, message, e);
+    Message message = AdminMessages.ERR_ADMIN_CANNOT_INSTANTIATE_CLASS.
+        get(String.valueOf(className), String.valueOf(dn),
+            stackTraceToSingleLineString(e));
+    return new ConfigException(message, e);
   }
 }

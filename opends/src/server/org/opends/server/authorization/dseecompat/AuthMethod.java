@@ -26,13 +26,13 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.AciMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.AccessControlMessages.*;
 import org.opends.server.core.DirectoryServer;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 
 /**
  * The AuthMethod class represents an authmethod bind rule keyword expression.
@@ -95,16 +95,14 @@ public class AuthMethod implements KeywordBindRule {
       {
         String saslMech = expr.substring(5);
         if (DirectoryServer.getSASLMechanismHandler(saslMech) == null) {
-          int msgID = MSGID_ACI_SYNTAX_DUBIOUS_AUTHMETHOD_SASL_MECHANISM;
-          logError(ErrorLogCategory.ACCESS_CONTROL,
-                   ErrorLogSeverity.NOTICE, msgID, saslMech);
+          logError(NOTE_ACI_SYNTAX_DUBIOUS_AUTHMETHOD_SASL_MECHANISM.
+                    get(saslMech));
         }
         return new AuthMethod(EnumAuthMethod.AUTHMETHOD_SASL, saslMech, type);
       }
 
-      int msgID = MSGID_ACI_SYNTAX_INVALID_AUTHMETHOD_EXPRESSION;
-      String message = getMessage(msgID, expr);
-      throw new AciException(msgID, message);
+      Message message = WARN_ACI_SYNTAX_INVALID_AUTHMETHOD_EXPRESSION.get(expr);
+      throw new AciException(message);
     }
 
     /**

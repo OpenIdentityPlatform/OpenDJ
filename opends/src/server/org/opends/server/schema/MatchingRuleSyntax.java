@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+import org.opends.messages.Message;
 
 
 
@@ -41,16 +42,16 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.ResultCode;
 
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -105,27 +106,24 @@ public class MatchingRuleSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_CASE_IGNORE_OID, SYNTAX_MATCHING_RULE_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_CASE_IGNORE_OID, SYNTAX_MATCHING_RULE_NAME));
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-               OMR_CASE_IGNORE_OID, SYNTAX_MATCHING_RULE_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+          OMR_CASE_IGNORE_OID, SYNTAX_MATCHING_RULE_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_CASE_IGNORE_OID, SYNTAX_MATCHING_RULE_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_CASE_IGNORE_OID, SYNTAX_MATCHING_RULE_NAME));
     }
   }
 
@@ -241,7 +239,7 @@ public class MatchingRuleSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // Get string representations of the provided value using the provided form
     // and with all lowercase characters.
@@ -262,8 +260,8 @@ public class MatchingRuleSyntax
     {
       // This means that the value was empty or contained only whitespace.  That
       // is illegal.
-      int msgID = MSGID_ATTR_SYNTAX_MR_EMPTY_VALUE;
-      invalidReason.append(getMessage(msgID));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_MR_EMPTY_VALUE.get());
       return false;
     }
 
@@ -273,8 +271,9 @@ public class MatchingRuleSyntax
     char c = valueStr.charAt(pos++);
     if (c != '(')
     {
-      int msgID = MSGID_ATTR_SYNTAX_MR_EXPECTED_OPEN_PARENTHESIS;
-      invalidReason.append(getMessage(msgID, valueStr, (pos-1), c));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_MR_EXPECTED_OPEN_PARENTHESIS.get(
+              valueStr, (pos-1), String.valueOf(c)));
       return false;
     }
 
@@ -289,8 +288,8 @@ public class MatchingRuleSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      int msgID = MSGID_ATTR_SYNTAX_MR_TRUNCATED_VALUE;
-      invalidReason.append(getMessage(msgID, valueStr));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_MR_TRUNCATED_VALUE.get(valueStr));
       return false;
     }
 
@@ -311,8 +310,10 @@ public class MatchingRuleSyntax
         {
           if (lastWasPeriod)
           {
-            int msgID = MSGID_ATTR_SYNTAX_MR_DOUBLE_PERIOD_IN_NUMERIC_OID;
-            invalidReason.append(getMessage(msgID, valueStr, (pos-1)));
+
+            invalidReason.append(
+                    ERR_ATTR_SYNTAX_MR_DOUBLE_PERIOD_IN_NUMERIC_OID.get(
+                            valueStr, (pos-1)));
             return false;
           }
           else
@@ -323,8 +324,10 @@ public class MatchingRuleSyntax
         else if (! isDigit(c))
         {
           // This must have been an illegal character.
-          int msgID = MSGID_ATTR_SYNTAX_MR_ILLEGAL_CHAR_IN_NUMERIC_OID;
-          invalidReason.append(getMessage(msgID, valueStr, c, (pos-1)));
+
+          invalidReason.append(
+                  ERR_ATTR_SYNTAX_MR_ILLEGAL_CHAR_IN_NUMERIC_OID.get(
+                          valueStr, String.valueOf(c), (pos-1)));
           return false;
         }
         else
@@ -347,8 +350,10 @@ public class MatchingRuleSyntax
         else
         {
           // This must have been an illegal character.
-          int msgID = MSGID_ATTR_SYNTAX_MR_ILLEGAL_CHAR_IN_STRING_OID;
-          invalidReason.append(getMessage(msgID, valueStr, c, (pos-1)));
+
+          invalidReason.append(
+                  ERR_ATTR_SYNTAX_MR_ILLEGAL_CHAR_IN_STRING_OID.get(
+                          valueStr, String.valueOf(c), (pos-1)));
           return false;
         }
       }
@@ -360,8 +365,8 @@ public class MatchingRuleSyntax
     String oid;
     if (pos >= length)
     {
-      int msgID = MSGID_ATTR_SYNTAX_MR_TRUNCATED_VALUE;
-      invalidReason.append(getMessage(msgID, valueStr));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_MR_TRUNCATED_VALUE.get(valueStr));
       return false;
     }
     else
@@ -380,8 +385,8 @@ public class MatchingRuleSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      int msgID = MSGID_ATTR_SYNTAX_MR_TRUNCATED_VALUE;
-      invalidReason.append(getMessage(msgID, valueStr));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_MR_TRUNCATED_VALUE.get(valueStr));
       return false;
     }
 
@@ -415,7 +420,7 @@ public class MatchingRuleSyntax
           TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
-        invalidReason.append(de.getErrorMessage());
+        invalidReason.append(de.getMessageObject());
         return false;
       }
 
@@ -426,8 +431,10 @@ public class MatchingRuleSyntax
         // We must be at the end of the value.  If not, then that's a problem.
         if (pos < length)
         {
-          int msgID = MSGID_ATTR_SYNTAX_MR_UNEXPECTED_CLOSE_PARENTHESIS;
-          invalidReason.append(getMessage(msgID, valueStr, (pos-1)));
+
+          invalidReason.append(
+                  ERR_ATTR_SYNTAX_MR_UNEXPECTED_CLOSE_PARENTHESIS.get(
+                          valueStr, (pos-1)));
           return false;
         }
 
@@ -456,7 +463,7 @@ public class MatchingRuleSyntax
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            invalidReason.append(de.getErrorMessage());
+            invalidReason.append(de.getMessageObject());
             return false;
           }
 
@@ -479,7 +486,7 @@ public class MatchingRuleSyntax
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            invalidReason.append(de.getErrorMessage());
+            invalidReason.append(de.getMessageObject());
             return false;
           }
 
@@ -516,7 +523,7 @@ public class MatchingRuleSyntax
                   TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
-                invalidReason.append(de.getErrorMessage());
+                invalidReason.append(de.getMessageObject());
                 return false;
               }
 
@@ -527,8 +534,9 @@ public class MatchingRuleSyntax
         else
         {
           // This is an illegal character.
-          int msgID = MSGID_ATTR_SYNTAX_MR_ILLEGAL_CHAR;
-          invalidReason.append(getMessage(msgID, valueStr, c, (pos-1)));
+
+          invalidReason.append(ERR_ATTR_SYNTAX_MR_ILLEGAL_CHAR.get(
+                  valueStr, String.valueOf(c), (pos-1)));
           return false;
         }
       }
@@ -549,7 +557,7 @@ public class MatchingRuleSyntax
             TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
-          invalidReason.append(de.getErrorMessage());
+          invalidReason.append(de.getMessageObject());
           return false;
         }
       }
@@ -575,7 +583,7 @@ public class MatchingRuleSyntax
             TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
-          invalidReason.append(de.getErrorMessage());
+          invalidReason.append(de.getMessageObject());
           return false;
         }
 
@@ -585,10 +593,9 @@ public class MatchingRuleSyntax
                                                     false);
         if (syntax == null)
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX;
-          String message = getMessage(msgID, valueStr, oidBuffer.toString());
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                   message, msgID);
+          Message message = ERR_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX.get(
+              valueStr, oidBuffer.toString());
+          logError(message);
 
           syntax = DirectoryServer.getDefaultAttributeSyntax();
         }
@@ -613,7 +620,7 @@ public class MatchingRuleSyntax
             TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
-          invalidReason.append(de.getErrorMessage());
+          invalidReason.append(de.getMessageObject());
           return false;
         }
 
@@ -625,8 +632,8 @@ public class MatchingRuleSyntax
     // Make sure that a syntax was specified.
     if (syntax == null)
     {
-      int msgID = MSGID_ATTR_SYNTAX_MR_NO_SYNTAX;
-      invalidReason.append(getMessage(msgID, valueStr));
+
+      invalidReason.append(ERR_ATTR_SYNTAX_MR_NO_SYNTAX.get(valueStr));
       return false;
     }
 
@@ -667,10 +674,9 @@ public class MatchingRuleSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_MR_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_MR_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -726,20 +732,20 @@ public class MatchingRuleSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_MR_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_MR_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
     // The next character must be a single quote.
     if (c != '\'')
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_MR_EXPECTED_QUOTE_AT_POS;
-      String message = getMessage(msgID, valueStr, startPos, c);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message =
+          ERR_ATTR_SYNTAX_MR_EXPECTED_QUOTE_AT_POS.get(
+                  valueStr, startPos, String.valueOf(c));
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -763,10 +769,9 @@ public class MatchingRuleSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_MR_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_MR_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -813,20 +818,20 @@ public class MatchingRuleSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_MR_TRUNCATED_VALUE;
-      String message = getMessage(msgID, lowerStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_MR_TRUNCATED_VALUE.get(lowerStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
     // The next character must be a single quote.
     if (c != '\'')
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_MR_EXPECTED_QUOTE_AT_POS;
-      String message = getMessage(msgID, valueStr, startPos, c);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message =
+          ERR_ATTR_SYNTAX_MR_EXPECTED_QUOTE_AT_POS.get(
+                  valueStr, startPos, String.valueOf(c));
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -851,10 +856,9 @@ public class MatchingRuleSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_MR_TRUNCATED_VALUE;
-      String message = getMessage(msgID, lowerStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_MR_TRUNCATED_VALUE.get(lowerStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -894,10 +898,10 @@ public class MatchingRuleSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_OBJECTCLASS_TRUNCATED_VALUE;
-      String message = getMessage(msgID, lowerStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message =
+          ERR_ATTR_SYNTAX_OBJECTCLASS_TRUNCATED_VALUE.get(lowerStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -914,11 +918,11 @@ public class MatchingRuleSyntax
         {
           if (lastWasPeriod)
           {
-            int msgID =
-                 MSGID_ATTR_SYNTAX_OBJECTCLASS_DOUBLE_PERIOD_IN_NUMERIC_OID;
-            String message = getMessage(msgID, lowerStr, (startPos-1));
+            Message message =
+                ERR_ATTR_SYNTAX_OBJECTCLASS_DOUBLE_PERIOD_IN_NUMERIC_OID.
+                  get(lowerStr, (startPos-1));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
           else
           {
@@ -940,10 +944,11 @@ public class MatchingRuleSyntax
           }
 
           // This must have been an illegal character.
-          int msgID = MSGID_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR_IN_NUMERIC_OID;
-          String message = getMessage(msgID, lowerStr, c, (startPos-1));
+          Message message =
+                  ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR_IN_NUMERIC_OID.get(
+                          lowerStr, String.valueOf(c), (startPos - 1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
         else
         {
@@ -977,19 +982,21 @@ public class MatchingRuleSyntax
           }
 
           // This must have been an illegal character.
-          int msgID = MSGID_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR_IN_STRING_OID;
-          String message = getMessage(msgID, lowerStr, c, (startPos-1));
+          Message message =
+                  ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR_IN_STRING_OID.
+                          get(lowerStr, String.valueOf(c), (startPos - 1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
     }
     else
     {
-      int msgID = MSGID_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR;
-      String message = getMessage(msgID, lowerStr, c, startPos);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message =
+          ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(
+                  lowerStr, String.valueOf(c), startPos);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1003,10 +1010,10 @@ public class MatchingRuleSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_OBJECTCLASS_TRUNCATED_VALUE;
-      String message = getMessage(msgID, lowerStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message =
+          ERR_ATTR_SYNTAX_OBJECTCLASS_TRUNCATED_VALUE.get(lowerStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1046,10 +1053,9 @@ public class MatchingRuleSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_MR_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_MR_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1081,10 +1087,9 @@ public class MatchingRuleSyntax
 
         if (startPos >= length)
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_MR_TRUNCATED_VALUE;
-          String message = getMessage(msgID, valueStr);
+          Message message = ERR_ATTR_SYNTAX_MR_TRUNCATED_VALUE.get(valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
 
@@ -1096,10 +1101,11 @@ public class MatchingRuleSyntax
         else if (c == '(')
         {
           // This is an illegal character.
-          int    msgID   = MSGID_ATTR_SYNTAX_MR_ILLEGAL_CHAR;
-          String message = getMessage(msgID, valueStr, c, startPos);
+          Message message =
+              ERR_ATTR_SYNTAX_MR_ILLEGAL_CHAR.get(
+                      valueStr, String.valueOf(c), startPos);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
         else
         {
@@ -1130,10 +1136,9 @@ public class MatchingRuleSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_MR_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_MR_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -57,8 +58,8 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
+
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -128,10 +129,9 @@ public class ExactMatchIdentityMapper
                                                             false);
       if (type == null)
       {
-        int    msgID   = MSGID_EXACTMAP_UNKNOWN_ATTR;
-        String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    name);
-        throw new ConfigException(msgID, message);
+        Message message =
+            ERR_EXACTMAP_UNKNOWN_ATTR.get(String.valueOf(configEntryDN), name);
+        throw new ConfigException(message);
       }
 
       attributeTypes[i++] = type;
@@ -233,27 +233,25 @@ public class ExactMatchIdentityMapper
 
         case SIZE_LIMIT_EXCEEDED:
           // Multiple entries matched the filter.  This is not acceptable.
-          int    msgID   = MSGID_EXACTMAP_MULTIPLE_MATCHING_ENTRIES;
-          String message = getMessage(msgID, String.valueOf(id));
-          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                       msgID);
+          Message message =
+              ERR_EXACTMAP_MULTIPLE_MATCHING_ENTRIES.get(String.valueOf(id));
+          throw new DirectoryException(
+                  ResultCode.CONSTRAINT_VIOLATION, message);
 
         case TIME_LIMIT_EXCEEDED:
         case ADMIN_LIMIT_EXCEEDED:
           // The search criteria was too inefficient.
-          msgID   = MSGID_EXACTMAP_INEFFICIENT_SEARCH;
-          message = getMessage(msgID, String.valueOf(id),
-                         String.valueOf(internalSearch.getErrorMessage()));
-          throw new DirectoryException(internalSearch.getResultCode(), message,
-                                       msgID);
+          message = ERR_EXACTMAP_INEFFICIENT_SEARCH.
+              get(String.valueOf(id),
+                  String.valueOf(internalSearch.getErrorMessage()));
+          throw new DirectoryException(internalSearch.getResultCode(), message);
 
         default:
           // Just pass on the failure that was returned for this search.
-          msgID   = MSGID_EXACTMAP_SEARCH_FAILED;
-          message = getMessage(msgID, String.valueOf(id),
-                         String.valueOf(internalSearch.getErrorMessage()));
-          throw new DirectoryException(internalSearch.getResultCode(), message,
-                                       msgID);
+          message = ERR_EXACTMAP_SEARCH_FAILED.
+              get(String.valueOf(id),
+                  String.valueOf(internalSearch.getErrorMessage()));
+          throw new DirectoryException(internalSearch.getResultCode(), message);
       }
 
       LinkedList<SearchResultEntry> searchEntries =
@@ -266,18 +264,18 @@ public class ExactMatchIdentityMapper
           matchingEntry = iterator.next();
           if (iterator.hasNext())
           {
-            int    msgID   = MSGID_EXACTMAP_MULTIPLE_MATCHING_ENTRIES;
-            String message = getMessage(msgID, String.valueOf(id));
+            Message message =
+                ERR_EXACTMAP_MULTIPLE_MATCHING_ENTRIES.get(String.valueOf(id));
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message, msgID);
+                                         message);
           }
         }
         else
         {
-          int    msgID   = MSGID_EXACTMAP_MULTIPLE_MATCHING_ENTRIES;
-          String message = getMessage(msgID, String.valueOf(id));
-          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                       msgID);
+          Message message =
+              ERR_EXACTMAP_MULTIPLE_MATCHING_ENTRIES.get(String.valueOf(id));
+          throw new DirectoryException(
+                  ResultCode.CONSTRAINT_VIOLATION, message);
         }
       }
     }
@@ -300,7 +298,7 @@ public class ExactMatchIdentityMapper
    */
   @Override()
   public boolean isConfigurationAcceptable(IdentityMapperCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     ExactMatchIdentityMapperCfg config =
          (ExactMatchIdentityMapperCfg) configuration;
@@ -314,7 +312,7 @@ public class ExactMatchIdentityMapper
    */
   public boolean isConfigurationChangeAcceptable(
                       ExactMatchIdentityMapperCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -326,8 +324,9 @@ public class ExactMatchIdentityMapper
                                                          false);
       if (t == null)
       {
-        int msgID = MSGID_EXACTMAP_UNKNOWN_ATTR;
-        unacceptableReasons.add(getMessage(msgID, configuration.dn(), name));
+
+        unacceptableReasons.add(ERR_EXACTMAP_UNKNOWN_ATTR.get(
+                String.valueOf(configuration.dn()), name));
         configAcceptable = false;
       }
     }
@@ -346,7 +345,7 @@ public class ExactMatchIdentityMapper
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Get the attribute types to use for the searches.
@@ -364,8 +363,8 @@ public class ExactMatchIdentityMapper
           resultCode = ResultCode.NO_SUCH_ATTRIBUTE;
         }
 
-        int msgID = MSGID_EXACTMAP_UNKNOWN_ATTR;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN), name));
+        messages.add(ERR_EXACTMAP_UNKNOWN_ATTR.get(
+                String.valueOf(configEntryDN), name));
       }
 
       newAttributeTypes[i++] = type;

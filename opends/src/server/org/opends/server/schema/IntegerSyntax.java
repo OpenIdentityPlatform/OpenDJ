@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+import org.opends.messages.Message;
 
 
 
@@ -40,15 +41,14 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
-
 
 
 /**
@@ -88,10 +88,10 @@ public class IntegerSyntax
       }
       catch (NumberFormatException e)
       {
-        int msgID = MSGID_ATTR_SYNTAX_ILLEGAL_INTEGER;
-        String message = getMessage(msgID, nvalue.stringValue());
+        Message message =
+            WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(nvalue.stringValue());
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-            message, msgID);
+            message);
       }
     }
   };
@@ -121,27 +121,24 @@ public class IntegerSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_INTEGER_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_INTEGER_OID, SYNTAX_INTEGER_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_INTEGER_OID, SYNTAX_INTEGER_NAME));
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_INTEGER_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-               OMR_INTEGER_OID, SYNTAX_INTEGER_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+          OMR_INTEGER_OID, SYNTAX_INTEGER_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_EXACT_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_CASE_EXACT_OID, SYNTAX_INTEGER_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_CASE_EXACT_OID, SYNTAX_INTEGER_NAME));
     }
   }
 
@@ -257,15 +254,15 @@ public class IntegerSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     String valueString = value.stringValue();
     int    length      = valueString.length();
 
     if (length == 0)
     {
-      invalidReason.append(getMessage(MSGID_ATTR_SYNTAX_INTEGER_EMPTY_VALUE,
-                                      valueString));
+      invalidReason.append(
+              WARN_ATTR_SYNTAX_INTEGER_EMPTY_VALUE.get(valueString));
       return false;
     }
     else if (length == 1)
@@ -284,13 +281,13 @@ public class IntegerSyntax
         case '9':
           return true;
         case '-':
-          int msgID = MSGID_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE;
-          invalidReason.append(getMessage(msgID, valueString));
+          invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE.get(
+                  valueString));
           return false;
         default:
-          msgID = MSGID_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER;
-          invalidReason.append(getMessage(msgID, valueString,
-                                          valueString.charAt(0), 0));
+          invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
+                  valueString,
+                  valueString.charAt(0), 0));
           return false;
       }
     }
@@ -301,8 +298,8 @@ public class IntegerSyntax
       switch (valueString.charAt(0))
       {
         case '0':
-          int msgID = MSGID_ATTR_SYNTAX_INTEGER_INITIAL_ZERO;
-          invalidReason.append(getMessage(msgID, valueString));
+          invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
+                  valueString));
           return false;
         case '1':
         case '2':
@@ -320,9 +317,9 @@ public class IntegerSyntax
           negative = true;
           break;
         default:
-          msgID = MSGID_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER;
-          invalidReason.append(getMessage(msgID, valueString,
-                                          valueString.charAt(0), 0));
+          invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
+                  valueString,
+                  valueString.charAt(0), 0));
           return false;
       }
 
@@ -332,8 +329,8 @@ public class IntegerSyntax
           // This is fine as long as the value isn't negative.
           if (negative)
           {
-            int msgID = MSGID_ATTR_SYNTAX_INTEGER_INITIAL_ZERO;
-            invalidReason.append(getMessage(msgID, valueString));
+            invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
+                    valueString));
             return false;
           }
           break;
@@ -349,9 +346,9 @@ public class IntegerSyntax
           // These are all fine.
           break;
         default:
-          int msgID = MSGID_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER;
-          invalidReason.append(getMessage(msgID, valueString,
-                                          valueString.charAt(0), 0));
+          invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
+                  valueString,
+                  valueString.charAt(0), 0));
           return false;
       }
 
@@ -372,9 +369,9 @@ public class IntegerSyntax
             // These are all fine.
             break;
           default:
-            int msgID = MSGID_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER;
-            invalidReason.append(getMessage(msgID, valueString,
-                                            valueString.charAt(0), 0));
+            invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
+                    valueString,
+                    valueString.charAt(0), 0));
             return false;
         }
       }

@@ -40,7 +40,6 @@ import javax.swing.SwingUtilities;
 import org.opends.server.core.DirectoryServer;
 
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.guitools.i18n.ResourceProvider;
 import org.opends.guitools.statuspanel.event.ServerStatusChangeEvent;
 import org.opends.guitools.statuspanel.event.ServerStatusChangeListener;
 import org.opends.guitools.statuspanel.event.StatusPanelButtonListener;
@@ -54,6 +53,11 @@ import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import org.opends.messages.MessageDescriptor;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * This is the main class of the status panel.
@@ -82,8 +86,8 @@ StatusPanelButtonListener
 
   private ServerStatusDescriptor desc;
 
-  private String lastDetail;
-  private String lastSummary;
+  private Message lastDetail;
+  private Message lastSummary;
 
   private Thread progressUpdater;
 
@@ -217,8 +221,8 @@ StatusPanelButtonListener
       isStarting = true;
       lastDetail = null;
       getProgressDialog().setSummary(
-          getFormattedSummary(getMsg("summary-starting")));
-      getProgressDialog().setDetails("");
+          getFormattedSummary(INFO_SUMMARY_STARTING.get()));
+      getProgressDialog().setDetails(Message.EMPTY);
       serverStatusPooler.beginServerStart();
       getProgressDialog().setCloseButtonEnabled(false);
       getStatusPanelDialog().setStartButtonEnabled(false);
@@ -298,8 +302,8 @@ StatusPanelButtonListener
         isStopping = true;
         lastDetail = null;
         getProgressDialog().setSummary(
-            getFormattedSummary(getMsg("summary-stopping")));
-        getProgressDialog().setDetails("");
+            getFormattedSummary(INFO_SUMMARY_STOPPING.get()));
+        getProgressDialog().setDetails(Message.EMPTY);
         serverStatusPooler.beginServerStop();
         getProgressDialog().setCloseButtonEnabled(false);
         getStatusPanelDialog().setStartButtonEnabled(false);
@@ -380,8 +384,8 @@ StatusPanelButtonListener
         isRestarting = true;
         lastDetail = null;
         getProgressDialog().setSummary(
-            getFormattedSummary(getMsg("summary-stopping")));
-        getProgressDialog().setDetails("");
+            getFormattedSummary(INFO_SUMMARY_STOPPING.get()));
+        getProgressDialog().setDetails(Message.EMPTY);
         serverStatusPooler.beginServerStop();
         getProgressDialog().setCloseButtonEnabled(false);
         getStatusPanelDialog().setStartButtonEnabled(false);
@@ -461,8 +465,8 @@ StatusPanelButtonListener
       }
       catch (ConfigException ce)
       {
-        Utilities.displayError(getLoginDialog(), ce.getMessage(),
-            getMsg("error-title"));
+        Utilities.displayError(getLoginDialog(), ce.getMessageObject(),
+            INFO_ERROR_TITLE.get());
         getLoginDialog().toFront();
       }
     }
@@ -546,12 +550,12 @@ StatusPanelButtonListener
     if (isRestarting)
     {
       updateProgress(
-          getFormattedSummary(getMsg("summary-starting")),
-          getTaskSeparator());
+              getFormattedSummary(INFO_SUMMARY_STARTING.get()),
+              getTaskSeparator());
     }
     updateProgress(
-        getFormattedSummary(getMsg("summary-starting")),
-        getFormattedProgress(getMsg("progress-starting")) + getLineBreak());
+        getFormattedSummary(INFO_SUMMARY_STARTING.get()),
+        getFormattedProgressWithLineBreak(INFO_PROGRESS_STARTING.get()));
 
     ArrayList<String> argList = new ArrayList<String>();
     Installation installation =
@@ -615,44 +619,45 @@ StatusPanelButtonListener
         }
         if (!running)
         {
-          updateProgress(getFormattedError(getMsg("summary-start-error")),
-                getFormattedError(getMsg("error-starting-server-generic"),
+          updateProgress(getFormattedError(INFO_SUMMARY_START_ERROR.get()),
+                getFormattedError(INFO_ERROR_STARTING_SERVER_GENERIC.get(),
                     true));
         }
         else
         {
           updateProgress(
-              getFormattedSuccess(getMsg("summary-start-success")),
-              "");
+              getFormattedSuccess(INFO_SUMMARY_START_SUCCESS.get()),
+              Message.EMPTY);
           started = true;
         }
       }
       else
       {
-        String[] arg = {String.valueOf(returnValue)};
-        String msg = getMsg("error-starting-server-code", arg);
+        Message msg = INFO_ERROR_STARTING_SERVER_CODE
+                .get(String.valueOf(returnValue));
 
         /*
          * The return code is not the one expected, assume the server could
          * not be started.
          */
         updateProgress(
-            getFormattedError(getMsg("summary-start-error")),
+            getFormattedError(INFO_SUMMARY_START_ERROR.get()),
             msg);
       }
 
     } catch (IOException ioe)
     {
-      String msg = getThrowableMsg("error-starting-server", ioe);
+      Message msg =
+              Utils.getThrowableMsg(INFO_ERROR_STARTING_SERVER.get(), ioe);
       updateProgress(
-          getFormattedError(getMsg("summary-start-error")),
+          getFormattedError(INFO_SUMMARY_START_ERROR.get()),
           msg);
     }
     catch (InterruptedException ie)
     {
-      String msg = getThrowableMsg("error-starting-server", ie);
+      Message msg = Utils.getThrowableMsg(INFO_ERROR_STARTING_SERVER.get(), ie);
       updateProgress(
-          getFormattedError(getMsg("summary-start-error")),
+          getFormattedError(INFO_SUMMARY_START_ERROR.get()),
           msg);
     }
 
@@ -669,8 +674,8 @@ StatusPanelButtonListener
   {
     boolean stopped = false;
     updateProgress(
-        getFormattedSummary(getMsg("summary-stopping")),
-        getFormattedProgress(getMsg("progress-stopping")) + getLineBreak());
+        getFormattedSummary(INFO_SUMMARY_STOPPING.get()),
+        getFormattedProgressWithLineBreak(INFO_PROGRESS_STOPPING.get()));
 
     ArrayList<String> argList = new ArrayList<String>();
     Installation installation =
@@ -721,11 +726,11 @@ StatusPanelButtonListener
                     .isServerRunning();
             if (!stopped)
             {
-              String msg =
-                getFormattedLog(getMsg("progress-server-waiting-to-stop"))+
-              getLineBreak();
+              Message msg = new MessageBuilder(
+                getFormattedLog(INFO_PROGRESS_SERVER_WAITING_TO_STOP.get()))
+                      .append(getLineBreak()).toMessage();
               updateProgress(
-                  getFormattedSummary(getMsg("summary-stopping")),
+                  getFormattedSummary(INFO_SUMMARY_STOPPING.get()),
                   msg);
               try
               {
@@ -746,49 +751,49 @@ StatusPanelButtonListener
 
       if (returnValue == clientSideError)
       {
-        String msg = getLineBreak() +
-            getFormattedLog(getMsg("progress-server-already-stopped"))+
-            getLineBreak();
+        Message msg = new MessageBuilder(getLineBreak()).append(
+            getFormattedLog(INFO_PROGRESS_SERVER_ALREADY_STOPPED.get())).append(
+            getLineBreak()).toMessage();
         if (!isRestarting)
         {
           updateProgress(
-              getFormattedSuccess(getMsg("summary-stop-success")),
+              getFormattedSuccess(INFO_SUMMARY_STOP_SUCCESS.get()),
               msg);
         }
         else
         {
           updateProgress(
-              getFormattedSummary(getMsg("summary-stop-success")),
+              getFormattedSummary(INFO_SUMMARY_STOP_SUCCESS.get()),
               msg);
         }
         stopped = true;
       }
       else if (returnValue != 0)
       {
-        String[] arg = {String.valueOf(returnValue)};
-        String msg = getMsg("error-stopping-server-code", arg);
+        Message msg = INFO_ERROR_STOPPING_SERVER_CODE
+                .get(String.valueOf(returnValue));
 
         /*
          * The return code is not the one expected, assume the server could
          * not be stopped.
          */
         updateProgress(
-            getFormattedError(getMsg("summary-stop-error")),
+            getFormattedError(INFO_SUMMARY_STOP_ERROR.get()),
             msg);
       }
       else
       {
-        String msg = getFormattedLog(getMsg("progress-server-stopped"));
+        Message msg = getFormattedLog(INFO_PROGRESS_SERVER_STOPPED.get());
         if (!isRestarting)
         {
           updateProgress(
-              getFormattedSuccess(getMsg("summary-stop-success")),
+              getFormattedSuccess(INFO_SUMMARY_STOP_SUCCESS.get()),
               msg);
         }
         else
         {
           updateProgress(
-              getFormattedSummary(getMsg("summary-stop-success")),
+              getFormattedSummary(INFO_SUMMARY_STOP_SUCCESS.get()),
               msg);
         }
         stopped = true;
@@ -796,16 +801,17 @@ StatusPanelButtonListener
 
     } catch (IOException ioe)
     {
-      String msg = getThrowableMsg("error-stopping-server", ioe);
+      Message msg = Utils.getThrowableMsg(
+              INFO_ERROR_STOPPING_SERVER.get(), ioe);
       updateProgress(
-          getFormattedError(getMsg("summary-stop-error")),
+          getFormattedError(INFO_SUMMARY_STOP_ERROR.get()),
           msg);
     }
     catch (InterruptedException ie)
     {
-      String msg = getThrowableMsg("error-stopping-server", ie);
+      Message msg = Utils.getThrowableMsg(INFO_ERROR_STOPPING_SERVER.get(), ie);
       updateProgress(
-          getFormattedError(getMsg("summary-stop-error")),
+          getFormattedError(INFO_SUMMARY_STOP_ERROR.get()),
           msg);
     }
     return stopped;
@@ -819,8 +825,8 @@ StatusPanelButtonListener
    * @param summary the summary for the start/stop/restart operation.
    * @param newDetail the new detail for the start/stop/restart operation.
    */
-  private synchronized void updateProgress(final String summary,
-      final String newDetail)
+  private synchronized void updateProgress(final Message summary,
+      final Message newDetail)
   {
     if (lastDetail == null)
     {
@@ -828,7 +834,8 @@ StatusPanelButtonListener
     }
     else
     {
-      lastDetail += newDetail;
+      lastDetail = new MessageBuilder(lastDetail)
+              .append(newDetail).toMessage();
     }
     lastSummary = summary;
   }
@@ -850,8 +857,8 @@ StatusPanelButtonListener
       {
         try
         {
-        String lastDisplayedSummary = null;
-        String lastDisplayedDetail = null;
+        Message lastDisplayedSummary = null;
+        Message lastDisplayedDetail = null;
         while (true)
         {
           if (lastSummary != null)
@@ -902,50 +909,6 @@ StatusPanelButtonListener
   }
 
   /**
-   * Returns a localized message for a key value.  In  the properties file we
-   * have something of type:
-   * key=value
-   *
-   * @see ResourceProvider#getMsg(String)
-   * @param key the key in the properties file.
-   * @return the value associated to the key in the properties file.
-   * properties file.
-   */
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  /**
-   * Returns a localized message for a key value.  In  the properties file we
-   * have something of type:
-   * key=value
-   *
-   * For instance if we pass as key "mykey" and as arguments {"value1"} and
-   * in the properties file we have:
-   * mykey=value with argument {0}.
-   *
-   * This method will return "value with argument value1".
-   * @see ResourceProvider#getMsg(String, String[])
-   * @param key the key in the properties file.
-   * @param args the arguments to be passed to generate the resulting value.
-   * @return the value associated to the key in the properties file.
-   */
-  private String getMsg(String key, String[] args)
-  {
-    return getI18n().getMsg(key, args);
-  }
-
-  /**
-   * Returns a ResourceProvider instance.
-   * @return a ResourceProvider instance.
-   */
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
-  }
-
-  /**
    * Returns the formatted representation of the text that is the summary of the
    * installation process (the one that goes in the UI next to the progress
    * bar).
@@ -953,7 +916,7 @@ StatusPanelButtonListener
    * representation
    * @return the formatted representation of an error for the given text.
    */
-  private String getFormattedSummary(String text)
+  private Message getFormattedSummary(Message text)
   {
     return formatter.getFormattedSummary(text);
   }
@@ -965,7 +928,7 @@ StatusPanelButtonListener
    * @return the formatted representation of an success message for the given
    * text.
    */
-  private String getFormattedSuccess(String text)
+  private Message getFormattedSuccess(Message text)
   {
     return formatter.getFormattedSuccess(text);
   }
@@ -976,7 +939,7 @@ StatusPanelButtonListener
    * representation
    * @return the formatted representation of an error for the given text.
    */
-  private String getFormattedError(String text)
+  private Message getFormattedError(Message text)
   {
     return formatter.getFormattedError(text, false);
   }
@@ -987,7 +950,7 @@ StatusPanelButtonListener
    * representation
    * @return the formatted representation of an error for the given text.
    */
-  private String getFormattedError(String text, boolean applyMargin)
+  private Message getFormattedError(Message text, boolean applyMargin)
   {
     return formatter.getFormattedError(text, applyMargin);
   }
@@ -1000,7 +963,7 @@ StatusPanelButtonListener
    * @return the formatted representation of a log error message for the given
    * text.
    */
-  private String getFormattedLogError(String text)
+  private Message getFormattedLogError(Message text)
   {
     return formatter.getFormattedLogError(text);
   }
@@ -1011,7 +974,7 @@ StatusPanelButtonListener
    * representation
    * @return the formatted representation of a log message for the given text.
    */
-  private String getFormattedLog(String text)
+  private Message getFormattedLog(Message text)
   {
     return formatter.getFormattedLog(text);
   }
@@ -1020,7 +983,7 @@ StatusPanelButtonListener
    * Returns the line break formatted.
    * @return the line break formatted.
    */
-  private String getLineBreak()
+  private Message getLineBreak()
   {
     return formatter.getLineBreak();
   }
@@ -1029,7 +992,7 @@ StatusPanelButtonListener
    * Returns the task separator formatted.
    * @return the task separator formatted.
    */
-  private String getTaskSeparator()
+  private Message getTaskSeparator()
   {
     return formatter.getTaskSeparator();
   }
@@ -1042,33 +1005,21 @@ StatusPanelButtonListener
    * @return the formatted representation of a progress message for the given
    * text.
    */
-  private String getFormattedProgress(String text)
+  private Message getFormattedProgress(Message text)
   {
     return formatter.getFormattedProgress(text);
   }
 
   /**
-   * Returns a localized message for a given properties key and throwable.
-   * @param key the key of the message in the properties file.
-   * @param t the throwable for which we want to get a message.
-   * @return a localized message for a given properties key and throwable.
+   * Returns the formatted representation of a progress message for a given
+   * text with a line feed at the end.
+   * @param text the source text from which we want to get the formatted
+   * representation
+   * @return the formatted representation of a progress message for the given
+   * text.
    */
-  private String getThrowableMsg(String key, Throwable t)
-  {
-    return getThrowableMsg(key, null, t);
-  }
-
-  /**
-   * Returns a localized message for a given properties key and throwable.
-   * @param key the key of the message in the properties file.
-   * @param args the arguments of the message in the properties file.
-   * @param t the throwable for which we want to get a message.
-   *
-   * @return a localized message for a given properties key and throwable.
-   */
-  private String getThrowableMsg(String key, String[] args, Throwable t)
-  {
-    return Utils.getThrowableMsg(getI18n(), key, args, t);
+  private Message getFormattedProgressWithLineBreak(Message text) {
+    return new MessageBuilder(text).append(getLineBreak()).toMessage();
   }
 
   /**
@@ -1082,7 +1033,7 @@ StatusPanelButtonListener
   private class ProgressReader
   {
     private boolean isFirstLine;
-    private String errorMsg;
+    private Message errorMsg;
 
     /**
      * The protected constructor.
@@ -1095,8 +1046,9 @@ StatusPanelButtonListener
     public ProgressReader(final BufferedReader reader, final boolean isError,
         final boolean isStart)
     {
-      final String errorTag =
-          isError ? "error-reading-erroroutput" : "error-reading-output";
+      final MessageDescriptor.Arg0 errorTag =
+          isError ? INFO_ERROR_READING_ERROROUTPUT :
+                  INFO_ERROR_READING_OUTPUT;
 
       isFirstLine = true;
 
@@ -1109,40 +1061,40 @@ StatusPanelButtonListener
             String line = reader.readLine();
             while (line != null)
             {
-              StringBuilder buf = new StringBuilder();
+              MessageBuilder buf = new MessageBuilder();
               if (!isFirstLine)
               {
                 buf.append(formatter.getLineBreak());
               }
               if (isError)
               {
-                buf.append(getFormattedLogError(line));
+                buf.append(getFormattedLogError(Message.raw(line)));
               } else
               {
-                buf.append(getFormattedLog(line));
+                buf.append(getFormattedLog(Message.raw(line)));
               }
-              String summary = isStart?
-                  getFormattedSummary(getMsg("summary-starting")):
-                    getFormattedSummary(getMsg("summary-stopping"));
-              updateProgress(summary, buf.toString());
+              Message summary = isStart?
+                  getFormattedSummary(INFO_SUMMARY_STARTING.get()):
+                    getFormattedSummary(INFO_SUMMARY_STOPPING.get());
+              updateProgress(summary, buf.toMessage());
               isFirstLine = false;
 
               line = reader.readLine();
             }
           } catch (IOException ioe)
           {
-            errorMsg = getThrowableMsg(errorTag, ioe);
+            errorMsg = Utils.getThrowableMsg(errorTag.get(), ioe);
 
           } catch (Throwable t)
           {
-            errorMsg = getThrowableMsg(errorTag, t);
+            errorMsg = Utils.getThrowableMsg(errorTag.get(), t);
           }
         }
       });
       t.start();
     }
 
-    public String getErrorMessage()
+    public Message getErrorMessage()
     {
       return errorMsg;
     }
@@ -1157,7 +1109,8 @@ StatusPanelButtonListener
   private boolean confirmStop()
   {
     return Utilities.displayConfirmation(getStatusPanelDialog(),
-        getMsg("confirm-stop-message"), getMsg("confirm-stop-title"));
+        INFO_CONFIRM_STOP_MESSAGE.get(),
+            INFO_CONFIRM_STOP_TITLE.get());
   }
 
   /**
@@ -1169,7 +1122,8 @@ StatusPanelButtonListener
   private boolean confirmRestart()
   {
     return Utilities.displayConfirmation(getStatusPanelDialog(),
-        getMsg("confirm-restart-message"), getMsg("confirm-restart-title"));
+        INFO_CONFIRM_RESTART_MESSAGE.get(),
+            INFO_CONFIRM_RESTART_TITLE.get());
   }
 
   /**

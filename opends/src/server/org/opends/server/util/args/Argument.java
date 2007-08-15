@@ -25,14 +25,16 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util.args;
+import org.opends.messages.Message;
 
 
 
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
+import static org.opends.messages.UtilityMessages.*;
+
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -65,16 +67,13 @@ public abstract class Argument
   private Character shortIdentifier;
 
   // The unique ID of the description for this argument.
-  private int descriptionID;
+  private Message description;
 
   // The set of values for this argument.
   private LinkedList<String> values;
 
   // The default value for the argument if none other is provided.
   private String defaultValue;
-
-  // The description for this argument.
-  private String description;
 
   // The long identifier for this argument.
   private String longIdentifier;
@@ -116,10 +115,8 @@ public abstract class Argument
    * @param  propertyName      The name of the property in a property file that
    *                           may be used to override the default value but
    *                           will be overridden by a command-line argument.
-   * @param  descriptionID     The unique ID of the description for this
+   * @param  description       Message for the description of this
    *                           argument.
-   * @param  descriptionArgs   The arguments that are to be used when generating
-   *                           the description for this argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
    *                             parameters used to create this argument.
@@ -128,8 +125,8 @@ public abstract class Argument
                      String longIdentifier, boolean isRequired,
                      boolean isMultiValued, boolean needsValue,
                      String valuePlaceholder, String defaultValue,
-                     String propertyName, int descriptionID,
-                     Object... descriptionArgs)
+                     String propertyName,
+                     Message description)
             throws ArgumentException
   {
     this.name             = name;
@@ -141,21 +138,18 @@ public abstract class Argument
     this.valuePlaceholder = valuePlaceholder;
     this.defaultValue     = defaultValue;
     this.propertyName     = propertyName;
-    this.descriptionID    = descriptionID;
-    this.description      = getMessage(descriptionID, descriptionArgs);
+    this.description      = description;
 
     if ((shortIdentifier == null) && (longIdentifier == null))
     {
-      int   msgID    = MSGID_ARG_NO_IDENTIFIER;
-      String message = getMessage(msgID, name);
-      throw new ArgumentException(msgID, message);
+      Message message = ERR_ARG_NO_IDENTIFIER.get(name);
+      throw new ArgumentException(message);
     }
 
     if (needsValue && (valuePlaceholder == null))
     {
-      int    msgID   = MSGID_ARG_NO_VALUE_PLACEHOLDER;
-      String message = getMessage(msgID, name);
-      throw new ArgumentException(msgID, message);
+      Message message = ERR_ARG_NO_VALUE_PLACEHOLDER.get(name);
+      throw new ArgumentException(message);
     }
 
     values    = new LinkedList<String>();
@@ -443,25 +437,13 @@ public abstract class Argument
 
 
   /**
-   * Retrieves the unique ID for the description of this argument.
-   *
-   * @return  The unique ID for the description of this argument.
-   */
-  public int getDescriptionID()
-  {
-    return descriptionID;
-  }
-
-
-
-  /**
    * Retrieves the human-readable description for this argument.
    *
    * @return  The human-readable description for this argument.
    */
-  public String getDescription()
+  public Message getDescription()
   {
-    return description;
+    return description != null ? description : Message.EMPTY;
   }
 
 
@@ -524,9 +506,8 @@ public abstract class Argument
   {
     if (values.isEmpty())
     {
-      int    msgID   = MSGID_ARG_NO_INT_VALUE;
-      String message = getMessage(msgID, name);
-      throw new ArgumentException(msgID, message);
+      Message message = ERR_ARG_NO_INT_VALUE.get(name);
+      throw new ArgumentException(message);
     }
 
     Iterator<String> iterator = values.iterator();
@@ -539,16 +520,14 @@ public abstract class Argument
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_ARG_CANNOT_DECODE_AS_INT;
-      String message = getMessage(msgID, valueString, name);
-      throw new ArgumentException(msgID, message, e);
+      Message message = ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
+      throw new ArgumentException(message, e);
     }
 
     if (iterator.hasNext())
     {
-      int    msgID   = MSGID_ARG_INT_MULTIPLE_VALUES;
-      String message = getMessage(msgID, name);
-      throw new ArgumentException(msgID, message);
+      Message message = ERR_ARG_INT_MULTIPLE_VALUES.get(name);
+      throw new ArgumentException(message);
     }
     else
     {
@@ -583,9 +562,8 @@ public abstract class Argument
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_ARG_CANNOT_DECODE_AS_INT;
-        String message = getMessage(msgID, valueString, name);
-        throw new ArgumentException(msgID, message, e);
+        Message message = ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
+        throw new ArgumentException(message, e);
       }
     }
 
@@ -607,9 +585,8 @@ public abstract class Argument
   {
     if (values.isEmpty())
     {
-      int    msgID   = MSGID_ARG_NO_BOOLEAN_VALUE;
-      String message = getMessage(msgID, name);
-      throw new ArgumentException(msgID, message);
+      Message message = ERR_ARG_NO_BOOLEAN_VALUE.get(name);
+      throw new ArgumentException(message);
     }
 
     Iterator<String> iterator = values.iterator();
@@ -628,16 +605,14 @@ public abstract class Argument
     }
     else
     {
-      int    msgID   = MSGID_ARG_CANNOT_DECODE_AS_BOOLEAN;
-      String message = getMessage(msgID, valueString, name);
-      throw new ArgumentException(msgID, message);
+      Message message = ERR_ARG_CANNOT_DECODE_AS_BOOLEAN.get(valueString, name);
+      throw new ArgumentException(message);
     }
 
     if (iterator.hasNext())
     {
-      int    msgID   = MSGID_ARG_BOOLEAN_MULTIPLE_VALUES;
-      String message = getMessage(msgID, name);
-      throw new ArgumentException(msgID, message);
+      Message message = ERR_ARG_BOOLEAN_MULTIPLE_VALUES.get(name);
+      throw new ArgumentException(message);
     }
     else
     {
@@ -659,7 +634,7 @@ public abstract class Argument
    *          <CODE>false</CODE> if it is not.
    */
   public abstract boolean valueIsAcceptable(String valueString,
-                                            StringBuilder invalidReason);
+                                            MessageBuilder invalidReason);
 
 
 

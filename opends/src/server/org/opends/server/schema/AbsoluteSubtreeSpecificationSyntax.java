@@ -30,7 +30,8 @@ import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
@@ -46,8 +47,8 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 
 /**
  * This class defines the absolute subtree specification attribute
@@ -105,25 +106,22 @@ public final class AbsoluteSubtreeSpecificationSyntax
     defaultEqualityMatchingRule = DirectoryServer
         .getEqualityMatchingRule(EMR_OCTET_STRING_OID);
     if (defaultEqualityMatchingRule == null) {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-          MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-          EMR_OCTET_STRING_OID, SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_OCTET_STRING_OID, SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_NAME));
     }
 
     defaultOrderingMatchingRule = DirectoryServer
         .getOrderingMatchingRule(OMR_OCTET_STRING_OID);
     if (defaultOrderingMatchingRule == null) {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-          MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
-          OMR_OCTET_STRING_OID, SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+          OMR_OCTET_STRING_OID, SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_NAME));
     }
 
     defaultSubstringMatchingRule = DirectoryServer
         .getSubstringMatchingRule(SMR_OCTET_STRING_OID);
     if (defaultSubstringMatchingRule == null) {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-          MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-          SMR_OCTET_STRING_OID, SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_OCTET_STRING_OID, SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_NAME));
     }
   }
 
@@ -227,7 +225,7 @@ public final class AbsoluteSubtreeSpecificationSyntax
    *         use with this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                  StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // Use the subtree specification code to make this determination.
     try {
@@ -240,7 +238,7 @@ public final class AbsoluteSubtreeSpecificationSyntax
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      invalidReason.append(e.getErrorMessage());
+      invalidReason.append(e.getMessageObject());
       return false;
     }
   }

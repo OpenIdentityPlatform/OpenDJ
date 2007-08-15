@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
+import org.opends.messages.Message;
 
 
 
@@ -44,8 +45,7 @@ import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -240,9 +240,8 @@ public class EntryChangeNotificationControl
   {
     if (! control.hasValue())
     {
-      int    msgID   = MSGID_ECN_NO_CONTROL_VALUE;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_ECN_NO_CONTROL_VALUE.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -255,9 +254,8 @@ public class EntryChangeNotificationControl
            ASN1Sequence.decodeAsSequence(control.getValue().value()).elements();
       if ((elements.size() < 1) || (elements.size() > 3))
       {
-        int    msgID   = MSGID_ECN_INVALID_ELEMENT_COUNT;
-        String message = getMessage(msgID, elements.size());
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+        Message message = ERR_ECN_INVALID_ELEMENT_COUNT.get(elements.size());
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
 
       int changeTypeValue = elements.get(0).decodeAsEnumerated().intValue();
@@ -270,10 +268,9 @@ public class EntryChangeNotificationControl
         {
           if (changeType != PersistentSearchChangeType.MODIFY_DN)
           {
-            int    msgID   = MSGID_ECN_ILLEGAL_PREVIOUS_DN;
-            String message = getMessage(msgID, String.valueOf(changeType));
-            throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                    message);
+            Message message =
+                ERR_ECN_ILLEGAL_PREVIOUS_DN.get(String.valueOf(changeType));
+            throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
           }
 
           ASN1OctetString rawPreviousDN = e.decodeAsOctetString();
@@ -285,20 +282,18 @@ public class EntryChangeNotificationControl
         }
         else
         {
-          int    msgID   = MSGID_ECN_INVALID_ELEMENT_TYPE;
-          String message = getMessage(msgID, byteToHex(e.getType()));
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                  message);
+          Message message =
+              ERR_ECN_INVALID_ELEMENT_TYPE.get(byteToHex(e.getType()));
+          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
         }
       }
       else if (elements.size() == 3)
       {
         if (changeType != PersistentSearchChangeType.MODIFY_DN)
         {
-          int    msgID   = MSGID_ECN_ILLEGAL_PREVIOUS_DN;
-          String message = getMessage(msgID, String.valueOf(changeType));
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                  message);
+          Message message =
+              ERR_ECN_ILLEGAL_PREVIOUS_DN.get(String.valueOf(changeType));
+          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
         }
 
         ASN1OctetString rawPreviousDN = elements.get(1).decodeAsOctetString();
@@ -318,9 +313,8 @@ public class EntryChangeNotificationControl
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_ECN_CANNOT_DECODE_VALUE;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message, e);
+      Message message = ERR_ECN_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message, e);
     }
 
 

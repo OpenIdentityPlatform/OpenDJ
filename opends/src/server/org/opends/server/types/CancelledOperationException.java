@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 
@@ -51,9 +52,6 @@ public class CancelledOperationException
   // the cancellation.
   private final CancelResult cancelResult;
 
-  // The message ID for the cancel message.
-  private final int messageID;
-
 
 
   /**
@@ -68,7 +66,6 @@ public class CancelledOperationException
 
 
     this.cancelResult = cancelResult;
-    this.messageID    = -1;
   }
 
 
@@ -81,18 +78,14 @@ public class CancelledOperationException
    * @param  message       The message providing additional
    *                       information about the cancel processing, or
    *                       <CODE>null</CODE> if there is no message.
-   * @param  messageID     The message ID that uniquely identifies the
-   *                       cancel message, or -1 if there is no
-   *                       message.
    */
   public CancelledOperationException(CancelResult cancelResult,
-                                     String message, int messageID)
+                                     Message message)
   {
     super(message);
 
 
     this.cancelResult = cancelResult;
-    this.messageID    = messageID;
   }
 
 
@@ -110,18 +103,5 @@ public class CancelledOperationException
   }
 
 
-
-  /**
-   * Retrieves the unique message ID for the message associated with
-   * this cancelled operation exception.
-   *
-   * @return  The unique message ID for the message associated with
-   *          this cancelled operation exception, or <CODE>-1</CODE>
-   *          if there is no message.
-   */
-  public final int getMessageID()
-  {
-    return messageID;
-  }
 }
 

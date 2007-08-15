@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -38,9 +39,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-
+import static org.opends.messages.ExtensionMessages.*;
 import java.util.Arrays;
 
 
@@ -179,10 +178,9 @@ public class ClearPasswordStorageScheme
   public ByteString encodeAuthPassword(ByteString plaintext)
          throws DirectoryException
   {
-    int    msgID   = MSGID_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD;
-    String message = getMessage(msgID, getStorageSchemeName());
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message =
+        ERR_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD.get(getStorageSchemeName());
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -208,10 +206,9 @@ public class ClearPasswordStorageScheme
                                                   String authValue)
          throws DirectoryException
   {
-    int    msgID   = MSGID_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD;
-    String message = getMessage(msgID, getStorageSchemeName());
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message =
+        ERR_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD.get(getStorageSchemeName());
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 

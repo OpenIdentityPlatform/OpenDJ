@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+import org.opends.messages.Message;
 
 
 
@@ -47,8 +48,9 @@ import org.opends.server.core.DirectoryServer;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -115,30 +117,27 @@ public class AttributeTypeSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE;
-      String message = getMessage(msgID, EMR_CASE_IGNORE_OID,
-                                  SYNTAX_ATTRIBUTE_TYPE_NAME);
-      throw new InitializationException(msgID, message);
+      Message message = ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_CASE_IGNORE_OID, SYNTAX_ATTRIBUTE_TYPE_NAME);
+      throw new InitializationException(message);
     }
 
     defaultOrderingMatchingRule =
          DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE;
-      String message = getMessage(msgID, OMR_CASE_IGNORE_OID,
-                                  SYNTAX_ATTRIBUTE_TYPE_NAME);
-      throw new InitializationException(msgID, message);
+      Message message = ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
+          OMR_CASE_IGNORE_OID, SYNTAX_ATTRIBUTE_TYPE_NAME);
+      throw new InitializationException(message);
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE;
-      String message = getMessage(msgID, SMR_CASE_IGNORE_OID,
-                                  SYNTAX_ATTRIBUTE_TYPE_NAME);
-      throw new InitializationException(msgID, message);
+      Message message = ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_CASE_IGNORE_OID, SYNTAX_ATTRIBUTE_TYPE_NAME);
+      throw new InitializationException(message);
     }
 
     // This syntax is one of the Directory Server's core syntaxes and therefore
@@ -232,7 +231,7 @@ public class AttributeTypeSyntax
    * {@inheritDoc}
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // We'll use the decodeAttributeType method to determine if the value is
     // acceptable.
@@ -248,7 +247,7 @@ public class AttributeTypeSyntax
         TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
-      invalidReason.append(de.getErrorMessage());
+      invalidReason.append(de.getMessageObject());
       return false;
     }
   }
@@ -302,10 +301,9 @@ public class AttributeTypeSyntax
     {
       // This means that the value was empty or contained only whitespace.  That
       // is illegal.
-      int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE;
-      String message = getMessage(msgID);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE.get();
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -314,10 +312,10 @@ public class AttributeTypeSyntax
     char c = valueStr.charAt(pos++);
     if (c != '(')
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS;
-      String message = getMessage(msgID, valueStr, (pos-1), c);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS.get(
+          valueStr, (pos-1), String.valueOf(c));
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -331,10 +329,9 @@ public class AttributeTypeSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -354,10 +351,11 @@ public class AttributeTypeSyntax
         {
           if (lastWasPeriod)
           {
-            int msgID = MSGID_ATTR_SYNTAX_ATTRTYPE_DOUBLE_PERIOD_IN_NUMERIC_OID;
-            String message = getMessage(msgID, valueStr, (pos-1));
+            Message message =
+              ERR_ATTR_SYNTAX_ATTRTYPE_DOUBLE_PERIOD_IN_NUMERIC_OID.
+                  get(valueStr, (pos-1));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
           else
           {
@@ -367,10 +365,11 @@ public class AttributeTypeSyntax
         else if (! isDigit(c))
         {
           // This must have been an illegal character.
-          int msgID = MSGID_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID;
-          String message = getMessage(msgID, valueStr, c, (pos-1));
+          Message message =
+            ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.
+                get(valueStr, String.valueOf(c), (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
         else
         {
@@ -392,10 +391,10 @@ public class AttributeTypeSyntax
         else
         {
           // This must have been an illegal character.
-          int msgID = MSGID_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_STRING_OID;
-          String message = getMessage(msgID, valueStr, c, (pos-1));
+          Message message = ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_STRING_OID.
+              get(valueStr, String.valueOf(c), (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
     }
@@ -406,10 +405,9 @@ public class AttributeTypeSyntax
     String oid;
     if (pos >= length)
     {
-      int msgID = MSGID_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
     else
     {
@@ -427,10 +425,9 @@ public class AttributeTypeSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -470,10 +467,11 @@ public class AttributeTypeSyntax
         // We must be at the end of the value.  If not, then that's a problem.
         if (pos < length)
         {
-          int msgID = MSGID_ATTR_SYNTAX_ATTRTYPE_UNEXPECTED_CLOSE_PARENTHESIS;
-          String message = getMessage(msgID, valueStr, (pos-1));
+          Message message =
+            ERR_ATTR_SYNTAX_ATTRTYPE_UNEXPECTED_CLOSE_PARENTHESIS.
+                get(valueStr, (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
         break;
@@ -530,10 +528,11 @@ public class AttributeTypeSyntax
         else
         {
           // This is an illegal character.
-          int msgID = MSGID_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR;
-          String message = getMessage(msgID, valueStr, c, (pos-1));
+          Message message =
+              ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR.get(
+                      valueStr, String.valueOf(c), (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
       else if (lowerTokenName.equals("desc"))
@@ -568,11 +567,10 @@ public class AttributeTypeSyntax
           {
             // This is bad because we don't know what the superior attribute
             // type is so we can't base this attribute type on it.
-            int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE;
-            String message = getMessage(msgID, String.valueOf(oid),
-                                        String.valueOf(woidBuffer));
+            Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE.
+                get(String.valueOf(oid), String.valueOf(woidBuffer));
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message, msgID);
+                                         message);
           }
         }
 
@@ -608,11 +606,10 @@ public class AttributeTypeSyntax
         {
           // This is bad because we have no idea what the equality matching
           // rule should be.
-          int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR;
-          String message = getMessage(msgID, String.valueOf(oid),
-                                      String.valueOf(woidBuffer));
+          Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR.get(
+              String.valueOf(oid), String.valueOf(woidBuffer));
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                       message, msgID);
+                                       message);
         }
         else
         {
@@ -631,11 +628,10 @@ public class AttributeTypeSyntax
         {
           // This is bad because we have no idea what the ordering matching
           // rule should be.
-          int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR;
-          String message = getMessage(msgID, String.valueOf(oid),
-                                      String.valueOf(woidBuffer));
+          Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR.get(
+              String.valueOf(oid), String.valueOf(woidBuffer));
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                       message, msgID);
+                                       message);
         }
         else
         {
@@ -654,11 +650,10 @@ public class AttributeTypeSyntax
         {
           // This is bad because we have no idea what the substring matching
           // rule should be.
-          int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR;
-          String message = getMessage(msgID, String.valueOf(oid),
-                                      String.valueOf(woidBuffer));
+          Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR.get(
+              String.valueOf(oid), String.valueOf(woidBuffer));
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                       message, msgID);
+                                       message);
         }
         else
         {
@@ -688,23 +683,22 @@ public class AttributeTypeSyntax
               // The next character must be a space.
               if ((c = lowerStr.charAt(pos)) != ' ')
               {
-                int msgID =
-                     MSGID_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID;
-                String message = getMessage(msgID, valueStr, c, (pos-1));
+                Message message =
+                  ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.
+                      get(valueStr, String.valueOf(c), (pos-1));
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               msgID);
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
               }
 
               break;
             }
             else if (! isDigit(c))
             {
-              int msgID =
-                   MSGID_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID;
-              String message = getMessage(msgID, valueStr, c, (pos-1));
+              Message message =
+                ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.
+                    get(valueStr, String.valueOf(c), (pos-1));
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                           message, msgID);
+                                           message);
             }
           }
           else
@@ -718,12 +712,11 @@ public class AttributeTypeSyntax
             {
               if (lastWasPeriod)
               {
-                int msgID =
-                     MSGID_ATTR_SYNTAX_ATTRTYPE_DOUBLE_PERIOD_IN_NUMERIC_OID;
-                String message = getMessage(msgID, valueStr, (pos-1));
+                Message message =
+                    ERR_ATTR_SYNTAX_ATTRTYPE_DOUBLE_PERIOD_IN_NUMERIC_OID.
+                      get(valueStr, (pos-1));
                 throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                               msgID);
+                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
               }
               else
               {
@@ -743,11 +736,11 @@ public class AttributeTypeSyntax
             }
             else
             {
-              int msgID =
-                   MSGID_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID;
-              String message = getMessage(msgID, valueStr, c, (pos-1));
+              Message message =
+                ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.
+                    get(valueStr, String.valueOf(c), (pos-1));
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                           message, msgID);
+                                           message);
             }
           }
         }
@@ -755,11 +748,10 @@ public class AttributeTypeSyntax
         syntax = schema.getSyntax(oidBuffer.toString());
         if (syntax == null)
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SYNTAX;
-          String message = getMessage(msgID, String.valueOf(oid),
-                                      String.valueOf(oidBuffer));
+          Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SYNTAX.get(
+              String.valueOf(oid), String.valueOf(oidBuffer));
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                       message, msgID);
+                                       message);
         }
 
         if (approximateMatchingRule == null)
@@ -843,12 +835,10 @@ public class AttributeTypeSyntax
           // This must be an illegal usage.
           attributeUsage = AttributeUsage.USER_APPLICATIONS;
 
-          int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE;
-          String message = getMessage(msgID, String.valueOf(oid),
-                                      String.valueOf(usageBuffer),
-                                      String.valueOf(attributeUsage));
+          Message message = WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE.
+              get(String.valueOf(oid), usageStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
       else
@@ -874,11 +864,9 @@ public class AttributeTypeSyntax
       {
         // This is bad because we have no idea what the approximate matching
         // rule should be.
-        int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR;
-        String message = getMessage(msgID, String.valueOf(oid),
-                                    String.valueOf(ruleName));
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                     msgID);
+        Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR.get(
+            String.valueOf(oid), String.valueOf(ruleName));
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
       else
       {
@@ -894,28 +882,26 @@ public class AttributeTypeSyntax
     {
       if (superiorType.getUsage() != attributeUsage)
       {
-        int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_USAGE;
-        String message = getMessage(msgID, oid, String.valueOf(attributeUsage),
-                                    superiorType.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                     msgID);
+        Message message = WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_USAGE.get(
+            oid, String.valueOf(attributeUsage), superiorType.getNameOrOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
 
       if (superiorType.isCollective() != isCollective)
       {
-        int msgID;
+        Message message;
         if (isCollective)
         {
-          msgID = MSGID_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_FROM_NONCOLLECTIVE;
+          message = WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_FROM_NONCOLLECTIVE.get(
+                  oid, superiorType.getNameOrOID());
         }
         else
         {
-          msgID = MSGID_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE;
+          message =
+                  WARN_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE.get(
+                    oid, superiorType.getNameOrOID());
         }
-
-        String message = getMessage(msgID, oid, superiorType.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                     msgID);
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
 
@@ -924,10 +910,9 @@ public class AttributeTypeSyntax
     // userApplications.
     if (isCollective && (attributeUsage != AttributeUsage.USER_APPLICATIONS))
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_IS_OPERATIONAL;
-      String message = getMessage(msgID, oid);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message =
+          WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_IS_OPERATIONAL.get(oid);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
 
@@ -936,10 +921,9 @@ public class AttributeTypeSyntax
     if (isNoUserModification &&
         (attributeUsage == AttributeUsage.USER_APPLICATIONS))
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_NO_USER_MOD_NOT_OPERATIONAL;
-      String message = getMessage(msgID, oid);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message =
+          WARN_ATTR_SYNTAX_ATTRTYPE_NO_USER_MOD_NOT_OPERATIONAL.get(oid);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
 
@@ -983,10 +967,9 @@ public class AttributeTypeSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1042,20 +1025,19 @@ public class AttributeTypeSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
     // The next character must be a single quote.
     if (c != '\'')
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_EXPECTED_QUOTE_AT_POS;
-      String message = getMessage(msgID, valueStr, startPos, c);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = WARN_ATTR_SYNTAX_ATTRTYPE_EXPECTED_QUOTE_AT_POS.get(
+          valueStr, startPos, String.valueOf(c));
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1079,10 +1061,9 @@ public class AttributeTypeSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1129,20 +1110,19 @@ public class AttributeTypeSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE;
-      String message = getMessage(msgID, lowerStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(lowerStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
     // The next character must be a single quote.
     if (c != '\'')
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_EXPECTED_QUOTE_AT_POS;
-      String message = getMessage(msgID, valueStr, startPos, c);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = WARN_ATTR_SYNTAX_ATTRTYPE_EXPECTED_QUOTE_AT_POS.get(
+          valueStr, startPos, String.valueOf(c));
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1167,10 +1147,9 @@ public class AttributeTypeSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE;
-      String message = getMessage(msgID, lowerStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(lowerStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1210,10 +1189,9 @@ public class AttributeTypeSyntax
 
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE;
-      String message = getMessage(msgID, lowerStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(lowerStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1230,10 +1208,11 @@ public class AttributeTypeSyntax
         {
           if (lastWasPeriod)
           {
-            int msgID = MSGID_ATTR_SYNTAX_ATTRTYPE_DOUBLE_PERIOD_IN_NUMERIC_OID;
-            String message = getMessage(msgID, lowerStr, (startPos-1));
+            Message message =
+              ERR_ATTR_SYNTAX_ATTRTYPE_DOUBLE_PERIOD_IN_NUMERIC_OID.
+                  get(lowerStr, (startPos-1));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID);
+                                         message);
           }
           else
           {
@@ -1255,10 +1234,11 @@ public class AttributeTypeSyntax
           }
 
           // This must have been an illegal character.
-          int msgID = MSGID_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID;
-          String message = getMessage(msgID, lowerStr, c, (startPos-1));
+          Message message =
+              ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.
+                get(lowerStr, String.valueOf(c), (startPos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
         else
         {
@@ -1292,19 +1272,20 @@ public class AttributeTypeSyntax
           }
 
           // This must have been an illegal character.
-          int msgID = MSGID_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_STRING_OID;
-          String message = getMessage(msgID, lowerStr, c, (startPos-1));
+          Message message = ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_STRING_OID.
+              get(lowerStr, String.valueOf(c), (startPos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
       }
     }
     else
     {
-      int msgID = MSGID_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR;
-      String message = getMessage(msgID, lowerStr, c, startPos);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message =
+          ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR.
+                  get(lowerStr, String.valueOf(c), startPos);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1318,10 +1299,9 @@ public class AttributeTypeSyntax
     // If we're at the end of the value, then that's illegal.
     if (startPos >= length)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE;
-      String message = getMessage(msgID, lowerStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(lowerStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1361,10 +1341,9 @@ public class AttributeTypeSyntax
 
     if (startPos >= length)
     {
-      int msgID = MSGID_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1396,10 +1375,10 @@ public class AttributeTypeSyntax
 
         if (startPos >= length)
         {
-          int msgID = MSGID_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE;
-          String message = getMessage(msgID, valueStr);
+          Message message =
+              ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
 
@@ -1411,10 +1390,11 @@ public class AttributeTypeSyntax
         else if (c == '(')
         {
           // This is an illegal character.
-          int msgID = MSGID_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR;
-          String message = getMessage(msgID, valueStr, c, startPos);
+          Message message =
+              ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR.get(
+                      valueStr, String.valueOf(c), startPos);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
         else
         {
@@ -1445,10 +1425,9 @@ public class AttributeTypeSyntax
 
     if (startPos >= length)
     {
-      int msgID = MSGID_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE;
-      String message = getMessage(msgID, valueStr);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -1476,7 +1455,7 @@ public class AttributeTypeSyntax
    */
   public boolean isConfigurationChangeAcceptable(
                       AttributeTypeDescriptionAttributeSyntaxCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // The configuration will always be acceptable.
     return true;

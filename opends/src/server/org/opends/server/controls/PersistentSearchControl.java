@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
+import org.opends.messages.Message;
 
 
 
@@ -43,8 +44,7 @@ import org.opends.server.types.LDAPException;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -215,9 +215,8 @@ public class PersistentSearchControl
   {
     if (! control.hasValue())
     {
-      int    msgID   = MSGID_PSEARCH_NO_CONTROL_VALUE;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_PSEARCH_NO_CONTROL_VALUE.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -230,9 +229,9 @@ public class PersistentSearchControl
            ASN1Sequence.decodeAsSequence(control.getValue().value()).elements();
       if (elements.size() != 3)
       {
-        int    msgID   = MSGID_PSEARCH_INVALID_ELEMENT_COUNT;
-        String message = getMessage(msgID, elements.size());
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+        Message message =
+            ERR_PSEARCH_INVALID_ELEMENT_COUNT.get(elements.size());
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
 
       int changeTypesValue = elements.get(0).decodeAsInteger().intValue();
@@ -251,9 +250,9 @@ public class PersistentSearchControl
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_PSEARCH_CANNOT_DECODE_VALUE;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_PSEARCH_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message, e);
     }
 
 

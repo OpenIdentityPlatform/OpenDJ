@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup.installer.ui;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -276,17 +279,17 @@ public class DataReplicationPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected String getInstructions()
+  protected Message getInstructions()
   {
-    return getMsg("data-replication-options-panel-instructions");
+    return INFO_DATA_REPLICATION_OPTIONS_PANEL_INSTRUCTIONS.get();
   }
 
   /**
    * {@inheritDoc}
    */
-  protected String getTitle()
+  protected Message getTitle()
   {
-    return getMsg("data-replication-options-panel-title");
+    return INFO_DATA_REPLICATION_OPTIONS_PANEL_TITLE.get();
   }
 
   /**
@@ -303,13 +306,13 @@ public class DataReplicationPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  protected String getTextForIcon(UIFactory.IconType iconType)
+  protected Message getTextForIcon(UIFactory.IconType iconType)
   {
-    String text;
+    Message text;
     if ((iconType == UIFactory.IconType.WAIT) &&
         rbReplicated.isSelected() && cbTopologyExists.isSelected())
     {
-      text = getMsg("contacting-server-label");
+      text = INFO_CONTACTING_SERVER_LABEL.get();
     }
     else
     {
@@ -405,33 +408,35 @@ public class DataReplicationPanel extends QuickSetupStepPanel
         new HashMap<FieldName, LabelFieldDescriptor>();
 
     hm.put(FieldName.REPLICATION_PORT, new LabelFieldDescriptor(
-        getMsg("replication-port-label"),
-        getMsg("replication-port-tooltip"),
+        INFO_REPLICATION_PORT_LABEL.get(),
+        INFO_REPLICATION_PORT_TOOLTIP.get(),
         LabelFieldDescriptor.FieldType.TEXTFIELD,
         LabelFieldDescriptor.LabelType.SECONDARY,
         UIFactory.PORT_FIELD_SIZE));
 
     hm.put(FieldName.REMOTE_SERVER_DN, new LabelFieldDescriptor(
-        getMsg("remote-server-dn-label"), getMsg("remote-server-dn-tooltip"),
+        INFO_REMOTE_SERVER_DN_LABEL.get(),
+        INFO_REMOTE_SERVER_DN_TOOLTIP.get(),
         LabelFieldDescriptor.FieldType.TEXTFIELD,
         LabelFieldDescriptor.LabelType.SECONDARY, UIFactory.DN_FIELD_SIZE));
 
     hm.put(FieldName.REMOTE_SERVER_PWD, new LabelFieldDescriptor(
-        getMsg("remote-server-pwd-label"), getMsg("remote-server-pwd-tooltip"),
+        INFO_REMOTE_SERVER_PWD_LABEL.get(),
+        INFO_REMOTE_SERVER_PWD_TOOLTIP.get(),
         LabelFieldDescriptor.FieldType.PASSWORD,
         LabelFieldDescriptor.LabelType.SECONDARY,
         UIFactory.PASSWORD_FIELD_SIZE));
 
     hm.put(FieldName.REMOTE_SERVER_HOST, new LabelFieldDescriptor(
-        getMsg("remote-server-host-label"),
-        getMsg("remote-server-host-tooltip"),
+        INFO_REMOTE_SERVER_HOST_LABEL.get(),
+        INFO_REMOTE_SERVER_HOST_TOOLTIP.get(),
         LabelFieldDescriptor.FieldType.TEXTFIELD,
         LabelFieldDescriptor.LabelType.SECONDARY,
         UIFactory.HOST_FIELD_SIZE));
 
     hm.put(FieldName.REMOTE_SERVER_PORT, new LabelFieldDescriptor(
-        getMsg("remote-server-port-label"),
-        getMsg("remote-server-port-tooltip"),
+        INFO_REMOTE_SERVER_PORT_LABEL.get(),
+        INFO_REMOTE_SERVER_PORT_TOOLTIP.get(),
         LabelFieldDescriptor.FieldType.TEXTFIELD,
         LabelFieldDescriptor.LabelType.SECONDARY,
         UIFactory.PORT_FIELD_SIZE));
@@ -455,13 +460,13 @@ public class DataReplicationPanel extends QuickSetupStepPanel
 
     ButtonGroup buttonGroup = new ButtonGroup();
     rbStandalone =
-      UIFactory.makeJRadioButton(getMsg("standalone-server-label"),
-          getMsg("standalone-server-tooltip"),
+      UIFactory.makeJRadioButton(INFO_STANDALONE_SERVER_LABEL.get(),
+          INFO_STANDALONE_SERVER_TOOLTIP.get(),
           UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     rbStandalone.setOpaque(false);
     rbReplicated =
-      UIFactory.makeJRadioButton(getMsg("replicated-server-label"),
-          getMsg("replicated-server-tooltip"),
+      UIFactory.makeJRadioButton(INFO_REPLICATED_SERVER_LABEL.get(),
+          INFO_REPLICATED_SERVER_TOOLTIP.get(),
           UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     rbReplicated.setOpaque(false);
     buttonGroup.add(rbStandalone);
@@ -469,8 +474,8 @@ public class DataReplicationPanel extends QuickSetupStepPanel
 
     DataReplicationOptions.Type type =
       defaultUserData.getReplicationOptions().getType();
-    cbTopologyExists = UIFactory.makeJCheckBox(getMsg("topology-exists-label"),
-        getMsg("topology-exists-tooltip"),
+    cbTopologyExists = UIFactory.makeJCheckBox(INFO_TOPOLOGY_EXISTS_LABEL.get(),
+        INFO_TOPOLOGY_EXISTS_TOOLTIP.get(),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     cbTopologyExists.setOpaque(false);
     rbStandalone.setSelected(type ==
@@ -480,8 +485,8 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     cbTopologyExists.setSelected(type ==
       DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY);
     cbRemoteServerPortSecure = UIFactory.makeJCheckBox(
-        getMsg("remote-server-port-is-secure-label"),
-        getMsg("remote-server-port-is-secure-tooltip"),
+        INFO_REMOTE_SERVER_PORT_IS_SECURE_LABEL.get(),
+        INFO_REMOTE_SERVER_PORT_IS_SECURE_TOOLTIP.get(),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     checkEnablingState();
   }

@@ -26,11 +26,13 @@
  */
 
 package org.opends.quicksetup;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
-import org.opends.quicksetup.i18n.ResourceProvider;
 
 import java.util.HashSet;
 import java.io.File;
@@ -78,15 +80,14 @@ public class ProgressUpdateListenerDelegate {
    *
    * @param current             progress step
    * @param ratio               the integer that specifies which percentage of
-   *                            the whole installation has been completed.
+ *                            the whole installation has been completed.
    * @param currentPhaseSummary the localized summary message for the
-   *                            current installation progress in formatted form.
+*                            current installation progress in formatted form.
    * @param newLogDetail        the new log messages that we have for the
-   *                            installation in formatted form.
    */
   public void notifyListeners(ProgressStep current, Integer ratio,
-                              String currentPhaseSummary,
-                              String newLogDetail) {
+                              Message currentPhaseSummary,
+                              Message newLogDetail) {
     ProgressUpdateEvent ev =
             new ProgressUpdateEvent(current, ratio,
                     currentPhaseSummary, newLogDetail);
@@ -102,10 +103,12 @@ public class ProgressUpdateListenerDelegate {
   public void notifyListenersOfLog() {
     File logFile = QuickSetupLog.getLogFile();
     if (logFile != null) {
-      notifyListeners(
-          formatter.getFormattedProgress(getMsg("general-see-for-details",
-              logFile.getPath())) +
-          formatter.getLineBreak());
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(formatter.getFormattedProgress(
+                  INFO_GENERAL_SEE_FOR_DETAILS.get(
+                          logFile.getPath())));
+      mb.append(formatter.getLineBreak());
+      notifyListeners(mb.toMessage());
     }
   }
 
@@ -113,11 +116,8 @@ public class ProgressUpdateListenerDelegate {
    * Notify listeners about a change in log detail.
    * @param msg log detail
    */
-  protected void notifyListeners(String msg) {
+  protected void notifyListeners(Message msg) {
     notifyListeners(null, null, null, msg);
   }
 
-  private String getMsg(String key, String... args) {
-    return ResourceProvider.getInstance().getMsg(key, args);
-  }
 }

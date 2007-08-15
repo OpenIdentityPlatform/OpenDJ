@@ -34,6 +34,7 @@ import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskBackend;
 import org.opends.server.backends.task.TaskState;
@@ -111,7 +112,7 @@ public class DisconnectClientTaskTestCase
 
     // Invoke the disconnect client task.
     String taskID = "Disconnect Client " + connectionID;
-    String disconnectMessage = "testDisconnectWithNotification";
+    Message disconnectMessage = Message.raw("testDisconnectWithNotification");
     DN taskDN = DN.decode("ds-task-id=" + taskID +
                           ",cn=Scheduled Tasks,cn=Tasks");
     TestCaseUtils.addEntry(

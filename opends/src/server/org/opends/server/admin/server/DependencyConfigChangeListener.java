@@ -28,21 +28,20 @@ package org.opends.server.admin.server;
 
 
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-
+import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.messages.AdminMessages;
+import org.opends.messages.AdminMessages;
+import org.opends.messages.MessageBuilder;
+import org.opends.messages.Message;
+
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.StaticUtils;
 
@@ -107,7 +106,7 @@ final class DependencyConfigChangeListener implements ConfigChangeListener {
    * {@inheritDoc}
    */
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
-      StringBuilder unacceptableReason) {
+      MessageBuilder unacceptableReason) {
     ConfigEntry dependentConfigEntry = getConfigEntry(dependentDN);
     if (dependentConfigEntry != null) {
       return dependentListener.configChangeIsAcceptable(dependentConfigEntry,
@@ -129,10 +128,9 @@ final class DependencyConfigChangeListener implements ConfigChangeListener {
       if (configEntry != null) {
         return configEntry;
       } else {
-        int msgID = AdminMessages.MSGID_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST;
-        String message = getMessage(msgID, String.valueOf(dn));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
-            message, msgID);
+        Message message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST.
+            get(String.valueOf(dn));
+        logError(message);
       }
     } catch (ConfigException e) {
       // The dependent entry could not be retrieved.
@@ -140,11 +138,9 @@ final class DependencyConfigChangeListener implements ConfigChangeListener {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = AdminMessages.MSGID_ADMIN_CANNOT_GET_MANAGED_OBJECT;
-      String message = getMessage(msgID, String.valueOf(dn), StaticUtils
-          .getExceptionMessage(e));
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
-          message, msgID);
+      Message message = AdminMessages.ERR_ADMIN_CANNOT_GET_MANAGED_OBJECT.get(
+          String.valueOf(dn), StaticUtils.getExceptionMessage(e));
+      logError(message);
     }
 
     return null;

@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.admin;
+import org.opends.messages.Message;
 
 
 
@@ -228,7 +229,7 @@ public final class IntegerPropertyDefinition extends
    *         definition in the default locale, or <code>null</code>
    *         if there is no unit synopsis.
    */
-  public String getUnitSynopsis() {
+  public Message getUnitSynopsis() {
     return getUnitSynopsis(Locale.getDefault());
   }
 
@@ -244,7 +245,7 @@ public final class IntegerPropertyDefinition extends
    *         definition in the specified locale, or <code>null</code>
    *         if there is no unit synopsis.
    */
-  public String getUnitSynopsis(Locale locale) {
+  public Message getUnitSynopsis(Locale locale) {
     ManagedObjectDefinitionI18NResource resource =
       ManagedObjectDefinitionI18NResource.getInstance();
     String property = "property." + getName() + ".syntax.integer.unit-synopsis";

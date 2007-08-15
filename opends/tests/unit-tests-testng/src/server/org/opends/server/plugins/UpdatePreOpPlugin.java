@@ -44,7 +44,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
-
+import org.opends.messages.Message;
 
 
 /**
@@ -114,8 +114,8 @@ public class UpdatePreOpPlugin
           // This is fine.
           break;
         default:
-          throw new ConfigException(-1, "Invalid plugin type " + t +
-                                    " for update pre-op plugin.");
+          throw new ConfigException(Message.raw("Invalid plugin type " + t +
+                                    " for update pre-op plugin."));
       }
     }
 
@@ -125,7 +125,7 @@ public class UpdatePreOpPlugin
     }
     else
     {
-      throw new ConfigException(-1, "Only one update preop plugin may be used");
+      throw new ConfigException(Message.raw("Only one update preop plugin may be used"));
     }
 
     setAttributes       = new ArrayList<Attribute>();

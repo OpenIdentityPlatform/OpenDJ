@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 
 
@@ -51,8 +52,7 @@ import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
@@ -171,7 +171,7 @@ public class InstallDS
 
 
     // Create and initialize the argument parser for this program.
-    String toolDescription = getMessage(MSGID_INSTALLDS_TOOL_DESCRIPTION);
+    Message toolDescription = INFO_INSTALLDS_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false);
     BooleanArgument   addBaseEntry;
@@ -195,108 +195,125 @@ public class InstallDS
 
     try
     {
-      testOnly = new BooleanArgument("test", 't', "testOnly",
-                                     MSGID_INSTALLDS_DESCRIPTION_TESTONLY);
+      testOnly = new BooleanArgument(
+              "test", 't', "testOnly",
+              INFO_INSTALLDS_DESCRIPTION_TESTONLY.get());
       testOnly.setHidden(true);
       argParser.addArgument(testOnly);
 
-      progName = new StringArgument("progname", 'P', "programName", false,
-                                    false, true, "{programName}", programName,
-                                    null, MSGID_INSTALLDS_DESCRIPTION_PROGNAME);
+      progName = new StringArgument(
+              "progname", 'P', "programName", false,
+              false, true, "{programName}", programName,
+              null, INFO_INSTALLDS_DESCRIPTION_PROGNAME.get());
       progName.setHidden(true);
       argParser.addArgument(progName);
 
-      configFile = new StringArgument("configfile", 'c', "configFile", false,
-                                      false, true, "{configFile}", null, null,
-                                      MSGID_DESCRIPTION_CONFIG_FILE);
+      configFile = new StringArgument(
+              "configfile", 'c', "configFile", false,
+              false, true, "{configFile}", null, null,
+              INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
-      configClass = new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
-                             OPTION_LONG_CONFIG_CLASS, false,
-                             false, true, OPTION_VALUE_CONFIG_CLASS,
-                             ConfigFileHandler.class.getName(), null,
-                             MSGID_DESCRIPTION_CONFIG_CLASS);
+      configClass = new StringArgument(
+              "configclass", OPTION_SHORT_CONFIG_CLASS,
+              OPTION_LONG_CONFIG_CLASS, false,
+              false, true, OPTION_VALUE_CONFIG_CLASS,
+              ConfigFileHandler.class.getName(), null,
+              INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
       // NOTE:  This argument isn't actually used for anything, but it provides
       // consistency with the setup script, which does take a --cli option.
-      cliMode = new BooleanArgument("cli", null, OPTION_LONG_CLI,
-                                    MSGID_INSTALLDS_DESCRIPTION_CLI);
+      cliMode = new BooleanArgument(
+              "cli", null, OPTION_LONG_CLI,
+              INFO_INSTALLDS_DESCRIPTION_CLI.get());
       argParser.addArgument(cliMode);
 
-      silentInstall = new BooleanArgument("silent", 's', "silentInstall",
-                                          MSGID_INSTALLDS_DESCRIPTION_SILENT);
+      silentInstall = new BooleanArgument(
+              "silent", 's', "silentInstall",
+              INFO_INSTALLDS_DESCRIPTION_SILENT.get());
       argParser.addArgument(silentInstall);
 
-      baseDN = new StringArgument("basedn", OPTION_SHORT_BASEDN,
-                                  OPTION_LONG_BASEDN, false, true, true,
-                                  OPTION_VALUE_BASEDN,
-                                  "dc=example,dc=com", null,
-                                  MSGID_INSTALLDS_DESCRIPTION_BASEDN);
+      baseDN = new StringArgument(
+              "basedn", OPTION_SHORT_BASEDN,
+              OPTION_LONG_BASEDN, false, true, true,
+              OPTION_VALUE_BASEDN,
+              "dc=example,dc=com", null,
+              INFO_INSTALLDS_DESCRIPTION_BASEDN.get());
       argParser.addArgument(baseDN);
 
-      addBaseEntry = new BooleanArgument("addbase", 'a', "addBaseEntry",
-                                         MSGID_INSTALLDS_DESCRIPTION_ADDBASE);
+      addBaseEntry = new BooleanArgument(
+              "addbase", 'a', "addBaseEntry",
+              INFO_INSTALLDS_DESCRIPTION_ADDBASE.get());
       argParser.addArgument(addBaseEntry);
 
-      importLDIF = new StringArgument("importldif", OPTION_SHORT_LDIF_FILE,
-                                      OPTION_LONG_LDIF_FILE, false,
-                                      true, true, OPTION_VALUE_LDIF_FILE,
-                                      null, null,
-                                      MSGID_INSTALLDS_DESCRIPTION_IMPORTLDIF);
+      importLDIF = new StringArgument(
+              "importldif", OPTION_SHORT_LDIF_FILE,
+              OPTION_LONG_LDIF_FILE, false,
+              true, true, OPTION_VALUE_LDIF_FILE,
+              null, null,
+              INFO_INSTALLDS_DESCRIPTION_IMPORTLDIF.get());
       argParser.addArgument(importLDIF);
 
-      sampleData = new IntegerArgument("sampledata", 'd', "sampleData", false,
-                                       false, true, "{numEntries}", 0, null,
-                                       true, 0, false, 0,
-                                       MSGID_INSTALLDS_DESCRIPTION_SAMPLE_DATA);
+      sampleData = new IntegerArgument(
+              "sampledata", 'd', "sampleData", false,
+              false, true, "{numEntries}", 0, null,
+              true, 0, false, 0,
+              INFO_INSTALLDS_DESCRIPTION_SAMPLE_DATA.get());
       argParser.addArgument(sampleData);
 
-      ldapPort = new IntegerArgument("ldapport", OPTION_SHORT_PORT,
-                                     "ldapPort", false, false,
-                                     true, OPTION_VALUE_PORT, 389,
-                                     null, true, 1, true, 65535,
-                                     MSGID_INSTALLDS_DESCRIPTION_LDAPPORT);
+      ldapPort = new IntegerArgument(
+              "ldapport", OPTION_SHORT_PORT,
+              "ldapPort", false, false,
+              true, OPTION_VALUE_PORT, 389,
+              null, true, 1, true, 65535,
+              INFO_INSTALLDS_DESCRIPTION_LDAPPORT.get());
       argParser.addArgument(ldapPort);
 
-      jmxPort = new IntegerArgument("jmxport", 'x', "jmxPort", false, false,
-                                    true, "{jmxPort}",
-                                    SetupUtils.getDefaultJMXPort(), null, true,
-                                    1, true, 65535,
-                                    MSGID_INSTALLDS_DESCRIPTION_JMXPORT);
+      jmxPort = new IntegerArgument(
+              "jmxport", 'x', "jmxPort", false, false,
+              true, "{jmxPort}",
+              SetupUtils.getDefaultJMXPort(), null, true,
+              1, true, 65535,
+              INFO_INSTALLDS_DESCRIPTION_JMXPORT.get());
       argParser.addArgument(jmxPort);
 
-      skipPortCheck = new BooleanArgument("skipportcheck", 'S', "skipPortCheck",
-                                          MSGID_INSTALLDS_DESCRIPTION_SKIPPORT);
+      skipPortCheck = new BooleanArgument(
+              "skipportcheck", 'S', "skipPortCheck",
+              INFO_INSTALLDS_DESCRIPTION_SKIPPORT.get());
       argParser.addArgument(skipPortCheck);
 
-      rootDN = new StringArgument("rootdn",OPTION_SHORT_ROOT_USER_DN,
-                                  OPTION_LONG_ROOT_USER_DN, false, true,
-                                  true, OPTION_VALUE_ROOT_USER_DN,
-                                  "cn=Directory Manager",
-                                  null, MSGID_INSTALLDS_DESCRIPTION_ROOTDN);
+      rootDN = new StringArgument(
+              "rootdn",OPTION_SHORT_ROOT_USER_DN,
+              OPTION_LONG_ROOT_USER_DN, false, true,
+              true, OPTION_VALUE_ROOT_USER_DN,
+              "cn=Directory Manager",
+              null, INFO_INSTALLDS_DESCRIPTION_ROOTDN.get());
       argParser.addArgument(rootDN);
 
-      rootPWString = new StringArgument("rootpwstring", OPTION_SHORT_BINDPWD,
-                                        "rootUserPassword",
-                                        false, false, true,
-                                        "{password}", null,
-                                        null,
-                                        MSGID_INSTALLDS_DESCRIPTION_ROOTPW);
+      rootPWString = new StringArgument(
+              "rootpwstring", OPTION_SHORT_BINDPWD,
+              "rootUserPassword",
+              false, false, true,
+              "{password}", null,
+              null,
+              INFO_INSTALLDS_DESCRIPTION_ROOTPW.get());
       argParser.addArgument(rootPWString);
 
-      rootPWFile = new FileBasedArgument("rootpwfile",
-                            OPTION_SHORT_BINDPWD_FILE,
-                            "rootUserPasswordFile", false, false,
-                            OPTION_VALUE_BINDPWD_FILE,
-                            null, null, MSGID_INSTALLDS_DESCRIPTION_ROOTPWFILE);
+      rootPWFile = new FileBasedArgument(
+              "rootpwfile",
+              OPTION_SHORT_BINDPWD_FILE,
+              "rootUserPasswordFile", false, false,
+              OPTION_VALUE_BINDPWD_FILE,
+              null, null, INFO_INSTALLDS_DESCRIPTION_ROOTPWFILE.get());
       argParser.addArgument(rootPWFile);
 
-      enableWindowsService = new BooleanArgument("enablewindowsservice", 'e',
-                            "enableWindowsService",
-                            MSGID_INSTALLDS_DESCRIPTION_ENABLE_WINDOWS_SERVICE);
+      enableWindowsService = new BooleanArgument(
+              "enablewindowsservice", 'e',
+              "enableWindowsService",
+              INFO_INSTALLDS_DESCRIPTION_ENABLE_WINDOWS_SERVICE.get());
       if (SetupUtils.isWindows())
       {
         argParser.addArgument(enableWindowsService);
@@ -304,7 +321,7 @@ public class InstallDS
 
       showUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
                                       OPTION_LONG_HELP,
-                                      MSGID_INSTALLDS_DESCRIPTION_HELP);
+                                      INFO_INSTALLDS_DESCRIPTION_HELP.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }
@@ -347,9 +364,8 @@ public class InstallDS
       {
         if (ports.contains(jmxPort.getIntValue()))
         {
-          int    msgID   = MSGID_CONFIGDS_PORT_ALREADY_SPECIFIED;
-          String message = getMessage(msgID,
-              String.valueOf(jmxPort.getIntValue()));
+          Message message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
+                  String.valueOf(jmxPort.getIntValue()));
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           System.err.println(argParser.getUsage());
           return 1;
@@ -362,8 +378,7 @@ public class InstallDS
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -373,26 +388,26 @@ public class InstallDS
     {
       if (importLDIF.isPresent())
       {
-        int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
-        String message = getMessage(msgID, addBaseEntry.getLongIdentifier(),
-                                    importLDIF.getLongIdentifier());
+        Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+                addBaseEntry.getLongIdentifier(),
+                importLDIF.getLongIdentifier());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       else if (sampleData.isPresent())
       {
-        int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
-        String message = getMessage(msgID, addBaseEntry.getLongIdentifier(),
-                                    sampleData.getLongIdentifier());
+        Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+                addBaseEntry.getLongIdentifier(),
+                sampleData.getLongIdentifier());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
     }
     else if (importLDIF.isPresent() && sampleData.isPresent())
     {
-      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, importLDIF.getLongIdentifier(),
-                                  sampleData.getLongIdentifier());
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+              importLDIF.getLongIdentifier(),
+              sampleData.getLongIdentifier());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -406,8 +421,8 @@ public class InstallDS
     }
     else
     {
-      int    msgID   = MSGID_INSTALLDS_NO_CONFIG_FILE;
-      String message = getMessage(msgID, configFile.getLongIdentifier());
+      Message message = ERR_INSTALLDS_NO_CONFIG_FILE.get(
+              configFile.getLongIdentifier());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -423,8 +438,7 @@ public class InstallDS
       System.out.println(versionString);
       System.out.println();
 
-      int    msgID   = MSGID_INSTALLDS_INITIALIZING;
-      String message = getMessage(msgID);
+      Message message = INFO_INSTALLDS_INITIALIZING.get();
       System.out.println(wrapText(message, MAX_LINE_WIDTH));
     }
 
@@ -440,10 +454,9 @@ public class InstallDS
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_INSTALLDS_CANNOT_INITIALIZE_JMX;
-      String message = getMessage(msgID,
-                                  String.valueOf(configFile.getValue()),
-                                  e.getMessage());
+      Message message = ERR_INSTALLDS_CANNOT_INITIALIZE_JMX.get(
+              String.valueOf(configFile.getValue()),
+              e.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -455,9 +468,8 @@ public class InstallDS
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_INSTALLDS_CANNOT_INITIALIZE_CONFIG;
-      String message = getMessage(msgID,
-                                  String.valueOf(configFile.getValue()),
+      Message message = ERR_INSTALLDS_CANNOT_INITIALIZE_CONFIG.get(
+              String.valueOf(configFile.getValue()),
                                   e.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
@@ -469,9 +481,8 @@ public class InstallDS
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_INSTALLDS_CANNOT_INITIALIZE_SCHEMA;
-      String message = getMessage(msgID,
-                                  String.valueOf(configFile.getValue()),
+      Message message = ERR_INSTALLDS_CANNOT_INITIALIZE_SCHEMA.get(
+              String.valueOf(configFile.getValue()),
                                   e.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
@@ -491,18 +502,18 @@ public class InstallDS
           // Check if the port can be used.
           if (!SetupUtils.canUseAsPort(ldapPortNumber))
           {
-            int msgID;
-            String message;
+            Message message;
             if (SetupUtils.isPriviledgedPort(ldapPortNumber))
             {
-              msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT;
-              message = getMessage(msgID, ldapPortNumber);
+
+              message = ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(
+                      ldapPortNumber);
               System.err.println(wrapText(message, MAX_LINE_WIDTH));
             }
             else
             {
-              msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PORT;
-              message = getMessage(msgID, ldapPortNumber);
+
+              message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(ldapPortNumber);
               System.err.println(wrapText(message, MAX_LINE_WIDTH));
             }
             return 1;
@@ -519,8 +530,7 @@ public class InstallDS
     {
       while (true)
       {
-        int    msgID   = MSGID_INSTALLDS_PROMPT_LDAPPORT;
-        String message = getMessage(msgID);
+        Message message = INFO_INSTALLDS_PROMPT_LDAPPORT.get();
         ldapPortNumber = promptForInteger(message, 389, 1, 65535);
 
         if (skipPortCheck.isPresent())
@@ -538,14 +548,13 @@ public class InstallDS
           {
             if (SetupUtils.isPriviledgedPort(ldapPortNumber))
             {
-              msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT;
-              message = getMessage(msgID, ldapPortNumber);
+              message = ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(
+                      ldapPortNumber);
               System.err.println(wrapText(message, MAX_LINE_WIDTH));
             }
             else
             {
-              msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PORT;
-              message = getMessage(msgID, ldapPortNumber);
+              message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(ldapPortNumber);
               System.err.println(wrapText(message, MAX_LINE_WIDTH));
             }
           }
@@ -566,18 +575,16 @@ public class InstallDS
           // Check if the port can be used.
           if (!SetupUtils.canUseAsPort(jmxPortNumber))
           {
-            int msgID;
-            String message;
+            Message message;
             if (SetupUtils.isPriviledgedPort(jmxPortNumber))
             {
-              msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT;
-              message = getMessage(msgID, jmxPortNumber);
+              message = ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(
+                      jmxPortNumber);
               System.err.println(wrapText(message, MAX_LINE_WIDTH));
             }
             else
             {
-              msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PORT;
-              message = getMessage(msgID, jmxPortNumber);
+              message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(jmxPortNumber);
               System.err.println(wrapText(message, MAX_LINE_WIDTH));
             }
             return 1;
@@ -597,8 +604,7 @@ public class InstallDS
       /*
       while (true)
       {
-        int    msgID   = MSGID_INSTALLDS_PROMPT_JMXPORT;
-        String message = getMessage(msgID);
+        Message message = INFO_INSTALLDS_PROMPT_JMXPORT.get();
         jmxPortNumber = promptForInteger(message,
             SetupUtils.getDefaultJMXPort(), 1, 65535);
 
@@ -617,14 +623,14 @@ public class InstallDS
           {
             if (SetupUtils.isPriviledgedPort(jmxPortNumber))
             {
-              msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT;
-              message = getMessage(msgID, jmxPortNumber);
+
+              message = ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(
+                        jmxPortNumber);
               System.err.println(wrapText(message, MAX_LINE_WIDTH));
             }
             else
             {
-              msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PORT;
-              message = getMessage(msgID, jmxPortNumber);
+              message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(jmxPortNumber);
               System.err.println(wrapText(message, MAX_LINE_WIDTH));
             }
           }
@@ -647,8 +653,8 @@ public class InstallDS
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_INSTALLDS_CANNOT_PARSE_DN;
-          String message = getMessage(msgID, s, e.getMessage());
+          Message message = ERR_INSTALLDS_CANNOT_PARSE_DN.get(
+                  s, e.getMessage());
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -663,8 +669,8 @@ public class InstallDS
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_INSTALLDS_CANNOT_PARSE_DN;
-        String message = getMessage(msgID, rootDN.getDefaultValue(),
+        Message message = ERR_INSTALLDS_CANNOT_PARSE_DN.get(
+                rootDN.getDefaultValue(),
                                     e.getMessage());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -672,9 +678,7 @@ public class InstallDS
     }
     else
     {
-      int    msgID   = MSGID_INSTALLDS_PROMPT_ROOT_DN;
-      String message = getMessage(msgID);
-
+      Message message = INFO_INSTALLDS_PROMPT_ROOT_DN.get();
       rootDNs = new LinkedList<DN>();
       rootDNs.add(promptForDN(message, rootDN.getDefaultValue()));
     }
@@ -688,9 +692,9 @@ public class InstallDS
 
       if (rootPWFile.isPresent())
       {
-        int msgID = MSGID_INSTALLDS_TWO_CONFLICTING_ARGUMENTS;
-        String message = getMessage(msgID, rootPWString.getLongIdentifier(),
-                                    rootPWFile.getLongIdentifier());
+        Message message = ERR_INSTALLDS_TWO_CONFLICTING_ARGUMENTS.get(
+                rootPWString.getLongIdentifier(),
+                rootPWFile.getLongIdentifier());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -701,19 +705,17 @@ public class InstallDS
     }
     else if (silentInstall.isPresent())
     {
-      int    msgID   = MSGID_INSTALLDS_NO_ROOT_PASSWORD;
-      String message = getMessage(msgID, rootPWString.getLongIdentifier(),
-                                  rootPWFile.getLongIdentifier());
+      Message message = ERR_INSTALLDS_NO_ROOT_PASSWORD.get(
+              rootPWString.getLongIdentifier(),
+              rootPWFile.getLongIdentifier());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     else
     {
-      int    msgID         = MSGID_INSTALLDS_PROMPT_ROOT_PASSWORD;
-      String initialPrompt = getMessage(msgID);
+      Message initialPrompt = INFO_INSTALLDS_PROMPT_ROOT_PASSWORD.get();
 
-      msgID = MSGID_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD;
-      String confirmPrompt = getMessage(msgID);
+      Message confirmPrompt = INFO_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD.get();
 
       rootPassword =
            new String(promptForPassword(initialPrompt, confirmPrompt));
@@ -733,8 +735,9 @@ public class InstallDS
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_INSTALLDS_CANNOT_PARSE_DN;
-          String message = getMessage(msgID, s, e.getMessage());
+
+          Message message = ERR_INSTALLDS_CANNOT_PARSE_DN.get(
+                  s, e.getMessage());
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -749,8 +752,8 @@ public class InstallDS
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_INSTALLDS_CANNOT_PARSE_DN;
-        String message = getMessage(msgID, baseDN.getDefaultValue(),
+        Message message =
+                ERR_INSTALLDS_CANNOT_PARSE_DN.get(baseDN.getDefaultValue(),
                                     e.getMessage());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -758,8 +761,7 @@ public class InstallDS
     }
     else
     {
-      int    msgID   = MSGID_INSTALLDS_PROMPT_BASEDN;
-      String message = getMessage(msgID);
+      Message message = INFO_INSTALLDS_PROMPT_BASEDN.get();
 
       baseDNs = new LinkedList<DN>();
       baseDNs.add(promptForDN(message, baseDN.getDefaultValue()));
@@ -799,23 +801,28 @@ public class InstallDS
     }
     else
     {
-      int msgID = MSGID_INSTALLDS_HEADER_POPULATE_TYPE;
-      System.out.println(wrapText(getMessage(msgID), MAX_LINE_WIDTH));
+      System.out.println(wrapText(
+              INFO_INSTALLDS_HEADER_POPULATE_TYPE.get(),
+              MAX_LINE_WIDTH));
 
-      msgID = MSGID_INSTALLDS_POPULATE_OPTION_BASE_ONLY;
-      System.out.println(wrapText("1.  " + getMessage(msgID), MAX_LINE_WIDTH));
+      System.out.println(wrapText("1.  " +
+              INFO_INSTALLDS_POPULATE_OPTION_BASE_ONLY.get(),
+              MAX_LINE_WIDTH));
 
-      msgID = MSGID_INSTALLDS_POPULATE_OPTION_LEAVE_EMPTY;
-      System.out.println(wrapText("2.  " + getMessage(msgID), MAX_LINE_WIDTH));
+      System.out.println(wrapText("2.  " +
+              INFO_INSTALLDS_POPULATE_OPTION_LEAVE_EMPTY.get(),
+              MAX_LINE_WIDTH));
 
-      msgID = MSGID_INSTALLDS_POPULATE_OPTION_IMPORT_LDIF;
-      System.out.println(wrapText("3.  " + getMessage(msgID), MAX_LINE_WIDTH));
+      System.out.println(wrapText("3.  " +
+              INFO_INSTALLDS_POPULATE_OPTION_IMPORT_LDIF.get(),
+              MAX_LINE_WIDTH));
 
-      msgID = MSGID_INSTALLDS_POPULATE_OPTION_GENERATE_SAMPLE;
-      System.out.println(wrapText("4.  " + getMessage(msgID), MAX_LINE_WIDTH));
+      System.out.println(wrapText("4.  " +
+              INFO_INSTALLDS_POPULATE_OPTION_GENERATE_SAMPLE.get(),
+              MAX_LINE_WIDTH));
 
-      msgID = MSGID_INSTALLDS_PROMPT_POPULATE_CHOICE;
-      populateType = promptForInteger(getMessage(msgID), 1, 1, 4);
+      populateType = promptForInteger(
+              INFO_INSTALLDS_PROMPT_POPULATE_CHOICE.get(), 1, 1, 4);
       System.out.println();
 
       if (populateType == POPULATE_TYPE_IMPORT_FROM_LDIF)
@@ -823,8 +830,7 @@ public class InstallDS
         ldifFiles = new LinkedList<String>();
         while (true)
         {
-          msgID = MSGID_INSTALLDS_PROMPT_IMPORT_FILE;
-          String message = getMessage(msgID);
+          Message message = INFO_INSTALLDS_PROMPT_IMPORT_FILE.get();
           String path    = promptForString(message, "");
           if (new File(path).exists())
           {
@@ -834,8 +840,8 @@ public class InstallDS
           }
           else
           {
-            msgID   = MSGID_INSTALLDS_NO_SUCH_LDIF_FILE;
-            message = getMessage(msgID, path);
+
+            message = ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(path);
             System.err.println(wrapText(message, MAX_LINE_WIDTH));
             System.err.println();
           }
@@ -843,8 +849,7 @@ public class InstallDS
       }
       else if (populateType == POPULATE_TYPE_GENERATE_SAMPLE_DATA)
       {
-        msgID = MSGID_INSTALLDS_PROMPT_NUM_ENTRIES;
-        String message = getMessage(msgID);
+        Message message = INFO_INSTALLDS_PROMPT_NUM_ENTRIES.get();
         numUsers = promptForInteger(message, 2000, 0, Integer.MAX_VALUE);
         System.out.println();
       }
@@ -864,7 +869,7 @@ public class InstallDS
       }
       else
       {
-        String message = getMessage(MSGID_INSTALLDS_PROMPT_ENABLE_SERVICE);
+        Message message = INFO_INSTALLDS_PROMPT_ENABLE_SERVICE.get();
         enableService = promptForBoolean(message, Boolean.TRUE);
       }
     }
@@ -906,7 +911,7 @@ public class InstallDS
     {
       System.out.println();
 
-      String message = getMessage(MSGID_INSTALLDS_STATUS_CONFIGURING_DS);
+      Message message = INFO_INSTALLDS_STATUS_CONFIGURING_DS.get();
       System.out.println(wrapText(message, MAX_LINE_WIDTH));
     }
 
@@ -923,7 +928,7 @@ public class InstallDS
       // Create a temporary LDIF file that will hold the entry to add.
       if (! silentInstall.isPresent())
       {
-        String message = getMessage(MSGID_INSTALLDS_STATUS_CREATING_BASE_LDIF);
+        Message message = INFO_INSTALLDS_STATUS_CREATING_BASE_LDIF.get();
         System.out.println(wrapText(message, MAX_LINE_WIDTH));
       }
 
@@ -952,8 +957,8 @@ public class InstallDS
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_INSTALLDS_CANNOT_CREATE_BASE_ENTRY_LDIF;
-        String message = getMessage(msgID, String.valueOf(e));
+        Message message = ERR_INSTALLDS_CANNOT_CREATE_BASE_ENTRY_LDIF.get(
+                String.valueOf(e));
 
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -973,8 +978,8 @@ public class InstallDS
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_INSTALLDS_CANNOT_CREATE_TEMPLATE_FILE;
-        String message = getMessage(msgID, String.valueOf(e));
+        Message message = ERR_INSTALLDS_CANNOT_CREATE_TEMPLATE_FILE.get(
+                String.valueOf(e));
 
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -985,7 +990,7 @@ public class InstallDS
     {
       if (! silentInstall.isPresent())
       {
-        String message = getMessage(MSGID_INSTALLDS_STATUS_IMPORTING_LDIF);
+        Message message = INFO_INSTALLDS_STATUS_IMPORTING_LDIF.get();
         System.out.println(wrapText(message, MAX_LINE_WIDTH));
       }
 
@@ -1028,13 +1033,13 @@ public class InstallDS
       returnValue = ImportLDIF.mainImportLDIF(importLDIFArguments);
       if (returnValue != 0)
       {
-        String message = getMessage(MSGID_INSTALLDS_IMPORT_UNSUCCESSFUL);
+        Message message = ERR_INSTALLDS_IMPORT_UNSUCCESSFUL.get();
         System.out.println(wrapText(message, MAX_LINE_WIDTH));
         return returnValue;
       }
       else
       {
-        String message = getMessage(MSGID_INSTALLDS_IMPORT_SUCCESSFUL);
+        Message message = INFO_INSTALLDS_IMPORT_SUCCESSFUL.get();
         System.out.println(wrapText(message, MAX_LINE_WIDTH));
       }
     }
@@ -1059,7 +1064,7 @@ public class InstallDS
 
     if (enableService)
     {
-      String message = getMessage(MSGID_INSTALLDS_ENABLING_WINDOWS_SERVICE);
+      Message message = INFO_INSTALLDS_ENABLING_WINDOWS_SERVICE.get();
       System.out.println(wrapText(message, MAX_LINE_WIDTH));
       int code = ConfigureWindowsService.enableService(System.out,
           System.err);
@@ -1079,7 +1084,7 @@ public class InstallDS
     // If we've gotten here, then everything seems to have gone smoothly.
     if (! silentInstall.isPresent())
     {
-      String message = getMessage(MSGID_INSTALLDS_STATUS_SUCCESS);
+      Message message = INFO_INSTALLDS_STATUS_SUCCESS.get();
       System.out.println(wrapText(message, MAX_LINE_WIDTH));
     }
 
@@ -1102,7 +1107,7 @@ public class InstallDS
    *
    * @return  The <CODE>boolean</CODE> value read from the user input.
    */
-  private static boolean promptForBoolean(String prompt, Boolean defaultValue)
+  private static boolean promptForBoolean(Message prompt, Boolean defaultValue)
   {
     String wrappedPrompt = wrapText(prompt, MAX_LINE_WIDTH);
 
@@ -1121,11 +1126,11 @@ public class InstallDS
 
         if (defaultValue)
         {
-          System.out.print(getMessage(MSGID_INSTALLDS_PROMPT_VALUE_YES));
+          System.out.print(INFO_INSTALLDS_PROMPT_VALUE_YES.get());
         }
         else
         {
-          System.out.print(getMessage(MSGID_INSTALLDS_PROMPT_VALUE_NO));
+          System.out.print(INFO_INSTALLDS_PROMPT_VALUE_NO.get());
         }
 
         System.out.print("]: ");
@@ -1148,7 +1153,7 @@ public class InstallDS
       {
         if (defaultValue == null)
         {
-          String message = getMessage(MSGID_INSTALLDS_INVALID_YESNO_RESPONSE);
+          Message message = ERR_INSTALLDS_INVALID_YESNO_RESPONSE.get();
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
         }
         else
@@ -1158,7 +1163,7 @@ public class InstallDS
       }
       else
       {
-        String message = getMessage(MSGID_INSTALLDS_INVALID_YESNO_RESPONSE);
+        Message message = ERR_INSTALLDS_INVALID_YESNO_RESPONSE.get();
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
       }
     }
@@ -1184,7 +1189,7 @@ public class InstallDS
    *
    * @return  The <CODE>int</CODE> value read from the user input.
    */
-  private static int promptForInteger(String prompt, Integer defaultValue,
+  private static int promptForInteger(Message prompt, Integer defaultValue,
                                       Integer lowerBound, Integer upperBound)
   {
     String wrappedPrompt = wrapText(prompt, MAX_LINE_WIDTH);
@@ -1212,7 +1217,7 @@ public class InstallDS
       {
         if (defaultValue == null)
         {
-          String message = getMessage(MSGID_INSTALLDS_INVALID_INTEGER_RESPONSE);
+          Message message = ERR_INSTALLDS_INVALID_INTEGER_RESPONSE.get();
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
         }
         else
@@ -1227,16 +1232,14 @@ public class InstallDS
           int intValue = Integer.parseInt(response);
           if ((lowerBound != null) && (intValue < lowerBound))
           {
-            String message =
-                        getMessage(MSGID_INSTALLDS_INTEGER_BELOW_LOWER_BOUND,
-                                   lowerBound);
+            Message message =
+                ERR_INSTALLDS_INTEGER_BELOW_LOWER_BOUND.get(lowerBound);
             System.err.println(wrapText(message, MAX_LINE_WIDTH));
           }
           else if ((upperBound != null) && (intValue > upperBound))
           {
-            String message =
-                        getMessage(MSGID_INSTALLDS_INTEGER_ABOVE_UPPER_BOUND,
-                                   upperBound);
+            Message message =
+                ERR_INSTALLDS_INTEGER_ABOVE_UPPER_BOUND.get(upperBound);
             System.err.println(wrapText(message, MAX_LINE_WIDTH));
           }
           else
@@ -1246,7 +1249,7 @@ public class InstallDS
         }
         catch (NumberFormatException nfe)
         {
-          String message = getMessage(MSGID_INSTALLDS_INVALID_INTEGER_RESPONSE);
+          Message message = ERR_INSTALLDS_INVALID_INTEGER_RESPONSE.get();
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
         }
       }
@@ -1269,7 +1272,7 @@ public class InstallDS
    *
    * @return  The DN value read from the user.
    */
-  private static DN promptForDN(String prompt, String defaultValue)
+  private static DN promptForDN(Message prompt, String defaultValue)
   {
     String wrappedPrompt = wrapText(prompt, MAX_LINE_WIDTH);
 
@@ -1296,7 +1299,7 @@ public class InstallDS
       {
         if (defaultValue == null)
         {
-          String message = getMessage(MSGID_INSTALLDS_INVALID_DN_RESPONSE);
+          Message message = ERR_INSTALLDS_INVALID_DN_RESPONSE.get();
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
         }
         else
@@ -1307,7 +1310,7 @@ public class InstallDS
           }
           catch (Exception e)
           {
-            String message = getMessage(MSGID_INSTALLDS_INVALID_DN_RESPONSE);
+            Message message = ERR_INSTALLDS_INVALID_DN_RESPONSE.get();
             System.err.println(wrapText(message, MAX_LINE_WIDTH));
           }
         }
@@ -1320,7 +1323,7 @@ public class InstallDS
         }
         catch (Exception e)
         {
-          String message = getMessage(MSGID_INSTALLDS_INVALID_DN_RESPONSE);
+          Message message = ERR_INSTALLDS_INVALID_DN_RESPONSE.get();
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
         }
       }
@@ -1342,7 +1345,7 @@ public class InstallDS
    *
    * @return  The string value read from the user.
    */
-  private static String promptForString(String prompt, String defaultValue)
+  private static String promptForString(Message prompt, String defaultValue)
   {
       System.out.println();
     String wrappedPrompt = wrapText(prompt, MAX_LINE_WIDTH);
@@ -1369,7 +1372,7 @@ public class InstallDS
       {
         if (defaultValue == null)
         {
-          String message = getMessage(MSGID_INSTALLDS_INVALID_STRING_RESPONSE);
+          Message message = ERR_INSTALLDS_INVALID_STRING_RESPONSE.get();
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
         }
         else
@@ -1398,8 +1401,8 @@ public class InstallDS
    *
    * @return  The string value read from the user.
    */
-  private static char[] promptForPassword(String initialPrompt,
-                                          String reEntryPrompt)
+  private static char[] promptForPassword(Message initialPrompt,
+                                          Message reEntryPrompt)
   {
     String wrappedInitialPrompt = wrapText(initialPrompt, MAX_LINE_WIDTH);
     String wrappedReEntryPrompt = wrapText(reEntryPrompt, MAX_LINE_WIDTH);
@@ -1414,7 +1417,7 @@ public class InstallDS
       char[] password = PasswordReader.readPassword();
       if ((password == null) || (password.length == 0))
       {
-        String message = getMessage(MSGID_INSTALLDS_INVALID_PASSWORD_RESPONSE);
+        Message message = ERR_INSTALLDS_INVALID_PASSWORD_RESPONSE.get();
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
       }
       else
@@ -1426,7 +1429,7 @@ public class InstallDS
         if ((confirmedPassword == null) ||
             (! Arrays.equals(password, confirmedPassword)))
         {
-          String message = getMessage(MSGID_INSTALLDS_PASSWORDS_DONT_MATCH);
+          Message message = ERR_INSTALLDS_PASSWORDS_DONT_MATCH.get();
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
         }
         else
@@ -1482,8 +1485,8 @@ public class InstallDS
     }
     catch (Exception e)
     {
-      String message = getMessage(MSGID_INSTALLDS_ERROR_READING_FROM_STDIN,
-                                  String.valueOf(e));
+      Message message =
+          ERR_INSTALLDS_ERROR_READING_FROM_STDIN.get(String.valueOf(e));
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
 
       return null;

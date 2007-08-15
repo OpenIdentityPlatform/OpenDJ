@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
+import org.opends.messages.Message;
 
 
 
@@ -45,6 +46,7 @@ import org.opends.server.loggers.debug.TraceSettings;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.DN;
+
 
 
 /**
@@ -129,7 +131,7 @@ public abstract class DebugLogPublisher
    */
   public boolean isConfigurationAcceptable(
                       DebugLogPublisherCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by debug log publisher

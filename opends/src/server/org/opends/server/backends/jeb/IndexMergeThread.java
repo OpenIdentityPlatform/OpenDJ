@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
+import org.opends.messages.Message;
 
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -46,10 +47,9 @@ import java.util.TreeMap;
 import java.util.WeakHashMap;
 
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.JebMessages.*;
+import static org.opends.messages.JebMessages.*;
 import org.opends.server.admin.std.server.JEBackendCfg;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 
@@ -192,9 +192,8 @@ public class IndexMergeThread extends DirectoryThread
     {
       if (debugEnabled())
       {
-        int msgID = MSGID_JEB_INDEX_MERGE_NO_DATA;
-        String message = getMessage(msgID, index.getName());
-        TRACER.debugInfo(message);
+        Message message = INFO_JEB_INDEX_MERGE_NO_DATA.get(index.getName());
+        TRACER.debugInfo(message.toString());
       }
 
       if(!ldifImportConfig.appendToExistingData())
@@ -207,9 +206,9 @@ public class IndexMergeThread extends DirectoryThread
 
     if (debugEnabled())
     {
-      int msgID = MSGID_JEB_INDEX_MERGE_START;
-      String message = getMessage(msgID, files.length, index.getName());
-      TRACER.debugInfo(message);
+      Message message = INFO_JEB_INDEX_MERGE_START.get(
+              files.length, index.getName());
+      TRACER.debugInfo(message.toString());
     }
 
     MergeReader[] readers = new MergeReader[files.length];
@@ -352,9 +351,8 @@ public class IndexMergeThread extends DirectoryThread
 
     if (debugEnabled())
     {
-      int msgID = MSGID_JEB_INDEX_MERGE_COMPLETE;
-      String message = getMessage(msgID, index.getName());
-      TRACER.debugInfo(message);
+      Message message = INFO_JEB_INDEX_MERGE_COMPLETE.get(index.getName());
+      TRACER.debugInfo(message.toString());
     }
   }
 

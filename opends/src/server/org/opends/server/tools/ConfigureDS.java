@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 
 
@@ -54,11 +55,10 @@ import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
@@ -171,14 +171,14 @@ public class ConfigureDS
     StringArgument    certNickName;
     StringArgument    keyManagerPath;
 
-    String toolDescription = getMessage(MSGID_CONFIGDS_TOOL_DESCRIPTION);
+    Message toolDescription = INFO_CONFIGDS_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false);
     try
     {
       configFile = new StringArgument("configfile", 'c', "configFile", true,
                                       false, true, "{configFile}", null, null,
-                                      MSGID_DESCRIPTION_CONFIG_FILE);
+                                      INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
@@ -186,7 +186,7 @@ public class ConfigureDS
                              OPTION_LONG_CONFIG_CLASS, false,
                              false, true, OPTION_VALUE_CONFIG_CLASS,
                              ConfigFileHandler.class.getName(), null,
-                             MSGID_DESCRIPTION_CONFIG_CLASS);
+                             INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
@@ -194,23 +194,23 @@ public class ConfigureDS
                                     "ldapPort", false, false,
                                      true, "{ldapPort}", 389, null, true, 1,
                                      true, 65535,
-                                     MSGID_CONFIGDS_DESCRIPTION_LDAP_PORT);
+                                     INFO_CONFIGDS_DESCRIPTION_LDAP_PORT.get());
       argParser.addArgument(ldapPort);
 
       ldapsPort = new IntegerArgument("ldapsPort", 'P', "ldapsPort", false,
           false, true, "{ldapPort}", 636, null, true, 1, true, 65535,
-          MSGID_CONFIGDS_DESCRIPTION_LDAPS_PORT);
+          INFO_CONFIGDS_DESCRIPTION_LDAPS_PORT.get());
       argParser.addArgument(ldapsPort);
 
       enableStartTLS = new BooleanArgument("enableStartTLS",
           OPTION_SHORT_START_TLS, "enableStartTLS",
-          MSGID_CONFIGDS_DESCRIPTION_ENABLE_START_TLS);
+          INFO_CONFIGDS_DESCRIPTION_ENABLE_START_TLS.get());
       argParser.addArgument(enableStartTLS);
 
       jmxPort = new IntegerArgument("jmxport", 'x', "jmxPort", false, false,
           true, "{jmxPort}", SetupUtils.getDefaultJMXPort(), null, true, 1,
           true, 65535,
-          MSGID_CONFIGDS_DESCRIPTION_JMX_PORT);
+          INFO_CONFIGDS_DESCRIPTION_JMX_PORT.get());
       argParser.addArgument(jmxPort);
 
       keyManagerProviderDN = new StringArgument("keymanagerproviderdn",
@@ -220,7 +220,7 @@ public class ConfigureDS
           true, "{keyManagerProviderDN}",
           null,
           null,
-          MSGID_CONFIGDS_DESCRIPTION_KEYMANAGER_PROVIDER_DN);
+          INFO_CONFIGDS_DESCRIPTION_KEYMANAGER_PROVIDER_DN.get());
       argParser.addArgument(keyManagerProviderDN);
 
       trustManagerProviderDN = new StringArgument("trustmanagerproviderdn",
@@ -230,7 +230,7 @@ public class ConfigureDS
           true, "{trustManagerProviderDN}",
           null,
           null,
-          MSGID_CONFIGDS_DESCRIPTION_TRUSTMANAGER_PROVIDER_DN);
+          INFO_CONFIGDS_DESCRIPTION_TRUSTMANAGER_PROVIDER_DN.get());
       argParser.addArgument(trustManagerProviderDN);
 
       keyManagerPath = new StringArgument("keymanagerpath",
@@ -240,7 +240,7 @@ public class ConfigureDS
           "{keyManagerPath}",
           null,
           null,
-          MSGID_CONFIGDS_DESCRIPTION_KEYMANAGER_PATH);
+          INFO_CONFIGDS_DESCRIPTION_KEYMANAGER_PATH.get());
       argParser.addArgument(keyManagerPath);
 
       certNickName = new StringArgument("certnickname",
@@ -250,47 +250,50 @@ public class ConfigureDS
           true, "{certNickName}",
           null,
           null,
-          MSGID_CONFIGDS_DESCRIPTION_CERTNICKNAME);
+          INFO_CONFIGDS_DESCRIPTION_CERTNICKNAME.get());
       argParser.addArgument(certNickName);
 
-      baseDNString = new StringArgument("basedn", OPTION_SHORT_BASEDN,
-                                        OPTION_LONG_BASEDN, false, true,
-                                        true, OPTION_VALUE_BASEDN,
-                                        "dc=example,dc=com",
-                                        null,
-                                        MSGID_CONFIGDS_DESCRIPTION_BASE_DN);
+      baseDNString = new StringArgument(
+          "basedn", OPTION_SHORT_BASEDN,
+          OPTION_LONG_BASEDN, false, true,
+          true, OPTION_VALUE_BASEDN,
+          "dc=example,dc=com",
+          null,
+          INFO_CONFIGDS_DESCRIPTION_BASE_DN.get());
       argParser.addArgument(baseDNString);
 
-      rootDNString = new StringArgument("rootdn", OPTION_SHORT_ROOT_USER_DN,
-                                        OPTION_LONG_ROOT_USER_DN, false, false,
-                                        true, OPTION_VALUE_ROOT_USER_DN,
-                                        "cn=Directory Manager", null,
-                                        MSGID_CONFIGDS_DESCRIPTION_ROOT_DN);
+      rootDNString = new StringArgument(
+          "rootdn", OPTION_SHORT_ROOT_USER_DN,
+          OPTION_LONG_ROOT_USER_DN, false, false,
+          true, OPTION_VALUE_ROOT_USER_DN,
+          "cn=Directory Manager", null,
+          INFO_CONFIGDS_DESCRIPTION_ROOT_DN.get());
       argParser.addArgument(rootDNString);
 
-      rootPassword = new StringArgument("rootpw", OPTION_SHORT_BINDPWD,
-                                        "rootPassword", false,
-                                        false, true, "{rootUserPW}", null, null,
-                                        MSGID_CONFIGDS_DESCRIPTION_ROOT_PW);
+      rootPassword = new StringArgument(
+          "rootpw", OPTION_SHORT_BINDPWD,
+          "rootPassword", false,
+          false, true, "{rootUserPW}", null, null,
+          INFO_CONFIGDS_DESCRIPTION_ROOT_PW.get());
       argParser.addArgument(rootPassword);
 
-      rootPasswordFile = new FileBasedArgument("rootpwfile",
-                                  OPTION_SHORT_BINDPWD_FILE,
-                                  "rootPasswordFile", false, false,
-                                  "{filename}", null, null,
-                                  MSGID_CONFIGDS_DESCRIPTION_ROOT_PW_FILE);
+      rootPasswordFile = new FileBasedArgument(
+          "rootpwfile",
+          OPTION_SHORT_BINDPWD_FILE,
+          "rootPasswordFile", false, false,
+          "{filename}", null, null,
+          INFO_CONFIGDS_DESCRIPTION_ROOT_PW_FILE.get());
       argParser.addArgument(rootPasswordFile);
 
       showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
                                       OPTION_LONG_HELP,
-                                      MSGID_DESCRIPTION_USAGE);
+                                      INFO_DESCRIPTION_USAGE.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -303,8 +306,7 @@ public class ConfigureDS
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.err.println(argParser.getUsage());
@@ -324,8 +326,7 @@ public class ConfigureDS
     if (! (baseDNString.isPresent() || ldapPort.isPresent() ||
         jmxPort.isPresent() || rootDNString.isPresent()))
     {
-      int    msgID   = MSGID_CONFIGDS_NO_CONFIG_CHANGES;
-      String message = getMessage(msgID);
+      Message message = ERR_CONFIGDS_NO_CONFIG_CHANGES.get();
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.err.println(argParser.getUsage());
       return 1;
@@ -342,9 +343,8 @@ public class ConfigureDS
       {
         if (ports.contains(ldapsPort.getIntValue()))
         {
-          int    msgID   = MSGID_CONFIGDS_PORT_ALREADY_SPECIFIED;
-          String message = getMessage(msgID,
-              String.valueOf(ldapsPort.getIntValue()));
+          Message message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
+                  String.valueOf(ldapsPort.getIntValue()));
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           System.err.println(argParser.getUsage());
           return 1;
@@ -358,9 +358,8 @@ public class ConfigureDS
       {
         if (ports.contains(jmxPort.getIntValue()))
         {
-          int    msgID   = MSGID_CONFIGDS_PORT_ALREADY_SPECIFIED;
-          String message = getMessage(msgID,
-              String.valueOf(jmxPort.getIntValue()));
+          Message message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
+                  String.valueOf(jmxPort.getIntValue()));
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           System.err.println(argParser.getUsage());
           return 1;
@@ -373,8 +372,7 @@ public class ConfigureDS
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -391,10 +389,9 @@ public class ConfigureDS
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_CONFIGDS_CANNOT_INITIALIZE_JMX;
-      String message = getMessage(msgID,
-                                  String.valueOf(configFile.getValue()),
-                                  e.getMessage());
+      Message message = ERR_CONFIGDS_CANNOT_INITIALIZE_JMX.get(
+              String.valueOf(configFile.getValue()),
+              e.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -406,10 +403,9 @@ public class ConfigureDS
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_CONFIGDS_CANNOT_INITIALIZE_CONFIG;
-      String message = getMessage(msgID,
-                                  String.valueOf(configFile.getValue()),
-                                  e.getMessage());
+      Message message = ERR_CONFIGDS_CANNOT_INITIALIZE_CONFIG.get(
+              String.valueOf(configFile.getValue()),
+              e.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -420,10 +416,9 @@ public class ConfigureDS
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_CONFIGDS_CANNOT_INITIALIZE_SCHEMA;
-      String message = getMessage(msgID,
-                                  String.valueOf(configFile.getValue()),
-                                  e.getMessage());
+      Message message = ERR_CONFIGDS_CANNOT_INITIALIZE_SCHEMA.get(
+              String.valueOf(configFile.getValue()),
+              e.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -436,9 +431,9 @@ public class ConfigureDS
     if (! LockFileManager.acquireExclusiveLock(serverLockFileName,
                                                failureReason))
     {
-      int    msgID   = MSGID_CONFIGDS_CANNOT_ACQUIRE_SERVER_LOCK;
-      String message = getMessage(msgID, String.valueOf(serverLockFileName),
-                                  String.valueOf(failureReason));
+      Message message = ERR_CONFIGDS_CANNOT_ACQUIRE_SERVER_LOCK.get(
+              String.valueOf(serverLockFileName),
+              String.valueOf(failureReason));
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -460,9 +455,9 @@ public class ConfigureDS
           }
           catch (DirectoryException de)
           {
-            int    msgID   = MSGID_CONFIGDS_CANNOT_PARSE_BASE_DN;
-            String message = getMessage(msgID, String.valueOf(dnString),
-                                        de.getErrorMessage());
+            Message message = ERR_CONFIGDS_CANNOT_PARSE_BASE_DN.get(
+                    String.valueOf(dnString),
+                    de.getMessageObject());
             System.err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
@@ -482,10 +477,9 @@ public class ConfigureDS
         }
         catch (DirectoryException de)
         {
-          int    msgID   = MSGID_CONFIGDS_CANNOT_PARSE_ROOT_DN;
-          String message = getMessage(msgID,
-                                      String.valueOf(rootDNString.getValue()),
-                                      de.getErrorMessage());
+          Message message = ERR_CONFIGDS_CANNOT_PARSE_ROOT_DN.get(
+                  String.valueOf(rootDNString.getValue()),
+                  de.getMessageObject());
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -500,8 +494,7 @@ public class ConfigureDS
         }
         else
         {
-          int    msgID   = MSGID_CONFIGDS_NO_ROOT_PW;
-          String message = getMessage(msgID);
+          Message message = ERR_CONFIGDS_NO_ROOT_PW.get();
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -523,10 +516,10 @@ public class ConfigureDS
         }
         catch (DirectoryException de)
         {
-          int    msgID   = MSGID_CONFIGDS_CANNOT_PARSE_KEYMANAGER_PROVIDER_DN;
-          String message = getMessage(msgID,
-              keyManagerProviderDN.getValue(),
-              de.getErrorMessage());
+          Message message =
+                  ERR_CONFIGDS_CANNOT_PARSE_KEYMANAGER_PROVIDER_DN.get(
+                          keyManagerProviderDN.getValue(),
+                          de.getMessageObject());
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -537,9 +530,7 @@ public class ConfigureDS
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_CONFIG_KEYMANAGER_CANNOT_GET_BASE;
-          String message = getMessage(msgID,
-              keyManagerProviderDN.getValue(),
+          Message message = ERR_CONFIG_KEYMANAGER_CANNOT_GET_BASE.get(
               String.valueOf(e));
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
@@ -556,10 +547,8 @@ public class ConfigureDS
         }
         catch (DirectoryException de)
         {
-          int  msgID   = MSGID_CONFIGDS_CANNOT_PARSE_TRUSTMANAGER_PROVIDER_DN;
-          String message = getMessage(msgID,
-              trustManagerProviderDN.getValue(),
-              de.getErrorMessage());
+          Message message = ERR_CONFIGDS_CANNOT_PARSE_TRUSTMANAGER_PROVIDER_DN.
+                  get(trustManagerProviderDN.getValue(), de.getMessageObject());
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -570,10 +559,8 @@ public class ConfigureDS
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_CONFIG_TRUSTMANAGER_CANNOT_GET_BASE;
-          String message = getMessage(msgID,
-              trustManagerProviderDN.getValue(),
-              String.valueOf(e));
+          Message message = ERR_CONFIG_TRUSTMANAGER_CANNOT_GET_BASE.get(
+                String.valueOf(e));
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -584,9 +571,8 @@ public class ConfigureDS
       {
         if (!keyManagerProviderDN.isPresent())
         {
-          int    msgID   = MSGID_CONFIGDS_KEYMANAGER_PROVIDER_DN_REQUIRED;
-          String message = getMessage(msgID,
-              keyManagerProviderDN.getLongIdentifier(),
+          Message message = ERR_CONFIGDS_KEYMANAGER_PROVIDER_DN_REQUIRED.get(
+                  keyManagerProviderDN.getLongIdentifier(),
               keyManagerPath.getLongIdentifier());
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
@@ -602,16 +588,17 @@ public class ConfigureDS
           DN jeBackendDN = DN.decode(DN_JE_BACKEND);
           ConfigEntry configEntry = configHandler.getConfigEntry(jeBackendDN);
 
-          int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS;
           DNConfigAttribute baseDNAttr =
-               new DNConfigAttribute(ATTR_BACKEND_BASE_DN, getMessage(msgID),
+               new DNConfigAttribute(
+                       ATTR_BACKEND_BASE_DN,
+                       INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS.get(),
                                      true, true, false, baseDNs);
           configEntry.putConfigAttribute(baseDNAttr);
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_CONFIGDS_CANNOT_UPDATE_BASE_DN;
-          String message = getMessage(msgID, String.valueOf(e));
+          Message message = ERR_CONFIGDS_CANNOT_UPDATE_BASE_DN.get(
+                  String.valueOf(e));
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -627,17 +614,18 @@ public class ConfigureDS
           ConfigEntry configEntry =
                configHandler.getConfigEntry(ldapListenerDN);
 
-          int msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_LISTEN_PORT;
+
           IntegerConfigAttribute portAttr =
-               new IntegerConfigAttribute(ATTR_LISTEN_PORT, getMessage(msgID),
+               new IntegerConfigAttribute(ATTR_LISTEN_PORT,
+                       INFO_LDAP_CONNHANDLER_DESCRIPTION_LISTEN_PORT.get(),
                                           true, false, true, true, 1, true,
                                           65535, ldapPort.getIntValue());
           configEntry.putConfigAttribute(portAttr);
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_CONFIGDS_CANNOT_UPDATE_LDAP_PORT;
-          String message = getMessage(msgID, String.valueOf(e));
+          Message message = ERR_CONFIGDS_CANNOT_UPDATE_LDAP_PORT.get(
+                  String.valueOf(e));
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -652,22 +640,24 @@ public class ConfigureDS
           ConfigEntry configEntry =
                configHandler.getConfigEntry(ldapListenerDN);
 
-          int msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_LISTEN_PORT;
+
           IntegerConfigAttribute portAttr =
-               new IntegerConfigAttribute(ATTR_LISTEN_PORT, getMessage(msgID),
+               new IntegerConfigAttribute(ATTR_LISTEN_PORT,
+                       INFO_LDAP_CONNHANDLER_DESCRIPTION_LISTEN_PORT.get(),
                                           true, false, true, true, 1, true,
                                           65535, ldapsPort.getIntValue());
           configEntry.putConfigAttribute(portAttr);
-          msgID = MSGID_LDAPS_CONNHANDLER_DESCRIPTION_ENABLE;
+
           BooleanConfigAttribute enablePortAttr =
             new BooleanConfigAttribute(ATTR_CONNECTION_HANDLER_ENABLED,
-                getMessage(msgID), true, true, true);
+                INFO_LDAPS_CONNHANDLER_DESCRIPTION_ENABLE.get(),
+                    true, true, true);
           configEntry.putConfigAttribute(enablePortAttr);
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_CONFIGDS_CANNOT_UPDATE_LDAPS_PORT;
-          String message = getMessage(msgID, String.valueOf(e));
+          Message message = ERR_CONFIGDS_CANNOT_UPDATE_LDAPS_PORT.get(
+                  String.valueOf(e));
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -682,22 +672,24 @@ public class ConfigureDS
           ConfigEntry configEntry =
                configHandler.getConfigEntry(jmxListenerDN);
 
-          int msgID = MSGID_JMX_CONNHANDLER_DESCRIPTION_LISTEN_PORT;
           IntegerConfigAttribute portAttr =
-               new IntegerConfigAttribute(ATTR_LISTEN_PORT, getMessage(msgID),
-                                          true, false, true, true, 1, true,
-                                          65535, jmxPort.getIntValue());
+               new IntegerConfigAttribute(
+                       ATTR_LISTEN_PORT,
+                       INFO_JMX_CONNHANDLER_DESCRIPTION_LISTEN_PORT.get(),
+                       true, false, true, true, 1, true,
+                       65535, jmxPort.getIntValue());
           configEntry.putConfigAttribute(portAttr);
-          msgID = MSGID_JMX_CONNHANDLER_DESCRIPTION_ENABLE;
+
           BooleanConfigAttribute enablePortAttr =
             new BooleanConfigAttribute(ATTR_CONNECTION_HANDLER_ENABLED,
-                getMessage(msgID), true, true, true);
+                INFO_JMX_CONNHANDLER_DESCRIPTION_ENABLE.get(),
+                    true, true, true);
           configEntry.putConfigAttribute(enablePortAttr);
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_CONFIGDS_CANNOT_UPDATE_JMX_PORT;
-          String message = getMessage(msgID, String.valueOf(e));
+          Message message = ERR_CONFIGDS_CANNOT_UPDATE_JMX_PORT.get(
+                  String.valueOf(e));
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -712,16 +704,17 @@ public class ConfigureDS
           ConfigEntry configEntry =
                configHandler.getConfigEntry(ldapListenerDN);
 
-          int msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_ALLOW_STARTTLS;
+
           BooleanConfigAttribute startTLS =
             new BooleanConfigAttribute(ATTR_ALLOW_STARTTLS,
-                getMessage(msgID), true, true, true);
+                INFO_LDAP_CONNHANDLER_DESCRIPTION_ALLOW_STARTTLS.get(),
+                    true, true, true);
           configEntry.putConfigAttribute(startTLS);
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_CONFIGDS_CANNOT_ENABLE_STARTTLS;
-          String message = getMessage(msgID, String.valueOf(e));
+          Message message = ERR_CONFIGDS_CANNOT_ENABLE_STARTTLS.get(
+                  String.valueOf(e));
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -738,16 +731,16 @@ public class ConfigureDS
             DN dn = DN.decode(keyManagerProviderDN.getValue());
             ConfigEntry configEntry = configHandler.getConfigEntry(dn);
 
-            int msgID = MSGID_CONFIG_KEYMANAGER_DESCRIPTION_ENABLED;
             BooleanConfigAttribute enableAttr =
               new BooleanConfigAttribute(ATTR_KEYMANAGER_ENABLED,
-                  getMessage(msgID), true, true, true);
+                  INFO_CONFIG_KEYMANAGER_DESCRIPTION_ENABLED.get(),
+                      true, true, true);
             configEntry.putConfigAttribute(enableAttr);
           }
           catch (Exception e)
           {
-            int    msgID   = MSGID_CONFIGDS_CANNOT_ENABLE_KEYMANAGER;
-            String message = getMessage(msgID, String.valueOf(e));
+            Message message = ERR_CONFIGDS_CANNOT_ENABLE_KEYMANAGER.get(
+                    String.valueOf(e));
             System.err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
@@ -762,9 +755,9 @@ public class ConfigureDS
             ConfigEntry configEntry =
               configHandler.getConfigEntry(ldapListenerDN);
 
-            int msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_KEYMANAGER_DN;
             StringConfigAttribute keyManagerProviderAttr =
-              new StringConfigAttribute(ATTR_KEYMANAGER_DN, getMessage(msgID),
+              new StringConfigAttribute(ATTR_KEYMANAGER_DN,
+                      INFO_LDAP_CONNHANDLER_DESCRIPTION_KEYMANAGER_DN.get(),
                   false, false, true, keyManagerProviderDN.getValue());
             configEntry.putConfigAttribute(keyManagerProviderAttr);
           }
@@ -776,18 +769,18 @@ public class ConfigureDS
             ConfigEntry configEntry =
               configHandler.getConfigEntry(ldapsListenerDN);
 
-            int msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_KEYMANAGER_DN;
             StringConfigAttribute keyManagerProviderAttr =
               new StringConfigAttribute(ATTR_KEYMANAGER_DN,
-                  getMessage(msgID), false, false,
+                  INFO_LDAP_CONNHANDLER_DESCRIPTION_KEYMANAGER_DN.get(),
+                      false, false,
                   true, keyManagerProviderDN.getValue());
             configEntry.putConfigAttribute(keyManagerProviderAttr);
           }
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_CONFIGDS_CANNOT_UPDATE_KEYMANAGER_REFERENCE;
-          String message = getMessage(msgID, String.valueOf(e));
+          Message message = ERR_CONFIGDS_CANNOT_UPDATE_KEYMANAGER_REFERENCE.get(
+                  String.valueOf(e));
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -800,10 +793,9 @@ public class ConfigureDS
             DN dn = DN.decode(keyManagerProviderDN.getValue());
             ConfigEntry configEntry = configHandler.getConfigEntry(dn);
 
-            int msgID = MSGID_FILE_KEYMANAGER_DESCRIPTION_FILE;
             StringConfigAttribute pathAttr =
               new StringConfigAttribute(ATTR_KEYSTORE_FILE,
-                  getMessage(msgID), true, true, true,
+                  INFO_FILE_KEYMANAGER_DESCRIPTION_FILE.get(), true, true, true,
                   keyManagerPath.getValue());
             configEntry.putConfigAttribute(pathAttr);
           }
@@ -825,16 +817,16 @@ public class ConfigureDS
             DN dn = DN.decode(trustManagerProviderDN.getValue());
             ConfigEntry configEntry = configHandler.getConfigEntry(dn);
 
-            int msgID = MSGID_CONFIG_TRUSTMANAGER_DESCRIPTION_ENABLED;
             BooleanConfigAttribute enableAttr =
               new BooleanConfigAttribute(ATTR_TRUSTMANAGER_ENABLED,
-                  getMessage(msgID), true, true, true);
+                  ERR_CONFIG_TRUSTMANAGER_DESCRIPTION_ENABLED.get(),
+                      true, true, true);
             configEntry.putConfigAttribute(enableAttr);
           }
           catch (Exception e)
           {
-            int    msgID   = MSGID_CONFIGDS_CANNOT_ENABLE_TRUSTMANAGER;
-            String message = getMessage(msgID, String.valueOf(e));
+            Message message = ERR_CONFIGDS_CANNOT_ENABLE_TRUSTMANAGER.get(
+                    String.valueOf(e));
             System.err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
@@ -849,10 +841,10 @@ public class ConfigureDS
             ConfigEntry configEntry =
               configHandler.getConfigEntry(ldapListenerDN);
 
-            int msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_TRUSTMANAGER_DN;
             StringConfigAttribute trustManagerProviderAttr =
               new StringConfigAttribute(ATTR_TRUSTMANAGER_DN,
-                  getMessage(msgID), false, false,
+                  INFO_LDAP_CONNHANDLER_DESCRIPTION_TRUSTMANAGER_DN.get(),
+                      false, false,
                   true, trustManagerProviderDN.getValue());
             configEntry.putConfigAttribute(trustManagerProviderAttr);
           }
@@ -864,18 +856,19 @@ public class ConfigureDS
             ConfigEntry configEntry =
               configHandler.getConfigEntry(ldapsListenerDN);
 
-            int msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_TRUSTMANAGER_DN;
             StringConfigAttribute trustManagerProviderAttr =
               new StringConfigAttribute(ATTR_TRUSTMANAGER_DN,
-                  getMessage(msgID), false, false,
+                  INFO_LDAP_CONNHANDLER_DESCRIPTION_TRUSTMANAGER_DN.get(),
+                      false, false,
                   true, trustManagerProviderDN.getValue());
             configEntry.putConfigAttribute(trustManagerProviderAttr);
           }
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_CONFIGDS_CANNOT_UPDATE_TRUSTMANAGER_REFERENCE;
-          String message = getMessage(msgID, String.valueOf(e));
+          Message message =
+                  ERR_CONFIGDS_CANNOT_UPDATE_TRUSTMANAGER_REFERENCE.get(
+                          String.valueOf(e));
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -885,9 +878,10 @@ public class ConfigureDS
       {
         try
         {
-          int msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_SSL_CERT_NICKNAME;
           StringConfigAttribute certNickNameAttr =
-            new StringConfigAttribute(ATTR_SSL_CERT_NICKNAME, getMessage(msgID),
+            new StringConfigAttribute(
+                    ATTR_SSL_CERT_NICKNAME,
+                    INFO_LDAP_CONNHANDLER_DESCRIPTION_SSL_CERT_NICKNAME.get(),
                 false, false, true, certNickName.getValue());
 
           if (ldapPort.isPresent())
@@ -912,9 +906,9 @@ public class ConfigureDS
 
           if (jmxPort.isPresent())
           {
-            msgID = MSGID_JMX_CONNHANDLER_DESCRIPTION_SSL_CERT_NICKNAME;
             certNickNameAttr = new StringConfigAttribute(ATTR_SSL_CERT_NICKNAME,
-                getMessage(msgID), false, false, true, certNickName.getValue());
+                INFO_JMX_CONNHANDLER_DESCRIPTION_SSL_CERT_NICKNAME.get(),
+                    false, false, true, certNickName.getValue());
 
             // Use the key manager specified for the JMX connection handler.
             DN jmxListenerDN = DN.decode(DN_JMX_CONNECTION_HANDLER);
@@ -926,8 +920,8 @@ public class ConfigureDS
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_CONFIGDS_CANNOT_UPDATE_CERT_NICKNAME;
-          String message = getMessage(msgID, String.valueOf(e));
+          Message message = ERR_CONFIGDS_CANNOT_UPDATE_CERT_NICKNAME.get(
+                  String.valueOf(e));
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -942,10 +936,11 @@ public class ConfigureDS
           DN rootUserDN = DN.decode(DN_ROOT_USER);
           ConfigEntry configEntry = configHandler.getConfigEntry(rootUserDN);
 
-          int msgID = MSGID_CONFIG_ROOTDN_DESCRIPTION_ALTERNATE_BIND_DN;
           DNConfigAttribute bindDNAttr =
-               new DNConfigAttribute(ATTR_ROOTDN_ALTERNATE_BIND_DN,
-                                     getMessage(msgID), false, true, false,
+               new DNConfigAttribute(
+                       ATTR_ROOTDN_ALTERNATE_BIND_DN,
+                       INFO_CONFIG_ROOTDN_DESCRIPTION_ALTERNATE_BIND_DN.get(),
+                       false, true, false,
                                      rootDN);
           configEntry.putConfigAttribute(bindDNAttr);
 
@@ -953,14 +948,14 @@ public class ConfigureDS
           String encodedPassword =
                SaltedSHA512PasswordStorageScheme.encodeOffline(rootPWBytes);
           StringConfigAttribute bindPWAttr =
-               new StringConfigAttribute(ATTR_USER_PASSWORD, "", false, false,
-                                         false, encodedPassword);
+               new StringConfigAttribute(ATTR_USER_PASSWORD, Message.EMPTY,
+                                         false, false, false, encodedPassword);
           configEntry.putConfigAttribute(bindPWAttr);
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_CONFIGDS_CANNOT_UPDATE_ROOT_USER;
-          String message = getMessage(msgID, String.valueOf(e));
+          Message message = ERR_CONFIGDS_CANNOT_UPDATE_ROOT_USER.get(
+                  String.valueOf(e));
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -972,14 +967,13 @@ public class ConfigureDS
       {
         configHandler.writeUpdatedConfig();
 
-        int    msgID   = MSGID_CONFIGDS_WROTE_UPDATED_CONFIG;
-        String message = getMessage(msgID);
+        Message message = INFO_CONFIGDS_WROTE_UPDATED_CONFIG.get();
         System.out.println(wrapText(message, MAX_LINE_WIDTH));
       }
       catch (DirectoryException de)
       {
-        int    msgID   = MSGID_CONFIGDS_CANNOT_WRITE_UPDATED_CONFIG;
-        String message = getMessage(msgID, de.getErrorMessage());
+        Message message = ERR_CONFIGDS_CANNOT_WRITE_UPDATED_CONFIG.get(
+                de.getMessageObject());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }

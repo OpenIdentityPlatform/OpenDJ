@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
+import org.opends.messages.Message;
 
 
 
@@ -32,6 +33,7 @@ import java.util.List;
 
 import org.opends.server.admin.DecodingException;
 
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -57,7 +59,7 @@ abstract class AbstractConfigListenerAdaptor {
    *          The builder to which messages should be appended.
    */
   protected final void generateUnacceptableReason(
-      DecodingException e, StringBuilder unacceptableReason) {
+      DecodingException e, MessageBuilder unacceptableReason) {
     // FIXME: generate a property OpenDS style message.
     unacceptableReason.append(e.getLocalizedMessage());
   }
@@ -73,9 +75,9 @@ abstract class AbstractConfigListenerAdaptor {
    *          The single message to which messages should be appended.
    */
   protected final void generateUnacceptableReason(
-      List<String> reasons, StringBuilder unacceptableReason) {
+      List<Message> reasons, MessageBuilder unacceptableReason) {
     boolean isFirst = true;
-    for (String reason : reasons) {
+    for (Message reason : reasons) {
       if (isFirst) {
         isFirst = false;
       } else {

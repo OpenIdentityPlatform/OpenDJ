@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
+import org.opends.messages.Message;
 
 
 
@@ -42,8 +43,7 @@ import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -76,7 +76,7 @@ public class BindResponseProtocolOp
   private List<String> referralURLs;
 
   // The error message for this response.
-  private String errorMessage;
+  private Message errorMessage;
 
 
 
@@ -104,7 +104,7 @@ public class BindResponseProtocolOp
    * @param  resultCode    The result code for this response.
    * @param  errorMessage  The error message for this response.
    */
-  public BindResponseProtocolOp(int resultCode, String errorMessage)
+  public BindResponseProtocolOp(int resultCode, Message errorMessage)
   {
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
@@ -124,7 +124,7 @@ public class BindResponseProtocolOp
    * @param  matchedDN     The matched DN for this response.
    * @param  referralURLs  The referral URLs for this response.
    */
-  public BindResponseProtocolOp(int resultCode, String errorMessage,
+  public BindResponseProtocolOp(int resultCode, Message errorMessage,
                                 DN matchedDN, List<String> referralURLs)
   {
     this.resultCode   = resultCode;
@@ -145,9 +145,8 @@ public class BindResponseProtocolOp
    * @param  matchedDN              The matched DN for this response.
    * @param  referralURLs           The referral URLs for this response.
    * @param  serverSASLCredentials  The server SASL credentials for this
-   *                                response.
    */
-  public BindResponseProtocolOp(int resultCode, String errorMessage,
+  public BindResponseProtocolOp(int resultCode, Message errorMessage,
                                 DN matchedDN, List<String> referralURLs,
                                 ASN1OctetString serverSASLCredentials)
   {
@@ -190,7 +189,7 @@ public class BindResponseProtocolOp
    * @return  The error message for this response, or <CODE>null</CODE> if none
    *          is available.
    */
-  public String getErrorMessage()
+  public Message getErrorMessage()
   {
     return errorMessage;
   }
@@ -202,7 +201,7 @@ public class BindResponseProtocolOp
    *
    * @param  errorMessage  The error message for this response.
    */
-  public void setErrorMessage(String errorMessage)
+  public void setErrorMessage(Message errorMessage)
   {
     this.errorMessage = errorMessage;
   }
@@ -380,18 +379,17 @@ public class BindResponseProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_RESULT_DECODE_SEQUENCE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
     int numElements = elements.size();
     if ((numElements < 3) || (numElements > 5))
     {
-      int    msgID   = MSGID_LDAP_BIND_RESULT_DECODE_INVALID_ELEMENT_COUNT;
-      String message = getMessage(msgID, numElements);
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message);
+      Message message =
+          ERR_LDAP_BIND_RESULT_DECODE_INVALID_ELEMENT_COUNT.get(numElements);
+      throw new LDAPException(PROTOCOL_ERROR, message);
     }
 
 
@@ -407,9 +405,9 @@ public class BindResponseProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_RESULT_DECODE_RESULT_CODE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_RESULT_DECODE_RESULT_CODE.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -433,16 +431,17 @@ public class BindResponseProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_RESULT_DECODE_MATCHED_DN;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_RESULT_DECODE_MATCHED_DN.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
-    String errorMessage;
+    Message errorMessage;
     try
     {
-      errorMessage = elements.get(2).decodeAsOctetString().stringValue();
+      errorMessage =
+              Message.raw(elements.get(2).decodeAsOctetString().stringValue());
       if (errorMessage.length() == 0)
       {
         errorMessage = null;
@@ -455,9 +454,9 @@ public class BindResponseProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_RESULT_DECODE_ERROR_MESSAGE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_RESULT_DECODE_ERROR_MESSAGE.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -490,9 +489,9 @@ public class BindResponseProtocolOp
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              int msgID = MSGID_LDAP_RESULT_DECODE_REFERRALS;
-              String message = getMessage(msgID, String.valueOf(e));
-              throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+              Message message =
+                  ERR_LDAP_RESULT_DECODE_REFERRALS.get(String.valueOf(e));
+              throw new LDAPException(PROTOCOL_ERROR, message, e);
             }
 
             break;
@@ -510,16 +509,17 @@ public class BindResponseProtocolOp
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              int msgID = MSGID_LDAP_BIND_RESULT_DECODE_SERVER_SASL_CREDENTIALS;
-              String message = getMessage(msgID, String.valueOf(e));
-              throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+              Message message =
+                  ERR_LDAP_BIND_RESULT_DECODE_SERVER_SASL_CREDENTIALS.
+                    get(String.valueOf(e));
+              throw new LDAPException(PROTOCOL_ERROR, message, e);
             }
 
             break;
           default:
-            int    msgID   = MSGID_LDAP_BIND_RESULT_DECODE_INVALID_TYPE;
-            String message = getMessage(msgID, element.getType());
-            throw new LDAPException(PROTOCOL_ERROR, msgID, message);
+            Message message =
+                ERR_LDAP_BIND_RESULT_DECODE_INVALID_TYPE.get(element.getType());
+            throw new LDAPException(PROTOCOL_ERROR, message);
         }
         break;
       case 5:
@@ -541,9 +541,9 @@ public class BindResponseProtocolOp
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int msgID = MSGID_LDAP_RESULT_DECODE_REFERRALS;
-          String message = getMessage(msgID, String.valueOf(e));
-          throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+          Message message =
+              ERR_LDAP_RESULT_DECODE_REFERRALS.get(String.valueOf(e));
+          throw new LDAPException(PROTOCOL_ERROR, message, e);
         }
 
         try
@@ -557,9 +557,9 @@ public class BindResponseProtocolOp
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int msgID = MSGID_LDAP_BIND_RESULT_DECODE_SERVER_SASL_CREDENTIALS;
-          String message = getMessage(msgID, String.valueOf(e));
-          throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+          Message message = ERR_LDAP_BIND_RESULT_DECODE_SERVER_SASL_CREDENTIALS.
+              get(String.valueOf(e));
+          throw new LDAPException(PROTOCOL_ERROR, message, e);
         }
 
         break;

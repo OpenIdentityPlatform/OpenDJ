@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
+import org.opends.messages.Message;
 
 
 
@@ -52,8 +53,7 @@ import org.opends.server.util.Validator;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -581,10 +581,9 @@ public class MatchedValuesFilter
       case OR:
       case NOT:
         // These filter types cannot be used in a matched values filter.
-        int    msgID   = MSGID_MVFILTER_INVALID_LDAP_FILTER_TYPE;
-        String message = getMessage(msgID, String.valueOf(filter),
-                                    String.valueOf(filter.getFilterType()));
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+        Message message = ERR_MVFILTER_INVALID_LDAP_FILTER_TYPE.get(
+            String.valueOf(filter), String.valueOf(filter.getFilterType()));
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
 
 
       case EQUALITY:
@@ -632,10 +631,9 @@ public class MatchedValuesFilter
         if (filter.getDNAttributes())
         {
           // This cannot be represented in a matched values filter.
-          msgID = MSGID_MVFILTER_INVALID_DN_ATTRIBUTES_FLAG;
-          message = getMessage(msgID, String.valueOf(filter));
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                  message);
+          message = ERR_MVFILTER_INVALID_DN_ATTRIBUTES_FLAG.get(
+              String.valueOf(filter));
+          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
         }
         else
         {
@@ -647,10 +645,9 @@ public class MatchedValuesFilter
 
 
       default:
-        msgID   = MSGID_MVFILTER_INVALID_LDAP_FILTER_TYPE;
-        message = getMessage(msgID, String.valueOf(filter),
-                             String.valueOf(filter.getFilterType()));
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+        message = ERR_MVFILTER_INVALID_LDAP_FILTER_TYPE.get(
+            String.valueOf(filter), String.valueOf(filter.getFilterType()));
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
   }
 
@@ -766,10 +763,9 @@ public class MatchedValuesFilter
                element.decodeAsSequence().elements();
           if (elements.size() != 2)
           {
-            int    msgID   = MSGID_MVFILTER_INVALID_AVA_SEQUENCE_SIZE;
-            String message = getMessage(msgID, elements.size());
-            throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                    message);
+            Message message =
+                ERR_MVFILTER_INVALID_AVA_SEQUENCE_SIZE.get(elements.size());
+            throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
           }
 
           String rawAttributeType =
@@ -790,9 +786,9 @@ public class MatchedValuesFilter
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_MVFILTER_CANNOT_DECODE_AVA;
-          String message = getMessage(msgID, getExceptionMessage(e));
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message,
+          Message message =
+              ERR_MVFILTER_CANNOT_DECODE_AVA.get(getExceptionMessage(e));
+          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message,
                                   e);
         }
 
@@ -806,20 +802,17 @@ public class MatchedValuesFilter
                element.decodeAsSequence().elements();
           if (elements.size() != 2)
           {
-            int    msgID   = MSGID_MVFILTER_INVALID_SUBSTRING_SEQUENCE_SIZE;
-            String message = getMessage(msgID, elements.size());
-            throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                    message);
+            Message message = ERR_MVFILTER_INVALID_SUBSTRING_SEQUENCE_SIZE.get(
+                elements.size());
+            throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
           }
 
           ArrayList<ASN1Element> subElements =
                elements.get(1).decodeAsSequence().elements();
           if (subElements.isEmpty())
           {
-            int    msgID   = MSGID_MVFILTER_NO_SUBSTRING_ELEMENTS;
-            String message = getMessage(msgID);
-            throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                    message);
+            Message message = ERR_MVFILTER_NO_SUBSTRING_ELEMENTS.get();
+            throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
           }
 
           String rawAttributeType =
@@ -839,10 +832,9 @@ public class MatchedValuesFilter
                 }
                 else
                 {
-                  int    msgID   = MSGID_MVFILTER_MULTIPLE_SUBINITIALS;
-                  String message = getMessage(msgID);
-                  throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                          message);
+                  Message message = ERR_MVFILTER_MULTIPLE_SUBINITIALS.get();
+                  throw new LDAPException(
+                          LDAPResultCode.PROTOCOL_ERROR, message);
                 }
                 break;
 
@@ -862,18 +854,16 @@ public class MatchedValuesFilter
                 }
                 else
                 {
-                  int    msgID   = MSGID_MVFILTER_MULTIPLE_SUBFINALS;
-                  String message = getMessage(msgID);
-                  throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                          message);
+                  Message message = ERR_MVFILTER_MULTIPLE_SUBFINALS.get();
+                  throw new LDAPException(
+                          LDAPResultCode.PROTOCOL_ERROR, message);
                 }
                 break;
 
               default:
-                int    msgID   = MSGID_MVFILTER_INVALID_SUBSTRING_ELEMENT_TYPE;
-                String message = getMessage(msgID, byteToHex(e.getType()));
-                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                        message);
+                Message message = ERR_MVFILTER_INVALID_SUBSTRING_ELEMENT_TYPE.
+                    get(byteToHex(e.getType()));
+                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
           }
 
@@ -892,9 +882,9 @@ public class MatchedValuesFilter
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_MVFILTER_CANNOT_DECODE_SUBSTRINGS;
-          String message = getMessage(msgID, getExceptionMessage(e));
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message,
+          Message message =
+              ERR_MVFILTER_CANNOT_DECODE_SUBSTRINGS.get(getExceptionMessage(e));
+          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message,
                                   e);
         }
 
@@ -915,9 +905,9 @@ public class MatchedValuesFilter
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_MVFILTER_CANNOT_DECODE_PRESENT_TYPE;
-          String message = getMessage(msgID, getExceptionMessage(e));
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message,
+          Message message = ERR_MVFILTER_CANNOT_DECODE_PRESENT_TYPE.get(
+              getExceptionMessage(e));
+          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message,
                                   e);
         }
 
@@ -932,10 +922,9 @@ public class MatchedValuesFilter
                element.decodeAsSequence().elements();
           if ((elements.size() < 2) || (elements.size() > 3))
           {
-            int    msgID   = MSGID_MVFILTER_INVALID_EXTENSIBLE_SEQUENCE_SIZE;
-            String message = getMessage(msgID, elements.size());
-            throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                    message);
+            Message message = ERR_MVFILTER_INVALID_EXTENSIBLE_SEQUENCE_SIZE.get(
+                elements.size());
+            throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
           }
 
 
@@ -953,10 +942,10 @@ public class MatchedValuesFilter
                 }
                 else
                 {
-                  int    msgID   = MSGID_MVFILTER_MULTIPLE_MATCHING_RULE_IDS;
-                  String message = getMessage(msgID);
-                  throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                          message);
+                  Message message =
+                      ERR_MVFILTER_MULTIPLE_MATCHING_RULE_IDS.get();
+                  throw new LDAPException(
+                          LDAPResultCode.PROTOCOL_ERROR, message);
                 }
                 break;
 
@@ -967,10 +956,9 @@ public class MatchedValuesFilter
                 }
                 else
                 {
-                  int    msgID   = MSGID_MVFILTER_MULTIPLE_ATTRIBUTE_TYPES;
-                  String message = getMessage(msgID);
-                  throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                          message);
+                  Message message = ERR_MVFILTER_MULTIPLE_ATTRIBUTE_TYPES.get();
+                  throw new LDAPException(
+                          LDAPResultCode.PROTOCOL_ERROR, message);
                 }
                 break;
 
@@ -981,18 +969,17 @@ public class MatchedValuesFilter
                 }
                 else
                 {
-                  int    msgID   = MSGID_MVFILTER_MULTIPLE_ASSERTION_VALUES;
-                  String message = getMessage(msgID);
-                  throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                          message);
+                  Message message =
+                      ERR_MVFILTER_MULTIPLE_ASSERTION_VALUES.get();
+                  throw new LDAPException(
+                          LDAPResultCode.PROTOCOL_ERROR, message);
                 }
                 break;
 
               default:
-                int    msgID   = MSGID_MVFILTER_INVALID_EXTENSIBLE_ELEMENT_TYPE;
-                String message = getMessage(msgID, byteToHex(e.getType()));
-                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                        message);
+                Message message = ERR_MVFILTER_INVALID_EXTENSIBLE_ELEMENT_TYPE.
+                    get(byteToHex(e.getType()));
+                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
           }
 
@@ -1012,17 +999,17 @@ public class MatchedValuesFilter
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_MVFILTER_CANNOT_DECODE_EXTENSIBLE_MATCH;
-          String message = getMessage(msgID, getExceptionMessage(e));
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message,
+          Message message = ERR_MVFILTER_CANNOT_DECODE_EXTENSIBLE_MATCH.get(
+              getExceptionMessage(e));
+          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message,
                                   e);
         }
 
 
       default:
-        int    msgID   = MSGID_MVFILTER_INVALID_ELEMENT_TYPE;
-        String message = getMessage(msgID, byteToHex(element.getType()));
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+        Message message =
+            ERR_MVFILTER_INVALID_ELEMENT_TYPE.get(byteToHex(element.getType()));
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
   }
 

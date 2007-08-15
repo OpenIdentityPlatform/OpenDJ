@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
+import org.opends.messages.Message;
 
 
 
@@ -112,7 +113,7 @@ public abstract class Group<T extends GroupImplementationCfg>
    */
   public boolean isConfigurationAcceptable(
                       GroupImplementationCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by group implementations

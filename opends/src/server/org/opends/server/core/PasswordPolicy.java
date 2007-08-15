@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
@@ -58,8 +59,7 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -285,10 +285,9 @@ public class PasswordPolicy
         AttributeType pwAttrType = DirectoryServer.getAttributeType(lowerName);
         if (pwAttrType == null)
         {
-          msgID = MSGID_PWPOLICY_UNDEFINED_PASSWORD_ATTRIBUTE;
-          String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                String.valueOf(passwordAttr));
-          throw new ConfigException(msgID, message);
+          Message message = ERR_PWPOLICY_UNDEFINED_PASSWORD_ATTRIBUTE.get(
+              String.valueOf(configEntryDN), String.valueOf(passwordAttr));
+          throw new ConfigException(message);
         }
 
         String syntaxOID = pwAttrType.getSyntaxOID();
@@ -310,11 +309,10 @@ public class PasswordPolicy
             syntax = syntaxOID;
           }
 
-          msgID = MSGID_PWPOLICY_INVALID_PASSWORD_ATTRIBUTE_SYNTAX;
-          String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                      String.valueOf(passwordAttr),
-                                      String.valueOf(syntax));
-          throw new ConfigException(msgID, message);
+          Message message = ERR_PWPOLICY_INVALID_PASSWORD_ATTRIBUTE_SYNTAX.
+              get(String.valueOf(configEntryDN), String.valueOf(passwordAttr),
+                  String.valueOf(syntax));
+          throw new ConfigException(message);
         }
       }
     }
@@ -329,10 +327,9 @@ public class PasswordPolicy
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_PASSWORD_ATTRIBUTE;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_PWPOLICY_CANNOT_DETERMINE_PASSWORD_ATTRIBUTE.get(
+          String.valueOf(configEntryDN), getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
 
 
@@ -344,9 +341,9 @@ public class PasswordPolicy
     {
       if (storageSchemes == null)
       {
-        msgID = MSGID_PWPOLICY_NO_DEFAULT_STORAGE_SCHEMES;
-        String message = getMessage(msgID, String.valueOf(configEntryDN));
-        throw new ConfigException(msgID, message);
+        Message message = ERR_PWPOLICY_NO_DEFAULT_STORAGE_SCHEMES.get(
+            String.valueOf(configEntryDN));
+        throw new ConfigException(message);
       }
       else
       {
@@ -367,10 +364,9 @@ public class PasswordPolicy
 
           if (scheme == null)
           {
-            msgID = MSGID_PWPOLICY_NO_SUCH_DEFAULT_SCHEME;
-            String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                        String.valueOf(schemeName));
-            throw new ConfigException(msgID, message);
+            Message message = ERR_PWPOLICY_NO_SUCH_DEFAULT_SCHEME.get(
+                String.valueOf(configEntryDN), String.valueOf(schemeName));
+            throw new ConfigException(message);
           }
           else
           {
@@ -393,10 +389,9 @@ public class PasswordPolicy
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_DEFAULT_STORAGE_SCHEMES;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_PWPOLICY_CANNOT_DETERMINE_DEFAULT_STORAGE_SCHEMES.
+          get(String.valueOf(configEntryDN), getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
 
 
@@ -418,10 +413,10 @@ public class PasswordPolicy
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_DEPRECATED_STORAGE_SCHEMES;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message =
+ERR_PWPOLICY_CANNOT_DETERMINE_DEPRECATED_STORAGE_SCHEMES.
+            get(String.valueOf(configEntryDN), getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
 
 
@@ -444,10 +439,9 @@ public class PasswordPolicy
                validator = DirectoryServer.getPasswordValidator(validatorDN);
           if (validator == null)
           {
-            msgID = MSGID_PWPOLICY_NO_SUCH_VALIDATOR;
-            String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                        String.valueOf(validatorDN));
-            throw new ConfigException(msgID, message);
+            Message message = ERR_PWPOLICY_NO_SUCH_VALIDATOR.get(
+                String.valueOf(configEntryDN), String.valueOf(validatorDN));
+            throw new ConfigException(message);
           }
 
           validators.put(validatorDN, validator);
@@ -467,10 +461,9 @@ public class PasswordPolicy
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_PASSWORD_VALIDATORS;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_PWPOLICY_CANNOT_DETERMINE_PASSWORD_VALIDATORS.get(
+          String.valueOf(configEntryDN), getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
 
 
@@ -489,10 +482,9 @@ public class PasswordPolicy
                DirectoryServer.getAccountStatusNotificationHandler(handlerDN);
           if (handler == null)
           {
-            msgID = MSGID_PWPOLICY_NO_SUCH_NOTIFICATION_HANDLER;
-            String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                        String.valueOf(handlerDN));
-            throw new ConfigException(msgID, message);
+            Message message = ERR_PWPOLICY_NO_SUCH_NOTIFICATION_HANDLER.get(
+                String.valueOf(configEntryDN), String.valueOf(handlerDN));
+            throw new ConfigException(message);
           }
 
           handlers.put(handlerDN, handler);
@@ -512,10 +504,9 @@ public class PasswordPolicy
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_NOTIFICATION_HANDLERS;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_PWPOLICY_CANNOT_DETERMINE_NOTIFICATION_HANDLERS.get(
+          String.valueOf(configEntryDN), getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
 
 
@@ -546,10 +537,9 @@ public class PasswordPolicy
              DirectoryServer.getPasswordGenerator(passGenDN);
         if (generator == null)
         {
-          msgID = MSGID_PWPOLICY_NO_SUCH_GENERATOR;
-          String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                String.valueOf(passGenDN));
-          throw new ConfigException(msgID, message);
+          Message message = ERR_PWPOLICY_NO_SUCH_GENERATOR.get(
+              String.valueOf(configEntryDN), String.valueOf(passGenDN));
+          throw new ConfigException(message);
         }
 
         this.passwordGeneratorDN = passGenDN;
@@ -567,10 +557,9 @@ public class PasswordPolicy
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_PASSWORD_GENERATOR;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_PWPOLICY_CANNOT_DETERMINE_PASSWORD_GENERATOR.get(
+          String.valueOf(configEntryDN), getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
 
 
@@ -612,9 +601,10 @@ public class PasswordPolicy
     if ((! this.expirePasswordsWithoutWarning()) &&
         (this.getWarningInterval() <= 0))
     {
-      msgID = MSGID_PWPOLICY_MUST_HAVE_WARNING_IF_NOT_EXPIRE_WITHOUT_WARNING;
-      String message = getMessage(msgID, String.valueOf(configEntryDN));
-      throw new ConfigException(msgID, message);
+      Message message =
+        ERR_PWPOLICY_MUST_HAVE_WARNING_IF_NOT_EXPIRE_WITHOUT_WARNING.
+            get(String.valueOf(configEntryDN));
+      throw new ConfigException(message);
     }
 
     // Determine whether to allow user changes for expired passwords.
@@ -668,10 +658,9 @@ public class PasswordPolicy
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_REQUIRE_CHANGE_BY_TIME;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_PWPOLICY_CANNOT_DETERMINE_REQUIRE_CHANGE_BY_TIME.
+          get(String.valueOf(configEntryDN), getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
 
 
@@ -688,11 +677,10 @@ public class PasswordPolicy
         AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
         if (attrType == null)
         {
-          msgID = MSGID_PWPOLICY_UNDEFINED_LAST_LOGIN_TIME_ATTRIBUTE;
-          String message =
-               getMessage(msgID, String.valueOf(configEntryDN),
-                          String.valueOf(lastLoginTimeAtt));
-          throw new ConfigException(msgID, message);
+          Message message = ERR_PWPOLICY_UNDEFINED_LAST_LOGIN_TIME_ATTRIBUTE.
+              get(String.valueOf(configEntryDN),
+                  String.valueOf(lastLoginTimeAtt));
+          throw new ConfigException(message);
         }
 
         this.lastLoginTimeAttribute = attrType;
@@ -709,10 +697,9 @@ public class PasswordPolicy
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_LAST_LOGIN_TIME_ATTR;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_PWPOLICY_CANNOT_DETERMINE_LAST_LOGIN_TIME_ATTR.get(
+          String.valueOf(configEntryDN), getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
 
     // Get the last login time format.  If specified, it must be a valid format
@@ -733,10 +720,9 @@ public class PasswordPolicy
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          msgID = MSGID_PWPOLICY_INVALID_LAST_LOGIN_TIME_FORMAT;
-          String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                      String.valueOf(formatString));
-          throw new ConfigException(msgID, message);
+          Message message = ERR_PWPOLICY_INVALID_LAST_LOGIN_TIME_FORMAT.get(
+              String.valueOf(configEntryDN), String.valueOf(formatString));
+          throw new ConfigException(message);
         }
 
         this.lastLoginTimeFormat = formatString;
@@ -753,10 +739,9 @@ public class PasswordPolicy
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_LAST_LOGIN_TIME_FORMAT;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_PWPOLICY_CANNOT_DETERMINE_LAST_LOGIN_TIME_FORMAT.
+          get(String.valueOf(configEntryDN), getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
 
 
@@ -781,10 +766,10 @@ public class PasswordPolicy
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            msgID = MSGID_PWPOLICY_INVALID_PREVIOUS_LAST_LOGIN_TIME_FORMAT;
-            String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                        String.valueOf(s));
-            throw new ConfigException(msgID, message);
+            Message message =
+              ERR_PWPOLICY_INVALID_PREVIOUS_LAST_LOGIN_TIME_FORMAT.
+                  get(String.valueOf(configEntryDN), String.valueOf(s));
+            throw new ConfigException(message);
           }
         }
 
@@ -803,10 +788,10 @@ public class PasswordPolicy
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_PREVIOUS_LAST_LOGIN_TIME_FORMAT;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message =
+ERR_PWPOLICY_CANNOT_DETERMINE_PREVIOUS_LAST_LOGIN_TIME_FORMAT.
+            get(String.valueOf(configEntryDN), getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
 
 
@@ -831,18 +816,18 @@ public class PasswordPolicy
     // entry, since it is required.
     if (passwordAttribute == null)
     {
-      msgID = MSGID_PWPOLICY_NO_PASSWORD_ATTRIBUTE;
-      String message = getMessage(msgID, String.valueOf(configEntryDN));
-      throw new ConfigException(msgID, message);
+      Message message =
+          ERR_PWPOLICY_NO_PASSWORD_ATTRIBUTE.get(String.valueOf(configEntryDN));
+      throw new ConfigException(message);
     }
 
     // Ensure that at least one default password storage scheme was included in
     // the configuration entry, since it is required.
     if (defaultStorageSchemes.isEmpty())
     {
-      msgID = MSGID_PWPOLICY_NO_DEFAULT_STORAGE_SCHEMES;
-      String message = getMessage(msgID, String.valueOf(configEntryDN));
-      throw new ConfigException(msgID, message);
+      Message message = ERR_PWPOLICY_NO_DEFAULT_STORAGE_SCHEMES.get(
+          String.valueOf(configEntryDN));
+      throw new ConfigException(message);
     }
 
     // If both a maximum password age and a warning interval are provided, then
@@ -856,16 +841,17 @@ public class PasswordPolicy
       {
         if ((warnInterval + minimumPasswordAge) >= maximumPasswordAge)
         {
-          msgID = MSGID_PWPOLICY_MIN_AGE_PLUS_WARNING_GREATER_THAN_MAX_AGE;
-          String message = getMessage(msgID, String.valueOf(configEntryDN));
-          throw new ConfigException(msgID, message);
+          Message message =
+              ERR_PWPOLICY_MIN_AGE_PLUS_WARNING_GREATER_THAN_MAX_AGE.
+                get(String.valueOf(configEntryDN));
+          throw new ConfigException(message);
         }
       }
       else if (warnInterval >= maximumPasswordAge)
       {
-        msgID = MSGID_PWPOLICY_WARNING_INTERVAL_LARGER_THAN_MAX_AGE;
-        String message = getMessage(msgID, String.valueOf(configEntryDN));
-        throw new ConfigException(msgID, message);
+        Message message = ERR_PWPOLICY_WARNING_INTERVAL_LARGER_THAN_MAX_AGE.get(
+            String.valueOf(configEntryDN));
+        throw new ConfigException(message);
       }
     }
   }

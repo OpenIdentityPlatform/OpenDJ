@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup.ui;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 /**
  * This panel is used to show the application is finished.
  *
@@ -47,8 +50,8 @@ public class FinishedPanel extends ProgressPanel
   /**
    * {@inheritDoc}
    */
-  protected String getTitle()
+  protected Message getTitle()
   {
-    return getMsg("finished-panel-title");
+    return INFO_FINISHED_PANEL_TITLE.get();
   }
 }

@@ -25,10 +25,10 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.lang.reflect.Method;
@@ -39,7 +39,8 @@ import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.messages.AdminMessages;
+import org.opends.messages.AdminMessages;
+
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
@@ -94,7 +95,7 @@ public abstract class AbstractOptionalConfigurationManager
       // Default result code.
       ResultCode resultCode = ResultCode.SUCCESS;
       boolean adminActionRequired = false;
-      ArrayList<String> messages = new ArrayList<String>();
+      ArrayList<Message> messages = new ArrayList<Message>();
 
       // We have committed to this change so always update the
       // configuration.
@@ -106,10 +107,10 @@ public abstract class AbstractOptionalConfigurationManager
           // Notify that a new instance has been added.
           doRegisterInstance(getImplementation(config));
         } catch (ConfigException e) {
-          messages.add(e.getMessage());
+          messages.add(e.getMessageObject());
           resultCode = DirectoryServer.getServerErrorResultCode();
         } catch (InitializationException e) {
-          messages.add(e.getMessage());
+          messages.add(e.getMessageObject());
           resultCode = DirectoryServer.getServerErrorResultCode();
         }
       } else {
@@ -134,7 +135,7 @@ public abstract class AbstractOptionalConfigurationManager
      * {@inheritDoc}
      */
     public boolean isConfigurationAddAcceptable(C config,
-        List<String> unacceptableReasons) {
+        List<Message> unacceptableReasons) {
       if (isEnabled(config)) {
         // It's enabled so always validate the class.
         return isJavaClassAcceptable(config, unacceptableReasons);
@@ -167,7 +168,7 @@ public abstract class AbstractOptionalConfigurationManager
       // Default result code.
       ResultCode resultCode = ResultCode.SUCCESS;
       boolean adminActionRequired = false;
-      ArrayList<String> messages = new ArrayList<String>();
+      ArrayList<Message> messages = new ArrayList<Message>();
 
       // We have committed to this change so always update the
       // configuration.
@@ -182,10 +183,10 @@ public abstract class AbstractOptionalConfigurationManager
             // Notify that a new instance has been added.
             doRegisterInstance(getImplementation(config));
           } catch (ConfigException e) {
-            messages.add(e.getMessage());
+            messages.add(e.getMessageObject());
             resultCode = DirectoryServer.getServerErrorResultCode();
           } catch (InitializationException e) {
-            messages.add(e.getMessage());
+            messages.add(e.getMessageObject());
             resultCode = DirectoryServer.getServerErrorResultCode();
           }
         } else {
@@ -223,7 +224,7 @@ public abstract class AbstractOptionalConfigurationManager
      * {@inheritDoc}
      */
     public boolean isConfigurationChangeAcceptable(C config,
-        List<String> unacceptableReasons) {
+        List<Message> unacceptableReasons) {
       if (isEnabled(config)) {
         // It's enabled so always validate the class.
         return isJavaClassAcceptable(config, unacceptableReasons);
@@ -279,7 +280,7 @@ public abstract class AbstractOptionalConfigurationManager
      * {@inheritDoc}
      */
     public boolean isConfigurationDeleteAcceptable(C config,
-        List<String> unacceptableReasons) {
+        List<Message> unacceptableReasons) {
       if (isEnabled(getConfiguration())) {
         return isDisableInstanceAcceptable(config,
             unacceptableReasons);
@@ -502,7 +503,7 @@ public abstract class AbstractOptionalConfigurationManager
    *         disabled or deleted.
    */
   protected abstract boolean isDisableInstanceAcceptable(C config,
-      List<String> unacceptableReasons);
+      List<Message> unacceptableReasons);
 
 
 
@@ -629,11 +630,10 @@ public abstract class AbstractOptionalConfigurationManager
       implClass = propertyDefinition.loadClass(className, theClass);
       instance = implClass.newInstance();
     } catch (Exception e) {
-      int msgID = AdminMessages.MSGID_ADMIN_CANNOT_INSTANTIATE_CLASS;
-      String message = getMessage(msgID, String.valueOf(className),
-          String.valueOf(config.dn()),
-          stackTraceToSingleLineString(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = AdminMessages.ERR_ADMIN_CANNOT_INSTANTIATE_CLASS.
+          get(String.valueOf(className), String.valueOf(config.dn()),
+              stackTraceToSingleLineString(e));
+      throw new ConfigException(message, e);
     }
 
     // Perform the necessary initialization for the instance.
@@ -647,11 +647,10 @@ public abstract class AbstractOptionalConfigurationManager
 
       method.invoke(instance, config);
     } catch (Exception e) {
-      int msgID = AdminMessages.MSGID_ADMIN_CANNOT_INITIALIZE_COMPONENT;
-      String message = getMessage(msgID, String.valueOf(className),
-          String.valueOf(config.dn()),
-          stackTraceToSingleLineString(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = AdminMessages.ERR_ADMIN_CANNOT_INITIALIZE_COMPONENT.
+          get(String.valueOf(className), String.valueOf(config.dn()),
+              stackTraceToSingleLineString(e));
+      throw new ConfigException(message, e);
     }
 
     // The instance has been successfully initialized.
@@ -671,7 +670,7 @@ public abstract class AbstractOptionalConfigurationManager
   // Determines whether or not the new configuration's implementation
   // class is acceptable.
   private boolean isJavaClassAcceptable(C config,
-      List<String> unacceptableReasons) {
+      List<Message> unacceptableReasons) {
     String className = getJavaImplementationClass(config);
 
     // Load the class and cast it to a T.
@@ -681,10 +680,11 @@ public abstract class AbstractOptionalConfigurationManager
       implClass = propertyDefinition.loadClass(className, theClass);
       implClass.newInstance();
     } catch (Exception e) {
-      int msgID = AdminMessages.MSGID_ADMIN_CANNOT_INSTANTIATE_CLASS;
-      unacceptableReasons.add(getMessage(msgID, String
-          .valueOf(className), String.valueOf(config.dn()),
-          stackTraceToSingleLineString(e)));
+      unacceptableReasons.add(
+              AdminMessages.ERR_ADMIN_CANNOT_INSTANTIATE_CLASS.get(
+                      String.valueOf(className),
+                      String.valueOf(config.dn()),
+                      stackTraceToSingleLineString(e)));
       return false;
     }
 
@@ -697,10 +697,10 @@ public abstract class AbstractOptionalConfigurationManager
       implClass.getMethod(name, config.definition()
           .getServerConfigurationClass());
     } catch (Exception e) {
-      int msgID = AdminMessages.MSGID_ADMIN_CANNOT_INITIALIZE_COMPONENT;
-      unacceptableReasons.add(getMessage(msgID, String
-          .valueOf(className), String.valueOf(config.dn()),
-          stackTraceToSingleLineString(e)));
+      unacceptableReasons.add(
+              AdminMessages.ERR_ADMIN_CANNOT_INITIALIZE_COMPONENT.get(
+                      String.valueOf(className), String.valueOf(config.dn()),
+                      stackTraceToSingleLineString(e)));
       return false;
     }
 

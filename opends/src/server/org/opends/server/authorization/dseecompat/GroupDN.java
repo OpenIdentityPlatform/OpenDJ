@@ -26,10 +26,10 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.AciMessages.*;
+import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
 import org.opends.server.types.*;
 import org.opends.server.api.Group;
 import org.opends.server.core.GroupManager;
@@ -91,9 +91,9 @@ public class GroupDN implements KeywordBindRule {
     public static KeywordBindRule decode(String expr, EnumBindRuleType type)
     throws AciException  {
         if (!Pattern.matches(LDAP_URLS, expr)) {
-            int msgID = MSGID_ACI_SYNTAX_INVALID_GROUPDN_EXPRESSION;
-            String message = getMessage(msgID, expr);
-            throw new AciException(msgID, message);
+            Message message =
+                WARN_ACI_SYNTAX_INVALID_GROUPDN_EXPRESSION.get(expr);
+            throw new AciException(message);
         }
         LinkedList<DN>groupDNs=new LinkedList<DN>();
         int ldapURLPos = 1;
@@ -105,9 +105,9 @@ public class GroupDN implements KeywordBindRule {
                DN dn=LDAPURL.decode(value, true).getBaseDN();
                groupDNs.add(dn);
             } catch (DirectoryException ex) {
-                int msgID = MSGID_ACI_SYNTAX_INVALID_GROUPDN_URL;
-                String message = getMessage(msgID, ex.getErrorMessage());
-                throw new AciException(msgID, message);
+                Message message = WARN_ACI_SYNTAX_INVALID_GROUPDN_URL.get(
+                    ex.getMessageObject());
+                throw new AciException(message);
             }
         }
         return new GroupDN(type, groupDNs);

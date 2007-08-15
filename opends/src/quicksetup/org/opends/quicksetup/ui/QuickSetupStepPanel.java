@@ -51,6 +51,8 @@ import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.URLWorker;
 import org.opends.quicksetup.util.Utils;
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * This is an abstract class that is extended by all the classes that are in
@@ -241,7 +243,7 @@ implements HyperlinkListener
   public void setIcon(UIFactory.IconType iconType)
   {
     checkingLabel.setIcon(UIFactory.getImageIcon(iconType));
-    checkingLabel.setText(getTextForIcon(iconType));
+    checkingLabel.setText(String.valueOf(getTextForIcon(iconType)));
   }
 
   /**
@@ -251,16 +253,16 @@ implements HyperlinkListener
    * @return the text to be displayed in the progress label for a give icon
    * type.
    */
-  protected String getTextForIcon(UIFactory.IconType iconType)
+  protected Message getTextForIcon(UIFactory.IconType iconType)
   {
-    String text;
+    Message text;
     if (iconType == UIFactory.IconType.WAIT)
     {
-      text = getMsg("general-checking-data");
+      text = INFO_GENERAL_CHECKING_DATA.get();
     }
     else
     {
-      text = "";
+      text = Message.EMPTY;
     }
     return text;
   }
@@ -347,8 +349,8 @@ implements HyperlinkListener
       addVerticalGlue(this);
     }
 
-    checkingLabel = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, "",
-        UIFactory.TextStyle.PROGRESS);
+    checkingLabel = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
+            Message.EMPTY, UIFactory.TextStyle.PROGRESS);
     if (hasCheckingLabel())
     {
       gbc.insets.top = UIFactory.TOP_INSET_SECONDARY_FIELD;
@@ -373,13 +375,13 @@ implements HyperlinkListener
    * Returns the title of this panel.
    * @return the title of this panel.
    */
-  protected abstract String getTitle();
+  protected abstract Message getTitle();
 
   /**
    * Returns the instruction of this panel.
    * @return the instruction of this panel.
    */
-  protected abstract String getInstructions();
+  protected abstract Message getInstructions();
 
   /**
    * Commodity method that adds a vertical glue at the bottom of a given panel.
@@ -455,13 +457,13 @@ implements HyperlinkListener
     if (ops.getCertificateType() ==
       SecurityOptions.CertificateType.NO_CERTIFICATE)
     {
-      buf.append(getMsg("no-security"));
+      buf.append(INFO_NO_SECURITY.get());
     }
     else
     {
       if (ops.getEnableStartTLS())
       {
-        buf.append(getMsg("enable-starttls"));
+        buf.append(INFO_ENABLE_STARTTLS.get());
       }
       if (ops.getEnableSSL())
       {
@@ -476,8 +478,7 @@ implements HyperlinkListener
             buf.append("\n");
           }
         }
-        String[] arg = new String[] {String.valueOf(ops.getSslPort())};
-        buf.append(getMsg("enable-ssl", arg));
+        buf.append(INFO_ENABLE_SSL.get(String.valueOf(ops.getSslPort())));
       }
       if (html)
       {
@@ -487,23 +488,23 @@ implements HyperlinkListener
       {
         buf.append("\n");
       }
-      String certMsg;
+      Message certMsg;
       switch (ops.getCertificateType())
       {
       case SELF_SIGNED_CERTIFICATE:
-        certMsg = getMsg("self-signed-certificate");
+        certMsg = INFO_SELF_SIGNED_CERTIFICATE.get();
         break;
 
       case JKS:
-        certMsg = getMsg("jks-certificate");
+        certMsg = INFO_JKS_CERTIFICATE.get();
         break;
 
       case PKCS11:
-        certMsg = getMsg("pkcs11-certificate");
+        certMsg = INFO_PKCS11_CERTIFICATE.get();
         break;
 
       case PKCS12:
-        certMsg = getMsg("pkcs12-certificate");
+        certMsg = INFO_PKCS12_CERTIFICATE.get();
         break;
 
       default:
@@ -531,7 +532,7 @@ implements HyperlinkListener
   private Component createTitlePanel()
   {
     Component titlePanel = null;
-    String title = getTitle();
+    Message title = getTitle();
     if (title != null)
     {
       JPanel p = new JPanel(new GridBagLayout());
@@ -563,7 +564,7 @@ implements HyperlinkListener
   private Component createInstructionsPanel()
   {
     Component instructionsPanel = null;
-    String instructions = getInstructions();
+    Message instructions = getInstructions();
     if (instructions != null)
     {
       JEditorPane p =

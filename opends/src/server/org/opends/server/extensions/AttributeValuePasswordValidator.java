@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -45,9 +46,8 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-
+import static org.opends.messages.ExtensionMessages.*;
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -109,7 +109,7 @@ public class AttributeValuePasswordValidator
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
-                                      StringBuilder invalidReason)
+                                      MessageBuilder invalidReason)
   {
     // Get a handle to the current configuration.
     AttributeValuePasswordValidatorCfg config = currentConfig;
@@ -145,8 +145,8 @@ public class AttributeValuePasswordValidator
         if (a.hasValue(vf) ||
             (config.isTestReversedPassword() && a.hasValue(vr)))
         {
-          int msgID = MSGID_ATTRVALUE_VALIDATOR_PASSWORD_IN_ENTRY;
-          invalidReason.append(getMessage(msgID));
+
+          invalidReason.append(ERR_ATTRVALUE_VALIDATOR_PASSWORD_IN_ENTRY.get());
           return false;
         }
       }
@@ -164,7 +164,7 @@ public class AttributeValuePasswordValidator
    */
   @Override()
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     AttributeValuePasswordValidatorCfg config =
          (AttributeValuePasswordValidatorCfg) configuration;
@@ -178,7 +178,7 @@ public class AttributeValuePasswordValidator
    */
   public boolean isConfigurationChangeAcceptable(
                       AttributeValuePasswordValidatorCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // If we've gotten this far, then we'll accept the change.
     return true;
@@ -194,7 +194,7 @@ public class AttributeValuePasswordValidator
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     currentConfig = configuration;

@@ -25,10 +25,10 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
+import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ReplicationMessages.*;
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.util.ArrayList;
@@ -43,8 +43,6 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.TimeThread;
 import org.opends.server.core.DirectoryServer;
@@ -330,11 +328,10 @@ public class DbHandler implements Runnable
         }
       } catch (Exception end)
       {
-        int    msgID   = MSGID_EXCEPTION_CHANGELOG_TRIM_FLUSH;
-        String message = getMessage(msgID) + stackTraceToSingleLineString(end);
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-                 ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        MessageBuilder mb = new MessageBuilder();
+        mb.append(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH.get());
+        mb.append(stackTraceToSingleLineString(end));
+        logError(mb.toMessage());
       }
     }
     // call flush a last time before exiting to make sure that

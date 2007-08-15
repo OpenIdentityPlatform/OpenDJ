@@ -35,13 +35,11 @@ import java.security.cert.X509Certificate;
 import java.util.Date;
 import javax.net.ssl.X509TrustManager;
 
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
-
+import static org.opends.messages.UtilityMessages.*;
+import org.opends.messages.Message;
 
 
 /**
@@ -95,21 +93,17 @@ public class ExpirationCheckTrustManager
       }
       catch (CertificateExpiredException cee)
       {
-        int msgID = MSGID_EXPCHECK_TRUSTMGR_CLIENT_CERT_EXPIRED;
-        String message = getMessage(msgID, c.getSubjectDN().getName(),
-                                    String.valueOf(c.getNotAfter()));
-        logError(ErrorLogCategory.CONNECTION_HANDLING,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+        Message message = ERR_EXPCHECK_TRUSTMGR_CLIENT_CERT_EXPIRED.get(
+            c.getSubjectDN().getName(), String.valueOf(c.getNotAfter()));
+        logError(message);
 
         throw cee;
       }
       catch (CertificateNotYetValidException cnyve)
       {
-        int msgID = MSGID_EXPCHECK_TRUSTMGR_CLIENT_CERT_NOT_YET_VALID;
-        String message = getMessage(msgID, c.getSubjectDN().getName(),
-                                    String.valueOf(c.getNotBefore()));
-        logError(ErrorLogCategory.CONNECTION_HANDLING,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+        Message message = ERR_EXPCHECK_TRUSTMGR_CLIENT_CERT_NOT_YET_VALID.get(
+            c.getSubjectDN().getName(), String.valueOf(c.getNotBefore()));
+        logError(message);
 
         throw cnyve;
       }
@@ -144,21 +138,17 @@ public class ExpirationCheckTrustManager
       }
       catch (CertificateExpiredException cee)
       {
-        int msgID = MSGID_EXPCHECK_TRUSTMGR_SERVER_CERT_EXPIRED;
-        String message = getMessage(msgID, c.getSubjectDN().getName(),
-                                    String.valueOf(c.getNotAfter()));
-        logError(ErrorLogCategory.CONNECTION_HANDLING,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+        Message message = ERR_EXPCHECK_TRUSTMGR_SERVER_CERT_EXPIRED.get(
+            c.getSubjectDN().getName(), String.valueOf(c.getNotAfter()));
+        logError(message);
 
         throw cee;
       }
       catch (CertificateNotYetValidException cnyve)
       {
-        int msgID = MSGID_EXPCHECK_TRUSTMGR_SERVER_CERT_NOT_YET_VALID;
-        String message = getMessage(msgID, c.getSubjectDN().getName(),
-                                    String.valueOf(c.getNotBefore()));
-        logError(ErrorLogCategory.CONNECTION_HANDLING,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+        Message message = ERR_EXPCHECK_TRUSTMGR_SERVER_CERT_NOT_YET_VALID.get(
+            c.getSubjectDN().getName(), String.valueOf(c.getNotBefore()));
+        logError(message);
 
         throw cnyve;
       }

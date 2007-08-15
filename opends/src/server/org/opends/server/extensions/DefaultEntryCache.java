@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -41,7 +42,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
-
 
 
 
@@ -212,7 +212,7 @@ public class DefaultEntryCache
    */
   public boolean isConfigurationChangeAcceptable(
       EntryCacheCfg configuration,
-      List<String>  unacceptableReasons
+      List<Message> unacceptableReasons
       )
   {
     // No implementation required.
@@ -231,7 +231,7 @@ public class DefaultEntryCache
     // No implementation required.
 
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<String>()
+        ResultCode.SUCCESS, false, new ArrayList<Message>()
         );
 
     return changeResult;

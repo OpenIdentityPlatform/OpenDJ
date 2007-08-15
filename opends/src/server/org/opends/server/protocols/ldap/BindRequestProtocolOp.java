@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
+import org.opends.messages.Message;
 
 
 
@@ -40,8 +41,7 @@ import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -370,18 +370,18 @@ public class BindRequestProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_BIND_REQUEST_DECODE_SEQUENCE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_BIND_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
     int numElements = elements.size();
     if (numElements != 3)
     {
-      int    msgID   = MSGID_LDAP_BIND_REQUEST_DECODE_INVALID_ELEMENT_COUNT;
-      String message = getMessage(msgID, String.valueOf(numElements));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_LDAP_BIND_REQUEST_DECODE_INVALID_ELEMENT_COUNT.get(
+          numElements);
+      throw new LDAPException(PROTOCOL_ERROR, message);
     }
 
 
@@ -397,9 +397,9 @@ public class BindRequestProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_BIND_REQUEST_DECODE_VERSION;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_BIND_REQUEST_DECODE_VERSION.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -415,9 +415,8 @@ public class BindRequestProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_BIND_REQUEST_DECODE_DN;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message = ERR_LDAP_BIND_REQUEST_DECODE_DN.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -439,9 +438,9 @@ public class BindRequestProtocolOp
           }
           catch (Exception e)
           {
-            int    msgID   = MSGID_LDAP_BIND_REQUEST_DECODE_PASSWORD;
-            String message = getMessage(msgID, String.valueOf(e));
-            throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+            Message message =
+                ERR_LDAP_BIND_REQUEST_DECODE_PASSWORD.get(String.valueOf(e));
+            throw new LDAPException(PROTOCOL_ERROR, message, e);
           }
 
           break;
@@ -460,16 +459,16 @@ public class BindRequestProtocolOp
           }
           catch (Exception e)
           {
-            int    msgID   = MSGID_LDAP_BIND_REQUEST_DECODE_SASL_INFO;
-            String message = getMessage(msgID, String.valueOf(e));
-            throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+            Message message =
+                ERR_LDAP_BIND_REQUEST_DECODE_SASL_INFO.get(String.valueOf(e));
+            throw new LDAPException(PROTOCOL_ERROR, message, e);
           }
 
           break;
         default:
-          int msgID = MSGID_LDAP_BIND_REQUEST_DECODE_INVALID_CRED_TYPE;
-          String message = getMessage(msgID, element.getType());
-          throw new LDAPException(AUTH_METHOD_NOT_SUPPORTED, msgID, message);
+          Message message = ERR_LDAP_BIND_REQUEST_DECODE_INVALID_CRED_TYPE.get(
+              element.getType());
+          throw new LDAPException(AUTH_METHOD_NOT_SUPPORTED, message);
       }
     }
     catch (LDAPException le)
@@ -483,9 +482,9 @@ public class BindRequestProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_BIND_REQUEST_DECODE_CREDENTIALS;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_BIND_REQUEST_DECODE_CREDENTIALS.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 

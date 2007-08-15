@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
+import org.opends.messages.Message;
 
 import org.opends.server.util.TimeThread;
 import org.opends.server.admin.std.server.TimeLimitLogRotationPolicyCfg;
@@ -33,6 +34,7 @@ import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
+
 
 import java.util.List;
 import java.util.ArrayList;
@@ -66,7 +68,7 @@ public class TimeLimitRotationPolicy implements
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-      TimeLimitLogRotationPolicyCfg config, List<String> unacceptableReasons)
+      TimeLimitLogRotationPolicyCfg config, List<Message> unacceptableReasons)
   {
     // Changes should always be OK
     return true;
@@ -81,7 +83,7 @@ public class TimeLimitRotationPolicy implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     timeInterval = config.getRotationInterval();
 

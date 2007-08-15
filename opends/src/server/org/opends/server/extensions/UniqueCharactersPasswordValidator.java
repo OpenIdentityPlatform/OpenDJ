@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -42,9 +43,8 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-
+import static org.opends.messages.ExtensionMessages.*;
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -106,7 +106,7 @@ public class UniqueCharactersPasswordValidator
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
-                                      StringBuilder invalidReason)
+                                      MessageBuilder invalidReason)
   {
     // Get a handle to the current configuration and see if we need to count
     // the number of unique characters in the password.
@@ -142,8 +142,8 @@ public class UniqueCharactersPasswordValidator
     // number of allowed unique characters, then we will reject the password.
     if (passwordCharacters.size() < minUniqueCharacters)
     {
-      int    msgID   = MSGID_UNIQUECHARS_VALIDATOR_NOT_ENOUGH_UNIQUE_CHARS;
-      String message = getMessage(msgID, minUniqueCharacters);
+      Message message = ERR_UNIQUECHARS_VALIDATOR_NOT_ENOUGH_UNIQUE_CHARS.get(
+              minUniqueCharacters);
       invalidReason.append(message);
       return false;
     }
@@ -158,7 +158,7 @@ public class UniqueCharactersPasswordValidator
    */
   public boolean isConfigurationChangeAcceptable(
                       UniqueCharactersPasswordValidatorCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // All of the necessary validation should have been performed automatically,
     // so if we get to this point then the new configuration will be acceptable.
@@ -175,7 +175,7 @@ public class UniqueCharactersPasswordValidator
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     // For this password validator, we will always be able to successfully apply
     // the new configuration.

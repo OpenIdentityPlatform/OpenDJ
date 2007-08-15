@@ -25,10 +25,11 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement.localbackend;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
 import java.util.ArrayList;
@@ -140,19 +141,17 @@ public class LocalBackendAddOperation extends AddOperationWrapper
     {
       // This must mean there are attribute options, which we won't allow for
       // passwords.
-      int msgID = MSGID_PWPOLICY_ATTRIBUTE_OPTIONS_NOT_ALLOWED;
-      String message = getMessage(msgID, passwordAttribute.getNameOrOID());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_PWPOLICY_ATTRIBUTE_OPTIONS_NOT_ALLOWED.get(
+          passwordAttribute.getNameOrOID());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     Attribute passwordAttr = attrList.get(0);
     if (passwordAttr.hasOptions())
     {
-      int msgID = MSGID_PWPOLICY_ATTRIBUTE_OPTIONS_NOT_ALLOWED;
-      String message = getMessage(msgID, passwordAttribute.getNameOrOID());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_PWPOLICY_ATTRIBUTE_OPTIONS_NOT_ALLOWED.get(
+          passwordAttribute.getNameOrOID());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     LinkedHashSet<AttributeValue> values = passwordAttr.getValues();
@@ -167,10 +166,9 @@ public class LocalBackendAddOperation extends AddOperationWrapper
       // FIXME -- What if they're pre-encoded and might all be the same?
       addPWPolicyControl(PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED);
 
-      int    msgID   = MSGID_PWPOLICY_MULTIPLE_PW_VALUES_NOT_ALLOWED;
-      String message = getMessage(msgID, passwordAttribute.getNameOrOID());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_PWPOLICY_MULTIPLE_PW_VALUES_NOT_ALLOWED.get(
+          passwordAttribute.getNameOrOID());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     CopyOnWriteArrayList<PasswordStorageScheme> defaultStorageSchemes =
@@ -196,11 +194,10 @@ public class LocalBackendAddOperation extends AddOperationWrapper
             addPWPolicyControl(
                  PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY);
 
-            int    msgID   = MSGID_PWPOLICY_PREENCODED_NOT_ALLOWED;
-            String message = getMessage(msgID,
-                                        passwordAttribute.getNameOrOID());
+            Message message = ERR_PWPOLICY_PREENCODED_NOT_ALLOWED.get(
+                passwordAttribute.getNameOrOID());
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message, msgID);
+                                         message);
           }
         }
       }
@@ -218,11 +215,10 @@ public class LocalBackendAddOperation extends AddOperationWrapper
             addPWPolicyControl(
                  PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY);
 
-            int    msgID   = MSGID_PWPOLICY_PREENCODED_NOT_ALLOWED;
-            String message = getMessage(msgID,
-                                        passwordAttribute.getNameOrOID());
+            Message message = ERR_PWPOLICY_PREENCODED_NOT_ALLOWED.get(
+                passwordAttribute.getNameOrOID());
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message, msgID);
+                                         message);
           }
         }
       }
@@ -234,7 +230,7 @@ public class LocalBackendAddOperation extends AddOperationWrapper
       {
         // There are never any current passwords for an add operation.
         HashSet<ByteString> currentPasswords = new HashSet<ByteString>(0);
-        StringBuilder invalidReason = new StringBuilder();
+        MessageBuilder invalidReason = new MessageBuilder();
         for (PasswordValidator<?> validator :
              passwordPolicy.getPasswordValidators().values())
         {
@@ -244,11 +240,11 @@ public class LocalBackendAddOperation extends AddOperationWrapper
             addPWPolicyControl(
                  PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY);
 
-            int    msgID   = MSGID_PWPOLICY_VALIDATION_FAILED;
-            String message = getMessage(msgID, passwordAttribute.getNameOrOID(),
-                                        String.valueOf(invalidReason));
+            Message message = ERR_PWPOLICY_VALIDATION_FAILED.
+                get(passwordAttribute.getNameOrOID(),
+                    String.valueOf(invalidReason));
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message, msgID);
+                                         message);
           }
         }
       }

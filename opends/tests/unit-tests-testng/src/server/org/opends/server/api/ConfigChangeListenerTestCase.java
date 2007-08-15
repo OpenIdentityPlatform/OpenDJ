@@ -36,6 +36,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.JMXMBean;
@@ -144,7 +145,7 @@ public class ConfigChangeListenerTestCase
     ConfigEntry e = DirectoryServer.getConfigEntry(dn);
     assertNotNull(e);
 
-    assertTrue(l.configChangeIsAcceptable(e, new StringBuilder()));
+    assertTrue(l.configChangeIsAcceptable(e, new MessageBuilder()));
   }
 }
 

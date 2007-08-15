@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
+import org.opends.messages.Message;
 
 import org.opends.server.admin.std.server.FileCountLogRetentionPolicyCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -38,6 +39,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
+
 
 /**
  * This class implements a retention policy based on the number of files.
@@ -71,7 +73,7 @@ public class FileNumberRetentionPolicy implements
    */
   public boolean isConfigurationChangeAcceptable(
       FileCountLogRetentionPolicyCfg config,
-      List<String> unacceptableReasons)
+      List<Message> unacceptableReasons)
   {
     // Changes should always be OK
     return true;
@@ -86,7 +88,7 @@ public class FileNumberRetentionPolicy implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     numFiles = config.getNumberOfFiles();
 

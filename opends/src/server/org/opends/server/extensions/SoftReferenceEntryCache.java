@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -54,10 +55,9 @@ import org.opends.server.types.LockManager;
 import org.opends.server.types.SearchFilter;
 
 
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
+
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -443,7 +443,7 @@ public class SoftReferenceEntryCache
    */
   @Override()
   public boolean isConfigurationAcceptable(EntryCacheCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     SoftReferenceEntryCacheCfg config =
          (SoftReferenceEntryCacheCfg) configuration;
@@ -457,7 +457,7 @@ public class SoftReferenceEntryCache
    */
   public boolean isConfigurationChangeAcceptable(
       SoftReferenceEntryCacheCfg configuration,
-      List<String>               unacceptableReasons)
+      List<Message> unacceptableReasons)
   {
     // Make sure that we can process the defined character sets.  If so, then
     // we'll accept the new configuration.
@@ -485,7 +485,7 @@ public class SoftReferenceEntryCache
     // Make sure that we can process the defined character sets.  If so, then
     // activate the new configuration.
     boolean applyChanges = false;
-    ArrayList<String> errorMessages = new ArrayList<String>();
+    ArrayList<Message> errorMessages = new ArrayList<Message>();
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
           EntryCacheCommon.ConfigPhase.PHASE_APPLY, null, errorMessages
@@ -535,15 +535,15 @@ public class SoftReferenceEntryCache
     case PHASE_INIT:
       newIncludeFilters = EntryCacheCommon.getFilters (
           configuration.getIncludeFilter(),
-          MSGID_SOFTREFCACHE_INVALID_INCLUDE_FILTER,
-          MSGID_SOFTREFCACHE_CANNOT_DECODE_ANY_INCLUDE_FILTERS,
+          ERR_SOFTREFCACHE_INVALID_INCLUDE_FILTER,
+          WARN_SOFTREFCACHE_CANNOT_DECODE_ANY_INCLUDE_FILTERS,
           errorHandler,
           newConfigEntryDN
           );
       newExcludeFilters = EntryCacheCommon.getFilters (
           configuration.getExcludeFilter(),
-          MSGID_SOFTREFCACHE_CANNOT_DECODE_EXCLUDE_FILTER,
-          MSGID_SOFTREFCACHE_CANNOT_DECODE_ANY_EXCLUDE_FILTERS,
+          WARN_SOFTREFCACHE_CANNOT_DECODE_EXCLUDE_FILTER,
+          WARN_SOFTREFCACHE_CANNOT_DECODE_ANY_EXCLUDE_FILTERS,
           errorHandler,
           newConfigEntryDN
           );
@@ -552,15 +552,15 @@ public class SoftReferenceEntryCache
     case PHASE_APPLY:       // error ID codes
       newIncludeFilters = EntryCacheCommon.getFilters (
           configuration.getIncludeFilter(),
-          MSGID_SOFTREFCACHE_INVALID_INCLUDE_FILTER,
-          0,
+          ERR_SOFTREFCACHE_INVALID_INCLUDE_FILTER,
+          null,
           errorHandler,
           newConfigEntryDN
           );
       newExcludeFilters = EntryCacheCommon.getFilters (
           configuration.getExcludeFilter(),
-          MSGID_SOFTREFCACHE_INVALID_EXCLUDE_FILTER,
-          0,
+          ERR_SOFTREFCACHE_INVALID_EXCLUDE_FILTER,
+          null,
           errorHandler,
           newConfigEntryDN
           );

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
+import org.opends.messages.Message;
 
 
 
@@ -52,8 +53,7 @@ import org.opends.server.types.SearchFilter;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -304,9 +304,8 @@ public class LDAPFilter
   {
     if (filterString == null)
     {
-      int msgID = MSGID_LDAP_FILTER_STRING_NULL;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_LDAP_FILTER_STRING_NULL.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -330,9 +329,9 @@ public class LDAPFilter
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_LDAP_FILTER_UNCAUGHT_EXCEPTION;
-      String message = getMessage(msgID, filterString, String.valueOf(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message, e);
+      Message message = ERR_LDAP_FILTER_UNCAUGHT_EXCEPTION.get(
+          filterString, String.valueOf(e));
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message, e);
     }
   }
 
@@ -361,9 +360,8 @@ public class LDAPFilter
     int length = endPos - startPos;
     if (length <= 0)
     {
-      int msgID = MSGID_LDAP_FILTER_STRING_NULL;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_LDAP_FILTER_STRING_NULL.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
     // If the filter is enclosed in a pair of apostrophes ("single-quotes") it
@@ -371,9 +369,9 @@ public class LDAPFilter
     if (1 < filterString.length()
          && filterString.startsWith("'") && filterString.endsWith("'"))
     {
-      int msgID = MSGID_LDAP_FILTER_ENCLOSED_IN_APOSTROPHES;
-      String message = getMessage(msgID, filterString);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message =
+          ERR_LDAP_FILTER_ENCLOSED_IN_APOSTROPHES.get(filterString);
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
     // If the filter is surrounded by parentheses (which it should be), then
@@ -387,9 +385,9 @@ public class LDAPFilter
       }
       else
       {
-        int    msgID   = MSGID_LDAP_FILTER_MISMATCHED_PARENTHESES;
-        String message = getMessage(msgID, filterString, startPos, endPos);
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+        Message message = ERR_LDAP_FILTER_MISMATCHED_PARENTHESES.get(
+            filterString, startPos, endPos);
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
     }
 
@@ -429,9 +427,9 @@ public class LDAPFilter
 
     if (equalPos <= startPos)
     {
-      int    msgID   = MSGID_LDAP_FILTER_NO_EQUAL_SIGN;
-      String message = getMessage(msgID, filterString, startPos, endPos);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message =
+          ERR_LDAP_FILTER_NO_EQUAL_SIGN.get(filterString, startPos, endPos);
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -561,11 +559,9 @@ public class LDAPFilter
           // switch statement more efficient.  We'll fall through to the default
           // clause to reject them.
         default:
-          int    msgID   = MSGID_LDAP_FILTER_INVALID_CHAR_IN_ATTR_TYPE;
-          String message = getMessage(msgID, attrType,
-                                      String.valueOf(attrType.charAt(i)), i);
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                  message);
+          Message message = ERR_LDAP_FILTER_INVALID_CHAR_IN_ATTR_TYPE.get(
+              attrType, String.valueOf(attrType.charAt(i)), i);
+          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
     }
 
@@ -612,10 +608,9 @@ public class LDAPFilter
             // binary value.
             if ((i + 2) >= valueBytes.length)
             {
-              int    msgID   = MSGID_LDAP_FILTER_INVALID_ESCAPED_BYTE;
-              String message = getMessage(msgID, filterString, equalPos+i+1);
-              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                      message);
+              Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                  filterString, equalPos+i+1);
+              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
             byte byteValue = 0;
@@ -675,10 +670,9 @@ public class LDAPFilter
                 byteValue = (byte) 0xF0;
                 break;
               default:
-                int    msgID   = MSGID_LDAP_FILTER_INVALID_ESCAPED_BYTE;
-                String message = getMessage(msgID, filterString, equalPos+i+1);
-                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                        message);
+                Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                    filterString, equalPos+i+1);
+                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
             switch (valueBytes[++i])
@@ -737,10 +731,9 @@ public class LDAPFilter
                 byteValue |= (byte) 0x0F;
                 break;
               default:
-                int    msgID   = MSGID_LDAP_FILTER_INVALID_ESCAPED_BYTE;
-                String message = getMessage(msgID, filterString, equalPos+i+1);
-                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                        message);
+                Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                    filterString, equalPos+i+1);
+                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
             valueBuffer.put(byteValue);
@@ -800,9 +793,9 @@ public class LDAPFilter
     {
       if (filterType == FilterType.NOT)
       {
-        int    msgID   = MSGID_LDAP_FILTER_NOT_EXACTLY_ONE;
-        String message = getMessage(msgID, filterString, startPos, endPos);
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+        Message message =
+            ERR_LDAP_FILTER_NOT_EXACTLY_ONE.get(filterString, startPos, endPos);
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
       else
       {
@@ -818,9 +811,9 @@ public class LDAPFilter
     if ((filterString.charAt(startPos) != '(') ||
         (filterString.charAt(endPos-1) != ')'))
     {
-      int msgID = MSGID_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES;
-      String message = getMessage(msgID, filterString, startPos, endPos);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES.get(
+          filterString, startPos, endPos);
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -851,17 +844,16 @@ public class LDAPFilter
         }
         else if (pendingOpens < 0)
         {
-          int    msgID   = MSGID_LDAP_FILTER_NO_CORRESPONDING_OPEN_PARENTHESIS;
-          String message = getMessage(msgID, filterString, i);
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                  message);
+          Message message = ERR_LDAP_FILTER_NO_CORRESPONDING_OPEN_PARENTHESIS.
+              get(filterString, i);
+          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
         }
       }
       else if (pendingOpens <= 0)
       {
-        int    msgID   = MSGID_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES;
-        String message = getMessage(msgID, filterString, startPos, endPos);
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+        Message message = ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES.get(
+            filterString, startPos, endPos);
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
     }
 
@@ -870,9 +862,9 @@ public class LDAPFilter
     // list of open parenthesis positions must be empty.
     if (pendingOpens != 0)
     {
-      int    msgID   = MSGID_LDAP_FILTER_NO_CORRESPONDING_CLOSE_PARENTHESIS;
-      String message = getMessage(msgID, filterString, openPos);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_LDAP_FILTER_NO_CORRESPONDING_CLOSE_PARENTHESIS.get(
+          filterString, openPos);
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -881,9 +873,9 @@ public class LDAPFilter
     {
       if (filterComponents.size() != 1)
       {
-        int    msgID   = MSGID_LDAP_FILTER_NOT_EXACTLY_ONE;
-        String message = getMessage(msgID, filterString, startPos, endPos);
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+        Message message =
+            ERR_LDAP_FILTER_NOT_EXACTLY_ONE.get(filterString, startPos, endPos);
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
       RawFilter notComponent = filterComponents.get(0);
       return new LDAPFilter(filterType, null, notComponent, null, null,
@@ -946,9 +938,9 @@ public class LDAPFilter
     // If there were no asterisks, then this isn't a substring filter.
     if (asteriskPositions.isEmpty())
     {
-      int msgID = MSGID_LDAP_FILTER_SUBSTRING_NO_ASTERISKS;
-      String message = getMessage(msgID, filterString, equalPos+1, endPos);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_LDAP_FILTER_SUBSTRING_NO_ASTERISKS.get(
+          filterString, equalPos+1, endPos);
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -973,10 +965,9 @@ public class LDAPFilter
             // binary value.
             if ((i + 2) >= valueBytes.length)
             {
-              int    msgID   = MSGID_LDAP_FILTER_INVALID_ESCAPED_BYTE;
-              String message = getMessage(msgID, filterString, equalPos+i+1);
-              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                      message);
+              Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                  filterString, equalPos+i+1);
+              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
             byte byteValue = 0;
@@ -1036,10 +1027,9 @@ public class LDAPFilter
                 byteValue = (byte) 0xF0;
                 break;
               default:
-                int    msgID   = MSGID_LDAP_FILTER_INVALID_ESCAPED_BYTE;
-                String message = getMessage(msgID, filterString, equalPos+i+1);
-                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                        message);
+                Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                    filterString, equalPos+i+1);
+                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
             switch (valueBytes[++i])
@@ -1098,10 +1088,9 @@ public class LDAPFilter
                 byteValue |= (byte) 0x0F;
                 break;
               default:
-                int    msgID   = MSGID_LDAP_FILTER_INVALID_ESCAPED_BYTE;
-                String message = getMessage(msgID, filterString, equalPos+i+1);
-                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                        message);
+                Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                    filterString, equalPos+i+1);
+                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
             buffer.put(byteValue);
@@ -1143,10 +1132,9 @@ public class LDAPFilter
             // binary value.
             if ((i + 2) >= valueBytes.length)
             {
-              int    msgID   = MSGID_LDAP_FILTER_INVALID_ESCAPED_BYTE;
-              String message = getMessage(msgID, filterString, equalPos+i+1);
-              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                      message);
+              Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                  filterString, equalPos+i+1);
+              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
             byte byteValue = 0;
@@ -1206,10 +1194,9 @@ public class LDAPFilter
                 byteValue = (byte) 0xF0;
                 break;
               default:
-                int    msgID   = MSGID_LDAP_FILTER_INVALID_ESCAPED_BYTE;
-                String message = getMessage(msgID, filterString, equalPos+i+1);
-                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                        message);
+                Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                    filterString, equalPos+i+1);
+                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
             switch (valueBytes[++i])
@@ -1268,10 +1255,9 @@ public class LDAPFilter
                 byteValue |= (byte) 0x0F;
                 break;
               default:
-                int    msgID   = MSGID_LDAP_FILTER_INVALID_ESCAPED_BYTE;
-                String message = getMessage(msgID, filterString, equalPos+i+1);
-                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                        message);
+                Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                    filterString, equalPos+i+1);
+                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
             buffer.put(byteValue);
@@ -1321,10 +1307,9 @@ public class LDAPFilter
             // binary value.
             if ((i + 2) >= valueBytes.length)
             {
-              int    msgID   = MSGID_LDAP_FILTER_INVALID_ESCAPED_BYTE;
-              String message = getMessage(msgID, filterString, equalPos+i+1);
-              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                      message);
+              Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                  filterString, equalPos+i+1);
+              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
             byte byteValue = 0;
@@ -1384,10 +1369,9 @@ public class LDAPFilter
                 byteValue = (byte) 0xF0;
                 break;
               default:
-                int    msgID   = MSGID_LDAP_FILTER_INVALID_ESCAPED_BYTE;
-                String message = getMessage(msgID, filterString, equalPos+i+1);
-                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                        message);
+                Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                    filterString, equalPos+i+1);
+                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
             switch (valueBytes[++i])
@@ -1446,10 +1430,9 @@ public class LDAPFilter
                 byteValue |= (byte) 0x0F;
                 break;
               default:
-                int    msgID   = MSGID_LDAP_FILTER_INVALID_ESCAPED_BYTE;
-                String message = getMessage(msgID, filterString, equalPos+i+1);
-                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                        message);
+                Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                    filterString, equalPos+i+1);
+                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
             buffer.put(byteValue);
@@ -1537,9 +1520,9 @@ public class LDAPFilter
       int colonPos = filterString.indexOf(':',startPos);
       if (colonPos < 0)
       {
-        int    msgID   = MSGID_LDAP_FILTER_EXTENSIBLE_MATCH_NO_COLON;
-        String message = getMessage(msgID, filterString, startPos);
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+        Message message = ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_COLON.get(
+            filterString, startPos);
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
       }
 
 
@@ -1591,10 +1574,9 @@ public class LDAPFilter
           // binary value.
           if ((i + 2) >= valueBytes.length)
           {
-            int    msgID   = MSGID_LDAP_FILTER_INVALID_ESCAPED_BYTE;
-            String message = getMessage(msgID, filterString, equalPos+i+1);
-            throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                    message);
+            Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                filterString, equalPos+i+1);
+            throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
           }
 
           byte byteValue = 0;
@@ -1654,10 +1636,9 @@ public class LDAPFilter
               byteValue = (byte) 0xF0;
               break;
             default:
-              int    msgID   = MSGID_LDAP_FILTER_INVALID_ESCAPED_BYTE;
-              String message = getMessage(msgID, filterString, equalPos+i+1);
-              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                      message);
+              Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                  filterString, equalPos+i+1);
+              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
           }
 
           switch (valueBytes[++i])
@@ -1716,10 +1697,9 @@ public class LDAPFilter
               byteValue |= (byte) 0x0F;
               break;
             default:
-              int    msgID   = MSGID_LDAP_FILTER_INVALID_ESCAPED_BYTE;
-              String message = getMessage(msgID, filterString, equalPos+i+1);
-              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
-                                      message);
+              Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+                  filterString, equalPos+i+1);
+              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
           }
 
           valueBuffer.put(byteValue);
@@ -1745,9 +1725,9 @@ public class LDAPFilter
     // and/or a matching rule ID.
     if ((attributeType == null) && (matchingRuleID == null))
     {
-      int    msgID   = MSGID_LDAP_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR;
-      String message = getMessage(msgID, filterString, startPos);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      Message message = ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR.get(
+          filterString, startPos);
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
 
@@ -2110,9 +2090,8 @@ public class LDAPFilter
     {
       if (matchingRuleID == null)
       {
-        int    msgID   = MSGID_LDAP_FILTER_VALUE_WITH_NO_ATTR_OR_MR;
-        String message = getMessage(msgID);
-        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, msgID);
+        Message message = ERR_LDAP_FILTER_VALUE_WITH_NO_ATTR_OR_MR.get();
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
       else
       {
@@ -2120,10 +2099,10 @@ public class LDAPFilter
              DirectoryServer.getMatchingRule(toLowerCase(matchingRuleID));
         if (mr == null)
         {
-          int    msgID   = MSGID_LDAP_FILTER_UNKNOWN_MATCHING_RULE;
-          String message = getMessage(msgID, matchingRuleID);
+          Message message =
+              ERR_LDAP_FILTER_UNKNOWN_MATCHING_RULE.get(matchingRuleID);
           throw new DirectoryException(ResultCode.INAPPROPRIATE_MATCHING,
-                                       message, msgID);
+                                       message);
         }
         else
         {

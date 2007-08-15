@@ -35,7 +35,8 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
+import static org.opends.messages.ToolMessages.*;
+import org.opends.messages.Message;
 
 
 /**
@@ -63,11 +64,11 @@ public final class TestSubCommandArgumentParser extends ArgsTestCase {
   @BeforeClass
   public void setup() throws Exception {
     parser = new SubCommandArgumentParser(this.getClass().getName(),
-        "test description", true);
+        Message.raw("test description"), true);
 
-    sc1 = new SubCommand(parser, "sub-command1", 1000);
+    sc1 = new SubCommand(parser, "sub-command1", INFO_BACKUPDB_DESCRIPTION_BACKEND_ID.get());
     sc2 = new SubCommand(parser, "sub-command2", true, 2, 4,
-        "args1 arg2 [arg3 arg4]", 2000);
+        "args1 arg2 [arg3 arg4]", INFO_BACKUPDB_DESCRIPTION_BACKUP_ALL.get());
   }
 
 

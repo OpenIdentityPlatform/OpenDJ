@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -55,8 +56,8 @@ import org.opends.server.types.ResultCode;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
+
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -122,10 +123,9 @@ public class GSSAPISASLMechanismHandler
     identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
     if (identityMapper == null)
     {
-      int    msgID   = MSGID_SASLGSSAPI_NO_SUCH_IDENTITY_MAPPER;
-      String message = getMessage(msgID, String.valueOf(identityMapperDN),
-                                  String.valueOf(configEntryDN));
-      throw new ConfigException(msgID, message);
+      Message message = ERR_SASLGSSAPI_NO_SUCH_IDENTITY_MAPPER.get(
+          String.valueOf(identityMapperDN), String.valueOf(configEntryDN));
+      throw new ConfigException(message);
     }
 
 
@@ -145,10 +145,9 @@ public class GSSAPISASLMechanismHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_SASLGSSAPI_CANNOT_GET_SERVER_FQDN;
-        String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    getExceptionMessage(e));
-        throw new InitializationException(msgID, message, e);
+        Message message = ERR_SASLGSSAPI_CANNOT_GET_SERVER_FQDN.get(
+            String.valueOf(configEntryDN), getExceptionMessage(e));
+        throw new InitializationException(message, e);
       }
     }
 
@@ -204,9 +203,9 @@ public class GSSAPISASLMechanismHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message =
+          ERR_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG.get(getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
 
     System.setProperty(JAAS_PROPERTY_CONFIG_FILE, configFileName);
@@ -243,10 +242,9 @@ public class GSSAPISASLMechanismHandler
     ClientConnection clientConnection = bindOperation.getClientConnection();
     if (clientConnection == null)
     {
-      int    msgID   = MSGID_SASLGSSAPI_NO_CLIENT_CONNECTION;
-      String message = getMessage(msgID);
+      Message message = ERR_SASLGSSAPI_NO_CLIENT_CONNECTION.get();
 
-      bindOperation.setAuthFailureReason(msgID, message);
+      bindOperation.setAuthFailureReason(message);
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
       return;
     }
@@ -270,7 +268,7 @@ public class GSSAPISASLMechanismHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, ie);
         }
 
-        bindOperation.setAuthFailureReason(ie.getMessageID(), ie.getMessage());
+        bindOperation.setAuthFailureReason(ie.getMessageObject());
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
         clientConnection.setSASLAuthStateInfo(null);
         return;
@@ -380,7 +378,7 @@ public class GSSAPISASLMechanismHandler
   @Override()
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     GSSAPISASLMechanismHandlerCfg config =
          (GSSAPISASLMechanismHandlerCfg) configuration;
@@ -394,7 +392,7 @@ public class GSSAPISASLMechanismHandler
    */
   public boolean isConfigurationChangeAcceptable(
                       GSSAPISASLMechanismHandlerCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
     DN cfgEntryDN = configuration.dn();
@@ -405,10 +403,10 @@ public class GSSAPISASLMechanismHandler
          DirectoryServer.getIdentityMapper(identityMapperDN);
     if (newIdentityMapper == null)
     {
-      int msgID = MSGID_SASLGSSAPI_NO_SUCH_IDENTITY_MAPPER;
-      unacceptableReasons.add(getMessage(msgID,
-                                         String.valueOf(identityMapperDN),
-                                         String.valueOf(cfgEntryDN)));
+
+      unacceptableReasons.add(ERR_SASLGSSAPI_NO_SUCH_IDENTITY_MAPPER.get(
+              String.valueOf(identityMapperDN),
+              String.valueOf(cfgEntryDN)));
       configAcceptable = false;
     }
 
@@ -426,7 +424,7 @@ public class GSSAPISASLMechanismHandler
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Get the identity mapper that should be used to find users.
@@ -440,9 +438,10 @@ public class GSSAPISASLMechanismHandler
         resultCode = ResultCode.CONSTRAINT_VIOLATION;
       }
 
-      int msgID = MSGID_SASLGSSAPI_NO_SUCH_IDENTITY_MAPPER;
-      messages.add(getMessage(msgID, String.valueOf(identityMapperDN),
-                              String.valueOf(configEntryDN)));
+
+      messages.add(ERR_SASLGSSAPI_NO_SUCH_IDENTITY_MAPPER.get(
+              String.valueOf(identityMapperDN),
+              String.valueOf(configEntryDN)));
     }
 
 
@@ -467,9 +466,10 @@ public class GSSAPISASLMechanismHandler
           resultCode = DirectoryServer.getServerErrorResultCode();
         }
 
-        int msgID = MSGID_SASLGSSAPI_CANNOT_GET_SERVER_FQDN;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                getExceptionMessage(e)));
+
+        messages.add(ERR_SASLGSSAPI_CANNOT_GET_SERVER_FQDN.get(
+                String.valueOf(configEntryDN),
+                getExceptionMessage(e)));
       }
     }
 
@@ -525,8 +525,8 @@ public class GSSAPISASLMechanismHandler
 
         resultCode = DirectoryServer.getServerErrorResultCode();
 
-        int msgID = MSGID_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG;
-        messages.add(getMessage(msgID, getExceptionMessage(e)));
+        messages.add(ERR_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG.get(
+                getExceptionMessage(e)));
 
        return new ConfigChangeResult(resultCode, adminActionRequired, messages);
       }

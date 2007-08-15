@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins;
+import org.opends.messages.Message;
 
 
 
@@ -62,17 +63,14 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.PluginMessages.*;
+import static org.opends.messages.PluginMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -156,9 +154,9 @@ public final class PasswordPolicyImportPlugin
 
 
         default:
-          int msgID = MSGID_PLUGIN_PWPIMPORT_INVALID_PLUGIN_TYPE;
-          String message = getMessage(msgID, t.toString());
-          throw new ConfigException(msgID, message);
+          Message message =
+              ERR_PLUGIN_PWPIMPORT_INVALID_PLUGIN_TYPE.get(t.toString());
+          throw new ConfigException(message);
       }
     }
 
@@ -186,10 +184,9 @@ public final class PasswordPolicyImportPlugin
                   AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_1);
         if (defaultAuthPasswordSchemes[0] == null)
         {
-          int    msgID   = MSGID_PLUGIN_PWIMPORT_NO_DEFAULT_AUTH_SCHEMES;
-          String message = getMessage(msgID,
-                                      AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_1);
-          throw new ConfigException(msgID, message);
+          Message message = ERR_PLUGIN_PWIMPORT_NO_DEFAULT_AUTH_SCHEMES.get(
+              AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_1);
+          throw new ConfigException(message);
         }
       }
     }
@@ -204,9 +201,9 @@ public final class PasswordPolicyImportPlugin
              DirectoryServer.getAuthPasswordStorageScheme(schemeName);
         if (defaultAuthPasswordSchemes[i] == null)
         {
-          int    msgID   = MSGID_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME;
-          String message = getMessage(msgID, schemeName);
-          throw new ConfigException(msgID, message);
+          Message message =
+              ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(schemeName);
+          throw new ConfigException(message);
         }
         i++;
       }
@@ -235,9 +232,9 @@ public final class PasswordPolicyImportPlugin
                   toLowerCase(STORAGE_SCHEME_NAME_SALTED_SHA_1));
         if (defaultUserPasswordSchemes[0] == null)
         {
-          int    msgID   = MSGID_PLUGIN_PWIMPORT_NO_DEFAULT_USER_SCHEMES;
-          String message = getMessage(msgID, STORAGE_SCHEME_NAME_SALTED_SHA_1);
-          throw new ConfigException(msgID, message);
+          Message message = ERR_PLUGIN_PWIMPORT_NO_DEFAULT_USER_SCHEMES.get(
+              STORAGE_SCHEME_NAME_SALTED_SHA_1);
+          throw new ConfigException(message);
         }
       }
     }
@@ -252,9 +249,9 @@ public final class PasswordPolicyImportPlugin
              DirectoryServer.getPasswordStorageScheme(toLowerCase(schemeName));
         if (defaultUserPasswordSchemes[i] == null)
         {
-          int    msgID   = MSGID_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME;
-          String message = getMessage(msgID, schemeName);
-          throw new ConfigException(msgID, message);
+          Message message =
+              ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME.get(schemeName);
+          throw new ConfigException(message);
         }
         i++;
       }
@@ -354,21 +351,17 @@ policyLoop:
             policy = DirectoryServer.getPasswordPolicy(policyDN);
             if (policy == null)
             {
-              int    msgID   = MSGID_PLUGIN_PWIMPORT_NO_SUCH_POLICY;
-              String message = getMessage(msgID, String.valueOf(entry.getDN()),
-                                          String.valueOf(policyDN));
-              logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
+              Message message = WARN_PLUGIN_PWIMPORT_NO_SUCH_POLICY.get(
+                  String.valueOf(entry.getDN()), String.valueOf(policyDN));
+              logError(message);
             }
             break policyLoop;
           }
           catch (DirectoryException de)
           {
-            int    msgID   = MSGID_PLUGIN_PWIMPORT_CANNOT_DECODE_POLICY_DN;
-            String message = getMessage(msgID, String.valueOf(entry.getDN()),
-                                        de.getErrorMessage());
-            logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_WARNING,
-                     message, msgID);
+            Message message = WARN_PLUGIN_PWIMPORT_CANNOT_DECODE_POLICY_DN.get(
+                String.valueOf(entry.getDN()), de.getMessageObject());
+            logError(message);
             break policyLoop;
           }
         }
@@ -416,13 +409,12 @@ policyLoop:
                       TRACER.debugCaught(DebugLogLevel.ERROR, e);
                     }
 
-                    int msgID = MSGID_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD;
-                    String message = getMessage(msgID,
-                         policy.getPasswordAttribute().getNameOrOID(),
-                         String.valueOf(entry.getDN()),
-                         stackTraceToSingleLineString(e));
-                    logError(ErrorLogCategory.PLUGIN,
-                             ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+                    Message message =
+                      ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD.
+                          get(policy.getPasswordAttribute().getNameOrOID(),
+                              String.valueOf(entry.getDN()),
+                              stackTraceToSingleLineString(e));
+                    logError(message);
 
                     encodedValueList.clear();
                     break;
@@ -449,13 +441,12 @@ policyLoop:
                       TRACER.debugCaught(DebugLogLevel.ERROR, e);
                     }
 
-                    int msgID = MSGID_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD;
-                    String message = getMessage(msgID,
-                         policy.getPasswordAttribute().getNameOrOID(),
-                         String.valueOf(entry.getDN()),
-                         stackTraceToSingleLineString(e));
-                    logError(ErrorLogCategory.PLUGIN,
-                             ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+                    Message message =
+                      ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD.
+                          get(policy.getPasswordAttribute().getNameOrOID(),
+                              String.valueOf(entry.getDN()),
+                              stackTraceToSingleLineString(e));
+                    logError(message);
 
                     encodedValueList.clear();
                     break;
@@ -515,12 +506,10 @@ policyLoop:
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              int    msgID   = MSGID_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD;
-              String message = getMessage(msgID, t.getNameOrOID(),
-                                          String.valueOf(entry.getDN()),
-                                          stackTraceToSingleLineString(e));
-              logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                       message, msgID);
+              Message message = ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD.
+                  get(t.getNameOrOID(), String.valueOf(entry.getDN()),
+                      stackTraceToSingleLineString(e));
+              logError(message);
 
               encodedValueList.clear();
               break;
@@ -575,12 +564,10 @@ policyLoop:
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              int    msgID   = MSGID_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD;
-              String message = getMessage(msgID, t.getNameOrOID(),
-                                          String.valueOf(entry.getDN()),
-                                          stackTraceToSingleLineString(e));
-              logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                       message, msgID);
+              Message message = ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD.
+                  get(t.getNameOrOID(), String.valueOf(entry.getDN()),
+                      stackTraceToSingleLineString(e));
+              logError(message);
 
               encodedValueList.clear();
               break;
@@ -606,7 +593,7 @@ policyLoop:
    */
   @Override()
   public boolean isConfigurationAcceptable(PluginCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     PasswordPolicyImportPluginCfg config =
          (PasswordPolicyImportPluginCfg) configuration;
@@ -620,7 +607,7 @@ policyLoop:
    */
   public boolean isConfigurationChangeAcceptable(
                       PasswordPolicyImportPluginCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -635,8 +622,8 @@ policyLoop:
 
 
         default:
-          int msgID = MSGID_PLUGIN_PWPIMPORT_INVALID_PLUGIN_TYPE;
-          String message = getMessage(msgID, pluginType.toString());
+          Message message = ERR_PLUGIN_PWPIMPORT_INVALID_PLUGIN_TYPE.get(
+                  pluginType.toString());
           unacceptableReasons.add(message);
           configAcceptable = false;
       }
@@ -655,9 +642,8 @@ policyLoop:
                 AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_1);
       if (defaultAuthSchemes[0] == null)
       {
-        int    msgID   = MSGID_PLUGIN_PWIMPORT_NO_DEFAULT_AUTH_SCHEMES;
-        String message = getMessage(msgID,
-                                    AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_1);
+        Message message = ERR_PLUGIN_PWIMPORT_NO_DEFAULT_AUTH_SCHEMES.get(
+                AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_1);
         unacceptableReasons.add(message);
         configAcceptable = false;
       }
@@ -673,8 +659,8 @@ policyLoop:
              DirectoryServer.getAuthPasswordStorageScheme(schemeName);
         if (defaultAuthSchemes[i] == null)
         {
-          int    msgID   = MSGID_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME;
-          String message = getMessage(msgID, schemeName);
+          Message message = ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(
+                  schemeName);
           unacceptableReasons.add(message);
           configAcceptable = false;
         }
@@ -695,8 +681,8 @@ policyLoop:
                 toLowerCase(STORAGE_SCHEME_NAME_SALTED_SHA_1));
       if (defaultUserSchemes[0] == null)
       {
-        int    msgID   = MSGID_PLUGIN_PWIMPORT_NO_DEFAULT_USER_SCHEMES;
-        String message = getMessage(msgID, STORAGE_SCHEME_NAME_SALTED_SHA_1);
+        Message message = ERR_PLUGIN_PWIMPORT_NO_DEFAULT_USER_SCHEMES.get(
+                STORAGE_SCHEME_NAME_SALTED_SHA_1);
         unacceptableReasons.add(message);
         configAcceptable = false;
       }
@@ -712,8 +698,8 @@ policyLoop:
              DirectoryServer.getPasswordStorageScheme(toLowerCase(schemeName));
         if (defaultUserSchemes[i] == null)
         {
-          int    msgID   = MSGID_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME;
-          String message = getMessage(msgID, schemeName);
+          Message message = ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME.get(
+                  schemeName);
           unacceptableReasons.add(message);
           configAcceptable = false;
         }
@@ -735,7 +721,7 @@ policyLoop:
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Get the set of default password storage schemes for auth password
@@ -764,9 +750,8 @@ policyLoop:
         {
           resultCode = DirectoryServer.getServerErrorResultCode();
 
-          int msgID = MSGID_PLUGIN_PWIMPORT_NO_DEFAULT_AUTH_SCHEMES;
-          messages.add(getMessage(msgID,
-                                  AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_1));
+          messages.add(ERR_PLUGIN_PWIMPORT_NO_DEFAULT_AUTH_SCHEMES.get(
+                  AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_1));
         }
       }
     }
@@ -782,8 +767,8 @@ policyLoop:
         {
           resultCode = DirectoryServer.getServerErrorResultCode();
 
-          int msgID = MSGID_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME;
-          messages.add(getMessage(msgID, schemeName));
+          messages.add(ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(
+                  schemeName));
         }
         i++;
       }
@@ -814,8 +799,8 @@ policyLoop:
         {
           resultCode = DirectoryServer.getServerErrorResultCode();
 
-          int msgID = MSGID_PLUGIN_PWIMPORT_NO_DEFAULT_USER_SCHEMES;
-          messages.add(getMessage(msgID, STORAGE_SCHEME_NAME_SALTED_SHA_1));
+          messages.add(ERR_PLUGIN_PWIMPORT_NO_DEFAULT_USER_SCHEMES.get(
+                  STORAGE_SCHEME_NAME_SALTED_SHA_1));
         }
       }
     }
@@ -831,8 +816,8 @@ policyLoop:
         {
           resultCode = DirectoryServer.getServerErrorResultCode();
 
-          int msgID = MSGID_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME;
-          messages.add(getMessage(msgID, schemeName));
+          messages.add(ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME.get(
+                  schemeName));
         }
         i++;
       }

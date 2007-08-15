@@ -60,8 +60,8 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
+import org.opends.messages.Message;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -131,12 +131,11 @@ public class RegularExpressionIdentityMapper
     {
       matchPattern  = Pattern.compile(currentConfig.getMatchPattern());
     }
-    catch (PatternSyntaxException pse)
-    {
-      int    msgID   = MSGID_REGEXMAP_INVALID_MATCH_PATTERN;
-      String message = getMessage(msgID, currentConfig.getMatchPattern(),
-                                  pse.getMessage());
-      throw new ConfigException(msgID, message, pse);
+    catch (PatternSyntaxException pse) {
+      Message message = ERR_REGEXMAP_INVALID_MATCH_PATTERN.get(
+              currentConfig.getMatchPattern(),
+              pse.getMessage());
+      throw new ConfigException(message, pse);
     }
 
     replacePattern = currentConfig.getReplacePattern();
@@ -156,10 +155,9 @@ public class RegularExpressionIdentityMapper
                                                             false);
       if (type == null)
       {
-        int    msgID   = MSGID_REGEXMAP_UNKNOWN_ATTR;
-        String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    name);
-        throw new ConfigException(msgID, message);
+        Message message = ERR_REGEXMAP_UNKNOWN_ATTR.get(
+                String.valueOf(configEntryDN), name);
+        throw new ConfigException(message);
       }
 
       attributeTypes[i++] = type;
@@ -257,27 +255,26 @@ public class RegularExpressionIdentityMapper
 
         case SIZE_LIMIT_EXCEEDED:
           // Multiple entries matched the filter.  This is not acceptable.
-          int    msgID   = MSGID_REGEXMAP_MULTIPLE_MATCHING_ENTRIES;
-          String message = getMessage(msgID, String.valueOf(processedID));
-          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                       msgID);
+          Message message = ERR_REGEXMAP_MULTIPLE_MATCHING_ENTRIES.get(
+                          String.valueOf(processedID));
+          throw new DirectoryException(
+                  ResultCode.CONSTRAINT_VIOLATION, message);
+
 
         case TIME_LIMIT_EXCEEDED:
         case ADMIN_LIMIT_EXCEEDED:
           // The search criteria was too inefficient.
-          msgID   = MSGID_REGEXMAP_INEFFICIENT_SEARCH;
-          message = getMessage(msgID, String.valueOf(processedID),
+          message = ERR_REGEXMAP_INEFFICIENT_SEARCH.get(
+                           String.valueOf(processedID),
                          String.valueOf(internalSearch.getErrorMessage()));
-          throw new DirectoryException(internalSearch.getResultCode(), message,
-                                       msgID);
+          throw new DirectoryException(internalSearch.getResultCode(), message);
 
         default:
           // Just pass on the failure that was returned for this search.
-          msgID   = MSGID_REGEXMAP_SEARCH_FAILED;
-          message = getMessage(msgID, String.valueOf(processedID),
+          message = ERR_REGEXMAP_SEARCH_FAILED.get(
+                           String.valueOf(processedID),
                          String.valueOf(internalSearch.getErrorMessage()));
-          throw new DirectoryException(internalSearch.getResultCode(), message,
-                                       msgID);
+          throw new DirectoryException(internalSearch.getResultCode(), message);
       }
 
       LinkedList<SearchResultEntry> searchEntries =
@@ -290,18 +287,18 @@ public class RegularExpressionIdentityMapper
           matchingEntry = iterator.next();
           if (iterator.hasNext())
           {
-            int    msgID   = MSGID_REGEXMAP_MULTIPLE_MATCHING_ENTRIES;
-            String message = getMessage(msgID, String.valueOf(processedID));
+            Message message = ERR_REGEXMAP_MULTIPLE_MATCHING_ENTRIES.get(
+                            String.valueOf(processedID));
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message, msgID);
+                                         message);
           }
         }
         else
         {
-          int    msgID   = MSGID_REGEXMAP_MULTIPLE_MATCHING_ENTRIES;
-          String message = getMessage(msgID, String.valueOf(processedID));
-          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                       msgID);
+          Message message = ERR_REGEXMAP_MULTIPLE_MATCHING_ENTRIES.get(
+                          String.valueOf(processedID));
+          throw new DirectoryException(
+                  ResultCode.CONSTRAINT_VIOLATION, message);
         }
       }
     }
@@ -324,7 +321,7 @@ public class RegularExpressionIdentityMapper
    */
   @Override()
   public boolean isConfigurationAcceptable(IdentityMapperCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     RegularExpressionIdentityMapperCfg config =
          (RegularExpressionIdentityMapperCfg) configuration;
@@ -338,7 +335,7 @@ public class RegularExpressionIdentityMapper
    */
   public boolean isConfigurationChangeAcceptable(
                       RegularExpressionIdentityMapperCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
 
@@ -349,8 +346,8 @@ public class RegularExpressionIdentityMapper
     }
     catch (PatternSyntaxException pse)
     {
-      int    msgID   = MSGID_REGEXMAP_INVALID_MATCH_PATTERN;
-      String message = getMessage(msgID, configuration.getMatchPattern(),
+      Message message = ERR_REGEXMAP_INVALID_MATCH_PATTERN.get(
+                      configuration.getMatchPattern(),
                                   pse.getMessage());
       unacceptableReasons.add(message);
       configAcceptable = false;
@@ -364,8 +361,9 @@ public class RegularExpressionIdentityMapper
                                                          false);
       if (t == null)
       {
-        int msgID = MSGID_REGEXMAP_UNKNOWN_ATTR;
-        unacceptableReasons.add(getMessage(msgID, configuration.dn(), name));
+        Message message = ERR_REGEXMAP_UNKNOWN_ATTR.get(
+                String.valueOf(configuration.dn()), name);
+        unacceptableReasons.add(message);
         configAcceptable = false;
       }
     }
@@ -382,9 +380,9 @@ public class RegularExpressionIdentityMapper
   public ConfigChangeResult applyConfigurationChange(
               RegularExpressionIdentityMapperCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ResultCode         resultCode          = ResultCode.SUCCESS;
+    boolean            adminActionRequired = false;
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     Pattern newMatchPattern = null;
@@ -394,8 +392,8 @@ public class RegularExpressionIdentityMapper
     }
     catch (PatternSyntaxException pse)
     {
-      int    msgID   = MSGID_REGEXMAP_INVALID_MATCH_PATTERN;
-      String message = getMessage(msgID, configuration.getMatchPattern(),
+      Message message = ERR_REGEXMAP_INVALID_MATCH_PATTERN.get(
+                      configuration.getMatchPattern(),
                                   pse.getMessage());
       messages.add(message);
       resultCode = ResultCode.CONSTRAINT_VIOLATION;
@@ -423,8 +421,9 @@ public class RegularExpressionIdentityMapper
           resultCode = ResultCode.NO_SUCH_ATTRIBUTE;
         }
 
-        int msgID = MSGID_REGEXMAP_UNKNOWN_ATTR;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN), name));
+        Message message = ERR_REGEXMAP_UNKNOWN_ATTR.get(
+                        String.valueOf(configEntryDN), name);
+        messages.add(message);
       }
 
       newAttributeTypes[i++] = type;

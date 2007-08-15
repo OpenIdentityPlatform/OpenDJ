@@ -57,7 +57,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.operation.*;
-
+import org.opends.messages.Message;
 
 
 /**
@@ -908,8 +908,8 @@ public class InvocationCounterPlugin
    */
   @Override()
   public PostDisconnectPluginResult doPostDisconnect(
-       ClientConnection clientConnection, DisconnectReason disconnectReason,
-       int msgID, String message)
+          ClientConnection clientConnection, DisconnectReason disconnectReason,
+          Message message)
   {
     postDisconnectCounter.incrementAndGet();
     return PostDisconnectPluginResult.SUCCESS;
@@ -1083,7 +1083,7 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public void doShutdown(String reason)
+  public void doShutdown(Message reason)
   {
     shutdownCalled = true;
   }

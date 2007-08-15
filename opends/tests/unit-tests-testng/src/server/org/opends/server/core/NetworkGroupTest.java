@@ -27,7 +27,7 @@
 package org.opends.server.core;
 
 
-import static org.opends.server.messages.CoreMessages.*;
+import static org.opends.messages.CoreMessages.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
@@ -302,8 +302,8 @@ public class NetworkGroupTest
     catch (DirectoryException de)
     {
       exceptionRaised = true;
-      assertEquals(
-          de.getMessageID(), MSGID_REGISTER_NETWORK_GROUP_ALREADY_EXISTS);
+      assertEquals(de.getMessageObject().getDescriptor(),
+                   ERR_REGISTER_NETWORK_GROUP_ALREADY_EXISTS);
     }
     assertEquals(exceptionRaised, true);
 
@@ -327,7 +327,8 @@ public class NetworkGroupTest
     {
       exceptionRaised = true;
       assertEquals(
-          de.getMessageID(), MSGID_REGISTER_WORKFLOW_NODE_ALREADY_EXISTS);
+          de.getMessageObject().getDescriptor(),
+              ERR_REGISTER_WORKFLOW_NODE_ALREADY_EXISTS);
     }
     assertEquals(exceptionRaised, true);
     

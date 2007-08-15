@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
+import org.opends.messages.Message;
 
 import com.sleepycat.je.config.EnvironmentParams;
 import com.sleepycat.je.config.ConfigParam;
@@ -39,20 +40,18 @@ import java.io.FilenameFilter;
 import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.JebMessages.*;
-import static org.opends.server.messages.ConfigMessages.
-    MSGID_CONFIG_BACKEND_MODE_INVALID;
-import static org.opends.server.messages.ConfigMessages.
-    MSGID_CONFIG_BACKEND_INSANE_MODE;
+import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.ConfigMessages.
+    ERR_CONFIG_BACKEND_MODE_INVALID;
+import static org.opends.messages.ConfigMessages.
+    WARN_CONFIG_BACKEND_INSANE_MODE;
+
 import org.opends.server.api.Backend;
 import org.opends.server.admin.std.server.JEBackendCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -141,9 +140,9 @@ public class RootContainer
     //Make sure the directory is valid.
     if (!backendDirectory.isDirectory())
     {
-      int msgID = MSGID_JEB_DIRECTORY_INVALID;
-      String message = getMessage(msgID, backendDirectory.getPath());
-      throw new ConfigException(MSGID_JEB_DIRECTORY_INVALID, message);
+      Message message =
+          ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath());
+      throw new ConfigException(message);
     }
 
     FilePermission backendPermission;
@@ -154,9 +153,9 @@ public class RootContainer
     }
     catch(Exception e)
     {
-      int msgID = MSGID_CONFIG_BACKEND_MODE_INVALID;
-      String message = getMessage(msgID, config.dn().toString());
-      throw new ConfigException(msgID, message);
+      Message message =
+          ERR_CONFIG_BACKEND_MODE_INVALID.get(config.dn().toString());
+      throw new ConfigException(message);
     }
 
     //Make sure the mode will allow the server itself access to
@@ -165,9 +164,8 @@ public class RootContainer
         !backendPermission.isOwnerReadable() ||
         !backendPermission.isOwnerExecutable())
     {
-      int msgID = MSGID_CONFIG_BACKEND_INSANE_MODE;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
+      Message message = WARN_CONFIG_BACKEND_INSANE_MODE.get();
+      throw new ConfigException(message);
     }
 
     // Get the backend database backendDirectory permissions and apply
@@ -177,21 +175,17 @@ public class RootContainer
       {
         if(!FilePermission.setPermissions(backendDirectory, backendPermission))
         {
-          int msgID = MSGID_JEB_UNABLE_SET_PERMISSIONS;
-          String message = getMessage(msgID, backendPermission.toString(),
-                                      backendDirectory.toString());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.MILD_WARNING,
-                   message, msgID);
+          Message message = WARN_JEB_UNABLE_SET_PERMISSIONS.get(
+              backendPermission.toString(), backendDirectory.toString());
+          logError(message);
         }
       }
       catch(Exception e)
       {
         // Log an warning that the permissions were not set.
-        int msgID = MSGID_JEB_SET_PERMISSIONS_FAILED;
-        String message = getMessage(msgID, backendDirectory.toString(),
-                                    e.toString());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-                 message, msgID);
+        Message message = WARN_JEB_SET_PERMISSIONS_FAILED.get(
+            backendDirectory.toString(), e.toString());
+        logError(message);
       }
     }
 
@@ -412,10 +406,9 @@ public class RootContainer
         EnvironmentStats stats = env.getStats(new StatsConfig());
         long total = stats.getCacheTotalBytes();
 
-        int msgID = MSGID_JEB_CACHE_SIZE_AFTER_PRELOAD;
-        String message = getMessage(msgID, total / (1024 * 1024));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                 msgID);
+        Message message =
+            NOTE_JEB_CACHE_SIZE_AFTER_PRELOAD.get(total / (1024 * 1024));
+        logError(message);
       }
       catch (DatabaseException e)
       {
@@ -437,8 +430,7 @@ public class RootContainer
   private void cleanDatabase()
        throws DatabaseException
   {
-    int msgID;
-    String message;
+    Message message;
 
     FilenameFilter filenameFilter = new FilenameFilter()
     {
@@ -451,10 +443,9 @@ public class RootContainer
     File backendDirectory = env.getHome();
     int beforeLogfileCount = backendDirectory.list(filenameFilter).length;
 
-    msgID = MSGID_JEB_CLEAN_DATABASE_START;
-    message = getMessage(msgID, beforeLogfileCount, backendDirectory.getPath());
-    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-             msgID);
+    message = NOTE_JEB_CLEAN_DATABASE_START.get(
+        beforeLogfileCount, backendDirectory.getPath());
+    logError(message);
 
     int currentCleaned = 0;
     int totalCleaned = 0;
@@ -463,10 +454,8 @@ public class RootContainer
       totalCleaned += currentCleaned;
     }
 
-    msgID = MSGID_JEB_CLEAN_DATABASE_MARKED;
-    message = getMessage(msgID, totalCleaned);
-    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-             msgID);
+    message = NOTE_JEB_CLEAN_DATABASE_MARKED.get(totalCleaned);
+    logError(message);
 
     if (totalCleaned > 0)
     {
@@ -477,10 +466,8 @@ public class RootContainer
 
     int afterLogfileCount = backendDirectory.list(filenameFilter).length;
 
-    msgID = MSGID_JEB_CLEAN_DATABASE_FINISH;
-    message = getMessage(msgID, afterLogfileCount);
-    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-             msgID);
+    message = NOTE_JEB_CLEAN_DATABASE_FINISH.get(afterLogfileCount);
+    logError(message);
 
   }
 
@@ -690,7 +677,7 @@ public class RootContainer
    */
   public boolean isConfigurationChangeAcceptable(
       JEBackendCfg cfg,
-      List<String> unacceptableReasons)
+      List<Message> unacceptableReasons)
   {
     boolean acceptable = true;
 
@@ -698,8 +685,8 @@ public class RootContainer
     //Make sure the directory is valid.
     if (!backendDirectory.isDirectory())
     {
-      int msgID = MSGID_JEB_DIRECTORY_INVALID;
-      String message = getMessage(msgID, backendDirectory.getPath());
+      Message message =
+              ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath());
       unacceptableReasons.add(message);
       acceptable = false;
     }
@@ -715,16 +702,15 @@ public class RootContainer
           !newBackendPermission.isOwnerReadable() ||
           !newBackendPermission.isOwnerExecutable())
       {
-        int msgID = MSGID_CONFIG_BACKEND_INSANE_MODE;
-        String message = getMessage(msgID);
+        Message message = WARN_CONFIG_BACKEND_INSANE_MODE.get();
         unacceptableReasons.add(message);
         acceptable = false;
       }
     }
     catch(Exception e)
     {
-      int msgID = MSGID_CONFIG_BACKEND_MODE_INVALID;
-      String message = getMessage(msgID, cfg.dn().toString());
+      Message message =
+              ERR_CONFIG_BACKEND_MODE_INVALID.get(cfg.dn().toString());
       unacceptableReasons.add(message);
       acceptable = false;
     }
@@ -735,7 +721,7 @@ public class RootContainer
     }
     catch (Exception e)
     {
-      unacceptableReasons.add(e.getMessage());
+      unacceptableReasons.add(Message.raw(e.getLocalizedMessage()));
       acceptable = false;
     }
 
@@ -751,7 +737,7 @@ public class RootContainer
   {
     ConfigChangeResult ccr;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     try
     {
@@ -776,8 +762,8 @@ public class RootContainer
                   getAttributeForProperty(param.getName());
               if (configAttr != null)
               {
-                int msgID = MSGID_JEB_CONFIG_ATTR_REQUIRES_RESTART;
-                messages.add(getMessage(msgID, configAttr));
+                messages.add(INFO_JEB_CONFIG_ATTR_REQUIRES_RESTART.get(
+                        configAttr));
               }
               if(debugEnabled())
               {
@@ -802,7 +788,7 @@ public class RootContainer
     }
     catch (Exception e)
     {
-      messages.add(StaticUtils.stackTraceToSingleLineString(e));
+      messages.add(Message.raw(StaticUtils.stackTraceToSingleLineString(e)));
       ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
                                    adminActionRequired,
                                    messages);

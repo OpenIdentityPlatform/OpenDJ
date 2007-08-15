@@ -33,13 +33,9 @@ import org.testng.annotations.*;
 import org.opends.admin.ads.ADSContext.ServerGroupProperty;
 import org.opends.admin.ads.ADSContextException.ErrorType;
 import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.SubCommandArgumentParser;
 
-import com.sleepycat.je.dbi.GetMode;
-
-import static org.opends.server.messages.AdminMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
+import static org.opends.messages.AdminMessages.*;
+import org.opends.messages.Message;
 
 
 /**
@@ -62,23 +58,21 @@ public class CliTest {
   @Test
   public void testReturnCodeMessageId()
   {
-    String invalidMsgId;
+    String invalidMsg;
     String msg;
-    int messageID;
+    Message message;
     for (DsFrameworkCliReturnCode returnCode : DsFrameworkCliReturnCode
         .values())
     {
-      if ((messageID = returnCode.getMessageId()) == MSGID_ADMIN_NO_MESSAGE)
+      if ((message = returnCode.getMessage()).equals(ERR_ADMIN_NO_MESSAGE.get()))
       {
         continue;
       }
-      invalidMsgId = "Unknown message for message ID " + messageID;
-      // get the associated Msg
-      msg = getMessage(messageID);
-      if (msg.equals(invalidMsgId))
+      invalidMsg = "Unknown message for message ID " + message;
+      if (message.toString().equals(invalidMsg))
       {
         assertTrue(false, "ReturnCode \"" + returnCode
-            + "\" is registered with a wrong  message Id (" + messageID + ")");
+            + "\" is registered with a wrong  message Id (" + message + ")");
       }
     }
   }

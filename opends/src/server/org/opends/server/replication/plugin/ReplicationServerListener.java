@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
+import org.opends.messages.Message;
 
 import java.util.List;
 
@@ -36,6 +37,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
+
 
 /**
  * This class is used to create and object that can
@@ -96,7 +98,7 @@ public class ReplicationServerListener
    * {@inheritDoc}
    */
   public boolean isConfigurationAddAcceptable(
-      ReplicationServerCfg configuration, List<String> unacceptableReasons)
+      ReplicationServerCfg configuration, List<Message> unacceptableReasons)
   {
     return ReplicationServer.isConfigurationAcceptable(
       configuration, unacceptableReasons);
@@ -130,7 +132,7 @@ public class ReplicationServerListener
    * {@inheritDoc}
    */
   public boolean isConfigurationDeleteAcceptable(
-      ReplicationServerCfg configuration, List<String> unacceptableReasons)
+      ReplicationServerCfg configuration, List<Message> unacceptableReasons)
   {
     return true;
   }

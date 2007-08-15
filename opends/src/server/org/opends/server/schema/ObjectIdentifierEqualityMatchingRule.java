@@ -25,7 +25,8 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
-
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 
 import java.util.Arrays;
@@ -39,19 +40,15 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types. AttributeType;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
+import org.opends.server.loggers.ErrorLogger;
 
 
 /**
@@ -200,7 +197,7 @@ public class ObjectIdentifierEqualityMatchingRule
     switch (DirectoryServer.getSyntaxEnforcementPolicy())
     {
       case REJECT:
-        StringBuilder invalidReason = new StringBuilder();
+        MessageBuilder invalidReason = new MessageBuilder();
         if (isValidSchemaElement(lowerValue, 0, lowerValue.length(),
                                 invalidReason))
         {
@@ -208,23 +205,20 @@ public class ObjectIdentifierEqualityMatchingRule
         }
         else
         {
-          int msgID = MSGID_ATTR_SYNTAX_OID_INVALID_VALUE;
-          String message = getMessage(msgID, lowerValue,
-                                      invalidReason.toString());
+          Message message = ERR_ATTR_SYNTAX_OID_INVALID_VALUE.get(
+              lowerValue, invalidReason.toString());
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         }
 
       case WARN:
-        invalidReason = new StringBuilder();
+        invalidReason = new MessageBuilder();
         if (! isValidSchemaElement(lowerValue, 0, lowerValue.length(),
                                    invalidReason))
         {
-          int msgID = MSGID_ATTR_SYNTAX_OID_INVALID_VALUE;
-          String message = getMessage(msgID, lowerValue,
-                                      invalidReason.toString());
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                   message, msgID);
+          Message message = ERR_ATTR_SYNTAX_OID_INVALID_VALUE.get(
+              lowerValue, invalidReason.toString());
+          ErrorLogger.logError(message);
         }
 
         return new ASN1OctetString(lowerValue);

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 
 
@@ -48,13 +49,11 @@ import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.ThreadFilterTextErrorLogPublisher;
 import org.opends.server.loggers.TextWriter;
-import org.opends.server.loggers.ErrorLogger;
+import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.args.ArgumentException;
@@ -62,9 +61,7 @@ import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
@@ -93,7 +90,7 @@ public class BackUpDB
 
     if(errorLogPublisher != null)
     {
-      ErrorLogger.removeErrorLogPublisher(errorLogPublisher);
+      removeErrorLogPublisher(errorLogPublisher);
     }
 
     if(retCode != 0)
@@ -167,7 +164,7 @@ public class BackUpDB
 
 
     // Create the command-line argument parser for use with this program.
-    String toolDescription = getMessage(MSGID_BACKUPDB_TOOL_DESCRIPTION);
+    Message toolDescription = INFO_BACKUPDB_TOOL_DESCRIPTION.get();
     ArgumentParser argParser =
          new ArgumentParser("org.opends.server.tools.BackUpDB", toolDescription,
                             false);
@@ -182,7 +179,7 @@ public class BackUpDB
                               OPTION_LONG_CONFIG_CLASS, true, false,
                               true, OPTION_VALUE_CONFIG_CLASS,
                               ConfigFileHandler.class.getName(), null,
-                              MSGID_DESCRIPTION_CONFIG_CLASS);
+                              INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
@@ -190,7 +187,7 @@ public class BackUpDB
       configFile =
            new StringArgument("configfile", 'f', "configFile", true, false,
                               true, "{configFile}", null, null,
-                              MSGID_DESCRIPTION_CONFIG_FILE);
+                              INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
@@ -198,74 +195,76 @@ public class BackUpDB
       backendID =
            new StringArgument("backendid", 'n', "backendID", false, true, true,
                               "{backendID}", null, null,
-                              MSGID_BACKUPDB_DESCRIPTION_BACKEND_ID);
+                              INFO_BACKUPDB_DESCRIPTION_BACKEND_ID.get());
       argParser.addArgument(backendID);
 
 
-      backUpAll = new BooleanArgument("backupall", 'a', "backUpAll",
-                                      MSGID_BACKUPDB_DESCRIPTION_BACKUP_ALL);
+      backUpAll = new BooleanArgument(
+              "backupall", 'a', "backUpAll",
+              INFO_BACKUPDB_DESCRIPTION_BACKUP_ALL.get());
       argParser.addArgument(backUpAll);
 
 
       backupIDString =
            new StringArgument("backupid", 'I', "backupID", false, false, true,
                               "{backupID}", null, null,
-                              MSGID_BACKUPDB_DESCRIPTION_BACKUP_ID);
+                              INFO_BACKUPDB_DESCRIPTION_BACKUP_ID.get());
       argParser.addArgument(backupIDString);
 
 
       backupDirectory =
            new StringArgument("backupdirectory", 'd', "backupDirectory", true,
                               false, true, "{backupDir}", null, null,
-                              MSGID_BACKUPDB_DESCRIPTION_BACKUP_DIR);
+                              INFO_BACKUPDB_DESCRIPTION_BACKUP_DIR.get());
       argParser.addArgument(backupDirectory);
 
 
-      incremental = new BooleanArgument("incremental", 'i', "incremental",
-                                        MSGID_BACKUPDB_DESCRIPTION_INCREMENTAL);
+      incremental = new BooleanArgument(
+              "incremental", 'i', "incremental",
+              INFO_BACKUPDB_DESCRIPTION_INCREMENTAL.get());
       argParser.addArgument(incremental);
 
 
       incrementalBaseID =
-           new StringArgument("incrementalbaseid", 'B', "incrementalBaseID",
-                              false, false, true, "{backupID}", null, null,
-                              MSGID_BACKUPDB_DESCRIPTION_INCREMENTAL_BASE_ID);
+           new StringArgument(
+                   "incrementalbaseid", 'B', "incrementalBaseID",
+                   false, false, true, "{backupID}", null, null,
+                   INFO_BACKUPDB_DESCRIPTION_INCREMENTAL_BASE_ID.get());
       argParser.addArgument(incrementalBaseID);
 
 
       compress = new BooleanArgument("compress", OPTION_SHORT_COMPRESS,
                                      OPTION_LONG_COMPRESS,
-                                     MSGID_BACKUPDB_DESCRIPTION_COMPRESS);
+                                     INFO_BACKUPDB_DESCRIPTION_COMPRESS.get());
       argParser.addArgument(compress);
 
 
       encrypt = new BooleanArgument("encrypt", 'y', "encrypt",
-                                    MSGID_BACKUPDB_DESCRIPTION_ENCRYPT);
+                                    INFO_BACKUPDB_DESCRIPTION_ENCRYPT.get());
       argParser.addArgument(encrypt);
 
 
       hash = new BooleanArgument("hash", 'h', "hash",
-                                 MSGID_BACKUPDB_DESCRIPTION_HASH);
+                                 INFO_BACKUPDB_DESCRIPTION_HASH.get());
       argParser.addArgument(hash);
 
 
       signHash =
            new BooleanArgument("signhash", 's', "signHash",
-                               MSGID_BACKUPDB_DESCRIPTION_SIGN_HASH);
+                               INFO_BACKUPDB_DESCRIPTION_SIGN_HASH.get());
       argParser.addArgument(signHash);
 
 
       displayUsage =
            new BooleanArgument("help", OPTION_SHORT_HELP,
                                OPTION_LONG_HELP,
-                               MSGID_DESCRIPTION_USAGE);
+                               INFO_DESCRIPTION_USAGE.get());
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
@@ -279,8 +278,7 @@ public class BackUpDB
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -302,18 +300,18 @@ public class BackUpDB
     {
       if (backendID.isPresent())
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_MIX_BACKUP_ALL_AND_BACKEND_ID;
-        String message = getMessage(msgID, backUpAll.getLongIdentifier(),
-                                    backendID.getLongIdentifier());
+        Message message = ERR_BACKUPDB_CANNOT_MIX_BACKUP_ALL_AND_BACKEND_ID.get(
+                backUpAll.getLongIdentifier(),
+                backendID.getLongIdentifier());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
     }
     else if (! backendID.isPresent())
     {
-      int    msgID   = MSGID_BACKUPDB_NEED_BACKUP_ALL_OR_BACKEND_ID;
-      String message = getMessage(msgID, backUpAll.getLongIdentifier(),
-                                  backendID.getLongIdentifier());
+      Message message = ERR_BACKUPDB_NEED_BACKUP_ALL_OR_BACKEND_ID.get(
+              backUpAll.getLongIdentifier(),
+              backendID.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -340,10 +338,10 @@ public class BackUpDB
     {
       if (! incremental.isPresent())
       {
-        int    msgID   = MSGID_BACKUPDB_INCREMENTAL_BASE_REQUIRES_INCREMENTAL;
-        String message = getMessage(msgID,
-                                    incrementalBaseID.getLongIdentifier(),
-                                    incremental.getLongIdentifier());
+        Message message =
+                ERR_BACKUPDB_INCREMENTAL_BASE_REQUIRES_INCREMENTAL.get(
+                        incrementalBaseID.getLongIdentifier(),
+                        incremental.getLongIdentifier());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -360,9 +358,9 @@ public class BackUpDB
     // was given.
     if (signHash.isPresent() && (! hash.isPresent()))
     {
-      int    msgID   = MSGID_BACKUPDB_SIGN_REQUIRES_HASH;
-      String message = getMessage(msgID, signHash.getLongIdentifier(),
-                                  hash.getLongIdentifier());
+      Message message = ERR_BACKUPDB_SIGN_REQUIRES_HASH.get(
+              signHash.getLongIdentifier(),
+              hash.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -378,9 +376,9 @@ public class BackUpDB
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_CREATE_BACKUP_DIR;
-        String message = getMessage(msgID, backupDirectory.getValue(),
-                                    getExceptionMessage(e));
+        Message message = ERR_BACKUPDB_CANNOT_CREATE_BACKUP_DIR.get(
+                backupDirectory.getValue(),
+                getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -399,8 +397,8 @@ public class BackUpDB
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_SERVER_BOOTSTRAP_ERROR;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_SERVER_BOOTSTRAP_ERROR.get(
+                getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -412,15 +410,13 @@ public class BackUpDB
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
-        String message = getMessage(msgID, ie.getMessage());
+        Message message = ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -434,22 +430,19 @@ public class BackUpDB
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-        String message = getMessage(msgID, ce.getMessage());
+        Message message = ERR_CANNOT_LOAD_SCHEMA.get(ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-        String message = getMessage(msgID, ie.getMessage());
+        Message message = ERR_CANNOT_LOAD_SCHEMA.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -463,22 +456,22 @@ public class BackUpDB
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
-        String message = getMessage(msgID, ce.getMessage());
+        Message message =
+                ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
-        String message = getMessage(msgID, ie.getMessage());
+        Message message =
+                ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+                getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -491,22 +484,22 @@ public class BackUpDB
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-        String message = getMessage(msgID, ce.getMessage());
+        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+                ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-        String message = getMessage(msgID, ie.getMessage());
+        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+                ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+                getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -519,7 +512,7 @@ public class BackUpDB
         errorLogPublisher =
             new ThreadFilterTextErrorLogPublisher(Thread.currentThread(),
                                                   new TextWriter.STREAM(out));
-        ErrorLogger.addErrorLogPublisher(errorLogPublisher);
+        addErrorLogPublisher(errorLogPublisher);
 
       }
       catch(Exception e)
@@ -573,10 +566,9 @@ public class BackUpDB
         {
           if (! b.supportsBackup())
           {
-            int    msgID   = MSGID_BACKUPDB_BACKUP_NOT_SUPPORTED;
-            String message = getMessage(msgID, b.getBackendID());
-            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                     msgID);
+            Message message =
+                WARN_BACKUPDB_BACKUP_NOT_SUPPORTED.get(b.getBackendID());
+            logError(message);
           }
           else
           {
@@ -591,10 +583,8 @@ public class BackUpDB
       {
         for (String id : requestedBackends)
         {
-          int    msgID   = MSGID_BACKUPDB_NO_BACKENDS_FOR_ID;
-          String message = getMessage(msgID, id);
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_BACKUPDB_NO_BACKENDS_FOR_ID.get(id);
+          logError(message);
         }
 
         return 1;
@@ -609,10 +599,8 @@ public class BackUpDB
     // If there are no backends to archive, then print an error and exit.
     if (backendsToArchive.isEmpty())
     {
-      int    msgID   = MSGID_BACKUPDB_NO_BACKENDS_TO_ARCHIVE;
-      String message = getMessage(msgID);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = WARN_BACKUPDB_NO_BACKENDS_TO_ARCHIVE.get();
+      logError(message);
       return 1;
     }
 
@@ -628,31 +616,25 @@ public class BackUpDB
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
         {
-          int    msgID   = MSGID_BACKUPDB_CANNOT_LOCK_BACKEND;
-          String message = getMessage(msgID, b.getBackendID(),
-                                      String.valueOf(failureReason));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_BACKUPDB_CANNOT_LOCK_BACKEND.get(
+              b.getBackendID(), String.valueOf(failureReason));
+          logError(message);
           errorsEncountered = true;
           continue;
         }
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_LOCK_BACKEND;
-        String message = getMessage(msgID, b.getBackendID(),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_BACKUPDB_CANNOT_LOCK_BACKEND.get(
+            b.getBackendID(), getExceptionMessage(e));
+        logError(message);
         errorsEncountered = true;
         continue;
       }
 
 
-      int    msgID = MSGID_BACKUPDB_STARTING_BACKUP;
-      String message = getMessage(msgID, b.getBackendID());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-               msgID);
+      Message message = NOTE_BACKUPDB_STARTING_BACKUP.get(b.getBackendID());
+      logError(message);
 
 
       // Get the config entry for this backend.
@@ -693,10 +675,9 @@ public class BackUpDB
           }
           catch (ConfigException ce)
           {
-            msgID   = MSGID_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR;
-            message = getMessage(msgID, descriptorPath, ce.getMessage());
-            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
+            message = ERR_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR.get(
+                descriptorPath, ce.getMessage());
+            logError(message);
             errorsEncountered = true;
 
             try
@@ -705,30 +686,25 @@ public class BackUpDB
               StringBuilder failureReason = new StringBuilder();
               if (! LockFileManager.releaseLock(lockFile, failureReason))
               {
-                msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-                message = getMessage(msgID, b.getBackendID(),
-                                     String.valueOf(failureReason));
-                logError(ErrorLogCategory.BACKEND,
-                         ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
+                    b.getBackendID(), String.valueOf(failureReason));
+                logError(message);
               }
             }
             catch (Exception e)
             {
-              msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-              message = getMessage(msgID, b.getBackendID(),
-                                   getExceptionMessage(e));
-              logError(ErrorLogCategory.BACKEND,
-                       ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+              message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
+                  b.getBackendID(), getExceptionMessage(e));
+              logError(message);
             }
 
             continue;
           }
           catch (Exception e)
           {
-            msgID   = MSGID_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR;
-            message = getMessage(msgID, descriptorPath, getExceptionMessage(e));
-            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
+            message = ERR_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR.get(
+                descriptorPath, getExceptionMessage(e));
+            logError(message);
             errorsEncountered = true;
 
             try
@@ -737,20 +713,16 @@ public class BackUpDB
               StringBuilder failureReason = new StringBuilder();
               if (! LockFileManager.releaseLock(lockFile, failureReason))
               {
-                msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-                message = getMessage(msgID, b.getBackendID(),
-                                     String.valueOf(failureReason));
-                logError(ErrorLogCategory.BACKEND,
-                         ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
+                    b.getBackendID(), String.valueOf(failureReason));
+                logError(message);
               }
             }
             catch (Exception e2)
             {
-              msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-              message = getMessage(msgID, b.getBackendID(),
-                                   getExceptionMessage(e2));
-              logError(ErrorLogCategory.BACKEND,
-                       ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+              message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
+                  b.getBackendID(), getExceptionMessage(e2));
+              logError(message);
             }
 
             continue;
@@ -769,10 +741,9 @@ public class BackUpDB
         }
         catch (Exception e)
         {
-          msgID   = MSGID_BACKUPDB_CANNOT_CREATE_BACKUP_DIR;
-          message = getMessage(msgID, backupDirPath, getExceptionMessage(e));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          message = ERR_BACKUPDB_CANNOT_CREATE_BACKUP_DIR.get(
+              backupDirPath, getExceptionMessage(e));
+          logError(message);
           errorsEncountered = true;
 
           try
@@ -781,20 +752,16 @@ public class BackUpDB
             StringBuilder failureReason = new StringBuilder();
             if (! LockFileManager.releaseLock(lockFile, failureReason))
             {
-              msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-              message = getMessage(msgID, b.getBackendID(),
-                                   String.valueOf(failureReason));
-              logError(ErrorLogCategory.BACKEND,
-                       ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+              message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
+                  b.getBackendID(), String.valueOf(failureReason));
+              logError(message);
             }
           }
           catch (Exception e2)
           {
-            msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-            message = getMessage(msgID, b.getBackendID(),
-                                 getExceptionMessage(e2));
-            logError(ErrorLogCategory.BACKEND,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+            message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
+                b.getBackendID(), getExceptionMessage(e2));
+            logError(message);
           }
 
           continue;
@@ -817,11 +784,9 @@ public class BackUpDB
       StringBuilder unsupportedReason = new StringBuilder();
       if (! b.supportsBackup(backupConfig, unsupportedReason))
       {
-        msgID   = MSGID_BACKUPDB_CANNOT_BACKUP;
-        message = getMessage(msgID, b.getBackendID(),
-                             unsupportedReason.toString());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        message = ERR_BACKUPDB_CANNOT_BACKUP.get(
+            b.getBackendID(), unsupportedReason.toString());
+        logError(message);
         errorsEncountered = true;
 
         try
@@ -830,20 +795,16 @@ public class BackUpDB
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.releaseLock(lockFile, failureReason))
           {
-            msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-            message = getMessage(msgID, b.getBackendID(),
-                                 String.valueOf(failureReason));
-            logError(ErrorLogCategory.BACKEND,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+            message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
+                b.getBackendID(), String.valueOf(failureReason));
+            logError(message);
           }
         }
         catch (Exception e2)
         {
-          msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-          message = getMessage(msgID, b.getBackendID(),
-                               getExceptionMessage(e2));
-          logError(ErrorLogCategory.BACKEND,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
+              b.getBackendID(), getExceptionMessage(e2));
+          logError(message);
         }
 
         continue;
@@ -857,11 +818,9 @@ public class BackUpDB
       }
       catch (DirectoryException de)
       {
-        msgID   = MSGID_BACKUPDB_ERROR_DURING_BACKUP;
-        message = getMessage(msgID, b.getBackendID(),
-                                    de.getErrorMessage());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        message = ERR_BACKUPDB_ERROR_DURING_BACKUP.get(
+            b.getBackendID(), de.getMessageObject());
+        logError(message);
         errorsEncountered = true;
 
         try
@@ -870,29 +829,25 @@ public class BackUpDB
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.releaseLock(lockFile, failureReason))
           {
-            msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-            message = getMessage(msgID, b.getBackendID(),
-                                 String.valueOf(failureReason));
-            logError(ErrorLogCategory.BACKEND,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+            message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
+                b.getBackendID(), String.valueOf(failureReason));
+            logError(message);
           }
         }
         catch (Exception e)
         {
-          msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-          message = getMessage(msgID, b.getBackendID(), getExceptionMessage(e));
-          logError(ErrorLogCategory.BACKEND,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
+              b.getBackendID(), getExceptionMessage(e));
+          logError(message);
         }
 
         continue;
       }
       catch (Exception e)
       {
-        msgID   = MSGID_BACKUPDB_ERROR_DURING_BACKUP;
-        message = getMessage(msgID, b.getBackendID(), getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        message = ERR_BACKUPDB_ERROR_DURING_BACKUP.get(
+            b.getBackendID(), getExceptionMessage(e));
+        logError(message);
         errorsEncountered = true;
 
         try
@@ -901,20 +856,16 @@ public class BackUpDB
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.releaseLock(lockFile, failureReason))
           {
-            msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-            message = getMessage(msgID, b.getBackendID(),
-                                 String.valueOf(failureReason));
-            logError(ErrorLogCategory.BACKEND,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+            message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
+                b.getBackendID(), String.valueOf(failureReason));
+            logError(message);
           }
         }
         catch (Exception e2)
         {
-          msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-          message = getMessage(msgID, b.getBackendID(),
-                               getExceptionMessage(e2));
-          logError(ErrorLogCategory.BACKEND,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
+              b.getBackendID(), getExceptionMessage(e2));
+          logError(message);
         }
 
         continue;
@@ -928,20 +879,17 @@ public class BackUpDB
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
-          msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-          message = getMessage(msgID, b.getBackendID(),
-                               String.valueOf(failureReason));
-          logError(ErrorLogCategory.BACKEND,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
+              b.getBackendID(), String.valueOf(failureReason));
+          logError(message);
           errorsEncountered = true;
         }
       }
       catch (Exception e)
       {
-        msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
-        message = getMessage(msgID, b.getBackendID(), getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+        message = WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND.get(
+            b.getBackendID(), getExceptionMessage(e));
+        logError(message);
         errorsEncountered = true;
       }
     }
@@ -951,17 +899,13 @@ public class BackUpDB
     // in the process.
     if (errorsEncountered)
     {
-      int    msgID = MSGID_BACKUPDB_COMPLETED_WITH_ERRORS;
-      String message = getMessage(msgID);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-               msgID);
+      Message message = NOTE_BACKUPDB_COMPLETED_WITH_ERRORS.get();
+      logError(message);
     }
     else
     {
-      int    msgID = MSGID_BACKUPDB_COMPLETED_SUCCESSFULLY;
-      String message = getMessage(msgID);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-               msgID);
+      Message message = NOTE_BACKUPDB_COMPLETED_SUCCESSFULLY.get();
+      logError(message);
     }
     return 0;
   }

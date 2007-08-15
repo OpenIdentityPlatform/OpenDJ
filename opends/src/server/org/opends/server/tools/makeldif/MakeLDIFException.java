@@ -28,8 +28,9 @@ package org.opends.server.tools.makeldif;
 
 
 
-import org.opends.server.types.IdentifiedException;
 
+import org.opends.server.types.IdentifiedException;
+import org.opends.messages.Message;
 
 
 /**
@@ -50,22 +51,14 @@ public class MakeLDIFException
 
 
 
-  // The unique identifier for the message.
-  private int msgID;
-
-
-
   /**
    * Creates a new MakeLDIF exception with the provided information.
    *
-   * @param  msgID    The unique identifier for the message.
    * @param  message  The message for this exception.
    */
-  public MakeLDIFException(int msgID, String message)
+  public MakeLDIFException(Message message)
   {
     super(message);
-
-    this.msgID = msgID;
   }
 
 
@@ -73,27 +66,13 @@ public class MakeLDIFException
   /**
    * Creates a new MakeLDIF exception with the provided information.
    *
-   * @param  msgID    The unique identifier for the message.
    * @param  message  The message for this exception.
    * @param  cause    The underlying cause for this exception.
    */
-  public MakeLDIFException(int msgID, String message, Throwable cause)
+  public MakeLDIFException(Message message, Throwable cause)
   {
     super(message, cause);
-
-    this.msgID = msgID;
   }
 
-
-
-  /**
-   * Retrieves the unique identifier for the message.
-   *
-   * @return  The unique identifier for the message.
-   */
-  public int getMessageID()
-  {
-    return msgID;
-  }
 }
 

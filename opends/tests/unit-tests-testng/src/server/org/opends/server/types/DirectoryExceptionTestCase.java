@@ -35,6 +35,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 
 import static org.testng.Assert.*;
 
@@ -76,12 +77,10 @@ public class DirectoryExceptionTestCase
   @Test(dataProvider = "resultCodes")
   public void testConstructor1(ResultCode resultCode)
   {
-    String msg = "Test Constructor 1";
+    Message msg = Message.raw("Test Constructor 1");
 
-    validateException(new DirectoryException(resultCode, msg, 1));
-    validateException(new DirectoryException(resultCode, null, 1));
-    validateException(new DirectoryException(resultCode, msg, -1));
-    validateException(new DirectoryException(resultCode, null, -1));
+    validateException(new DirectoryException(resultCode, msg));
+    validateException(new DirectoryException(resultCode, (Message)null));
   }
 
 
@@ -95,18 +94,11 @@ public class DirectoryExceptionTestCase
   @Test(dataProvider = "resultCodes")
   public void testConstructor2(ResultCode resultCode)
   {
-    String    msg = "Test Constructor 2";
+    Message   msg = Message.raw("Test Constructor 2");
     Exception e   = new Exception("Test Constructor 2 Exception");
 
-    validateException(new DirectoryException(resultCode, msg, 1, e));
-    validateException(new DirectoryException(resultCode, null, 1, e));
-    validateException(new DirectoryException(resultCode, msg, -1, e));
-    validateException(new DirectoryException(resultCode, null, -1, e));
-
-    validateException(new DirectoryException(resultCode, msg, 1, null));
-    validateException(new DirectoryException(resultCode, null, 1, null));
-    validateException(new DirectoryException(resultCode, msg, -1, null));
-    validateException(new DirectoryException(resultCode, null, -1, null));
+    validateException(new DirectoryException(resultCode, msg, e));
+    validateException(new DirectoryException(resultCode, null, e));
   }
 
 
@@ -123,29 +115,21 @@ public class DirectoryExceptionTestCase
   public void testConstructor3(ResultCode resultCode)
          throws Exception
   {
-    String    msg = "Test Constructor 3";
+    Message   msg = Message.raw("Test Constructor 3");
     DN        dn  = DN.decode("cn=Test Constructor 3,dc=example,dc=com");
     Exception e   = new Exception("Test Constructor 3 Exception");
 
-    validateException(new DirectoryException(resultCode, msg, 1, dn, e));
-    validateException(new DirectoryException(resultCode, null, 1, dn, e));
-    validateException(new DirectoryException(resultCode, msg, -1, dn, e));
-    validateException(new DirectoryException(resultCode, null, -1, dn, e));
+    validateException(new DirectoryException(resultCode, msg, dn, e));
+    validateException(new DirectoryException(resultCode, null, dn, e));
 
-    validateException(new DirectoryException(resultCode, msg, 1, dn, null));
-    validateException(new DirectoryException(resultCode, null, 1, dn, null));
-    validateException(new DirectoryException(resultCode, msg, -1, dn, null));
-    validateException(new DirectoryException(resultCode, null, -1, dn, null));
+    validateException(new DirectoryException(resultCode, msg, dn, null));
+    validateException(new DirectoryException(resultCode, null, dn, null));
 
-    validateException(new DirectoryException(resultCode, msg, 1, null, e));
-    validateException(new DirectoryException(resultCode, null, 1, null, e));
-    validateException(new DirectoryException(resultCode, msg, -1, null, e));
-    validateException(new DirectoryException(resultCode, null, -1, null, e));
+    validateException(new DirectoryException(resultCode, msg, null, e));
+    validateException(new DirectoryException(resultCode, null, null, e));
 
-    validateException(new DirectoryException(resultCode, msg, 1, null, null));
-    validateException(new DirectoryException(resultCode, null, 1, null, null));
-    validateException(new DirectoryException(resultCode, msg, -1, null, null));
-    validateException(new DirectoryException(resultCode, null, -1, null, null));
+    validateException(new DirectoryException(resultCode, msg, null, null));
+    validateException(new DirectoryException(resultCode, null, null, null));
   }
 
 
@@ -162,110 +146,65 @@ public class DirectoryExceptionTestCase
   public void testConstructor4(ResultCode resultCode)
          throws Exception
   {
-    String    msg     = "Test Constructor 4";
+    Message   msg     = Message.raw("Test Constructor 4");
     DN        dn      = DN.decode("cn=Test Constructor 4,dc=example,dc=com");
     Exception e       = new Exception("Test Constructor 4 Exception");
     List<String> refs = new ArrayList<String>();
     refs.add("ldap://ldap.example.com/cn=Test Constructor 4,dc=example,dc=com");
 
-    validateException(new DirectoryException(resultCode, msg, 1, dn, refs, e));
-    validateException(new DirectoryException(resultCode, null, 1, dn, refs, e));
-    validateException(new DirectoryException(resultCode, msg, -1, dn, refs, e));
-    validateException(new DirectoryException(resultCode, null, -1, dn, refs,
-                                             e));
+    validateException(new DirectoryException(resultCode, msg, dn, refs, e));
+    validateException(new DirectoryException(resultCode, null, dn, refs, e));
 
-    validateException(new DirectoryException(resultCode, msg, 1, dn, refs,
+    validateException(new DirectoryException(resultCode, msg, dn, refs,
                                              null));
-    validateException(new DirectoryException(resultCode, null, 1, dn, refs,
-                                             null));
-    validateException(new DirectoryException(resultCode, msg, -1, dn, refs,
-                                             null));
-    validateException(new DirectoryException(resultCode, null, -1, dn, refs,
+    validateException(new DirectoryException(resultCode, null, dn, refs,
                                              null));
 
-    validateException(new DirectoryException(resultCode, msg, 1, null, refs,
+    validateException(new DirectoryException(resultCode, msg, null, refs,
                                              e));
-    validateException(new DirectoryException(resultCode, null, 1, null, refs,
-                                             e));
-    validateException(new DirectoryException(resultCode, msg, -1, null, refs,
-                                             e));
-    validateException(new DirectoryException(resultCode, null, -1, null, refs,
+    validateException(new DirectoryException(resultCode, null, null, refs,
                                              e));
 
-    validateException(new DirectoryException(resultCode, msg, 1, null, refs,
+    validateException(new DirectoryException(resultCode, msg, null, refs,
                                              null));
-    validateException(new DirectoryException(resultCode, null, 1, null, refs,
-                                             null));
-    validateException(new DirectoryException(resultCode, msg, -1, null, refs,
-                                             null));
-    validateException(new DirectoryException(resultCode, null, -1, null, refs,
+    validateException(new DirectoryException(resultCode, null, null, refs,
                                              null));
 
     refs.clear();
-    validateException(new DirectoryException(resultCode, msg, 1, dn, refs, e));
-    validateException(new DirectoryException(resultCode, null, 1, dn, refs, e));
-    validateException(new DirectoryException(resultCode, msg, -1, dn, refs, e));
-    validateException(new DirectoryException(resultCode, null, -1, dn, refs,
-                                             e));
+    validateException(new DirectoryException(resultCode, msg, dn, refs, e));
+    validateException(new DirectoryException(resultCode, null, dn, refs, e));
 
-    validateException(new DirectoryException(resultCode, msg, 1, dn, refs,
+    validateException(new DirectoryException(resultCode, msg, dn, refs,
                                              null));
-    validateException(new DirectoryException(resultCode, null, 1, dn, refs,
-                                             null));
-    validateException(new DirectoryException(resultCode, msg, -1, dn, refs,
-                                             null));
-    validateException(new DirectoryException(resultCode, null, -1, dn, refs,
+    validateException(new DirectoryException(resultCode, null, dn, refs,
                                              null));
 
-    validateException(new DirectoryException(resultCode, msg, 1, null, refs,
+    validateException(new DirectoryException(resultCode, msg, null, refs,
                                              e));
-    validateException(new DirectoryException(resultCode, null, 1, null, refs,
-                                             e));
-    validateException(new DirectoryException(resultCode, msg, -1, null, refs,
-                                             e));
-    validateException(new DirectoryException(resultCode, null, -1, null, refs,
+    validateException(new DirectoryException(resultCode, null, null, refs,
                                              e));
 
-    validateException(new DirectoryException(resultCode, msg, 1, null, refs,
+    validateException(new DirectoryException(resultCode, msg, null, refs,
                                              null));
-    validateException(new DirectoryException(resultCode, null, 1, null, refs,
-                                             null));
-    validateException(new DirectoryException(resultCode, msg, -1, null, refs,
-                                             null));
-    validateException(new DirectoryException(resultCode, null, -1, null, refs,
+    validateException(new DirectoryException(resultCode, null, null, refs,
                                              null));
 
-    validateException(new DirectoryException(resultCode, msg, 1, dn, null, e));
-    validateException(new DirectoryException(resultCode, null, 1, dn, null, e));
-    validateException(new DirectoryException(resultCode, msg, -1, dn, null, e));
-    validateException(new DirectoryException(resultCode, null, -1, dn, null,
-                                             e));
+    validateException(new DirectoryException(resultCode, msg, dn, null, e));
+    validateException(new DirectoryException(resultCode, null, dn, null, e));
 
-    validateException(new DirectoryException(resultCode, msg, 1, dn, null,
+    validateException(new DirectoryException(resultCode, msg, dn, null,
                                              null));
-    validateException(new DirectoryException(resultCode, null, 1, dn, null,
-                                             null));
-    validateException(new DirectoryException(resultCode, msg, -1, dn, null,
-                                             null));
-    validateException(new DirectoryException(resultCode, null, -1, dn, null,
+    validateException(new DirectoryException(resultCode, null, dn, null,
                                              null));
 
-    validateException(new DirectoryException(resultCode, msg, 1, null, null,
+    validateException(new DirectoryException(resultCode, msg, null, null,
                                              e));
-    validateException(new DirectoryException(resultCode, null, 1, null, null,
-                                             e));
-    validateException(new DirectoryException(resultCode, msg, -1, null, null,
-                                             e));
-    validateException(new DirectoryException(resultCode, null, -1, null, null,
+    validateException(new DirectoryException(resultCode, null, null, null,
                                              e));
 
-    validateException(new DirectoryException(resultCode, msg, 1, null, null,
+    validateException(new DirectoryException(resultCode, msg, null, null,
                                              null));
-    validateException(new DirectoryException(resultCode, null, 1, null, null,
-                                             null));
-    validateException(new DirectoryException(resultCode, msg, -1, null, null,
-                                             null));
-    validateException(new DirectoryException(resultCode, null, -1, null, null,
+    validateException(new DirectoryException(resultCode, null, null, null,
                                              null));
   }
 
@@ -282,8 +221,7 @@ public class DirectoryExceptionTestCase
   {
     assertNotNull(de.getResultCode());
 
-    de.getErrorMessage();
-    de.getMessageID();
+    de.getMessageObject();
     de.getMatchedDN();
     de.getReferralURLs();
   }

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.config;
+import org.opends.messages.Message;
 
 
 
@@ -60,17 +61,14 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InvokableMethod;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchScope;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.protocols.jmx.JmxClientConnection;
@@ -174,11 +172,9 @@ public class JMXMBean
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-          int msgID = MSGID_CONFIG_JMX_CANNOT_REGISTER_MBEAN;
-          String message = getMessage(msgID, configEntryDN.toString(),
-                  String.valueOf(e));
-          logError(ErrorLogCategory.CONFIGURATION,
-                  ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+          Message message = ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN.get(
+              configEntryDN.toString(), String.valueOf(e));
+          logError(message);
       }
       return nameStr ;
   }
@@ -231,11 +227,9 @@ public class JMXMBean
               }
                 e.printStackTrace();
 
-                int msgID = MSGID_CONFIG_JMX_CANNOT_REGISTER_MBEAN;
-                String message = getMessage(msgID, configEntryDN.toString(),
-                        String.valueOf(e));
-                logError(ErrorLogCategory.CONFIGURATION,
-                        ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+                Message message = ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN.get(
+                    configEntryDN.toString(), String.valueOf(e));
+                logError(message);
             }
         }
     }
@@ -510,11 +504,10 @@ public class JMXMBean
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_JMX_CANNOT_GET_ATTRIBUTE;
-      String message = getMessage(msgID, String.valueOf(attributeName),
-                                  String.valueOf(configEntryDN),
-                                  getExceptionMessage(e));
-      throw new AttributeNotFoundException(message);
+      Message message = ERR_CONFIG_JMX_CANNOT_GET_ATTRIBUTE.
+          get(String.valueOf(attributeName), String.valueOf(configEntryDN),
+              getExceptionMessage(e));
+      throw new AttributeNotFoundException(message.toString());
     }
 
     //
@@ -530,11 +523,10 @@ public class JMXMBean
     {
       jmxClientConnection = null ;
 
-      int    msgID   = MSGID_CONFIG_JMX_CANNOT_GET_ATTRIBUTE;
-      String message = getMessage(msgID, String.valueOf(attributeName),
-                                  String.valueOf(configEntryDN),
-                                  String.valueOf(op.getErrorMessage()));
-      throw new AttributeNotFoundException(message);
+      Message message = ERR_CONFIG_JMX_CANNOT_GET_ATTRIBUTE.
+          get(String.valueOf(attributeName), String.valueOf(configEntryDN),
+              String.valueOf(op.getErrorMessage()));
+      throw new AttributeNotFoundException(message.toString());
     }
 
     try
@@ -548,14 +540,10 @@ public class JMXMBean
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_JMX_ATTR_NO_ATTR;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  attributeName);
-
-      logError(
-          ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
-          message, msgID);
-      throw new AttributeNotFoundException(message);
+      Message message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(
+          String.valueOf(configEntryDN), attributeName);
+      logError(message);
+      throw new AttributeNotFoundException(message.toString());
     }
   }
 
@@ -790,13 +778,11 @@ monitorLoop:
 
     buffer.append(")");
 
-    int    msgID   = MSGID_CONFIG_JMX_NO_METHOD;
-    String message = getMessage(msgID, buffer.toString(),
-                                configEntryDN.toString());
+    Message message = ERR_CONFIG_JMX_NO_METHOD.get(
+        buffer.toString(), configEntryDN.toString());
     throw new MBeanException(
                    new DirectoryException(ResultCode.NO_SUCH_OPERATION,
-                                          message,
-                                          msgID));
+                                          message));
   }
 
 

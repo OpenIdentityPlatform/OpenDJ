@@ -34,6 +34,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
+import org.opends.messages.MessageBuilder;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -81,7 +82,7 @@ public class BitStringSyntaxTest extends AttributeSyntaxTest
 
     ByteString byteStringValue = new ASN1OctetString(value);
 
-    StringBuilder reason = new StringBuilder();
+    MessageBuilder reason = new MessageBuilder();
     Boolean liveResult =
       syntax.valueIsAcceptable(byteStringValue, reason);
 

@@ -31,8 +31,7 @@ import java.io.PrintStream;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.SearchScope;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.types.DereferencePolicy.*;
 import static org.opends.server.types.SearchScope.*;
 
@@ -135,8 +134,8 @@ public class LDAPSearchOptions extends LDAPToolOptions
         searchScope = SUBORDINATE_SUBTREE;
       } else
       {
-        int msgID = MSGID_SEARCH_INVALID_SEARCH_SCOPE;
-        err.println(getMessage(msgID, scope));
+
+        err.println(ERR_SEARCH_INVALID_SEARCH_SCOPE.get(scope));
         return false;
       }
       return true;

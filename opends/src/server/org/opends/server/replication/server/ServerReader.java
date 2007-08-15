@@ -25,10 +25,10 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
+import org.opends.messages.Message;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ReplicationMessages.*;
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 
@@ -47,8 +47,6 @@ import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.replication.protocol.WindowMessage;
 import org.opends.server.replication.protocol.WindowProbe;
 import org.opends.server.replication.protocol.ReplServerInfoMessage;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.loggers.debug.DebugTracer;
 
 
@@ -177,11 +175,8 @@ public class ServerReader extends DirectoryThread
            * The remote server has sent an unknown message,
            * close the conenction.
            */
-          int    msgID   = MSGID_READER_NULL_MSG;
-          String message = getMessage(msgID, handler.toString());
-          logError(ErrorLogCategory.SYNCHRONIZATION,
-                   ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = NOTE_READER_NULL_MSG.get(handler.toString());
+          logError(message);
           return;
         }
       }
@@ -192,33 +187,24 @@ public class ServerReader extends DirectoryThread
        * Log a message and exit from this loop
        * So that this handler is stopped.
        */
-      int    msgID   = MSGID_SERVER_DISCONNECT;
-      String message = getMessage(msgID, handler.toString());
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-               ErrorLogSeverity.NOTICE,
-               message + ": " + e.getMessage(), msgID);
+      Message message = NOTE_SERVER_DISCONNECT.get(handler.toString());
+      logError(message);
     } catch (ClassNotFoundException e)
     {
       /*
        * The remote server has sent an unknown message,
        * close the conenction.
        */
-      int    msgID   = MSGID_UNKNOWN_MESSAGE;
-      String message = getMessage(msgID, handler.toString());
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-               ErrorLogSeverity.NOTICE,
-               message, msgID);
+      Message message = ERR_UNKNOWN_MESSAGE.get(handler.toString());
+      logError(message);
     } catch (Exception e)
     {
       /*
        * The remote server has sent an unknown message,
        * close the conenction.
        */
-      int    msgID   = MSGID_READER_EXCEPTION;
-      String message = getMessage(msgID, handler.toString());
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-               ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = NOTE_READER_EXCEPTION.get(handler.toString());
+      logError(message);
     }
     finally
     {

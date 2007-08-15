@@ -26,10 +26,10 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.AciMessages.*;
+import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.HashMap;
@@ -234,9 +234,9 @@ public class BindRule {
            * Raise an exception otherwise.
            */
           if (numOpen > numClose) {
-              int msgID = MSGID_ACI_SYNTAX_BIND_RULE_MISSING_CLOSE_PAREN;
-              String message = getMessage(msgID, input);
-              throw new AciException(msgID, message);
+              Message message =
+                  ERR_ACI_SYNTAX_BIND_RULE_MISSING_CLOSE_PAREN.get(input);
+              throw new AciException(message);
           }
           /*
            * If there are remaining chars => there MUST be an
@@ -285,9 +285,9 @@ public class BindRule {
             }
           }
           else {
-              int msgID = MSGID_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX;
-              String message = getMessage(msgID, input);
-              throw new AciException(msgID, message);
+              Message message =
+                  ERR_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX.get(input);
+              throw new AciException(message);
           }
         }
     }
@@ -312,24 +312,24 @@ public class BindRule {
         keyword = EnumBindRuleKeyword.createBindRuleKeyword(keywordStr);
         if (keyword == null)
         {
-            int msgID = MSGID_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD;
-            String message = getMessage(msgID, keywordStr);
-            throw new AciException(msgID, message);
+            Message message =
+                WARN_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD.get(keywordStr);
+            throw new AciException(message);
         }
 
         // Get the operator
         operator = EnumBindRuleType.createBindruleOperand(operatorStr);
         if (operator == null) {
-            int msgID = MSGID_ACI_SYNTAX_INVALID_BIND_RULE_OPERATOR;
-            String message = getMessage(msgID, operatorStr);
-            throw new AciException(msgID, message);
+            Message message =
+                WARN_ACI_SYNTAX_INVALID_BIND_RULE_OPERATOR.get(operatorStr);
+            throw new AciException(message);
         }
 
         //expression can't be null
         if (expression == null) {
-            int msgID = MSGID_ACI_SYNTAX_MISSING_BIND_RULE_EXPRESSION;
-            String message = getMessage(msgID, operatorStr);
-            throw new AciException(msgID, message);
+            Message message =
+                WARN_ACI_SYNTAX_MISSING_BIND_RULE_EXPRESSION.get(operatorStr);
+            throw new AciException(message);
         }
         validateOperation(keyword, operator);
         KeywordBindRule rule = decode(expression, keyword, operator);
@@ -363,10 +363,10 @@ public class BindRule {
             if ((operand == null)
                     || ((operand != EnumBooleanTypes.AND_BOOLEAN_TYPE) &&
                             (operand != EnumBooleanTypes.OR_BOOLEAN_TYPE))) {
-                int msgID =
-                    MSGID_ACI_SYNTAX_INVALID_BIND_RULE_BOOLEAN_OPERATOR;
-                String message = getMessage(msgID, remainingOperand);
-                throw new AciException(msgID, message);
+                Message message =
+                        WARN_ACI_SYNTAX_INVALID_BIND_RULE_BOOLEAN_OPERATOR
+                                .get(remainingOperand);
+                throw new AciException(message);
             }
             StringBuilder ruleExpr=new StringBuilder(remainingBindrule);
             /* TODO write a unit test to verify.
@@ -382,9 +382,9 @@ public class BindRule {
             bindrule_2.setNegate(negate);
             return new BindRule(bindrule, bindrule_2, operand);
         } else {
-            int msgID = MSGID_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX;
-            String message = getMessage(msgID, remainingBindruleStr);
-            throw new AciException(msgID, message);
+            Message message = ERR_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX.get(
+                remainingBindruleStr);
+            throw new AciException(message);
         }
     }
 
@@ -451,12 +451,10 @@ public class BindRule {
         case DAYOFWEEK:
             if ((op != EnumBindRuleType.EQUAL_BINDRULE_TYPE)
                     && (op != EnumBindRuleType.NOT_EQUAL_BINDRULE_TYPE)) {
-                int msgID =
-                    MSGID_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD_OPERATOR_COMBO;
-                String message = getMessage(msgID,
-                                            keyword.toString(),
-                                            op.toString());
-                throw new AciException(msgID, message);
+                Message message =
+                  WARN_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD_OPERATOR_COMBO
+                          .get(keyword.toString(), op.toString());
+                throw new AciException(message);
             }
         }
     }
@@ -497,9 +495,9 @@ public class BindRule {
             {
                 //The roledn keyword is not supported. Throw an exception with
                 //a message if it is seen in the ACI.
-                int msgID=MSGID_ACI_SYNTAX_ROLEDN_NOT_SUPPORTED;
-                String message = getMessage(msgID, expr);
-                throw new AciException(msgID, message);
+                Message message =
+                    WARN_ACI_SYNTAX_ROLEDN_NOT_SUPPORTED.get(expr);
+                throw new AciException(message);
             }
             case GROUPDN:
             {
@@ -537,9 +535,9 @@ public class BindRule {
                 break;
             }
             default:  {
-                int msgID = MSGID_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD;
-                String message = getMessage(msgID, keyword.toString());
-                throw new AciException(msgID, message);
+                Message message = WARN_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD.get(
+                    keyword.toString());
+                throw new AciException(message);
             }
         }
         return rule;

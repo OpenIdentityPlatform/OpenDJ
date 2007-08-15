@@ -30,6 +30,7 @@ import static org.testng.Assert.*;
 
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.messages.MessageBuilder;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -63,7 +64,7 @@ public abstract class AttributeSyntaxTest extends SchemaTestCase
     // Make sure that the specified class can be instantiated as a task.
     AttributeSyntax syntax = getRule();
 
-    StringBuilder reason = new StringBuilder();
+    MessageBuilder reason = new MessageBuilder();
     // test the valueIsAcceptable method
     Boolean liveResult =
       syntax.valueIsAcceptable(new ASN1OctetString(value), reason);

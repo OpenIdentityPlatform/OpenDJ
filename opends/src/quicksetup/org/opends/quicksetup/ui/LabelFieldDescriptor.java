@@ -27,6 +27,8 @@
 
 package org.opends.quicksetup.ui;
 
+import org.opends.messages.Message;
+
 /**
  * This is a commodity class used to couple a label and a text component with
  * a FieldName.  It is mainly used by the QuickSetupStepPanel classes to
@@ -38,9 +40,9 @@ package org.opends.quicksetup.ui;
 
 public class LabelFieldDescriptor
 {
-  private String label;
+  private Message label;
 
-  private String tooltip;
+  private Message tooltip;
 
   private FieldType type;
 
@@ -94,7 +96,7 @@ public class LabelFieldDescriptor
    * @param labelType the type of label.
    * @param size the size of the field.
    */
-  public LabelFieldDescriptor(String label, String tooltip, FieldType type,
+  public LabelFieldDescriptor(Message label, Message tooltip, FieldType type,
       LabelType labelType, int size)
   {
     this.label = label;
@@ -108,7 +110,7 @@ public class LabelFieldDescriptor
    * Returns the String displayed by the label.
    * @return the String displayed by the label.
    */
-  public String getLabel()
+  public Message getLabel()
   {
     return label;
   }
@@ -126,7 +128,7 @@ public class LabelFieldDescriptor
    * Returns the tooltip used in the field.
    * @return the tooltip used in the field.
    */
-  public String getTooltip()
+  public Message getTooltip()
   {
     return tooltip;
   }

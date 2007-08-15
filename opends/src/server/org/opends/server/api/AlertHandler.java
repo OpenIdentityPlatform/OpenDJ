@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
+import org.opends.messages.Message;
 
 
 
@@ -33,7 +34,6 @@ import java.util.List;
 import org.opends.server.admin.std.server.AlertHandlerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
-
 
 
 /**
@@ -92,7 +92,7 @@ public interface AlertHandler<T extends AlertHandlerCfg>
    */
   public boolean isConfigurationAcceptable(
                       AlertHandlerCfg configuration,
-                      List<String> unacceptableReasons);
+                      List<Message> unacceptableReasons);
 
 
 
@@ -109,14 +109,12 @@ public interface AlertHandler<T extends AlertHandlerCfg>
    *
    * @param  generator     The alert generator that created the alert.
    * @param  alertType     The alert type name for this alert.
-   * @param  alertID       The alert ID that uniquely identifies the
-   *                       type of alert.
    * @param  alertMessage  A message (possibly <CODE>null</CODE>) that
    *                       can provide more information about this
    *                       alert.
    */
   public void sendAlertNotification(AlertGenerator generator,
-                                    String alertType, int alertID,
-                                    String alertMessage);
+                                    String alertType,
+                                    Message alertMessage);
 }
 

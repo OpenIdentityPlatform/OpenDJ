@@ -84,6 +84,7 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.tasks.TaskUtils;
 import org.opends.server.api.WorkQueue;
+import org.opends.messages.Message;
 
 /**
  * This class defines some utility functions which can be used by test
@@ -395,6 +396,15 @@ public final class TestCaseUtils {
    * @param reason The reason for the shutdown.
    */
   public static void shutdownServer(String reason)
+  {
+    shutdownServer(Message.raw(reason));
+  }
+
+  /**
+   * Shut down the server, if it has been started.
+   * @param reason The reason for the shutdown.
+   */
+  public static void shutdownServer(Message reason)
   {
     if (SERVER_STARTED)
     {

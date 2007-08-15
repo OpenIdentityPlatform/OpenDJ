@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 
 
@@ -68,8 +69,7 @@ import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
 
@@ -125,7 +125,7 @@ public class LDIFModify
   public static boolean modifyLDIF(LDIFReader sourceReader,
                                    LDIFReader changeReader,
                                    LDIFWriter targetWriter,
-                                   List<String> errorList)
+                                   List<Message> errorList)
          throws IOException, LDIFException
   {
     // Read the changes into memory.
@@ -149,7 +149,7 @@ public class LDIFModify
       {
         if (le.canContinueReading())
         {
-          errorList.add(le.getMessage());
+          errorList.add(le.getMessageObject());
           continue;
         }
         else
@@ -170,8 +170,8 @@ public class LDIFModify
           // The entry must not exist in the add list.
           if (adds.containsKey(changeDN))
           {
-            int msgID = MSGID_LDIFMODIFY_CANNOT_ADD_ENTRY_TWICE;
-            errorList.add(getMessage(msgID, String.valueOf(changeDN)));
+            errorList.add(ERR_LDIFMODIFY_CANNOT_ADD_ENTRY_TWICE.get(
+                    String.valueOf(changeDN)));
             continue;
           }
           else
@@ -186,8 +186,8 @@ public class LDIFModify
           // them.
           if (adds.containsKey(changeDN))
           {
-            int msgID = MSGID_LDIFMODIFY_CANNOT_DELETE_AFTER_ADD;
-            errorList.add(getMessage(msgID, String.valueOf(changeDN)));
+            errorList.add(ERR_LDIFMODIFY_CANNOT_DELETE_AFTER_ADD.get(
+                    String.valueOf(changeDN)));
             continue;
           }
           else
@@ -201,8 +201,8 @@ public class LDIFModify
           // The entry must not exist in the add or delete lists.
           if (adds.containsKey(changeDN) || deletes.containsKey(changeDN))
           {
-            int msgID = MSGID_LDIFMODIFY_CANNOT_MODIFY_ADDED_OR_DELETED;
-            errorList.add(getMessage(msgID, String.valueOf(changeDN)));
+            errorList.add(ERR_LDIFMODIFY_CANNOT_MODIFY_ADDED_OR_DELETED.get(
+                    String.valueOf(changeDN)));
             continue;
           }
           else
@@ -224,7 +224,7 @@ public class LDIFModify
               }
               catch (LDAPException le)
               {
-                errorList.add(le.getMessage());
+                errorList.add(le.getMessageObject());
                 continue;
               }
             }
@@ -232,13 +232,13 @@ public class LDIFModify
           break;
 
         case MODIFY_DN:
-          int msgID = MSGID_LDIFMODIFY_MODDN_NOT_SUPPORTED;
-          errorList.add(getMessage(msgID, String.valueOf(changeDN)));
+          errorList.add(ERR_LDIFMODIFY_MODDN_NOT_SUPPORTED.get(
+                  String.valueOf(changeDN)));
           continue;
 
         default:
-          msgID = MSGID_LDIFMODIFY_UNKNOWN_CHANGETYPE;
-          errorList.add(getMessage(msgID, String.valueOf(changeDN),
+          errorList.add(ERR_LDIFMODIFY_UNKNOWN_CHANGETYPE.get(
+                  String.valueOf(changeDN),
                String.valueOf(changeRecord.getChangeOperationType())));
           continue;
       }
@@ -258,7 +258,7 @@ public class LDIFModify
       {
         if (le.canContinueReading())
         {
-          errorList.add(le.getMessage());
+          errorList.add(le.getMessageObject());
           continue;
         }
         else
@@ -286,8 +286,9 @@ public class LDIFModify
       // exists.
       if (adds.remove(entryDN) != null)
       {
-        int msgID = MSGID_LDIFMODIFY_ADD_ALREADY_EXISTS;
-        errorList.add(getMessage(msgID, String.valueOf(entryDN)));
+
+        errorList.add(ERR_LDIFMODIFY_ADD_ALREADY_EXISTS.get(
+                String.valueOf(entryDN)));
         continue;
       }
 
@@ -302,7 +303,7 @@ public class LDIFModify
         }
         catch (DirectoryException de)
         {
-          errorList.add(de.getErrorMessage());
+          errorList.add(de.getMessageObject());
           continue;
         }
       }
@@ -372,8 +373,8 @@ public class LDIFModify
     {
       for (DN dn : deletes.keySet())
       {
-        int msgID = MSGID_LDIFMODIFY_DELETE_NO_SUCH_ENTRY;
-        errorList.add(getMessage(msgID, String.valueOf(dn)));
+        errorList.add(
+                ERR_LDIFMODIFY_DELETE_NO_SUCH_ENTRY.get(String.valueOf(dn)));
       }
     }
 
@@ -381,8 +382,8 @@ public class LDIFModify
     {
       for (DN dn : modifications.keySet())
       {
-        int msgID = MSGID_LDIFMODIFY_MODIFY_NO_SUCH_ENTRY;
-        errorList.add(getMessage(msgID, String.valueOf(dn)));
+        errorList.add(ERR_LDIFMODIFY_MODIFY_NO_SUCH_ENTRY.get(
+                String.valueOf(dn)));
       }
     }
     return targetWriter.writeEntries(ldifEntries.values()) &&
@@ -456,7 +457,7 @@ public class LDIFModify
     StringArgument  sourceFile;
     StringArgument  targetFile;
 
-    String toolDescription = getMessage(MSGID_LDIFMODIFY_TOOL_DESCRIPTION);
+    Message toolDescription = INFO_LDIFMODIFY_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false);
 
@@ -464,7 +465,7 @@ public class LDIFModify
     {
       configFile = new StringArgument("configfile", 'c', "configFile", true,
                                       false, true, "{configFile}", null, null,
-                                      MSGID_DESCRIPTION_CONFIG_FILE);
+                                      INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
@@ -473,39 +474,39 @@ public class LDIFModify
                              OPTION_LONG_CONFIG_CLASS, false,
                              false, true, OPTION_VALUE_CONFIG_CLASS,
                              ConfigFileHandler.class.getName(), null,
-                             MSGID_DESCRIPTION_CONFIG_CLASS);
+                             INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
 
       sourceFile = new StringArgument("sourceldif", 's', "sourceLDIF", true,
                                       false, true, "{file}", null, null,
-                                      MSGID_LDIFMODIFY_DESCRIPTION_SOURCE);
+                                      INFO_LDIFMODIFY_DESCRIPTION_SOURCE.get());
       argParser.addArgument(sourceFile);
 
 
-      changesFile = new StringArgument("changesldif", 'm', "changesLDIF", true,
-                                       false, true, "{file}", null, null,
-                                       MSGID_LDIFMODIFY_DESCRIPTION_CHANGES);
+      changesFile =
+              new StringArgument("changesldif", 'm', "changesLDIF", true,
+                                 false, true, "{file}", null, null,
+                                 INFO_LDIFMODIFY_DESCRIPTION_CHANGES.get());
       argParser.addArgument(changesFile);
 
 
       targetFile = new StringArgument("targetldif", 't', "targetLDIF", true,
                                       false, true, "{file}", null, null,
-                                      MSGID_LDIFMODIFY_DESCRIPTION_TARGET);
+                                      INFO_LDIFMODIFY_DESCRIPTION_TARGET.get());
       argParser.addArgument(targetFile);
 
 
       showUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
                                       OPTION_LONG_HELP,
-                                      MSGID_LDIFMODIFY_DESCRIPTION_HELP);
+                                      INFO_LDIFMODIFY_DESCRIPTION_HELP.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       err.println(message);
       return 1;
     }
@@ -518,8 +519,7 @@ public class LDIFModify
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(message);
       err.println(argParser.getUsage());
@@ -553,9 +553,8 @@ public class LDIFModify
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_LDIFMODIFY_CANNOT_INITIALIZE_JMX;
-          String message = getMessage(msgID,
-                                      String.valueOf(configFile.getValue()),
+          Message message = ERR_LDIFMODIFY_CANNOT_INITIALIZE_JMX.get(
+                  String.valueOf(configFile.getValue()),
                                       e.getMessage());
           err.println(message);
           return 1;
@@ -568,9 +567,8 @@ public class LDIFModify
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_LDIFMODIFY_CANNOT_INITIALIZE_CONFIG;
-          String message = getMessage(msgID,
-                                      String.valueOf(configFile.getValue()),
+          Message message = ERR_LDIFMODIFY_CANNOT_INITIALIZE_CONFIG.get(
+                  String.valueOf(configFile.getValue()),
                                       e.getMessage());
           err.println(message);
           return 1;
@@ -582,9 +580,8 @@ public class LDIFModify
         }
         catch (Exception e)
         {
-          int    msgID   = MSGID_LDIFMODIFY_CANNOT_INITIALIZE_SCHEMA;
-          String message = getMessage(msgID,
-                                      String.valueOf(configFile.getValue()),
+          Message message = ERR_LDIFMODIFY_CANNOT_INITIALIZE_SCHEMA.get(
+                  String.valueOf(configFile.getValue()),
                                       e.getMessage());
           err.println(message);
           return 1;
@@ -597,8 +594,8 @@ public class LDIFModify
     File source = new File(sourceFile.getValue());
     if (! source.exists())
     {
-      int    msgID   = MSGID_LDIFMODIFY_SOURCE_DOES_NOT_EXIST;
-      String message = getMessage(msgID, sourceFile.getValue());
+      Message message = ERR_LDIFMODIFY_SOURCE_DOES_NOT_EXIST.get(
+              sourceFile.getValue());
       err.println(message);
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
@@ -611,8 +608,8 @@ public class LDIFModify
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDIFMODIFY_CANNOT_OPEN_SOURCE;
-      String message = getMessage(msgID, sourceFile.getValue(),
+      Message message = ERR_LDIFMODIFY_CANNOT_OPEN_SOURCE.get(
+              sourceFile.getValue(),
                                   String.valueOf(ioe));
       err.println(message);
       return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
@@ -622,8 +619,8 @@ public class LDIFModify
     File changes = new File(changesFile.getValue());
     if (! changes.exists())
     {
-      int    msgID   = MSGID_LDIFMODIFY_CHANGES_DOES_NOT_EXIST;
-      String message = getMessage(msgID, changesFile.getValue());
+      Message message = ERR_LDIFMODIFY_CHANGES_DOES_NOT_EXIST.get(
+              changesFile.getValue());
       err.println(message);
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
@@ -636,8 +633,8 @@ public class LDIFModify
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDIFMODIFY_CANNOT_OPEN_CHANGES;
-      String message = getMessage(msgID, sourceFile.getValue());
+      Message message = ERR_LDIFMODIFY_CANNOT_OPEN_CHANGES.get(
+              sourceFile.getValue(), ioe.getMessage());
       err.println(message);
       return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
     }
@@ -653,15 +650,15 @@ public class LDIFModify
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_LDIFMODIFY_CANNOT_OPEN_TARGET;
-      String message = getMessage(msgID, sourceFile.getValue());
+      Message message = ERR_LDIFMODIFY_CANNOT_OPEN_TARGET.get(
+              sourceFile.getValue(), ioe.getMessage());
       err.println(message);
       return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
     }
 
 
     // Actually invoke the LDIF procesing.
-    LinkedList<String> errorList = new LinkedList<String>();
+    LinkedList<Message> errorList = new LinkedList<Message>();
     boolean successful;
     try
     {
@@ -670,8 +667,8 @@ public class LDIFModify
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDIFMODIFY_ERROR_PROCESSING_LDIF;
-      String message = getMessage(msgID, String.valueOf(e));
+      Message message = ERR_LDIFMODIFY_ERROR_PROCESSING_LDIF.get(
+              String.valueOf(e));
       err.println(message);
 
       successful = false;
@@ -692,7 +689,7 @@ public class LDIFModify
       targetWriter.close();
     } catch (Exception e) {}
 
-    for (String s : errorList)
+    for (Message s : errorList)
     {
       err.println(s);
     }

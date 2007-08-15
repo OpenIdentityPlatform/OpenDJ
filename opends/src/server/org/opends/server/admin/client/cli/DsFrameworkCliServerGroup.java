@@ -26,7 +26,7 @@
  */
 package org.opends.server.admin.client.cli;
 
-import static org.opends.server.messages.AdminMessages.*;
+import static org.opends.messages.AdminMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 
 import java.io.IOException;
@@ -326,119 +326,119 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
     // Create-group subcommand
     createGroupSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.CREATE_GROUP.toString(),
-        MSGID_ADMIN_SUBCMD_CREATE_GROUP_DESCRIPTION);
+        INFO_ADMIN_SUBCMD_CREATE_GROUP_DESCRIPTION.get());
     subCommands.add(createGroupSubCmd);
 
     createGroupDescriptionArg = new StringArgument("description",
         OPTION_SHORT_DESCRIPTION, OPTION_LONG_DESCRIPTION, false, false,
         true, OPTION_VALUE_DESCRIPTION, "", null,
-        MSGID_ADMIN_ARG_DESCRIPTION_DESCRIPTION);
+        INFO_ADMIN_ARG_DESCRIPTION_DESCRIPTION.get());
     createGroupSubCmd.addArgument(createGroupDescriptionArg);
 
     createGroupGroupNameArg = new StringArgument("groupName",
         OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
         OPTION_VALUE_GROUPNAME,
-        MSGID_ADMIN_ARG_CREATE_GROUP_GROUPNAME_DESCRIPTION);
+        INFO_ADMIN_ARG_CREATE_GROUP_GROUPNAME_DESCRIPTION.get());
     createGroupSubCmd.addArgument(createGroupGroupNameArg);
 
     // modify-group
     modifyGroupSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.MODIFY_GROUP.toString(),
-        MSGID_ADMIN_SUBCMD_MODIFY_GROUP_DESCRIPTION);
+        INFO_ADMIN_SUBCMD_MODIFY_GROUP_DESCRIPTION.get());
     subCommands.add(modifyGroupSubCmd);
 
     modifyGroupDescriptionArg = new StringArgument("new-description",
         OPTION_SHORT_DESCRIPTION, OPTION_LONG_DESCRIPTION, false, false,
         true, OPTION_VALUE_DESCRIPTION, "", null,
-        MSGID_ADMIN_ARG_NEW_DESCRIPTION_DESCRIPTION);
+        INFO_ADMIN_ARG_NEW_DESCRIPTION_DESCRIPTION.get());
     modifyGroupSubCmd.addArgument(modifyGroupDescriptionArg);
 
     modifyGroupGroupIdArg = new StringArgument("new-groupName",
         OPTION_SHORT_NEWGROUPNAME, OPTION_LONG_NEWGROUPNAME, false, false, true,
         OPTION_VALUE_GROUPNAME, "", null,
-        MSGID_ADMIN_ARG_NEW_GROUPNAME_DESCRIPTION);
+        INFO_ADMIN_ARG_NEW_GROUPNAME_DESCRIPTION.get());
     modifyGroupSubCmd.addArgument(modifyGroupGroupIdArg);
 
     modifyGroupGroupNameArg = new StringArgument("groupName",
         OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
         OPTION_VALUE_GROUPNAME,
-        MSGID_ADMIN_ARG_GROUPNAME_DESCRIPTION);
+        INFO_ADMIN_ARG_GROUPNAME_DESCRIPTION.get());
     modifyGroupSubCmd.addArgument(modifyGroupGroupNameArg);
 
     // delete-group
     deleteGroupSubCmd = new SubCommand(argParser,SubCommandNameEnum.DELETE_GROUP
-        .toString(), MSGID_ADMIN_SUBCMD_DELETE_GROUP_DESCRIPTION);
+        .toString(), INFO_ADMIN_SUBCMD_DELETE_GROUP_DESCRIPTION.get());
     subCommands.add(deleteGroupSubCmd);
 
     deleteGroupGroupNameArg = new StringArgument("groupName",
         OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
         OPTION_VALUE_GROUPNAME,
-        MSGID_ADMIN_ARG_GROUPNAME_DESCRIPTION);
+        INFO_ADMIN_ARG_GROUPNAME_DESCRIPTION.get());
     deleteGroupSubCmd.addArgument(deleteGroupGroupNameArg);
 
     // list-groups
     listGroupSubCmd = new SubCommand(argParser, "list-groups",
-        MSGID_ADMIN_SUBCMD_LIST_GROUPS_DESCRIPTION);
+        INFO_ADMIN_SUBCMD_LIST_GROUPS_DESCRIPTION.get());
     subCommands.add(listGroupSubCmd);
 
     // add-to-group
     addToGroupSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.ADD_TO_GROUP.toString(),
-        MSGID_ADMIN_SUBCMD_ADD_TO_GROUP_DESCRIPTION);
+        INFO_ADMIN_SUBCMD_ADD_TO_GROUP_DESCRIPTION.get());
     subCommands.add(addToGroupSubCmd);
 
     addToGoupMemberNameArg = new StringArgument("memberName",
         OPTION_SHORT_MEMBERNAME, OPTION_LONG_MEMBERNAME, true, true,
         OPTION_VALUE_MEMBERNAME,
-        MSGID_ADMIN_ARG_ADD_MEMBERNAME_DESCRIPTION);
+        INFO_ADMIN_ARG_ADD_MEMBERNAME_DESCRIPTION.get());
     addToGroupSubCmd.addArgument(addToGoupMemberNameArg);
 
     addToGroupGroupNameArg = new StringArgument("groupName",
         OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
         OPTION_VALUE_GROUPNAME,
-        MSGID_ADMIN_ARG_GROUPNAME_DESCRIPTION);
+        INFO_ADMIN_ARG_GROUPNAME_DESCRIPTION.get());
     addToGroupSubCmd.addArgument(addToGroupGroupNameArg);
 
     // remove-from-group
     removeFromGroupSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.REMOVE_FROM_GROUP.toString(),
-        MSGID_ADMIN_SUBCMD_REMOVE_FROM_GROUP_DESCRIPTION);
+        INFO_ADMIN_SUBCMD_REMOVE_FROM_GROUP_DESCRIPTION.get());
     subCommands.add(removeFromGroupSubCmd);
 
     removeFromGoupMemberNameArg = new StringArgument("memberName",
         OPTION_SHORT_MEMBERNAME, OPTION_LONG_MEMBERNAME, true, true,
         OPTION_VALUE_MEMBERNAME,
-        MSGID_ADMIN_ARG_REMOVE_MEMBERNAME_DESCRIPTION);
+        INFO_ADMIN_ARG_REMOVE_MEMBERNAME_DESCRIPTION.get());
     removeFromGroupSubCmd.addArgument(removeFromGoupMemberNameArg);
 
     removeFromGroupGroupNameArg = new StringArgument("groupName",
         OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
         OPTION_VALUE_GROUPNAME,
-        MSGID_ADMIN_ARG_GROUPNAME_DESCRIPTION);
+        INFO_ADMIN_ARG_GROUPNAME_DESCRIPTION.get());
     removeFromGroupSubCmd.addArgument(removeFromGroupGroupNameArg);
 
 
     // list-members
     listMembersSubCmd = new SubCommand(argParser,SubCommandNameEnum.LIST_MEMBERS
-        .toString(), MSGID_ADMIN_SUBCMD_LIST_MEMBERS_DESCRIPTION);
+        .toString(), INFO_ADMIN_SUBCMD_LIST_MEMBERS_DESCRIPTION.get());
     subCommands.add(listMembersSubCmd);
 
     listMembersGroupNameArg = new StringArgument("groupName",
         OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
         OPTION_VALUE_GROUPNAME,
-        MSGID_ADMIN_ARG_GROUPNAME_DESCRIPTION);
+        INFO_ADMIN_ARG_GROUPNAME_DESCRIPTION.get());
     listMembersSubCmd.addArgument(listMembersGroupNameArg);
 
     // list-membership
     listMembershipSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.LIST_MEMBERSHIP.toString(),
-        MSGID_ADMIN_SUBCMD_LIST_MEMBERSHIP_DESCRIPTION);
+        INFO_ADMIN_SUBCMD_LIST_MEMBERSHIP_DESCRIPTION.get());
     subCommands.add(listMembershipSubCmd);
 
     listMembershipMemberNameArg = new StringArgument("memberName",
         OPTION_SHORT_MEMBERNAME, OPTION_LONG_MEMBERNAME, true, true,
         OPTION_VALUE_MEMBERNAME,
-        MSGID_ADMIN_ARG_MEMBERNAME_DESCRIPTION);
+        INFO_ADMIN_ARG_MEMBERNAME_DESCRIPTION.get());
     listMembershipSubCmd.addArgument(listMembershipMemberNameArg);
 
     // Create association between ADSContext enum and display field

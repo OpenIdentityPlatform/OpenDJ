@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.CancelRequest;
@@ -125,7 +126,7 @@ public class UnbindOperationTestCase
          InternalClientConnection.getRootConnection();
 
     CancelRequest cancelRequest =
-         new CancelRequest(false, "Test Unbind Cancel");
+         new CancelRequest(false, Message.raw("Test Unbind Cancel"));
 
     UnbindOperationBasis unbindOperation =
          new UnbindOperationBasis(conn, conn.nextOperationID(),
@@ -146,7 +147,7 @@ public class UnbindOperationTestCase
          InternalClientConnection.getRootConnection();
 
     CancelRequest cancelRequest =
-         new CancelRequest(false, "Test Unbind Cancel");
+         new CancelRequest(false, Message.raw("Test Unbind Cancel"));
 
     UnbindOperationBasis unbindOperation =
          new UnbindOperationBasis(conn, conn.nextOperationID(),

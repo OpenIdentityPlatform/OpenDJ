@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -54,8 +55,7 @@ import org.opends.server.types.ResultCode;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -144,9 +144,9 @@ public class GSSAPIStateInfo
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_SASLGSSAPI_CANNOT_CREATE_LOGIN_CONTEXT;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_SASLGSSAPI_CANNOT_CREATE_LOGIN_CONTEXT.get(
+          getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
 
     try
@@ -160,9 +160,9 @@ public class GSSAPIStateInfo
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_SASLGSSAPI_CANNOT_AUTHENTICATE_SERVER;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message =
+          ERR_SASLGSSAPI_CANNOT_AUTHENTICATE_SERVER.get(getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
 
 
@@ -281,11 +281,11 @@ public class GSSAPIStateInfo
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_SASLGSSAPI_CANNOT_CREATE_SASL_SERVER;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_SASLGSSAPI_CANNOT_CREATE_SASL_SERVER.get(
+                getExceptionMessage(e));
 
         clientConnection.setSASLAuthStateInfo(null);
-        bindOperation.setAuthFailureReason(msgID, message);
+        bindOperation.setAuthFailureReason(message);
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
         return false;
       }
@@ -340,11 +340,11 @@ public class GSSAPIStateInfo
         }
       }
 
-      int    msgID   = MSGID_SASLGSSAPI_CANNOT_EVALUATE_RESPONSE;
-      String message = getMessage(msgID, getExceptionMessage(e));
+      Message message = ERR_SASLGSSAPI_CANNOT_EVALUATE_RESPONSE.get(
+              getExceptionMessage(e));
 
       clientConnection.setSASLAuthStateInfo(null);
-      bindOperation.setAuthFailureReason(msgID, message);
+      bindOperation.setAuthFailureReason(message);
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
       return false;
     }
@@ -378,11 +378,10 @@ public class GSSAPIStateInfo
         }
       }
 
-      int    msgID   = MSGID_SASLGSSAPI_NO_AUTHZ_ID;
-      String message = getMessage(msgID);
+      Message message = ERR_SASLGSSAPI_NO_AUTHZ_ID.get();
 
       clientConnection.setSASLAuthStateInfo(null);
-      bindOperation.setAuthFailureReason(msgID, message);
+      bindOperation.setAuthFailureReason(message);
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
       return false;
     }
@@ -412,8 +411,7 @@ public class GSSAPIStateInfo
       }
 
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-      bindOperation.setAuthFailureReason(de.getMessageID(),
-                                         de.getErrorMessage());
+      bindOperation.setAuthFailureReason(de.getMessageObject());
       clientConnection.setSASLAuthStateInfo(null);
       return false;
     }
@@ -435,11 +433,10 @@ public class GSSAPIStateInfo
         }
       }
 
-      int    msgID   = MSGID_SASLGSSAPI_CANNOT_MAP_AUTHZID;
-      String message = getMessage(msgID, authzID);
+      Message message = ERR_SASLGSSAPI_CANNOT_MAP_AUTHZID.get(authzID);
 
       clientConnection.setSASLAuthStateInfo(null);
-      bindOperation.setAuthFailureReason(msgID, message);
+      bindOperation.setAuthFailureReason(message);
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
       return false;
     }
@@ -515,18 +512,18 @@ public class GSSAPIStateInfo
         }
         else
         {
-          int msgID = MSGID_SASLGSSAPI_DIFFERENT_AUTHID_AND_AUTHZID;
-          String message = getMessage(msgID, authID, authzID);
-          bindOperation.setAuthFailureReason(msgID, message);
+          Message message = ERR_SASLGSSAPI_DIFFERENT_AUTHID_AND_AUTHZID.get(
+                  authID, authzID);
+          bindOperation.setAuthFailureReason(message);
           authzCallback.setAuthorized(false);
         }
       }
       else
       {
         // We weren't prepared for this type of callback.
-        int    msgID   = MSGID_SASLGSSAPI_UNEXPECTED_CALLBACK;
-        String message = getMessage(msgID, String.valueOf(callback));
-        throw new UnsupportedCallbackException(callback, message);
+        Message message =
+            INFO_SASLGSSAPI_UNEXPECTED_CALLBACK.get(String.valueOf(callback));
+        throw new UnsupportedCallbackException(callback, message.toString());
       }
     }
   }

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 
 
@@ -54,9 +55,6 @@ public class ClientException
   // problem.
   private int exitCode;
 
-  // The message ID for the message associated with this client exception.
-  private int messageID;
-
 
 
   /**
@@ -64,15 +62,13 @@ public class ClientException
    *
    * @param  exitCode   The exit code that may be used if the client considers
    *                    this to be a fatal problem.
-   * @param  messageID  The unique identifier for the associated message.
    * @param  message    The message that explains the problem that occurred.
    */
-  public ClientException(int exitCode, int messageID, String message)
+  public ClientException(int exitCode, Message message)
   {
     super(message);
 
     this.exitCode  = exitCode;
-    this.messageID = messageID;
   }
 
 
@@ -82,17 +78,14 @@ public class ClientException
    *
    * @param  exitCode   The exit code that may be used if the client considers
    *                    this to be a fatal problem.
-   * @param  messageID  The unique identifier for the associated message.
    * @param  message    The message that explains the problem that occurred.
    * @param  cause      The exception that was caught to trigger this exception.
    */
-  public ClientException(int exitCode, int messageID, String message,
-                         Throwable cause)
+  public ClientException(int exitCode, Message message, Throwable cause)
   {
     super(message, cause);
 
     this.exitCode  = exitCode;
-    this.messageID = messageID;
   }
 
 
@@ -110,15 +103,5 @@ public class ClientException
   }
 
 
-
-  /**
-   * Retrieves the unique identifier for the associated message.
-   *
-   * @return  The unique identifier for the associated message.
-   */
-  public int getMessageID()
-  {
-    return messageID;
-  }
 }
 

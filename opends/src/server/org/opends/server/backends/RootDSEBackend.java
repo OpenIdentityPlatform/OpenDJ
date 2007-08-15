@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
+import org.opends.messages.Message;
 
 
 
@@ -65,8 +66,6 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
@@ -79,12 +78,12 @@ import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.Validator;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.BackendMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ConfigMessages.
-     MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.ConfigMessages.
+     ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
+
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -187,9 +186,8 @@ public class RootDSEBackend
     // not be able to complete initialization.
     if (configEntry == null)
     {
-      int    msgID   = MSGID_ROOTDSE_CONFIG_ENTRY_NULL;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_ROOTDSE_CONFIG_ENTRY_NULL.get();
+      throw new ConfigException(message);
     }
 
     // Get the set of user-defined attributes for the configuration entry.  Any
@@ -245,10 +243,9 @@ public class RootDSEBackend
           Backend backend = DirectoryServer.getBackend(baseDN);
           if (backend == null)
           {
-            int msgID = MSGID_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE;
-            String message = getMessage(msgID, String.valueOf(baseDN));
-            logError(ErrorLogCategory.CONFIGURATION,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+            Message message = WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE.get(
+                String.valueOf(baseDN));
+            logError(message);
           }
           else
           {
@@ -264,9 +261,9 @@ public class RootDSEBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_ROOTDSE_SUBORDINATE_BASE_EXCEPTION;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = WARN_ROOTDSE_SUBORDINATE_BASE_EXCEPTION.get(
+          stackTraceToSingleLineString(e));
+      throw new InitializationException(message, e);
     }
 
 
@@ -429,10 +426,9 @@ public class RootDSEBackend
 
     // This method should never be used to get anything other than the root DSE.
     // If we got here, then that appears to be the case, so log a message.
-    int    msgID   = MSGID_ROOTDSE_GET_ENTRY_NONROOT;
-    String message = getMessage(msgID, String.valueOf(entryDN));
-    logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.MILD_WARNING,
-             message, msgID);
+    Message message =
+        WARN_ROOTDSE_GET_ENTRY_NONROOT.get(String.valueOf(entryDN));
+    logError(message);
 
 
     // Go ahead and check the subordinate backends to see if we can find the
@@ -855,10 +851,9 @@ public class RootDSEBackend
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    int    msgID   = MSGID_ROOTDSE_ADD_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(entry.getDN()));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message =
+        ERR_ROOTDSE_ADD_NOT_SUPPORTED.get(String.valueOf(entry.getDN()));
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -880,10 +875,9 @@ public class RootDSEBackend
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    int    msgID   = MSGID_ROOTDSE_DELETE_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(entryDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message =
+        ERR_ROOTDSE_DELETE_NOT_SUPPORTED.get(String.valueOf(entryDN));
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -905,11 +899,9 @@ public class RootDSEBackend
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
          throws DirectoryException
   {
-    int    msgID   = MSGID_ROOTDSE_MODIFY_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(entry.getDN()),
-                                String.valueOf(configEntryDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_ROOTDSE_MODIFY_NOT_SUPPORTED.get(
+        String.valueOf(entry.getDN()), String.valueOf(configEntryDN));
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -933,10 +925,9 @@ public class RootDSEBackend
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    int    msgID   = MSGID_ROOTDSE_MODIFY_DN_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(currentDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message =
+        ERR_ROOTDSE_MODIFY_DN_NOT_SUPPORTED.get(String.valueOf(currentDN));
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -961,12 +952,10 @@ public class RootDSEBackend
     DN baseDN = searchOperation.getBaseDN();
     if (! baseDN.isNullDN())
     {
-      int    msgID   = MSGID_ROOTDSE_INVALID_SEARCH_BASE;
-      String message = getMessage(msgID, searchOperation.getConnectionID(),
-                                  searchOperation.getOperationID(),
-                                  String.valueOf(baseDN));
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_ROOTDSE_INVALID_SEARCH_BASE.
+          get(searchOperation.getConnectionID(),
+              searchOperation.getOperationID(), String.valueOf(baseDN));
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
 
@@ -1067,13 +1056,13 @@ public class RootDSEBackend
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_ROOTDSE_UNEXPECTED_SEARCH_FAILURE;
-          String message = getMessage(msgID, searchOperation.getConnectionID(),
-                                      searchOperation.getOperationID(),
-                                      stackTraceToSingleLineString(e));
+          Message message = ERR_ROOTDSE_UNEXPECTED_SEARCH_FAILURE.
+              get(searchOperation.getConnectionID(),
+                  searchOperation.getOperationID(),
+                  stackTraceToSingleLineString(e));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(), message,
-                         msgID, e);
+                         e);
         }
         finally
         {
@@ -1082,11 +1071,11 @@ public class RootDSEBackend
         break;
 
       default:
-        int    msgID   = MSGID_ROOTDSE_INVALID_SEARCH_SCOPE;
-        String message = getMessage(msgID, searchOperation.getConnectionID(),
-                                    searchOperation.getOperationID(),
-                                    String.valueOf(searchOperation.getScope()));
-        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, msgID);
+        Message message = ERR_ROOTDSE_INVALID_SEARCH_SCOPE.
+            get(searchOperation.getConnectionID(),
+                searchOperation.getOperationID(),
+                String.valueOf(searchOperation.getScope()));
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
   }
 
@@ -1150,10 +1139,10 @@ public class RootDSEBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_ROOTDSE_UNABLE_TO_CREATE_LDIF_WRITER;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      Message message = ERR_ROOTDSE_UNABLE_TO_CREATE_LDIF_WRITER.get(
+          stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -1170,10 +1159,10 @@ public class RootDSEBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_ROOTDSE_UNABLE_TO_EXPORT_DSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      Message message =
+          ERR_ROOTDSE_UNABLE_TO_EXPORT_DSE.get(stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
     finally
     {
@@ -1215,10 +1204,8 @@ public class RootDSEBackend
          throws DirectoryException
   {
     // This backend does not support LDIF imports.
-    int    msgID   = MSGID_ROOTDSE_IMPORT_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_ROOTDSE_IMPORT_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -1273,10 +1260,8 @@ public class RootDSEBackend
          throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
-    int    msgID   = MSGID_ROOTDSE_BACKUP_AND_RESTORE_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_ROOTDSE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -1298,10 +1283,8 @@ public class RootDSEBackend
          throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
-    int    msgID   = MSGID_ROOTDSE_BACKUP_AND_RESTORE_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_ROOTDSE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -1327,10 +1310,8 @@ public class RootDSEBackend
          throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
-    int    msgID   = MSGID_ROOTDSE_BACKUP_AND_RESTORE_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_ROOTDSE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -1340,7 +1321,7 @@ public class RootDSEBackend
    */
   @Override()
   public boolean isConfigurationAcceptable(Configuration configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     RootDSEBackendCfg config = (RootDSEBackendCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
@@ -1353,7 +1334,7 @@ public class RootDSEBackend
    */
   public boolean isConfigurationChangeAcceptable(
        RootDSEBackendCfg cfg,
-       List<String> unacceptableReasons)
+       List<Message> unacceptableReasons)
   {
     boolean configIsAcceptable = true;
 
@@ -1372,8 +1353,8 @@ public class RootDSEBackend
           Backend backend = DirectoryServer.getBackend(baseDN);
           if (backend == null)
           {
-            int    msgID   = MSGID_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE;
-            String message = getMessage(msgID, String.valueOf(baseDN));
+            Message message = WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE.get(
+                    String.valueOf(baseDN));
             unacceptableReasons.add(message);
             configIsAcceptable = false;
           }
@@ -1387,8 +1368,8 @@ public class RootDSEBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_ROOTDSE_SUBORDINATE_BASE_EXCEPTION;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      Message message = WARN_ROOTDSE_SUBORDINATE_BASE_EXCEPTION.get(
+              stackTraceToSingleLineString(e));
       unacceptableReasons.add(message);
       configIsAcceptable = false;
     }
@@ -1404,9 +1385,9 @@ public class RootDSEBackend
    */
   public ConfigChangeResult applyConfigurationChange(RootDSEBackendCfg cfg)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ResultCode         resultCode          = ResultCode.SUCCESS;
+    boolean            adminActionRequired = false;
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Check to see if we should apply a new set of base DNs.
@@ -1428,8 +1409,8 @@ public class RootDSEBackend
           if (backend == null)
           {
             // This is not fine.  We can't use a suffix that doesn't exist.
-            int msgID = MSGID_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE;
-            String message = getMessage(msgID, String.valueOf(baseDN));
+            Message message = WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE.get(
+                    String.valueOf(baseDN));
             messages.add(message);
 
             if (resultCode == ResultCode.SUCCESS)
@@ -1451,8 +1432,8 @@ public class RootDSEBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_ROOTDSE_SUBORDINATE_BASE_EXCEPTION;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      Message message = WARN_ROOTDSE_SUBORDINATE_BASE_EXCEPTION.get(
+              stackTraceToSingleLineString(e));
       messages.add(message);
 
       if (resultCode == ResultCode.SUCCESS)
@@ -1503,9 +1484,9 @@ public class RootDSEBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              stackTraceToSingleLineString(e)));
+      messages.add(ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY.get(
+              String.valueOf(configEntryDN),
+              stackTraceToSingleLineString(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
     }
 
@@ -1516,8 +1497,7 @@ public class RootDSEBackend
 
       if (subordinateBaseDNs == null)
       {
-        int msgID = MSGID_ROOTDSE_USING_SUFFIXES_AS_BASE_DNS;
-        String message = getMessage(msgID);
+        Message message = INFO_ROOTDSE_USING_SUFFIXES_AS_BASE_DNS.get();
         messages.add(message);
       }
       else
@@ -1539,8 +1519,8 @@ public class RootDSEBackend
 
         basesStr.append(" }");
 
-        int msgID = MSGID_ROOTDSE_USING_NEW_SUBORDINATE_BASE_DNS;
-        String message = getMessage(msgID, basesStr.toString());
+        Message message = INFO_ROOTDSE_USING_NEW_SUBORDINATE_BASE_DNS.get(
+                basesStr.toString());
         messages.add(message);
       }
 
@@ -1548,16 +1528,15 @@ public class RootDSEBackend
       if (showAllAttributes != newShowAll)
       {
         showAllAttributes = newShowAll;
-        int    msgID   = MSGID_ROOTDSE_UPDATED_SHOW_ALL_ATTRS;
-        String message = getMessage(msgID, ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES,
-                                    showAllAttributes);
+        Message message = INFO_ROOTDSE_UPDATED_SHOW_ALL_ATTRS.get(
+                ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES,
+                String.valueOf(showAllAttributes));
         messages.add(message);
       }
 
 
       userDefinedAttributes = userAttrs;
-      int    msgID   = MSGID_ROOTDSE_USING_NEW_USER_ATTRS;
-      String message = getMessage(msgID);
+      Message message = INFO_ROOTDSE_USING_NEW_USER_ATTRS.get();
       messages.add(message);
     }
 

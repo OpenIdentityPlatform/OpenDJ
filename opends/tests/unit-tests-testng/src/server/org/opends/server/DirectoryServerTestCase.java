@@ -28,6 +28,7 @@ package org.opends.server;
 
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
+import org.opends.messages.Message;
 
 /**
  * This class defines a base test case that should be subclassed by all
@@ -44,7 +45,7 @@ public abstract class DirectoryServerTestCase {
 
   @AfterSuite
   public final void shutdownServer() {
-    TestCaseUtils.shutdownServer("The current test suite has finished.");
+    TestCaseUtils.shutdownServer(Message.raw("The current test suite has finished."));
     TestCaseUtils.unsupressOutput();
   }
 }

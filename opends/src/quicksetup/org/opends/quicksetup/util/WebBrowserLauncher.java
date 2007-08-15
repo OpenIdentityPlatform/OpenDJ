@@ -26,6 +26,7 @@
  */
 
 package org.opends.quicksetup.util;
+import org.opends.messages.Message;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -78,8 +79,9 @@ public class WebBrowserLauncher
 
         if (browser == null)
         {
-          throw new WebBrowserException(url, "Could not find web browser",
-              null);
+          throw new WebBrowserException(url, // TODO: i18n
+                  Message.raw("Could not find web browser"),
+                  null);
         } else
         {
           Runtime.getRuntime().exec(new String[]
@@ -88,22 +90,28 @@ public class WebBrowserLauncher
       }
     } catch (ClassNotFoundException cnfe)
     {
-      throw new WebBrowserException(url, "Class Not Found Exception", cnfe);
+      throw new WebBrowserException(url, // TODO: i18n
+              Message.raw("Class Not Found Exception"), cnfe);
     } catch (IOException ioe)
     {
-      throw new WebBrowserException(url, "IO Exception", ioe);
+      throw new WebBrowserException(url, // TODO: i18n
+              Message.raw("IO Exception"), ioe);
     } catch (InterruptedException ie)
     {
-      throw new WebBrowserException(url, "Interrupted Exception", ie);
+      throw new WebBrowserException(url, // TODO: i18n
+              Message.raw("Interrupted Exception"), ie);
     } catch (NoSuchMethodException nsme)
     {
-      throw new WebBrowserException(url, "No Such Method Exception", nsme);
+      throw new WebBrowserException(url, // TODO: i18n
+              Message.raw("No Such Method Exception"), nsme);
     } catch (InvocationTargetException ite)
     {
-      throw new WebBrowserException(url, "Invocation Target Exception", ite);
+      throw new WebBrowserException(url, // TODO: i18n
+              Message.raw("Invocation Target Exception"), ite);
     } catch (IllegalAccessException iae)
     {
-      throw new WebBrowserException(url, "Illegal Access Exception", iae);
+      throw new WebBrowserException(url, // TODO: i18n
+              Message.raw("Illegal Access Exception"), iae);
     }
   }
 }

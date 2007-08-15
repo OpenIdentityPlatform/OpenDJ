@@ -25,10 +25,10 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.TaskMessages.*;
-import static org.opends.server.messages.ToolMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.TaskMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
@@ -47,8 +47,8 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Operation;
@@ -107,10 +107,9 @@ public class ImportTask extends Task
       ClientConnection clientConnection = operation.getClientConnection();
       if (! clientConnection.hasPrivilege(Privilege.LDIF_IMPORT, operation))
       {
-        int    msgID   = MSGID_TASK_LDIFIMPORT_INSUFFICIENT_PRIVILEGES;
-        String message = getMessage(msgID);
+        Message message = ERR_TASK_LDIFIMPORT_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -227,11 +226,9 @@ public class ImportTask extends Task
     // "backendID" argument was provided.
     if(includeBranchStrings.isEmpty() && backendID == null)
     {
-      int    msgID   = MSGID_LDIFIMPORT_MISSING_BACKEND_ARGUMENT;
-      String message = getMessage(msgID, typeIncludeBranch.getNameOrOID(),
-                                  typeBackendID.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+      Message message = ERR_LDIFIMPORT_MISSING_BACKEND_ARGUMENT.get(
+          typeIncludeBranch.getNameOrOID(), typeBackendID.getNameOrOID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     Backend backend = null;
@@ -250,17 +247,15 @@ public class ImportTask extends Task
       }
       catch (DirectoryException de)
       {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE;
-        String message = getMessage(msgID, s, de.getErrorMessage());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
+            s, de.getMessageObject());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE;
-        String message = getMessage(msgID, s, getExceptionMessage(e));
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
+            s, getExceptionMessage(e));
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
       if(! includeBranches.contains(includeBranch))
@@ -277,17 +272,15 @@ public class ImportTask extends Task
       }
       catch (DirectoryException de)
       {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE;
-        String message = getMessage(msgID, s, de.getErrorMessage());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
+            s, de.getMessageObject());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE;
-        String message = getMessage(msgID, s, getExceptionMessage(e));
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
+            s, getExceptionMessage(e));
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
       if (! excludeBranches.contains(excludeBranch))
@@ -304,11 +297,9 @@ public class ImportTask extends Task
       }
       catch (DirectoryException de)
       {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_PARSE_EXCLUDE_FILTER;
-        String message = getMessage(msgID, filterString,
-                                    de.getErrorMessage());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_LDIFIMPORT_CANNOT_PARSE_EXCLUDE_FILTER.get(
+            filterString, de.getMessageObject());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
 
@@ -320,11 +311,9 @@ public class ImportTask extends Task
       }
       catch (DirectoryException de)
       {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_PARSE_INCLUDE_FILTER;
-        String message = getMessage(msgID, filterString,
-                                    de.getErrorMessage());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_LDIFIMPORT_CANNOT_PARSE_INCLUDE_FILTER.get(
+            filterString, de.getMessageObject());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
 
@@ -333,17 +322,13 @@ public class ImportTask extends Task
       backend = DirectoryServer.getBackend(backendID);
       if (backend == null)
       {
-        int    msgID   = MSGID_LDIFIMPORT_NO_BACKENDS_FOR_ID;
-        String message = getMessage(msgID, backendID);
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_LDIFIMPORT_NO_BACKENDS_FOR_ID.get();
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (! backend.supportsLDIFImport())
       {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_IMPORT;
-        String message = getMessage(msgID, backendID);
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_LDIFIMPORT_CANNOT_IMPORT.get(backendID);
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       // Make sure that if the "backendID" argument was provided, no include
       // base was included, and the "append" ption was not provided, the
@@ -358,11 +343,9 @@ public class ImportTask extends Task
           builder.append(dn.toNormalizedString());
           builder.append(" ");
         }
-        int    msgID   = MSGID_LDIFIMPORT_MISSING_CLEAR_BACKEND;
-        String message = getMessage(msgID, builder.toString(),
-                                    typeClearBackend.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_LDIFIMPORT_MISSING_CLEAR_BACKEND.get(
+            builder.toString(), typeClearBackend.getNameOrOID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
     else
@@ -380,12 +363,10 @@ public class ImportTask extends Task
           else if(backend != locatedBackend)
           {
             // The include branches span across multiple backends.
-            int    msgID   = MSGID_LDIFIMPORT_INVALID_INCLUDE_BASE;
-            String message = getMessage(msgID,
-                                        includeBranch.toNormalizedString(),
-                                        backend.getBackendID());
+            Message message = ERR_LDIFIMPORT_INVALID_INCLUDE_BASE.get(
+                includeBranch.toNormalizedString(), backend.getBackendID());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message, msgID);
+                                         message);
           }
         }
       }
@@ -403,11 +384,9 @@ public class ImportTask extends Task
       if (! Backend.handlesEntry(includeBranch, defaultIncludeBranches,
                                  excludeBranches))
       {
-        int    msgID   = MSGID_LDIFIMPORT_INVALID_INCLUDE_BASE;
-        String message = getMessage(msgID, includeBranch.toNormalizedString(),
-                                    backend.getBackendID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_LDIFIMPORT_INVALID_INCLUDE_BASE.get(
+            includeBranch.toNormalizedString(), backend.getBackendID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
   }
@@ -459,11 +438,9 @@ public class ImportTask extends Task
       }
       catch (DirectoryException de)
       {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_PARSE_EXCLUDE_FILTER;
-        String message = getMessage(msgID, filterString,
-                                    de.getErrorMessage());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_LDIFIMPORT_CANNOT_PARSE_EXCLUDE_FILTER.get(
+            filterString, de.getMessageObject());
+        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
     }
@@ -478,11 +455,9 @@ public class ImportTask extends Task
       }
       catch (DirectoryException de)
       {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_PARSE_INCLUDE_FILTER;
-        String message = getMessage(msgID, filterString,
-                                    de.getErrorMessage());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_LDIFIMPORT_CANNOT_PARSE_INCLUDE_FILTER.get(
+            filterString, de.getMessageObject());
+        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
     }
@@ -505,18 +480,16 @@ public class ImportTask extends Task
       }
       catch (DirectoryException de)
       {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE;
-        String message = getMessage(msgID, s, de.getErrorMessage());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
+            s, de.getMessageObject());
+        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE;
-        String message = getMessage(msgID, s, getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
+            s, getExceptionMessage(e));
+        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
 
@@ -532,18 +505,14 @@ public class ImportTask extends Task
 
       if (backend == null)
       {
-        int    msgID   = MSGID_LDIFIMPORT_NO_BACKENDS_FOR_ID;
-        String message = getMessage(msgID, backendID);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_LDIFIMPORT_NO_BACKENDS_FOR_ID.get();
+        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
       else if (! backend.supportsLDIFImport())
       {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_IMPORT;
-        String message = getMessage(msgID, backendID);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_LDIFIMPORT_CANNOT_IMPORT.get(backendID);
+        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
       // Make sure that if the "backendID" argument was provided, no include
@@ -560,11 +529,9 @@ public class ImportTask extends Task
           builder.append(" / ");
           builder.append(backend.getBaseDNs()[i].toNormalizedString());
         }
-        int    msgID   = MSGID_LDIFIMPORT_MISSING_CLEAR_BACKEND;
-        String message = getMessage(msgID, builder.toString(),
-                                    ATTR_IMPORT_CLEAR_BACKEND);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_LDIFIMPORT_MISSING_CLEAR_BACKEND.get(
+            builder.toString(), ATTR_IMPORT_CLEAR_BACKEND);
+        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
     }
@@ -583,12 +550,9 @@ public class ImportTask extends Task
           else if(backend != locatedBackend)
           {
             // The include branches span across multiple backends.
-            int    msgID   = MSGID_LDIFIMPORT_INVALID_INCLUDE_BASE;
-            String message = getMessage(msgID,
-                                        includeBranch.toNormalizedString(),
-                                        backend.getBackendID());
-            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
+            Message message = ERR_LDIFIMPORT_INVALID_INCLUDE_BASE.get(
+                includeBranch.toNormalizedString(), backend.getBackendID());
+            logError(message);
             return TaskState.STOPPED_BY_ERROR;
           }
         }
@@ -636,18 +600,16 @@ public class ImportTask extends Task
       }
       catch (DirectoryException de)
       {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE;
-        String message = getMessage(msgID, s, de.getErrorMessage());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
+            s, de.getMessageObject());
+        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE;
-        String message = getMessage(msgID, s, getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
+            s, getExceptionMessage(e));
+        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
 
@@ -669,11 +631,9 @@ public class ImportTask extends Task
         if (! Backend.handlesEntry(includeBranch, defaultIncludeBranches,
                                    excludeBranches))
         {
-          int    msgID   = MSGID_LDIFIMPORT_INVALID_INCLUDE_BASE;
-          String message = getMessage(msgID, includeBranch.toNormalizedString(),
-                                      backend.getBackendID());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_LDIFIMPORT_INVALID_INCLUDE_BASE.get(
+              includeBranch.toNormalizedString(), backend.getBackendID());
+          logError(message);
           return TaskState.STOPPED_BY_ERROR;
         }
       }
@@ -716,10 +676,9 @@ public class ImportTask extends Task
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_OPEN_REJECTS_FILE;
-        String message = getMessage(msgID, rejectFile, getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_LDIFIMPORT_CANNOT_OPEN_REJECTS_FILE.get(
+            rejectFile, getExceptionMessage(e));
+        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
     }
@@ -742,10 +701,9 @@ public class ImportTask extends Task
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_OPEN_SKIP_FILE;
-        String message = getMessage(msgID, skipFile, getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_LDIFIMPORT_CANNOT_OPEN_SKIP_FILE.get(
+            skipFile, getExceptionMessage(e));
+        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
     }
@@ -772,8 +730,7 @@ public class ImportTask extends Task
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               e.getErrorMessage(), e.getMessageID());
+      logError(e.getMessageObject());
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -787,11 +744,9 @@ public class ImportTask extends Task
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
         {
-          int    msgID   = MSGID_LDIFIMPORT_CANNOT_LOCK_BACKEND;
-          String message = getMessage(msgID, backend.getBackendID(),
-                                      String.valueOf(failureReason));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_LDIFIMPORT_CANNOT_LOCK_BACKEND.get(
+              backend.getBackendID(), String.valueOf(failureReason));
+          logError(message);
           return TaskState.STOPPED_BY_ERROR;
         }
       }
@@ -802,11 +757,9 @@ public class ImportTask extends Task
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_LOCK_BACKEND;
-        String message = getMessage(msgID, backend.getBackendID(),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_LDIFIMPORT_CANNOT_LOCK_BACKEND.get(
+            backend.getBackendID(), getExceptionMessage(e));
+        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
 
@@ -824,10 +777,9 @@ public class ImportTask extends Task
         }
 
         DirectoryServer.notifyImportEnded(backend, importConfig, false);
-        int    msgID   = MSGID_LDIFIMPORT_ERROR_DURING_IMPORT;
-        String message = getMessage(msgID, de.getErrorMessage());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message =
+            ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(de.getMessageObject());
+        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
       catch (Exception e)
@@ -838,10 +790,9 @@ public class ImportTask extends Task
         }
 
         DirectoryServer.notifyImportEnded(backend, importConfig, false);
-        int    msgID   = MSGID_LDIFIMPORT_ERROR_DURING_IMPORT;
-        String message = getMessage(msgID, getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message =
+            ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(getExceptionMessage(e));
+        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
       finally
@@ -853,11 +804,9 @@ public class ImportTask extends Task
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.releaseLock(lockFile, failureReason))
           {
-            int    msgID   = MSGID_LDIFIMPORT_CANNOT_UNLOCK_BACKEND;
-            String message = getMessage(msgID, backend.getBackendID(),
-                                        String.valueOf(failureReason));
-            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-                     message, msgID);
+            Message message = WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.get(
+                backend.getBackendID(), String.valueOf(failureReason));
+            logError(message);
             return TaskState.COMPLETED_WITH_ERRORS;
           }
         }
@@ -868,11 +817,9 @@ public class ImportTask extends Task
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_LDIFIMPORT_CANNOT_UNLOCK_BACKEND;
-          String message = getMessage(msgID, backend.getBackendID(),
-                                      getExceptionMessage(e));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-                   message, msgID);
+          Message message = WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.get(
+              backend.getBackendID(), getExceptionMessage(e));
+          logError(message);
           return TaskState.COMPLETED_WITH_ERRORS;
         }
 
@@ -896,8 +843,7 @@ public class ImportTask extends Task
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 e.getErrorMessage(), e.getMessageID());
+        logError(e.getMessageObject());
         return TaskState.STOPPED_BY_ERROR;
       }
       DirectoryServer.notifyImportEnded(backend, importConfig, true);

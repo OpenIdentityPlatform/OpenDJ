@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
+import org.opends.messages.Message;
 
 
 
@@ -38,6 +39,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;
 
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -94,7 +96,7 @@ public abstract class PasswordValidator
    */
   public boolean isConfigurationAcceptable(
                       PasswordValidatorCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by password validator
@@ -147,6 +149,6 @@ public abstract class PasswordValidator
                                Set<ByteString> currentPasswords,
                                Operation operation,
                                Entry userEntry,
-                               StringBuilder invalidReason);
+                               MessageBuilder invalidReason);
 }
 

@@ -25,10 +25,12 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
+import org.opends.messages.Message;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ReplicationMessages.*;
+import static org.opends.messages.ReplicationMessages.*;
+
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 
 import java.io.File;
@@ -57,8 +59,6 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
 
 import com.sleepycat.je.DatabaseException;
@@ -139,8 +139,13 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     }
     catch (Exception e)
     {
-      throw new ConfigException(MSGID_FILE_CHECK_CREATE_FAILED,
-          e.getMessage() + " " + getFileForPath(dbDirname));
+
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(e.getLocalizedMessage());
+      mb.append(" ");
+      mb.append(String.valueOf(getFileForPath(dbDirname)));
+      Message msg = ERR_FILE_CHECK_CREATE_FAILED.get(mb.toString());
+      throw new ConfigException(msg, e);
     }
 
     initialize(replicationServerId, replicationPort);
@@ -223,11 +228,8 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
           }
           catch (IOException e)
           {
-            int msgID = MSGID_COULD_NOT_SOLVE_HOSTNAME;
-            String message = getMessage(msgID, hostname);
-            logError(ErrorLogCategory.SYNCHRONIZATION,
-                     ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
+            Message message = ERR_COULD_NOT_SOLVE_HOSTNAME.get(hostname);
+            logError(message);
           }
         }
       }
@@ -325,29 +327,21 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
 
     } catch (DatabaseException e)
     {
-      int msgID = MSGID_COULD_NOT_INITIALIZE_DB;
-      String message = getMessage(msgID, dbDirname);
-      logError(ErrorLogCategory.SYNCHRONIZATION, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_COULD_NOT_INITIALIZE_DB.get(dbDirname);
+      logError(message);
     } catch (ReplicationDBException e)
     {
-      int msgID = MSGID_COULD_NOT_READ_DB;
-      String message = getMessage(msgID, dbDirname);
-      message += getMessage(e.getMessageID());
-      logError(ErrorLogCategory.SYNCHRONIZATION, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_COULD_NOT_READ_DB.get(dbDirname);
+      logError(message);
     } catch (UnknownHostException e)
     {
-      int msgID = MSGID_UNKNOWN_HOSTNAME;
-      String message = getMessage(msgID);
-      logError(ErrorLogCategory.SYNCHRONIZATION, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_UNKNOWN_HOSTNAME.get();
+      logError(message);
     } catch (IOException e)
     {
-      int msgID = MSGID_COULD_NOT_BIND_CHANGELOG;
-      String message = getMessage(msgID, changelogPort, e.getMessage());
-      logError(ErrorLogCategory.SYNCHRONIZATION, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message =
+          ERR_COULD_NOT_BIND_CHANGELOG.get(changelogPort, e.getMessage());
+      logError(message);
     }
   }
 
@@ -449,7 +443,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
    * @return true if the configuration is acceptable, false other wise.
    */
   public static boolean isConfigurationAcceptable(
-      ReplicationServerCfg configuration, List<String> unacceptableReasons)
+      ReplicationServerCfg configuration, List<Message> unacceptableReasons)
   {
     int port = configuration.getReplicationPort();
 
@@ -461,8 +455,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     }
     catch (Exception e)
     {
-      String message = getMessage(MSGID_COULD_NOT_BIND_CHANGELOG, port,
-                                  e.getMessage());
+      Message message = ERR_COULD_NOT_BIND_CHANGELOG.get(port, e.getMessage());
       unacceptableReasons.add(message);
       return false;
     }
@@ -484,7 +477,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-      ReplicationServerCfg configuration, List<String> unacceptableReasons)
+      ReplicationServerCfg configuration, List<Message> unacceptableReasons)
   {
     return true;
   }

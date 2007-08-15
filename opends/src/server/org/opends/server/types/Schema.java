@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 
@@ -55,9 +56,8 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.BackendMessages.*;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -348,13 +348,11 @@ public class Schema
         {
           AttributeType conflictingType = attributeTypes.get(oid);
 
-          int    msgID   = MSGID_SCHEMA_CONFLICTING_ATTRIBUTE_OID;
-          String message =
-               getMessage(msgID, attributeType.getNameOrOID(), oid,
-                          conflictingType.getNameOrOID());
+          Message message = ERR_SCHEMA_CONFLICTING_ATTRIBUTE_OID.
+              get(attributeType.getNameOrOID(), oid,
+                  conflictingType.getNameOrOID());
           throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message,
-                         msgID);
+                         ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
         for (String name : attributeType.getNormalizedNames())
@@ -363,13 +361,11 @@ public class Schema
           {
             AttributeType conflictingType = attributeTypes.get(name);
 
-            int    msgID   = MSGID_SCHEMA_CONFLICTING_ATTRIBUTE_NAME;
-            String message =
-                 getMessage(msgID, attributeType.getNameOrOID(), name,
-                            conflictingType.getNameOrOID());
+            Message message = ERR_SCHEMA_CONFLICTING_ATTRIBUTE_NAME.
+                get(attributeType.getNameOrOID(), name,
+                    conflictingType.getNameOrOID());
             throw new DirectoryException(
-                           ResultCode.CONSTRAINT_VIOLATION, message,
-                           msgID);
+                           ResultCode.CONSTRAINT_VIOLATION, message);
           }
         }
       }
@@ -630,13 +626,11 @@ public class Schema
         {
           ObjectClass conflictingClass = objectClasses.get(oid);
 
-          int    msgID   = MSGID_SCHEMA_CONFLICTING_OBJECTCLASS_OID;
-          String message =
-               getMessage(msgID, objectClass.getNameOrOID(),
-                          oid, conflictingClass.getNameOrOID());
+          Message message = ERR_SCHEMA_CONFLICTING_OBJECTCLASS_OID.
+              get(objectClass.getNameOrOID(), oid,
+                  conflictingClass.getNameOrOID());
           throw new DirectoryException(
-                       ResultCode.CONSTRAINT_VIOLATION, message,
-                       msgID);
+                       ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
         for (String name : objectClass.getNormalizedNames())
@@ -645,13 +639,11 @@ public class Schema
           {
             ObjectClass conflictingClass = objectClasses.get(name);
 
-            int msgID = MSGID_SCHEMA_CONFLICTING_OBJECTCLASS_NAME;
-            String message =
-                 getMessage(msgID, objectClass.getNameOrOID(), name,
-                            conflictingClass.getNameOrOID());
+            Message message = ERR_SCHEMA_CONFLICTING_OBJECTCLASS_NAME.
+                get(objectClass.getNameOrOID(), name,
+                    conflictingClass.getNameOrOID());
             throw new DirectoryException(
-                           ResultCode.CONSTRAINT_VIOLATION, message,
-                           msgID);
+                           ResultCode.CONSTRAINT_VIOLATION, message);
           }
         }
       }
@@ -801,13 +793,11 @@ public class Schema
         {
           AttributeSyntax conflictingSyntax = syntaxes.get(oid);
 
-          int    msgID   = MSGID_SCHEMA_CONFLICTING_SYNTAX_OID;
-          String message =
-               getMessage(msgID, syntax.getSyntaxName(),
-                          oid, conflictingSyntax.getSyntaxName());
+          Message message = ERR_SCHEMA_CONFLICTING_SYNTAX_OID.
+              get(syntax.getSyntaxName(), oid,
+                  conflictingSyntax.getSyntaxName());
           throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message,
-                         msgID);
+                         ResultCode.CONSTRAINT_VIOLATION, message);
         }
       }
 
@@ -971,13 +961,11 @@ public class Schema
           {
             MatchingRule conflictingRule = matchingRules.get(oid);
 
-            int    msgID   = MSGID_SCHEMA_CONFLICTING_MR_OID;
-            String message =
-                 getMessage(msgID, matchingRule.getNameOrOID(), oid,
-                            conflictingRule.getNameOrOID());
+            Message message = ERR_SCHEMA_CONFLICTING_MR_OID.
+                get(matchingRule.getNameOrOID(), oid,
+                    conflictingRule.getNameOrOID());
             throw new DirectoryException(
-                           ResultCode.CONSTRAINT_VIOLATION, message,
-                           msgID);
+                           ResultCode.CONSTRAINT_VIOLATION, message);
           }
 
           String name = matchingRule.getName();
@@ -988,13 +976,11 @@ public class Schema
             {
               MatchingRule conflictingRule = matchingRules.get(name);
 
-              int    msgID   = MSGID_SCHEMA_CONFLICTING_MR_NAME;
-              String message =
-                   getMessage(msgID, matchingRule.getOID(), name,
-                              conflictingRule.getOID());
+              Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
+                  get(matchingRule.getOID(), name,
+                      conflictingRule.getOID());
               throw new DirectoryException(
-                             ResultCode.CONSTRAINT_VIOLATION, message,
-                             msgID);
+                            ResultCode.CONSTRAINT_VIOLATION, message);
             }
           }
         }
@@ -1150,13 +1136,11 @@ public class Schema
         {
           MatchingRule conflictingRule = matchingRules.get(oid);
 
-          int    msgID   = MSGID_SCHEMA_CONFLICTING_MR_OID;
-          String message =
-               getMessage(msgID, matchingRule.getNameOrOID(), oid,
-                          conflictingRule.getNameOrOID());
+          Message message = ERR_SCHEMA_CONFLICTING_MR_OID.
+              get(matchingRule.getNameOrOID(), oid,
+                  conflictingRule.getNameOrOID());
           throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message,
-                         msgID);
+                         ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
         String name = matchingRule.getName();
@@ -1167,13 +1151,11 @@ public class Schema
           {
             MatchingRule conflictingRule = matchingRules.get(name);
 
-            int    msgID   = MSGID_SCHEMA_CONFLICTING_MR_NAME;
-            String message =
-                 getMessage(msgID, matchingRule.getOID(), name,
-                            conflictingRule.getOID());
+            Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
+                get(matchingRule.getOID(), name,
+                    conflictingRule.getOID());
             throw new DirectoryException(
-                           ResultCode.CONSTRAINT_VIOLATION, message,
-                           msgID);
+                           ResultCode.CONSTRAINT_VIOLATION, message);
           }
         }
       }
@@ -1308,13 +1290,11 @@ public class Schema
         {
           MatchingRule conflictingRule = matchingRules.get(oid);
 
-          int    msgID   = MSGID_SCHEMA_CONFLICTING_MR_OID;
-          String message =
-               getMessage(msgID, matchingRule.getNameOrOID(), oid,
-                          conflictingRule.getNameOrOID());
+          Message message = ERR_SCHEMA_CONFLICTING_MR_OID.
+              get(matchingRule.getNameOrOID(), oid,
+                  conflictingRule.getNameOrOID());
           throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message,
-                         msgID);
+                         ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
         String name = matchingRule.getName();
@@ -1325,13 +1305,11 @@ public class Schema
           {
             MatchingRule conflictingRule = matchingRules.get(name);
 
-            int    msgID   = MSGID_SCHEMA_CONFLICTING_MR_NAME;
-            String message =
-                 getMessage(msgID, matchingRule.getOID(), name,
-                            conflictingRule.getOID());
+            Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
+                get(matchingRule.getOID(), name,
+                    conflictingRule.getOID());
             throw new DirectoryException(
-                           ResultCode.CONSTRAINT_VIOLATION, message,
-                           msgID);
+                           ResultCode.CONSTRAINT_VIOLATION, message);
           }
         }
       }
@@ -1467,13 +1445,11 @@ public class Schema
         {
           MatchingRule conflictingRule = matchingRules.get(oid);
 
-          int    msgID   = MSGID_SCHEMA_CONFLICTING_MR_OID;
-          String message =
-               getMessage(msgID, matchingRule.getNameOrOID(), oid,
-                          conflictingRule.getNameOrOID());
+          Message message = ERR_SCHEMA_CONFLICTING_MR_OID.
+              get(matchingRule.getNameOrOID(), oid,
+                  conflictingRule.getNameOrOID());
           throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message,
-                         msgID);
+                         ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
         String name = matchingRule.getName();
@@ -1484,13 +1460,11 @@ public class Schema
           {
             MatchingRule conflictingRule = matchingRules.get(name);
 
-            int    msgID   = MSGID_SCHEMA_CONFLICTING_MR_NAME;
-            String message =
-                 getMessage(msgID, matchingRule.getOID(), name,
-                            conflictingRule.getOID());
+            Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
+                get(matchingRule.getOID(), name,
+                    conflictingRule.getOID());
             throw new DirectoryException(
-                           ResultCode.CONSTRAINT_VIOLATION, message,
-                           msgID);
+                           ResultCode.CONSTRAINT_VIOLATION, message);
           }
         }
       }
@@ -1625,13 +1599,11 @@ public class Schema
         {
           MatchingRule conflictingRule = matchingRules.get(oid);
 
-          int    msgID   = MSGID_SCHEMA_CONFLICTING_MR_OID;
-          String message =
-               getMessage(msgID, matchingRule.getNameOrOID(), oid,
-                          conflictingRule.getNameOrOID());
+          Message message = ERR_SCHEMA_CONFLICTING_MR_OID.
+              get(matchingRule.getNameOrOID(), oid,
+                  conflictingRule.getNameOrOID());
           throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message,
-                         msgID);
+                         ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
         String name = matchingRule.getName();
@@ -1642,13 +1614,11 @@ public class Schema
           {
             MatchingRule conflictingRule = matchingRules.get(name);
 
-            int    msgID   = MSGID_SCHEMA_CONFLICTING_MR_NAME;
-            String message =
-                 getMessage(msgID, matchingRule.getOID(), name,
-                            conflictingRule.getOID());
+            Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
+                get(matchingRule.getOID(), name,
+                    conflictingRule.getOID());
             throw new DirectoryException(
-                           ResultCode.CONSTRAINT_VIOLATION, message,
-                           msgID);
+                           ResultCode.CONSTRAINT_VIOLATION, message);
           }
         }
       }
@@ -1813,14 +1783,12 @@ public class Schema
           MatchingRuleUse conflictingUse =
                                matchingRuleUses.get(matchingRule);
 
-          int    msgID   = MSGID_SCHEMA_CONFLICTING_MATCHING_RULE_USE;
-          String message =
-               getMessage(msgID, matchingRuleUse.getName(),
-                          matchingRule.getNameOrOID(),
-                          conflictingUse.getName());
+          Message message = ERR_SCHEMA_CONFLICTING_MATCHING_RULE_USE.
+              get(matchingRuleUse.getName(),
+                  matchingRule.getNameOrOID(),
+                  conflictingUse.getName());
           throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message,
-                         msgID);
+                         ResultCode.CONSTRAINT_VIOLATION, message);
         }
       }
 
@@ -1965,13 +1933,12 @@ public class Schema
           DITContentRule conflictingRule =
                               ditContentRules.get(objectClass);
 
-          int    msgID   = MSGID_SCHEMA_CONFLICTING_DIT_CONTENT_RULE;
-          String message = getMessage(msgID, ditContentRule.getName(),
-                                      objectClass.getNameOrOID(),
-                                      conflictingRule.getName());
+          Message message = ERR_SCHEMA_CONFLICTING_DIT_CONTENT_RULE.
+              get(ditContentRule.getName(),
+                  objectClass.getNameOrOID(),
+                  conflictingRule.getName());
           throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message,
-                         msgID);
+                         ResultCode.CONSTRAINT_VIOLATION, message);
         }
       }
 
@@ -2168,15 +2135,13 @@ public class Schema
           DITStructureRule conflictingRule =
                ditStructureRulesByNameForm.get(nameForm);
 
-          int msgID =
-               MSGID_SCHEMA_CONFLICTING_DIT_STRUCTURE_RULE_NAME_FORM;
-          String message =
-               getMessage(msgID, ditStructureRule.getNameOrRuleID(),
-                          nameForm.getNameOrOID(),
-                          conflictingRule.getNameOrRuleID());
+          Message message =
+              ERR_SCHEMA_CONFLICTING_DIT_STRUCTURE_RULE_NAME_FORM.
+                get(ditStructureRule.getNameOrRuleID(),
+                    nameForm.getNameOrOID(),
+                    conflictingRule.getNameOrRuleID());
           throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message,
-                         msgID);
+                         ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
         if (ditStructureRulesByID.containsKey(ruleID))
@@ -2184,13 +2149,12 @@ public class Schema
           DITStructureRule conflictingRule =
                ditStructureRulesByID.get(ruleID);
 
-          int msgID = MSGID_SCHEMA_CONFLICTING_DIT_STRUCTURE_RULE_ID;
-          String message =
-               getMessage(msgID, ditStructureRule.getNameOrRuleID(),
-                          ruleID, conflictingRule.getNameOrRuleID());
+          Message message =
+              ERR_SCHEMA_CONFLICTING_DIT_STRUCTURE_RULE_ID.
+                get(ditStructureRule.getNameOrRuleID(), ruleID,
+                    conflictingRule.getNameOrRuleID());
           throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message,
-                         msgID);
+                         ResultCode.CONSTRAINT_VIOLATION, message);
         }
       }
 
@@ -2385,14 +2349,11 @@ public class Schema
           NameForm conflictingNameForm =
                nameFormsByOC.get(objectClass);
 
-          int    msgID   = MSGID_SCHEMA_CONFLICTING_NAME_FORM_OC;
-          String message =
-               getMessage(msgID, nameForm.getNameOrOID(),
-                          objectClass.getNameOrOID(),
-                          conflictingNameForm.getNameOrOID());
+          Message message = ERR_SCHEMA_CONFLICTING_NAME_FORM_OC.
+              get(nameForm.getNameOrOID(), objectClass.getNameOrOID(),
+                  conflictingNameForm.getNameOrOID());
           throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message,
-                         msgID);
+                         ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
         String oid = toLowerCase(nameForm.getOID());
@@ -2400,13 +2361,11 @@ public class Schema
         {
           NameForm conflictingNameForm = nameFormsByName.get(oid);
 
-          int    msgID   = MSGID_SCHEMA_CONFLICTING_NAME_FORM_OID;
-          String message =
-               getMessage(msgID, nameForm.getNameOrOID(), oid,
-                          conflictingNameForm.getNameOrOID());
+          Message message = ERR_SCHEMA_CONFLICTING_NAME_FORM_OID.
+              get(nameForm.getNameOrOID(), oid,
+                  conflictingNameForm.getNameOrOID());
           throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message,
-                         msgID);
+                         ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
         for (String name : nameForm.getNames().keySet())
@@ -2415,13 +2374,11 @@ public class Schema
           {
             NameForm conflictingNameForm = nameFormsByName.get(name);
 
-            int    msgID   = MSGID_SCHEMA_CONFLICTING_NAME_FORM_NAME;
-            String message =
-                 getMessage(msgID, nameForm.getNameOrOID(), oid,
-                            conflictingNameForm.getNameOrOID());
+            Message message = ERR_SCHEMA_CONFLICTING_NAME_FORM_NAME.
+                get(nameForm.getNameOrOID(), oid,
+                    conflictingNameForm.getNameOrOID());
             throw new DirectoryException(
-                           ResultCode.CONSTRAINT_VIOLATION, message,
-                           msgID);
+                           ResultCode.CONSTRAINT_VIOLATION, message);
           }
         }
       }
@@ -2595,13 +2552,13 @@ public class Schema
       // If we got an error as a result of a circular reference, then
       // we want to make sure that the schema element we call out is
       // the one that is at the root of the problem.
-      if (de.getMessageID() ==
-          MSGID_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE)
+      if (de.getMessageObject().getDescriptor().equals(
+          ERR_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE))
       {
-        int    msgID   = MSGID_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE;
-        String message = getMessage(msgID, element.getDefinition());
+        Message message = ERR_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE.
+            get(element.getDefinition());
         throw new DirectoryException(de.getResultCode(), message,
-                                     msgID, de);
+                                     de);
       }
 
 
@@ -2633,10 +2590,10 @@ public class Schema
     {
       // FIXME -- Is this an appropriate maximum depth for detecting
       // circular references?
-      int    msgID   = MSGID_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE;
-      String message = getMessage(msgID, element.getDefinition());
+      Message message = ERR_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE.get(
+          element.getDefinition());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -2958,11 +2915,8 @@ public class Schema
       // changes could potentially be sent to the other servers again
       // when this server is restarted, which shouldn't hurt anything.
       // Still, we should log a warning message.
-      logError(ErrorLogCategory.SCHEMA,
-               ErrorLogSeverity.SEVERE_WARNING,
-               MSGID_SCHEMA_CANNOT_WRITE_CONCAT_SCHEMA_FILE,
-               String.valueOf(concatFilePath),
-               getExceptionMessage(e));
+      logError(ERR_SCHEMA_CANNOT_WRITE_CONCAT_SCHEMA_FILE.get(
+          String.valueOf(concatFilePath), getExceptionMessage(e)));
     }
   }
 

@@ -27,8 +27,9 @@
 
 package org.opends.quicksetup;
 
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.util.Utils;
-import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.server.util.DynamicConstants;
 
 import java.util.HashMap;
@@ -115,7 +116,7 @@ public class BuildInformation implements Comparable {
     } catch (IOException e) {
       throw new ApplicationException(
           ApplicationReturnCode.ReturnCode.START_ERROR,
-          getMsg("error-creating-build-info"), e);
+          INFO_ERROR_CREATING_BUILD_INFO.get(), e);
     } finally {
       if (is != null) {
         try {
@@ -329,8 +330,7 @@ public class BuildInformation implements Comparable {
     String id = getBuildId();
     if (id != null) {
       sb.append(" (")
-              .append(ResourceProvider.getInstance().
-                      getMsg("general-build-id"))
+              .append(INFO_GENERAL_BUILD_ID.get())
               .append(": ")
               .append(id)
               .append(")");
@@ -389,15 +389,11 @@ public class BuildInformation implements Comparable {
     for (String prop : props) {
       if (null == values.get(prop)) {
         throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.TOOL_ERROR, getMsg(
-                "error-prop-value", prop), null);
+                ApplicationReturnCode.ReturnCode.TOOL_ERROR,
+                INFO_ERROR_PROP_VALUE.get(prop), null);
       }
     }
 
-  }
-
-  static private String getMsg(String key, String... args) {
-    return ResourceProvider.getInstance().getMsg(key, args);
   }
 
 }

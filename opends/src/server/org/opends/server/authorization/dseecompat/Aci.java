@@ -26,11 +26,11 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.AciMessages.*;
+import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.util.StaticUtils.isDigit;
 
 import java.util.regex.Pattern;
@@ -368,9 +368,8 @@ public class Aci  {
         //Perform a quick pattern check against the string to catch any
         //obvious syntax errors.
         if (!Pattern.matches(aciRegex, input)) {
-            int msgID = MSGID_ACI_SYNTAX_GENERAL_PARSE_FAILED;
-            String message = getMessage(msgID, input);
-            throw new AciException(msgID, message);
+            Message message = WARN_ACI_SYNTAX_GENERAL_PARSE_FAILED.get(input);
+            throw new AciException(message);
         }
         //Decode the body first.
         AciBody body=AciBody.decode(input);
@@ -529,7 +528,7 @@ public class Aci  {
    *  Decode an OIDs expression string.
    *
    * @param expr A string representing the OID expression.
-   * @param msgID A message ID to be used if there is an exception.
+   * @param msg  A message to be used if there is an exception.
    *
    * @return  Return a hash set of verfied OID strings parsed from the OID
    *          expression.
@@ -537,7 +536,7 @@ public class Aci  {
    * @throws AciException If the specified expression string is invalid.
    */
 
-    public static HashSet<String> decodeOID(String expr, int msgID)
+    public static HashSet<String> decodeOID(String expr, Message msg)
     throws AciException {
       HashSet<String> OIDs = new HashSet<String>();
       //Quick check to see if the expression is valid.
@@ -556,8 +555,7 @@ public class Aci  {
           OIDs.add(oid);
         }
       } else {
-        String message = getMessage(msgID, expr);
-        throw new AciException(msgID, message);
+        throw new AciException(msg);
       }
       return OIDs;
     }
@@ -578,15 +576,15 @@ public class Aci  {
       while ((pos < length) && ((c = oidStr.charAt(pos++)) != ' ')) {
         if (c == '.') {
           if (lastWasPeriod) {
-            int msgID = MSGID_ACI_SYNTAX_DOUBLE_PERIOD_IN_NUMERIC_OID;
-            String message = getMessage(msgID, oidStr, c, pos-1);
-            throw new AciException(msgID, message);
+            Message message = WARN_ACI_SYNTAX_DOUBLE_PERIOD_IN_NUMERIC_OID.get(
+                oidStr, pos-1);
+            throw new AciException(message);
           }  else
             lastWasPeriod = true;
         }  else if (! isDigit(c)) {
-          int msgID = MSGID_ACI_SYNTAX_ILLEGAL_CHAR_IN_NUMERIC_OID;
-          String message = getMessage(msgID, oidStr, c, pos-1);
-          throw new AciException(msgID, message);
+          Message message =
+              WARN_ACI_SYNTAX_ILLEGAL_CHAR_IN_NUMERIC_OID.get(oidStr, c, pos-1);
+          throw new AciException(message);
         }  else
           lastWasPeriod = false;
       }

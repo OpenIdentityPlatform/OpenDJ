@@ -40,8 +40,7 @@ import org.opends.server.api.Backend;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -100,8 +99,9 @@ public class LockFileManager
       // then we can't get a shared lock on it.
       if (exclusiveLocks.containsKey(lockFile))
       {
-        int msgID = MSGID_FILELOCKER_LOCK_SHARED_REJECTED_BY_EXCLUSIVE;
-        failureReason.append(getMessage(msgID, lockFile));
+
+        failureReason.append(
+                ERR_FILELOCKER_LOCK_SHARED_REJECTED_BY_EXCLUSIVE.get(lockFile));
         return false;
       }
 
@@ -135,8 +135,8 @@ public class LockFileManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_FILELOCKER_LOCK_SHARED_FAILED_CREATE;
-        failureReason.append(getMessage(msgID, lockFile,
+        failureReason.append(
+                ERR_FILELOCKER_LOCK_SHARED_FAILED_CREATE.get(lockFile,
                                         getExceptionMessage(e)));
         return false;
       }
@@ -157,9 +157,8 @@ public class LockFileManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_FILELOCKER_LOCK_SHARED_FAILED_OPEN;
-        failureReason.append(getMessage(msgID, lockFile,
-                                        getExceptionMessage(e)));
+        failureReason.append(ERR_FILELOCKER_LOCK_SHARED_FAILED_OPEN.get(
+                lockFile, getExceptionMessage(e)));
 
         if (raf != null)
         {
@@ -188,8 +187,9 @@ public class LockFileManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_FILELOCKER_LOCK_SHARED_FAILED_LOCK;
-        failureReason.append(getMessage(msgID, getExceptionMessage(e)));
+        failureReason.append(
+                ERR_FILELOCKER_LOCK_SHARED_FAILED_LOCK.get(
+                        lockFile, getExceptionMessage(e)));
         if (channel != null)
         {
           try
@@ -218,8 +218,8 @@ public class LockFileManager
       // the shared lock table with a reference count of 1 and return true.
       if (fileLock == null)
       {
-        int msgID = MSGID_FILELOCKER_LOCK_SHARED_NOT_GRANTED;
-        failureReason.append(getMessage(msgID, lockFile));
+        failureReason.append(
+                ERR_FILELOCKER_LOCK_SHARED_NOT_GRANTED.get(lockFile));
         if (channel != null)
         {
           try
@@ -278,8 +278,9 @@ public class LockFileManager
       // then we can't get another exclusive lock on it.
       if (exclusiveLocks.containsKey(lockFile))
       {
-        int msgID = MSGID_FILELOCKER_LOCK_EXCLUSIVE_REJECTED_BY_EXCLUSIVE;
-        failureReason.append(getMessage(msgID, lockFile));
+        failureReason.append(
+                ERR_FILELOCKER_LOCK_EXCLUSIVE_REJECTED_BY_EXCLUSIVE.get(
+                        lockFile));
         return false;
       }
 
@@ -288,8 +289,8 @@ public class LockFileManager
       // we can't get an exclusive lock on it.
       if (sharedLocks.containsKey(lockFile))
       {
-        int msgID = MSGID_FILELOCKER_LOCK_EXCLUSIVE_REJECTED_BY_SHARED;
-        failureReason.append(getMessage(msgID, lockFile));
+        failureReason.append(
+                ERR_FILELOCKER_LOCK_EXCLUSIVE_REJECTED_BY_SHARED.get(lockFile));
         return false;
       }
 
@@ -310,9 +311,8 @@ public class LockFileManager
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-
-        int msgID = MSGID_FILELOCKER_LOCK_EXCLUSIVE_FAILED_CREATE;
-        failureReason.append(getMessage(msgID, lockFile,
+        failureReason.append(
+                ERR_FILELOCKER_LOCK_EXCLUSIVE_FAILED_CREATE.get(lockFile,
                                         getExceptionMessage(e)));
         return false;
       }
@@ -333,9 +333,8 @@ public class LockFileManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_FILELOCKER_LOCK_EXCLUSIVE_FAILED_OPEN;
-        failureReason.append(getMessage(msgID, lockFile,
-                                        getExceptionMessage(e)));
+        failureReason.append(ERR_FILELOCKER_LOCK_EXCLUSIVE_FAILED_OPEN.get(
+                lockFile, getExceptionMessage(e)));
         if (raf != null)
         {
           try
@@ -363,8 +362,8 @@ public class LockFileManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_FILELOCKER_LOCK_EXCLUSIVE_FAILED_LOCK;
-        failureReason.append(getMessage(msgID, lockFile,
+        failureReason.append(
+                ERR_FILELOCKER_LOCK_EXCLUSIVE_FAILED_LOCK.get(lockFile,
                                         getExceptionMessage(e)));
         if (channel != null)
         {
@@ -395,8 +394,8 @@ public class LockFileManager
       // the exclusive lock table and return true.
       if (fileLock == null)
       {
-        int msgID = MSGID_FILELOCKER_LOCK_EXCLUSIVE_NOT_GRANTED;
-        failureReason.append(getMessage(msgID, lockFile));
+        failureReason.append(
+                ERR_FILELOCKER_LOCK_EXCLUSIVE_NOT_GRANTED.get(lockFile));
         if (channel != null)
         {
           try
@@ -472,8 +471,8 @@ public class LockFileManager
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int msgID = MSGID_FILELOCKER_UNLOCK_EXCLUSIVE_FAILED_RELEASE;
-          failureReason.append(getMessage(msgID, lockFile,
+          failureReason.append(
+                  ERR_FILELOCKER_UNLOCK_EXCLUSIVE_FAILED_RELEASE.get(lockFile,
                                           getExceptionMessage(e)));
           return false;
         }
@@ -520,9 +519,8 @@ public class LockFileManager
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            int msgID = MSGID_FILELOCKER_UNLOCK_SHARED_FAILED_RELEASE;
-            failureReason.append(getMessage(msgID, lockFile,
-                                            getExceptionMessage(e)));
+            failureReason.append(ERR_FILELOCKER_UNLOCK_SHARED_FAILED_RELEASE
+                    .get(lockFile, getExceptionMessage(e)));
             return false;
           }
 
@@ -553,8 +551,7 @@ public class LockFileManager
       // We didn't find a reference to the file.  We'll have to return false
       // since either we lost the reference or we're trying to release a lock
       // we never had.  Both of them are bad.
-      int msgID = MSGID_FILELOCKER_UNLOCK_UNKNOWN_FILE;
-      failureReason.append(getMessage(msgID, lockFile));
+      failureReason.append(ERR_FILELOCKER_UNLOCK_UNKNOWN_FILE.get(lockFile));
       return false;
     }
     finally

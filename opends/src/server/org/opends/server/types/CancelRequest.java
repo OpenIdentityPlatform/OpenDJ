@@ -25,7 +25,10 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
+
+import org.opends.messages.MessageBuilder;
 
 /**
  * This class defines a data structure that can be used to hold
@@ -43,11 +46,11 @@ public class CancelRequest
 
   // A message that explains the purpose for this cancellation (may be
   // included in the response to the original requestor).
-  private final String cancelReason;
+  private final Message cancelReason;
 
   // A buffer to hold a human-readable response that the server
   // provided for the result of the cancellation.
-  private StringBuilder responseMessage;
+  private MessageBuilder responseMessage;
 
 
 
@@ -62,11 +65,11 @@ public class CancelRequest
    *                                  purpose for this cancellation.
    */
   public CancelRequest(boolean notifyOriginalRequestor,
-                       String cancelReason)
+                       Message cancelReason)
   {
     this.notifyOriginalRequestor = notifyOriginalRequestor;
     this.cancelReason            = cancelReason;
-    this.responseMessage         = new StringBuilder();
+    this.responseMessage         = new MessageBuilder();
   }
 
 
@@ -86,8 +89,8 @@ public class CancelRequest
    *                                  of the cancellation.
    */
   public CancelRequest(boolean notifyOriginalRequestor,
-                       String cancelReason,
-                       StringBuilder responseMessage)
+                       Message cancelReason,
+                       MessageBuilder responseMessage)
   {
     this.notifyOriginalRequestor = notifyOriginalRequestor;
     this.cancelReason            = cancelReason;
@@ -118,7 +121,7 @@ public class CancelRequest
    * @return  A message that explains the purpose for this
    *          cancellation.
    */
-  public final String getCancelReason()
+  public final Message getCancelReason()
   {
     return cancelReason;
   }
@@ -134,7 +137,7 @@ public class CancelRequest
    *          response that the server provided for the result of this
    *          cancellation.
    */
-  public final StringBuilder getResponseMessage()
+  public final MessageBuilder getResponseMessage()
   {
     return responseMessage;
   }
@@ -148,7 +151,7 @@ public class CancelRequest
    * @param  message  The message to append to the response message
    *                  buffer.
    */
-  public final void addResponseMessage(String message)
+  public final void addResponseMessage(Message message)
   {
     responseMessage.append(message);
   }

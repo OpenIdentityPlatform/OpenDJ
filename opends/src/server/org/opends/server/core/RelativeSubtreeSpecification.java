@@ -25,9 +25,9 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
 
 import java.util.HashSet;
 import java.util.InputMismatchException;
@@ -210,10 +210,10 @@ public final class RelativeSubtreeSpecification extends
       return new RelativeSubtreeSpecification(rootDN, relativeBaseDN,
           minimum, maximum, chopBefore, chopAfter, filter);
     } else {
-      int msgID = MSGID_ATTR_SYNTAX_RELATIVE_SUBTREE_SPECIFICATION_INVALID;
-      String message = getMessage(msgID, s);
+      Message message =
+          ERR_ATTR_SYNTAX_RELATIVE_SUBTREE_SPECIFICATION_INVALID.get(s);
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-          message, msgID);
+          message);
     }
   }
 

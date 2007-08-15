@@ -25,11 +25,12 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.ConfigMessages.*;
+
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.lang.reflect.Method;
@@ -137,7 +138,7 @@ public class PasswordStorageSchemeConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
       PasswordStorageSchemeCfg configuration,
-      List<String>             unacceptableReasons
+      List<Message> unacceptableReasons
       )
   {
     // returned status -- all is fine by default
@@ -155,7 +156,7 @@ public class PasswordStorageSchemeConfigManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add(ie.getMessage());
+        unacceptableReasons.add(ie.getMessageObject());
         status = false;
       }
     }
@@ -174,7 +175,7 @@ public class PasswordStorageSchemeConfigManager
   {
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<String>()
+        ResultCode.SUCCESS, false, new ArrayList<Message>()
         );
 
     // Get the configuration entry DN and the associated
@@ -220,7 +221,7 @@ public class PasswordStorageSchemeConfigManager
     }
     catch (InitializationException ie)
     {
-      changeResult.addMessage (ie.getMessage());
+      changeResult.addMessage (ie.getMessageObject());
       changeResult.setResultCode (DirectoryServer.getServerErrorResultCode());
       return changeResult;
     }
@@ -235,7 +236,7 @@ public class PasswordStorageSchemeConfigManager
    */
   public boolean isConfigurationAddAcceptable(
       PasswordStorageSchemeCfg configuration,
-      List<String>             unacceptableReasons
+      List<Message> unacceptableReasons
       )
   {
     // returned status -- all is fine by default
@@ -245,8 +246,8 @@ public class PasswordStorageSchemeConfigManager
     DN configEntryDN = configuration.dn();
     if (storageSchemes.containsKey(configEntryDN))
     {
-      int    msgID   = MSGID_CONFIG_PWSCHEME_EXISTS;
-      String message = getMessage(msgID, String.valueOf(configEntryDN));
+      Message message = ERR_CONFIG_PWSCHEME_EXISTS.get(
+              String.valueOf(configEntryDN));
       unacceptableReasons.add (message);
       status = false;
     }
@@ -264,7 +265,7 @@ public class PasswordStorageSchemeConfigManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add (ie.getMessage());
+        unacceptableReasons.add (ie.getMessageObject());
         status = false;
       }
     }
@@ -283,7 +284,7 @@ public class PasswordStorageSchemeConfigManager
   {
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<String>()
+        ResultCode.SUCCESS, false, new ArrayList<Message>()
         );
 
     // Register a change listener with it so we can be notified of changes
@@ -301,7 +302,7 @@ public class PasswordStorageSchemeConfigManager
       }
       catch (InitializationException ie)
       {
-        changeResult.addMessage (ie.getMessage());
+        changeResult.addMessage (ie.getMessageObject());
         changeResult.setResultCode (DirectoryServer.getServerErrorResultCode());
         return changeResult;
       }
@@ -317,7 +318,7 @@ public class PasswordStorageSchemeConfigManager
    */
   public boolean isConfigurationDeleteAcceptable(
       PasswordStorageSchemeCfg configuration,
-      List<String>             unacceptableReasons
+      List<Message> unacceptableReasons
       )
   {
     // A delete should always be acceptable, so just return true.
@@ -335,7 +336,7 @@ public class PasswordStorageSchemeConfigManager
   {
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<String>()
+        ResultCode.SUCCESS, false, new ArrayList<Message>()
         );
 
     uninstallPasswordStorageScheme (configuration.dn());
@@ -432,7 +433,7 @@ public class PasswordStorageSchemeConfigManager
                              "isConfigurationAcceptable",
                              PasswordStorageSchemeCfg.class, List.class);
 
-        List<String> unacceptableReasons = new ArrayList<String>();
+        List<Message> unacceptableReasons = new ArrayList<Message>();
         Boolean acceptable = (Boolean) method.invoke(passwordStorageScheme,
                                                      configuration,
                                                      unacceptableReasons);
@@ -441,7 +442,7 @@ public class PasswordStorageSchemeConfigManager
           StringBuilder buffer = new StringBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<String> iterator = unacceptableReasons.iterator();
+            Iterator<Message> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -450,10 +451,9 @@ public class PasswordStorageSchemeConfigManager
             }
           }
 
-          int    msgID   = MSGID_CONFIG_PWSCHEME_CONFIG_NOT_ACCEPTABLE;
-          String message = getMessage(msgID, String.valueOf(configuration.dn()),
-                                      buffer.toString());
-          throw new InitializationException(msgID, message);
+          Message message = ERR_CONFIG_PWSCHEME_CONFIG_NOT_ACCEPTABLE.get(
+              String.valueOf(configuration.dn()), buffer.toString());
+          throw new InitializationException(message);
         }
       }
 
@@ -461,13 +461,11 @@ public class PasswordStorageSchemeConfigManager
     }
     catch (Exception e)
     {
-      int msgID = MSGID_CONFIG_PWSCHEME_INITIALIZATION_FAILED;
-      String message = getMessage(
-          msgID, className,
+      Message message = ERR_CONFIG_PWSCHEME_INITIALIZATION_FAILED.get(className,
           String.valueOf(configuration.dn()),
           stackTraceToSingleLineString(e)
           );
-      throw new InitializationException(msgID, message, e);
+      throw new InitializationException(message, e);
     }
   }
 

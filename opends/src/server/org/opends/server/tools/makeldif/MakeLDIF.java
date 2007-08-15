@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
+import org.opends.messages.Message;
 
 
 
@@ -44,8 +45,7 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
@@ -117,7 +117,7 @@ public class MakeLDIF
   public int makeLDIFMain(String[] args)
   {
     // Create and initialize the argument parser for this program.
-    String toolDescription = getMessage(MSGID_MAKELDIF_TOOL_DESCRIPTION);
+    Message toolDescription = INFO_MAKELDIF_TOOL_DESCRIPTION.get();
     ArgumentParser  argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                    false);
     BooleanArgument showUsage;
@@ -132,7 +132,7 @@ public class MakeLDIF
     {
       configFile = new StringArgument("configfile", 'c', "configFile", true,
                                       false, true, "{configFile}", null, null,
-                                      MSGID_DESCRIPTION_CONFIG_FILE);
+                                      INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
@@ -141,7 +141,7 @@ public class MakeLDIF
                                        OPTION_LONG_CONFIG_CLASS, false,
                                        false, true,
                                        OPTION_VALUE_CONFIG_CLASS, null, null,
-                                       MSGID_DESCRIPTION_CONFIG_CLASS);
+                                       INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
@@ -149,20 +149,21 @@ public class MakeLDIF
       resourcePath =
            new StringArgument("resourcepath", 'r', "resourcePath", true, false,
                               true, "{path}", null, null,
-                              MSGID_MAKELDIF_DESCRIPTION_RESOURCE_PATH);
+                              INFO_MAKELDIF_DESCRIPTION_RESOURCE_PATH.get());
       resourcePath.setHidden(true);
       argParser.addArgument(resourcePath);
 
 
-      templatePath = new StringArgument("templatefile", 't', "templateFile",
-                                        true, false, true, "{file}", null, null,
-                                        MSGID_MAKELDIF_DESCRIPTION_TEMPLATE);
+      templatePath =
+              new StringArgument("templatefile", 't', "templateFile",
+                                 true, false, true, "{file}", null, null,
+                                 INFO_MAKELDIF_DESCRIPTION_TEMPLATE.get());
       argParser.addArgument(templatePath);
 
 
       ldifFile = new StringArgument("ldiffile", 'o', "ldifFile", true, false,
                                     true, "{file}", null, null,
-                                    MSGID_MAKELDIF_DESCRIPTION_LDIF);
+                                    INFO_MAKELDIF_DESCRIPTION_LDIF.get());
       argParser.addArgument(ldifFile);
 
 
@@ -170,20 +171,19 @@ public class MakeLDIF
                                        OPTION_LONG_RANDOM_SEED, false,
                                        false, true, OPTION_VALUE_RANDOM_SEED,
                                        0, null,
-                                       MSGID_MAKELDIF_DESCRIPTION_SEED);
+                                       INFO_MAKELDIF_DESCRIPTION_SEED.get());
       argParser.addArgument(randomSeed);
 
 
       showUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
                                       OPTION_LONG_HELP,
-                                      MSGID_MAKELDIF_DESCRIPTION_HELP);
+                                      INFO_MAKELDIF_DESCRIPTION_HELP.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }
     catch (ArgumentException ae)
     {
-      int msgID = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -196,8 +196,7 @@ public class MakeLDIF
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.err.println(argParser.getUsage());
       return 1;
@@ -223,10 +222,8 @@ public class MakeLDIF
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_MAKELDIF_CANNOT_INITIALIZE_JMX;
-      String message = getMessage(msgID,
-                                  String.valueOf(configFile.getValue()),
-                                  e.getMessage());
+      Message message = ERR_MAKELDIF_CANNOT_INITIALIZE_JMX.get(
+              String.valueOf(configFile.getValue()), e.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -238,10 +235,8 @@ public class MakeLDIF
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_MAKELDIF_CANNOT_INITIALIZE_CONFIG;
-      String message = getMessage(msgID,
-                                  String.valueOf(configFile.getValue()),
-                                  e.getMessage());
+      Message message = ERR_MAKELDIF_CANNOT_INITIALIZE_CONFIG.get(
+              String.valueOf(configFile.getValue()), e.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -252,10 +247,8 @@ public class MakeLDIF
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_MAKELDIF_CANNOT_INITIALIZE_SCHEMA;
-      String message = getMessage(msgID,
-                                  String.valueOf(configFile.getValue()),
-                                  e.getMessage());
+      Message message = ERR_MAKELDIF_CANNOT_INITIALIZE_SCHEMA.get(
+              String.valueOf(configFile.getValue()), e.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -285,15 +278,15 @@ public class MakeLDIF
     File resourceDir = new File(resourcePath.getValue());
     if (! resourceDir.exists())
     {
-      int    msgID   = MSGID_MAKELDIF_NO_SUCH_RESOURCE_DIRECTORY;
-      String message = getMessage(msgID, resourcePath.getValue());
+      Message message = ERR_MAKELDIF_NO_SUCH_RESOURCE_DIRECTORY.get(
+              resourcePath.getValue());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
 
     // Load and parse the template file.
-    LinkedList<String> warnings = new LinkedList<String>();
+    LinkedList<Message> warnings = new LinkedList<Message>();
     TemplateFile templateFile = new TemplateFile(resourcePath.getValue(),
                                                  random);
     try
@@ -302,15 +295,15 @@ public class MakeLDIF
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_MAKELDIF_IOEXCEPTION_DURING_PARSE;
-      String message = getMessage(msgID, ioe.getMessage());
+      Message message = ERR_MAKELDIF_IOEXCEPTION_DURING_PARSE.get(
+              ioe.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_MAKELDIF_EXCEPTION_DURING_PARSE;
-      String message = getMessage(msgID, e.getMessage());
+      Message message = ERR_MAKELDIF_EXCEPTION_DURING_PARSE.get(
+              e.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -319,7 +312,7 @@ public class MakeLDIF
     // If there were any warnings, then print them.
     if (! warnings.isEmpty())
     {
-      for (String s : warnings)
+      for (Message s : warnings)
       {
         System.err.println(wrapText(s, MAX_LINE_WIDTH));
       }
@@ -336,9 +329,8 @@ public class MakeLDIF
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_MAKELDIF_UNABLE_TO_CREATE_LDIF;
-      String message = getMessage(msgID, ldifFile.getValue(),
-                                  String.valueOf(ioe));
+      Message message = ERR_MAKELDIF_UNABLE_TO_CREATE_LDIF.get(
+              ldifFile.getValue(), String.valueOf(ioe));
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -351,9 +343,8 @@ public class MakeLDIF
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_MAKELDIF_ERROR_WRITING_LDIF;
-      String message = getMessage(msgID, ldifFile.getValue(),
-                                  stackTraceToSingleLineString(e));
+      Message message = ERR_MAKELDIF_ERROR_WRITING_LDIF.get(
+              ldifFile.getValue(), stackTraceToSingleLineString(e));
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -394,8 +385,7 @@ public class MakeLDIF
 
       if ((++entriesWritten % 1000) == 0)
       {
-        int    msgID   = MSGID_MAKELDIF_PROCESSED_N_ENTRIES;
-        String message = getMessage(msgID, entriesWritten);
+        Message message = INFO_MAKELDIF_PROCESSED_N_ENTRIES.get(entriesWritten);
         System.out.println(wrapText(message, MAX_LINE_WIDTH));
       }
 
@@ -407,10 +397,9 @@ public class MakeLDIF
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_MAKELDIF_CANNOT_WRITE_ENTRY;
-      String message = getMessage(msgID, String.valueOf(entry.getDN()),
-                                  stackTraceToSingleLineString(e));
-      throw new MakeLDIFException(msgID, message, e);
+      Message message = ERR_MAKELDIF_CANNOT_WRITE_ENTRY.get(
+          String.valueOf(entry.getDN()), stackTraceToSingleLineString(e));
+      throw new MakeLDIFException(message, e);
     }
   }
 
@@ -422,8 +411,7 @@ public class MakeLDIF
    */
   public void closeEntryWriter()
   {
-    int    msgID   = MSGID_MAKELDIF_PROCESSING_COMPLETE;
-    String message = getMessage(msgID, entriesWritten);
+    Message message = INFO_MAKELDIF_PROCESSING_COMPLETE.get(entriesWritten);
     System.out.println(wrapText(message, MAX_LINE_WIDTH));
   }
 }

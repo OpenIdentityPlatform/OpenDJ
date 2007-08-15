@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 import static org.opends.server.util.StaticUtils.wrapText;
 import org.opends.server.util.args.ArgumentException;
@@ -33,13 +34,12 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.extensions.ConfigFileHandler;
 
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import org.opends.server.config.ConfigException;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import org.opends.server.loggers.ThreadFilterTextErrorLogPublisher;
 import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.ErrorLogger;
-import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.core.DirectoryServer;
@@ -134,7 +134,7 @@ public class RebuildIndex
 
 
     // Create the command-line argument parser for use with this program.
-    String toolDescription = getMessage(MSGID_REBUILDINDEX_TOOL_DESCRIPTION);
+    Message toolDescription = INFO_REBUILDINDEX_TOOL_DESCRIPTION.get();
     ArgumentParser argParser =
          new ArgumentParser("org.opends.server.tools.RebuildIndex",
                             toolDescription, false);
@@ -148,7 +148,7 @@ public class RebuildIndex
            new StringArgument("configclass", 'C', "configClass", true, false,
                               true, "{configClass}",
                               ConfigFileHandler.class.getName(), null,
-                              MSGID_DESCRIPTION_CONFIG_CLASS);
+                              INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
@@ -156,7 +156,7 @@ public class RebuildIndex
       configFile =
            new StringArgument("configfile", 'f', "configFile", true, false,
                               true, "{configFile}", null, null,
-                              MSGID_DESCRIPTION_CONFIG_FILE);
+                              INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
@@ -164,7 +164,7 @@ public class RebuildIndex
       baseDNString =
            new StringArgument("basedn", 'b', "baseDN", true, false, true,
                               "{baseDN}", null, null,
-                              MSGID_REBUILDINDEX_DESCRIPTION_BASE_DN);
+                              INFO_REBUILDINDEX_DESCRIPTION_BASE_DN.get());
       argParser.addArgument(baseDNString);
 
 
@@ -172,20 +172,19 @@ public class RebuildIndex
            new StringArgument("index", 'i', "index",
                               false, true, true,
                               "{index}", null, null,
-                              MSGID_REBUILDINDEX_DESCRIPTION_INDEX_NAME);
+                              INFO_REBUILDINDEX_DESCRIPTION_INDEX_NAME.get());
       argParser.addArgument(indexList);
 
 
       displayUsage =
            new BooleanArgument("help", 'H', "help",
-                               MSGID_DESCRIPTION_USAGE);
+                               INFO_DESCRIPTION_USAGE.get());
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
@@ -199,8 +198,7 @@ public class RebuildIndex
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -229,8 +227,7 @@ public class RebuildIndex
 
     if (indexList.getValues().size() <= 0)
     {
-      int    msgID   = MSGID_REBUILDINDEX_REQUIRES_AT_LEAST_ONE_INDEX;
-      String message = getMessage(msgID);
+      Message message = ERR_REBUILDINDEX_REQUIRES_AT_LEAST_ONE_INDEX.get();
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       out.println(argParser.getUsage());
@@ -250,8 +247,8 @@ public class RebuildIndex
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_SERVER_BOOTSTRAP_ERROR;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_SERVER_BOOTSTRAP_ERROR.get(
+                getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -263,15 +260,13 @@ public class RebuildIndex
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
-        String message = getMessage(msgID, ie.getMessage());
+        Message message = ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -285,22 +280,19 @@ public class RebuildIndex
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-        String message = getMessage(msgID, ce.getMessage());
+        Message message = ERR_CANNOT_LOAD_SCHEMA.get(ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-        String message = getMessage(msgID, ie.getMessage());
+        Message message = ERR_CANNOT_LOAD_SCHEMA.get(ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -314,22 +306,22 @@ public class RebuildIndex
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
-        String message = getMessage(msgID, ce.getMessage());
+        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+                ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
-        String message = getMessage(msgID, ie.getMessage());
+        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+                ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+                getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -342,22 +334,22 @@ public class RebuildIndex
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-        String message = getMessage(msgID, ce.getMessage());
+        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+                ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-        String message = getMessage(msgID, ie.getMessage());
+        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+                ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+                getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -389,20 +381,16 @@ public class RebuildIndex
     }
     catch (DirectoryException de)
     {
-      int    msgID   = MSGID_CANNOT_DECODE_BASE_DN;
-      String message = getMessage(msgID, baseDNString.getValue(),
-                                  de.getErrorMessage());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_DECODE_BASE_DN.get(
+          baseDNString.getValue(), de.getMessageObject());
+      logError(message);
       return 1;
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_CANNOT_DECODE_BASE_DN;
-      String message = getMessage(msgID, baseDNString.getValue(),
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_DECODE_BASE_DN.get(
+          baseDNString.getValue(), getExceptionMessage(e));
+      logError(message);
       return 1;
     }
 
@@ -433,10 +421,9 @@ public class RebuildIndex
           }
           else
           {
-            int    msgID   = MSGID_MULTIPLE_BACKENDS_FOR_BASE;
-            String message = getMessage(msgID, baseDNString.getValue());
-            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
+            Message message =
+                ERR_MULTIPLE_BACKENDS_FOR_BASE.get(baseDNString.getValue());
+            logError(message);
             return 1;
           }
           break;
@@ -446,19 +433,15 @@ public class RebuildIndex
 
     if (backend == null)
     {
-      int    msgID   = MSGID_NO_BACKENDS_FOR_BASE;
-      String message = getMessage(msgID, baseDNString.getValue());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_NO_BACKENDS_FOR_BASE.get(baseDNString.getValue());
+      logError(message);
       return 1;
     }
 
     if (!(backend instanceof BackendImpl))
     {
-      int    msgID   = MSGID_BACKEND_NO_INDEXING_SUPPORT;
-      String message = getMessage(msgID);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_BACKEND_NO_INDEXING_SUPPORT.get();
+      logError(message);
       return 1;
     }
 
@@ -478,21 +461,17 @@ public class RebuildIndex
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
-        int    msgID   = MSGID_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND;
-        String message = getMessage(msgID, backend.getBackendID(),
-                                    String.valueOf(failureReason));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(
+            backend.getBackendID(), String.valueOf(failureReason));
+        logError(message);
         return 1;
       }
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND;
-      String message = getMessage(msgID, backend.getBackendID(),
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(
+          backend.getBackendID(), getExceptionMessage(e));
+      logError(message);
       return 1;
     }
 
@@ -505,10 +484,9 @@ public class RebuildIndex
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_REBUILDINDEX_ERROR_DURING_REBUILD;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message =
+          ERR_REBUILDINDEX_ERROR_DURING_REBUILD.get(getExceptionMessage(e));
+      logError(message);
       returnCode = 1;
     }
     finally
@@ -520,20 +498,16 @@ public class RebuildIndex
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
-          int    msgID   = MSGID_REBUILDINDEX_CANNOT_UNLOCK_BACKEND;
-          String message = getMessage(msgID, backend.getBackendID(),
-                                      String.valueOf(failureReason));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-                   message, msgID);
+          Message message = WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(
+              backend.getBackendID(), String.valueOf(failureReason));
+          logError(message);
         }
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_REBUILDINDEX_CANNOT_UNLOCK_BACKEND;
-        String message = getMessage(msgID, backend.getBackendID(),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-                 message, msgID);
+        Message message = WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(
+            backend.getBackendID(), getExceptionMessage(e));
+        logError(message);
       }
     }
 

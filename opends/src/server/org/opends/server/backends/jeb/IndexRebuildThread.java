@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
+import org.opends.messages.Message;
 
 import org.opends.server.api.DirectoryThread;
 
@@ -32,13 +33,12 @@ import com.sleepycat.je.*;
 
 import org.opends.server.types.*;
 
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_MISSING_DN2ID_RECORD;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_REBUILD_INDEX_FAILED;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.JebMessages.
+    ERR_JEB_MISSING_DN2ID_RECORD;
+import static org.opends.messages.JebMessages.
+    ERR_JEB_REBUILD_INDEX_FAILED;
+import static org.opends.messages.JebMessages.
+    ERR_JEB_REBUILD_INSERT_ENTRY_FAILED;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -343,11 +343,9 @@ public class IndexRebuildThread extends DirectoryThread
     }
     catch(Exception e)
     {
-      int    msgID   = MSGID_JEB_REBUILD_INDEX_FAILED;
-      String message = getMessage(msgID, this.getName(),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_JEB_REBUILD_INDEX_FAILED.get(
+          this.getName(), stackTraceToSingleLineString(e));
+      logError(message);
 
       if(debugEnabled())
       {
@@ -420,11 +418,9 @@ public class IndexRebuildThread extends DirectoryThread
           EntryContainer.transactionAbort(txn);
           skippedEntries++;
 
-          int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
-          String message = getMessage(msgID, dn2id.getName(),
-                                      stackTraceToSingleLineString(e));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.MILD_ERROR,
-                   message, msgID);
+          Message message = ERR_JEB_REBUILD_INSERT_ENTRY_FAILED.get(
+              dn2id.getName(), stackTraceToSingleLineString(e));
+          logError(message);
 
           if (debugEnabled())
           {
@@ -504,11 +500,9 @@ public class IndexRebuildThread extends DirectoryThread
           EntryContainer.transactionAbort(txn);
           skippedEntries++;
 
-          int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
-          String message = getMessage(msgID, dn2uri.getName(),
-                                      stackTraceToSingleLineString(e));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.MILD_ERROR,
-                   message, msgID);
+          Message message = ERR_JEB_REBUILD_INSERT_ENTRY_FAILED.get(
+              dn2uri.getName(), stackTraceToSingleLineString(e));
+          logError(message);
 
           if (debugEnabled())
           {
@@ -599,9 +593,9 @@ public class IndexRebuildThread extends DirectoryThread
             }
             else
             {
-              int msgID = MSGID_JEB_MISSING_DN2ID_RECORD;
-              String msg = getMessage(msgID, parentDN.toNormalizedString());
-              throw new JebException(msgID, msg);
+              Message msg = ERR_JEB_MISSING_DN2ID_RECORD.get(
+                  parentDN.toNormalizedString());
+              throw new JebException(msg);
             }
           }
           else
@@ -616,11 +610,9 @@ public class IndexRebuildThread extends DirectoryThread
           EntryContainer.transactionAbort(txn);
           skippedEntries++;
 
-          int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
-          String message = getMessage(msgID, id2children.getName(),
-                                      stackTraceToSingleLineString(e));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.MILD_ERROR,
-                   message, msgID);
+          Message message = ERR_JEB_REBUILD_INSERT_ENTRY_FAILED.get(
+              id2children.getName(), stackTraceToSingleLineString(e));
+          logError(message);
 
           if (debugEnabled())
           {
@@ -716,17 +708,17 @@ public class IndexRebuildThread extends DirectoryThread
                 }
                 else
                 {
-                  int msgID = MSGID_JEB_MISSING_DN2ID_RECORD;
-                  String msg = getMessage(msgID, dn.toNormalizedString());
-                  throw new JebException(msgID, msg);
+                  Message msg =
+                      ERR_JEB_MISSING_DN2ID_RECORD.get(dn.toNormalizedString());
+                  throw new JebException(msg);
                 }
               }
             }
             else
             {
-              int msgID = MSGID_JEB_MISSING_DN2ID_RECORD;
-              String msg = getMessage(msgID, parentDN.toNormalizedString());
-              throw new JebException(msgID, msg);
+              Message msg = ERR_JEB_MISSING_DN2ID_RECORD.get(
+                  parentDN.toNormalizedString());
+              throw new JebException(msg);
             }
 
             if(success)
@@ -760,11 +752,9 @@ public class IndexRebuildThread extends DirectoryThread
           EntryContainer.transactionAbort(txn);
           skippedEntries++;
 
-          int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
-          String message = getMessage(msgID, id2subtree.getName(),
-                                      stackTraceToSingleLineString(e));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.MILD_ERROR,
-                   message, msgID);
+          Message message = ERR_JEB_REBUILD_INSERT_ENTRY_FAILED.get(
+              id2subtree.getName(), stackTraceToSingleLineString(e));
+          logError(message);
 
           if (debugEnabled())
           {
@@ -845,11 +835,9 @@ public class IndexRebuildThread extends DirectoryThread
           EntryContainer.transactionAbort(txn);
           skippedEntries++;
 
-          int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
-          String message = getMessage(msgID, index.getName(),
-                                      stackTraceToSingleLineString(e));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.MILD_ERROR,
-                   message, msgID);
+          Message message = ERR_JEB_REBUILD_INSERT_ENTRY_FAILED.get(
+              index.getName(), stackTraceToSingleLineString(e));
+          logError(message);
 
           if (debugEnabled())
           {
@@ -926,11 +914,9 @@ public class IndexRebuildThread extends DirectoryThread
           EntryContainer.transactionAbort(txn);
           skippedEntries++;
 
-          int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
-          String message = getMessage(msgID, index.getName(),
-                                      stackTraceToSingleLineString(e));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.MILD_ERROR,
-                   message, msgID);
+          Message message = ERR_JEB_REBUILD_INSERT_ENTRY_FAILED.get(
+              index.getName(), stackTraceToSingleLineString(e));
+          logError(message);
 
           if (debugEnabled())
           {
@@ -1011,11 +997,9 @@ public class IndexRebuildThread extends DirectoryThread
           EntryContainer.transactionAbort(txn);
           skippedEntries++;
 
-          int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
-          String message = getMessage(msgID, index.getName(),
-                                      stackTraceToSingleLineString(e));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.MILD_ERROR,
-                   message, msgID);
+          Message message = ERR_JEB_REBUILD_INSERT_ENTRY_FAILED.get(
+              index.getName(), stackTraceToSingleLineString(e));
+          logError(message);
 
           if (debugEnabled())
           {

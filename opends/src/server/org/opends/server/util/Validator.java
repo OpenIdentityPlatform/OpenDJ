@@ -25,12 +25,14 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
+import org.opends.messages.Message;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
-import org.opends.server.messages.UtilityMessages;
+import org.opends.server.loggers.ErrorLogger;
+
+
+import org.opends.messages.MessageBuilder;
 
 /**
  * This utility class provides static methods that make parameter checking
@@ -147,7 +149,7 @@ public class Validator {
   public static boolean ensureNotNull(Object param)
           throws AssertionError {
     if (ENABLE_CHECKS) {
-      if (param == null) throwNull("");
+      if (param == null) throwNull(Message.EMPTY);
     }
     return true;
   }
@@ -179,8 +181,8 @@ public class Validator {
   public static boolean ensureNotNull(Object param1, Object param2)
           throws AssertionError {
     if (ENABLE_CHECKS) {
-      if (param1 == null) throwNull(PARAM_DESCRIPTIONS[1]);
-      if (param2 == null) throwNull(PARAM_DESCRIPTIONS[2]);
+      if (param1 == null) throwNull(Message.raw(PARAM_DESCRIPTIONS[1]));
+      if (param2 == null) throwNull(Message.raw(PARAM_DESCRIPTIONS[2]));
     }
     return true;
   }
@@ -214,9 +216,9 @@ public class Validator {
                                       Object param3)
           throws AssertionError {
     if (ENABLE_CHECKS) {
-      if (param1 == null) throwNull(PARAM_DESCRIPTIONS[1]);
-      if (param2 == null) throwNull(PARAM_DESCRIPTIONS[2]);
-      if (param3 == null) throwNull(PARAM_DESCRIPTIONS[3]);
+      if (param1 == null) throwNull(Message.raw(PARAM_DESCRIPTIONS[1]));
+      if (param2 == null) throwNull(Message.raw(PARAM_DESCRIPTIONS[2]));
+      if (param3 == null) throwNull(Message.raw(PARAM_DESCRIPTIONS[3]));
     }
     return true;
   }
@@ -251,10 +253,10 @@ public class Validator {
                                       Object param3, Object param4)
           throws AssertionError {
     if (ENABLE_CHECKS) {
-      if (param1 == null) throwNull(PARAM_DESCRIPTIONS[1]);
-      if (param2 == null) throwNull(PARAM_DESCRIPTIONS[2]);
-      if (param3 == null) throwNull(PARAM_DESCRIPTIONS[3]);
-      if (param4 == null) throwNull(PARAM_DESCRIPTIONS[4]);
+      if (param1 == null) throwNull(Message.raw(PARAM_DESCRIPTIONS[1]));
+      if (param2 == null) throwNull(Message.raw(PARAM_DESCRIPTIONS[2]));
+      if (param3 == null) throwNull(Message.raw(PARAM_DESCRIPTIONS[3]));
+      if (param4 == null) throwNull(Message.raw(PARAM_DESCRIPTIONS[4]));
     }
     return true;
   }
@@ -282,7 +284,7 @@ public class Validator {
           throws AssertionError {
     if (ENABLE_CHECKS) {
       if (!condition) {
-        ensureTrue(condition, "");
+        ensureTrue(condition, Message.EMPTY);
       }
     }
     return true;
@@ -310,12 +312,14 @@ public class Validator {
    *
    * @throws AssertionError if condition is false
    */
-  public static boolean ensureTrue(boolean condition, String message)
+  public static boolean ensureTrue(boolean condition, Message message)
           throws AssertionError {
     if (ENABLE_CHECKS) {
       if (!condition) {
-        String fullMessage = generateLineSpecificErrorMessage(
-                "The specified condition must be true. " + message);
+        MessageBuilder mb = new MessageBuilder();
+        mb.append("The specified condition must be true. ");
+        mb.append(message);
+        Message fullMessage = generateLineSpecificErrorMessage(mb.toMessage());
 
         logError(fullMessage);
 
@@ -368,15 +372,21 @@ public class Validator {
   ////////////////////////////////////////////////////////////////////////////
 
 
-  private static String generateLineSpecificErrorMessage(String message) {
-    return message + "  The error occurred at " + getOriginalCallerLineInfo();
+  private static Message generateLineSpecificErrorMessage(Message message) {
+    MessageBuilder mb = new MessageBuilder();
+    mb.append(message);
+    mb.append("  The error occurred at ");
+    mb.append(getOriginalCallerLineInfo());
+    return mb.toMessage();
   }
 
 
-  private static void throwNull(String message)
+  private static void throwNull(Message message)
           throws AssertionError {
-    String fullMessage = generateLineSpecificErrorMessage(
-            "The specified parameter must not be null. " + message);
+    MessageBuilder mb = new MessageBuilder();
+    mb.append("The specified parameter must not be null. ");
+    mb.append(message);
+    Message fullMessage = generateLineSpecificErrorMessage(mb.toMessage());
 
     logError(fullMessage);
 
@@ -385,22 +395,23 @@ public class Validator {
 
 
 
-  private static void logError(String message) {
+  private static void logError(Message message) {
     incrementErrorCount();
 
-    String messageWithStack = message + ServerConstants.EOL + getCallingStack();
+    MessageBuilder mb = new MessageBuilder();
+    mb.append(message);
+    mb.append(ServerConstants.EOL);
+    mb.append(getCallingStack());
+    Message messageWithStack = mb.toMessage();
 
     // Log to the debug log.
     if (debugEnabled())
     {
-      TRACER.debugError(messageWithStack);
+      TRACER.debugError(messageWithStack.toString());
     }
 
     // Log to the error log.
-    org.opends.server.loggers.ErrorLogger.logError(ErrorLogCategory.CORE_SERVER,
-            ErrorLogSeverity.SEVERE_ERROR,
-            UtilityMessages.MSGID_VALIDATOR_PRECONDITION_NOT_MET,
-            messageWithStack);
+    ErrorLogger.logError(messageWithStack);
   }
 
 

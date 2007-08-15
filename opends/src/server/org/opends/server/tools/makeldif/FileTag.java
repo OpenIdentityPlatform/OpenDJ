@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
+import org.opends.messages.Message;
 
 
 
@@ -35,8 +36,7 @@ import java.util.Random;
 
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 
 
 
@@ -122,7 +122,7 @@ public class FileTag
    */
   public void initializeForBranch(TemplateFile templateFile, Branch branch,
                                   String[] arguments, int lineNumber,
-                                  List<String> warnings)
+                                  List<Message> warnings)
          throws InitializationException
   {
     initializeInternal(templateFile, arguments, lineNumber, warnings);
@@ -147,7 +147,7 @@ public class FileTag
    */
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
-                                    int lineNumber, List<String> warnings)
+                                    int lineNumber, List<Message> warnings)
          throws InitializationException
   {
     initializeInternal(templateFile, arguments, lineNumber, warnings);
@@ -169,7 +169,7 @@ public class FileTag
    *                                   this tag.
    */
   private void initializeInternal(TemplateFile templateFile, String[] arguments,
-                                  int lineNumber, List<String> warnings)
+                                  int lineNumber, List<Message> warnings)
           throws InitializationException
   {
     random = templateFile.getRandom();
@@ -178,10 +178,9 @@ public class FileTag
     // There must be at least one argument, and possibly two.
     if ((arguments.length < 1) || (arguments.length > 2))
     {
-      int    msgID   = MSGID_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT;
-      String message = getMessage(msgID, getName(), lineNumber, 1, 2,
-                                  arguments.length);
-      throw new InitializationException(msgID, message);
+      Message message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
+          getName(), lineNumber, 1, 2, arguments.length);
+      throw new InitializationException(message);
     }
 
 
@@ -189,9 +188,9 @@ public class FileTag
     dataFile = templateFile.getFile(arguments[0]);
     if ((dataFile == null) || (! dataFile.exists()))
     {
-      int    msgID   = MSGID_MAKELDIF_TAG_CANNOT_FIND_FILE;
-      String message = getMessage(msgID, arguments[0], getName(), lineNumber);
-      throw new InitializationException(msgID, message);
+      Message message = ERR_MAKELDIF_TAG_CANNOT_FIND_FILE.get(
+          arguments[0], getName(), lineNumber);
+      throw new InitializationException(message);
     }
 
 
@@ -210,9 +209,9 @@ public class FileTag
       }
       else
       {
-        int    msgID   = MSGID_MAKELDIF_TAG_INVALID_FILE_ACCESS_MODE;
-        String message = getMessage(msgID, arguments[1], getName(), lineNumber);
-        throw new InitializationException(msgID, message);
+        Message message = ERR_MAKELDIF_TAG_INVALID_FILE_ACCESS_MODE.get(
+            arguments[1], getName(), lineNumber);
+        throw new InitializationException(message);
       }
     }
     else
@@ -228,10 +227,9 @@ public class FileTag
     }
     catch (IOException ioe)
     {
-      int    msgID   = MSGID_MAKELDIF_TAG_CANNOT_READ_FILE;
-      String message = getMessage(msgID, arguments[0], getName(), lineNumber,
-                                  String.valueOf(ioe));
-      throw new InitializationException(msgID, message, ioe);
+      Message message = ERR_MAKELDIF_TAG_CANNOT_READ_FILE.get(
+          arguments[0], getName(), lineNumber, String.valueOf(ioe));
+      throw new InitializationException(message, ioe);
     }
   }
 

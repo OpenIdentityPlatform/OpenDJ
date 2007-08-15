@@ -40,6 +40,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.api.AlertHandler;
 import org.opends.server.core.DirectoryServer;
 
@@ -123,8 +124,8 @@ public class JMXAlertHandlerTestCase
   {
     TestAlertGenerator generator = new TestAlertGenerator();
 
-    handler.sendAlertNotification(generator, generator.getAlertType(), 1,
-                                  "This is a test alert message.");
+    handler.sendAlertNotification(generator, generator.getAlertType(),
+            Message.raw("This is a test alert message."));
   }
 
 

@@ -25,11 +25,11 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
+import org.opends.messages.Message;
 
 import org.opends.server.types.DN;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.LoggerMessages.*;
+import static org.opends.messages.LoggerMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
@@ -68,9 +68,9 @@ public class LogPublisherErrorHandler
   {
     if(!writeErroroccurred)
     {
-      int msgID = MSGID_LOGGER_ERROR_WRITING_RECORD;
-      String msg = getMessage(msgID, publisherConfigDN.toString(),
-                              stackTraceToSingleLineString(ex));
+      Message msg = ERR_LOGGER_ERROR_WRITING_RECORD.get(
+              publisherConfigDN.toString(),
+              stackTraceToSingleLineString(ex));
       System.err.println(msg);
       writeErroroccurred = true;
     }
@@ -84,8 +84,7 @@ public class LogPublisherErrorHandler
    */
   public void handleOpenError(File file, Throwable ex)
   {
-    int msgID = MSGID_LOGGER_ERROR_OPENING_FILE;
-    String msg = getMessage(msgID, file.toString(),
+    Message msg = ERR_LOGGER_ERROR_OPENING_FILE.get(file.toString(),
                             publisherConfigDN.toString(),
                             stackTraceToSingleLineString(ex));
     System.err.println(msg);
@@ -98,9 +97,9 @@ public class LogPublisherErrorHandler
    */
   public void handleCloseError(Throwable ex)
   {
-    int msgID = MSGID_LOGGER_ERROR_CLOSING_FILE;
-    String msg = getMessage(msgID, publisherConfigDN.toString(),
-                            stackTraceToSingleLineString(ex));
+    Message msg = ERR_LOGGER_ERROR_CLOSING_FILE.get(
+            publisherConfigDN.toString(),
+            stackTraceToSingleLineString(ex));
     System.err.println(msg);
   }
 
@@ -111,9 +110,9 @@ public class LogPublisherErrorHandler
    */
   public void handleFlushError(Throwable ex)
   {
-    int msgID = MSGID_LOGGER_ERROR_FLUSHING_BUFFER;
-    String msg = getMessage(msgID, publisherConfigDN.toString(),
-                            stackTraceToSingleLineString(ex));
+    Message msg = ERR_LOGGER_ERROR_FLUSHING_BUFFER.get(
+            publisherConfigDN.toString(),
+            stackTraceToSingleLineString(ex));
     System.err.println(msg);
   }
 }

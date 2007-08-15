@@ -26,16 +26,15 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
 import org.opends.server.types.*;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.api.EqualityMatchingRule;
-import static org.opends.server.messages.AciMessages.
-     MSGID_PATTERN_DN_TYPE_CONTAINS_SUBSTRINGS;
-import static org.opends.server.messages.AciMessages.
-     MSGID_PATTERN_DN_TYPE_WILDCARD_IN_MULTIVALUED_RDN;
-import static org.opends.server.messages.MessageHandler.getMessage;
-
+import static org.opends.messages.AccessControlMessages.
+     WARN_PATTERN_DN_TYPE_CONTAINS_SUBSTRINGS;
+import static org.opends.messages.AccessControlMessages.
+     WARN_PATTERN_DN_TYPE_WILDCARD_IN_MULTIVALUED_RDN;
 import java.util.List;
 import java.util.LinkedHashSet;
 import java.util.ArrayList;
@@ -96,10 +95,10 @@ public class PatternRDN
     {
       if (!type.equals("*"))
       {
-        int    msgID   = MSGID_PATTERN_DN_TYPE_CONTAINS_SUBSTRINGS;
-        String message = getMessage(msgID, dnString);
+        Message message =
+            WARN_PATTERN_DN_TYPE_CONTAINS_SUBSTRINGS.get(dnString);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
       hasTypeWildcard = true;
     }
@@ -128,10 +127,10 @@ public class PatternRDN
     // No type wildcards permitted in multi-valued patterns.
     if (hasTypeWildcard || type.contains("*"))
     {
-      int    msgID   = MSGID_PATTERN_DN_TYPE_WILDCARD_IN_MULTIVALUED_RDN;
-      String message = getMessage(msgID, dnString);
+      Message message =
+          WARN_PATTERN_DN_TYPE_WILDCARD_IN_MULTIVALUED_RDN.get(dnString);
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message, msgID);
+                                   message);
     }
 
     numValues++;

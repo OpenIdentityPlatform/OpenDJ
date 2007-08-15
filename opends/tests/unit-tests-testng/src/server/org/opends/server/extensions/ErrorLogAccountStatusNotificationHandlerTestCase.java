@@ -35,6 +35,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.
@@ -227,8 +228,8 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
     assertNotNull(handler);
 
     DN userDN = DN.decode("uid=test.user,o=test");
-    handler.handleStatusNotification(notificationType, userDN, 1,
-                                     "Test Notification");
+    handler.handleStatusNotification(notificationType, userDN,
+            Message.raw("Test Notification"));
   }
 }
 

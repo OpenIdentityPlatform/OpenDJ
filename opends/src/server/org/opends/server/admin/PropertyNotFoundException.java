@@ -27,6 +27,7 @@
 
 package org.opends.server.admin;
 
+import org.opends.messages.Message;
 
 
 /**
@@ -55,7 +56,8 @@ public class PropertyNotFoundException extends OperationsException {
    *          The name of the property that could not be found.
    */
   public PropertyNotFoundException(String propertyName) {
-    super("The property \"" + propertyName + "\" was not recognized");
+    super(Message.raw("The property \"" + propertyName +
+            "\" was not recognized")); // TODO: i18n
     this.propertyName = propertyName;
   }
 

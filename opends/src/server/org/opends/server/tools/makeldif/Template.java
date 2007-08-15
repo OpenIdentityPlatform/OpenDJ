@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
+import org.opends.messages.Message;
 
 
 
@@ -36,8 +37,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -166,9 +166,9 @@ public class Template
              templates.get(toLowerCase(subordinateTemplateNames[i]));
         if (subordinateTemplates[i] == null)
         {
-          int    msgID   = MSGID_MAKELDIF_UNDEFINED_TEMPLATE_SUBORDINATE;
-          String message = getMessage(msgID, subordinateTemplateNames[i], name);
-          throw new MakeLDIFException(msgID, message);
+          Message message = ERR_MAKELDIF_UNDEFINED_TEMPLATE_SUBORDINATE.get(
+              subordinateTemplateNames[i], name);
+          throw new MakeLDIFException(message);
         }
       }
     }
@@ -196,9 +196,9 @@ public class Template
     if (! rdnAttrs.isEmpty())
     {
       AttributeType t       = rdnAttrs.iterator().next();
-      int           msgID   = MSGID_MAKELDIF_TEMPLATE_MISSING_RDN_ATTR;
-      String        message = getMessage(msgID, name, t.getNameOrOID());
-      throw new MakeLDIFException(msgID, message);
+      Message message =
+          ERR_MAKELDIF_TEMPLATE_MISSING_RDN_ATTR.get(name, t.getNameOrOID());
+      throw new MakeLDIFException(message);
     }
   }
 

@@ -26,12 +26,12 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
 import org.opends.server.api.Backend;
 import static org.opends.server.authorization.dseecompat.AciHandler.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.messages.AciMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.AccessControlMessages.*;
 import org.opends.server.types.*;
 
 import java.util.*;
@@ -139,7 +139,7 @@ public class AciList {
    * @return The number of valid ACI attribute values added to the ACI list.
    */
   public synchronized int addAci(List<? extends Entry> entries,
-                                 LinkedList<String> failedACIMsgs)
+                                 LinkedList<Message> failedACIMsgs)
   {
     // Copy the ACI list.
     LinkedHashMap<DN,List<Aci>> aciCopy = copyList();
@@ -171,7 +171,7 @@ public class AciList {
    */
   public synchronized int addAci(Entry entry,  boolean hasAci,
                                  boolean hasGlobalAci,
-                                 LinkedList<String> failedACIMsgs) {
+                                 LinkedList<Message> failedACIMsgs) {
     int validAcis=0;
 
     // Copy the ACI list.
@@ -213,7 +213,7 @@ public class AciList {
   private static int addAciAttributeList(LinkedHashMap<DN,List<Aci>> aciList,
                                          DN dn, DN configDN,
                                          List<Attribute> attributeList,
-                                         LinkedList<String> failedACIMsgs) {
+                                         LinkedList<Message> failedACIMsgs) {
 
     if (attributeList == null) {
       return 0;
@@ -228,14 +228,14 @@ public class AciList {
           acis.add(aci);
           validAcis++;
         } catch (AciException ex) {
-          int    msgID  = MSGID_ACI_ADD_LIST_FAILED_DECODE;
           DN msgDN=dn;
           if(dn == DN.nullDN()) {
             msgDN=configDN;
           }
-          String message = getMessage(msgID, value.getValue().toString(),
-                                            String.valueOf(msgDN),
-                                            ex.getMessage());
+          Message message = WARN_ACI_ADD_LIST_FAILED_DECODE.get(
+                  value.getValue().toString(),
+                  String.valueOf(msgDN),
+                  ex.getMessage());
           failedACIMsgs.add(message);
         }
       }
@@ -264,7 +264,7 @@ public class AciList {
 
       // Copy the ACI list.
       LinkedHashMap<DN,List<Aci>> aciCopy = copyList();
-      LinkedList<String>failedACIMsgs=new LinkedList<String>();
+      LinkedList<Message>failedACIMsgs=new LinkedList<Message>();
       //Process "aci" attribute types.
       if(hasAci) {
           aciCopy.remove(oldEntry.getDN());
@@ -387,13 +387,9 @@ public class AciList {
             //This should never happen since only a copy of the
             //ACI with a new DN is being made. Log a message if it does and
             //keep going.
-            int    msgID  = MSGID_ACI_ADD_LIST_FAILED_DECODE;
-            String message = getMessage(msgID, aci.toString(),
-                                        String.valueOf(relocateDN),
-                                        ex.getMessage());
-            logError(ErrorLogCategory.ACCESS_CONTROL,
-                    ErrorLogSeverity.INFORMATIONAL,
-                    message, msgID);
+            Message message = WARN_ACI_ADD_LIST_FAILED_DECODE.get(
+                aci.toString(), String.valueOf(relocateDN), ex.getMessage());
+            logError(message);
           }
         }
         newCopyList.put(relocateDN, acis);

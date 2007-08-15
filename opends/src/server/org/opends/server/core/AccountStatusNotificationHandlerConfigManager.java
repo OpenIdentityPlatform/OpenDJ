@@ -25,11 +25,11 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.lang.reflect.Method;
@@ -146,7 +146,7 @@ public class AccountStatusNotificationHandlerConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
       AccountStatusNotificationHandlerCfg configuration,
-      List<String>  unacceptableReasons
+      List<Message> unacceptableReasons
       )
   {
     // returned status -- all is fine by default
@@ -164,7 +164,7 @@ public class AccountStatusNotificationHandlerConfigManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add(ie.getMessage());
+        unacceptableReasons.add(ie.getMessageObject());
         status = false;
       }
     }
@@ -183,7 +183,7 @@ public class AccountStatusNotificationHandlerConfigManager
   {
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<String>()
+        ResultCode.SUCCESS, false, new ArrayList<Message>()
         );
 
     // Get the configuration entry DN and the associated handler class.
@@ -228,7 +228,7 @@ public class AccountStatusNotificationHandlerConfigManager
     }
     catch (InitializationException ie)
     {
-      changeResult.addMessage (ie.getMessage());
+      changeResult.addMessage (ie.getMessageObject());
       changeResult.setResultCode (DirectoryServer.getServerErrorResultCode());
       return changeResult;
     }
@@ -243,7 +243,7 @@ public class AccountStatusNotificationHandlerConfigManager
    */
   public boolean isConfigurationAddAcceptable(
       AccountStatusNotificationHandlerCfg configuration,
-      List<String> unacceptableReasons
+      List<Message> unacceptableReasons
       )
   {
     // returned status -- all is fine by default
@@ -253,8 +253,8 @@ public class AccountStatusNotificationHandlerConfigManager
     DN configEntryDN = configuration.dn();
     if (notificationHandlers.containsKey(configEntryDN))
     {
-      int    msgID   = MSGID_CONFIG_ACCTNOTHANDLER_EXISTS;
-      String message = getMessage(msgID, String.valueOf(configEntryDN));
+      Message message = ERR_CONFIG_ACCTNOTHANDLER_EXISTS.get(
+              String.valueOf(configEntryDN));
       unacceptableReasons.add (message);
       status = false;
     }
@@ -272,7 +272,7 @@ public class AccountStatusNotificationHandlerConfigManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add (ie.getMessage());
+        unacceptableReasons.add (ie.getMessageObject());
         status = false;
       }
     }
@@ -291,7 +291,7 @@ public class AccountStatusNotificationHandlerConfigManager
   {
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<String>()
+        ResultCode.SUCCESS, false, new ArrayList<Message>()
         );
 
     // Register a change listener with it so we can be notified of changes
@@ -308,7 +308,7 @@ public class AccountStatusNotificationHandlerConfigManager
       }
       catch (InitializationException ie)
       {
-        changeResult.addMessage (ie.getMessage());
+        changeResult.addMessage (ie.getMessageObject());
         changeResult.setResultCode (DirectoryServer.getServerErrorResultCode());
         return changeResult;
       }
@@ -324,7 +324,7 @@ public class AccountStatusNotificationHandlerConfigManager
    */
   public boolean isConfigurationDeleteAcceptable(
       AccountStatusNotificationHandlerCfg configuration,
-      List<String> unacceptableReasons
+      List<Message> unacceptableReasons
       )
   {
     // A delete should always be acceptable, so just return true.
@@ -342,7 +342,7 @@ public class AccountStatusNotificationHandlerConfigManager
   {
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<String>()
+        ResultCode.SUCCESS, false, new ArrayList<Message>()
         );
 
     uninstallNotificationHandler (configuration.dn());
@@ -446,7 +446,7 @@ public class AccountStatusNotificationHandlerConfigManager
                   "isConfigurationAcceptable",
                   AccountStatusNotificationHandlerCfg.class, List.class);
 
-        List<String> unacceptableReasons = new ArrayList<String>();
+        List<Message> unacceptableReasons = new ArrayList<Message>();
         Boolean acceptable = (Boolean) method.invoke(notificationHandler,
                                                      configuration,
                                                      unacceptableReasons);
@@ -455,7 +455,7 @@ public class AccountStatusNotificationHandlerConfigManager
           StringBuilder buffer = new StringBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<String> iterator = unacceptableReasons.iterator();
+            Iterator<Message> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -464,10 +464,9 @@ public class AccountStatusNotificationHandlerConfigManager
             }
           }
 
-          int    msgID   = MSGID_CONFIG_ACCTNOTHANDLER_CONFIG_NOT_ACCEPTABLE;
-          String message = getMessage(msgID, String.valueOf(configuration.dn()),
-                                      buffer.toString());
-          throw new InitializationException(msgID, message);
+          Message message = ERR_CONFIG_ACCTNOTHANDLER_CONFIG_NOT_ACCEPTABLE.get(
+              String.valueOf(configuration.dn()), buffer.toString());
+          throw new InitializationException(message);
         }
       }
 
@@ -475,13 +474,11 @@ public class AccountStatusNotificationHandlerConfigManager
     }
     catch (Exception e)
     {
-      int msgID = MSGID_CONFIG_ACCTNOTHANDLER_INITIALIZATION_FAILED;
-      String message = getMessage(
-          msgID, className,
-          String.valueOf(configuration.dn()),
-          stackTraceToSingleLineString(e)
-          );
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_ACCTNOTHANDLER_INITIALIZATION_FAILED.get(
+              className,
+              String.valueOf(configuration.dn()),
+              stackTraceToSingleLineString(e));
+      throw new InitializationException(message, e);
     }
   }
 

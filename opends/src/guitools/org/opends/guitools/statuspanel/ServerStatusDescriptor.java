@@ -27,6 +27,8 @@
 
 package org.opends.guitools.statuspanel;
 
+import org.opends.messages.Message;
+
 import java.io.File;
 import java.util.Set;
 
@@ -44,7 +46,7 @@ public class ServerStatusDescriptor
   private File installPath;
   private String openDSVersion;
   private String javaVersion;
-  private String errorMsg;
+  private Message errorMsg;
   private boolean isAuthenticated;
 
   /**
@@ -283,7 +285,7 @@ public class ServerStatusDescriptor
    * @return the error message that we encountered generating this server
    * status descriptor.
    */
-  public String getErrorMessage()
+  public Message getErrorMessage()
   {
     return errorMsg;
   }
@@ -294,7 +296,7 @@ public class ServerStatusDescriptor
    * @param errorMsg the error message that we encountered generating this
    * server status descriptor.
    */
-  public void setErrorMessage(String errorMsg)
+  public void setErrorMessage(Message errorMsg)
   {
     this.errorMsg = errorMsg;
   }

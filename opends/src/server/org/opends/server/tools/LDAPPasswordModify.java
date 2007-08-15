@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 
 
@@ -56,8 +57,7 @@ import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
@@ -189,7 +189,7 @@ public class LDAPPasswordModify
 
 
     // Initialize the argument parser.
-    String toolDescription = getMessage(MSGID_LDAPPWMOD_TOOL_DESCRIPTION);
+    Message toolDescription = INFO_LDAPPWMOD_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false);
 
@@ -198,41 +198,42 @@ public class LDAPPasswordModify
       ldapHost = new StringArgument("ldaphost", OPTION_SHORT_HOST,
                                     OPTION_LONG_HOST, false, false,
                                     true, OPTION_VALUE_HOST, "127.0.0.1", null,
-                                    MSGID_LDAPPWMOD_DESCRIPTION_HOST);
+                                    INFO_LDAPPWMOD_DESCRIPTION_HOST.get());
       argParser.addArgument(ldapHost);
 
 
-      ldapPort = new IntegerArgument("ldapport", OPTION_SHORT_PORT,
-                                     OPTION_LONG_PORT, false, false,
-                                     true, OPTION_VALUE_PORT, 389,
-                                     null, true, 1, true,
-                                     65535, MSGID_LDAPPWMOD_DESCRIPTION_PORT);
+      ldapPort = new IntegerArgument(
+              "ldapport", OPTION_SHORT_PORT,
+              OPTION_LONG_PORT, false, false,
+              true, OPTION_VALUE_PORT, 389,
+              null, true, 1, true,
+              65535, INFO_LDAPPWMOD_DESCRIPTION_PORT.get());
       argParser.addArgument(ldapPort);
 
 
       useSSL = new BooleanArgument("usessl", OPTION_SHORT_USE_SSL,
                                    OPTION_LONG_USE_SSL,
-                                   MSGID_LDAPPWMOD_DESCRIPTION_USE_SSL);
+                                   INFO_LDAPPWMOD_DESCRIPTION_USE_SSL.get());
       argParser.addArgument(useSSL);
 
 
       useStartTLS = new BooleanArgument("usestarttls", OPTION_SHORT_START_TLS,
                              OPTION_LONG_START_TLS,
-                             MSGID_LDAPPWMOD_DESCRIPTION_USE_STARTTLS);
+                             INFO_LDAPPWMOD_DESCRIPTION_USE_STARTTLS.get());
       argParser.addArgument(useStartTLS);
 
 
       bindDN = new StringArgument("binddn", OPTION_SHORT_BINDDN,
                                   OPTION_LONG_BINDDN, false, false, true,
                                   OPTION_VALUE_BINDDN, null, null,
-                                  MSGID_LDAPPWMOD_DESCRIPTION_BIND_DN);
+                                  INFO_LDAPPWMOD_DESCRIPTION_BIND_DN.get());
       argParser.addArgument(bindDN);
 
 
       bindPW = new StringArgument("bindpw", OPTION_SHORT_BINDPWD,
                                   OPTION_LONG_BINDPWD, false, false,
                                   true, OPTION_VALUE_BINDPWD, null, null,
-                                  MSGID_LDAPPWMOD_DESCRIPTION_BIND_PW);
+                                  INFO_LDAPPWMOD_DESCRIPTION_BIND_PW.get());
       argParser.addArgument(bindPW);
 
 
@@ -240,51 +241,53 @@ public class LDAPPasswordModify
            new FileBasedArgument("bindpwfile", OPTION_SHORT_BINDPWD_FILE,
                                  OPTION_LONG_BINDPWD_FILE, false,
                                  false, OPTION_VALUE_BINDPWD_FILE, null, null,
-                                 MSGID_LDAPPWMOD_DESCRIPTION_BIND_PW_FILE);
+                                 INFO_LDAPPWMOD_DESCRIPTION_BIND_PW_FILE.get());
       argParser.addArgument(bindPWFile);
 
 
       authzID = new StringArgument("authzid", 'a', "authzID", false, false,
                                    true, "{authzID}", null, null,
-                                   MSGID_LDAPPWMOD_DESCRIPTION_AUTHZID);
+                                   INFO_LDAPPWMOD_DESCRIPTION_AUTHZID.get());
       argParser.addArgument(authzID);
 
 
       provideDNForAuthzID =
            new BooleanArgument("providednforauthzid", 'A',"provideDNForAuthzID",
-                    MSGID_LDAPPWMOD_DESCRIPTION_PROVIDE_DN_FOR_AUTHZID);
+                    INFO_LDAPPWMOD_DESCRIPTION_PROVIDE_DN_FOR_AUTHZID.get());
       argParser.addArgument(provideDNForAuthzID);
 
 
       newPW = new StringArgument("newpw", 'n', "newPassword", false, false,
                                  true, "{newPassword}", null, null,
-                                 MSGID_LDAPPWMOD_DESCRIPTION_NEWPW);
+                                 INFO_LDAPPWMOD_DESCRIPTION_NEWPW.get());
       argParser.addArgument(newPW);
 
 
-      newPWFile = new FileBasedArgument("newpwfile", 'N', "newPasswordFile",
-                                        false, false, "{file}", null, null,
-                                        MSGID_LDAPPWMOD_DESCRIPTION_NEWPWFILE);
+      newPWFile = new FileBasedArgument(
+              "newpwfile", 'N', "newPasswordFile",
+              false, false, "{file}", null, null,
+              INFO_LDAPPWMOD_DESCRIPTION_NEWPWFILE.get());
       argParser.addArgument(newPWFile);
 
 
       currentPW =
            new StringArgument("currentpw", 'c', "currentPassword", false, false,
                               true, "{currentPassword}", null,  null,
-                              MSGID_LDAPPWMOD_DESCRIPTION_CURRENTPW);
+                              INFO_LDAPPWMOD_DESCRIPTION_CURRENTPW.get());
       argParser.addArgument(currentPW);
 
 
       currentPWFile =
-           new FileBasedArgument("currentpwfile", 'C', "currentPasswordFile",
-                                 false, false, "{file}", null, null,
-                                 MSGID_LDAPPWMOD_DESCRIPTION_CURRENTPWFILE);
+           new FileBasedArgument(
+                   "currentpwfile", 'C', "currentPasswordFile",
+                   false, false, "{file}", null, null,
+                   INFO_LDAPPWMOD_DESCRIPTION_CURRENTPWFILE.get());
       argParser.addArgument(currentPWFile);
 
 
       sslBlindTrust =
            new BooleanArgument("blindtrust", 'X', "trustAll",
-                               MSGID_LDAPPWMOD_DESCRIPTION_BLIND_TRUST);
+                               INFO_LDAPPWMOD_DESCRIPTION_BLIND_TRUST.get());
       argParser.addArgument(sslBlindTrust);
 
 
@@ -292,7 +295,7 @@ public class LDAPPasswordModify
            new StringArgument("keystorepath", OPTION_SHORT_KEYSTOREPATH,
                               OPTION_LONG_KEYSTOREPATH, false, false,
                               true, OPTION_VALUE_KEYSTOREPATH, null, null,
-                              MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE);
+                              INFO_LDAPPWMOD_DESCRIPTION_KEYSTORE.get());
       argParser.addArgument(sslKeyStore);
 
 
@@ -303,17 +306,18 @@ public class LDAPPasswordModify
                               false, false, true,
                               OPTION_VALUE_KEYSTORE_PWD,
                               null, null,
-                              MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE_PIN);
+                              INFO_LDAPPWMOD_DESCRIPTION_KEYSTORE_PIN.get());
       argParser.addArgument(sslKeyStorePIN);
 
 
       sslKeyStorePINFile =
-           new FileBasedArgument("keystorepasswordfile",
-                                 OPTION_SHORT_KEYSTORE_PWD_FILE,
-                                 OPTION_LONG_KEYSTORE_PWD_FILE,
-                                 false, false, OPTION_VALUE_KEYSTORE_PWD_FILE,
-                                 null, null,
-                                 MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE_PINFILE);
+           new FileBasedArgument(
+                   "keystorepasswordfile",
+                   OPTION_SHORT_KEYSTORE_PWD_FILE,
+                   OPTION_LONG_KEYSTORE_PWD_FILE,
+                   false, false, OPTION_VALUE_KEYSTORE_PWD_FILE,
+                   null, null,
+                   INFO_LDAPPWMOD_DESCRIPTION_KEYSTORE_PINFILE.get());
       argParser.addArgument(sslKeyStorePINFile);
 
 
@@ -323,7 +327,7 @@ public class LDAPPasswordModify
                               OPTION_LONG_TRUSTSTOREPATH, false,
                               false, true,
                               OPTION_VALUE_TRUSTSTOREPATH, null, null,
-                              MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE);
+                              INFO_LDAPPWMOD_DESCRIPTION_TRUSTSTORE.get());
       argParser.addArgument(sslTrustStore);
 
 
@@ -332,7 +336,7 @@ public class LDAPPasswordModify
                               OPTION_LONG_TRUSTSTORE_PWD,
                               false, false, true,
                               OPTION_VALUE_TRUSTSTORE_PWD, null, null,
-                              MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PIN);
+                              INFO_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PIN.get());
       argParser.addArgument(sslTrustStorePIN);
 
 
@@ -341,27 +345,26 @@ public class LDAPPasswordModify
                     OPTION_SHORT_TRUSTSTORE_PWD_FILE,
                     OPTION_LONG_TRUSTSTORE_PWD_FILE, false, false,
                     OPTION_VALUE_TRUSTSTORE_PWD_FILE, null,
-                    null, MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PINFILE);
+                    null, INFO_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PINFILE.get());
       argParser.addArgument(sslTrustStorePINFile);
 
 
       controlStr =
            new StringArgument("control", 'J', "control", false, true, true,
                     "{controloid[:criticality[:value|::b64value|:<fileurl]]}",
-                    null, null, MSGID_DESCRIPTION_CONTROLS);
+                    null, null, INFO_DESCRIPTION_CONTROLS.get());
       argParser.addArgument(controlStr);
 
 
       showUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
                                       OPTION_LONG_HELP,
-                                      MSGID_DESCRIPTION_USAGE);
+                                      INFO_DESCRIPTION_USAGE.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
@@ -375,8 +378,7 @@ public class LDAPPasswordModify
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -395,54 +397,54 @@ public class LDAPPasswordModify
     // Make sure that the user didn't specify any conflicting arguments.
     if (bindPW.isPresent() && bindPWFile.isPresent())
     {
-      int    msgID   = MSGID_LDAPPWMOD_CONFLICTING_ARGS;
-      String message = getMessage(msgID, bindPW.getLongIdentifier(),
-                                  bindPWFile.getLongIdentifier());
+      Message message = ERR_LDAPPWMOD_CONFLICTING_ARGS.get(
+              bindPW.getLongIdentifier(),
+              bindPWFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
     if (newPW.isPresent() && newPWFile.isPresent())
     {
-      int    msgID   = MSGID_LDAPPWMOD_CONFLICTING_ARGS;
-      String message = getMessage(msgID, newPW.getLongIdentifier(),
-                                  newPWFile.getLongIdentifier());
+      Message message = ERR_LDAPPWMOD_CONFLICTING_ARGS.get(
+              newPW.getLongIdentifier(),
+              newPWFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
     if (currentPW.isPresent() && currentPWFile.isPresent())
     {
-      int    msgID   = MSGID_LDAPPWMOD_CONFLICTING_ARGS;
-      String message = getMessage(msgID, currentPW.getLongIdentifier(),
-                                  currentPWFile.getLongIdentifier());
+      Message message = ERR_LDAPPWMOD_CONFLICTING_ARGS.get(
+              currentPW.getLongIdentifier(),
+              currentPWFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
     if (useSSL.isPresent() && useStartTLS.isPresent())
     {
-      int    msgID   = MSGID_LDAPPWMOD_CONFLICTING_ARGS;
-      String message = getMessage(msgID, useSSL.getLongIdentifier(),
-                                  useStartTLS.getLongIdentifier());
+      Message message = ERR_LDAPPWMOD_CONFLICTING_ARGS.get(
+              useSSL.getLongIdentifier(),
+              useStartTLS.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
     if (sslKeyStorePIN.isPresent() && sslKeyStorePINFile.isPresent())
     {
-      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, sslKeyStorePIN.getLongIdentifier(),
-                                  sslKeyStorePINFile.getLongIdentifier());
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+              sslKeyStorePIN.getLongIdentifier(),
+              sslKeyStorePINFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
     if (sslTrustStorePIN.isPresent() && sslTrustStorePINFile.isPresent())
     {
-      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
-      String message = getMessage(msgID, sslTrustStorePIN.getLongIdentifier(),
-                                  sslTrustStorePINFile.getLongIdentifier());
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+              sslTrustStorePIN.getLongIdentifier(),
+              sslTrustStorePINFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -456,8 +458,7 @@ public class LDAPPasswordModify
     {
       if (! (bindPW.isPresent() || bindPWFile.isPresent()))
       {
-        int    msgID   = MSGID_LDAPPWMOD_BIND_DN_AND_PW_MUST_BE_TOGETHER;
-        String message = getMessage(msgID);
+        Message message = ERR_LDAPPWMOD_BIND_DN_AND_PW_MUST_BE_TOGETHER.get();
 
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
@@ -466,8 +467,7 @@ public class LDAPPasswordModify
     }
     else if (bindPW.isPresent() || bindPWFile.isPresent())
     {
-      int    msgID   = MSGID_LDAPPWMOD_BIND_DN_AND_PW_MUST_BE_TOGETHER;
-      String message = getMessage(msgID);
+      Message message = ERR_LDAPPWMOD_BIND_DN_AND_PW_MUST_BE_TOGETHER.get();
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -477,10 +477,10 @@ public class LDAPPasswordModify
     {
       if (provideDNForAuthzID.isPresent())
       {
-        int    msgID   = MSGID_LDAPPWMOD_DEPENDENT_ARGS;
-        String message = getMessage(msgID,
-                                    provideDNForAuthzID.getLongIdentifier(),
-                                    bindDN.getLongIdentifier());
+        Message message =
+                ERR_LDAPPWMOD_DEPENDENT_ARGS.get(
+                        provideDNForAuthzID.getLongIdentifier(),
+                        bindDN.getLongIdentifier());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
         return 1;
@@ -489,8 +489,8 @@ public class LDAPPasswordModify
       if (! (authzID.isPresent() &&
              (currentPW.isPresent() || currentPWFile.isPresent())))
       {
-        int    msgID   = MSGID_LDAPPWMOD_ANON_REQUIRES_AUTHZID_AND_CURRENTPW;
-        String message = getMessage(msgID);
+        Message message =
+                ERR_LDAPPWMOD_ANON_REQUIRES_AUTHZID_AND_CURRENTPW.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
         return 1;
@@ -522,8 +522,7 @@ public class LDAPPasswordModify
         LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
         if(ctrl == null)
         {
-          int    msgID   = MSGID_TOOL_INVALID_CONTROL_STRING;
-          String message = getMessage(msgID, ctrlString);
+          Message message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           err.println(argParser.getUsage());
           return 1;
@@ -578,8 +577,8 @@ public class LDAPPasswordModify
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDAPPWMOD_ERROR_INITIALIZING_SSL;
-        String message = getMessage(msgID, String.valueOf(e));
+        Message message =
+                ERR_LDAPPWMOD_ERROR_INITIALIZING_SSL.get(String.valueOf(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -611,8 +610,7 @@ public class LDAPPasswordModify
     }
     catch (LDAPConnectionException lce)
     {
-      int    msgID   = MSGID_LDAPPWMOD_CANNOT_CONNECT;
-      String message = getMessage(msgID, lce.getMessage());
+      Message message = ERR_LDAPPWMOD_CANNOT_CONNECT.get(lce.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return lce.getResultCode();
     }
@@ -679,8 +677,8 @@ public class LDAPPasswordModify
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDAPPWMOD_CANNOT_SEND_PWMOD_REQUEST;
-      String message = getMessage(msgID, String.valueOf(e));
+      Message message = ERR_LDAPPWMOD_CANNOT_SEND_PWMOD_REQUEST.get(
+              String.valueOf(e));
       err.println(wrapText(message, MAX_LINE_WIDTH));
 
       try
@@ -709,8 +707,8 @@ public class LDAPPasswordModify
     }
     catch (Exception e)
     {
-      int msgID = MSGID_LDAPPWMOD_CANNOT_READ_PWMOD_RESPONSE;
-      String message = getMessage(msgID, String.valueOf(e));
+      Message message = ERR_LDAPPWMOD_CANNOT_READ_PWMOD_RESPONSE.get(
+              String.valueOf(e));
       err.println(wrapText(message, MAX_LINE_WIDTH));
 
       try
@@ -737,23 +735,22 @@ public class LDAPPasswordModify
     int resultCode = extendedResponse.getResultCode();
     if (resultCode != LDAPResultCode.SUCCESS)
     {
-      int    msgID   = MSGID_LDAPPWMOD_FAILED;
-      String message = getMessage(msgID, resultCode);
+      Message message = ERR_LDAPPWMOD_FAILED.get(resultCode);
       err.println(wrapText(message, MAX_LINE_WIDTH));
 
-      String errorMessage = extendedResponse.getErrorMessage();
+      Message errorMessage = extendedResponse.getErrorMessage();
       if ((errorMessage != null) && (errorMessage.length() > 0))
       {
-        msgID   = MSGID_LDAPPWMOD_FAILURE_ERROR_MESSAGE;
-        message = getMessage(msgID, errorMessage);
+
+        message = ERR_LDAPPWMOD_FAILURE_ERROR_MESSAGE.get(errorMessage);
         err.println(wrapText(message, MAX_LINE_WIDTH));
       }
 
       DN matchedDN = extendedResponse.getMatchedDN();
       if (matchedDN != null)
       {
-        msgID   = MSGID_LDAPPWMOD_FAILURE_MATCHED_DN;
-        message = getMessage(msgID, matchedDN.toString());
+
+        message = ERR_LDAPPWMOD_FAILURE_MATCHED_DN.get(matchedDN.toString());
         err.println(wrapText(message, MAX_LINE_WIDTH));
       }
 
@@ -775,15 +772,14 @@ public class LDAPPasswordModify
     }
     else
     {
-      int    msgID   = MSGID_LDAPPWMOD_SUCCESSFUL;
-      String message = getMessage(msgID);
+      Message message = INFO_LDAPPWMOD_SUCCESSFUL.get();
       out.println(wrapText(message, MAX_LINE_WIDTH));
 
-      String additionalInfo = extendedResponse.getErrorMessage();
+      Message additionalInfo = extendedResponse.getErrorMessage();
       if ((additionalInfo != null) && (additionalInfo.length() > 0))
       {
-        msgID   = MSGID_LDAPPWMOD_ADDITIONAL_INFO;
-        message = getMessage(msgID, additionalInfo);
+
+        message = INFO_LDAPPWMOD_ADDITIONAL_INFO.get(additionalInfo);
         out.println(wrapText(message, MAX_LINE_WIDTH));
       }
     }
@@ -807,9 +803,9 @@ public class LDAPPasswordModify
                  pwPolicyControl.getWarningType();
             if (pwPolicyWarningType != null)
             {
-              int    msgID   = MSGID_LDAPPWMOD_PWPOLICY_WARNING;
-              String message = getMessage(msgID, pwPolicyWarningType.toString(),
-                                          pwPolicyControl.getWarningValue());
+              Message message = INFO_LDAPPWMOD_PWPOLICY_WARNING.get(
+                      pwPolicyWarningType.toString(),
+                      pwPolicyControl.getWarningValue());
               out.println(wrapText(message, MAX_LINE_WIDTH));
             }
 
@@ -817,15 +813,15 @@ public class LDAPPasswordModify
                  pwPolicyControl.getErrorType();
             if (pwPolicyErrorType != null)
             {
-              int    msgID   = MSGID_LDAPPWMOD_PWPOLICY_ERROR;
-              String message = getMessage(msgID, pwPolicyErrorType.toString());
+              Message message = INFO_LDAPPWMOD_PWPOLICY_ERROR.get(
+                      pwPolicyErrorType.toString());
               out.println(wrapText(message, MAX_LINE_WIDTH));
             }
           }
           catch (Exception e)
           {
-            int    msgID   = MSGID_LDAPPWMOD_CANNOT_DECODE_PWPOLICY_CONTROL;
-            String message = getMessage(msgID, String.valueOf(e));
+            Message message = ERR_LDAPPWMOD_CANNOT_DECODE_PWPOLICY_CONTROL.get(
+                    String.valueOf(e));
             err.println(wrapText(message, MAX_LINE_WIDTH));
           }
         }
@@ -845,23 +841,22 @@ public class LDAPPasswordModify
         {
           if (e.getType() == TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD)
           {
-            int    msgID   = MSGID_LDAPPWMOD_GENERATED_PASSWORD;
-            String message = getMessage(msgID,
-                                        e.decodeAsOctetString().stringValue());
+            Message message = INFO_LDAPPWMOD_GENERATED_PASSWORD.get(
+                    e.decodeAsOctetString().stringValue());
             out.println(wrapText(message, MAX_LINE_WIDTH));
           }
           else
           {
-            int    msgID   = MSGID_LDAPPWMOD_UNRECOGNIZED_VALUE_TYPE;
-            String message = getMessage(msgID, byteToHex(e.getType()));
+            Message message = ERR_LDAPPWMOD_UNRECOGNIZED_VALUE_TYPE.get(
+                    byteToHex(e.getType()));
             err.println(wrapText(message, MAX_LINE_WIDTH));
           }
         }
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDAPPWMOD_COULD_NOT_DECODE_RESPONSE_VALUE;
-        String message = getMessage(msgID, String.valueOf(e));
+        Message message = ERR_LDAPPWMOD_COULD_NOT_DECODE_RESPONSE_VALUE.get(
+                String.valueOf(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
 
         try

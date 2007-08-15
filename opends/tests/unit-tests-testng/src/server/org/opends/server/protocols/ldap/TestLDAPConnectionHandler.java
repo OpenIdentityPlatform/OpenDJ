@@ -37,6 +37,7 @@ import static org.opends.server.config.ConfigConstants.*;
 import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.types.*;
 import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
@@ -51,7 +52,7 @@ import org.testng.annotations.Test;
 
 public class TestLDAPConnectionHandler extends LdapTestCase {
 
-  private static String reasonMsg="Don't need a reason.";
+  private static Message reasonMsg= Message.raw("Don't need a reason.");
 
   /**
    * Once-only initialization.
@@ -313,7 +314,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     GoodHandlerEntry.addAttribute(a13, null);
     GoodHandlerEntry.addAttribute(a14, null);
     GoodHandlerEntry.addAttribute(a15, null);
-    LinkedList<String> reasons = new LinkedList<String>();
+    LinkedList<Message> reasons = new LinkedList<Message>();
     LDAPConnectionHandlerCfg config = LdapTestCase.getConfiguration(GoodHandlerEntry);
     //see if we're ok
     boolean ret=LDAPConnHandler.isConfigurationChangeAcceptable(config, reasons);

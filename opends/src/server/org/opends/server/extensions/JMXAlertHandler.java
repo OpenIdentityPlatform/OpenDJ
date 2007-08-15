@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -64,9 +65,9 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.ExtensionMessages.*;
+
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -159,9 +160,9 @@ public class JMXAlertHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_JMX_ALERT_HANDLER_CANNOT_REGISTER;
-        String message = getMessage(msgID, String.valueOf(e));
-        throw new InitializationException(msgID, message, e);
+        Message message =
+            ERR_JMX_ALERT_HANDLER_CANNOT_REGISTER.get(String.valueOf(e));
+        throw new InitializationException(message, e);
       }
     }
 
@@ -185,7 +186,7 @@ public class JMXAlertHandler
    * {@inheritDoc}
    */
   public boolean isConfigurationAcceptable(AlertHandlerCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     return true;
   }
@@ -218,12 +219,12 @@ public class JMXAlertHandler
    * {@inheritDoc}
    */
   public void sendAlertNotification(AlertGenerator generator, String alertType,
-                                    int alertID, String alertMessage)
+                                    Message alertMessage)
   {
     sendNotification(new Notification(alertType, generator.getClassName(),
                                       sequenceNumber.getAndIncrement(),
                                       System.currentTimeMillis(),
-                                      alertMessage));
+                                      alertMessage.toString()));
   }
 
 
@@ -271,10 +272,9 @@ public class JMXAlertHandler
          throws AttributeNotFoundException
   {
     // There are no attributes for this MBean.
-    int    msgID   = MSGID_CONFIG_JMX_ATTR_NO_ATTR;
-    String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                attribute);
-    throw new AttributeNotFoundException(message);
+    Message message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(
+        String.valueOf(configEntryDN), attribute);
+    throw new AttributeNotFoundException(message.toString());
   }
 
 
@@ -295,10 +295,9 @@ public class JMXAlertHandler
          throws AttributeNotFoundException, InvalidAttributeValueException
   {
     // There are no attributes for this MBean.
-    int    msgID   = MSGID_CONFIG_JMX_ATTR_NO_ATTR;
-    String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                attribute);
-    throw new AttributeNotFoundException(message);
+    Message message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(
+        String.valueOf(configEntryDN), String.valueOf(attribute));
+    throw new AttributeNotFoundException(message.toString());
   }
 
 
@@ -373,10 +372,9 @@ public class JMXAlertHandler
 
     buffer.append(")");
 
-    int    msgID   = MSGID_CONFIG_JMX_NO_METHOD;
-    String message = getMessage(msgID, buffer.toString(),
-                                String.valueOf(configEntryDN));
-    throw new MBeanException(new ConfigException(msgID, message));
+    Message message = ERR_CONFIG_JMX_NO_METHOD.get(
+        buffer.toString(), String.valueOf(configEntryDN));
+    throw new MBeanException(new ConfigException(message));
   }
 
 
@@ -401,7 +399,7 @@ public class JMXAlertHandler
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(AlertHandlerCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     return true;
   }

@@ -43,7 +43,7 @@ import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Control;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.operation.*;
-
+import org.opends.messages.Message;
 
 
 /**
@@ -103,8 +103,8 @@ public class DelayPreOpPlugin
           // This is fine.
           break;
         default:
-          throw new ConfigException(-1, "Invalid plugin type " + t +
-                                    " for delay pre-op plugin.");
+          throw new ConfigException(Message.raw("Invalid plugin type " + t +
+                                    " for delay pre-op plugin."));
       }
     }
   }
@@ -236,8 +236,8 @@ public class DelayPreOpPlugin
           catch (Exception e)
           {
             operation.setResultCode(ResultCode.PROTOCOL_ERROR);
-            operation.appendErrorMessage("Unable to decode the delay request " +
-                                         "control:  " + e);
+            operation.appendErrorMessage(Message.raw("Unable to decode the delay request " +
+                                         "control:  " + e));
             return new PreOperationPluginResult(false, false, true);
           }
         }

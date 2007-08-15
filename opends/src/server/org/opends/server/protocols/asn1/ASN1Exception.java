@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.asn1;
+import org.opends.messages.Message;
 
 
 
@@ -50,24 +51,16 @@ public class ASN1Exception
 
 
 
-  // The message ID for the message associated with this initialization
-  // exception.
-  private int messageID;
-
 
 
   /**
    * Creates a new ASN.1 exception with the provided message.
    *
-   * @param  messageID  The unique identifier for the associated message.
    * @param  message    The message that explains the problem that occurred.
    */
-  public ASN1Exception(int messageID, String message)
+  public ASN1Exception(Message message)
   {
     super(message);
-
-
-    this.messageID = messageID;
   }
 
 
@@ -76,28 +69,15 @@ public class ASN1Exception
    * Creates a new ASN.1 exception with the provided message and root
    * cause.
    *
-   * @param  messageID  The unique identifier for the associated message.
    * @param  message    The message that explains the problem that occurred.
    * @param  cause      The exception that was caught to trigger this exception.
    */
-  public ASN1Exception(int messageID, String message, Throwable cause)
+  public ASN1Exception(Message message, Throwable cause)
   {
     super(message, cause);
-
-
-    this.messageID = messageID;
   }
 
 
 
-  /**
-   * Retrieves the unique identifier for the associated message.
-   *
-   * @return  The unique identifier for the associated message.
-   */
-  public int getMessageID()
-  {
-    return messageID;
-  }
 }
 

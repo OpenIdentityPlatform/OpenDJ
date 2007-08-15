@@ -33,6 +33,7 @@ import static org.testng.Assert.*;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.admin.AdminTestCase;
 import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.MockLDAPProfile;
@@ -77,7 +78,7 @@ public final class ListenerTest extends AdminTestCase {
      * {@inheritDoc}
      */
     public boolean isConfigurationAddAcceptable(TestParentCfg configuration,
-        List<String> unacceptableReasons) {
+        List<Message> unacceptableReasons) {
       // No implementation required.
       return false;
     }
@@ -104,7 +105,7 @@ public final class ListenerTest extends AdminTestCase {
      * {@inheritDoc}
      */
     public boolean isConfigurationDeleteAcceptable(TestParentCfg configuration,
-        List<String> unacceptableReasons) {
+        List<Message> unacceptableReasons) {
       // No implementation required.
       return false;
     }

@@ -28,9 +28,9 @@
 package org.opends.server.protocols.ldap;
 
 import org.testng.annotations.Test;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ProtocolMessages.MSGID_ECN_INVALID_ELEMENT_TYPE;
-import static org.opends.server.messages.ProtocolMessages.MSGID_ECN_CANNOT_DECODE_VALUE;
+import static org.opends.messages.ProtocolMessages.ERR_ECN_INVALID_ELEMENT_TYPE;
+import static org.opends.messages.ProtocolMessages.ERR_ECN_CANNOT_DECODE_VALUE;
+import org.opends.messages.MessageDescriptor;
 import static org.testng.Assert.*;
 import org.opends.server.types.LDAPException;
 
@@ -38,22 +38,19 @@ public class TestLDAPException extends LdapTestCase {
 
   @Test()
   public void testLDAPException() {
-    int    msgID   = MSGID_ECN_INVALID_ELEMENT_TYPE;
-    String message = getMessage(msgID);
-    LDAPException ex=new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+    MessageDescriptor.Arg1<CharSequence> msgDesc = ERR_ECN_INVALID_ELEMENT_TYPE;
+    LDAPException ex=new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgDesc.get(""));
     assertTrue(ex.getResultCode() == LDAPResultCode.PROTOCOL_ERROR);
-    assertTrue(ex.getMessageID() == msgID);
+    assertTrue(ex.getMessageObject().getDescriptor() == msgDesc);
   }
 
   @Test()
   public void testLDAPExceptionThrowable() {
-    int    msgID   = MSGID_ECN_INVALID_ELEMENT_TYPE;
-    String message = getMessage(msgID);
-    LDAPException ex=new LDAPException(LDAPResultCode.OTHER, msgID, message);
-    int    msgID1   = MSGID_ECN_CANNOT_DECODE_VALUE;
-    String message1 = getMessage(msgID);
-    new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID1, message1,ex);
+    MessageDescriptor.Arg1<CharSequence>    msgID   = ERR_ECN_INVALID_ELEMENT_TYPE;
+    LDAPException ex=new LDAPException(LDAPResultCode.OTHER, msgID.get(""));
+    MessageDescriptor.Arg1<CharSequence>    msgID1  = ERR_ECN_CANNOT_DECODE_VALUE;
+    new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID1.get(""), ex);
     assertTrue(ex.getResultCode() == LDAPResultCode.OTHER);
-    assertTrue(ex.getMessageID() == msgID);
+    assertTrue(ex.getMessageObject().getDescriptor() == msgID);
   }
 }

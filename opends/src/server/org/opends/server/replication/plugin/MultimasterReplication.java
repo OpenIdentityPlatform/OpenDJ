@@ -42,6 +42,7 @@ import org.opends.server.api.RestoreTaskListener;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
@@ -64,8 +65,8 @@ import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationDeleteOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.ReplicationMessages.*;
 
 /**
  * This class is used to load the Replication code inside the JVM
@@ -193,7 +194,7 @@ public class MultimasterReplication
    * {@inheritDoc}
    */
   public boolean isConfigurationAddAcceptable(
-      MultimasterDomainCfg configuration, List<String> unacceptableReasons)
+      MultimasterDomainCfg configuration, List<Message> unacceptableReasons)
   {
     return ReplicationDomain.isConfigurationAcceptable(
       configuration, unacceptableReasons);
@@ -332,12 +333,14 @@ public class MultimasterReplication
       return new SynchronizationProviderResult(true);
 
     Historical historicalInformation = (Historical)
-                            modifyOperation.getAttachment(HISTORICAL);
+                            modifyOperation.getAttachment(
+                                    Historical.HISTORICAL);
     if (historicalInformation == null)
     {
       Entry entry = modifyOperation.getModifiedEntry();
       historicalInformation = Historical.load(entry);
-      modifyOperation.setAttachment(HISTORICAL, historicalInformation);
+      modifyOperation.setAttachment(Historical.HISTORICAL,
+              historicalInformation);
     }
 
     historicalInformation.generateState(modifyOperation);
@@ -549,7 +552,7 @@ public class MultimasterReplication
    * {@inheritDoc}
    */
   public boolean isConfigurationDeleteAcceptable(
-      MultimasterDomainCfg configuration, List<String> unacceptableReasons)
+      MultimasterDomainCfg configuration, List<Message> unacceptableReasons)
   {
     return true;
   }

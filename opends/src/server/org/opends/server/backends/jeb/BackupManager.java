@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
+import org.opends.messages.Message;
 
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -34,8 +35,6 @@ import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.BackupInfo;
 import org.opends.server.types.CryptoManager;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.RestoreConfig;
 
 import javax.crypto.Cipher;
@@ -72,8 +71,7 @@ import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.JebMessages.*;
+import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.admin.std.server.JEBackendCfg;
@@ -193,11 +191,10 @@ public class BackupManager
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_MAC;
-          String message = getMessage(msgID, macAlgorithm,
-                                      stackTraceToSingleLineString(e));
+          Message message = ERR_JEB_BACKUP_CANNOT_GET_MAC.get(
+              macAlgorithm, stackTraceToSingleLineString(e));
           throw new DirectoryException(
-               DirectoryServer.getServerErrorResultCode(), message, msgID, e);
+               DirectoryServer.getServerErrorResultCode(), message, e);
         }
       }
       else
@@ -216,11 +213,10 @@ public class BackupManager
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_DIGEST;
-          String message = getMessage(msgID, digestAlgorithm,
-                                      stackTraceToSingleLineString(e));
+          Message message = ERR_JEB_BACKUP_CANNOT_GET_DIGEST.get(
+              digestAlgorithm, stackTraceToSingleLineString(e));
           throw new DirectoryException(
-               DirectoryServer.getServerErrorResultCode(), message, msgID, e);
+               DirectoryServer.getServerErrorResultCode(), message, e);
         }
       }
     }
@@ -259,10 +255,9 @@ public class BackupManager
       if (files == null || files.length == 0)
       {
         // Incremental not allowed until after a full.
-        int msgID = MSGID_JEB_INCR_BACKUP_REQUIRES_FULL;
-        String msg = getMessage(msgID);
+        Message msg = ERR_JEB_INCR_BACKUP_REQUIRES_FULL.get();
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     msg, msgID);
+                                     msg);
       }
       HashSet<String> backups = new HashSet<String>();
       int prefixLen = BackupInfo.PROPERTY_BACKUP_ID.length()+1;
@@ -275,10 +270,10 @@ public class BackupManager
       // Check that it makes sense to do this incremental.
       if (incrBaseID == null || !backups.contains(incrBaseID))
       {
-        int msgID = MSGID_JEB_INCR_BACKUP_FROM_WRONG_BASE;
-        String msg = getMessage(msgID, backups.toString());
+        Message msg =
+            ERR_JEB_INCR_BACKUP_FROM_WRONG_BASE.get(backups.toString());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     msg, msgID);
+                                     msg);
       }
 */
 
@@ -338,12 +333,11 @@ public class BackupManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_JEB_BACKUP_CANNOT_CREATE_ARCHIVE_FILE;
-      String message = getMessage(msgID, String.valueOf(archiveFilename),
-                                  backupDir.getPath(),
-                                  stackTraceToSingleLineString(e));
+      Message message = ERR_JEB_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
+          get(String.valueOf(archiveFilename), backupDir.getPath(),
+              stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
 
@@ -366,11 +360,10 @@ public class BackupManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_CIPHER;
-        String message = getMessage(msgID, cipherAlgorithm,
-                                    stackTraceToSingleLineString(e));
+        Message message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
+            cipherAlgorithm, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
 
       outputStream = new CipherOutputStream(outputStream, cipher);
@@ -380,10 +373,10 @@ public class BackupManager
     // Wrap the file output stream in a zip output stream.
     ZipOutputStream zipStream = new ZipOutputStream(outputStream);
 
-    int    msgID   = MSGID_JEB_BACKUP_ZIP_COMMENT;
-    String message = getMessage(msgID, DynamicConstants.PRODUCT_NAME,
-                                backupID, backendID);
-    zipStream.setComment(message);
+    Message message = ERR_JEB_BACKUP_ZIP_COMMENT.get(
+            DynamicConstants.PRODUCT_NAME,
+            backupID, backendID);
+    zipStream.setComment(message.toString());
 
     if (compress)
     {
@@ -405,10 +398,10 @@ public class BackupManager
     catch (IOException e)
     {
       assert debugException(CLASS_NAME, "createBackup", e);
-      msgID = MSGID_JEB_CANNOT_CREATE_BACKUP_TAG_FILE;
-      String msg = getMessage(msgID, backupTag, backendDir.getPath());
+      Message msg = ERR_JEB_CANNOT_CREATE_BACKUP_TAG_FILE.get(
+          backupTag, backendDir.getPath());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   msg, msgID);
+                                   msg);
     }
 */
 
@@ -433,11 +426,10 @@ public class BackupManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID   = MSGID_JEB_BACKUP_CANNOT_LIST_LOG_FILES;
-      message = getMessage(msgID, backendDir.getAbsolutePath(),
-                           stackTraceToSingleLineString(e));
+      message = ERR_JEB_BACKUP_CANNOT_LIST_LOG_FILES.get(
+          backendDir.getAbsolutePath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          message, msgID, e);
+          message, e);
     }
 
     // Check to see if backend is empty. If so, insert placeholder entry into
@@ -455,11 +447,10 @@ public class BackupManager
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-        msgID   = MSGID_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE;
-        message = getMessage(msgID, ZIPENTRY_EMPTY_PLACEHOLDER,
-            stackTraceToSingleLineString(e));
+        message = ERR_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE.get(
+            ZIPENTRY_EMPTY_PLACEHOLDER, stackTraceToSingleLineString(e));
         throw new DirectoryException(
-            DirectoryServer.getServerErrorResultCode(), message, msgID, e);
+            DirectoryServer.getServerErrorResultCode(), message, e);
       }
     }
 
@@ -484,11 +475,10 @@ public class BackupManager
           catch (IOException e)
           {
             assert debugException(CLASS_NAME, "createBackup", e);
-            msgID   = MSGID_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE;
-            message = getMessage(msgID, backupTag,
-                                 stackTraceToSingleLineString(e));
+            Message message = ERR_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE.get(
+                backupTag, stackTraceToSingleLineString(e));
             throw new DirectoryException(
-                 DirectoryServer.getServerErrorResultCode(), message, msgID, e);
+                 DirectoryServer.getServerErrorResultCode(), message, e);
           }
         }
       }
@@ -513,10 +503,8 @@ public class BackupManager
             break;
           }
 
-          msgID = MSGID_JEB_BACKUP_FILE_UNCHANGED;
-          message = getMessage(msgID, logFileName);
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                   message, msgID);
+          message = INFO_JEB_BACKUP_FILE_UNCHANGED.get(logFileName);
+          logError(message);
 
           unchangedList.add(logFileName);
 
@@ -537,11 +525,10 @@ public class BackupManager
             {
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
-            msgID   = MSGID_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE;
-            message = getMessage(msgID, zipEntryName,
-                                 stackTraceToSingleLineString(e));
+            message = ERR_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE.get(
+                zipEntryName, stackTraceToSingleLineString(e));
             throw new DirectoryException(
-                 DirectoryServer.getServerErrorResultCode(), message, msgID, e);
+                 DirectoryServer.getServerErrorResultCode(), message, e);
           }
 
           // Set the dependency.
@@ -579,11 +566,10 @@ public class BackupManager
             {
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
-            msgID   = MSGID_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE;
-            message = getMessage(msgID, logFile.getName(),
-                                 stackTraceToSingleLineString(e));
+            message = ERR_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE.get(
+                logFile.getName(), stackTraceToSingleLineString(e));
             throw new DirectoryException(
-                 DirectoryServer.getServerErrorResultCode(), message, msgID, e);
+                 DirectoryServer.getServerErrorResultCode(), message, e);
           }
 
           indexCurrent++;
@@ -620,11 +606,10 @@ public class BackupManager
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            msgID   = MSGID_JEB_BACKUP_CANNOT_LIST_LOG_FILES;
-            message = getMessage(msgID, backendDir.getAbsolutePath(),
-                                 stackTraceToSingleLineString(e));
+            message = ERR_JEB_BACKUP_CANNOT_LIST_LOG_FILES.get(
+                backendDir.getAbsolutePath(), stackTraceToSingleLineString(e));
             throw new DirectoryException(
-                 DirectoryServer.getServerErrorResultCode(), message, msgID, e);
+                 DirectoryServer.getServerErrorResultCode(), message, e);
           }
 
           if (logFiles == null)
@@ -634,10 +619,9 @@ public class BackupManager
 
           Arrays.sort(logFiles);
 
-          msgID = MSGID_JEB_BACKUP_CLEANER_ACTIVITY;
-          message = getMessage(msgID, logFiles.length);
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                   message, msgID);
+          message = INFO_JEB_BACKUP_CLEANER_ACTIVITY.get(
+                  String.valueOf(logFiles.length));
+          logError(message);
         }
         else
         {
@@ -674,11 +658,11 @@ public class BackupManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID   = MSGID_JEB_BACKUP_CANNOT_CLOSE_ZIP_STREAM;
-      message = getMessage(msgID, archiveFilename, backupDir.getPath(),
-                           stackTraceToSingleLineString(e));
+      message = ERR_JEB_BACKUP_CANNOT_CLOSE_ZIP_STREAM.
+          get(archiveFilename, backupDir.getPath(),
+              stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
 
@@ -719,11 +703,10 @@ public class BackupManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_JEB_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR;
-      message = getMessage(msgID, backupDir.getDescriptorPath(),
-                           stackTraceToSingleLineString(e));
+      message = ERR_JEB_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
+          backupDir.getDescriptorPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
   }
 
@@ -776,11 +759,10 @@ public class BackupManager
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      int msgID = MSGID_JEB_BACKUP_CANNOT_RESTORE;
-      String message = getMessage(msgID, backupInfo.getBackupID(),
-                                  stackTraceToSingleLineString(e));
+      Message message = ERR_JEB_BACKUP_CANNOT_RESTORE.get(
+          backupInfo.getBackupID(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
     // Restore any dependencies.
@@ -797,11 +779,10 @@ public class BackupManager
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-        int msgID = MSGID_JEB_BACKUP_CANNOT_RESTORE;
-        String message = getMessage(msgID, dependent.getBackupID(),
-                                    stackTraceToSingleLineString(e));
+        Message message = ERR_JEB_BACKUP_CANNOT_RESTORE.get(
+            dependent.getBackupID(), stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
     }
 
@@ -816,11 +797,10 @@ public class BackupManager
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      int msgID = MSGID_JEB_BACKUP_CANNOT_RESTORE;
-      String message = getMessage(msgID, backupInfo.getBackupID(),
-                                  stackTraceToSingleLineString(e));
+      Message message = ERR_JEB_BACKUP_CANNOT_RESTORE.get(
+          backupInfo.getBackupID(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
     // Delete the current backend directory and rename the restore directory.
@@ -837,11 +817,10 @@ public class BackupManager
       currentDir.delete();
       if (!restoreDir.renameTo(currentDir))
       {
-        int msgID = MSGID_JEB_CANNOT_RENAME_RESTORE_DIRECTORY;
-        String msg = getMessage(msgID, restoreDir.getPath(),
-                                currentDir.getPath());
+        Message msg = ERR_JEB_CANNOT_RENAME_RESTORE_DIRECTORY.get(
+            restoreDir.getPath(), currentDir.getPath());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     msg, msgID);
+                                     msg);
       }
     }
   }
@@ -880,8 +859,7 @@ public class BackupManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessage(),
-                                   e.getMessageID());
+                                   e.getMessageObject());
     }
 
     try
@@ -895,11 +873,10 @@ public class BackupManager
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_JEB_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR;
-      String message = getMessage(msgID, backupDir.getDescriptorPath(),
-                                  stackTraceToSingleLineString(e));
+      Message message = ERR_JEB_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
+          backupDir.getDescriptorPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
     // Remove the archive file.
@@ -969,11 +946,10 @@ public class BackupManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_MAC;
-        String message = getMessage(msgID, macAlgorithm,
-                                    stackTraceToSingleLineString(e));
+        Message message = ERR_JEB_BACKUP_CANNOT_GET_MAC.get(
+            macAlgorithm, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
     }
 
@@ -992,11 +968,10 @@ public class BackupManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_DIGEST;
-        String message = getMessage(msgID, digestAlgorithm,
-                                    stackTraceToSingleLineString(e));
+        Message message = ERR_JEB_BACKUP_CANNOT_GET_DIGEST.get(
+            digestAlgorithm, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
     }
 
@@ -1020,11 +995,10 @@ public class BackupManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_CIPHER;
-        String message = getMessage(msgID, cipherAlgorithm,
-                                    stackTraceToSingleLineString(e));
+        Message message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
+            cipherAlgorithm, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
 
       inputStream = new CipherInputStream(inputStream, cipher);
@@ -1104,10 +1078,8 @@ public class BackupManager
       {
         if (verifyOnly)
         {
-          int msgID = MSGID_JEB_BACKUP_VERIFY_FILE;
-          String message = getMessage(msgID, zipEntry.getName());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                   message, msgID);
+          Message message = INFO_JEB_BACKUP_VERIFY_FILE.get(zipEntry.getName());
+          logError(message);
         }
 
         // The file name is part of the hash.
@@ -1151,11 +1123,9 @@ public class BackupManager
         {
           outputStream.close();
 
-          int msgID = MSGID_JEB_BACKUP_RESTORED_FILE;
-          String message = getMessage(msgID, zipEntry.getName(),
-                                      totalBytesRead);
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                   message, msgID);
+          Message message = INFO_JEB_BACKUP_RESTORED_FILE.get(
+              zipEntry.getName(), totalBytesRead);
+          logError(message);
         }
       }
 
@@ -1169,10 +1139,9 @@ public class BackupManager
     {
       if (!Arrays.equals(digest.digest(), hash))
       {
-        int    msgID   = MSGID_JEB_BACKUP_UNSIGNED_HASH_ERROR;
-        String message = getMessage(msgID, backupID);
+        Message message = ERR_JEB_BACKUP_UNSIGNED_HASH_ERROR.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -1182,10 +1151,9 @@ public class BackupManager
 
       if (!Arrays.equals(computedSignHash, signHash))
       {
-        int    msgID   = MSGID_JEB_BACKUP_SIGNED_HASH_ERROR;
-        String message = getMessage(msgID, backupID);
+        Message message = ERR_JEB_BACKUP_SIGNED_HASH_ERROR.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID);
+                                     message);
       }
     }
   }
@@ -1251,10 +1219,8 @@ public class BackupManager
     // Finish the zip entry.
     zipStream.closeEntry();
 
-    int msgID = MSGID_JEB_BACKUP_ARCHIVED_FILE;
-    String message = getMessage(msgID, zipEntry.getName());
-    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-             message, msgID);
+    Message message = INFO_JEB_BACKUP_ARCHIVED_FILE.get(zipEntry.getName());
+    logError(message);
 
     return totalBytesRead;
   }
@@ -1364,11 +1330,10 @@ public class BackupManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_CIPHER;
-        String message = getMessage(msgID, cipherAlgorithm,
-                                    stackTraceToSingleLineString(e));
+        Message message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
+            cipherAlgorithm, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
 
       inputStream = new CipherInputStream(inputStream, cipher);
@@ -1442,10 +1407,10 @@ public class BackupManager
     BackupInfo backupInfo = backupDir.getBackupInfo(backupID);
     if (backupInfo == null)
     {
-      int    msgID   = MSGID_JEB_BACKUP_MISSING_BACKUPID;
-      String message = getMessage(msgID, backupDir.getPath(), backupID);
+      Message message =
+          ERR_JEB_BACKUP_MISSING_BACKUPID.get(backupDir.getPath(), backupID);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
     return backupInfo;
   }

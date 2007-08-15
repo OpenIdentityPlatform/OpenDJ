@@ -25,6 +25,8 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -41,8 +43,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
@@ -56,13 +56,12 @@ import static org.opends.server.loggers.AccessLogger.*;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.workflowelement.localbackend.*;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import org.opends.server.loggers.ErrorLogger;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -257,7 +256,7 @@ public class ModifyDNOperationBasis
         TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
       setResultCode(de.getResultCode());
-      appendErrorMessage(de.getErrorMessage());
+      appendErrorMessage(de.getMessageObject());
     }
     return entryDN;
   }
@@ -301,7 +300,7 @@ public class ModifyDNOperationBasis
       }
 
       setResultCode(de.getResultCode());
-      appendErrorMessage(de.getErrorMessage());
+      appendErrorMessage(de.getMessageObject());
     }
     return newRDN;
   }
@@ -368,7 +367,7 @@ public class ModifyDNOperationBasis
         }
 
         setResultCode(de.getResultCode());
-        appendErrorMessage(de.getErrorMessage());
+        appendErrorMessage(de.getMessageObject());
       }
     }
     return newSuperior;
@@ -453,16 +452,16 @@ public class ModifyDNOperationBasis
    */
   @Override()
   public final void disconnectClient(DisconnectReason disconnectReason,
-      boolean sendNotification, String message,
-      int messageID)
+                                     boolean sendNotification, Message message
+  )
   {
     // Before calling clientConnection.disconnect, we need to mark this
     // operation as cancelled so that the attempt to cancel it later won't cause
     // an unnecessary delay.
     setCancelResult(CancelResult.CANCELED);
 
-    clientConnection.disconnect(disconnectReason, sendNotification, message,
-        messageID);
+    clientConnection.disconnect(disconnectReason, sendNotification,
+            message);
   }
 
 
@@ -508,7 +507,7 @@ public class ModifyDNOperationBasis
     String resultCode = String.valueOf(getResultCode().getIntValue());
 
     String errorMessage;
-    StringBuilder errorMessageBuffer = getErrorMessage();
+    MessageBuilder errorMessageBuffer = getErrorMessage();
     if (errorMessageBuffer == null)
     {
       errorMessage = null;
@@ -647,8 +646,7 @@ modifyDNProcessing:
         // result and return.
         setResultCode(ResultCode.CANCELED);
 
-        int msgID = MSGID_CANCELED_BY_PREPARSE_DISCONNECT;
-        appendErrorMessage(getMessage(msgID));
+        appendErrorMessage(ERR_CANCELED_BY_PREPARSE_DISCONNECT.get());
 
         setProcessingStopTime();
 
@@ -838,13 +836,9 @@ modifyDNProcessing:
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              int    msgID   = MSGID_MODDN_ERROR_NOTIFYING_PERSISTENT_SEARCH;
-              String message = getMessage(msgID,
-                  String.valueOf(persistentSearch),
-                  getExceptionMessage(e));
-              logError(ErrorLogCategory.CORE_SERVER,
-                  ErrorLogSeverity.SEVERE_ERROR,
-                  message, msgID);
+              Message message = ERR_MODDN_ERROR_NOTIFYING_PERSISTENT_SEARCH.get(
+                  String.valueOf(persistentSearch), getExceptionMessage(e));
+              ErrorLogger.logError(message);
 
               DirectoryServer.deregisterPersistentSearch(persistentSearch);
             }
@@ -864,8 +858,8 @@ modifyDNProcessing:
   private void updateOperationErrMsgAndResCode()
   {
     setResultCode(ResultCode.NO_SUCH_OBJECT);
-    appendErrorMessage(getMessage(MSGID_MODDN_NO_BACKEND_FOR_CURRENT_ENTRY,
-        String.valueOf(entryDN)));
+    appendErrorMessage(ERR_MODDN_NO_BACKEND_FOR_CURRENT_ENTRY.get(
+            String.valueOf(entryDN)));
   }
 
 
@@ -990,8 +984,7 @@ modifyDNProcessing:
       if ((parentDN == null) || parentDN.isNullDN())
       {
         setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-        appendErrorMessage(getMessage(MSGID_MODDN_NO_PARENT,
-            String.valueOf(entryDN)));
+        appendErrorMessage(ERR_MODDN_NO_PARENT.get(String.valueOf(entryDN)));
       }
       newDN = parentDN.concat(newRDN);
     }

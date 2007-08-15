@@ -27,7 +27,10 @@
 
 package org.opends.quicksetup.upgrader;
 
-import static org.opends.server.messages.ToolMessages.*;
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 
 import org.opends.quicksetup.CliApplicationHelper;
@@ -35,7 +38,7 @@ import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.QuickSetupLog;
-import org.opends.quicksetup.i18n.ResourceProvider;
+
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.args.ArgumentParser;
@@ -74,8 +77,7 @@ public class UpgradeLauncher extends Launcher {
               File.createTempFile(LOG_FILE_PREFIX,
                       QuickSetupLog.LOG_FILE_SUFFIX));
     } catch (Throwable t) {
-      System.err.println(
-              ResourceProvider.getInstance().getMsg("error-initializing-log"));
+      System.err.println(INFO_ERROR_INITIALIZING_LOG.get());
       t.printStackTrace();
     }
     new UpgradeLauncher(args).launch();
@@ -86,8 +88,8 @@ public class UpgradeLauncher extends Launcher {
   /**
    * {@inheritDoc}
    */
-  protected String getFrameTitle() {
-    return getI18n().getMsg("frame-upgrade-title");
+  protected Message getFrameTitle() {
+    return INFO_FRAME_UPGRADE_TITLE.get();
   }
 
   /**
@@ -128,7 +130,7 @@ public class UpgradeLauncher extends Launcher {
    * {@inheritDoc}
    */
   protected void willLaunchGui() {
-    System.out.println(getMsg("upgrade-launcher-launching-gui"));
+    System.out.println(INFO_UPGRADE_LAUNCHER_LAUNCHING_GUI.get());
     System.setProperty("org.opends.quicksetup.Application.class",
             "org.opends.quicksetup.upgrader.Upgrader");
   }
@@ -139,12 +141,13 @@ public class UpgradeLauncher extends Launcher {
   protected void guiLaunchFailed(String logFilePath) {
     if (logFilePath != null)
     {
-      System.err.println(getMsg("upgrade-launcher-gui-launched-failed-details",
-          logFilePath));
+      System.err.println(
+              INFO_UPGRADE_LAUNCHER_GUI_LAUNCHED_FAILED_DETAILS.get(
+                      logFilePath));
     }
     else
     {
-      System.err.println(getMsg("upgrade-launcher-gui-launched-failed"));
+      System.err.println(INFO_UPGRADE_LAUNCHER_GUI_LAUNCHED_FAILED.get());
     }
   }
 
@@ -172,7 +175,7 @@ public class UpgradeLauncher extends Launcher {
     System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
 
     argParser = new ArgumentParser(getClass().getName(),
-        getI18n().getMsg("upgrade-launcher-usage-description"), false);
+        INFO_UPGRADE_LAUNCHER_USAGE_DESCRIPTION.get(), false);
     BooleanArgument showUsage;
     FileBasedArgument file;
     BooleanArgument silent;
@@ -185,23 +188,23 @@ public class UpgradeLauncher extends Launcher {
               FILE_OPTION_LONG,
               false, false,
               "{file}",
-              null, null, MSGID_UPGRADE_DESCRIPTION_FILE);
+              null, null, INFO_UPGRADE_DESCRIPTION_FILE.get());
       argParser.addArgument(file);
       interactive = new BooleanArgument(
           CliApplicationHelper.INTERACTIVE_OPTION_LONG,
           CliApplicationHelper.INTERACTIVE_OPTION_SHORT,
           CliApplicationHelper.INTERACTIVE_OPTION_LONG,
-          MSGID_UPGRADE_DESCRIPTION_INTERACTIVE);
+          INFO_UPGRADE_DESCRIPTION_INTERACTIVE.get());
       argParser.addArgument(interactive);
       silent = new BooleanArgument(
           CliApplicationHelper.SILENT_OPTION_LONG,
           CliApplicationHelper.SILENT_OPTION_SHORT,
           CliApplicationHelper.SILENT_OPTION_LONG,
-          MSGID_UPGRADE_DESCRIPTION_SILENT);
+          INFO_UPGRADE_DESCRIPTION_SILENT.get());
       argParser.addArgument(silent);
       showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
         OPTION_LONG_HELP,
-        MSGID_DESCRIPTION_USAGE);
+        INFO_DESCRIPTION_USAGE.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }

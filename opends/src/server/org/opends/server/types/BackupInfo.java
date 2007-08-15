@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 
@@ -40,8 +41,7 @@ import org.opends.server.util.Base64;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -517,15 +517,15 @@ public class BackupInfo
         int equalPos = line.indexOf('=');
         if (equalPos < 0)
         {
-          int    msgID   = MSGID_BACKUPINFO_NO_DELIMITER;
-          String message = getMessage(msgID, line, backupPath);
-          throw new ConfigException(msgID, message);
+          Message message =
+              ERR_BACKUPINFO_NO_DELIMITER.get(line, backupPath);
+          throw new ConfigException(message);
         }
         else if (equalPos == 0)
         {
-          int    msgID   = MSGID_BACKUPINFO_NO_NAME;
-          String message = getMessage(msgID, line, backupPath);
-          throw new ConfigException(msgID, message);
+          Message message =
+              ERR_BACKUPINFO_NO_NAME.get(line, backupPath);
+          throw new ConfigException(message);
         }
 
         String name  = line.substring(0, equalPos);
@@ -539,10 +539,9 @@ public class BackupInfo
           }
           else
           {
-            int    msgID   = MSGID_BACKUPINFO_MULTIPLE_BACKUP_IDS;
-            String message = getMessage(msgID, backupPath, backupID,
-                                        value);
-            throw new ConfigException(msgID, message);
+            Message message = ERR_BACKUPINFO_MULTIPLE_BACKUP_IDS.get(
+                backupPath, backupID, value);
+            throw new ConfigException(message);
           }
         }
         else if (name.equals(PROPERTY_BACKUP_DATE))
@@ -584,9 +583,9 @@ public class BackupInfo
         }
         else
         {
-          int    msgID   = MSGID_BACKUPINFO_UNKNOWN_PROPERTY;
-          String message = getMessage(msgID, backupPath, name, value);
-          throw new ConfigException(msgID, message);
+          Message message = ERR_BACKUPINFO_UNKNOWN_PROPERTY.get(
+              backupPath, name, value);
+          throw new ConfigException(message);
         }
       }
     }
@@ -601,10 +600,9 @@ public class BackupInfo
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_BACKUPINFO_CANNOT_DECODE;
-      String message = getMessage(msgID, backupPath,
-                                  getExceptionMessage(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = ERR_BACKUPINFO_CANNOT_DECODE.get(
+          backupPath, getExceptionMessage(e));
+      throw new ConfigException(message, e);
     }
 
 
@@ -612,16 +610,15 @@ public class BackupInfo
     // specified.
     if (backupID == null)
     {
-      int    msgID   = MSGID_BACKUPINFO_NO_BACKUP_ID;
-      String message = getMessage(msgID, backupPath);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_BACKUPINFO_NO_BACKUP_ID.get(backupPath);
+      throw new ConfigException(message);
     }
 
     if (backupDate == null)
     {
-      int    msgID   = MSGID_BACKUPINFO_NO_BACKUP_DATE;
-      String message = getMessage(msgID, backupID, backupPath);
-      throw new ConfigException(msgID, message);
+      Message message =
+          ERR_BACKUPINFO_NO_BACKUP_DATE.get(backupID, backupPath);
+      throw new ConfigException(message);
     }
 
 

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
+import org.opends.messages.Message;
 
 
 
@@ -43,8 +44,7 @@ import org.opends.server.types.RawAttribute;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -303,10 +303,10 @@ public class LDAPAttribute
     {
       if (! attributeValues.add(new AttributeValue(attrType, value)))
       {
-        int    msgID   = MSGID_LDAP_ATTRIBUTE_DUPLICATE_VALUES;
-        String message = getMessage(msgID, attributeType);
-        throw new LDAPException(LDAPResultCode.ATTRIBUTE_OR_VALUE_EXISTS, msgID,
-                                message);
+        Message message =
+            ERR_LDAP_ATTRIBUTE_DUPLICATE_VALUES.get(attributeType);
+        throw new LDAPException(
+                LDAPResultCode.ATTRIBUTE_OR_VALUE_EXISTS, message);
       }
     }
 

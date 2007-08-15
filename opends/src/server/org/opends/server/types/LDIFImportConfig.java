@@ -51,8 +51,7 @@ import org.opends.server.tools.makeldif.TemplateFile;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
+import static org.opends.messages.UtilityMessages.*;
 
 
 
@@ -509,8 +508,8 @@ public class LDIFImportConfig
         File f = new File(rejectFile);
         if (f.exists())
         {
-          throw new IOException(getMessage(MSGID_REJECT_FILE_EXISTS,
-                                           rejectFile));
+          throw new IOException(
+                  ERR_REJECT_FILE_EXISTS.get(rejectFile).toString());
         }
         else
         {
@@ -601,8 +600,8 @@ public class LDIFImportConfig
         File f = new File(skipFile);
         if (f.exists())
         {
-          throw new IOException(getMessage(MSGID_SKIP_FILE_EXISTS,
-                                           skipFile));
+          throw new IOException(
+                  ERR_SKIP_FILE_EXISTS.get(skipFile).toString());
         }
         else
         {

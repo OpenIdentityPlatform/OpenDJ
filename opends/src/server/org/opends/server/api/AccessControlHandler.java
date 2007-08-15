@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
+import org.opends.messages.Message;
 
 
 
@@ -35,7 +36,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.*;
-
 
 
 /**
@@ -98,7 +98,7 @@ public abstract class AccessControlHandler
    */
   public boolean isConfigurationAcceptable(
                       AccessControlHandlerCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // This default implementation does not perform any special
     // validation.  It should be overridden by access control handler

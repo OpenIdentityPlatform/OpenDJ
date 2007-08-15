@@ -25,13 +25,14 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util.args;
+import org.opends.messages.Message;
 
 
 
 import java.util.HashSet;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
+import static org.opends.messages.UtilityMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -75,10 +76,8 @@ public class MultiChoiceArgument
    *                           formatted in lowercase.
    * @param  caseSensitive     Indicates whether the set of allowed values
    *                           should be treated in a case-sensitive manner.
-   * @param  descriptionID     The unique ID of the description for this
+   * @param  description       Message for the description of this
    *                           argument.
-   * @param  descriptionArgs   The arguments that are to be used when generating
-   *                           the description for this argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
    *                             parameters used to create this argument.
@@ -87,12 +86,12 @@ public class MultiChoiceArgument
                              String longIdentifier, boolean isRequired,
                              boolean needsValue, String valuePlaceholder,
                              HashSet<String> allowedValues,
-                             boolean caseSensitive, int descriptionID,
-                             Object... descriptionArgs)
+                             boolean caseSensitive,
+                             Message description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, false, needsValue,
-          valuePlaceholder, null, null, descriptionID, descriptionArgs);
+          valuePlaceholder, null, null, description);
 
     this.allowedValues = allowedValues;
     this.caseSensitive = caseSensitive;
@@ -131,10 +130,8 @@ public class MultiChoiceArgument
    *                           formatted in lowercase.
    * @param  caseSensitive     Indicates whether the set of allowed values
    *                           should be treated in a case-sensitive manner.
-   * @param  descriptionID     The unique ID of the description for this
+   * @param  description       Message for the description of this
    *                           argument.
-   * @param  descriptionArgs   The arguments that are to be used when generating
-   *                           the description for this argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
    *                             parameters used to create this argument.
@@ -144,13 +141,13 @@ public class MultiChoiceArgument
                              boolean isMultiValued, boolean needsValue,
                              String valuePlaceholder, String defaultValue,
                              String propertyName, HashSet<String> allowedValues,
-                             boolean caseSensitive, int descriptionID,
-                             Object... descriptionArgs)
+                             boolean caseSensitive,
+                             Message description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, isMultiValued,
           needsValue, valuePlaceholder, defaultValue, propertyName,
-          descriptionID, descriptionArgs);
+          description);
 
     this.allowedValues = allowedValues;
     this.caseSensitive = caseSensitive;
@@ -197,14 +194,14 @@ public class MultiChoiceArgument
    *          <CODE>false</CODE> if it is not.
    */
   public boolean valueIsAcceptable(String valueString,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     if (caseSensitive)
     {
       if (! allowedValues.contains(valueString))
       {
-        int msgID = MSGID_MCARG_VALUE_NOT_ALLOWED;
-        invalidReason.append(getMessage(msgID, getName(), valueString));
+        invalidReason.append(ERR_MCARG_VALUE_NOT_ALLOWED.get(
+                getName(), valueString));
 
         return false;
       }
@@ -213,8 +210,8 @@ public class MultiChoiceArgument
     {
       if (! allowedValues.contains(toLowerCase(valueString)))
       {
-        int msgID = MSGID_MCARG_VALUE_NOT_ALLOWED;
-        invalidReason.append(getMessage(msgID, getName(), valueString));
+        invalidReason.append(
+                ERR_MCARG_VALUE_NOT_ALLOWED.get(getName(), valueString));
 
         return false;
       }

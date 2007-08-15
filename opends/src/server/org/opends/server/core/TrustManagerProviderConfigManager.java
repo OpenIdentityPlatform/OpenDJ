@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
@@ -46,16 +47,15 @@ import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.ConfigMessages.*;
 
+import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.loggers.ErrorLogger;
 
 
 /**
@@ -135,9 +135,7 @@ public class TrustManagerProviderConfigManager
         }
         catch (InitializationException ie)
         {
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_ERROR,
-                   ie.getMessage(), ie.getMessageID());
+          ErrorLogger.logError(ie.getMessageObject());
           continue;
         }
       }
@@ -150,7 +148,7 @@ public class TrustManagerProviderConfigManager
    * {@inheritDoc}
    */
   public boolean isConfigurationAddAcceptable(TrustManagerCfg configuration,
-                                              List<String> unacceptableReasons)
+                                              List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -163,7 +161,7 @@ public class TrustManagerProviderConfigManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add(ie.getMessage());
+        unacceptableReasons.add(ie.getMessageObject());
         return false;
       }
     }
@@ -181,7 +179,7 @@ public class TrustManagerProviderConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     configuration.addChangeListener(this);
 
@@ -206,7 +204,7 @@ public class TrustManagerProviderConfigManager
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
 
-      messages.add(ie.getMessage());
+      messages.add(ie.getMessageObject());
     }
 
     if (resultCode == ResultCode.SUCCESS)
@@ -225,7 +223,7 @@ public class TrustManagerProviderConfigManager
    * {@inheritDoc}
    */
   public boolean isConfigurationDeleteAcceptable(TrustManagerCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // FIXME -- We should try to perform some check to determine whether the
     // provider is in use.
@@ -242,7 +240,7 @@ public class TrustManagerProviderConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     DirectoryServer.deregisterTrustManagerProvider(configuration.dn());
 
@@ -261,7 +259,7 @@ public class TrustManagerProviderConfigManager
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(TrustManagerCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -274,7 +272,7 @@ public class TrustManagerProviderConfigManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add(ie.getMessage());
+        unacceptableReasons.add(ie.getMessageObject());
         return false;
       }
     }
@@ -293,7 +291,7 @@ public class TrustManagerProviderConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Get the existing provider if it's already enabled.
@@ -347,7 +345,7 @@ public class TrustManagerProviderConfigManager
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
 
-      messages.add(ie.getMessage());
+      messages.add(ie.getMessageObject());
     }
 
     if (resultCode == ResultCode.SUCCESS)
@@ -405,7 +403,7 @@ public class TrustManagerProviderConfigManager
              provider.getClass().getMethod("isConfigurationAcceptable",
                                            TrustManagerCfg.class, List.class);
 
-        List<String> unacceptableReasons = new ArrayList<String>();
+        List<Message> unacceptableReasons = new ArrayList<Message>();
         Boolean acceptable = (Boolean) method.invoke(provider, configuration,
                                                      unacceptableReasons);
         if (! acceptable)
@@ -413,7 +411,7 @@ public class TrustManagerProviderConfigManager
           StringBuilder buffer = new StringBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<String> iterator = unacceptableReasons.iterator();
+            Iterator<Message> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -422,10 +420,9 @@ public class TrustManagerProviderConfigManager
             }
           }
 
-          int    msgID   = MSGID_CONFIG_TRUSTMANAGER_CONFIG_NOT_ACCEPTABLE;
-          String message = getMessage(msgID, String.valueOf(configuration.dn()),
-                                      buffer.toString());
-          throw new InitializationException(msgID, message);
+          Message message = ERR_CONFIG_TRUSTMANAGER_CONFIG_NOT_ACCEPTABLE.get(
+              String.valueOf(configuration.dn()), buffer.toString());
+          throw new InitializationException(message);
         }
       }
 
@@ -433,11 +430,10 @@ public class TrustManagerProviderConfigManager
     }
     catch (Exception e)
     {
-      int msgID = MSGID_CONFIG_TRUSTMANAGER_INITIALIZATION_FAILED;
-      String message = getMessage(msgID, className,
-                                  String.valueOf(configuration.dn()),
-                                  stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_TRUSTMANAGER_INITIALIZATION_FAILED.
+          get(className, String.valueOf(configuration.dn()),
+              stackTraceToSingleLineString(e));
+      throw new InitializationException(message, e);
     }
   }
 }

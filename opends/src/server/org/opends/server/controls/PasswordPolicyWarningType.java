@@ -25,11 +25,11 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 
 
 
@@ -46,7 +46,7 @@ public enum PasswordPolicyWarningType
    * until expiration.
    */
   TIME_BEFORE_EXPIRATION(PasswordPolicyWarningType.TYPE_TIME_BEFORE_EXPIRATION,
-                         MSGID_PWPWARNTYPE_DESCRIPTION_TIME_BEFORE_EXPIRATION),
+                     INFO_PWPWARNTYPE_DESCRIPTION_TIME_BEFORE_EXPIRATION.get()),
 
 
 
@@ -56,7 +56,7 @@ public enum PasswordPolicyWarningType
    * logins that the user has left.
    */
   GRACE_LOGINS_REMAINING(PasswordPolicyWarningType.TYPE_GRACE_LOGINS_REMAINING,
-                         MSGID_PWPWARNTYPE_DESCRIPTION_GRACE_LOGINS_REMAINING);
+                     INFO_PWPWARNTYPE_DESCRIPTION_GRACE_LOGINS_REMAINING.get());
 
 
 
@@ -79,7 +79,7 @@ public enum PasswordPolicyWarningType
   private byte type;
 
   // The message ID for the description of this password policy error type.
-  private int descriptionID;
+  private Message description;
 
 
 
@@ -89,13 +89,13 @@ public enum PasswordPolicyWarningType
    *
    * @param  type           The BER type to use for the associated element in
    *                        the password policy control.
-   * @param  descriptionID  The message ID for the description of this password
+   * @param  description    The message for the description of this password
    *                        policy error type.
    */
-  private PasswordPolicyWarningType(byte type, int descriptionID)
+  private PasswordPolicyWarningType(byte type, Message description)
   {
     this.type          = type;
-    this.descriptionID = descriptionID;
+    this.description   = description;
   }
 
 
@@ -145,7 +145,7 @@ public enum PasswordPolicyWarningType
    */
   public String toString()
   {
-    return getMessage(descriptionID);
+    return Message.toString(description);
   }
 }
 

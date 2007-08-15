@@ -37,6 +37,8 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.MessageBuilder;
+import org.opends.messages.Message;
 import org.opends.server.admin.std.meta.
             UniqueCharactersPasswordValidatorCfgDefn;
 import org.opends.server.admin.std.server.
@@ -320,7 +322,7 @@ public class UniqueCharactersPasswordValidatorTestCase
                              new ArrayList<Control>(),
                              DN.decode("uid=test.user,o=test"), mods);
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertTrue(validator.passwordIsAcceptable(password,
                               new HashSet<ByteString>(0), modifyOperation,
                               userEntry, invalidReason),
@@ -389,7 +391,7 @@ public class UniqueCharactersPasswordValidatorTestCase
                              new ArrayList<Control>(),
                              DN.decode("uid=test.user,o=test"), mods);
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertFalse(validator.passwordIsAcceptable(password,
                                new HashSet<ByteString>(0), modifyOperation,
                                userEntry, invalidReason));
@@ -457,7 +459,7 @@ public class UniqueCharactersPasswordValidatorTestCase
                              new ArrayList<Control>(),
                              DN.decode("uid=test.user,o=test"), mods);
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertTrue(validator.passwordIsAcceptable(password,
                               new HashSet<ByteString>(0), modifyOperation,
                               userEntry, invalidReason),
@@ -526,7 +528,7 @@ public class UniqueCharactersPasswordValidatorTestCase
                              new ArrayList<Control>(),
                              DN.decode("uid=test.user,o=test"), mods);
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertFalse(validator.passwordIsAcceptable(password,
                                new HashSet<ByteString>(0), modifyOperation,
                                userEntry, invalidReason));
@@ -593,7 +595,7 @@ public class UniqueCharactersPasswordValidatorTestCase
                              new ArrayList<Control>(),
                              DN.decode("uid=test.user,o=test"), mods);
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertTrue(validator.passwordIsAcceptable(password,
                               new HashSet<ByteString>(0), modifyOperation,
                               userEntry, invalidReason),
@@ -661,7 +663,7 @@ public class UniqueCharactersPasswordValidatorTestCase
                              new ArrayList<Control>(),
                              DN.decode("uid=test.user,o=test"), mods);
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertTrue(validator.passwordIsAcceptable(password,
                               new HashSet<ByteString>(0), modifyOperation,
                               userEntry, invalidReason),
@@ -684,7 +686,7 @@ public class UniqueCharactersPasswordValidatorTestCase
               UniqueCharactersPasswordValidatorCfgDefn.getInstance(),
               updatedValidatorEntry);
 
-    ArrayList<String> unacceptableReasons = new ArrayList<String>();
+    ArrayList<Message> unacceptableReasons = new ArrayList<Message>();
     assertTrue(validator.isConfigurationChangeAcceptable(updatedConfiguration,
                                                          unacceptableReasons),
                String.valueOf(unacceptableReasons));

@@ -26,7 +26,176 @@
  */
 package org.opends.server.core;
 
+import com.sleepycat.je.JEVersion;
 
+import org.opends.server.admin.ClassLoaderProvider;
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.server.AlertHandlerCfg;
+import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.opends.server.admin.std.server.ConnectionHandlerCfg;
+import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
+import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.admin.std.server.PasswordValidatorCfg;
+import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.admin.std.server.RootDSEBackendCfg;
+import org.opends.server.admin.std.server.SynchronizationProviderCfg;
+import org.opends.server.api.AccountStatusNotificationHandler;
+import org.opends.server.api.AlertGenerator;
+import org.opends.server.api.AlertHandler;
+import org.opends.server.api.ApproximateMatchingRule;
+import org.opends.server.api.AttributeSyntax;
+import org.opends.server.api.Backend;
+import org.opends.server.api.BackendInitializationListener;
+import org.opends.server.api.BackupTaskListener;
+import org.opends.server.api.CertificateMapper;
+import org.opends.server.api.ChangeNotificationListener;
+import org.opends.server.api.ClientConnection;
+import org.opends.server.api.ConfigAddListener;
+import org.opends.server.api.ConfigChangeListener;
+import org.opends.server.api.ConfigDeleteListener;
+import org.opends.server.api.ConfigHandler;
+import org.opends.server.api.ConnectionHandler;
+import org.opends.server.api.DirectoryServerMBean;
+import org.opends.server.api.EntryCache;
+import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.api.ExportTaskListener;
+import org.opends.server.api.ExtendedOperationHandler;
+import org.opends.server.api.IdentityMapper;
+import org.opends.server.api.ImportTaskListener;
+import org.opends.server.api.InvokableComponent;
+import org.opends.server.api.KeyManagerProvider;
+import org.opends.server.api.MatchingRule;
+import org.opends.server.api.MonitorProvider;
+import org.opends.server.api.OrderingMatchingRule;
+import org.opends.server.api.PasswordGenerator;
+import org.opends.server.api.PasswordStorageScheme;
+import org.opends.server.api.PasswordValidator;
+import org.opends.server.api.RestoreTaskListener;
+import org.opends.server.api.SASLMechanismHandler;
+import org.opends.server.api.ServerShutdownListener;
+import org.opends.server.api.SubstringMatchingRule;
+import org.opends.server.api.SynchronizationProvider;
+import org.opends.server.api.TrustManagerProvider;
+import org.opends.server.api.WorkQueue;
+import org.opends.server.api.AccessLogPublisher;
+import org.opends.server.api.ErrorLogPublisher;
+import org.opends.server.api.DebugLogPublisher;
+import org.opends.server.api.plugin.PluginType;
+import org.opends.server.api.plugin.StartupPluginResult;
+import org.opends.server.backends.RootDSEBackend;
+import static org.opends.server.config.ConfigConstants.DN_MONITOR_ROOT;
+import static org.opends.server.config.ConfigConstants.ENV_VAR_INSTANCE_ROOT;
+import org.opends.server.config.ConfigEntry;
+import org.opends.server.config.ConfigException;
+import org.opends.server.config.JMXMBean;
+import org.opends.server.controls.PasswordPolicyErrorType;
+import org.opends.server.controls.PasswordPolicyResponseControl;
+import org.opends.server.extensions.ConfigFileHandler;
+import org.opends.server.extensions.JMXAlertHandler;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import org.opends.server.loggers.RetentionPolicy;
+import org.opends.server.loggers.RotationPolicy;
+import org.opends.server.loggers.TextErrorLogPublisher;
+import org.opends.server.loggers.TextWriter;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.loggers.debug.TextDebugLogPublisher;
+
+import org.opends.messages.MessageDescriptor;
+import org.opends.messages.Message;
+import static org.opends.messages.CoreMessages.*;
+import org.opends.server.monitors.BackendMonitor;
+import org.opends.server.monitors.ConnectionHandlerMonitor;
+import org.opends.server.schema.AttributeTypeSyntax;
+import org.opends.server.schema.BinarySyntax;
+import org.opends.server.schema.BooleanEqualityMatchingRule;
+import org.opends.server.schema.BooleanSyntax;
+import org.opends.server.schema.CaseExactEqualityMatchingRule;
+import org.opends.server.schema.CaseExactIA5EqualityMatchingRule;
+import org.opends.server.schema.CaseExactIA5SubstringMatchingRule;
+import org.opends.server.schema.CaseExactOrderingMatchingRule;
+import org.opends.server.schema.CaseExactSubstringMatchingRule;
+import org.opends.server.schema.CaseIgnoreEqualityMatchingRule;
+import org.opends.server.schema.CaseIgnoreIA5EqualityMatchingRule;
+import org.opends.server.schema.CaseIgnoreIA5SubstringMatchingRule;
+import org.opends.server.schema.CaseIgnoreOrderingMatchingRule;
+import org.opends.server.schema.CaseIgnoreSubstringMatchingRule;
+import org.opends.server.schema.DirectoryStringSyntax;
+import org.opends.server.schema.DistinguishedNameEqualityMatchingRule;
+import org.opends.server.schema.DistinguishedNameSyntax;
+import org.opends.server.schema.DoubleMetaphoneApproximateMatchingRule;
+import org.opends.server.schema.GeneralizedTimeEqualityMatchingRule;
+import org.opends.server.schema.GeneralizedTimeOrderingMatchingRule;
+import org.opends.server.schema.GeneralizedTimeSyntax;
+import org.opends.server.schema.IA5StringSyntax;
+import org.opends.server.schema.IntegerEqualityMatchingRule;
+import org.opends.server.schema.IntegerOrderingMatchingRule;
+import org.opends.server.schema.IntegerSyntax;
+import org.opends.server.schema.OIDSyntax;
+import org.opends.server.schema.ObjectClassSyntax;
+import org.opends.server.schema.ObjectIdentifierEqualityMatchingRule;
+import org.opends.server.schema.OctetStringEqualityMatchingRule;
+import org.opends.server.schema.OctetStringOrderingMatchingRule;
+import org.opends.server.schema.OctetStringSubstringMatchingRule;
+import static org.opends.server.schema.SchemaConstants.*;
+import org.opends.server.schema.TelephoneNumberEqualityMatchingRule;
+import org.opends.server.schema.TelephoneNumberSubstringMatchingRule;
+import org.opends.server.schema.TelephoneNumberSyntax;
+import org.opends.server.tools.ConfigureWindowsService;
+import org.opends.server.types.AbstractOperation;
+import org.opends.server.types.AcceptRejectWarn;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeUsage;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.Control;
+import org.opends.server.types.CryptoManager;
+import org.opends.server.types.DITContentRule;
+import org.opends.server.types.DITStructureRule;
+import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.HostPort;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.MatchingRuleUse;
+import org.opends.server.types.Modification;
+import org.opends.server.types.NameForm;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.ObjectClassType;
+import org.opends.server.types.OperatingSystem;
+import org.opends.server.types.OperationType;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.RDN;
+import org.opends.server.types.RestoreConfig;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.Schema;
+import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.types.WritabilityMode;
+import org.opends.server.types.DirectoryEnvironmentConfig;
+import org.opends.server.types.LockManager;
+import static org.opends.server.util.DynamicConstants.*;
+import org.opends.server.util.MultiOutputStream;
+import static org.opends.server.util.ServerConstants.*;
+import org.opends.server.util.SetupUtils;
+import org.opends.server.util.StaticUtils;
+import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.util.TimeThread;
+import org.opends.server.util.Validator;
+import static org.opends.server.util.Validator.ensureNotNull;
+import org.opends.server.util.VersionCompatibilityIssue;
+import org.opends.server.util.args.ArgumentException;
+import org.opends.server.util.args.ArgumentParser;
+import org.opends.server.util.args.BooleanArgument;
+import org.opends.server.util.args.StringArgument;
+import org.opends.server.workflowelement.*;
+import org.opends.server.workflowelement.localbackend.*;
+
+import javax.management.MBeanServer;
+import javax.management.MBeanServerFactory;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -47,68 +216,6 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
-import javax.management.MBeanServer;
-import javax.management.MBeanServerFactory;
-
-import org.opends.server.admin.ClassLoaderProvider;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.server.AlertHandlerCfg;
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.opends.server.admin.std.server.ConnectionHandlerCfg;
-import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
-import org.opends.server.admin.std.server.MonitorProviderCfg;
-import org.opends.server.admin.std.server.PasswordValidatorCfg;
-import org.opends.server.admin.std.server.SynchronizationProviderCfg;
-import org.opends.server.admin.std.server.RootDSEBackendCfg;
-import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.api.*;
-import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.plugin.StartupPluginResult;
-import org.opends.server.backends.RootDSEBackend;
-import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigException;
-import org.opends.server.config.JMXMBean;
-import org.opends.server.controls.PasswordPolicyErrorType;
-import org.opends.server.controls.PasswordPolicyResponseControl;
-import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.extensions.JMXAlertHandler;
-import org.opends.server.loggers.TextErrorLogPublisher;
-import org.opends.server.loggers.TextWriter;
-import org.opends.server.loggers.RetentionPolicy;
-import org.opends.server.loggers.RotationPolicy;
-import org.opends.server.monitors.BackendMonitor;
-import org.opends.server.monitors.ConnectionHandlerMonitor;
-import org.opends.server.schema.*;
-import org.opends.server.tools.ConfigureWindowsService;
-import org.opends.server.types.*;
-import org.opends.server.util.MultiOutputStream;
-import org.opends.server.util.SetupUtils;
-import org.opends.server.util.TimeThread;
-import org.opends.server.util.Validator;
-import org.opends.server.util.VersionCompatibilityIssue;
-import org.opends.server.util.StaticUtils;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.ArgumentParser;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.StringArgument;
-
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.AccessLogger.*;
-import org.opends.server.loggers.debug.TextDebugLogPublisher;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.DynamicConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.Validator.*;
-import com.sleepycat.je.JEVersion;
-import org.opends.server.workflowelement.WorkflowElement;
-import org.opends.server.workflowelement.localbackend.*;
-
 
 
 /**
@@ -689,9 +796,8 @@ public class DirectoryServer
   {
     if (isRunning)
     {
-      int    msgID   = MSGID_CANNOT_SET_ENVIRONMENT_CONFIG_WHILE_RUNNING;
-      String message = getMessage(msgID);
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_CANNOT_SET_ENVIRONMENT_CONFIG_WHILE_RUNNING.get());
     }
 
     environmentConfig = config;
@@ -831,9 +937,8 @@ public class DirectoryServer
     {
       if (isRunning)
       {
-        int    msgID   = MSGID_CANNOT_BOOTSTRAP_WHILE_RUNNING;
-        String message = getMessage(msgID);
-        throw new InitializationException(msgID, message);
+        Message message = ERR_CANNOT_BOOTSTRAP_WHILE_RUNNING.get();
+        throw new InitializationException(message);
       }
 
       isBootstrapped   = false;
@@ -883,10 +988,7 @@ public class DirectoryServer
     initializeJMX();
 
 
-    logError(ErrorLogCategory.STARTUP, ErrorLogSeverity.INFORMATIONAL,
-             MSGID_DIRECTORY_BOOTSTRAPPING, getVersionString());
-    logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.INFORMATIONAL,
-             MSGID_DIRECTORY_BOOTSTRAPPING, getVersionString());
+    logError(INFO_DIRECTORY_BOOTSTRAPPING.get());
 
 
     // Perform all the bootstrapping that is shared with the client-side
@@ -945,9 +1047,8 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_CREATE_MBEAN_SERVER;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CANNOT_CREATE_MBEAN_SERVER.get(String.valueOf(e));
+      throw new InitializationException(message, e);
     }
   }
 
@@ -983,10 +1084,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_LOAD_CONFIG_HANDLER_CLASS;
-      String message = getMessage(msgID, configClass,
-                                  stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      Message message =
+          ERR_CANNOT_LOAD_CONFIG_HANDLER_CLASS.get(
+                  configClass, stackTraceToSingleLineString(e));
+      throw new InitializationException(message, e);
     }
 
     File cfgFile = new File(configFile);
@@ -1033,9 +1134,11 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_INSTANTIATE_CONFIG_HANDLER;
-      String message = getMessage(msgID, configClass, e);
-      throw new InitializationException(msgID, message, e);
+      Message message =
+          ERR_CANNOT_INSTANTIATE_CONFIG_HANDLER.get(
+                  String.valueOf(configClass),
+                  e.getLocalizedMessage());
+      throw new InitializationException(message, e);
     }
 
 
@@ -1061,9 +1164,12 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_INITIALIZE_CONFIG_HANDLER;
-      String message = getMessage(msgID, configClass, configFile, e);
-      throw new InitializationException(msgID, message);
+      Message message =
+          ERR_CANNOT_INITIALIZE_CONFIG_HANDLER.get(
+                  String.valueOf(configClass),
+                  String.valueOf(configFile),
+                  e.getLocalizedMessage());
+      throw new InitializationException(message);
     }
   }
 
@@ -1102,21 +1208,18 @@ public class DirectoryServer
     {
       if (! isBootstrapped)
       {
-        int    msgID   = MSGID_CANNOT_START_BEFORE_BOOTSTRAP;
-        String message = getMessage(msgID);
-        throw new InitializationException(msgID, message);
+        Message message = ERR_CANNOT_START_BEFORE_BOOTSTRAP.get();
+        throw new InitializationException(message);
       }
 
       if (isRunning)
       {
-        int    msgID   = MSGID_CANNOT_START_WHILE_RUNNING;
-        String message = getMessage(msgID);
-        throw new InitializationException(msgID, message);
+        Message message = ERR_CANNOT_START_WHILE_RUNNING.get();
+        throw new InitializationException(message);
       }
 
 
-      logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.NOTICE,
-               MSGID_DIRECTORY_SERVER_STARTING, getVersionString());
+      logError(NOTE_DIRECTORY_SERVER_STARTING.get(getVersionString()));
 
 
       // Acquire an exclusive lock for the Directory Server process.
@@ -1128,10 +1231,9 @@ public class DirectoryServer
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
           {
-            int    msgID   = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
-            String message = getMessage(msgID, lockFile,
-                                        String.valueOf(failureReason));
-            throw new InitializationException(msgID, message);
+            Message message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(
+                lockFile, String.valueOf(failureReason));
+            throw new InitializationException(message);
           }
 
           serverLocked = true;
@@ -1147,10 +1249,9 @@ public class DirectoryServer
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
-          String message = getMessage(msgID, lockFile,
-                                      stackTraceToSingleLineString(e));
-          throw new InitializationException(msgID, message, e);
+          Message message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(
+              lockFile, stackTraceToSingleLineString(e));
+          throw new InitializationException(message, e);
         }
       }
 
@@ -1296,11 +1397,10 @@ public class DirectoryServer
            pluginConfigManager.invokeStartupPlugins();
       if (! startupPluginResult.continueStartup())
       {
-        int    msgID   = MSGID_STARTUP_PLUGIN_ERROR;
-        String message = getMessage(msgID,
-                                    startupPluginResult.getErrorMessage(),
-                                    startupPluginResult.getErrorID());
-        throw new InitializationException(msgID, message);
+        Message message = ERR_STARTUP_PLUGIN_ERROR.
+            get(startupPluginResult.getErrorMessage(),
+                startupPluginResult.getErrorMessage().getDescriptor().getId());
+        throw new InitializationException(message);
       }
 
 
@@ -1317,11 +1417,9 @@ public class DirectoryServer
       startTimeUTC = TimeThread.getGMTTime();
       isRunning    = true;
 
-      int    msgID   = MSGID_DIRECTORY_SERVER_STARTED;
-      String message = getMessage(msgID);
-      logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.NOTICE, message,
-               msgID);
-      sendAlertNotification(this, ALERT_TYPE_SERVER_STARTED, msgID, message);
+      Message message = NOTE_DIRECTORY_SERVER_STARTED.get();
+      logError(message);
+      sendAlertNotification(this, ALERT_TYPE_SERVER_STARTED, message);
 
 
       if (startupDebugLogPublisher != null)
@@ -1369,12 +1467,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message = getMessage(msgID,
-                  DoubleMetaphoneApproximateMatchingRule.class.getName(),
-                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(DoubleMetaphoneApproximateMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1391,12 +1487,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message = getMessage(msgID,
-                                  BooleanEqualityMatchingRule.class.getName(),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(BooleanEqualityMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1413,12 +1507,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message = getMessage(msgID,
-                                  CaseExactEqualityMatchingRule.class.getName(),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(CaseExactEqualityMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1436,12 +1528,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message =
-           getMessage(msgID, CaseExactIA5EqualityMatchingRule.class.getName(),
-                      stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(CaseExactIA5EqualityMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1458,12 +1548,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message = getMessage(msgID,
-                            CaseIgnoreEqualityMatchingRule.class.getName(),
-                            stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(CaseIgnoreEqualityMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1481,12 +1569,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message =
-           getMessage(msgID, CaseIgnoreIA5EqualityMatchingRule.class.getName(),
-                      stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(CaseIgnoreIA5EqualityMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1504,12 +1590,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message = getMessage(msgID,
-                  DistinguishedNameEqualityMatchingRule.class.getName(),
-                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(DistinguishedNameEqualityMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1527,12 +1611,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message = getMessage(msgID,
-                  GeneralizedTimeEqualityMatchingRule.class.getName(),
-                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(GeneralizedTimeEqualityMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1549,12 +1631,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message = getMessage(msgID,
-                                  IntegerEqualityMatchingRule.class.getName(),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(IntegerEqualityMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1571,12 +1651,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message = getMessage(msgID,
-                            OctetStringEqualityMatchingRule.class.getName(),
-                            stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(OctetStringEqualityMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1594,13 +1672,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message =
-           getMessage(msgID,
-                      ObjectIdentifierEqualityMatchingRule.class.getName(),
-                      stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(ObjectIdentifierEqualityMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1618,13 +1693,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message =
-           getMessage(msgID,
-                      TelephoneNumberEqualityMatchingRule.class.getName(),
-                      stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(TelephoneNumberEqualityMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1641,12 +1713,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message = getMessage(msgID,
-                                  CaseExactOrderingMatchingRule.class.getName(),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(CaseExactOrderingMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1663,12 +1733,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message = getMessage(msgID,
-                            CaseIgnoreOrderingMatchingRule.class.getName(),
-                            stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(CaseIgnoreOrderingMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1686,12 +1754,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message = getMessage(msgID,
-                            GeneralizedTimeOrderingMatchingRule.class.getName(),
-                            stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(GeneralizedTimeOrderingMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1708,12 +1774,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message = getMessage(msgID,
-                                  IntegerOrderingMatchingRule.class.getName(),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(IntegerOrderingMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1730,12 +1794,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message = getMessage(msgID,
-                            OctetStringOrderingMatchingRule.class.getName(),
-                            stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(OctetStringOrderingMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1752,12 +1814,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message = getMessage(msgID,
-                            CaseExactSubstringMatchingRule.class.getName(),
-                            stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(CaseExactSubstringMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1775,12 +1835,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message =
-           getMessage(msgID, CaseExactIA5SubstringMatchingRule.class.getName(),
-                      stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(CaseExactIA5SubstringMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1798,12 +1856,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message = getMessage(msgID,
-                            CaseIgnoreSubstringMatchingRule.class.getName(),
-                            stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(CaseIgnoreSubstringMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1821,12 +1877,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message = getMessage(msgID,
-                            CaseIgnoreIA5SubstringMatchingRule.class.getName(),
-                            stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(CaseIgnoreIA5SubstringMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1844,12 +1898,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message = getMessage(msgID,
-                            OctetStringSubstringMatchingRule.class.getName(),
-                            stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(OctetStringSubstringMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1867,13 +1919,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
-      String message =
-           getMessage(msgID,
-                      TelephoneNumberSubstringMatchingRule.class.getName(),
-                      stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
+          get(TelephoneNumberSubstringMatchingRule.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
   }
 
@@ -1899,11 +1948,9 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
-      String message = getMessage(msgID, AttributeTypeSyntax.class.getName(),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.get(
+          AttributeTypeSyntax.class.getName(), stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1920,11 +1967,9 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
-      String message = getMessage(msgID, BinarySyntax.class.getName(),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.get(
+          BinarySyntax.class.getName(), stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1941,11 +1986,9 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
-      String message = getMessage(msgID, BooleanSyntax.class.getName(),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.get(
+          BooleanSyntax.class.getName(), stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1963,11 +2006,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
-      String message = getMessage(msgID, DirectoryStringSyntax.class.getName(),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.
+          get(DirectoryStringSyntax.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -1984,12 +2026,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
-      String message = getMessage(msgID,
-                                  DistinguishedNameSyntax.class.getName(),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.
+          get(DistinguishedNameSyntax.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -2006,11 +2046,9 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
-      String message = getMessage(msgID, IA5StringSyntax.class.getName(),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.get(
+          IA5StringSyntax.class.getName(), stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -2027,11 +2065,9 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
-      String message = getMessage(msgID, IntegerSyntax.class.getName(),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.get(
+          IntegerSyntax.class.getName(), stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -2048,11 +2084,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
-      String message = getMessage(msgID, GeneralizedTimeSyntax.class.getName(),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.
+          get(GeneralizedTimeSyntax.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -2069,11 +2104,9 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
-      String message = getMessage(msgID, ObjectClassSyntax.class.getName(),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.get(
+          ObjectClassSyntax.class.getName(), stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -2090,11 +2123,9 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
-      String message = getMessage(msgID, OIDSyntax.class.getName(),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.get(
+          OIDSyntax.class.getName(), stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
@@ -2111,11 +2142,10 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
-      String message = getMessage(msgID, TelephoneNumberSyntax.class.getName(),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.
+          get(TelephoneNumberSyntax.class.getName(),
+              stackTraceToSingleLineString(e));
+      logError(message);
     }
   }
 
@@ -2300,9 +2330,12 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_INITIALIZE_CONFIG_HANDLER;
-      String message = getMessage(msgID, configClass, configFile, e);
-      throw new InitializationException(msgID, message);
+      Message message =
+          ERR_CANNOT_INITIALIZE_CONFIG_HANDLER.get(
+                  String.valueOf(configClass),
+                  String.valueOf(configFile),
+                  e.getLocalizedMessage());
+      throw new InitializationException(message);
     }
 
 
@@ -2320,8 +2353,7 @@ public class DirectoryServer
       catch (DirectoryException de)
       {
         // This should never happen, so we'll just re-throw it.
-        throw new InitializationException(de.getMessageID(),
-                                          de.getErrorMessage());
+        throw new InitializationException(de.getMessageObject());
       }
     }
 
@@ -2338,8 +2370,7 @@ public class DirectoryServer
       catch (DirectoryException de)
       {
         // This should never happen, so we'll just re-throw it.
-        throw new InitializationException(de.getMessageID(),
-                                          de.getErrorMessage());
+        throw new InitializationException(de.getMessageObject());
       }
     }
 
@@ -2356,8 +2387,7 @@ public class DirectoryServer
       catch (DirectoryException de)
       {
         // This should never happen, so we'll just re-throw it.
-        throw new InitializationException(de.getMessageID(),
-                                          de.getErrorMessage());
+        throw new InitializationException(de.getMessageObject());
       }
     }
   }
@@ -2491,9 +2521,9 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_GET_ROOT_DSE_CONFIG_ENTRY;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CANNOT_GET_ROOT_DSE_CONFIG_ENTRY.get(
+          stackTraceToSingleLineString(e));
+      throw new InitializationException(message, e);
     }
 
     rootDSEBackend = new RootDSEBackend();
@@ -2615,7 +2645,7 @@ public class DirectoryServer
     }
     catch (DirectoryException de)
     {
-      throw new ConfigException(de.getMessageID(), de.getErrorMessage());
+      throw new ConfigException(de.getMessageObject());
     }
   }
 
@@ -4655,14 +4685,11 @@ public class DirectoryServer
    *
    * @param  generator     The alert generator that created the alert.
    * @param  alertType     The alert type name for this alert.
-   * @param  alertID       The alert ID that uniquely identifies the type of
-   *                       alert.
    * @param  alertMessage  A message (possibly <CODE>null</CODE>) that can
-   *                       provide more information about this alert.
    */
   public static void sendAlertNotification(AlertGenerator generator,
-                                           String alertType, int alertID,
-                                           String alertMessage)
+                                           String alertType,
+                                           Message alertMessage)
   {
     if ((directoryServer.alertHandlers == null) ||
         directoryServer.alertHandlers.isEmpty())
@@ -4675,7 +4702,7 @@ public class DirectoryServer
         {
           JMXAlertHandler alertHandler = new JMXAlertHandler();
           alertHandler.initializeAlertHandler(null);
-          alertHandler.sendAlertNotification(generator, alertType, alertID,
+          alertHandler.sendAlertNotification(generator, alertType,
                                              alertMessage);
         }
         catch (Exception e)
@@ -4716,17 +4743,18 @@ public class DirectoryServer
           }
         }
 
-        alertHandler.sendAlertNotification(generator, alertType, alertID,
-                                           alertMessage);
+        alertHandler.sendAlertNotification(generator, alertType, alertMessage);
       }
     }
 
 
-    int msgID = MSGID_SENT_ALERT_NOTIFICATION;
-    String message = getMessage(msgID, generator.getClassName(), alertType,
-                                alertID, alertMessage);
-    logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.NOTICE,
-             message, msgID);
+    Message message = NOTE_SENT_ALERT_NOTIFICATION.get(
+        generator.getClassName(), alertType,
+            alertMessage != null ?
+                    String.valueOf(alertMessage.getDescriptor().getId()) :
+                    String.valueOf(MessageDescriptor.NULL_ID),
+            alertMessage);
+    logError(message);
   }
 
 
@@ -5743,11 +5771,10 @@ public class DirectoryServer
     if ((existingRootEntryDN != null) &&
         (! existingRootEntryDN.equals(actualRootEntryDN)))
     {
-      int   msgID    = MSGID_CANNOT_REGISTER_DUPLICATE_ALTERNATE_ROOT_BIND_DN;
-      String message = getMessage(msgID, String.valueOf(alternateRootBindDN),
-                                  String.valueOf(existingRootEntryDN));
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_CANNOT_REGISTER_DUPLICATE_ALTERNATE_ROOT_BIND_DN.
+          get(String.valueOf(alternateRootBindDN),
+              String.valueOf(existingRootEntryDN));
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
   }
 
@@ -6059,10 +6086,8 @@ public class DirectoryServer
           new TreeMap<String, Backend>(directoryServer.backends);
       if (newBackends.containsKey(backendID))
       {
-        int msgID = MSGID_REGISTER_BACKEND_ALREADY_EXISTS;
-        String message = getMessage(msgID, backendID);
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_REGISTER_BACKEND_ALREADY_EXISTS.get(backendID);
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else
       {
@@ -6273,12 +6298,10 @@ public class DirectoryServer
       Backend existingBackend = newBaseDNs.get(baseDN);
       if (existingBackend != null)
       {
-        int    msgID   = MSGID_REGISTER_BASEDN_ALREADY_EXISTS;
-        String message = getMessage(msgID, String.valueOf(baseDN),
-                                    backend.getBackendID(),
-                                    existingBackend.getBackendID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message = ERR_REGISTER_BASEDN_ALREADY_EXISTS.
+            get(String.valueOf(baseDN), backend.getBackendID(),
+                existingBackend.getBackendID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
 
@@ -6295,12 +6318,11 @@ public class DirectoryServer
 
           if (baseDN.isAncestorOf(dn) || baseDN.isDescendantOf(dn))
           {
-            int    msgID   = MSGID_REGISTER_BASEDN_HIERARCHY_CONFLICT;
-            String message = getMessage(msgID, String.valueOf(baseDN),
-                                        backend.getBackendID(),
-                                        String.valueOf(dn));
+            Message message = ERR_REGISTER_BASEDN_HIERARCHY_CONFLICT.
+                get(String.valueOf(baseDN), backend.getBackendID(),
+                    String.valueOf(dn));
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message, msgID);
+                                         message);
           }
         }
       }
@@ -6323,12 +6345,11 @@ public class DirectoryServer
           {
             if (! dn.isDescendantOf(superiorBaseDN))
             {
-              int    msgID   = MSGID_REGISTER_BASEDN_DIFFERENT_PARENT_BASES;
-              String message = getMessage(msgID, String.valueOf(baseDN),
-                                          backend.getBackendID(),
-                                          String.valueOf(dn));
+              Message message = ERR_REGISTER_BASEDN_DIFFERENT_PARENT_BASES.
+                  get(String.valueOf(baseDN), backend.getBackendID(),
+                      String.valueOf(dn));
               throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                           message, msgID);
+                                           message);
             }
           }
 
@@ -6342,12 +6363,11 @@ public class DirectoryServer
       {
         if (backend.getParentBackend() != null)
         {
-          int    msgID   = MSGID_REGISTER_BASEDN_NEW_BASE_NOT_SUBORDINATE;
-          String message = getMessage(msgID, String.valueOf(baseDN),
-                                backend.getBackendID(),
-                                backend.getParentBackend().getBackendID());
+          Message message = ERR_REGISTER_BASEDN_NEW_BASE_NOT_SUBORDINATE.
+              get(String.valueOf(baseDN), backend.getBackendID(),
+                  backend.getParentBackend().getBackendID());
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                       message, msgID);
+                                       message);
         }
       }
 
@@ -6395,12 +6415,10 @@ public class DirectoryServer
         {
           if (superiorBackend.entryExists(baseDN))
           {
-            int    msgID   = MSGID_REGISTER_BASEDN_ENTRIES_IN_MULTIPLE_BACKENDS;
-            String message = getMessage(msgID, superiorBackend.getBackendID(),
-                                        String.valueOf(baseDN),
-                                        backend.getBackendID());
-            logError(ErrorLogCategory.CONFIGURATION,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+            Message message = WARN_REGISTER_BASEDN_ENTRIES_IN_MULTIPLE_BACKENDS.
+                get(superiorBackend.getBackendID(), String.valueOf(baseDN),
+                    backend.getBackendID());
+            logError(message);
           }
         }
 
@@ -6485,10 +6503,9 @@ public class DirectoryServer
       Backend backend = newBaseDNs.get(baseDN);
       if (backend == null)
       {
-        int    msgID   = MSGID_DEREGISTER_BASEDN_NOT_REGISTERED;
-        String message = getMessage(msgID, String.valueOf(baseDN));
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message =
+            ERR_DEREGISTER_BASEDN_NOT_REGISTERED.get(String.valueOf(baseDN));
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
 
@@ -6577,11 +6594,9 @@ public class DirectoryServer
           // because some of the structural entries will be missing.
           if (! subordinateBackends.isEmpty())
           {
-            int    msgID   = MSGID_DEREGISTER_BASEDN_MISSING_HIERARCHY;
-            String message = getMessage(msgID, String.valueOf(baseDN),
-                                        backend.getBackendID());
-            logError(ErrorLogCategory.CONFIGURATION,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+            Message message = WARN_DEREGISTER_BASEDN_MISSING_HIERARCHY.get(
+                String.valueOf(baseDN), backend.getBackendID());
+            logError(message);
 
             for (Backend b : subordinateBackends)
             {
@@ -7210,7 +7225,7 @@ public class DirectoryServer
   private void startConnectionHandlers() throws ConfigException
   {
     LinkedHashSet<HostPort> usedListeners = new LinkedHashSet<HostPort>();
-    LinkedHashSet<String> errorMessages = new LinkedHashSet<String>();
+    LinkedHashSet<Message> errorMessages = new LinkedHashSet<Message>();
     // Check that the port specified in the connection handlers is
     // available.
     for (ConnectionHandler<?> c : connectionHandlers)
@@ -7221,11 +7236,9 @@ public class DirectoryServer
         {
           // The port was already specified: this is a configuration error,
           // log a message.
-          int msgID = MSGID_HOST_PORT_ALREADY_SPECIFIED;
-          String message = getMessage(msgID, c.getConnectionHandlerName(),
-              listener.toString());
-          logError(ErrorLogCategory.CONNECTION_HANDLING,
-              ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+          Message message = ERR_HOST_PORT_ALREADY_SPECIFIED.get(
+              c.getConnectionHandlerName(), listener.toString());
+          logError(message);
           errorMessages.add(message);
 
         }
@@ -7238,20 +7251,16 @@ public class DirectoryServer
 
     if (errorMessages.size() > 0)
     {
-      throw new ConfigException(MSGID_ERROR_STARTING_CONNECTION_HANDLERS,
-          getMessage(MSGID_ERROR_STARTING_CONNECTION_HANDLERS));
+      throw new ConfigException(ERR_ERROR_STARTING_CONNECTION_HANDLERS.get());
     }
 
 
     // If there are no connection handlers log a message.
     if (connectionHandlers.isEmpty())
     {
-      int msgID = MSGID_NOT_AVAILABLE_CONNECTION_HANDLERS;
-      String message = getMessage(msgID);
-      logError(ErrorLogCategory.CONNECTION_HANDLING,
-          ErrorLogSeverity.SEVERE_ERROR, message, msgID);
-      throw new ConfigException(MSGID_ERROR_STARTING_CONNECTION_HANDLERS,
-          getMessage(MSGID_ERROR_STARTING_CONNECTION_HANDLERS));
+      Message message = ERR_NOT_AVAILABLE_CONNECTION_HANDLERS.get();
+      logError(message);
+      throw new ConfigException(ERR_ERROR_STARTING_CONNECTION_HANDLERS.get());
     }
 
     // At this point, we should be ready to go.  Start all the connection
@@ -7292,10 +7301,8 @@ public class DirectoryServer
     if (clientConnection.bindInProgress() &&
         (operation.getOperationType() != OperationType.BIND))
     {
-      int    msgID   = MSGID_ENQUEUE_BIND_IN_PROGRESS;
-      String message = getMessage(msgID);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_ENQUEUE_BIND_IN_PROGRESS.get();
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
 
@@ -7315,17 +7322,15 @@ public class DirectoryServer
         case MODIFY_DN:
           if (directoryServer.lockdownMode)
           {
-            int msgID = MSGID_REJECT_OPERATION_IN_LOCKDOWN_MODE;
-            String message = getMessage(msgID);
+            Message message = NOTE_REJECT_OPERATION_IN_LOCKDOWN_MODE.get();
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message, msgID);
+                                         message);
           }
           else
           {
-            int msgID = MSGID_REJECT_UNAUTHENTICATED_OPERATION;
-            String message = getMessage(msgID);
+            Message message = ERR_REJECT_UNAUTHENTICATED_OPERATION.get();
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message, msgID);
+                                         message);
           }
 
         case EXTENDED:
@@ -7336,17 +7341,15 @@ public class DirectoryServer
          {
            if (directoryServer.lockdownMode)
            {
-             int msgID = MSGID_REJECT_OPERATION_IN_LOCKDOWN_MODE;
-             String message = getMessage(msgID);
+             Message message = NOTE_REJECT_OPERATION_IN_LOCKDOWN_MODE.get();
              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                          message, msgID);
+                                          message);
            }
            else
            {
-             int msgID = MSGID_REJECT_UNAUTHENTICATED_OPERATION;
-             String message = getMessage(msgID);
+             Message message = ERR_REJECT_UNAUTHENTICATED_OPERATION.get();
              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                          message, msgID);
+                                          message);
            }
          }
          break;
@@ -7380,10 +7383,9 @@ public class DirectoryServer
             }
           }
 
-          int    msgID   = MSGID_ENQUEUE_MUST_CHANGE_PASSWORD;
-          String message = getMessage(msgID);
-          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                       msgID);
+          Message message = ERR_ENQUEUE_MUST_CHANGE_PASSWORD.get();
+          throw new DirectoryException(
+                  ResultCode.CONSTRAINT_VIOLATION, message);
 
         case EXTENDED:
           // We will only allow the password modify and StartTLS extended
@@ -7406,10 +7408,9 @@ public class DirectoryServer
               }
             }
 
-            msgID   = MSGID_ENQUEUE_MUST_CHANGE_PASSWORD;
-            message = getMessage(msgID);
+            message = ERR_ENQUEUE_MUST_CHANGE_PASSWORD.get();
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message, msgID);
+                                         message);
           }
 
           break;
@@ -8061,7 +8062,7 @@ public class DirectoryServer
    * @param  reason     The human-readable reason that the directory server is
    *                    shutting down.
    */
-  public static void shutDown(String className, String reason)
+  public static void shutDown(String className, Message reason)
   {
     synchronized (directoryServer)
     {
@@ -8077,10 +8078,9 @@ public class DirectoryServer
 
 
     // Send an alert notification that the server is shutting down.
-    int    msgID   = MSGID_SERVER_SHUTDOWN;
-    String message = getMessage(msgID, className, reason);
-    sendAlertNotification(directoryServer, ALERT_TYPE_SERVER_SHUTDOWN, msgID,
-                          message);
+    Message message = NOTE_SERVER_SHUTDOWN.get(className, reason);
+    sendAlertNotification(directoryServer, ALERT_TYPE_SERVER_SHUTDOWN,
+            message);
 
 
     // Create a shutdown monitor that will watch the rest of the shutdown
@@ -8094,8 +8094,9 @@ public class DirectoryServer
     {
       try
       {
-        int id = MSGID_CONNHANDLER_CLOSED_BY_SHUTDOWN;
-        handler.finalizeConnectionHandler(getMessage(id), true);
+
+        handler.finalizeConnectionHandler(
+                INFO_CONNHANDLER_CLOSED_BY_SHUTDOWN.get(), true);
       }
       catch (Exception e)
       {
@@ -8284,11 +8285,9 @@ public class DirectoryServer
           StringBuilder failureReason = new StringBuilder();
           if (! LockFileManager.releaseLock(lockFile, failureReason))
           {
-            msgID   = MSGID_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK;
-            message = getMessage(msgID, backend.getBackendID(),
-                                 String.valueOf(failureReason));
-            logError(ErrorLogCategory.CONFIGURATION,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+            message = WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK.
+                get(backend.getBackendID(), String.valueOf(failureReason));
+            logError(message);
             // FIXME -- Do we need to send an admin alert?
           }
 
@@ -8301,11 +8300,9 @@ public class DirectoryServer
             TRACER.debugCaught(DebugLogLevel.ERROR, e2);
           }
 
-          msgID = MSGID_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK;
-          message = getMessage(msgID, backend.getBackendID(),
-                               stackTraceToSingleLineString(e2));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          message = WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK.
+              get(backend.getBackendID(), stackTraceToSingleLineString(e2));
+          logError(message);
           // FIXME -- Do we need to send an admin alert?
         }
       }
@@ -8328,10 +8325,9 @@ public class DirectoryServer
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        msgID   = MSGID_CANNOT_RELEASE_EXCLUSIVE_SERVER_LOCK;
-        message = getMessage(msgID, lockFile, String.valueOf(failureReason));
-        logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_WARNING,
-                 message, msgID);
+        message = WARN_CANNOT_RELEASE_EXCLUSIVE_SERVER_LOCK.get(
+            lockFile, String.valueOf(failureReason));
+        logError(message);
       }
     }
     catch (Exception e)
@@ -8341,18 +8337,16 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID   = MSGID_CANNOT_RELEASE_EXCLUSIVE_SERVER_LOCK;
-      message = getMessage(msgID, lockFile, stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_WARNING,
-               message, msgID);
+      message = WARN_CANNOT_RELEASE_EXCLUSIVE_SERVER_LOCK.get(
+          lockFile, stackTraceToSingleLineString(e));
+      logError(message);
     }
 
 
     // Log a final message indicating that the server is stopped (which should
     // be true for all practical purposes), and then shut down all the error
     // loggers.
-    logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.NOTICE,
-             MSGID_SERVER_STOPPED);
+    logError(NOTE_SERVER_STOPPED.get());
 
     removeAllAccessLogPublishers();
     removeAllErrorLogPublishers();
@@ -8379,7 +8373,7 @@ public class DirectoryServer
    * @param  reason     The human-readable reason that the directory server is
    *                    shutting down.
    */
-  public static void restart(String className, String reason)
+  public static void restart(String className, Message reason)
   {
     restart(className, reason, directoryServer.environmentConfig);
   }
@@ -8397,7 +8391,7 @@ public class DirectoryServer
    *                    shutting down.
    * @param  config     The environment configuration to use for the server.
    */
-  public static void restart(String className, String reason,
+  public static void restart(String className, Message reason,
                              DirectoryEnvironmentConfig config)
   {
     try
@@ -8825,23 +8819,19 @@ public class DirectoryServer
 
     if (lockdownMode)
     {
-      int    msgID   = MSGID_DIRECTORY_SERVER_ENTERING_LOCKDOWN_MODE;
-      String message = getMessage(msgID);
-      logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.NOTICE, message,
-               msgID);
+      Message message = WARN_DIRECTORY_SERVER_ENTERING_LOCKDOWN_MODE.get();
+      logError(message);
 
       sendAlertNotification(directoryServer, ALERT_TYPE_ENTERING_LOCKDOWN_MODE,
-                            msgID, message);
+              message);
     }
     else
     {
-      int    msgID   = MSGID_DIRECTORY_SERVER_LEAVING_LOCKDOWN_MODE;
-      String message = getMessage(msgID);
-      logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.NOTICE, message,
-               msgID);
+      Message message = NOTE_DIRECTORY_SERVER_LEAVING_LOCKDOWN_MODE.get();
+      logError(message);
 
       sendAlertNotification(directoryServer, ALERT_TYPE_LEAVING_LOCKDOWN_MODE,
-                            msgID, message);
+              message);
     }
   }
 
@@ -8940,12 +8930,10 @@ public class DirectoryServer
       TRACER.debugCaught(DebugLogLevel.ERROR, exception);
     }
 
-    int    msgID   = MSGID_UNCAUGHT_THREAD_EXCEPTION;
-    String message = getMessage(msgID, thread.getName(),
-                                stackTraceToString(exception));
-    logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_ERROR,
-             message, msgID);
-    sendAlertNotification(this, ALERT_TYPE_UNCAUGHT_EXCEPTION, msgID, message);
+    Message message = ERR_UNCAUGHT_THREAD_EXCEPTION.get(
+        thread.getName(), stackTraceToString(exception));
+    logError(message);
+    sendAlertNotification(this, ALERT_TYPE_UNCAUGHT_EXCEPTION, message);
   }
 
 
@@ -8974,7 +8962,6 @@ public class DirectoryServer
     BooleanArgument checkStartability = null;
     BooleanArgument windowsNetStart   = null;
     BooleanArgument displayUsage      = null;
-    BooleanArgument dumpMessages      = null;
     BooleanArgument fullVersion       = null;
     BooleanArgument noDetach          = null;
     BooleanArgument systemInfo        = null;
@@ -8983,7 +8970,7 @@ public class DirectoryServer
 
 
     // Create the command-line argument parser for use with this program.
-    String toolDescription = getMessage(MSGID_DSCORE_TOOL_DESCRIPTION);
+    Message toolDescription = INFO_DSCORE_TOOL_DESCRIPTION.get();
     ArgumentParser argParser =
          new ArgumentParser("org.opends.server.core.DirectoryServer",
                             toolDescription, false);
@@ -8996,7 +8983,8 @@ public class DirectoryServer
       configClass = new StringArgument("configclass", 'C', "configClass",
                                        true, false, true, "{configClass}",
                                        ConfigFileHandler.class.getName(), null,
-                                       MSGID_DSCORE_DESCRIPTION_CONFIG_CLASS);
+                                       INFO_DSCORE_DESCRIPTION_CONFIG_CLASS
+                                               .get());
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
@@ -9004,56 +8992,50 @@ public class DirectoryServer
       configFile = new StringArgument("configfile", 'f', "configFile",
                                       true, false, true, "{configFile}", null,
                                       null,
-                                      MSGID_DSCORE_DESCRIPTION_CONFIG_FILE);
+                                      INFO_DSCORE_DESCRIPTION_CONFIG_FILE
+                                              .get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
 
       checkStartability = new BooleanArgument("checkstartability", null,
                               "checkStartability",
-                              MSGID_DSCORE_DESCRIPTION_CHECK_STARTABILITY);
+                              INFO_DSCORE_DESCRIPTION_CHECK_STARTABILITY.get());
       checkStartability.setHidden(true);
       argParser.addArgument(checkStartability);
 
       windowsNetStart = new BooleanArgument("windowsnetstart", null,
                               "windowsNetStart",
-                              MSGID_DSCORE_DESCRIPTION_WINDOWS_NET_START);
+                              INFO_DSCORE_DESCRIPTION_WINDOWS_NET_START.get());
       windowsNetStart.setHidden(true);
       argParser.addArgument(windowsNetStart);
 
 
       fullVersion = new BooleanArgument("fullversion", 'F', "fullVersion",
-                                        MSGID_DSCORE_DESCRIPTION_FULLVERSION);
+                                        INFO_DSCORE_DESCRIPTION_FULLVERSION
+                                                .get());
       fullVersion.setHidden(true);
       argParser.addArgument(fullVersion);
 
 
       systemInfo = new BooleanArgument("systeminfo", 's', "systemInfo",
-                                       MSGID_DSCORE_DESCRIPTION_SYSINFO);
+                                       INFO_DSCORE_DESCRIPTION_SYSINFO.get());
       argParser.addArgument(systemInfo);
 
 
-      dumpMessages = new BooleanArgument("dumpmessages", 'm', "dumpMessages",
-                                         MSGID_DSCORE_DESCRIPTION_DUMPMESSAGES);
-      dumpMessages.setHidden(true);
-      argParser.addArgument(dumpMessages);
-
-
       noDetach = new BooleanArgument("nodetach", 'N', "nodetach",
-                                     MSGID_DSCORE_DESCRIPTION_NODETACH);
+                                     INFO_DSCORE_DESCRIPTION_NODETACH.get());
       argParser.addArgument(noDetach);
 
 
       displayUsage = new BooleanArgument("help", 'H', "help",
-                                         MSGID_DSCORE_DESCRIPTION_USAGE);
+                                         INFO_DSCORE_DESCRIPTION_USAGE.get());
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_DSCORE_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
-
+      Message message = ERR_DSCORE_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       System.err.println(message);
       System.exit(1);
     }
@@ -9066,9 +9048,7 @@ public class DirectoryServer
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_DSCORE_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
-
+      Message message = ERR_DSCORE_ERROR_PARSING_ARGS.get(ae.getMessage());
       System.err.println(message);
       System.err.println(argParser.getUsage());
       System.exit(1);
@@ -9103,8 +9083,7 @@ public class DirectoryServer
         // exit with a code of zero.
         System.exit(NOTHING_TO_DO);
       }
-      else if (fullVersion.isPresent() ||
-               systemInfo.isPresent() || dumpMessages.isPresent())
+      else if (fullVersion.isPresent() || systemInfo.isPresent())
       {
         // We're not really trying to start, so rebuild the argument list
         // without the "--checkStartability" argument and try again.  Exit with
@@ -9206,18 +9185,6 @@ public class DirectoryServer
 
       return;
     }
-    else if (dumpMessages.isPresent())
-    {
-      DirectoryServer.bootstrapClient();
-
-      ConcurrentHashMap<Integer,String> messageMap = getMessages();
-      for (int msgID : messageMap.keySet())
-      {
-        System.out.println(msgID + "\t" + messageMap.get(msgID));
-      }
-
-      return;
-    }
 
 
     // At this point, we know that we're going to try to start the server.
@@ -9228,8 +9195,7 @@ public class DirectoryServer
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
-        int    msgID   = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
-        String message = getMessage(msgID, lockFile,
+        Message message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(lockFile,
                                     String.valueOf(failureReason));
         System.err.println(message);
         System.exit(1);
@@ -9242,8 +9208,7 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
-      String message = getMessage(msgID, lockFile,
+      Message message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(lockFile,
                                   stackTraceToSingleLineString(e));
       System.err.println(message);
       System.exit(1);
@@ -9413,15 +9378,14 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, ie);
       }
 
-      int    msgID   = MSGID_DSCORE_CANNOT_BOOTSTRAP;
-      String message = getMessage(msgID, ie.getMessage());
+      Message message = ERR_DSCORE_CANNOT_BOOTSTRAP.get(ie.getMessage());
       System.err.println(message);
       System.exit(1);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_DSCORE_CANNOT_BOOTSTRAP;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      Message message = ERR_DSCORE_CANNOT_BOOTSTRAP.get(
+              stackTraceToSingleLineString(e));
       System.err.println(message);
       System.exit(1);
     }
@@ -9437,14 +9401,13 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, ie);
       }
 
-      int    msgID   = MSGID_DSCORE_CANNOT_START;
-      String message = getMessage(msgID, ie.getMessage());
+      Message message = ERR_DSCORE_CANNOT_START.get(ie.getMessage());
       shutDown(directoryServer.getClass().getName(), message);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_DSCORE_CANNOT_START;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      Message message = ERR_DSCORE_CANNOT_START.get(
+              stackTraceToSingleLineString(e));
       shutDown(directoryServer.getClass().getName(), message);
     }
   }
@@ -9563,8 +9526,7 @@ public class DirectoryServer
       else
       {
         // The server's already running.
-        int msgID = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
-        String message = getMessage(msgID, lockFile,
+        Message message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(lockFile,
             String.valueOf(failureReason));
         System.err.println(message);
         isServerRunning = true;
@@ -9574,8 +9536,7 @@ public class DirectoryServer
     {
       // We'll treat this as if the server is running because we won't
       // be able to start it anyway.
-      int msgID = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
-      String message = getMessage(msgID, lockFile,
+      Message message = ERR_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK.get(lockFile,
           getExceptionMessage(e));
       System.err.println(message);
       isServerRunning = true;
@@ -9602,9 +9563,7 @@ public class DirectoryServer
         {
           // Conflicting arguments
           returnValue = CHECK_ERROR;
-          int    msgID   = MSGID_DSCORE_ERROR_NODETACH_AND_WINDOW_SERVICE;
-          String message = getMessage(msgID, (Object[])null);
-
+          Message message = ERR_DSCORE_ERROR_NODETACH_AND_WINDOW_SERVICE.get();
           System.err.println(message);
 
         }

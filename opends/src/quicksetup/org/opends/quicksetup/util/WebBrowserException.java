@@ -27,13 +27,16 @@
 
 package org.opends.quicksetup.util;
 
+import org.opends.server.types.OpenDsException;
+import org.opends.messages.Message;
+
 /**
  * This class is the exception that we get when we try to launch the user web
  * browser and we fail.  The exception is generated in WebBrowserLauncher.
  *
  */
-public class WebBrowserException extends Exception
-{
+public class WebBrowserException extends OpenDsException {
+
   private static final long serialVersionUID = 4283835325192567244L;
 
   private String url;
@@ -44,7 +47,7 @@ public class WebBrowserException extends Exception
    * @param msg the error message.
    * @param rootCause the root cause.
    */
-  public WebBrowserException(String url, String msg, Throwable rootCause)
+  public WebBrowserException(String url, Message msg, Throwable rootCause)
   {
     super(msg, rootCause);
     this.url = url;

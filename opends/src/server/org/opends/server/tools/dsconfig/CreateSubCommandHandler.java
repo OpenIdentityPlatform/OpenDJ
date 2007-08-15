@@ -25,11 +25,11 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -231,11 +231,11 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       // Create a table containing a description of each component type.
       TableBuilder builder = new TableBuilder();
 
-      int msgID = MSGID_DSCFG_DESCRIPTION_CREATE_HELP_HEADING_TYPE;
-      builder.appendHeading(getMessage(msgID));
+      builder.appendHeading(
+              INFO_DSCFG_DESCRIPTION_CREATE_HELP_HEADING_TYPE.get());
 
-      msgID = MSGID_DSCFG_DESCRIPTION_CREATE_HELP_HEADING_DESCR;
-      builder.appendHeading(getMessage(msgID));
+      builder.appendHeading(
+              INFO_DSCFG_DESCRIPTION_CREATE_HELP_HEADING_DESCR.get());
 
       boolean isFirst = true;
       for (ManagedObjectDefinition<?, ?> d : types.values()) {
@@ -398,9 +398,11 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
     // Create the sub-command.
     String name = "create-" + r.getName();
-    int descriptionID = MSGID_DSCFG_DESCRIPTION_SUBCMD_CREATE;
-    this.subCommand = new SubCommand(parser, name, false, 0, 0, null,
-        descriptionID, r.getChildDefinition().getUserFriendlyPluralName());
+    Message description = INFO_DSCFG_DESCRIPTION_SUBCMD_CREATE.get(
+      r.getChildDefinition().getUserFriendlyPluralName()
+    );
+    this.subCommand = new SubCommand(parser, name, false, 0,
+            0, null, description);
 
     // Create the -t argument which is used to specify the type of
     // managed object to be created.
@@ -411,13 +413,14 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
     // Register common arguments.
     registerAdvancedModeArgument(this.subCommand,
-        MSGID_DSCFG_DESCRIPTION_ADVANCED_SET, r.getUserFriendlyName());
+        INFO_DSCFG_DESCRIPTION_ADVANCED_SET.get());
 
     // Create the --property argument which is used to specify
     // property values.
     this.propertySetArgument = new StringArgument(OPTION_DSCFG_LONG_SET,
         OPTION_DSCFG_SHORT_SET, OPTION_DSCFG_LONG_SET, false, true,
-        true, "{PROP:VALUE}", null, null, MSGID_DSCFG_DESCRIPTION_PROP_VAL);
+        true, "{PROP:VALUE}", null, null,
+        INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
     this.subCommand.addArgument(this.propertySetArgument);
 
     // Build the -t option usage.
@@ -436,14 +439,14 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       // The option is mandatory when non-interactive.
       this.typeArgument = new StringArgument("type", OPTION_DSCFG_SHORT_TYPE,
           OPTION_DSCFG_LONG_TYPE, false, false, true, "{TYPE}", null, null,
-          MSGID_DSCFG_DESCRIPTION_TYPE, r.getChildDefinition()
-              .getUserFriendlyName(), typeUsage);
+          INFO_DSCFG_DESCRIPTION_TYPE.get(r.getChildDefinition()
+              .getUserFriendlyName(), typeUsage));
     } else {
       // The option has a sensible default "generic".
       this.typeArgument = new StringArgument("type", OPTION_DSCFG_SHORT_TYPE,
           OPTION_DSCFG_LONG_TYPE, false, false, true, "{TYPE}", GENERIC_TYPE,
-          null, MSGID_DSCFG_DESCRIPTION_TYPE_DEFAULT, r.getChildDefinition()
-              .getUserFriendlyName(), GENERIC_TYPE, typeUsage);
+          null, INFO_DSCFG_DESCRIPTION_TYPE_DEFAULT.get(r.getChildDefinition()
+              .getUserFriendlyName(), GENERIC_TYPE, typeUsage));
 
       // Hide the option if it defaults to generic and generic is the
       // only possible value.
@@ -486,13 +489,12 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           typeName = types.keySet().iterator().next();
         } else {
           List<String> values = new ArrayList<String>(types.keySet());
-          List<String> descriptions = new ArrayList<String>(values.size());
+          List<Message> descriptions = new ArrayList<Message>(values.size());
           for (ManagedObjectDefinition<?, ?> d : types.values()) {
             descriptions.add(d.getUserFriendlyName());
           }
-          int msgID = MSGID_DSCFG_CREATE_TYPE_PROMPT;
-          String msg = getMessage(msgID, relation.getChildDefinition()
-              .getUserFriendlyName());
+          Message msg = INFO_DSCFG_CREATE_TYPE_PROMPT.get(
+                  relation.getChildDefinition().getUserFriendlyName());
           typeName = getConsoleApplication().readChoice(msg, descriptions,
               values, new TypeHelpCallback());
         }
@@ -525,35 +527,29 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     try {
       parent = getManagedObject(path, names);
     } catch (AuthorizationException e) {
-      int msgID = MSGID_DSCFG_ERROR_CREATE_AUTHZ;
-      String msg = getMessage(msgID, d.getUserFriendlyName());
+      Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(d.getUserFriendlyName());
       throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-          msgID, msg);
-    } catch (DefinitionDecodingException e) {
-      int msgID = MSGID_DSCFG_ERROR_GET_PARENT_DDE;
-      String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn, ufn, ufn);
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msgID, msg);
-    } catch (ManagedObjectDecodingException e) {
-      int msgID = MSGID_DSCFG_ERROR_GET_PARENT_MODE;
-      String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn);
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msgID, msg);
-    } catch (CommunicationException e) {
-      int msgID = MSGID_DSCFG_ERROR_CREATE_CE;
-      String msg = getMessage(msgID, d.getUserFriendlyName(), e.getMessage());
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
           msg);
+    } catch (DefinitionDecodingException e) {
+      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(ufn, ufn, ufn);
+      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+    } catch (ManagedObjectDecodingException e) {
+      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(ufn);
+      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+    } catch (CommunicationException e) {
+      Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(
+          d.getUserFriendlyName(), e.getMessage());
+      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
     } catch (ConcurrentModificationException e) {
-      int msgID = MSGID_DSCFG_ERROR_CREATE_CME;
-      String msg = getMessage(msgID, d.getUserFriendlyName());
+      Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(d.getUserFriendlyName());
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
-          msgID, msg);
+          msg);
     } catch (ManagedObjectNotFoundException e) {
-      int msgID = MSGID_DSCFG_ERROR_GET_PARENT_MONFE;
-      String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn);
-      throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msgID, msg);
+      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(ufn);
+      throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
     }
 
     try {
@@ -621,12 +617,11 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       }
 
       // Confirm commit.
-      String prompt = getMessage(MSGID_DSCFG_CONFIRM_CREATE, d
-          .getUserFriendlyName());
+      Message prompt = INFO_DSCFG_CONFIRM_CREATE.get(d.getUserFriendlyName());
       if (!getConsoleApplication().confirmAction(prompt)) {
         // Output failure message.
-        String msg = getMessage(MSGID_DSCFG_CONFIRM_CREATE_FAIL, d
-            .getUserFriendlyName());
+        Message msg =
+            INFO_DSCFG_CONFIRM_CREATE_FAIL.get(d.getUserFriendlyName());
         getConsoleApplication().printVerboseMessage(msg);
         return 1;
       }
@@ -635,37 +630,33 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       child.commit();
 
       // Output success message.
-      String msg = getMessage(MSGID_DSCFG_CONFIRM_CREATE_SUCCESS, d
-          .getUserFriendlyName());
+      Message msg =
+          INFO_DSCFG_CONFIRM_CREATE_SUCCESS.get(d.getUserFriendlyName());
       getConsoleApplication().printVerboseMessage(msg);
     } catch (MissingMandatoryPropertiesException e) {
       throw ArgumentExceptionFactory.adaptMissingMandatoryPropertiesException(
           e, d);
     } catch (AuthorizationException e) {
-      int msgID = MSGID_DSCFG_ERROR_CREATE_AUTHZ;
-      String msg = getMessage(msgID, d.getUserFriendlyName());
+      Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(d.getUserFriendlyName());
       throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-          msgID, msg);
-    } catch (ManagedObjectAlreadyExistsException e) {
-      int msgID = MSGID_DSCFG_ERROR_CREATE_MOAEE;
-      String msg = getMessage(msgID, d.getUserFriendlyName());
-      throw new ClientException(LDAPResultCode.ENTRY_ALREADY_EXISTS,
-          msgID, msg);
-    } catch (ConcurrentModificationException e) {
-      int msgID = MSGID_DSCFG_ERROR_CREATE_CME;
-      String msg = getMessage(msgID, d.getUserFriendlyName());
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
-          msgID, msg);
-    } catch (OperationRejectedException e) {
-      int msgID = MSGID_DSCFG_ERROR_CREATE_ORE;
-      String msg = getMessage(msgID, d.getUserFriendlyName(), e.getMessage());
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
-          msgID, msg);
-    } catch (CommunicationException e) {
-      int msgID = MSGID_DSCFG_ERROR_CREATE_CE;
-      String msg = getMessage(msgID, d.getUserFriendlyName(), e.getMessage());
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
           msg);
+    } catch (ManagedObjectAlreadyExistsException e) {
+      Message msg = ERR_DSCFG_ERROR_CREATE_MOAEE.get(d.getUserFriendlyName());
+      throw new ClientException(LDAPResultCode.ENTRY_ALREADY_EXISTS,
+          msg);
+    } catch (ConcurrentModificationException e) {
+      Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(d.getUserFriendlyName());
+      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
+          msg);
+    } catch (OperationRejectedException e) {
+      Message msg = ERR_DSCFG_ERROR_CREATE_ORE.get(
+          d.getUserFriendlyName(), e.getMessage());
+      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
+          msg);
+    } catch (CommunicationException e) {
+      Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(
+          d.getUserFriendlyName(), e.getMessage());
+      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
     }
 
     return 0;
@@ -680,8 +671,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       final ManagedObjectDefinition<? extends C, ? extends S> d,
       final List<DefaultBehaviorException> exceptions)
       throws ArgumentException, ClientException {
-    int msgID = MSGID_DSCFG_CREATE_NAME_PROMPT;
-    String msg = getMessage(msgID, d.getUserFriendlyName());
+    Message msg = INFO_DSCFG_CREATE_NAME_PROMPT.get(d.getUserFriendlyName());
     ValidationCallback<ManagedObject<? extends C>> validator =
       new ValidationCallback<ManagedObject<? extends C>>() {
 
@@ -697,7 +687,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           ArgumentException ae = ArgumentExceptionFactory
               .adaptIllegalManagedObjectNameException(e, d);
           app.println();
-          app.printMessage(ae.getMessage());
+          app.printMessage(ae.getMessageObject());
           return null;
         }
 
@@ -707,21 +697,19 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           // Attempt to retrieve a child using this name.
           parent.getChild(irelation, input);
         } catch (AuthorizationException e) {
-          int msgID = MSGID_DSCFG_ERROR_CREATE_AUTHZ;
-          String msg = getMessage(msgID, irelation.getUserFriendlyName());
+          Message msg =
+              ERR_DSCFG_ERROR_CREATE_AUTHZ.get(irelation.getUserFriendlyName());
           throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-              msgID, msg);
-        } catch (ConcurrentModificationException e) {
-          int msgID = MSGID_DSCFG_ERROR_CREATE_CME;
-          String msg = getMessage(msgID, irelation.getUserFriendlyName());
-          throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msgID,
               msg);
+        } catch (ConcurrentModificationException e) {
+          Message msg =
+              ERR_DSCFG_ERROR_CREATE_CME.get(irelation.getUserFriendlyName());
+          throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
         } catch (CommunicationException e) {
-          int msgID = MSGID_DSCFG_ERROR_CREATE_CE;
-          String msg = getMessage(msgID, irelation.getUserFriendlyName(), e
-              .getMessage());
+          Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(
+              irelation.getUserFriendlyName(), e.getMessage());
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
-              msgID, msg);
+              msg);
         } catch (DefinitionDecodingException e) {
           // Do nothing.
         } catch (ManagedObjectDecodingException e) {
@@ -732,8 +720,8 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         }
 
         // A child with the specified name must already exist.
-        int msgID = MSGID_DSCFG_ERROR_CREATE_NAME_ALREADY_EXISTS;
-        String msg = getMessage(msgID, relation.getUserFriendlyName(), input);
+        Message msg = ERR_DSCFG_ERROR_CREATE_NAME_ALREADY_EXISTS.get(
+                relation.getUserFriendlyName(), input);
         app.println();
         app.printMessage(msg);
         return null;

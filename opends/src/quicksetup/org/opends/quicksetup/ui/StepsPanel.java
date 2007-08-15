@@ -39,6 +39,7 @@ import javax.swing.JPanel;
 
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.WizardStep;
+import org.opends.messages.Message;
 
 /**
  * This class displays the different steps of the wizard.  It appears on the
@@ -132,12 +133,12 @@ public class StepsPanel extends QuickSetupPanel
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.anchor = GridBagConstraints.WEST;
 
-    HashMap<WizardStep, String> hmText = new HashMap<WizardStep, String>();
+    HashMap<WizardStep, Message> hmText = new HashMap<WizardStep, Message>();
     LinkedHashSet<WizardStep> orderedSteps = app.getOrderedSteps();
     boolean first = true;
     for (WizardStep s : orderedSteps)
     {
-      hmText.put(s, app.getI18n().getMsg(s.getMessageKey()));
+      hmText.put(s, s.getDisplayMessage());
 
       JPanel subPanel = new JPanel(new GridBagLayout());
       subPanel.setOpaque(false);
@@ -172,8 +173,9 @@ public class StepsPanel extends QuickSetupPanel
       subPanel.add(auxPanel, gbc);
 
       JLabel stepLabel =
-          UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, hmText.get(s),
-              UIFactory.TextStyle.CURRENT_STEP);
+              UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
+                      hmText.get(s),
+                      UIFactory.TextStyle.CURRENT_STEP);
       hmLabels.put(s, stepLabel);
       gbc.insets.left = UIFactory.LEFT_INSET_STEP;
       gbc.gridwidth = GridBagConstraints.RELATIVE;

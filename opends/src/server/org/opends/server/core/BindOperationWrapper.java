@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -33,6 +34,7 @@ import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+
 
 
 /**
@@ -76,15 +78,7 @@ public abstract class BindOperationWrapper extends OperationWrapper
   /**
    * {@inheritDoc}
    */
-  public int getAuthFailureID()
-  {
-    return bind.getAuthFailureID();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public String getAuthFailureReason()
+  public Message getAuthFailureReason()
   {
     return bind.getAuthFailureReason();
   }
@@ -164,7 +158,7 @@ public abstract class BindOperationWrapper extends OperationWrapper
   /**
    * {@inheritDoc}
    */
-  public void setAuthFailureReason(int id, String reason)
+  public void setAuthFailureReason(Message reason)
   {
     if (DirectoryServer.returnBindErrorMessages())
     {
@@ -172,7 +166,7 @@ public abstract class BindOperationWrapper extends OperationWrapper
     }
     else
     {
-      bind.setAuthFailureReason(id, reason);
+      bind.setAuthFailureReason(reason);
     }
   }
 

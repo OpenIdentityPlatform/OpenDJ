@@ -44,8 +44,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -186,9 +185,8 @@ public final class DirectoryEnvironmentConfig
   {
     if (DirectoryServer.isRunning())
     {
-      int    msgID   = MSGID_DIRCFG_SERVER_ALREADY_RUNNING;
-      String message = getMessage(msgID);
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
     if (value == null)
@@ -254,17 +252,15 @@ public final class DirectoryEnvironmentConfig
   {
     if (DirectoryServer.isRunning())
     {
-      int    msgID   = MSGID_DIRCFG_SERVER_ALREADY_RUNNING;
-      String message = getMessage(msgID);
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
     if ((! serverRoot.exists()) || (! serverRoot.isDirectory()))
     {
-      int    msgID   = MSGID_DIRCFG_INVALID_SERVER_ROOT;
-      String message = getMessage(msgID,
-                                  serverRoot.getAbsolutePath());
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_DIRCFG_INVALID_SERVER_ROOT.get(
+                      serverRoot.getAbsolutePath()));
     }
 
     String serverRootPath;
@@ -347,17 +343,15 @@ public final class DirectoryEnvironmentConfig
   {
     if (DirectoryServer.isRunning())
     {
-      int    msgID   = MSGID_DIRCFG_SERVER_ALREADY_RUNNING;
-      String message = getMessage(msgID);
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
     if ((! configFile.exists()) || (! configFile.isFile()))
     {
-      int    msgID   = MSGID_DIRCFG_INVALID_CONFIG_FILE;
-      String message = getMessage(msgID,
-                                  configFile.getAbsolutePath());
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_DIRCFG_INVALID_CONFIG_FILE.get(
+                      configFile.getAbsolutePath()));
     }
 
     String configFilePath;
@@ -438,16 +432,15 @@ public final class DirectoryEnvironmentConfig
   {
     if (DirectoryServer.isRunning())
     {
-      int    msgID   = MSGID_DIRCFG_SERVER_ALREADY_RUNNING;
-      String message = getMessage(msgID);
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
     if (! (ConfigHandler.class.isAssignableFrom(configClass)))
     {
-      int    msgID   = MSGID_DIRCFG_INVALID_CONFIG_CLASS;
-      String message = getMessage(msgID, configClass.getName());
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_DIRCFG_INVALID_CONFIG_CLASS.get(
+                      configClass.getName()));
     }
 
     String oldClassName = setProperty(PROPERTY_CONFIG_CLASS,
@@ -527,18 +520,16 @@ public final class DirectoryEnvironmentConfig
   {
     if (DirectoryServer.isRunning())
     {
-      int    msgID   = MSGID_DIRCFG_SERVER_ALREADY_RUNNING;
-      String message = getMessage(msgID);
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
     if ((! schemaDirectory.exists()) ||
         (! schemaDirectory.isDirectory()))
     {
-      int    msgID   = MSGID_DIRCFG_INVALID_SCHEMA_DIRECTORY;
-      String message = getMessage(msgID,
-                                  schemaDirectory.getAbsolutePath());
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_DIRCFG_INVALID_SCHEMA_DIRECTORY.get(
+                      schemaDirectory.getAbsolutePath()));
     }
 
     String schemaDirectoryPath;
@@ -620,19 +611,17 @@ public final class DirectoryEnvironmentConfig
   {
     if (DirectoryServer.isRunning())
     {
-      int    msgID   = MSGID_DIRCFG_SERVER_ALREADY_RUNNING;
-      String message = getMessage(msgID);
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
     if (lockDirectory.exists())
     {
       if (! lockDirectory.isDirectory())
       {
-        int    msgID   = MSGID_DIRCFG_INVALID_LOCK_DIRECTORY;
-        String message = getMessage(msgID,
-                                    lockDirectory.getAbsolutePath());
-        throw new InitializationException(msgID, message);
+        throw new InitializationException(
+                ERR_DIRCFG_INVALID_LOCK_DIRECTORY.get(
+                        lockDirectory.getAbsolutePath()));
       }
     }
     else
@@ -640,10 +629,9 @@ public final class DirectoryEnvironmentConfig
       File parentFile = lockDirectory.getParentFile();
       if (! (parentFile.exists() && parentFile.isDirectory()))
       {
-        int    msgID   = MSGID_DIRCFG_INVALID_LOCK_DIRECTORY;
-        String message = getMessage(msgID,
-                                    lockDirectory.getAbsolutePath());
-        throw new InitializationException(msgID, message);
+        throw new InitializationException(
+                ERR_DIRCFG_INVALID_LOCK_DIRECTORY.get(
+                        lockDirectory.getAbsolutePath()));
       }
     }
 
@@ -716,9 +704,8 @@ public final class DirectoryEnvironmentConfig
   {
     if (DirectoryServer.isRunning())
     {
-      int    msgID   = MSGID_DIRCFG_SERVER_ALREADY_RUNNING;
-      String message = getMessage(msgID);
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
     String oldDisableStr =
@@ -780,9 +767,8 @@ public final class DirectoryEnvironmentConfig
   {
     if (DirectoryServer.isRunning())
     {
-      int    msgID   = MSGID_DIRCFG_SERVER_ALREADY_RUNNING;
-      String message = getMessage(msgID);
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
     String oldForceDaemonStr =
@@ -844,9 +830,8 @@ public final class DirectoryEnvironmentConfig
   {
     if (DirectoryServer.isRunning())
     {
-      int    msgID   = MSGID_DIRCFG_SERVER_ALREADY_RUNNING;
-      String message = getMessage(msgID);
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
     String oldDisableStr = setProperty(PROPERTY_DISABLE_EXEC,
@@ -923,16 +908,15 @@ public final class DirectoryEnvironmentConfig
   {
     if (DirectoryServer.isRunning())
     {
-      int    msgID   = MSGID_DIRCFG_SERVER_ALREADY_RUNNING;
-      String message = getMessage(msgID);
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
     if (concurrencyLevel <= 0)
     {
-        int    msgID   = MSGID_DIRCFG_INVALID_CONCURRENCY_LEVEL;
-        String message = getMessage(msgID, concurrencyLevel);
-        throw new InitializationException(msgID, message);
+        throw new InitializationException(
+                ERR_DIRCFG_INVALID_CONCURRENCY_LEVEL.get(
+                        concurrencyLevel));
     }
 
     String concurrencyStr =
@@ -1010,16 +994,15 @@ public final class DirectoryEnvironmentConfig
   {
     if (DirectoryServer.isRunning())
     {
-      int    msgID   = MSGID_DIRCFG_SERVER_ALREADY_RUNNING;
-      String message = getMessage(msgID);
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
     if (lockTableSize <= 0)
     {
-        int    msgID   = MSGID_DIRCFG_INVALID_LOCK_TABLE_SIZE;
-        String message = getMessage(msgID, lockTableSize);
-        throw new InitializationException(msgID, message);
+        throw new InitializationException(
+                ERR_DIRCFG_INVALID_LOCK_TABLE_SIZE.get(
+                        lockTableSize));
     }
 
     String concurrencyStr =
@@ -1078,9 +1061,8 @@ public final class DirectoryEnvironmentConfig
   {
     if (DirectoryServer.isRunning())
     {
-      int    msgID   = MSGID_DIRCFG_SERVER_ALREADY_RUNNING;
-      String message = getMessage(msgID);
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
     accessLoggers.add(accessLogger);
@@ -1122,9 +1104,8 @@ public final class DirectoryEnvironmentConfig
   {
     if (DirectoryServer.isRunning())
     {
-      int    msgID   = MSGID_DIRCFG_SERVER_ALREADY_RUNNING;
-      String message = getMessage(msgID);
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
     errorLoggers.add(errorLogger);
@@ -1166,9 +1147,8 @@ public final class DirectoryEnvironmentConfig
   {
     if (DirectoryServer.isRunning())
     {
-      int    msgID   = MSGID_DIRCFG_SERVER_ALREADY_RUNNING;
-      String message = getMessage(msgID);
-      throw new InitializationException(msgID, message);
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
     debugLoggers.add(debugLogger);

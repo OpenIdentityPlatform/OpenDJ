@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
+import org.opends.messages.Message;
 
 
 
@@ -45,8 +46,7 @@ import org.opends.server.types.SearchScope;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -413,18 +413,18 @@ public class SearchRequestProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_SEARCH_REQUEST_DECODE_SEQUENCE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_SEARCH_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
     int numElements = elements.size();
     if (numElements != 8)
     {
-      int    msgID   = MSGID_LDAP_SEARCH_REQUEST_DECODE_INVALID_ELEMENT_COUNT;
-      String message = getMessage(msgID, numElements);
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message);
+      Message message =
+          ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_ELEMENT_COUNT.get(numElements);
+      throw new LDAPException(PROTOCOL_ERROR, message);
     }
 
 
@@ -440,9 +440,9 @@ public class SearchRequestProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_SEARCH_REQUEST_DECODE_BASE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_SEARCH_REQUEST_DECODE_BASE.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -465,9 +465,9 @@ public class SearchRequestProtocolOp
           break;
         default:
           int    scopeValue = elements.get(1).decodeAsEnumerated().intValue();
-          int    msgID      = MSGID_LDAP_SEARCH_REQUEST_DECODE_INVALID_SCOPE;
-          String message    = getMessage(msgID, scopeValue);
-          throw new LDAPException(PROTOCOL_ERROR, msgID, message);
+          Message message =
+              ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_SCOPE.get(scopeValue);
+          throw new LDAPException(PROTOCOL_ERROR, message);
       }
     }
     catch (LDAPException le)
@@ -481,9 +481,9 @@ public class SearchRequestProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_SEARCH_REQUEST_DECODE_SCOPE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_SEARCH_REQUEST_DECODE_SCOPE.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -506,9 +506,9 @@ public class SearchRequestProtocolOp
           break;
         default:
           int    derefValue = elements.get(2).decodeAsEnumerated().intValue();
-          int    msgID      = MSGID_LDAP_SEARCH_REQUEST_DECODE_INVALID_DEREF;
-          String message    = getMessage(msgID, derefValue);
-          throw new LDAPException(PROTOCOL_ERROR, msgID, message);
+          Message message =
+              ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_DEREF.get(derefValue);
+          throw new LDAPException(PROTOCOL_ERROR, message);
       }
     }
     catch (LDAPException le)
@@ -522,9 +522,9 @@ public class SearchRequestProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_SEARCH_REQUEST_DECODE_DEREF;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_SEARCH_REQUEST_DECODE_DEREF.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -540,9 +540,9 @@ public class SearchRequestProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_SEARCH_REQUEST_DECODE_SIZE_LIMIT;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_SEARCH_REQUEST_DECODE_SIZE_LIMIT.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -558,9 +558,9 @@ public class SearchRequestProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_SEARCH_REQUEST_DECODE_TIME_LIMIT;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_SEARCH_REQUEST_DECODE_TIME_LIMIT.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -576,9 +576,9 @@ public class SearchRequestProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_SEARCH_REQUEST_DECODE_TYPES_ONLY;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_SEARCH_REQUEST_DECODE_TYPES_ONLY.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -594,9 +594,9 @@ public class SearchRequestProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_SEARCH_REQUEST_DECODE_FILTER;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_SEARCH_REQUEST_DECODE_FILTER.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 
@@ -618,9 +618,9 @@ public class SearchRequestProtocolOp
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_SEARCH_REQUEST_DECODE_ATTRIBUTES;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
+      Message message =
+          ERR_LDAP_SEARCH_REQUEST_DECODE_ATTRIBUTES.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
 

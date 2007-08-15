@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
+import org.opends.messages.Message;
 
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
@@ -36,8 +37,8 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
@@ -50,23 +51,22 @@ import static org.opends.server.core.DirectoryServer.getAttributeType;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.TaskMessages.
-    MSGID_TASK_INDEXREBUILD_INSUFFICIENT_PRIVILEGES;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ToolMessages.
-    MSGID_REBUILDINDEX_ERROR_DURING_REBUILD;
-import static org.opends.server.messages.ToolMessages.
-    MSGID_REBUILDINDEX_WRONG_BACKEND_TYPE;
-import static org.opends.server.messages.ToolMessages.
-    MSGID_NO_BACKENDS_FOR_BASE;
-import static org.opends.server.messages.ToolMessages.
-    MSGID_CANNOT_DECODE_BASE_DN;
-import static org.opends.server.messages.ToolMessages.
-    MSGID_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND;
-import static org.opends.server.messages.ToolMessages.
-    MSGID_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND;
-import static org.opends.server.messages.ToolMessages.
-    MSGID_REBUILDINDEX_CANNOT_UNLOCK_BACKEND;
+import static org.opends.messages.TaskMessages.
+    ERR_TASK_INDEXREBUILD_INSUFFICIENT_PRIVILEGES;
+import static org.opends.messages.ToolMessages.
+    ERR_REBUILDINDEX_ERROR_DURING_REBUILD;
+import static org.opends.messages.ToolMessages.
+    ERR_REBUILDINDEX_WRONG_BACKEND_TYPE;
+import static org.opends.messages.ToolMessages.
+    ERR_NO_BACKENDS_FOR_BASE;
+import static org.opends.messages.ToolMessages.
+    ERR_CANNOT_DECODE_BASE_DN;
+import static org.opends.messages.ToolMessages.
+    ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND;
+import static org.opends.messages.ToolMessages.
+    ERR_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND;
+import static org.opends.messages.ToolMessages.
+    WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND;
 import static org.opends.server.config.ConfigConstants.
     ATTR_REBUILD_BASE_DN;
 import static org.opends.server.config.ConfigConstants.
@@ -106,10 +106,9 @@ public class RebuildTask extends Task
       ClientConnection clientConnection = operation.getClientConnection();
       if (! clientConnection.hasPrivilege(Privilege.LDIF_IMPORT, operation))
       {
-        int    msgID   = MSGID_TASK_INDEXREBUILD_INSUFFICIENT_PRIVILEGES;
-        String message = getMessage(msgID);
+        Message message = ERR_TASK_INDEXREBUILD_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -153,10 +152,9 @@ public class RebuildTask extends Task
     }
     catch(DirectoryException de)
     {
-      int    msgID   = MSGID_CANNOT_DECODE_BASE_DN;
-      String message = getMessage(msgID, baseDN, de.getErrorMessage());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message =
+          ERR_CANNOT_DECODE_BASE_DN.get(baseDN, de.getMessageObject());
+      logError(message);
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -172,19 +170,15 @@ public class RebuildTask extends Task
 
     if(backend == null)
     {
-      int    msgID   = MSGID_NO_BACKENDS_FOR_BASE;
-      String message = getMessage(msgID, baseDN);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_NO_BACKENDS_FOR_BASE.get(baseDN);
+      logError(message);
       return TaskState.STOPPED_BY_ERROR;
     }
 
     if (!(backend instanceof BackendImpl))
     {
-      int    msgID   = MSGID_REBUILDINDEX_WRONG_BACKEND_TYPE;
-      String message = getMessage(msgID);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_REBUILDINDEX_WRONG_BACKEND_TYPE.get();
+      logError(message);
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -207,8 +201,7 @@ public class RebuildTask extends Task
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 e.getErrorMessage(), e.getMessageID());
+        logError(e.getMessageObject());
         return TaskState.STOPPED_BY_ERROR;
       }
 
@@ -216,21 +209,17 @@ public class RebuildTask extends Task
       {
         if(! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
         {
-          int    msgID   = MSGID_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND;
-          String message = getMessage(msgID, backend.getBackendID(),
-                                      String.valueOf(failureReason));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(
+              backend.getBackendID(), String.valueOf(failureReason));
+          logError(message);
           return TaskState.STOPPED_BY_ERROR;
         }
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND;
-        String message = getMessage(msgID, backend.getBackendID(),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(
+            backend.getBackendID(), getExceptionMessage(e));
+        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
     }
@@ -240,21 +229,17 @@ public class RebuildTask extends Task
       {
         if(! LockFileManager.acquireSharedLock(lockFile, failureReason))
         {
-          int    msgID   = MSGID_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND;
-          String message = getMessage(msgID, backend.getBackendID(),
-                                      String.valueOf(failureReason));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND.get(
+              backend.getBackendID(), String.valueOf(failureReason));
+          logError(message);
           return TaskState.STOPPED_BY_ERROR;
         }
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND;
-        String message = getMessage(msgID, backend.getBackendID(),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND.get(
+            backend.getBackendID(), getExceptionMessage(e));
+        logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
 
@@ -274,10 +259,9 @@ public class RebuildTask extends Task
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_REBUILDINDEX_ERROR_DURING_REBUILD;
-      String message = getMessage(msgID, e.getMessage());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message =
+          ERR_REBUILDINDEX_ERROR_DURING_REBUILD.get(e.getMessage());
+      logError(message);
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -288,21 +272,17 @@ public class RebuildTask extends Task
       failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        int    msgID   = MSGID_REBUILDINDEX_CANNOT_UNLOCK_BACKEND;
-        String message = getMessage(msgID, backend.getBackendID(),
-                                    String.valueOf(failureReason));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-                 message, msgID);
+        Message message = WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(
+            backend.getBackendID(), String.valueOf(failureReason));
+        logError(message);
         return TaskState.COMPLETED_WITH_ERRORS;
       }
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_REBUILDINDEX_CANNOT_UNLOCK_BACKEND;
-      String message = getMessage(msgID, backend.getBackendID(),
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-               message, msgID);
+      Message message = WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(
+          backend.getBackendID(), getExceptionMessage(e));
+      logError(message);
       return TaskState.COMPLETED_WITH_ERRORS;
     }
 
@@ -320,8 +300,7 @@ public class RebuildTask extends Task
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 e.getErrorMessage(), e.getMessageID());
+        logError(e.getMessageObject());
         return TaskState.STOPPED_BY_ERROR;
       }
     }

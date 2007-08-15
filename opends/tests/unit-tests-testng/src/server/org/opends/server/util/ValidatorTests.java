@@ -29,6 +29,7 @@ package org.opends.server.util;
 import org.testng.annotations.Test;
 import org.testng.annotations.DataProvider;
 import static org.testng.Assert.*;
+import org.opends.messages.Message;
 
 /**
  * Tests for the Validator class.
@@ -74,7 +75,7 @@ public class ValidatorTests {
 
   @Test
   public void testEnsureTrueWithMessage() {
-    boolean returnValue = Validator.ensureTrue(true, "some message");
+    boolean returnValue = Validator.ensureTrue(true, Message.raw("some message"));
     assertTrue(returnValue);  // must always return true
   }
 
@@ -143,20 +144,20 @@ public class ValidatorTests {
 
   @Test(expectedExceptions = {RuntimeException.class, AssertionError.class})
   public void testEnsureTrueWithMessageWithFalse() {
-    Validator.ensureTrue(false, "some message");
+    Validator.ensureTrue(false, Message.raw("some message"));
   }
 
 
   @Test
   public void testMessageContents() {
     Validator.resetErrorCount();
-    String myMessage = "some test message";
+    Message myMessage = Message.raw("some test message");
     String thisMethod = ValidatorTests.class.getName() + "." + "testMessageContents(ValidatorTests.java:";
     try {
       Validator.ensureTrue(false, myMessage);
     } catch (Throwable e) {
       String caughtMessage = e.getMessage();
-      assertTrue(caughtMessage.indexOf(myMessage) >= 0);
+      assertTrue(caughtMessage.indexOf(myMessage.toString()) >= 0);
       assertTrue(caughtMessage.indexOf(thisMethod) >= 0);
 
       assertEquals(Validator.getErrorCount(), 1);

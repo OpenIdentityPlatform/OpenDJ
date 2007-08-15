@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types.operation;
+import org.opends.messages.Message;
 
 
 
@@ -166,30 +167,17 @@ public interface PostOperationBindOperation
    *          authentication failed, or <CODE>null</CODE> if none is
    *          available.
    */
-  public String getAuthFailureReason();
-
-
-
-  /**
-   * Retrieves the unique identifier for the authentication failure
-   * reason, if available.
-   *
-   * @return  The unique identifier for the authentication failure
-   *          reason, or zero if none is available.
-   */
-  public int getAuthFailureID();
+  public Message getAuthFailureReason();
 
 
 
   /**
    * Specifies the reason that the authentication failed.
    *
-   * @param  id      The unique identifier for the authentication
-   *                 failure reason.
    * @param  reason  A human-readable message providing the reason
    *                 that the authentication failed.
    */
-  public void setAuthFailureReason(int id, String reason);
+  public void setAuthFailureReason(Message reason);
 
 
 

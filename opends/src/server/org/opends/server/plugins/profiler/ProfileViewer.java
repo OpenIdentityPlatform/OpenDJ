@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins.profiler;
+import org.opends.messages.Message;
 
 
 
@@ -57,8 +58,7 @@ import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.PluginMessages.*;
+import static org.opends.messages.PluginMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -108,7 +108,7 @@ public class ProfileViewer
 
 
     // Create the command-line argument parser for use with this program.
-    String toolDescription = getMessage(MSGID_PROFILEVIEWER_TOOL_DESCRIPTION);
+    Message toolDescription = INFO_PROFILEVIEWER_TOOL_DESCRIPTION.get();
     ArgumentParser argParser =
          new ArgumentParser("org.opends.server.plugins.profiler.ProfileViewer",
                             toolDescription, false);
@@ -121,22 +121,24 @@ public class ProfileViewer
       fileNames =
         new StringArgument("filenames", 'f', "fileName", true, true, true,
                            "{file}", null, null,
-                           MSGID_PROFILEVIEWER_DESCRIPTION_FILENAMES);
+                           INFO_PROFILEVIEWER_DESCRIPTION_FILENAMES.get());
       argParser.addArgument(fileNames);
 
-      useGUI = new BooleanArgument("usegui", 'g', "useGUI",
-                                   MSGID_PROFILEVIEWER_DESCRIPTION_USE_GUI);
+      useGUI = new BooleanArgument(
+              "usegui", 'g', "useGUI",
+              INFO_PROFILEVIEWER_DESCRIPTION_USE_GUI.get());
       argParser.addArgument(useGUI);
 
-      displayUsage = new BooleanArgument("help", 'H', "help",
-                                         MSGID_PROFILEVIEWER_DESCRIPTION_USAGE);
+      displayUsage = new BooleanArgument(
+              "help", 'H', "help",
+              INFO_PROFILEVIEWER_DESCRIPTION_USAGE.get());
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_PROFILEVIEWER_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message =
+              ERR_PROFILEVIEWER_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       System.err.println(message);
       System.exit(1);
@@ -150,8 +152,8 @@ public class ProfileViewer
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_PROFILEVIEWER_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message =
+              ERR_PROFILEVIEWER_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       System.err.println(message);
       System.err.println(argParser.getUsage());
@@ -177,8 +179,8 @@ public class ProfileViewer
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_PROFILEVIEWER_CANNOT_PROCESS_DATA_FILE;
-        String message = getMessage(msgID, filename,
+        Message message =
+                ERR_PROFILEVIEWER_CANNOT_PROCESS_DATA_FILE.get(filename,
                                     stackTraceToSingleLineString(e));
         System.err.println(message);
       }

@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.loggers.debug;
+import org.opends.messages.Message;
 
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DebugLogCategory;
@@ -36,6 +37,7 @@ import org.opends.server.loggers.LogCategory;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.DebugTargetCfgDefn;
 import org.opends.server.admin.std.server.DebugTargetCfg;
+
 
 import java.util.Set;
 import java.util.HashSet;
@@ -193,8 +195,9 @@ public class TraceSettings
   /**
    * {@inheritDoc}
    */
-  public boolean isConfigurationChangeAcceptable(DebugTargetCfg config,
-                                               List<String> unacceptableReasons)
+  public boolean isConfigurationChangeAcceptable(
+          DebugTargetCfg config,
+          List<Message> unacceptableReasons)
   {
     // This should alwas be acceptable. We are assuing that the scope for this
     // trace setting is the same sine its part of the DN.
@@ -209,7 +212,7 @@ public class TraceSettings
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     // We can assume that the target scope did not change since its the
     // naming attribute. Changing it would result in a modify DN.
@@ -284,7 +287,7 @@ public class TraceSettings
                 stackDepth = Integer.valueOf(keyword.substring(depthStart+1));
               }
               catch(NumberFormatException nfe)
-              {
+              { // TODO: i18n
                 System.err.println("The keyword " + STACK_DUMP_KEYWORD +
                     " contains an invalid depth value. The complete stack " +
                     "will be included.");
@@ -314,7 +317,7 @@ public class TraceSettings
 
           if(keyword.length() == INCLUDE_CATEGORY_KEYWORD.length() ||
               categoryStart != INCLUDE_CATEGORY_KEYWORD.length())
-          {
+          { // TODO: i18n
             System.err.println("The keyword " + INCLUDE_CATEGORY_KEYWORD +
                 " does not contain an equal sign to define the set of " +
                 "categories to include. All categories will be included.");
@@ -331,7 +334,7 @@ public class TraceSettings
                 includeCategories.add(DebugLogCategory.parse(category));
               }
               catch(IllegalArgumentException iae)
-              {
+              { // TODO: i18n
                 System.err.println("The keyword " + INCLUDE_CATEGORY_KEYWORD +
                     " contains an invalid debug log category: " +
                     iae.toString() + ". It will be ignored.");
@@ -347,7 +350,7 @@ public class TraceSettings
 
           if(keyword.length() == LEVEL_KEYWORD.length() ||
               levelStart != LEVEL_KEYWORD.length())
-          {
+          { // TODO: i18n
             System.err.println("The keyword " + LEVEL_KEYWORD +
                 " does not contain an equal sign to specify the log level. " +
                 "Default level of " + level.toString() + " will be used.");
@@ -359,7 +362,7 @@ public class TraceSettings
               level = LogLevel.parse(keyword.substring(levelStart+1));
             }
             catch(IllegalArgumentException iae)
-            {
+            {  // TODO: i18n
               System.err.println("The keyword " + LEVEL_KEYWORD +
                   " contains an invalid debug log level: " +
                   iae.toString() + ". Default level of " + level.toString() +

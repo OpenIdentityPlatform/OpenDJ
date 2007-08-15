@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
+import org.opends.messages.Message;
 
 
 import java.io.File;
@@ -51,8 +52,8 @@ import org.opends.server.util.Base64;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.ConfigMessages.*;
+
 import static org.opends.server.types.ResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -115,10 +116,9 @@ public class TextAuditLogPublisher
         }
         else
         {
-          int msgID = MSGID_CONFIG_LOGGER_INVALID_ROTATION_POLICY;
-          String message = getMessage(msgID, dn.toString(),
-                                      config.dn().toString());
-          throw new ConfigException(msgID, message);
+          Message message = ERR_CONFIG_LOGGER_INVALID_ROTATION_POLICY.get(
+              dn.toString(), config.dn().toString());
+          throw new ConfigException(message);
         }
       }
       for(DN dn: config.getRetentionPolicyDN())
@@ -130,10 +130,9 @@ public class TextAuditLogPublisher
         }
         else
         {
-          int msgID = MSGID_CONFIG_LOGGER_INVALID_RETENTION_POLICY;
-          String message = getMessage(msgID, dn.toString(),
-                                      config.dn().toString());
-          throw new ConfigException(msgID, message);
+          Message message = WARN_CONFIG_LOGGER_INVALID_RETENTION_POLICY.get(
+              dn.toString(), config.dn().toString());
+          throw new ConfigException(message);
         }
       }
 
@@ -151,18 +150,16 @@ public class TextAuditLogPublisher
     }
     catch(DirectoryException e)
     {
-      int msgID = MSGID_CONFIG_LOGGING_CANNOT_CREATE_WRITER;
-      String message = getMessage(msgID, config.dn().toString(),
-                                  String.valueOf(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+          config.dn().toString(), String.valueOf(e));
+      throw new InitializationException(message, e);
 
     }
     catch(IOException e)
     {
-      int msgID = MSGID_CONFIG_LOGGING_CANNOT_CREATE_WRITER;
-      String message = getMessage(msgID, config.dn().toString(),
-                                  String.valueOf(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+          config.dn().toString(), String.valueOf(e));
+      throw new InitializationException(message, e);
 
     }
 
@@ -181,7 +178,7 @@ public class TextAuditLogPublisher
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-       FileBasedAccessLogPublisherCfg config, List<String> unacceptableReasons)
+       FileBasedAccessLogPublisherCfg config, List<Message> unacceptableReasons)
    {
      // Make sure the permission is valid.
      try
@@ -202,9 +199,9 @@ public class TextAuditLogPublisher
      }
      catch(Exception e)
      {
-       int msgID = MSGID_CONFIG_LOGGING_CANNOT_CREATE_WRITER;
-       String message = getMessage(msgID, config.dn().toString(),
-                                    stackTraceToSingleLineString(e));
+       Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+               config.dn().toString(),
+               stackTraceToSingleLineString(e));
        unacceptableReasons.add(message);
        return false;
      }
@@ -215,9 +212,9 @@ public class TextAuditLogPublisher
        RotationPolicy policy = DirectoryServer.getRotationPolicy(dn);
        if(policy == null)
        {
-         int msgID = MSGID_CONFIG_LOGGER_INVALID_ROTATION_POLICY;
-         String message = getMessage(msgID, dn.toString(),
-                                     config.dn().toString());
+         Message message = ERR_CONFIG_LOGGER_INVALID_ROTATION_POLICY.get(
+                 dn.toString(),
+                 config.dn().toString());
          unacceptableReasons.add(message);
          return false;
        }
@@ -227,9 +224,9 @@ public class TextAuditLogPublisher
        RetentionPolicy policy = DirectoryServer.getRetentionPolicy(dn);
        if(policy == null)
        {
-         int msgID = MSGID_CONFIG_LOGGER_INVALID_RETENTION_POLICY;
-         String message = getMessage(msgID, dn.toString(),
-                                     config.dn().toString());
+         Message message = WARN_CONFIG_LOGGER_INVALID_RETENTION_POLICY.get(
+                 dn.toString(),
+                 config.dn().toString());
          unacceptableReasons.add(message);
          return false;
        }
@@ -247,7 +244,7 @@ public class TextAuditLogPublisher
      // Default result code.
      ResultCode resultCode = ResultCode.SUCCESS;
      boolean adminActionRequired = false;
-     ArrayList<String> messages = new ArrayList<String>();
+     ArrayList<Message> messages = new ArrayList<Message>();
 
      suppressInternalOperations = config.isSuppressInternalOperations();
      suppressSynchronizationOperations =
@@ -299,9 +296,9 @@ public class TextAuditLogPublisher
            }
            else
            {
-             int msgID = MSGID_CONFIG_LOGGER_INVALID_ROTATION_POLICY;
-             String message = getMessage(msgID, dn.toString(),
-                                         config.dn().toString());
+             Message message = ERR_CONFIG_LOGGER_INVALID_ROTATION_POLICY.get(
+                     dn.toString(),
+                     config.dn().toString());
              resultCode = DirectoryServer.getServerErrorResultCode();
              messages.add(message);
            }
@@ -315,9 +312,9 @@ public class TextAuditLogPublisher
            }
            else
            {
-             int msgID = MSGID_CONFIG_LOGGER_INVALID_RETENTION_POLICY;
-             String message = getMessage(msgID, dn.toString(),
-                                         config.dn().toString());
+             Message message = WARN_CONFIG_LOGGER_INVALID_RETENTION_POLICY.get(
+                     dn.toString(),
+                     config.dn().toString());
              resultCode = DirectoryServer.getServerErrorResultCode();
              messages.add(message);
            }
@@ -355,9 +352,9 @@ public class TextAuditLogPublisher
      }
      catch(Exception e)
      {
-       int msgID = MSGID_CONFIG_LOGGING_CANNOT_CREATE_WRITER;
-       String message = getMessage(msgID, config.dn().toString(),
-                                   stackTraceToSingleLineString(e));
+       Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+               config.dn().toString(),
+               stackTraceToSingleLineString(e));
        resultCode = DirectoryServer.getServerErrorResultCode();
        messages.add(message);
 
@@ -396,7 +393,7 @@ public class TextAuditLogPublisher
   @Override()
   public void logDisconnect(ClientConnection clientConnection,
                             DisconnectReason disconnectReason,
-                            String message)
+                            Message message)
   {
   }
 

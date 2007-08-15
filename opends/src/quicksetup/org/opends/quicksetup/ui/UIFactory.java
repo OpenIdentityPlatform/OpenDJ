@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup.ui;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
@@ -50,7 +53,6 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
-import org.opends.quicksetup.i18n.ResourceProvider;
 
 /**
  * This class provides constants an methods to create Swing objects and to
@@ -264,79 +266,86 @@ public class UIFactory
    * Specifies the default background color.
    */
   public static final Color DEFAULT_BACKGROUND =
-    getColor("default-background-color");
+          getColor(INFO_DEFAULT_BACKGROUND_COLOR.get());
 
   /**
    * Specifies the current step background color.
    */
   public static final Color CURRENT_STEP_PANEL_BACKGROUND =
-    getColor("current-step-panel-background-color");
+          getColor(INFO_CURRENT_STEP_PANEL_BACKGROUND_COLOR.get());
 
   /**
    * Specifies the default label color.
    */
   public static final Color DEFAULT_LABEL_COLOR =
-    getColor("default-label-color");
+          getColor(INFO_DEFAULT_LABEL_COLOR.get());
 
   /**
    * Specifies the valid field color.
    */
-  public static final Color FIELD_VALID_COLOR = getColor("field-valid-color");
+  public static final Color FIELD_VALID_COLOR =
+          getColor(INFO_FIELD_VALID_COLOR.get());
 
   /**
    * Specifies the invalid field color.
    */
   public static final Color FIELD_INVALID_COLOR =
-    getColor("field-invalid-color");
+          getColor(INFO_FIELD_VALID_COLOR.get());
 
   /**
    * Specifies the read only text color.
    */
-  public static final Color READ_ONLY_COLOR = getColor("read-only-color");
+  public static final Color READ_ONLY_COLOR =
+          getColor(INFO_READ_ONLY_COLOR.get());
 
   /**
    * Specifies the check box text color.
    */
-  public static final Color CHECKBOX_COLOR = getColor("checkbox-color");
+  public static final Color CHECKBOX_COLOR =
+          getColor(INFO_CHECKBOX_COLOR.get());
 
   /**
    * Specifies the progress text color.
    */
-  public static final Color PROGRESS_COLOR = getColor("progress-color");
+  public static final Color PROGRESS_COLOR =
+          getColor(INFO_PROGRESS_COLOR.get());
 
   /**
    * Specifies the instructions text color.
    */
-  public static final Color INSTRUCTIONS_COLOR = getColor("instructions-color");
+  public static final Color INSTRUCTIONS_COLOR =
+          getColor(INFO_INSTRUCTIONS_COLOR.get());
 
   /**
    * Specifies the text field text color.
    */
-  public static final Color TEXTFIELD_COLOR = getColor("textfield-color");
+  public static final Color TEXTFIELD_COLOR =
+          getColor(INFO_TEXTFIELD_COLOR.get());
 
   /**
    * Specifies the password field text color.
    */
   public static final Color PASSWORDFIELD_COLOR =
-    getColor("passwordfield-color");
+          getColor(INFO_PASSWORDFIELD_COLOR.get());
 
   /**
    * Specifies the panel border color.
    */
-  public static final Color PANEL_BORDER_COLOR = getColor("panel-border-color");
+  public static final Color PANEL_BORDER_COLOR =
+          getColor(INFO_PANEL_BORDER_COLOR.get());
 
   /**
    * Specifies the current step panel border.
    */
   public static final Border CURRENT_STEP_PANEL_BORDER =
-    BorderFactory.createMatteBorder(0, 2, 2, 0, PANEL_BORDER_COLOR);
+          BorderFactory.createMatteBorder(0, 2, 2, 0, PANEL_BORDER_COLOR);
 
   /**
    * Specifies the text area border.
    */
   public static final Border TEXT_AREA_BORDER =
-    BorderFactory.createMatteBorder(1, 1, 1, 1,
-        getColor("text-area-border-color"));
+          BorderFactory.createMatteBorder(1, 1, 1, 1,
+                  getColor(INFO_TEXT_AREA_BORDER_COLOR.get()));
 
   /**
    * Specifies the dialog border.
@@ -484,12 +493,12 @@ public class UIFactory
 
   private static final String DIV_OPEN_ERROR_BACKGROUND =
     "<div style=\"color:#"+
-    getMsg("div-open-error-background-1-color")+
+    INFO_DIV_OPEN_ERROR_BACKGROUND_1_COLOR.get()+
     ";background-color:#"+
-    getMsg("div-open-error-background-2-color")+
+    INFO_DIV_OPEN_ERROR_BACKGROUND_2_COLOR.get()+
     ";padding:10px 10px 10px 10px;"+
     "border-style:solid;border-width:3px;border-color:#"+
-    getMsg("div-open-error-background-3-color")+
+    INFO_DIV_OPEN_ERROR_BACKGROUND_3_COLOR.get()+
     ";vertical-align:middle;text-align:left\">";
 
   private static final String DIV_OPEN_WARNING_BACKGROUND =
@@ -497,12 +506,12 @@ public class UIFactory
 
   private static final String DIV_OPEN_SUCCESSFUL_BACKGROUND =
     "<div style=\"color:#"+
-    getMsg("div-open-successful-background-1-color")+
+    INFO_DIV_OPEN_SUCCESSFUL_BACKGROUND_1_COLOR.get()+
     ";background-color:#"+
-    getMsg("div-open-successful-background-2-color")+
+    INFO_DIV_OPEN_SUCCESSFUL_BACKGROUND_2_COLOR.get()+
     ";padding:10px 10px 10px 10px;"+
     "border-style:solid;border-width:3px;border-color:#"+
-    getMsg("div-open-successful-background-3-color")+
+    INFO_DIV_OPEN_SUCCESSFUL_BACKGROUND_3_COLOR.get()+
     ";vertical-align:middle;text-align:left\">";
 
   /**
@@ -510,7 +519,7 @@ public class UIFactory
    */
   public static final String HTML_SEPARATOR =
     "<div style=\"font-size:1px;background-color:#"+
-    getMsg("html-separator-color")+
+    INFO_HTML_SEPARATOR_COLOR.get()+
     ";margin:10px 5px 10px 5px;\"></div>";
 
   private static final HashMap<IconType, ImageIcon> hmIcons =
@@ -518,9 +527,11 @@ public class UIFactory
 
   static {
     UIManager.put("OptionPane.background",
-        getColor("optionpane-background-color"));
-    UIManager.put("Panel.background", getColor("panel-background-color"));
-    UIManager.put("ComboBox.background", getColor("combobox-background-color"));
+            getColor(INFO_OPTIONPANE_BACKGROUND_COLOR.get()));
+    UIManager.put("Panel.background",
+            getColor(INFO_PANEL_BACKGROUND_COLOR.get()));
+    UIManager.put("ComboBox.background",
+            getColor(INFO_COMBOBOX_BACKGROUND_COLOR.get()));
   }
 
   /**
@@ -728,18 +739,18 @@ public class UIFactory
    * @param tooltip the tooltip of the button.
    * @return a JButton with the given label and tooltip.
    */
-  public static JButton makeJButton(String label, String tooltip)
+  public static JButton makeJButton(Message label, Message tooltip)
   {
     JButton b = new JButton();
 
     if (label != null)
     {
-      b.setText(label);
+      b.setText(label.toString());
     }
 
     if (tooltip != null)
     {
-      b.setToolTipText(tooltip);
+      b.setToolTipText(tooltip.toString());
     }
 
     b.setOpaque(false);
@@ -772,23 +783,23 @@ public class UIFactory
    * @param style the text style.
    * @return a JLabel with the given icon, text and text style.
    */
-  public static JLabel makeJLabel(IconType iconName, String text,
+  public static JLabel makeJLabel(IconType iconName, Message text,
       TextStyle style)
   {
     JLabel l = new JLabel();
 
     if (text != null)
     {
-      l.setText(text);
+      l.setText(text.toString());
     }
 
     ImageIcon icon = getImageIcon(iconName);
     l.setIcon(icon);
-    String tooltip = getIconTooltip(iconName);
+    Message tooltip = getIconTooltip(iconName);
 
     if (tooltip != null)
     {
-      l.setToolTipText(tooltip);
+      l.setToolTipText(tooltip.toString());
     }
 
     setTextStyle(l, style);
@@ -813,21 +824,21 @@ public class UIFactory
     case TEXTFIELD:
 
       field =
-          makeJTextField(defaultValue, desc.getTooltip(), desc
+          makeJTextField(Message.raw(defaultValue), desc.getTooltip(), desc
               .getSize(), TextStyle.TEXTFIELD);
       break;
 
     case PASSWORD:
 
       field =
-          makeJPasswordField(defaultValue, desc.getTooltip(), desc
+          makeJPasswordField(Message.raw(defaultValue), desc.getTooltip(), desc
               .getSize(), TextStyle.PASSWORD_FIELD);
       break;
 
     case READ_ONLY:
 
       field =
-          makeTextPane(defaultValue, TextStyle.READ_ONLY);
+          makeTextPane(Message.raw(defaultValue), TextStyle.READ_ONLY);
       break;
 
     default:
@@ -846,7 +857,7 @@ public class UIFactory
    * @return a JTextField with the given icon, tooltip text, size and text
    * style.
    */
-  public static JTextField makeJTextField(String text, String tooltip,
+  public static JTextField makeJTextField(Message text, Message tooltip,
       int size, TextStyle style)
   {
     JTextField f = new JTextField();
@@ -865,7 +876,7 @@ public class UIFactory
    * @return a JPasswordField with the given icon, tooltip text, size and text
    * style.
    */
-  public static JPasswordField makeJPasswordField(String text, String tooltip,
+  public static JPasswordField makeJPasswordField(Message text, Message tooltip,
       int size, TextStyle style)
   {
     JPasswordField f = new JPasswordField();
@@ -883,19 +894,19 @@ public class UIFactory
    * @return a JRadioButton with the given text, tooltip text and text
    * style.
    */
-  public static JRadioButton makeJRadioButton(String text, String tooltip,
+  public static JRadioButton makeJRadioButton(Message text, Message tooltip,
       TextStyle style)
   {
     JRadioButton rb = new JRadioButton();
     rb.setOpaque(false);
     if (text != null)
     {
-      rb.setText(text);
+      rb.setText(text.toString());
     }
 
     if (tooltip != null)
     {
-      rb.setToolTipText(tooltip);
+      rb.setToolTipText(tooltip.toString());
     }
 
     setTextStyle(rb, style);
@@ -911,19 +922,19 @@ public class UIFactory
    * @return a JCheckBox with the given text, tooltip text and text
    * style.
    */
-  public static JCheckBox makeJCheckBox(String text, String tooltip,
+  public static JCheckBox makeJCheckBox(Message text, Message tooltip,
       TextStyle style)
   {
     JCheckBox cb = new JCheckBox();
     cb.setOpaque(false);
     if (text != null)
     {
-      cb.setText(text);
+      cb.setText(text.toString());
     }
 
     if (tooltip != null)
     {
-      cb.setToolTipText(tooltip);
+      cb.setToolTipText(tooltip.toString());
     }
 
     setTextStyle(cb, style);
@@ -1041,8 +1052,8 @@ public class UIFactory
     String url =
         String.valueOf(UIFactory.class.getClassLoader().getResource(
             getIconPath(iconType)));
-    String description = getIconDescription(iconType);
-    String title = getIconTooltip(iconType);
+    Message description = getIconDescription(iconType);
+    Message title = getIconTooltip(iconType);
     return "<img src=\"" + url + "\" alt=\"" + description +
     "\" align=\"middle\" title=\"" + title + "\" >";
   }
@@ -1061,14 +1072,15 @@ public class UIFactory
     if ((icon == null) && (iconType != IconType.NO_ICON))
     {
       String path = getIconPath(iconType);
-      String description = getIconDescription(iconType);
+      Message description = getIconDescription(iconType);
       try
       {
         Image im =
             Toolkit.getDefaultToolkit().createImage(
                 UIFactory.class.getClassLoader().getResource(path));
         icon = new ImageIcon(im);
-        icon.setDescription(description);
+        String ds = description != null ? description.toString() : null;
+        icon.setDescription(ds);
 
         hmIcons.put(iconType, icon);
 
@@ -1102,7 +1114,7 @@ public class UIFactory
    * @return a read only JEditorPane containing the provided text with the
    * provided font.
    */
-  public static JEditorPane makeHtmlPane(String text, Font font)
+  public static JEditorPane makeHtmlPane(Message text, Font font)
   {
     return makeHtmlPane(text, null, font);
   }
@@ -1116,13 +1128,14 @@ public class UIFactory
    * @return a read only JEditorPane containing the provided text with the
    * provided font.
    */
-  public static JEditorPane makeHtmlPane(String text, HTMLEditorKit ek,
+  public static JEditorPane makeHtmlPane(Message text, HTMLEditorKit ek,
                                          Font font)
   {
     JEditorPane pane = new JEditorPane();
     if (ek != null) pane.setEditorKit(ek);
     pane.setContentType("text/html");
-    pane.setText(applyFontToHtmlWithDiv(text, font));
+    String s = text != null ? String.valueOf(text) : null;
+    pane.setText(applyFontToHtmlWithDiv(s, font));
     pane.setEditable(false);
     pane.setBorder(new EmptyBorder(0, 0, 0, 0));
     return pane;
@@ -1137,9 +1150,10 @@ public class UIFactory
    * @return a read only JEditorPane containing the provided text with the
    * provided TextStyle.
    */
-  public static JEditorPane makeTextPane(String text, TextStyle style)
+  public static JEditorPane makeTextPane(Message text, TextStyle style)
   {
-    JEditorPane pane = new JEditorPane("text/plain", text);
+    String s = text != null ? String.valueOf(text) : null;
+    JEditorPane pane = new JEditorPane("text/plain", s);
     setTextStyle(pane, style);
     pane.setEditable(false);
     pane.setBorder(new EmptyBorder(0, 0, 0, 0));
@@ -1363,17 +1377,17 @@ public class UIFactory
    * @param size the new size of the field.
    * @param textStyle the new TextStyle of the field.
    */
-  private static void updateTextFieldComponent(JTextField field, String text,
-      String tooltip, int size, TextStyle textStyle)
+  private static void updateTextFieldComponent(JTextField field, Message text,
+      Message tooltip, int size, TextStyle textStyle)
   {
     field.setColumns(size);
     if (text != null)
     {
-      field.setText(text);
+      field.setText(text.toString());
     }
     if (tooltip != null)
     {
-      field.setToolTipText(tooltip);
+      field.setToolTipText(tooltip.toString());
     }
     if (textStyle != null)
     {
@@ -1381,27 +1395,13 @@ public class UIFactory
     }
   }
 
-  /* Some commodity methods to retrieve localized messages */
-  private static ResourceProvider getI18n()
+  private static Color getColor(Message l)
   {
-    return ResourceProvider.getInstance();
-  }
-
-  private static String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  private static Color getColor(String l)
-  {
-    String s = getMsg(l);
-    int r = 0;
-    int g = 0;
-    int b = 0;
+    String s = String.valueOf(l);
     String[] colors = s.split(",");
-    r = Integer.parseInt(colors[0].trim());
-    g = Integer.parseInt(colors[1].trim());
-    b = Integer.parseInt(colors[2].trim());
+    int r = Integer.parseInt(colors[0].trim());
+    int g = Integer.parseInt(colors[1].trim());
+    int b = Integer.parseInt(colors[2].trim());
 
     return new Color(r, g, b);
   }
@@ -1430,81 +1430,81 @@ public class UIFactory
    */
   private static String getIconPath(IconType iconType)
   {
-    String key = null;
+    Message key = null;
     switch (iconType)
     {
     case CURRENT_STEP:
-      key = "current-step-icon";
+      key = INFO_CURRENT_STEP_ICON.get();
       break;
 
     case SPLASH:
-      key = "splash-icon";
+      key = INFO_SPLASH_ICON.get();
       break;
 
     case BACKGROUND:
-      key = "background-icon";
+      key = INFO_BACKGROUND_ICON.get();
       break;
 
     case MINIMIZED:
-      key = "minimized-icon";
+      key = INFO_MINIMIZED_ICON.get();
       break;
 
     case MINIMIZED_MAC:
-      key = "minimized-mac-icon";
+      key = INFO_MINIMIZED_MAC_ICON.get();
       break;
 
     case WARNING:
-      key = "warning-icon";
+      key = INFO_WARNING_ICON.get();
       break;
 
     case WARNING_LARGE:
-      key = "warning-large-icon";
+      key = INFO_WARNING_LARGE_ICON.get();
       break;
 
     case INFORMATION:
-      key = "information-icon";
+      key = INFO_INFORMATION_ICON.get();
       break;
 
     case INFORMATION_LARGE:
-      key = "information-large-icon";
+      key = INFO_INFORMATION_LARGE_ICON.get();
       break;
 
     case OPENDS_SMALL:
-      key = "opends-small-icon";
+      key = INFO_OPENDS_SMALL_ICON.get();
       break;
 
     case SUBSECTION_LEFT:
-      key = "subsection-left-icon";
+      key = INFO_SUBSECTION_LEFT_ICON.get();
       break;
 
     case SUBSECTION_RIGHT:
-      key = "subsection-right-icon";
+      key = INFO_SUBSECTION_RIGHT_ICON.get();
       break;
 
     case HELP_SMALL:
-      key = "help-small-icon";
+      key = INFO_HELP_SMALL_ICON.get();
       break;
 
     case ERROR:
-      key = "error-icon";
+      key = INFO_ERROR_ICON.get();
       break;
 
     case ERROR_LARGE:
-      key = "error-large-icon";
+      key = INFO_ERROR_LARGE_ICON.get();
       break;
 
     case WAIT_TINY:
-      key = "wait-tiny";
+      key = INFO_WAIT_TINY.get();
       break;
 
     case WAIT:
-      key = "wait";
+      key = INFO_WAIT.get();
       break;
 
     default:
       throw new IllegalArgumentException("Unknown iconName: " + iconType);
     }
-    return getParentPackagePath() + "/" + getMsg(key);
+    return getParentPackagePath() + "/" + key.toString();
   }
 
   /**
@@ -1512,77 +1512,77 @@ public class UIFactory
    * @param iconType the IconType for which we want to get the description.
    * @return the icon description for the given IconType.
    */
-  private static String getIconDescription(IconType iconType)
+  private static Message getIconDescription(IconType iconType)
   {
-    String description = null;
+    Message description = null;
     switch (iconType)
     {
     case CURRENT_STEP:
-      description = getMsg("current-step-icon-description");
+      description = INFO_CURRENT_STEP_ICON_DESCRIPTION.get();
       break;
 
     case SPLASH:
-      description = getMsg("splash-icon-description");
+      description = INFO_SPLASH_ICON_DESCRIPTION.get();
       break;
 
     case BACKGROUND:
-      description = getMsg("background-icon-description");
+      description = INFO_BACKGROUND_ICON_DESCRIPTION.get();
       break;
 
     case MINIMIZED:
-      description = getMsg("minimized-icon-description");
+      description = INFO_MINIMIZED_ICON_DESCRIPTION.get();
       break;
 
     case MINIMIZED_MAC:
-      description = getMsg("minimized-icon-description");
+      description = INFO_MINIMIZED_ICON_DESCRIPTION.get();
       break;
 
     case WARNING:
-      description = getMsg("warning-icon-description");
+      description = INFO_WARNING_ICON_DESCRIPTION.get();
       break;
 
     case WARNING_LARGE:
-      description = getMsg("warning-icon-description");
+      description = INFO_WARNING_ICON_DESCRIPTION.get();
       break;
 
     case ERROR:
-      description = getMsg("error-icon-description");
+      description = INFO_ERROR_ICON_DESCRIPTION.get();
       break;
 
     case ERROR_LARGE:
-      description = getMsg("error-icon-description");
+      description = INFO_ERROR_ICON_DESCRIPTION.get();
       break;
 
     case INFORMATION:
-      description = getMsg("information-icon-description");
+      description = INFO_INFORMATION_ICON_DESCRIPTION.get();
       break;
 
     case INFORMATION_LARGE:
-      description = getMsg("information-icon-description");
+      description = INFO_INFORMATION_ICON_DESCRIPTION.get();
       break;
 
     case OPENDS_SMALL:
-      description = getMsg("opends-small-icon-description");
+      description = INFO_OPENDS_SMALL_ICON_DESCRIPTION.get();
       break;
 
     case SUBSECTION_LEFT:
-      description = getMsg("subsection-left-icon-description");
+      description = INFO_SUBSECTION_LEFT_ICON_DESCRIPTION.get();
       break;
 
     case SUBSECTION_RIGHT:
-      description = getMsg("subsection-right-icon-description");
+      description = INFO_SUBSECTION_RIGHT_ICON_DESCRIPTION.get();
       break;
 
     case HELP_SMALL:
-      description = getMsg("help-small-icon-description");
+      description = INFO_HELP_SMALL_ICON_DESCRIPTION.get();
       break;
 
     case WAIT_TINY:
-      description = getMsg("help-wait-description");
+      description = INFO_HELP_WAIT_DESCRIPTION.get();
       break;
 
     case WAIT:
-      description = getMsg("help-wait-description");
+      description = INFO_HELP_WAIT_DESCRIPTION.get();
       break;
 
     case NO_ICON:
@@ -1601,56 +1601,56 @@ public class UIFactory
    * @param iconType the IconType for which we want to get the tooltip text.
    * @return the icon tooltip text for the given IconType.
    */
-  private static String getIconTooltip(IconType iconType)
+  private static Message getIconTooltip(IconType iconType)
   {
     if (iconType == null) {
       iconType = IconType.NO_ICON;
     }
-    String tooltip;
+    Message tooltip;
     switch (iconType)
     {
     case CURRENT_STEP:
-      tooltip = getMsg("current-step-icon-tooltip");
+      tooltip = INFO_CURRENT_STEP_ICON_TOOLTIP.get();
       break;
 
     case SPLASH:
-      tooltip = getMsg("splash-icon-tooltip");
+      tooltip = INFO_SPLASH_ICON_TOOLTIP.get();
       break;
 
     case BACKGROUND:
-      tooltip = getMsg("background-icon-tooltip");
+      tooltip = INFO_BACKGROUND_ICON_TOOLTIP.get();
       break;
 
     case MINIMIZED:
-      tooltip = getMsg("minimized-icon-tooltip");
+      tooltip = INFO_MINIMIZED_ICON_TOOLTIP.get();
       break;
 
     case MINIMIZED_MAC:
-      tooltip = getMsg("minimized-mac-icon-tooltip");
+      tooltip = INFO_MINIMIZED_ICON_TOOLTIP.get();
       break;
 
     case WARNING:
-      tooltip = getMsg("warning-icon-tooltip");
+      tooltip = INFO_WARNING_ICON_TOOLTIP.get();
       break;
 
     case WARNING_LARGE:
-      tooltip = getMsg("warning-icon-tooltip");
+      tooltip = INFO_WARNING_ICON_TOOLTIP.get();
       break;
 
     case ERROR:
-      tooltip = getMsg("error-icon-tooltip");
+      tooltip = INFO_ERROR_ICON_TOOLTIP.get();
       break;
 
     case ERROR_LARGE:
-      tooltip = getMsg("error-icon-tooltip");
+      tooltip = INFO_ERROR_ICON_TOOLTIP.get();
       break;
 
     case INFORMATION:
-      tooltip = getMsg("information-icon-tooltip");
+      tooltip = INFO_INFORMATION_ICON_TOOLTIP.get();
       break;
 
     case INFORMATION_LARGE:
-      tooltip = getMsg("information-icon-tooltip");
+      tooltip = INFO_INFORMATION_ICON_TOOLTIP.get();
       break;
 
     case OPENDS_SMALL:
@@ -1694,7 +1694,7 @@ public class UIFactory
           boolean isSelected,
           boolean cellHasFocus)
       {
-        JLabel l = makeJLabel(IconType.NO_ICON, (String)value, textStyle);
+        JLabel l = makeJLabel(IconType.NO_ICON, Message.raw(value), textStyle);
         l.setBorder(new EmptyBorder(TOP_INSET_SECONDARY_FIELD, 0, 0, 0));
         return l;
       }

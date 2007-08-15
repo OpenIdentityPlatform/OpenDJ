@@ -34,6 +34,7 @@ import java.util.LinkedList;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.Attribute;
@@ -64,7 +65,7 @@ public class EntrySchemaCheckingTestCase
   {
     try
     {
-      StringBuilder invalidReason = new StringBuilder();
+      MessageBuilder invalidReason = new MessageBuilder();
       DirectoryServer.setSingleStructuralObjectClassPolicy(REJECT);
       assertFalse(e.conformsToSchema(null, false, true, true, invalidReason),
                   "Entry validation succeeded with REJECT policy");
@@ -103,7 +104,7 @@ public class EntrySchemaCheckingTestCase
          "objectClass: domain",
          "dc: example");
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertTrue(e.conformsToSchema(null, true, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -129,7 +130,7 @@ public class EntrySchemaCheckingTestCase
          "dc: example",
          "o: Example Org");
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertTrue(e.conformsToSchema(null, true, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -205,7 +206,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test");
 
     assertFalse(e.conformsToSchema(null, false, true, true,
-                                   new StringBuilder()));
+                                   new MessageBuilder()));
   }
 
 
@@ -230,7 +231,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test");
 
     assertFalse(e.conformsToSchema(null, false, true, true,
-                                   new StringBuilder()));
+                                   new MessageBuilder()));
   }
 
 
@@ -274,7 +275,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test");
 
     assertFalse(e.conformsToSchema(null, false, true, true,
-                                   new StringBuilder()));
+                                   new MessageBuilder()));
   }
 
 
@@ -319,7 +320,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test");
 
     assertFalse(e.conformsToSchema(null, false, true, true,
-                                   new StringBuilder()));
+                                   new MessageBuilder()));
   }
 
 
@@ -363,7 +364,7 @@ public class EntrySchemaCheckingTestCase
          "description: foo");
 
     assertFalse(e.conformsToSchema(null, false, true, true,
-                                   new StringBuilder()));
+                                   new MessageBuilder()));
   }
 
 
@@ -385,7 +386,7 @@ public class EntrySchemaCheckingTestCase
          "o: test",
          "o: foo");
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertTrue(e.conformsToSchema(null, true, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -413,7 +414,7 @@ public class EntrySchemaCheckingTestCase
     e.addAttribute(new Attribute("dc", "foo"),
                    new LinkedList<AttributeValue>());
 
-    assertFalse(e.conformsToSchema(null, false, true, true, new StringBuilder()));
+    assertFalse(e.conformsToSchema(null, false, true, true, new MessageBuilder()));
   }
 
 
@@ -447,7 +448,7 @@ public class EntrySchemaCheckingTestCase
     e.addAttribute(new Attribute(creatorsNameType, "creatorsName", values),
                    new LinkedList<AttributeValue>());
 
-    assertFalse(e.conformsToSchema(null, false, true, true, new StringBuilder()));
+    assertFalse(e.conformsToSchema(null, false, true, true, new MessageBuilder()));
   }
 
 
@@ -499,7 +500,7 @@ public class EntrySchemaCheckingTestCase
          "objectClass: testAuxiliaryClassAllowedByDCROCAux",
          "cn: test");
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -603,7 +604,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test",
          "description: foo");
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -702,7 +703,7 @@ public class EntrySchemaCheckingTestCase
          "objectClass: testDontRequireATRequiredByObsoleteDCROC",
          "cn: test");
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -753,7 +754,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test",
          "description: foo");
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -804,7 +805,7 @@ public class EntrySchemaCheckingTestCase
          "objectClass: testDontRequireATAllowedByDCROC",
          "cn: test");
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -904,7 +905,7 @@ public class EntrySchemaCheckingTestCase
          "objectClass: testSatisfiesSingleValuedNameFormOC",
          "cn: test");
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -1056,7 +1057,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test",
          "description: foo");
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -1110,7 +1111,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test",
          "description: foo");
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -1215,7 +1216,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test",
          "description: foo");
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -1268,7 +1269,7 @@ public class EntrySchemaCheckingTestCase
          "cn: test",
          "description: foo");
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
   }
@@ -1408,7 +1409,7 @@ public class EntrySchemaCheckingTestCase
 
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
 
-    StringBuilder invalidReason = new StringBuilder();
+    MessageBuilder invalidReason = new MessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                invalidReason.toString());
 
@@ -1426,7 +1427,7 @@ public class EntrySchemaCheckingTestCase
          "objectClass: top",
          "objectClass: device",
          "cn: invalid entry below parent covered by DSR");
-    invalidReason = new StringBuilder();
+    invalidReason = new MessageBuilder();
     failOnlyForStrictEvaluation(e);
   }
 }

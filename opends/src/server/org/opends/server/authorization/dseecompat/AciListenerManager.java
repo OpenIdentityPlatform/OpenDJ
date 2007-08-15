@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
 import org.opends.server.workflowelement.localbackend.*;
 import org.opends.server.api.ChangeNotificationListener;
@@ -42,8 +43,7 @@ import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
-import static org.opends.server.messages.AciMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.AccessControlMessages.*;
 import org.opends.server.core.DirectoryServer;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -154,7 +154,7 @@ public class AciListenerManager
         boolean hasAci, hasGlobalAci=false;
         //Ignore this list, the ACI syntax has already passed and it should be
         //empty.
-        LinkedList<String>failedACIMsgs=new LinkedList<String>();
+        LinkedList<Message>failedACIMsgs=new LinkedList<Message>();
         //This entry might have both global and aci attribute types.
         if((hasAci=entry.hasOperationalAttribute(AciHandler.aciType)) ||
                 (hasGlobalAci=entry.hasAttribute(AciHandler.globalAciType)))
@@ -213,7 +213,7 @@ public class AciListenerManager
     public void performBackendInitializationProcessing(Backend backend) {
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
-      LinkedList<String>failedACIMsgs=new LinkedList<String>();
+      LinkedList<Message>failedACIMsgs=new LinkedList<Message>();
       //Add manageDsaIT control so any ACIs in referral entries will be
       //picked up.
       ArrayList<Control> controls = new ArrayList<Control>(1);
@@ -250,21 +250,17 @@ public class AciListenerManager
             continue;
         }
         if(internalSearch.getSearchEntries().isEmpty()) {
-          int    msgID  = MSGID_ACI_ADD_LIST_NO_ACIS;
-          String message = getMessage(msgID, String.valueOf(baseDN));
-          logError(ErrorLogCategory.ACCESS_CONTROL,
-                   ErrorLogSeverity.INFORMATIONAL, message, msgID);
+          Message message =
+              INFO_ACI_ADD_LIST_NO_ACIS.get(String.valueOf(baseDN));
+          logError(message);
         } else {
           int validAcis = aciList.addAci(
                internalSearch.getSearchEntries(), failedACIMsgs);
           if(!failedACIMsgs.isEmpty())
                     logMsgsSetLockDownMode(failedACIMsgs);
-          int    msgID  = MSGID_ACI_ADD_LIST_ACIS;
-          String message = getMessage(msgID, Integer.toString(validAcis),
-                                      String.valueOf(baseDN));
-          logError(ErrorLogCategory.ACCESS_CONTROL,
-                   ErrorLogSeverity.INFORMATIONAL,
-                   message, msgID);
+          Message message = INFO_ACI_ADD_LIST_ACIS.get(
+              Integer.toString(validAcis), String.valueOf(baseDN));
+          logError(message);
         }
       }
     }
@@ -331,13 +327,11 @@ public class AciListenerManager
      *
      * @param failedACIMsgs  List of exception messages from failed ACI decodes.
      */
-    public  void logMsgsSetLockDownMode(LinkedList<String> failedACIMsgs) {
-        int msgID=MSGID_ACI_SERVER_DECODE_FAILED;
-        for(String msg : failedACIMsgs) {
-            String message=getMessage(msgID, msg);
-            logError(ErrorLogCategory.ACCESS_CONTROL,
-                    ErrorLogSeverity.SEVERE_ERROR,
-                    message, msgID);
+    public  void logMsgsSetLockDownMode(LinkedList<Message> failedACIMsgs) {
+
+        for(Message msg : failedACIMsgs) {
+            Message message=WARN_ACI_SERVER_DECODE_FAILED.get(msg);
+            logError(message);
         }
         if(!inLockDownMode)
             setLockDownMode();
@@ -345,7 +339,7 @@ public class AciListenerManager
 
 
     /**
-     * Send an MSGID_ACI_ENTER_LOCKDOWN_MODE alert notification and put the
+     * Send an WARN_ACI_ENTER_LOCKDOWN_MODE alert notification and put the
      * server in lockdown mode.
      *
      */
@@ -354,11 +348,10 @@ public class AciListenerManager
             inLockDownMode=true;
             //Send ALERT_TYPE_ACCESS_CONTROL_PARSE_FAILED alert that
             //lockdown is about to be entered.
-            int lockDownID=MSGID_ACI_ENTER_LOCKDOWN_MODE;
-            String lockDownMsg=getMessage(lockDownID);
+            Message lockDownMsg=WARN_ACI_ENTER_LOCKDOWN_MODE.get();
             DirectoryServer.sendAlertNotification(this,
                     ALERT_TYPE_ACCESS_CONTROL_PARSE_FAILED,
-                    lockDownID, lockDownMsg );
+                    lockDownMsg );
             //Enter lockdown mode.
             DirectoryServer.setLockdownMode(true);
 

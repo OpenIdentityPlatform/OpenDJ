@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+import org.opends.messages.Message;
 
 
 
@@ -41,15 +42,14 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
-
 
 
 /**
@@ -108,9 +108,8 @@ public class BooleanSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_BOOLEAN_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_BOOLEAN_OID, SYNTAX_BOOLEAN_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_BOOLEAN_OID, SYNTAX_BOOLEAN_NAME));
     }
   }
 
@@ -228,7 +227,7 @@ public class BooleanSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     String valueString = value.stringValue().toUpperCase();
 
@@ -243,8 +242,8 @@ public class BooleanSyntax
 
     if (! returnValue)
     {
-      invalidReason.append(getMessage(MSGID_ATTR_SYNTAX_ILLEGAL_BOOLEAN,
-                                      value.stringValue()));
+      invalidReason.append(WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(
+              value.stringValue()));
     }
 
     return returnValue;
@@ -300,10 +299,9 @@ public class BooleanSyntax
     }
     else
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
-      String message = getMessage(msgID, valueString);
+      Message message = WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(valueString);
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                   message, msgID);
+                                   message);
     }
   }
 }

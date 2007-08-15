@@ -25,11 +25,11 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 
 import java.io.PrintStream;
 import java.util.List;
@@ -134,7 +134,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
   // Private constructor.
   private ListSubCommandHandler(ConsoleApplication app,
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
-      RelationDefinition<?, ?> r, String rname, String rufn)
+      RelationDefinition<?, ?> r, String rname, Message rufn)
       throws ArgumentException {
     super(app);
 
@@ -143,9 +143,8 @@ final class ListSubCommandHandler extends SubCommandHandler {
 
     // Create the sub-command.
     String name = "list-" + rname;
-    int descriptionID = MSGID_DSCFG_DESCRIPTION_SUBCMD_LIST;
-    this.subCommand = new SubCommand(parser, name, false, 0, 0, null,
-        descriptionID, rufn);
+    Message desc = INFO_DSCFG_DESCRIPTION_SUBCMD_LIST.get(rufn);
+    this.subCommand = new SubCommand(parser, name, false, 0, 0, null, desc);
 
     // Create the naming arguments.
     this.namingArgs = createNamingArgs(subCommand, path, false);
@@ -192,7 +191,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
     // Get the naming argument values.
     List<String> names = getNamingArgValues(namingArgs);
 
-    String ufn;
+    Message ufn;
     if (relation instanceof InstantiableRelationDefinition) {
       InstantiableRelationDefinition<?, ?> irelation =
         (InstantiableRelationDefinition<?, ?>) relation;
@@ -206,35 +205,30 @@ final class ListSubCommandHandler extends SubCommandHandler {
     try {
       parent = getManagedObject(path, names);
     } catch (AuthorizationException e) {
-      int msgID = MSGID_DSCFG_ERROR_LIST_AUTHZ;
-      String msg = getMessage(msgID, ufn);
+      Message msg = ERR_DSCFG_ERROR_LIST_AUTHZ.get(ufn);
       throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-          msgID, msg);
+          msg);
     } catch (DefinitionDecodingException e) {
-      int msgID = MSGID_DSCFG_ERROR_GET_PARENT_DDE;
+
       ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn, ufn, ufn);
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msgID, msg);
+      Message msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(ufn, ufn, ufn);
+      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
     } catch (ManagedObjectDecodingException e) {
-      int msgID = MSGID_DSCFG_ERROR_GET_PARENT_MODE;
+
       ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn);
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msgID, msg);
+      Message msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(ufn);
+      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
     } catch (CommunicationException e) {
-      int msgID = MSGID_DSCFG_ERROR_LIST_CE;
-      String msg = getMessage(msgID, ufn, e.getMessage());
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-          msg);
+      Message msg = ERR_DSCFG_ERROR_LIST_CE.get(ufn, e.getMessage());
+      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
     } catch (ConcurrentModificationException e) {
-      int msgID = MSGID_DSCFG_ERROR_LIST_CME;
-      String msg = getMessage(msgID, ufn);
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msgID,
-          msg);
+      Message msg = ERR_DSCFG_ERROR_LIST_CME.get(ufn);
+      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (ManagedObjectNotFoundException e) {
-      int msgID = MSGID_DSCFG_ERROR_GET_PARENT_MONFE;
+
       ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn);
-      throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msgID, msg);
+      Message msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(ufn);
+      throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
     }
 
     SortedMap<String, ManagedObject<?>> children =
@@ -253,30 +247,24 @@ final class ListSubCommandHandler extends SubCommandHandler {
       } catch (DefinitionDecodingException e) {
         // FIXME: just output this as a warnings (incl. the name) but
         // continue.
-        int msgID = MSGID_DSCFG_ERROR_LIST_DDE;
-        String msg = getMessage(msgID, ufn, ufn, ufn);
-        throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msgID, msg);
+        Message msg = ERR_DSCFG_ERROR_LIST_DDE.get(ufn, ufn, ufn);
+        throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
       } catch (ManagedObjectDecodingException e) {
         // FIXME: just output this as a warnings (incl. the name) but
         // continue.
-        int msgID = MSGID_DSCFG_ERROR_LIST_MODE;
-        String msg = getMessage(msgID, ufn);
-        throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msgID, msg);
+        Message msg = ERR_DSCFG_ERROR_LIST_MODE.get(ufn);
+        throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
       } catch (AuthorizationException e) {
-        int msgID = MSGID_DSCFG_ERROR_LIST_AUTHZ;
-        String msg = getMessage(msgID, ufn);
+        Message msg = ERR_DSCFG_ERROR_LIST_AUTHZ.get(ufn);
         throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-            msgID, msg);
-      } catch (ConcurrentModificationException e) {
-        int msgID = MSGID_DSCFG_ERROR_LIST_CME;
-        String msg = getMessage(msgID, ufn);
-        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msgID,
             msg);
+      } catch (ConcurrentModificationException e) {
+        Message msg = ERR_DSCFG_ERROR_LIST_CME.get(ufn);
+        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
       } catch (CommunicationException e) {
-        int msgID = MSGID_DSCFG_ERROR_LIST_CE;
-        String msg = getMessage(msgID, ufn, e.getMessage());
+        Message msg = ERR_DSCFG_ERROR_LIST_CE.get(ufn, e.getMessage());
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
-            msgID, msg);
+            msg);
       }
     } else if (relation instanceof OptionalRelationDefinition) {
       OptionalRelationDefinition<?, ?> orelation =
@@ -290,32 +278,25 @@ final class ListSubCommandHandler extends SubCommandHandler {
           throw new ManagedObjectNotFoundException();
         }
       } catch (AuthorizationException e) {
-        int msgID = MSGID_DSCFG_ERROR_LIST_AUTHZ;
-        String msg = getMessage(msgID, ufn);
+        Message msg = ERR_DSCFG_ERROR_LIST_AUTHZ.get(ufn);
         throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-            msgID, msg);
-      } catch (DefinitionDecodingException e) {
-        int msgID = MSGID_DSCFG_ERROR_LIST_DDE;
-        String msg = getMessage(msgID, ufn, ufn, ufn);
-        throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msgID, msg);
-      } catch (ManagedObjectDecodingException e) {
-        int msgID = MSGID_DSCFG_ERROR_LIST_MODE;
-        String msg = getMessage(msgID, ufn);
-        throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msgID, msg);
-      } catch (ConcurrentModificationException e) {
-        int msgID = MSGID_DSCFG_ERROR_LIST_CME;
-        String msg = getMessage(msgID, ufn);
-        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msgID,
             msg);
+      } catch (DefinitionDecodingException e) {
+        Message msg = ERR_DSCFG_ERROR_LIST_DDE.get(ufn, ufn, ufn);
+        throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+      } catch (ManagedObjectDecodingException e) {
+        Message msg = ERR_DSCFG_ERROR_LIST_MODE.get(ufn);
+        throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+      } catch (ConcurrentModificationException e) {
+        Message msg = ERR_DSCFG_ERROR_LIST_CME.get(ufn);
+        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
       } catch (CommunicationException e) {
-        int msgID = MSGID_DSCFG_ERROR_LIST_CE;
-        String msg = getMessage(msgID, ufn, e.getMessage());
+        Message msg = ERR_DSCFG_ERROR_LIST_CE.get(ufn, e.getMessage());
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
-            msgID, msg);
+            msg);
       } catch (ManagedObjectNotFoundException e) {
-        int msgID = MSGID_DSCFG_ERROR_LIST_MONFE;
-        String msg = getMessage(msgID, ufn);
-        throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msgID, msg);
+        Message msg = ERR_DSCFG_ERROR_LIST_MONFE.get(ufn);
+        throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
       }
     }
 
@@ -331,11 +312,11 @@ final class ListSubCommandHandler extends SubCommandHandler {
       TableBuilder builder = new TableBuilder();
       builder.appendHeading(relation.getUserFriendlyName());
       builder
-          .appendHeading(getMessage(MSGID_DSCFG_HEADING_COMPONENT_TYPE));
+          .appendHeading(INFO_DSCFG_HEADING_COMPONENT_TYPE.get());
       if (!propertyNames.isEmpty()) {
       }
       for (String propertyName : propertyNames) {
-        builder.appendHeading(propertyName);
+        builder.appendHeading(Message.raw(propertyName));
       }
       builder.addSortKey(0);
 

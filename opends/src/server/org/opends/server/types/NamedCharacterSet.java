@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 
@@ -33,8 +34,7 @@ import java.util.SortedSet;
 
 import org.opends.server.config.ConfigException;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
+import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -80,19 +80,17 @@ public class NamedCharacterSet
 
     if ((name == null) || (name.length() == 0))
     {
-      int msgID = MSGID_CHARSET_CONSTRUCTOR_NO_NAME;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CHARSET_CONSTRUCTOR_NO_NAME.get();
+      throw new ConfigException(message);
     }
 
     for (int i=0; i < name.length(); i++)
     {
       if (! isAlpha(name.charAt(i)))
       {
-        int    msgID   = MSGID_CHARSET_CONSTRUCTOR_INVALID_NAME_CHAR;
-        String message = getMessage(msgID,
-                              String.valueOf(name.charAt(i)), i);
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CHARSET_CONSTRUCTOR_INVALID_NAME_CHAR.
+            get(String.valueOf(name.charAt(i)), i);
+        throw new ConfigException(message);
       }
     }
   }
@@ -121,19 +119,17 @@ public class NamedCharacterSet
 
     if ((name == null) || (name.length() == 0))
     {
-      int msgID = MSGID_CHARSET_CONSTRUCTOR_NO_NAME;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_CHARSET_CONSTRUCTOR_NO_NAME.get();
+      throw new ConfigException(message);
     }
 
     for (int i=0; i < name.length(); i++)
     {
       if (! isAlpha(name.charAt(i)))
       {
-        int    msgID   = MSGID_CHARSET_CONSTRUCTOR_INVALID_NAME_CHAR;
-        String message = getMessage(msgID,
-                              String.valueOf(name.charAt(i)), i);
-        throw new ConfigException(msgID, message);
+        Message message = ERR_CHARSET_CONSTRUCTOR_INVALID_NAME_CHAR.
+            get(String.valueOf(name.charAt(i)), i);
+        throw new ConfigException(message);
       }
     }
   }
@@ -243,21 +239,21 @@ public class NamedCharacterSet
       int colonPos = value.indexOf(':');
       if (colonPos < 0)
       {
-        int msgID = MSGID_CHARSET_NO_COLON;
-        String message = getMessage(msgID, String.valueOf(value));
-        throw new ConfigException(msgID, message);
+        Message message =
+            ERR_CHARSET_NO_COLON.get(String.valueOf(value));
+        throw new ConfigException(message);
       }
       else if (colonPos == 0)
       {
-        int msgID = MSGID_CHARSET_NO_NAME;
-        String message = getMessage(msgID, String.valueOf(value));
-        throw new ConfigException(msgID, message);
+        Message message =
+            ERR_CHARSET_NO_NAME.get(String.valueOf(value));
+        throw new ConfigException(message);
       }
       else if (colonPos == (value.length() - 1))
       {
-        int msgID = MSGID_CHARSET_NO_CHARS;
-        String message = getMessage(msgID, String.valueOf(value));
-        throw new ConfigException(msgID, message);
+        Message message =
+            ERR_CHARSET_NO_CHARS.get(String.valueOf(value));
+        throw new ConfigException(message);
       }
       else
       {

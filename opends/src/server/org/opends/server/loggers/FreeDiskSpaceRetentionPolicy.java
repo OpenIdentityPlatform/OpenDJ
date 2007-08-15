@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
+import org.opends.messages.Message;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -39,6 +40,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.admin.std.server.FreeDiskSpaceLogRetentionPolicyCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+
 
 /**
  * This class implements a retention policy based on the free disk
@@ -73,7 +75,7 @@ public class FreeDiskSpaceRetentionPolicy implements
    */
   public boolean isConfigurationChangeAcceptable(
       FreeDiskSpaceLogRetentionPolicyCfg config,
-      List<String> unacceptableReasons)
+      List<Message> unacceptableReasons)
   {
     // Changes should always be OK
     return true;
@@ -88,7 +90,7 @@ public class FreeDiskSpaceRetentionPolicy implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     freeDiskSpace = config.getFreeDiskSpace();
 
@@ -131,7 +133,7 @@ public class FreeDiskSpaceRetentionPolicy implements
     }
 
           if(debugEnabled())
-      {
+      { // TODO: i18n
         TRACER.debugInfo("Current free disk space: %d, Required: %d", freeSpace,
                   freeDiskSpace);
       }

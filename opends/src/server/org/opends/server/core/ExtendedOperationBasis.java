@@ -25,7 +25,8 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
-
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 
 import java.util.ArrayList;
@@ -58,9 +59,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -245,16 +244,16 @@ public class ExtendedOperationBasis
    */
   @Override()
   public final void disconnectClient(DisconnectReason disconnectReason,
-                                     boolean sendNotification, String message,
-                                     int messageID)
+                                     boolean sendNotification, Message message
+  )
   {
     // Before calling clientConnection.disconnect, we need to mark this
     // operation as cancelled so that the attempt to cancel it later won't cause
     // an unnecessary delay.
     setCancelResult(CancelResult.CANCELED);
 
-    clientConnection.disconnect(disconnectReason, sendNotification, message,
-                                messageID);
+    clientConnection.disconnect(disconnectReason, sendNotification,
+            message);
   }
 
 
@@ -288,7 +287,7 @@ public class ExtendedOperationBasis
     String resultCode = String.valueOf(getResultCode().getIntValue());
 
     String errorMessage;
-    StringBuilder errorMessageBuffer = getErrorMessage();
+    MessageBuilder errorMessageBuffer = getErrorMessage();
     if (errorMessageBuffer == null)
     {
       errorMessage = null;
@@ -427,8 +426,7 @@ extendedProcessing:
         // result and return.
         setResultCode(ResultCode.CANCELED);
 
-        int msgID = MSGID_CANCELED_BY_PREPARSE_DISCONNECT;
-        appendErrorMessage(getMessage(msgID));
+        appendErrorMessage(ERR_CANCELED_BY_PREPARSE_DISCONNECT.get());
 
         setProcessingStopTime();
 
@@ -475,8 +473,8 @@ extendedProcessing:
       if (handler == null)
       {
         setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
-        appendErrorMessage(getMessage(MSGID_EXTENDED_NO_HANDLER,
-                                      String.valueOf(requestOID)));
+        appendErrorMessage(ERR_EXTENDED_NO_HANDLER.get(
+                String.valueOf(requestOID)));
         break extendedProcessing;
       }
 
@@ -492,8 +490,9 @@ extendedProcessing:
                   getAccessControlHandler().
                   isAllowed(this.getAuthorizationDN(), this, c)) {
             setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-            int msgID = MSGID_CONTROL_INSUFFICIENT_ACCESS_RIGHTS;
-            appendErrorMessage(getMessage(msgID, c.getOID()));
+
+            appendErrorMessage(ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(
+                    c.getOID()));
             skipPostOperation=true;
             break extendedProcessing;
           }
@@ -506,9 +505,9 @@ extendedProcessing:
           {
             setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
 
-            int msgID = MSGID_EXTENDED_UNSUPPORTED_CRITICAL_CONTROL;
-            appendErrorMessage(getMessage(msgID, String.valueOf(requestOID),
-                                          c.getOID()));
+            appendErrorMessage(ERR_EXTENDED_UNSUPPORTED_CRITICAL_CONTROL.get(
+                    String.valueOf(requestOID),
+                    c.getOID()));
 
             break extendedProcessing;
           }
@@ -526,8 +525,8 @@ extendedProcessing:
           .getAccessControlHandler().isAllowed(this) == false) {
         setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
 
-        int msgID = MSGID_EXTENDED_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-        appendErrorMessage(getMessage(msgID, String.valueOf(requestOID)));
+        appendErrorMessage(ERR_EXTENDED_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
+                String.valueOf(requestOID)));
 
         skipPostOperation = true;
         break extendedProcessing;
@@ -542,9 +541,7 @@ extendedProcessing:
         // and return.
         setResultCode(ResultCode.CANCELED);
 
-        int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
-        appendErrorMessage(getMessage(msgID));
-
+        appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
         setProcessingStopTime();
 
         logExtendedResponse(this);
@@ -597,8 +594,7 @@ extendedProcessing:
         // return.
         setResultCode(ResultCode.CANCELED);
 
-        int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
-        appendErrorMessage(getMessage(msgID));
+        appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
 
         setProcessingStopTime();
 

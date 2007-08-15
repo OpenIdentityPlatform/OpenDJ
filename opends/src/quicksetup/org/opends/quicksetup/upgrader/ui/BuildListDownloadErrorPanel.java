@@ -27,11 +27,13 @@
 
 package org.opends.quicksetup.upgrader.ui;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.upgrader.RemoteBuildManager;
 import org.opends.quicksetup.ui.CustomHTMLEditorKit;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.ui.WebProxyDialog;
-import org.opends.quicksetup.i18n.ResourceProvider;
 
 import javax.swing.*;
 import java.awt.*;
@@ -71,22 +73,21 @@ class BuildListDownloadErrorPanel extends JPanel {
   private void layoutPanel() {
     setLayout(new GridBagLayout());
 
-    String proxyString = getMsg("general-none");
+    String proxyString = INFO_GENERAL_NONE.get().toString();
     Proxy proxy = rbm.getProxy();
     if (proxy != null) {
       SocketAddress addr = proxy.address();
       proxyString = addr.toString();
     }
 
-    String baseContext = getMsg("general-unspecified");
+    String baseContext = INFO_GENERAL_UNSPECIFIED.get().toString();
     URL url = rbm.getBaseContext();
     if (url != null) {
       baseContext = url.toString();
     }
 
-    String html =
-            getMsg("upgrade-choose-version-build-list-error",
-                    baseContext,
+    Message html =
+            INFO_UPGRADE_CHOOSE_VERSION_BUILD_LIST_ERROR.get(baseContext,
                     reason.getLocalizedMessage(),
                     proxyString);
 
@@ -121,14 +122,6 @@ class BuildListDownloadErrorPanel extends JPanel {
       }
     });
     add(UIFactory.makeHtmlPane(html, ek, UIFactory.INSTRUCTIONS_FONT));
-  }
-
-  private String getMsg(String key) {
-    return ResourceProvider.getInstance().getMsg(key);
-  }
-
-  private String getMsg(String key, String... args) {
-    return ResourceProvider.getInstance().getMsg(key, args);
   }
 
   /**

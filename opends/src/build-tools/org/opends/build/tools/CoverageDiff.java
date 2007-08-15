@@ -41,7 +41,6 @@ import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory;
 import org.tmatesoft.svn.core.wc.SVNDiffClient;
 import org.tmatesoft.svn.core.wc.SVNRevision;
-import org.tmatesoft.svn.core.wc.SVNWCUtil;
 
 public class CoverageDiff extends Task {
 

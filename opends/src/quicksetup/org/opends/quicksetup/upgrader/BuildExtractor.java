@@ -27,9 +27,12 @@
 
 package org.opends.quicksetup.upgrader;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.event.ProgressUpdateListener;
-import org.opends.quicksetup.i18n.ResourceProvider;
+
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.ZipExtractor;
 import org.opends.quicksetup.util.FileManager;
@@ -69,7 +72,7 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
                       QuickSetupLog.LOG_FILE_SUFFIX));
     } catch (Throwable t) {
       System.err.println(
-              ResourceProvider.getInstance().getMsg("error-initializing-log"));
+              INFO_ERROR_INITIALIZING_LOG.get());
       t.printStackTrace();
     }
     new BuildExtractor(args).launch();
@@ -111,7 +114,7 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
         if (!installation.isValid()) {
           LOG.log(Level.INFO, "extraction produed an invalid OpenDS" +
                   "installation: " + installation.getInvalidityReason());
-          String invalidMsg = getMsg("build-extractor-file-invalid",
+          Message invalidMsg = INFO_BUILD_EXTRACTOR_FILE_INVALID.get(
                   Utils.getPath(buildFile),
                   installation.getInvalidityReason());
           error = new ApplicationException(
@@ -124,8 +127,8 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
       LOG.log(Level.INFO, "unexpected error extracting build", t);
       String reason = t.getLocalizedMessage();
       error = new ApplicationException(
-          ApplicationReturnCode.ReturnCode.APPLICATION_ERROR, getMsg(
-              "build-extractor-error", reason), t);
+              ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
+              INFO_BUILD_EXTRACTOR_ERROR.get(reason), t);
       System.err.println(reason);
     } finally   {
       finished = true;
@@ -141,7 +144,7 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
       fm.deleteRecursively(stageDir);
     }
     if (!stageDir.mkdirs()) {
-      String msg = getMsg("error-failed-to-create-stage-directory",
+      Message msg = INFO_ERROR_FAILED_TO_CREATE_STAGE_DIRECTORY.get(
               Utils.getPath(stageDir));
       throw ApplicationException.createFileSystemException(msg, null);
     }
@@ -227,8 +230,8 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  public void notifyListeners(Integer ratio, String currentPhaseSummary,
-                              String newLogDetail) {
+  public void notifyListeners(Integer ratio, Message currentPhaseSummary,
+                              Message newLogDetail) {
     // ignored;  no progress messages
   }
 

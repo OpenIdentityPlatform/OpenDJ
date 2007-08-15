@@ -26,6 +26,7 @@
  */
 
 package org.opends.quicksetup.util;
+import org.opends.messages.Message;
 
 import org.opends.quicksetup.Installation;
 
@@ -123,7 +124,7 @@ public class ExternalTools {
             new BufferedReader(new InputStreamReader(p.getErrorStream()));
     new OutputReader(out) {
       public void processLine(String line) {
-        oo.addErrorMessage(line);
+        oo.addErrorMessage(Message.raw(line));
         LOG.log(Level.INFO, toolName + ": " + line);
       }
     };
@@ -132,7 +133,7 @@ public class ExternalTools {
             new BufferedReader(new InputStreamReader(p.getInputStream()));
     new OutputReader(err) {
       public void processLine(String line) {
-        oo.addOutputMessage(line);
+        oo.addOutputMessage(Message.raw(line));
         LOG.log(Level.INFO, toolName + ": " + line);
       }
     };

@@ -25,11 +25,11 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 
 
 
@@ -45,7 +45,7 @@ public enum PasswordPolicyErrorType
    * expired.
    */
   PASSWORD_EXPIRED(PasswordPolicyErrorType.TYPE_PASSWORD_EXPIRED,
-                   MSGID_PWPERRTYPE_DESCRIPTION_PASSWORD_EXPIRED),
+                   INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_EXPIRED.get()),
 
 
 
@@ -54,7 +54,7 @@ public enum PasswordPolicyErrorType
    * locked.
    */
   ACCOUNT_LOCKED(PasswordPolicyErrorType.TYPE_ACCOUNT_LOCKED,
-                 MSGID_PWPERRTYPE_DESCRIPTION_ACCOUNT_LOCKED),
+                 INFO_PWPERRTYPE_DESCRIPTION_ACCOUNT_LOCKED.get()),
 
 
 
@@ -63,7 +63,7 @@ public enum PasswordPolicyErrorType
    * be changed because it has been administratively reset.
    */
   CHANGE_AFTER_RESET(PasswordPolicyErrorType.TYPE_CHANGE_AFTER_RESET,
-                     MSGID_PWPERRTYPE_DESCRIPTION_CHANGE_AFTER_RESET),
+                     INFO_PWPERRTYPE_DESCRIPTION_CHANGE_AFTER_RESET.get()),
 
 
 
@@ -73,7 +73,7 @@ public enum PasswordPolicyErrorType
    */
   PASSWORD_MOD_NOT_ALLOWED(
        PasswordPolicyErrorType.TYPE_PASSWORD_MOD_NOT_ALLOWED,
-       MSGID_PWPERRTYPE_DESCRIPTION_PASSWORD_MOD_NOT_ALLOWED),
+       INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_MOD_NOT_ALLOWED.get()),
 
 
 
@@ -83,7 +83,7 @@ public enum PasswordPolicyErrorType
    */
   MUST_SUPPLY_OLD_PASSWORD(
        PasswordPolicyErrorType.TYPE_MUST_SUPPLY_OLD_PASSWORD,
-       MSGID_PWPERRTYPE_DESCRIPTION_MUST_SUPPLY_OLD_PASSWORD),
+       INFO_PWPERRTYPE_DESCRIPTION_MUST_SUPPLY_OLD_PASSWORD.get()),
 
 
 
@@ -93,7 +93,7 @@ public enum PasswordPolicyErrorType
    */
   INSUFFICIENT_PASSWORD_QUALITY(
        PasswordPolicyErrorType.TYPE_INSUFFICIENT_PASSWORD_QUALITY,
-       MSGID_PWPERRTYPE_DESCRIPTION_INSUFFICIENT_PASSWORD_QUALITY),
+       INFO_PWPERRTYPE_DESCRIPTION_INSUFFICIENT_PASSWORD_QUALITY.get()),
 
 
 
@@ -102,7 +102,7 @@ public enum PasswordPolicyErrorType
    * too short.
    */
   PASSWORD_TOO_SHORT(PasswordPolicyErrorType.TYPE_PASSWORD_TOO_SHORT,
-                     MSGID_PWPERRTYPE_DESCRIPTION_PASSWORD_TOO_SHORT),
+                     INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_TOO_SHORT.get()),
 
 
 
@@ -112,7 +112,7 @@ public enum PasswordPolicyErrorType
    * again).
    */
   PASSWORD_TOO_YOUNG(PasswordPolicyErrorType.TYPE_PASSWORD_TOO_YOUNG,
-                     MSGID_PWPERRTYPE_DESCRIPTION_PASSWORD_TOO_YOUNG),
+                     INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_TOO_YOUNG.get()),
 
 
 
@@ -121,7 +121,7 @@ public enum PasswordPolicyErrorType
    * in the user's password history.
    */
   PASSWORD_IN_HISTORY(PasswordPolicyErrorType.TYPE_PASSWORD_IN_HISTORY,
-                      MSGID_PWPERRTYPE_DESCRIPTION_PASSWORD_IN_HISTORY);
+                      INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_IN_HISTORY.get());
 
 
 
@@ -193,7 +193,7 @@ public enum PasswordPolicyErrorType
   private int value;
 
   // The message ID for the description of this password policy error type.
-  private int descriptionID;
+  private Message description;
 
 
 
@@ -204,13 +204,13 @@ public enum PasswordPolicyErrorType
    * @param  value          The integer value associated with the error type to
    *                        use in the associated enumerated element in the
    *                        password policy response control.
-   * @param  descriptionID  The message ID for the description of this password
+   * @param  description    The message for the description of this password
    *                        policy error type.
    */
-  private PasswordPolicyErrorType(int value, int descriptionID)
+  private PasswordPolicyErrorType(int value, Message description)
   {
     this.value         = value;
-    this.descriptionID = descriptionID;
+    this.description   = description;
   }
 
 
@@ -275,7 +275,7 @@ public enum PasswordPolicyErrorType
    */
   public String toString()
   {
-    return getMessage(descriptionID);
+    return description.toString();
   }
 }
 

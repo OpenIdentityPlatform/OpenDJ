@@ -25,11 +25,11 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
+import org.opends.messages.Message;
 
 
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.DefaultBehaviorException;
@@ -73,31 +73,30 @@ public final class ArgumentExceptionFactory {
     PropertyDefinition<?> pd = e.getNamingPropertyDefinition();
 
     if (illegalName.length() == 0) {
-      int msgID = MSGID_DSCFG_ERROR_ILLEGAL_NAME_EMPTY;
-      String message = getMessage(msgID, d.getUserFriendlyPluralName());
-      return new ArgumentException(msgID, message);
+      Message message =
+          ERR_DSCFG_ERROR_ILLEGAL_NAME_EMPTY.get(d.getUserFriendlyPluralName());
+      return new ArgumentException(message);
     } else if (illegalName.trim().length() == 0) {
-      int msgID = MSGID_DSCFG_ERROR_ILLEGAL_NAME_BLANK;
-      String message = getMessage(msgID, d.getUserFriendlyPluralName());
-      return new ArgumentException(msgID, message);
+      Message message =
+          ERR_DSCFG_ERROR_ILLEGAL_NAME_BLANK.get(d.getUserFriendlyPluralName());
+      return new ArgumentException(message);
     } else if (pd != null) {
       try {
         pd.decodeValue(illegalName);
       } catch (IllegalPropertyValueStringException e1) {
         PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(
             true);
-        String syntax = b.getUsage(pd);
+        Message syntax = b.getUsage(pd);
 
-        int msgID = MSGID_DSCFG_ERROR_ILLEGAL_NAME_SYNTAX;
-        String message = getMessage(msgID, illegalName,
-            d.getUserFriendlyName(), syntax);
-        return new ArgumentException(msgID, message);
+        Message message = ERR_DSCFG_ERROR_ILLEGAL_NAME_SYNTAX.get(
+            illegalName, d.getUserFriendlyName(), syntax);
+        return new ArgumentException(message);
       }
     }
 
-    int msgID = MSGID_DSCFG_ERROR_ILLEGAL_NAME_UNKNOWN;
-    String message = getMessage(msgID, illegalName, d.getUserFriendlyName());
-    return new ArgumentException(msgID, message);
+    Message message = ERR_DSCFG_ERROR_ILLEGAL_NAME_UNKNOWN.get(
+        illegalName, d.getUserFriendlyName());
+    return new ArgumentException(message);
   }
 
 
@@ -115,7 +114,6 @@ public final class ArgumentExceptionFactory {
   public static ArgumentException adaptMissingMandatoryPropertiesException(
       MissingMandatoryPropertiesException e,
       AbstractManagedObjectDefinition<?, ?> d) {
-    int msgID = MSGID_DSCFG_ERROR_CREATE_MMPE;
     StringBuilder builder = new StringBuilder();
     boolean isFirst = true;
     for (PropertyIsMandatoryException pe : e.getCauses()) {
@@ -125,8 +123,9 @@ public final class ArgumentExceptionFactory {
       builder.append(pe.getPropertyDefinition().getName());
       isFirst = false;
     }
-    String msg = getMessage(msgID, d.getUserFriendlyName(), builder.toString());
-    return new ArgumentException(msgID, msg);
+    Message msg = ERR_DSCFG_ERROR_CREATE_MMPE.get(
+            d.getUserFriendlyName(), builder.toString());
+    return new ArgumentException(msg);
   }
 
 
@@ -162,10 +161,10 @@ public final class ArgumentExceptionFactory {
       DefaultBehaviorException pe = (DefaultBehaviorException) e;
       return adapt(d, pe);
     } else {
-      int msgID = MSGID_DSCFG_ERROR_PROPERTY_UNKNOWN_ERROR;
-      String message = getMessage(msgID, d.getUserFriendlyName(), e
-          .getPropertyDefinition().getName(), e.getMessage());
-      return new ArgumentException(msgID, message);
+      Message message = ERR_DSCFG_ERROR_PROPERTY_UNKNOWN_ERROR.
+          get(d.getUserFriendlyName(), e.getPropertyDefinition().getName(),
+              e.getMessage());
+      return new ArgumentException(message);
     }
   }
 
@@ -181,9 +180,8 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException incompatiblePropertyModification(String arg) {
-    int msgID = MSGID_DSCFG_ERROR_INCOMPATIBLE_PROPERTY_MOD;
-    String msg = getMessage(msgID, arg);
-    return new ArgumentException(msgID, msg);
+    Message msg = ERR_DSCFG_ERROR_INCOMPATIBLE_PROPERTY_MOD.get(arg);
+    return new ArgumentException(msg);
   }
 
 
@@ -197,9 +195,8 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException missingBindPassword(String bindDN) {
-    int msgID = MSGID_DSCFG_ERROR_NO_PASSWORD;
-    String msg = getMessage(msgID, bindDN);
-    return new ArgumentException(msgID, msg);
+    Message msg = ERR_DSCFG_ERROR_NO_PASSWORD.get(bindDN);
+    return new ArgumentException(msg);
   }
 
 
@@ -215,9 +212,9 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException missingMandatoryNonInteractiveArgument(
       Argument arg) {
-    int msgID = MSGID_DSCFG_ERROR_MISSING_NON_INTERACTIVE_ARG;
-    String msg = getMessage(msgID, arg.getLongIdentifier());
-    return new ArgumentException(msgID, msg);
+    Message msg = ERR_DSCFG_ERROR_MISSING_NON_INTERACTIVE_ARG.get(
+        arg.getLongIdentifier());
+    return new ArgumentException(msg);
   }
 
 
@@ -232,9 +229,8 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException missingNameInPropertyArgument(String arg) {
-    int msgID = MSGID_DSCFG_ERROR_NO_NAME_IN_PROPERTY_VALUE;
-    String msg = getMessage(msgID, arg);
-    return new ArgumentException(msgID, msg);
+    Message msg = ERR_DSCFG_ERROR_NO_NAME_IN_PROPERTY_VALUE.get(arg);
+    return new ArgumentException(msg);
   }
 
 
@@ -250,9 +246,8 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException missingNameInPropertyModification(
       String arg) {
-    int msgID = MSGID_DSCFG_ERROR_NO_NAME_IN_PROPERTY_MOD;
-    String msg = getMessage(msgID, arg);
-    return new ArgumentException(msgID, msg);
+    Message msg = ERR_DSCFG_ERROR_NO_NAME_IN_PROPERTY_MOD.get(arg);
+    return new ArgumentException(msg);
   }
 
 
@@ -268,9 +263,8 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException missingSeparatorInPropertyArgument(
       String arg) {
-    int msgID = MSGID_DSCFG_ERROR_NO_SEPARATOR_IN_PROPERTY_VALUE;
-    String msg = getMessage(msgID, arg);
-    return new ArgumentException(msgID, msg);
+    Message msg = ERR_DSCFG_ERROR_NO_SEPARATOR_IN_PROPERTY_VALUE.get(arg);
+    return new ArgumentException(msg);
   }
 
 
@@ -286,9 +280,8 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException missingSeparatorInPropertyModification(
       String arg) {
-    int msgID = MSGID_DSCFG_ERROR_NO_SEPARATOR_IN_PROPERTY_MOD;
-    String msg = getMessage(msgID, arg);
-    return new ArgumentException(msgID, msg);
+    Message msg = ERR_DSCFG_ERROR_NO_SEPARATOR_IN_PROPERTY_MOD.get(arg);
+    return new ArgumentException(msg);
   }
 
 
@@ -303,9 +296,8 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException missingValueInPropertyArgument(String arg) {
-    int msgID = MSGID_DSCFG_ERROR_NO_VALUE_IN_PROPERTY_VALUE;
-    String msg = getMessage(msgID, arg);
-    return new ArgumentException(msgID, msg);
+    Message msg = ERR_DSCFG_ERROR_NO_VALUE_IN_PROPERTY_VALUE.get(arg);
+    return new ArgumentException(msg);
   }
 
 
@@ -321,9 +313,8 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException missingValueInPropertyModification(
       String arg) {
-    int msgID = MSGID_DSCFG_ERROR_NO_NAME_IN_PROPERTY_MOD;
-    String msg = getMessage(msgID, arg);
-    return new ArgumentException(msgID, msg);
+    Message msg = ERR_DSCFG_ERROR_NO_NAME_IN_PROPERTY_MOD.get(arg);
+    return new ArgumentException(msg);
   }
 
 
@@ -337,9 +328,9 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException unableToReadBindPassword(Exception cause) {
-    int msgID = MSGID_DSCFG_ERROR_CANNOT_READ_LDAP_BIND_PASSWORD;
-    String message = getMessage(msgID, cause.getMessage());
-    return new ArgumentException(msgID, message, cause);
+    Message message =
+        ERR_DSCFG_ERROR_CANNOT_READ_LDAP_BIND_PASSWORD.get(cause.getMessage());
+    return new ArgumentException(message, cause);
   }
 
 
@@ -352,9 +343,8 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException unableToReadBindPasswordInteractively() {
-    int msgID = MSGID_DSCFG_ERROR_BIND_PASSWORD_NONINTERACTIVE;
-    String message = getMessage(msgID);
-    return new ArgumentException(msgID, message);
+    Message message = ERR_DSCFG_ERROR_BIND_PASSWORD_NONINTERACTIVE.get();
+    return new ArgumentException(message);
   }
 
 
@@ -368,9 +358,9 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException unableToReadConsoleInput(Exception cause) {
-    int msgID = MSGID_DSCFG_ERROR_CANNOT_READ_CONSOLE_INPUT;
-    String message = getMessage(msgID, cause.getMessage());
-    return new ArgumentException(msgID, message, cause);
+    Message message =
+        ERR_DSCFG_ERROR_CANNOT_READ_CONSOLE_INPUT.get(cause.getMessage());
+    return new ArgumentException(message, cause);
   }
 
 
@@ -391,10 +381,9 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException unableToResetMandatoryProperty(
       AbstractManagedObjectDefinition<?, ?> d, String name, String setOption) {
-    int msgID = MSGID_DSCFG_ERROR_UNABLE_TO_RESET_MANDATORY_PROPERTY;
-    String message = getMessage(msgID, d.getUserFriendlyPluralName(), name,
-        setOption);
-    return new ArgumentException(msgID, message);
+    Message message = ERR_DSCFG_ERROR_UNABLE_TO_RESET_MANDATORY_PROPERTY.get(
+        d.getUserFriendlyPluralName(), name, setOption);
+    return new ArgumentException(message);
   }
 
 
@@ -412,9 +401,9 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException unableToSetNamingProperty(
       AbstractManagedObjectDefinition<?, ?> d, PropertyDefinition<?> pd) {
-    int msgID = MSGID_DSCFG_ERROR_UNABLE_TO_SET_NAMING_PROPERTY;
-    String message = getMessage(msgID, pd.getName(), d.getUserFriendlyName());
-    return new ArgumentException(msgID, message);
+    Message message = ERR_DSCFG_ERROR_UNABLE_TO_SET_NAMING_PROPERTY.get(
+        pd.getName(), d.getUserFriendlyName());
+    return new ArgumentException(message);
   }
 
 
@@ -428,9 +417,8 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException unknownCategory(String categoryName) {
-    int msgID = MSGID_DSCFG_ERROR_CATEGORY_UNRECOGNIZED;
-    String msg = getMessage(msgID, categoryName);
-    return new ArgumentException(msgID, msg);
+    Message msg = ERR_DSCFG_ERROR_CATEGORY_UNRECOGNIZED.get(categoryName);
+    return new ArgumentException(msg);
   }
 
 
@@ -447,9 +435,9 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException unknownProperty(
       AbstractManagedObjectDefinition<?, ?> d, String name) {
-    int msgID = MSGID_DSCFG_ERROR_PROPERTY_UNRECOGNIZED;
-    String message = getMessage(msgID, name, d.getUserFriendlyPluralName());
-    return new ArgumentException(msgID, message);
+    Message message = ERR_DSCFG_ERROR_PROPERTY_UNRECOGNIZED.get(
+        name, d.getUserFriendlyPluralName());
+    return new ArgumentException(message);
   }
 
 
@@ -463,9 +451,8 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException unknownProperty(String name) {
-    int msgID = MSGID_DSCFG_ERROR_PROPERTY_UNRECOGNIZED_NO_DEFN;
-    String message = getMessage(msgID, name);
-    return new ArgumentException(msgID, message);
+    Message message = ERR_DSCFG_ERROR_PROPERTY_UNRECOGNIZED_NO_DEFN.get(name);
+    return new ArgumentException(message);
   }
 
 
@@ -484,10 +471,9 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException unknownSubType(RelationDefinition<?, ?> r,
       String typeName, String typeUsage) {
-    int msgID = MSGID_DSCFG_ERROR_SUB_TYPE_UNRECOGNIZED;
-    String msg = getMessage(msgID, typeName, r.getUserFriendlyName(),
-        typeUsage);
-    return new ArgumentException(msgID, msg);
+    Message msg = ERR_DSCFG_ERROR_SUB_TYPE_UNRECOGNIZED.get(
+        typeName, r.getUserFriendlyName(), typeUsage);
+    return new ArgumentException(msg);
   }
 
 
@@ -501,9 +487,8 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException unknownType(String typeName) {
-    int msgID = MSGID_DSCFG_ERROR_TYPE_UNRECOGNIZED;
-    String msg = getMessage(msgID, typeName);
-    return new ArgumentException(msgID, msg);
+    Message msg = ERR_DSCFG_ERROR_TYPE_UNRECOGNIZED.get(typeName);
+    return new ArgumentException(msg);
   }
 
 
@@ -520,9 +505,9 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException unknownTypeInCategory(String categoryName,
       String typeName) {
-    int msgID = MSGID_DSCFG_ERROR_CATEGORY_TYPE_UNRECOGNIZED;
-    String msg = getMessage(msgID, typeName, categoryName);
-    return new ArgumentException(msgID, msg);
+    Message msg =
+        ERR_DSCFG_ERROR_CATEGORY_TYPE_UNRECOGNIZED.get(typeName, categoryName);
+    return new ArgumentException(msg);
   }
 
 
@@ -540,10 +525,9 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException wrongManagedObjectType(
       RelationDefinition<?, ?> r, ManagedObjectDefinition<?, ?> d) {
-    int msgID = MSGID_DSCFG_ERROR_TYPE_UNRECOGNIZED;
-    String msg = getMessage(msgID, r.getUserFriendlyName(), d
-        .getUserFriendlyName());
-    return new ArgumentException(msgID, msg);
+    Message msg = ERR_DSCFG_ERROR_TYPE_UNRECOGNIZED.get(
+        d.getUserFriendlyName());
+    return new ArgumentException(msg);
   }
 
 
@@ -559,10 +543,10 @@ public final class ArgumentExceptionFactory {
    */
   private static ArgumentException adapt(
       AbstractManagedObjectDefinition<?, ?> d, DefaultBehaviorException e) {
-    int msgID = MSGID_DSCFG_ERROR_PROPERTY_DEFAULT_BEHAVIOR;
-    String message = getMessage(msgID, d.getUserFriendlyName(), e
-        .getPropertyDefinition().getName(), e.getMessage());
-    return new ArgumentException(msgID, message);
+    Message message = ERR_DSCFG_ERROR_PROPERTY_DEFAULT_BEHAVIOR.
+        get(d.getUserFriendlyName(), e.getPropertyDefinition().getName(),
+            e.getMessage());
+    return new ArgumentException(message);
   }
 
 
@@ -581,17 +565,17 @@ public final class ArgumentExceptionFactory {
       AbstractManagedObjectDefinition<?, ?> d,
       IllegalPropertyValueException e) {
     PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(true);
-    String syntax = b.getUsage(e.getPropertyDefinition());
+    Message syntax = b.getUsage(e.getPropertyDefinition());
 
     if (syntax.length() > 20) {
       // syntax =
-      // getMessage(MSGID_DSCFG_DESCRIPTION_PROPERTY_SYNTAX_HELP);
+      // INFO_DSCFG_DESCRIPTION_PROPERTY_SYNTAX_HELP.get();
     }
 
-    int msgID = MSGID_DSCFG_ERROR_PROPERTY_INVALID_VALUE;
-    String message = getMessage(msgID, String.valueOf(e.getIllegalValue()), d
-        .getUserFriendlyName(), e.getPropertyDefinition().getName(), syntax);
-    return new ArgumentException(msgID, message);
+    Message message = ERR_DSCFG_ERROR_PROPERTY_INVALID_VALUE.
+        get(String.valueOf(e.getIllegalValue()), d.getUserFriendlyName(),
+            e.getPropertyDefinition().getName(), syntax);
+    return new ArgumentException(message);
   }
 
 
@@ -610,18 +594,17 @@ public final class ArgumentExceptionFactory {
       AbstractManagedObjectDefinition<?, ?> d,
       IllegalPropertyValueStringException e) {
     PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(true);
-    String syntax = b.getUsage(e.getPropertyDefinition());
+    Message syntax = b.getUsage(e.getPropertyDefinition());
 
     if (syntax.length() > 20) {
       // syntax =
-      // getMessage(MSGID_DSCFG_DESCRIPTION_PROPERTY_SYNTAX_HELP);
+      // INFO_DSCFG_DESCRIPTION_PROPERTY_SYNTAX_HELP.get();
     }
 
-    int msgID = MSGID_DSCFG_ERROR_PROPERTY_INVALID_VALUE;
-    String message = getMessage(msgID, String
-        .valueOf(e.getIllegalValueString()), d.getUserFriendlyName(), e
-        .getPropertyDefinition().getName(), syntax);
-    return new ArgumentException(msgID, message);
+    Message message = ERR_DSCFG_ERROR_PROPERTY_INVALID_VALUE.
+        get(String.valueOf(e.getIllegalValueString()), d.getUserFriendlyName(),
+            e.getPropertyDefinition().getName(), syntax);
+    return new ArgumentException(message);
   }
 
 
@@ -639,10 +622,9 @@ public final class ArgumentExceptionFactory {
   private static ArgumentException adapt(
       AbstractManagedObjectDefinition<?, ?> d,
       PropertyIsMandatoryException e) {
-    int msgID = MSGID_DSCFG_ERROR_PROPERTY_MANDATORY;
-    String message = getMessage(msgID, d.getUserFriendlyName(), e
-        .getPropertyDefinition().getName());
-    return new ArgumentException(msgID, message);
+    Message message = ERR_DSCFG_ERROR_PROPERTY_MANDATORY.get(
+        d.getUserFriendlyName(), e.getPropertyDefinition().getName());
+    return new ArgumentException(message);
   }
 
 
@@ -660,10 +642,9 @@ public final class ArgumentExceptionFactory {
   private static ArgumentException adapt(
       AbstractManagedObjectDefinition<?, ?> d,
       PropertyIsReadOnlyException e) {
-    int msgID = MSGID_DSCFG_ERROR_PROPERTY_READ_ONLY;
-    String message = getMessage(msgID, d.getUserFriendlyName(), e
-        .getPropertyDefinition().getName());
-    return new ArgumentException(msgID, message);
+    Message message = ERR_DSCFG_ERROR_PROPERTY_READ_ONLY.get(
+        d.getUserFriendlyName(), e.getPropertyDefinition().getName());
+    return new ArgumentException(message);
   }
 
 
@@ -681,10 +662,9 @@ public final class ArgumentExceptionFactory {
   private static ArgumentException adapt(
       AbstractManagedObjectDefinition<?, ?> d,
       PropertyIsSingleValuedException e) {
-    int msgID = MSGID_DSCFG_ERROR_PROPERTY_SINGLE_VALUED;
-    String message = getMessage(msgID, d.getUserFriendlyName(), e
-        .getPropertyDefinition().getName());
-    return new ArgumentException(msgID, message);
+    Message message = ERR_DSCFG_ERROR_PROPERTY_SINGLE_VALUED.get(
+        d.getUserFriendlyName(), e.getPropertyDefinition().getName());
+    return new ArgumentException(message);
   }
 
 

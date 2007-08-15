@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
+import org.opends.messages.Message;
 
 
 
@@ -58,7 +59,7 @@ public interface ConfigurationDeleteListener<T> {
    *         acceptable, or <code>false</code> if it is not.
    */
   public boolean isConfigurationDeleteAcceptable(T configuration,
-      List<String> unacceptableReasons);
+      List<Message> unacceptableReasons);
 
 
 

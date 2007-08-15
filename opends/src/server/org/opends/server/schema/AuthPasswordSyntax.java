@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+import org.opends.messages.Message;
 
 
 
@@ -38,13 +39,13 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
@@ -84,9 +85,8 @@ public class AuthPasswordSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_AUTH_PASSWORD_EXACT_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_AUTH_PASSWORD_EXACT_NAME, SYNTAX_AUTH_PASSWORD_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_AUTH_PASSWORD_EXACT_NAME, SYNTAX_AUTH_PASSWORD_NAME));
     }
   }
 
@@ -204,7 +204,7 @@ public class AuthPasswordSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     try
     {
@@ -213,7 +213,7 @@ public class AuthPasswordSyntax
     }
     catch (DirectoryException de)
     {
-      invalidReason.append(de.getErrorMessage());
+      invalidReason.append(de.getMessageObject());
       return false;
     }
   }
@@ -308,10 +308,9 @@ readScheme:
         case '$':
           break readScheme;
         default:
-          int    msgID   = MSGID_ATTR_SYNTAX_AUTHPW_INVALID_SCHEME_CHAR;
-          String message = getMessage(msgID, pos);
+          Message message = ERR_ATTR_SYNTAX_AUTHPW_INVALID_SCHEME_CHAR.get(pos);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
       }
     }
 
@@ -319,10 +318,9 @@ readScheme:
     // The scheme must consist of at least one character.
     if (scheme.length() == 0)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_AUTHPW_NO_SCHEME;
-      String message = getMessage(msgID);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_AUTHPW_NO_SCHEME.get();
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+              message);
     }
 
 
@@ -339,10 +337,9 @@ readScheme:
     }
     else
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_AUTHPW_NO_SCHEME_SEPARATOR;
-      String message = getMessage(msgID);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_AUTHPW_NO_SCHEME_SEPARATOR.get();
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+              message);
     }
 
     while ((pos < length) && (authPasswordValue.charAt(pos) == ' '))
@@ -368,10 +365,10 @@ readAuthInfo:
       }
       else
       {
-        int    msgID   = MSGID_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_INFO_CHAR;
-        String message = getMessage(msgID, pos);
+        Message message =
+            ERR_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_INFO_CHAR.get(pos);
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -379,10 +376,9 @@ readAuthInfo:
     // The authInfo element must consist of at least one character.
     if (scheme.length() == 0)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO;
-      String message = getMessage(msgID);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO.get();
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -399,10 +395,9 @@ readAuthInfo:
     }
     else
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO_SEPARATOR;
-      String message = getMessage(msgID);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO_SEPARATOR.get();
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
     while ((pos < length) && (authPasswordValue.charAt(pos) == ' '))
@@ -428,10 +423,10 @@ readAuthValue:
       }
       else
       {
-        int    msgID   = MSGID_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_VALUE_CHAR;
-        String message = getMessage(msgID, pos);
+        Message message =
+            ERR_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_VALUE_CHAR.get(pos);
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -439,10 +434,9 @@ readAuthValue:
     // The authValue element must consist of at least one character.
     if (scheme.length() == 0)
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_AUTHPW_NO_AUTH_VALUE;
-      String message = getMessage(msgID);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                                   msgID);
+      Message message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_VALUE.get();
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -456,10 +450,9 @@ readAuthValue:
       }
       else
       {
-        int    msgID   = MSGID_ATTR_SYNTAX_AUTHPW_INVALID_TRAILING_CHAR;
-        String message = getMessage(msgID, pos);
+        Message message = ERR_ATTR_SYNTAX_AUTHPW_INVALID_TRAILING_CHAR.get(pos);
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                     message, msgID);
+                                     message);
       }
     }
 

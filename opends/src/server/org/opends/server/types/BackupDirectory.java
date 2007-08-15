@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 
@@ -41,8 +42,7 @@ import org.opends.server.config.ConfigException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -243,9 +243,9 @@ public class BackupDirectory
     String backupID = backupInfo.getBackupID();
     if (backups.containsKey(backupID))
     {
-      int    msgID   = MSGID_BACKUPDIRECTORY_ADD_DUPLICATE_ID;
-      String message = getMessage(msgID, backupID, path);
-      throw new ConfigException(msgID, message);
+      Message message =
+          ERR_BACKUPDIRECTORY_ADD_DUPLICATE_ID.get(backupID, path);
+      throw new ConfigException(message);
     }
 
     backups.put(backupID, backupInfo);
@@ -270,19 +270,18 @@ public class BackupDirectory
   {
     if (! backups.containsKey(backupID))
     {
-      int    msgID   = MSGID_BACKUPDIRECTORY_NO_SUCH_BACKUP;
-      String message = getMessage(msgID, backupID, path);
-      throw new ConfigException(msgID, message);
+      Message message =
+          ERR_BACKUPDIRECTORY_NO_SUCH_BACKUP.get(backupID, path);
+      throw new ConfigException(message);
     }
 
     for (BackupInfo backup : backups.values())
     {
       if (backup.dependsOn(backupID))
       {
-        int    msgID   = MSGID_BACKUPDIRECTORY_UNRESOLVED_DEPENDENCY;
-        String message = getMessage(msgID, backupID, path,
-                                    backup.getBackupID());
-        throw new ConfigException(msgID, message);
+        Message message = ERR_BACKUPDIRECTORY_UNRESOLVED_DEPENDENCY.
+            get(backupID, path, backup.getBackupID());
+        throw new ConfigException(message);
       }
     }
 
@@ -330,17 +329,15 @@ public class BackupDirectory
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_BACKUPDIRECTORY_CANNOT_CREATE_DIRECTORY;
-        String message = getMessage(msgID, path,
-                                    getExceptionMessage(e));
-        throw new IOException(message);
+        Message message = ERR_BACKUPDIRECTORY_CANNOT_CREATE_DIRECTORY.
+            get(path, getExceptionMessage(e));
+        throw new IOException(message.toString());
       }
     }
     else if (! dir.isDirectory())
     {
-      int    msgID   = MSGID_BACKUPDIRECTORY_NOT_DIRECTORY;
-      String message = getMessage(msgID, path);
-      throw new IOException(message);
+      Message message = ERR_BACKUPDIRECTORY_NOT_DIRECTORY.get(path);
+      throw new IOException(message.toString());
     }
 
 
@@ -404,13 +401,11 @@ public class BackupDirectory
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int msgID =
-              MSGID_BACKUPDIRECTORY_CANNOT_DELETE_SAVED_DESCRIPTOR;
-          String message = getMessage(msgID, savedDescriptorFilePath,
-                                      getExceptionMessage(e),
-                                      newDescriptorFilePath,
-                                      descriptorFilePath);
-          throw new IOException(message);
+          Message message =
+              ERR_BACKUPDIRECTORY_CANNOT_DELETE_SAVED_DESCRIPTOR.
+                get(savedDescriptorFilePath, getExceptionMessage(e),
+                    newDescriptorFilePath, descriptorFilePath);
+          throw new IOException(message.toString());
         }
       }
 
@@ -425,13 +420,12 @@ public class BackupDirectory
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID =
-            MSGID_BACKUPDIRECTORY_CANNOT_RENAME_CURRENT_DESCRIPTOR;
-        String message = getMessage(msgID, descriptorFilePath,
-                                    savedDescriptorFilePath,
-                                    getExceptionMessage(e),
-                                    newDescriptorFilePath);
-        throw new IOException(message);
+        Message message =
+            ERR_BACKUPDIRECTORY_CANNOT_RENAME_CURRENT_DESCRIPTOR.
+              get(descriptorFilePath, savedDescriptorFilePath,
+                  getExceptionMessage(e), newDescriptorFilePath,
+                  descriptorFilePath);
+        throw new IOException(message.toString());
       }
     }
 
@@ -448,11 +442,11 @@ public class BackupDirectory
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_BACKUPDIRECTORY_CANNOT_RENAME_NEW_DESCRIPTOR;
-      String message = getMessage(msgID, newDescriptorFilePath,
-                                  descriptorFilePath,
-                                  getExceptionMessage(e));
-      throw new IOException(message);
+      Message message =
+        ERR_BACKUPDIRECTORY_CANNOT_RENAME_NEW_DESCRIPTOR.
+            get(newDescriptorFilePath, descriptorFilePath,
+                getExceptionMessage(e));
+      throw new IOException(message.toString());
     }
   }
 
@@ -486,9 +480,9 @@ public class BackupDirectory
     File descriptorFile = new File(descriptorFilePath);
     if (! descriptorFile.exists())
     {
-      int    msgID   = MSGID_BACKUPDIRECTORY_NO_DESCRIPTOR_FILE;
-      String message = getMessage(msgID, descriptorFilePath);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_BACKUPDIRECTORY_NO_DESCRIPTOR_FILE.get(
+          descriptorFilePath);
+      throw new ConfigException(message);
     }
 
 
@@ -499,15 +493,16 @@ public class BackupDirectory
     String line = reader.readLine();
     if ((line == null) || (line.length() == 0))
     {
-      int msgID = MSGID_BACKUPDIRECTORY_CANNOT_READ_CONFIG_ENTRY_DN;
-      String message = getMessage(msgID, descriptorFilePath);
-      throw new ConfigException(msgID, message);
+      Message message =
+        ERR_BACKUPDIRECTORY_CANNOT_READ_CONFIG_ENTRY_DN.
+            get(descriptorFilePath);
+      throw new ConfigException(message);
     }
     else if (! line.startsWith(PROPERTY_BACKEND_CONFIG_DN))
     {
-      int    msgID   = MSGID_BACKUPDIRECTORY_FIRST_LINE_NOT_DN;
-      String message = getMessage(msgID, descriptorFilePath, line);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_BACKUPDIRECTORY_FIRST_LINE_NOT_DN.get(
+          descriptorFilePath, line);
+      throw new ConfigException(message);
     }
 
     String dnString =
@@ -519,17 +514,15 @@ public class BackupDirectory
     }
     catch (DirectoryException de)
     {
-      int    msgID   = MSGID_BACKUPDIRECTORY_CANNOT_DECODE_DN;
-      String message = getMessage(msgID, dnString,
-                                  de.getErrorMessage());
-      throw new ConfigException(msgID, message, de);
+      Message message = ERR_BACKUPDIRECTORY_CANNOT_DECODE_DN.get(
+          dnString, descriptorFilePath, de.getMessageObject());
+      throw new ConfigException(message, de);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_BACKUPDIRECTORY_CANNOT_DECODE_DN;
-      String message = getMessage(msgID, dnString,
-                                  getExceptionMessage(e));
-      throw new ConfigException(msgID, message, e);
+      Message message = ERR_BACKUPDIRECTORY_CANNOT_DECODE_DN.get(
+          dnString, descriptorFilePath, getExceptionMessage(e));
+      throw new ConfigException(message, e);
     }
 
 

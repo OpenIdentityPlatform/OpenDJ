@@ -25,14 +25,15 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.config.ConfigConstants.DN_BACKEND_BASE;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ToolMessages.*;
-import static org.opends.server.messages.ReplicationMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.plugin.Historical.ENTRYUIDNAME;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.util.StaticUtils.createEntry;
@@ -104,8 +105,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
@@ -555,7 +554,7 @@ public class ReplicationDomain extends DirectoryThread
    * If not set the ResultCode and the response message,
    * interrupt the operation, and return false
    *
-   * @param   Operation  The Operation that needs to be checked.
+   * @param   op  The Operation that needs to be checked.
    *
    * @return  true when it OK to process the Operation, false otherwise.
    *          When false is returned the resultCode and the reponse message
@@ -578,12 +577,10 @@ public class ReplicationDomain extends DirectoryThread
       }
       else
       {
-        String msg =
-          getMessage(MSGID_REPLICATION_COULD_NOT_CONNECT, baseDN.toString());
+        Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(baseDN.toString());
         DirectoryException result =
           new DirectoryException(
-              ResultCode.UNWILLING_TO_PERFORM, msg,
-              MSGID_REPLICATION_COULD_NOT_CONNECT);
+              ResultCode.UNWILLING_TO_PERFORM, msg);
 
         op.setResponseData(result);
 
@@ -733,7 +730,8 @@ public class ReplicationDomain extends DirectoryThread
        * Solve the conflicts between modify operations
        */
       Historical historicalInformation = Historical.load(modifiedEntry);
-      modifyOperation.setAttachment(HISTORICAL, historicalInformation);
+      modifyOperation.setAttachment(Historical.HISTORICAL,
+                                    historicalInformation);
 
       if (historicalInformation.replayOperation(modifyOperation, modifiedEntry))
       {
@@ -795,7 +793,7 @@ public class ReplicationDomain extends DirectoryThread
               // The server is in the shutdown process
               return null;
             }
-            log("Broker received message :" + msg);
+            log(Message.raw("Broker received message :" + msg));
             if (msg instanceof AckMessage)
             {
               AckMessage ack = (AckMessage) msg;
@@ -829,12 +827,14 @@ public class ReplicationDomain extends DirectoryThread
               catch(DirectoryException de)
               {
                 // Return an error message to notify the sender
-                int msgID = de.getMessageID();
                 ErrorMessage errorMsg =
                   new ErrorMessage(initMsg.getsenderID(),
-                                   msgID, de.getMessage());
-                log(getMessage(msgID,
-                               backend.getBackendID()) + de.getMessage());
+                                   de.getMessageObject());
+                MessageBuilder mb = new MessageBuilder();
+                mb.append(de.getMessageObject());
+                mb.append("Backend ID: ");
+                mb.append(backend.getBackendID());
+                log(mb.toMessage());
                 broker.publish(errorMsg);
               }
             }
@@ -933,11 +933,9 @@ public class ReplicationDomain extends DirectoryThread
          * It should never happen.
          */
         pendingChanges.remove(curChangeNumber);
-        int    msgID   = MSGID_UNKNOWN_TYPE;
-        String message = getMessage(msgID, op.getOperationType().toString());
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-                 ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message =
+            ERR_UNKNOWN_TYPE.get(op.getOperationType().toString());
+        logError(message);
         return;
       }
     }
@@ -957,12 +955,9 @@ public class ReplicationDomain extends DirectoryThread
       }
       catch  (NoSuchElementException e)
       {
-        int msgID = MSGID_OPERATION_NOT_FOUND_IN_PENDING;
-        String message = getMessage(msgID, curChangeNumber.toString(),
-                                    op.toString());
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-                 ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_OPERATION_NOT_FOUND_IN_PENDING.get(
+            curChangeNumber.toString(), op.toString());
+        logError(message);
         return;
       }
 
@@ -1278,10 +1273,8 @@ public class ReplicationDomain extends DirectoryThread
         // Continue with the next change but the servers could now become
         // inconsistent.
         // TODO : REPAIR : Should let the repair tool know about this
-        int msgID = MSGID_LOOP_REPLAYING_OPERATION;
-        String message = getMessage(msgID, op.toString());
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-            ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+        Message message = ERR_LOOP_REPLAYING_OPERATION.get(op.toString());
+        logError(message);
         numUnresolvedNamingConflicts.incrementAndGet();
 
         updateError(changeNumber);
@@ -1289,30 +1282,21 @@ public class ReplicationDomain extends DirectoryThread
     }
     catch (ASN1Exception e)
     {
-      int msgID = MSGID_EXCEPTION_DECODING_OPERATION;
-      String message = getMessage(msgID, msg) +
-      stackTraceToSingleLineString(e);
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-          ErrorLogSeverity.SEVERE_ERROR,
-          message, msgID);
+      Message message = ERR_EXCEPTION_DECODING_OPERATION.get(
+              String.valueOf(msg) + stackTraceToSingleLineString(e));
+      logError(message);
     }
     catch (LDAPException e)
     {
-      int msgID = MSGID_EXCEPTION_DECODING_OPERATION;
-      String message = getMessage(msgID, msg) +
-      stackTraceToSingleLineString(e);
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-          ErrorLogSeverity.SEVERE_ERROR,
-          message, msgID);
+      Message message = ERR_EXCEPTION_DECODING_OPERATION.get(
+              String.valueOf(msg) + stackTraceToSingleLineString(e));
+      logError(message);
     }
     catch (DataFormatException e)
     {
-      int msgID = MSGID_EXCEPTION_DECODING_OPERATION;
-      String message = getMessage(msgID, msg) +
-      stackTraceToSingleLineString(e);
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-          ErrorLogSeverity.SEVERE_ERROR,
-          message, msgID);
+      Message message = ERR_EXCEPTION_DECODING_OPERATION.get(
+              String.valueOf(msg) + stackTraceToSingleLineString(e));
+      logError(message);
     }
     catch (Exception e)
     {
@@ -1324,20 +1308,16 @@ public class ReplicationDomain extends DirectoryThread
          * to be inconsistent.
          * TODO : REPAIR : Should let the repair tool know about this
          */
-        int msgID = MSGID_EXCEPTION_REPLAYING_OPERATION;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e),
-            op.toString());
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-            ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+        Message message = ERR_EXCEPTION_REPLAYING_OPERATION.get(
+            stackTraceToSingleLineString(e), op.toString());
+        logError(message);
         updateError(changeNumber);
       }
       else
       {
-        int msgID = MSGID_EXCEPTION_DECODING_OPERATION;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e),
-            msg.toString());
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-            ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+        Message message = ERR_EXCEPTION_DECODING_OPERATION.get(
+                String.valueOf(msg) + stackTraceToSingleLineString(e));
+        logError(message);
       }
     }
     finally
@@ -1813,19 +1793,26 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
       else
       {
-        int    msgID   = MSGID_CANNOT_RENAME_CONFLICT_ENTRY;
-        String message = getMessage(msgID) + entryDN + " " + conflictOp + " "
-                         + op.getResultCode();
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-            message, msgID);
+        MessageBuilder mb = new MessageBuilder();
+        mb.append(ERR_CANNOT_RENAME_CONFLICT_ENTRY.get());
+        mb.append(String.valueOf(entryDN));
+        mb.append(" ");
+        mb.append(String.valueOf(conflictOp));
+        mb.append(" ");
+        mb.append(String.valueOf(op.getResultCode()));
+        logError(mb.toMessage());
         // TODO : log error and information for the REPAIR tool.
       }
     } catch (DirectoryException e)
     {
-      int    msgID   = MSGID_EXCEPTION_RENAME_CONFLICT_ENTRY;
-      String message = getMessage(msgID) + entryDN + " " + conflictOp + " " + e;
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-          message, msgID);
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(ERR_EXCEPTION_RENAME_CONFLICT_ENTRY.get());
+      mb.append(String.valueOf(entryDN));
+      mb.append(" ");
+      mb.append(String.valueOf(conflictOp));
+      mb.append(" ");
+      mb.append(e.getLocalizedMessage());
+      logError(mb.toMessage());
       // TODO log errror and information for the REPAIR tool.
     }
   }
@@ -1849,11 +1836,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
     if (newOp.getResultCode() != ResultCode.SUCCESS)
     {
-      int    msgID   = MSGID_CANNOT_RENAME_CONFLICT_ENTRY;
-      String message = getMessage(msgID) + dn + " " + conflictOp + " "
-                       + newOp.getResultCode();
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-          message, msgID);
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(ERR_CANNOT_RENAME_CONFLICT_ENTRY.get());
+      mb.append(String.valueOf(dn));
+      mb.append(" ");
+      mb.append(String.valueOf(conflictOp));
+      mb.append(" ");
+      mb.append(String.valueOf(newOp.getResultCode()));
+      logError(mb.toMessage());
       /*
        * TODO : REPAIR should log information for the repair tool.
        */
@@ -1886,10 +1876,12 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     ModifyOperation newOp = conn.processModify(currentDN, mods);
     if (newOp.getResultCode() != ResultCode.SUCCESS)
     {
-      int    msgID   = MSGID_CANNOT_ADD_CONFLICT_ATTRIBUTE;
-      String message = getMessage(msgID) + op + " " + newOp.getResultCode();
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-          message, msgID);
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(ERR_CANNOT_ADD_CONFLICT_ATTRIBUTE.get());
+      mb.append(String.valueOf(op));
+      mb.append(" ");
+      mb.append(String.valueOf(newOp.getResultCode()));
+      logError(mb.toMessage());
       /*
        * TODO : REPAIR should log information for the repair tool.
        */
@@ -1900,7 +1892,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * Add the conflict object class to an entry that could
    * not be added because it is conflicting with another entry.
    *
-   * @param addOp          The conflicting Add Operation.
+   * @param msg            The conflicting Add Operation.
    *
    * @throws ASN1Exception When an encoding error happenned manipulating the
    *                       msg.
@@ -2137,7 +2129,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           // The server is in the shutdown process
           return null;
         }
-        log("receiveEntryBytes: received " + msg);
+        log(Message.raw("receiveEntryBytes: received " + msg));
         if (msg instanceof EntryMessage)
         {
           // FIXME
@@ -2160,7 +2152,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           // by returning null
           ErrorMessage errorMsg = (ErrorMessage)msg;
           ieContext.exception = new DirectoryException(ResultCode.OTHER,
-              errorMsg.getDetails() , errorMsg.getMsgID());
+              errorMsg.getDetails());
           return null;
         }
         else
@@ -2171,7 +2163,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       catch(Exception e)
       {
         ieContext.exception = new DirectoryException(ResultCode.OTHER,
-            "received an unexpected message type" , 1, e);
+            Message.raw("received an unexpected message type"), e);
       }
       return null;
     }
@@ -2190,7 +2182,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     if (ieContext != null)
     {
       ieContext.exception = new DirectoryException(ResultCode.OTHER,
-          errorMsg.getDetails() , errorMsg.getMsgID());
+          errorMsg.getDetails());
 
       if (ieContext.initializeTask instanceof InitializeTask)
       {
@@ -2259,7 +2251,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * Log debug message.
    * @param message The message to log.
    */
-  private void log(String message)
+  private void log(Message message)
   {
     if (debugEnabled())
     {
@@ -2284,23 +2276,21 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        int    msgID   = MSGID_LDIFEXPORT_CANNOT_LOCK_BACKEND;
-        String message = getMessage(msgID, backend.getBackendID(),
-            String.valueOf(failureReason));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-            message, msgID);
+        Message message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
+            backend.getBackendID(), String.valueOf(failureReason));
+        logError(message);
         throw new DirectoryException(
-            ResultCode.OTHER, message, msgID, null);
+            ResultCode.OTHER, message, null);
       }
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDIFEXPORT_CANNOT_LOCK_BACKEND;
-      String message = getMessage(msgID, backend.getBackendID());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-          message + " " + stackTraceToSingleLineString(e), msgID);
+      Message message =
+          ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
+                  backend.getBackendID(), e.getLocalizedMessage());
+      logError(message);
       throw new DirectoryException(
-          ResultCode.OTHER, message, msgID, null);
+          ResultCode.OTHER, message, null);
     }
 
     ReplLDIFOutputStream os = new ReplLDIFOutputStream(this);
@@ -2317,21 +2307,19 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     catch (DirectoryException de)
     {
-      int    msgID   = MSGID_LDIFEXPORT_ERROR_DURING_EXPORT;
-      String message = getMessage(msgID, de.getErrorMessage());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-          msgID);
+      Message message =
+          ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(de.getMessageObject());
+      logError(message);
       throw new DirectoryException(
-          ResultCode.OTHER, message, msgID, null);
+          ResultCode.OTHER, message, null);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDIFEXPORT_ERROR_DURING_EXPORT;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-          msgID);
+      Message message = ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(
+          stackTraceToSingleLineString(e));
+      logError(message);
       throw new DirectoryException(
-          ResultCode.OTHER, message, msgID, null);
+          ResultCode.OTHER, message, null);
     }
     finally
     {
@@ -2345,24 +2333,20 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
-          int    msgID   = MSGID_LDIFEXPORT_CANNOT_UNLOCK_BACKEND;
-          String message = getMessage(msgID, backend.getBackendID(),
-              String.valueOf(failureReason));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-              message, msgID);
+          Message message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
+              backend.getBackendID(), String.valueOf(failureReason));
+          logError(message);
           throw new DirectoryException(
-              ResultCode.OTHER, message, msgID, null);
+              ResultCode.OTHER, message, null);
         }
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDIFEXPORT_CANNOT_UNLOCK_BACKEND;
-        String message = getMessage(msgID, backend.getBackendID(),
-            stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-            message, msgID);
+        Message message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
+            backend.getBackendID(), stackTraceToSingleLineString(e));
+        logError(message);
         throw new DirectoryException(
-            ResultCode.OTHER, message, msgID, null);
+            ResultCode.OTHER, message, null);
       }
     }
   }
@@ -2381,33 +2365,30 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     Backend domainBackend = DirectoryServer.getBackend(baseDN);
     if (domainBackend == null)
     {
-      int    msgID   = MSGID_CANNOT_DECODE_BASE_DN;
-      String message = getMessage(msgID, DN_BACKEND_BASE);
+      Message message = ERR_CANNOT_DECODE_BASE_DN.get(DN_BACKEND_BASE, "");
       throw new DirectoryException(
-          ResultCode.OTHER, message, msgID, null);
+          ResultCode.OTHER, message, null);
     }
 
     // Retrieves its configuration
     BackendCfg backendCfg = TaskUtils.getConfigEntry(domainBackend);
     if (backendCfg == null)
     {
-      int    msgID   = MSGID_LDIFIMPORT_NO_BACKENDS_FOR_ID;
-      String message = getMessage(msgID, domainBackend.getBackendID());
-      logError(ErrorLogCategory.BACKEND,
-          ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+      Message message =
+          ERR_LDIFIMPORT_NO_BACKENDS_FOR_ID.get();
+      logError(message);
       throw new DirectoryException(
-          ResultCode.OTHER, message, msgID, null);
+          ResultCode.OTHER, message, null);
     }
 
     this.backend = domainBackend;
     if (! domainBackend.supportsLDIFImport())
     {
-      int    msgID   = MSGID_LDIFIMPORT_CANNOT_IMPORT;
-      String message = getMessage(msgID, baseDN);
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-          ErrorLogSeverity.NOTICE, message, msgID);
+      Message message = ERR_LDIFIMPORT_CANNOT_IMPORT.get(
+              String.valueOf(baseDN));
+      logError(message);
       throw new DirectoryException(
-          ResultCode.OTHER, message, msgID, null);
+          ResultCode.OTHER, message, null);
     }
   }
 
@@ -2481,7 +2462,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         // We shold check here that this is a server implied
         // in the current domain.
 
-        log("Source decoded for import:" + source);
+        log(Message.raw("Source decoded for import:" + source));
         return source;
       }
     }
@@ -2491,15 +2472,13 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
 
     ResultCode resultCode = ResultCode.OTHER;
-    int errorMessageID = MSGID_INVALID_IMPORT_SOURCE;
-    String message = getMessage(errorMessageID);
-
+    Message message = ERR_INVALID_IMPORT_SOURCE.get();
     if (cause != null)
       throw new DirectoryException(
-          resultCode, message, errorMessageID, cause);
+          resultCode, message, cause);
     else
       throw new DirectoryException(
-          resultCode, message, errorMessageID);
+          resultCode, message);
   }
 
   /**
@@ -2534,15 +2513,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       cause = e;
     }
     ResultCode resultCode = ResultCode.OTHER;
-    int errorMessageID = MSGID_INVALID_EXPORT_TARGET;
-    String message = getMessage(errorMessageID);
+    Message message = ERR_INVALID_EXPORT_TARGET.get();
 
     if (cause != null)
       throw new DirectoryException(
-          resultCode, message, errorMessageID, cause);
+          resultCode, message, cause);
     else
       throw new DirectoryException(
-          resultCode, message, errorMessageID);
+          resultCode, message);
 
   }
 
@@ -2552,10 +2530,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     if (ieContext != null)
     {
       // Rejects 2 simultaneous exports
-      int msgID = MSGID_SIMULTANEOUS_IMPORT_EXPORT_REJECTED;
-      String message = getMessage(msgID);
+      Message message = ERR_SIMULTANEOUS_IMPORT_EXPORT_REJECTED.get();
       throw new DirectoryException(ResultCode.OTHER,
-          message, msgID);
+          message);
     }
 
     ieContext = new IEContext();
@@ -2611,8 +2588,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         baseDN, serverId, ieContext.exportTarget, requestorID,
         backend.getEntryCount());
 
-    log("SD : publishes " + initializeMessage +
-        " for #entries=" + backend.getEntryCount() + ieContext.entryLeftCount);
+    log(Message.raw("SD : publishes " + initializeMessage +
+        " for #entries=" + backend.getEntryCount() + ieContext.entryLeftCount));
 
     broker.publish(initializeMessage);
 
@@ -2630,10 +2607,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     catch(DirectoryException de)
     {
       // Notify the peer of the failure
-      int msgID = de.getMessageID();
-      ErrorMessage errorMsg =
-        new ErrorMessage(target,
-                         msgID, de.getMessage());
+      ErrorMessage errorMsg = new ErrorMessage(target, de.getMessageObject());
       broker.publish(errorMsg);
 
       releaseIEContext();
@@ -2661,12 +2635,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     StringBuilder failureReason = new StringBuilder();
     if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
     {
-      int    msgID   = MSGID_LDIFIMPORT_CANNOT_LOCK_BACKEND;
-      String message = getMessage(msgID, backend.getBackendID(),
-          String.valueOf(failureReason));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-          message, msgID);
-      throw new DirectoryException(ResultCode.OTHER, message, msgID);
+      Message message = ERR_LDIFIMPORT_CANNOT_LOCK_BACKEND.get(
+          backend.getBackendID(), String.valueOf(failureReason));
+      logError(message);
+      throw new DirectoryException(ResultCode.OTHER, message);
     }
   }
 
@@ -2681,7 +2653,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     LDIFImportConfig importConfig = null;
     try
     {
-      log("startImport");
+      log(Message.raw("startImport"));
 
       if (initializeMessage.getRequestorID() == serverId)
       {
@@ -2723,8 +2695,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     catch(Exception e)
     {
-      throw new DirectoryException(ResultCode.OTHER, e.getLocalizedMessage(),
-          2);// FIXME
+      throw new DirectoryException(ResultCode.OTHER,
+              Message.raw(e.getLocalizedMessage()));
     }
     finally
     {
@@ -2743,7 +2715,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
       releaseIEContext();
 
-      log("End importBackend");
+      log(Message.raw("End importBackend"));
     }
     // Success
   }
@@ -2762,12 +2734,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     // Release lock
     if (!LockFileManager.releaseLock(lockFile, failureReason))
     {
-      int    msgID   = MSGID_LDIFIMPORT_CANNOT_UNLOCK_BACKEND;
-      String message = getMessage(msgID, backend.getBackendID(),
-          String.valueOf(failureReason));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-          message, msgID);
-      throw new DirectoryException(ResultCode.OTHER, message, msgID);
+      Message message = WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.get(
+          backend.getBackendID(), String.valueOf(failureReason));
+      logError(message);
+      throw new DirectoryException(ResultCode.OTHER, message);
     }
 
     // FIXME setBackendEnabled should be part taskUtils ?
@@ -2794,10 +2764,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     {
       if (!( provider instanceof MultimasterReplication))
       {
-        int msgID = MSGID_INVALID_PROVIDER;
-        String message = getMessage(msgID);
+        Message message = ERR_INVALID_PROVIDER.get();
         throw new DirectoryException(ResultCode.OTHER,
-            message, msgID);
+            message);
       }
 
       // From the domainDN retrieves the replication domain
@@ -2810,20 +2779,20 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       if (replicationDomain != null)
       {
         // Should never happen
-        int msgID = MSGID_MULTIPLE_MATCHING_DOMAIN;
-        String message = getMessage(msgID);
+        Message message = ERR_MULTIPLE_MATCHING_DOMAIN.get();
         throw new DirectoryException(ResultCode.OTHER,
-            message, msgID);
+            message);
       }
       replicationDomain = sdomain;
     }
 
     if (replicationDomain == null)
     {
-      int msgID = MSGID_NO_MATCHING_DOMAIN;
-      String message = getMessage(msgID) + " " + baseDN;
+      MessageBuilder mb = new MessageBuilder(ERR_NO_MATCHING_DOMAIN.get());
+      mb.append(" ");
+      mb.append(String.valueOf(baseDN));
       throw new DirectoryException(ResultCode.OTHER,
-         message, msgID);
+         mb.toMessage());
     }
     return replicationDomain;
   }
@@ -2888,13 +2857,13 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @return true if the configuration is acceptable, false other wise.
    */
   public static boolean isConfigurationAcceptable(
-      MultimasterDomainCfg configuration, List<String> unacceptableReasons)
+      MultimasterDomainCfg configuration, List<Message> unacceptableReasons)
   {
     // Check that there is not already a domain with the same DN
     DN dn = configuration.getReplicationDN();
     if (MultimasterReplication.findDomain(dn,null) != null)
     {
-      String message = getMessage(MSGID_SYNC_INVALID_DN, dn.toString());
+      Message message = ERR_SYNC_INVALID_DN.get();
       unacceptableReasons.add(message);
       return false;
     }
@@ -2930,7 +2899,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-         MultimasterDomainCfg configuration, List<String> unacceptableReasons)
+         MultimasterDomainCfg configuration, List<Message> unacceptableReasons)
   {
     return true;
   }

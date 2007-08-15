@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -70,8 +71,6 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
@@ -80,10 +79,11 @@ import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import org.opends.server.loggers.ErrorLogger;
+import static org.opends.messages.ExtensionMessages.*;
+
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -157,10 +157,9 @@ public class PasswordModifyExtendedOperation
       identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
       if (identityMapper == null)
       {
-        int msgID = MSGID_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER;
-        String message = getMessage(msgID, String.valueOf(identityMapperDN),
-                                    String.valueOf(config.dn()));
-        throw new ConfigException(msgID, message);
+        Message message = ERR_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER.get(
+            String.valueOf(identityMapperDN), String.valueOf(config.dn()));
+        throw new ConfigException(message);
       }
     }
     catch (Exception e)
@@ -169,10 +168,9 @@ public class PasswordModifyExtendedOperation
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      int msgID = MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER;
-      String message = getMessage(msgID, String.valueOf(config.dn()),
-                                  getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER.get(
+          String.valueOf(config.dn()), getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
 
 
@@ -273,9 +271,10 @@ public class PasswordModifyExtendedOperation
             default:
               operation.setResultCode(ResultCode.PROTOCOL_ERROR);
 
-              int msgID = MSGID_EXTOP_PASSMOD_ILLEGAL_REQUEST_ELEMENT_TYPE;
-              operation.appendErrorMessage(getMessage(msgID,
-                                                      byteToHex(e.getType())));
+
+              operation.appendErrorMessage(
+                      ERR_EXTOP_PASSMOD_ILLEGAL_REQUEST_ELEMENT_TYPE.get(
+                              byteToHex(e.getType())));
               return;
           }
         }
@@ -289,8 +288,8 @@ public class PasswordModifyExtendedOperation
 
         operation.setResultCode(ResultCode.PROTOCOL_ERROR);
 
-        int    msgID   = MSGID_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST;
-        String message = getMessage(msgID, getExceptionMessage(ae));
+        Message message = ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST.get(
+                getExceptionMessage(ae));
         operation.appendErrorMessage(message);
 
         return;
@@ -321,8 +320,8 @@ public class PasswordModifyExtendedOperation
         {
           operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-          int msgID = MSGID_EXTOP_PASSMOD_NO_AUTH_OR_USERID;
-          operation.appendErrorMessage(getMessage(msgID));
+          operation.appendErrorMessage(
+                  ERR_EXTOP_PASSMOD_NO_AUTH_OR_USERID.get());
 
           return;
         }
@@ -345,8 +344,9 @@ public class PasswordModifyExtendedOperation
         {
           operation.setResultCode(DirectoryServer.getServerErrorResultCode());
 
-          int    msgID   = MSGID_EXTOP_PASSMOD_CANNOT_LOCK_USER_ENTRY;
-          String message = getMessage(msgID, String.valueOf(userDN));
+          Message message =
+                  ERR_EXTOP_PASSMOD_CANNOT_LOCK_USER_ENTRY.get(
+                          String.valueOf(userDN));
           operation.appendErrorMessage(message);
 
           return;
@@ -377,8 +377,8 @@ public class PasswordModifyExtendedOperation
 
             operation.setResultCode(ResultCode.INVALID_DN_SYNTAX);
 
-            int msgID = MSGID_EXTOP_PASSMOD_CANNOT_DECODE_AUTHZ_DN;
-            operation.appendErrorMessage(getMessage(msgID, authzIDStr));
+            operation.appendErrorMessage(
+                    ERR_EXTOP_PASSMOD_CANNOT_DECODE_AUTHZ_DN.get(authzIDStr));
 
             return;
           }
@@ -408,16 +408,15 @@ public class PasswordModifyExtendedOperation
               {
                 operation.setResultCode(ResultCode.NO_SUCH_OBJECT);
 
-                int msgID = MSGID_EXTOP_PASSMOD_CANNOT_MAP_USER;
-                operation.appendErrorMessage(getMessage(msgID, authzIDStr));
+                operation.appendErrorMessage(
+                        ERR_EXTOP_PASSMOD_CANNOT_MAP_USER.get(authzIDStr));
               }
               else
               {
                 operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-                int msgID = MSGID_EXTOP_PASSMOD_CANNOT_MAP_USER;
-                operation.appendAdditionalLogMessage(getMessage(msgID,
-                                                                authzIDStr));
+                operation.appendAdditionalLogMessage(
+                        ERR_EXTOP_PASSMOD_CANNOT_MAP_USER.get(authzIDStr));
               }
 
               return;
@@ -438,17 +437,17 @@ public class PasswordModifyExtendedOperation
             {
               operation.setResultCode(de.getResultCode());
 
-              int msgID = MSGID_EXTOP_PASSMOD_ERROR_MAPPING_USER;
-              operation.appendErrorMessage(getMessage(msgID, authzIDStr,
-                                                      de.getErrorMessage()));
+              operation.appendErrorMessage(ERR_EXTOP_PASSMOD_ERROR_MAPPING_USER
+                      .get(authzIDStr,de.getMessageObject()));
             }
             else
             {
               operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              int msgID = MSGID_EXTOP_PASSMOD_ERROR_MAPPING_USER;
-              operation.appendAdditionalLogMessage(getMessage(msgID, authzIDStr,
-                                                        de.getErrorMessage()));
+              operation.appendAdditionalLogMessage(
+                      ERR_EXTOP_PASSMOD_ERROR_MAPPING_USER.get(
+                              authzIDStr,
+                              de.getMessageObject()));
             }
 
             return;
@@ -459,8 +458,8 @@ public class PasswordModifyExtendedOperation
           // The authorization ID was in an illegal format.
           operation.setResultCode(ResultCode.PROTOCOL_ERROR);
 
-          int msgID = MSGID_EXTOP_PASSMOD_INVALID_AUTHZID_STRING;
-          operation.appendErrorMessage(getMessage(msgID, authzIDStr));
+          operation.appendErrorMessage(
+                  ERR_EXTOP_PASSMOD_INVALID_AUTHZID_STRING.get(authzIDStr));
 
           return;
         }
@@ -483,9 +482,10 @@ public class PasswordModifyExtendedOperation
 
         operation.setResultCode(DirectoryServer.getServerErrorResultCode());
 
-        int msgID = MSGID_EXTOP_PASSMOD_CANNOT_GET_PW_POLICY;
-        operation.appendErrorMessage(getMessage(msgID, String.valueOf(userDN),
-                                                de.getErrorMessage()));
+        operation.appendErrorMessage(
+                ERR_EXTOP_PASSMOD_CANNOT_GET_PW_POLICY.get(
+                        String.valueOf(userDN),
+                        de.getMessageObject()));
         return;
       }
 
@@ -513,8 +513,8 @@ public class PasswordModifyExtendedOperation
         if (! clientConnection.hasPrivilege(Privilege.PASSWORD_RESET,
                                             operation))
         {
-          int msgID = MSGID_EXTOP_PASSMOD_INSUFFICIENT_PRIVILEGES;
-          operation.appendErrorMessage(getMessage(msgID));
+          operation.appendErrorMessage(
+                  ERR_EXTOP_PASSMOD_INSUFFICIENT_PRIVILEGES.get());
           operation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
           return;
         }
@@ -534,8 +534,7 @@ public class PasswordModifyExtendedOperation
                                                  pwPolicyErrorType));
         }
 
-        int    msgID   = MSGID_EXTOP_PASSMOD_ACCOUNT_DISABLED;
-        String message = getMessage(msgID);
+        Message message = ERR_EXTOP_PASSMOD_ACCOUNT_DISABLED.get();
 
         if (oldPassword == null)
         {
@@ -565,8 +564,7 @@ public class PasswordModifyExtendedOperation
                                                  pwPolicyErrorType));
         }
 
-        int    msgID   = MSGID_EXTOP_PASSMOD_ACCOUNT_LOCKED;
-        String message = getMessage(msgID);
+        Message message = ERR_EXTOP_PASSMOD_ACCOUNT_LOCKED.get();
 
         if (oldPassword == null)
         {
@@ -592,8 +590,8 @@ public class PasswordModifyExtendedOperation
         {
           operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-          int msgID = MSGID_EXTOP_PASSMOD_REQUIRE_CURRENT_PW;
-          operation.appendErrorMessage(getMessage(msgID));
+          operation.appendErrorMessage(
+                  ERR_EXTOP_PASSMOD_REQUIRE_CURRENT_PW.get());
 
           if (pwPolicyRequested)
           {
@@ -615,8 +613,8 @@ public class PasswordModifyExtendedOperation
         {
           operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-          int msgID = MSGID_EXTOP_PASSMOD_SECURE_AUTH_REQUIRED;
-          operation.appendAdditionalLogMessage(getMessage(msgID));
+          operation.appendAdditionalLogMessage(
+                  ERR_EXTOP_PASSMOD_SECURE_AUTH_REQUIRED.get());
           return;
         }
 
@@ -628,8 +626,8 @@ public class PasswordModifyExtendedOperation
         {
           operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-          int msgID = MSGID_EXTOP_PASSMOD_INVALID_OLD_PASSWORD;
-          operation.appendAdditionalLogMessage(getMessage(msgID));
+          operation.appendAdditionalLogMessage(
+                  ERR_EXTOP_PASSMOD_INVALID_OLD_PASSWORD.get());
 
           pwPolicyState.updateAuthFailureTimes();
           List<Modification> mods = pwPolicyState.getModifications();
@@ -664,15 +662,15 @@ public class PasswordModifyExtendedOperation
         {
           operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-          int msgID = MSGID_EXTOP_PASSMOD_USER_PW_CHANGES_NOT_ALLOWED;
-          operation.appendErrorMessage(getMessage(msgID));
+          operation.appendErrorMessage(
+                  ERR_EXTOP_PASSMOD_USER_PW_CHANGES_NOT_ALLOWED.get());
         }
         else
         {
           operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-          int msgID = MSGID_EXTOP_PASSMOD_USER_PW_CHANGES_NOT_ALLOWED;
-          operation.appendAdditionalLogMessage(getMessage(msgID));
+          operation.appendAdditionalLogMessage(
+                  ERR_EXTOP_PASSMOD_USER_PW_CHANGES_NOT_ALLOWED.get());
         }
 
         return;
@@ -688,15 +686,15 @@ public class PasswordModifyExtendedOperation
         {
           operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-          int msgID = MSGID_EXTOP_PASSMOD_SECURE_CHANGES_REQUIRED;
-          operation.appendErrorMessage(getMessage(msgID));
+          operation.appendErrorMessage(
+                  ERR_EXTOP_PASSMOD_SECURE_CHANGES_REQUIRED.get());
         }
         else
         {
           operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-          int msgID = MSGID_EXTOP_PASSMOD_SECURE_CHANGES_REQUIRED;
-          operation.appendAdditionalLogMessage(getMessage(msgID));
+          operation.appendAdditionalLogMessage(
+                  ERR_EXTOP_PASSMOD_SECURE_CHANGES_REQUIRED.get());
         }
 
         return;
@@ -721,15 +719,14 @@ public class PasswordModifyExtendedOperation
         {
           operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-          int msgID = MSGID_EXTOP_PASSMOD_IN_MIN_AGE;
-          operation.appendErrorMessage(getMessage(msgID));
+          operation.appendErrorMessage(ERR_EXTOP_PASSMOD_IN_MIN_AGE.get());
         }
         else
         {
           operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-          int msgID = MSGID_EXTOP_PASSMOD_IN_MIN_AGE;
-          operation.appendAdditionalLogMessage(getMessage(msgID));
+          operation.appendAdditionalLogMessage(
+                  ERR_EXTOP_PASSMOD_IN_MIN_AGE.get());
         }
 
         return;
@@ -755,15 +752,15 @@ public class PasswordModifyExtendedOperation
         {
           operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-          int msgID = MSGID_EXTOP_PASSMOD_PASSWORD_IS_EXPIRED;
-          operation.appendErrorMessage(getMessage(msgID));
+          operation.appendErrorMessage(
+                  ERR_EXTOP_PASSMOD_PASSWORD_IS_EXPIRED.get());
         }
         else
         {
           operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-          int msgID = MSGID_EXTOP_PASSMOD_PASSWORD_IS_EXPIRED;
-          operation.appendAdditionalLogMessage(getMessage(msgID));
+          operation.appendAdditionalLogMessage(
+                  ERR_EXTOP_PASSMOD_PASSWORD_IS_EXPIRED.get());
         }
 
         return;
@@ -786,15 +783,15 @@ public class PasswordModifyExtendedOperation
             {
               operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-              int msgID = MSGID_EXTOP_PASSMOD_NO_PW_GENERATOR;
-              operation.appendErrorMessage(getMessage(msgID));
+              operation.appendErrorMessage(
+                      ERR_EXTOP_PASSMOD_NO_PW_GENERATOR.get());
             }
             else
             {
               operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              int msgID = MSGID_EXTOP_PASSMOD_NO_PW_GENERATOR;
-              operation.appendAdditionalLogMessage(getMessage(msgID));
+              operation.appendAdditionalLogMessage(
+                      ERR_EXTOP_PASSMOD_NO_PW_GENERATOR.get());
             }
 
             return;
@@ -815,17 +812,17 @@ public class PasswordModifyExtendedOperation
           {
             operation.setResultCode(de.getResultCode());
 
-            int msgID = MSGID_EXTOP_PASSMOD_CANNOT_GENERATE_PW;
-            operation.appendErrorMessage(getMessage(msgID,
-                                                    de.getErrorMessage()));
+            operation.appendErrorMessage(
+                    ERR_EXTOP_PASSMOD_CANNOT_GENERATE_PW.get(
+                            de.getMessageObject()));
           }
           else
           {
             operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-            int msgID = MSGID_EXTOP_PASSMOD_CANNOT_GENERATE_PW;
-            operation.appendAdditionalLogMessage(getMessage(msgID,
-                                                      de.getErrorMessage()));
+            operation.appendAdditionalLogMessage(
+                    ERR_EXTOP_PASSMOD_CANNOT_GENERATE_PW.get(
+                            de.getMessageObject()));
           }
 
           return;
@@ -845,15 +842,15 @@ public class PasswordModifyExtendedOperation
             {
               operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-              int msgID = MSGID_EXTOP_PASSMOD_PRE_ENCODED_NOT_ALLOWED;
-              operation.appendErrorMessage(getMessage(msgID));
+              operation.appendErrorMessage(
+                      ERR_EXTOP_PASSMOD_PRE_ENCODED_NOT_ALLOWED.get());
             }
             else
             {
               operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              int msgID = MSGID_EXTOP_PASSMOD_PRE_ENCODED_NOT_ALLOWED;
-              operation.appendAdditionalLogMessage(getMessage(msgID));
+              operation.appendAdditionalLogMessage(
+                      ERR_EXTOP_PASSMOD_PRE_ENCODED_NOT_ALLOWED.get());
             }
 
             return;
@@ -884,7 +881,7 @@ public class PasswordModifyExtendedOperation
               }
             }
 
-            StringBuilder invalidReason = new StringBuilder();
+            MessageBuilder invalidReason = new MessageBuilder();
             if (! pwPolicyState.passwordIsAcceptable(operation, userEntry,
                                                      newPassword,
                                                      clearPasswords,
@@ -904,17 +901,17 @@ public class PasswordModifyExtendedOperation
               {
                 operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-                int msgID = MSGID_EXTOP_PASSMOD_UNACCEPTABLE_PW;
-                operation.appendErrorMessage(getMessage(msgID,
-                               String.valueOf(invalidReason)));
+                operation.appendErrorMessage(
+                        ERR_EXTOP_PASSMOD_UNACCEPTABLE_PW.get(
+                                String.valueOf(invalidReason)));
               }
               else
               {
                 operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-                int msgID = MSGID_EXTOP_PASSMOD_UNACCEPTABLE_PW;
-                operation.appendAdditionalLogMessage(getMessage(msgID,
-                               String.valueOf(invalidReason)));
+                operation.appendAdditionalLogMessage(
+                        ERR_EXTOP_PASSMOD_UNACCEPTABLE_PW.get(
+                                String.valueOf(invalidReason)));
               }
 
               return;
@@ -931,15 +928,15 @@ public class PasswordModifyExtendedOperation
               {
                 operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-                int msgID = MSGID_EXTOP_PASSMOD_PW_IN_HISTORY;
-                operation.appendErrorMessage(getMessage(msgID));
+                operation.appendErrorMessage(
+                        ERR_EXTOP_PASSMOD_PW_IN_HISTORY.get());
               }
               else
               {
                 operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-                int msgID = MSGID_EXTOP_PASSMOD_PW_IN_HISTORY;
-                operation.appendAdditionalLogMessage(getMessage(msgID));
+                operation.appendAdditionalLogMessage(
+                        ERR_EXTOP_PASSMOD_PW_IN_HISTORY.get());
               }
             }
             else
@@ -975,17 +972,17 @@ public class PasswordModifyExtendedOperation
           {
             operation.setResultCode(de.getResultCode());
 
-            int msgID = MSGID_EXTOP_PASSMOD_CANNOT_ENCODE_PASSWORD;
-            operation.appendErrorMessage(getMessage(msgID,
-                                                    de.getErrorMessage()));
+            operation.appendErrorMessage(
+                    ERR_EXTOP_PASSMOD_CANNOT_ENCODE_PASSWORD.get(
+                            de.getMessageObject()));
           }
           else
           {
             operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-            int msgID = MSGID_EXTOP_PASSMOD_CANNOT_ENCODE_PASSWORD;
-            operation.appendAdditionalLogMessage(getMessage(msgID,
-                                                      de.getErrorMessage()));
+            operation.appendAdditionalLogMessage(
+                    ERR_EXTOP_PASSMOD_CANNOT_ENCODE_PASSWORD.get(
+                            de.getMessageObject()));
           }
 
           return;
@@ -1146,7 +1143,7 @@ public class PasswordModifyExtendedOperation
       // appropriate response.  Otherwise, process the operation.
       if (noOpRequested)
       {
-        operation.appendErrorMessage(getMessage(MSGID_EXTOP_PASSMOD_NOOP));
+        operation.appendErrorMessage(WARN_EXTOP_PASSMOD_NOOP.get());
 
         operation.setResultCode(ResultCode.NO_OPERATION);
       }
@@ -1192,12 +1189,11 @@ public class PasswordModifyExtendedOperation
             // At this point, the user's password is already changed so there's
             // not much point in returning a non-success result.  However, we
             // should at least log that something went wrong.
-            int    msgID   = MSGID_EXTOP_PASSMOD_CANNOT_UPDATE_PWP_STATE;
-            String message = getMessage(msgID, String.valueOf(userDN),
-                                        modOp.getResultCode(),
-                                        modOp.getErrorMessage());
-            logError(ErrorLogCategory.PASSWORD_POLICY,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+            Message message = WARN_EXTOP_PASSMOD_CANNOT_UPDATE_PWP_STATE.get(
+                    String.valueOf(userDN),
+                    String.valueOf(modOp.getResultCode()),
+                    modOp.getErrorMessage());
+            ErrorLogger.logError(message);
           }
         }
 
@@ -1281,9 +1277,9 @@ public class PasswordModifyExtendedOperation
       {
         operation.setResultCode(ResultCode.NO_SUCH_OBJECT);
 
-        int msgID = MSGID_EXTOP_PASSMOD_NO_USER_ENTRY_BY_AUTHZID;
-        operation.appendErrorMessage(getMessage(msgID,
-                                                String.valueOf(entryDN)));
+        operation.appendErrorMessage(
+                ERR_EXTOP_PASSMOD_NO_USER_ENTRY_BY_AUTHZID.get(
+                        String.valueOf(entryDN)));
 
         // See if one of the entry's ancestors exists.
         DN parentDN = entryDN.getParentDNInSuffix();
@@ -1322,7 +1318,7 @@ public class PasswordModifyExtendedOperation
       }
 
       operation.setResultCode(de.getResultCode());
-      operation.appendErrorMessage(de.getErrorMessage());
+      operation.appendErrorMessage(de.getMessageObject());
       operation.setMatchedDN(de.getMatchedDN());
       operation.setReferralURLs(de.getReferralURLs());
 
@@ -1338,7 +1334,7 @@ public class PasswordModifyExtendedOperation
   @Override()
   public boolean isConfigurationAcceptable(ExtendedOperationHandlerCfg
                                                 configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     PasswordModifyExtendedOperationHandlerCfg config =
          (PasswordModifyExtendedOperationHandlerCfg) configuration;
@@ -1363,7 +1359,7 @@ public class PasswordModifyExtendedOperation
    */
   public boolean isConfigurationChangeAcceptable(
        PasswordModifyExtendedOperationHandlerCfg config,
-       List<String> unacceptableReasons)
+       List<Message> unacceptableReasons)
   {
     // Make sure that the specified identity mapper is OK.
     try
@@ -1372,9 +1368,9 @@ public class PasswordModifyExtendedOperation
       IdentityMapper mapper = DirectoryServer.getIdentityMapper(mapperDN);
       if (mapper == null)
       {
-        int msgID = MSGID_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER;
-        String message = getMessage(msgID, String.valueOf(mapperDN),
-                                    String.valueOf(config.dn()));
+        Message message = ERR_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER.get(
+                String.valueOf(mapperDN),
+                String.valueOf(config.dn()));
         unacceptableReasons.add(message);
         return false;
       }
@@ -1386,9 +1382,9 @@ public class PasswordModifyExtendedOperation
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER;
-      String message = getMessage(msgID, String.valueOf(config.dn()),
-                                  getExceptionMessage(e));
+      Message message = ERR_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER.get(
+              String.valueOf(config.dn()),
+              getExceptionMessage(e));
       unacceptableReasons.add(message);
       return false;
     }
@@ -1419,7 +1415,7 @@ public class PasswordModifyExtendedOperation
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Make sure that the specified identity mapper is OK.
@@ -1433,9 +1429,9 @@ public class PasswordModifyExtendedOperation
       {
         resultCode = ResultCode.CONSTRAINT_VIOLATION;
 
-        int msgID = MSGID_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER;
-        messages.add(getMessage(msgID, String.valueOf(mapperDN),
-                                String.valueOf(config.dn())));
+        messages.add(ERR_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER.get(
+                String.valueOf(mapperDN),
+                String.valueOf(config.dn())));
       }
     }
     catch (Exception e)
@@ -1447,9 +1443,9 @@ public class PasswordModifyExtendedOperation
 
       resultCode = DirectoryServer.getServerErrorResultCode();
 
-      int msgID = MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER;
-      messages.add(getMessage(msgID, String.valueOf(config.dn()),
-                              getExceptionMessage(e)));
+      messages.add(ERR_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER.get(
+              String.valueOf(config.dn()),
+              getExceptionMessage(e)));
     }
 
 

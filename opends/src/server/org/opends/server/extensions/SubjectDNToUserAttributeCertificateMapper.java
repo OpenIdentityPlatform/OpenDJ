@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -59,8 +60,8 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
+
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -125,10 +126,9 @@ public class SubjectDNToUserAttributeCertificateMapper
          DirectoryServer.getAttributeType(toLowerCase(attrName), false);
     if (subjectAttributeType == null)
     {
-      int    msgID   = MSGID_SDTUACM_NO_SUCH_ATTR;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  attrName);
-      throw new ConfigException(msgID, message);
+      Message message =
+          ERR_SDTUACM_NO_SUCH_ATTR.get(String.valueOf(configEntryDN), attrName);
+      throw new ConfigException(message);
     }
   }
 
@@ -158,10 +158,8 @@ public class SubjectDNToUserAttributeCertificateMapper
     // Make sure that a peer certificate was provided.
     if ((certificateChain == null) || (certificateChain.length == 0))
     {
-      int    msgID   = MSGID_SDTUACM_NO_PEER_CERTIFICATE;
-      String message = getMessage(msgID);
-      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
-                                   msgID);
+      Message message = ERR_SDTUACM_NO_PEER_CERTIFICATE.get();
+      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
 
@@ -178,11 +176,9 @@ public class SubjectDNToUserAttributeCertificateMapper
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_SDTUACM_PEER_CERT_NOT_X509;
-      String message =
-           getMessage(msgID, String.valueOf(certificateChain[0].getType()));
-      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
-                                   msgID);
+      Message message = ERR_SDTUACM_PEER_CERT_NOT_X509.get(
+          String.valueOf(certificateChain[0].getType()));
+      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
 
@@ -221,12 +217,10 @@ public class SubjectDNToUserAttributeCertificateMapper
         }
         else
         {
-          int    msgID   = MSGID_SDTUACM_MULTIPLE_MATCHING_ENTRIES;
-          String message = getMessage(msgID, peerName,
-                                      String.valueOf(userEntry.getDN()),
-                                      String.valueOf(entry.getDN()));
-          throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
-                                       msgID);
+          Message message = ERR_SDTUACM_MULTIPLE_MATCHING_ENTRIES.
+              get(peerName, String.valueOf(userEntry.getDN()),
+                  String.valueOf(entry.getDN()));
+          throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
         }
       }
     }
@@ -244,7 +238,7 @@ public class SubjectDNToUserAttributeCertificateMapper
    */
   @Override()
   public boolean isConfigurationAcceptable(CertificateMapperCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     SubjectDNToUserAttributeCertificateMapperCfg config =
          (SubjectDNToUserAttributeCertificateMapperCfg) configuration;
@@ -259,7 +253,7 @@ public class SubjectDNToUserAttributeCertificateMapper
   public boolean isConfigurationChangeAcceptable(
                       SubjectDNToUserAttributeCertificateMapperCfg
                            configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
     DN cfgEntryDN = configuration.dn();
@@ -271,9 +265,9 @@ public class SubjectDNToUserAttributeCertificateMapper
                                        false);
     if (newSubjectType == null)
     {
-      unacceptableReasons.add(getMessage(MSGID_SDTUACM_NO_SUCH_ATTR,
-                                         String.valueOf(cfgEntryDN),
-                                         attrName));
+      unacceptableReasons.add(ERR_SDTUACM_NO_SUCH_ATTR.get(
+              String.valueOf(cfgEntryDN),
+              attrName));
       configAcceptable = false;
     }
 
@@ -290,9 +284,9 @@ public class SubjectDNToUserAttributeCertificateMapper
               SubjectDNToUserAttributeCertificateMapperCfg
                    configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ResultCode         resultCode          = ResultCode.SUCCESS;
+    boolean            adminActionRequired = false;
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Make sure that the fingerprint attribute is defined in the server schema.
@@ -307,8 +301,8 @@ public class SubjectDNToUserAttributeCertificateMapper
         resultCode = ResultCode.NO_SUCH_ATTRIBUTE;
       }
 
-      messages.add(getMessage(MSGID_SDTUACM_NO_SUCH_ATTR,
-                              String.valueOf(configEntryDN), attrName));
+      messages.add(ERR_SDTUACM_NO_SUCH_ATTR.get(
+              String.valueOf(configEntryDN), attrName));
     }
 
 

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+import org.opends.messages.Message;
 
 
 
@@ -37,16 +38,12 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
-
+import org.opends.server.loggers.ErrorLogger;
 
 
 /**
@@ -156,17 +153,16 @@ public class BooleanEqualityMatchingRule
     }
     else
     {
-      int    msgID   = MSGID_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
-      String message = getMessage(msgID, value.stringValue());
+      Message message = WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(
+              value.stringValue());
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
         case REJECT:
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         case WARN:
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                   message, msgID);
+          ErrorLogger.logError(message);
           return new ASN1OctetString(valueString);
         default:
           return new ASN1OctetString(valueString);

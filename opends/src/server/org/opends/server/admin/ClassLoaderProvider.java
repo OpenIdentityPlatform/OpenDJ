@@ -25,14 +25,14 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.admin;
+import org.opends.messages.Message;
 
 
 
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.AdminMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.messages.AdminMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.BufferedReader;
@@ -55,8 +55,6 @@ import java.util.jar.JarFile;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.Validator;
 
@@ -369,11 +367,10 @@ public final class ClassLoaderProvider {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_ADMIN_CANNOT_OPEN_JAR_FILE;
-        String message = getMessage(msgID, extension.getName(),
-            extension.getParent(), stackTraceToSingleLineString(e));
-
-        throw new InitializationException(msgID, message);
+        Message message = ERR_ADMIN_CANNOT_OPEN_JAR_FILE.
+            get(extension.getName(), extension.getParent(),
+                stackTraceToSingleLineString(e));
+        throw new InitializationException(message);
       }
       jarFiles.add(extension);
     }
@@ -405,21 +402,19 @@ public final class ClassLoaderProvider {
       if (!extensionsPath.exists()) {
         // The extensions directory does not exist. This is not a
         // critical problem.
-        int msgID = MSGID_ADMIN_NO_EXTENSIONS_DIR;
-        String message = getMessage(msgID, extensionsPath);
-
-        logError(ErrorLogCategory.EXTENSIONS,
-            ErrorLogSeverity.MILD_ERROR, message, msgID);
+        Message message = ERR_ADMIN_NO_EXTENSIONS_DIR.get(
+                String.valueOf(extensionsPath));
+        logError(message);
         return;
       }
 
       if (!extensionsPath.isDirectory()) {
         // The extensions directory is not a directory. This is more
         // critical.
-        int msgID = MSGID_ADMIN_EXTENSIONS_DIR_NOT_DIRECTORY;
-        String message = getMessage(msgID, extensionsPath);
-
-        throw new InitializationException(msgID, message);
+        Message message =
+            ERR_ADMIN_EXTENSIONS_DIR_NOT_DIRECTORY.get(
+                    String.valueOf(extensionsPath));
+        throw new InitializationException(message);
       }
 
       // Get each extension file name.
@@ -451,10 +446,9 @@ public final class ClassLoaderProvider {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_ADMIN_EXTENSIONS_CANNOT_LIST_FILES;
-      String message = getMessage(msgID, extensionsPath,
-          stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_ADMIN_EXTENSIONS_CANNOT_LIST_FILES.get(
+          String.valueOf(extensionsPath), stackTraceToSingleLineString(e));
+      throw new InitializationException(message, e);
     }
   }
 
@@ -474,9 +468,8 @@ public final class ClassLoaderProvider {
         + CORE_MANIFEST);
 
     if (is == null) {
-      int msgID = MSGID_ADMIN_CANNOT_FIND_CORE_MANIFEST;
-      String message = getMessage(msgID, CORE_MANIFEST);
-      throw new InitializationException(msgID, message);
+      Message message = ERR_ADMIN_CANNOT_FIND_CORE_MANIFEST.get(CORE_MANIFEST);
+      throw new InitializationException(message);
     }
 
     try {
@@ -486,19 +479,17 @@ public final class ClassLoaderProvider {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_ADMIN_CANNOT_READ_CORE_MANIFEST;
-      String message = getMessage(msgID, CORE_MANIFEST,
-          stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message);
+      Message message = ERR_ADMIN_CANNOT_READ_CORE_MANIFEST.get(
+          CORE_MANIFEST, stackTraceToSingleLineString(e));
+      throw new InitializationException(message);
     } catch (Exception e) {
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_ADMIN_CANNOT_LOAD_CLASS_FROM_CORE_MANIFEST;
-      String message = getMessage(msgID, CORE_MANIFEST,
-          stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message);
+      Message message = ERR_ADMIN_CANNOT_LOAD_CLASS_FROM_CORE_MANIFEST.get(
+          CORE_MANIFEST, stackTraceToSingleLineString(e));
+      throw new InitializationException(message);
     }
   }
 
@@ -528,10 +519,10 @@ public final class ClassLoaderProvider {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_ADMIN_CANNOT_READ_EXTENSION_MANIFEST;
-        String message = getMessage(msgID, EXTENSION_MANIFEST,
-            jarFile.getName(), stackTraceToSingleLineString(e));
-        throw new InitializationException(msgID, message);
+        Message message = ERR_ADMIN_CANNOT_READ_EXTENSION_MANIFEST.
+            get(EXTENSION_MANIFEST, jarFile.getName(),
+                stackTraceToSingleLineString(e));
+        throw new InitializationException(message);
       }
 
       try {
@@ -541,19 +532,19 @@ public final class ClassLoaderProvider {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_ADMIN_CANNOT_READ_EXTENSION_MANIFEST;
-        String message = getMessage(msgID, EXTENSION_MANIFEST,
-            jarFile.getName(), stackTraceToSingleLineString(e));
-        throw new InitializationException(msgID, message);
+        Message message = ERR_ADMIN_CANNOT_READ_EXTENSION_MANIFEST.
+            get(EXTENSION_MANIFEST, jarFile.getName(),
+                stackTraceToSingleLineString(e));
+        throw new InitializationException(message);
       } catch (Exception e) {
         if (debugEnabled()) {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_ADMIN_CANNOT_LOAD_CLASS_FROM_EXTENSION_MANIFEST;
-        String message = getMessage(msgID, EXTENSION_MANIFEST,
-            jarFile.getName(), stackTraceToSingleLineString(e));
-        throw new InitializationException(msgID, message);
+        Message message = ERR_ADMIN_CANNOT_LOAD_CLASS_FROM_EXTENSION_MANIFEST.
+            get(EXTENSION_MANIFEST, jarFile.getName(),
+                stackTraceToSingleLineString(e));
+        throw new InitializationException(message);
       }
     }
   }
@@ -631,11 +622,9 @@ public final class ClassLoaderProvider {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_ADMIN_CANNOT_OPEN_JAR_FILE;
-      String message = getMessage(msgID, jar.getName(), jar
-          .getParent(), stackTraceToSingleLineString(e));
-
-      throw new InitializationException(msgID, message);
+      Message message = ERR_ADMIN_CANNOT_OPEN_JAR_FILE.get(
+          jar.getName(), jar.getParent(), stackTraceToSingleLineString(e));
+      throw new InitializationException(message);
     }
     return jarFile;
   }

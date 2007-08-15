@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -57,8 +58,8 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
+
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -151,10 +152,9 @@ public class ExternalSASLMechanismHandler
          DirectoryServer.getAttributeType(toLowerCase(attrTypeName), false);
     if (certificateAttributeType == null)
     {
-      int    msgID   = MSGID_SASLEXTERNAL_UNKNOWN_CERT_ATTR;
-      String message = getMessage(msgID, String.valueOf(attrTypeName),
-                                  String.valueOf(configEntryDN));
-      throw new ConfigException(msgID, message);
+      Message message = ERR_SASLEXTERNAL_UNKNOWN_CERT_ATTR.get(
+          String.valueOf(attrTypeName), String.valueOf(configEntryDN));
+      throw new ConfigException(message);
     }
 
 
@@ -164,11 +164,10 @@ public class ExternalSASLMechanismHandler
               configuration.getCertificateMapperDN());
     if (certificateMapper == null)
     {
-      int    msgID   = MSGID_SASLEXTERNAL_INVALID_CERTIFICATE_MAPPER_DN;
-      String message =
-           getMessage(msgID, String.valueOf(configEntryDN),
-                      String.valueOf(configuration.getCertificateMapperDN()));
-      throw new ConfigException(msgID, message);
+      Message message = ERR_SASLEXTERNAL_INVALID_CERTIFICATE_MAPPER_DN.
+          get(String.valueOf(configEntryDN),
+              String.valueOf(configuration.getCertificateMapperDN()));
+      throw new ConfigException(message);
     }
 
 
@@ -208,9 +207,8 @@ public class ExternalSASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLEXTERNAL_NO_CLIENT_CONNECTION;
-      String message = getMessage(msgID);
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLEXTERNAL_NO_CLIENT_CONNECTION.get();
+      bindOperation.setAuthFailureReason(message);
       return;
     }
 
@@ -220,9 +218,8 @@ public class ExternalSASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLEXTERNAL_NO_SECURITY_PROVIDER;
-      String message = getMessage(msgID);
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLEXTERNAL_NO_SECURITY_PROVIDER.get();
+      bindOperation.setAuthFailureReason(message);
       return;
     }
 
@@ -233,10 +230,9 @@ public class ExternalSASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLEXTERNAL_CLIENT_NOT_USING_TLS_PROVIDER;
-      String message = getMessage(msgID,
-                                  securityProvider.getSecurityMechanismName());
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLEXTERNAL_CLIENT_NOT_USING_TLS_PROVIDER.get(
+              securityProvider.getSecurityMechanismName());
+      bindOperation.setAuthFailureReason(message);
       return;
     }
 
@@ -252,9 +248,8 @@ public class ExternalSASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLEXTERNAL_NO_CLIENT_CERT;
-      String message = getMessage(msgID);
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLEXTERNAL_NO_CLIENT_CERT.get();
+      bindOperation.setAuthFailureReason(message);
       return;
     }
 
@@ -267,10 +262,10 @@ public class ExternalSASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLEXTERNAL_INVALID_CERTIFICATE_MAPPER_DN;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  String.valueOf(certificateMapperDN));
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLEXTERNAL_INVALID_CERTIFICATE_MAPPER_DN.get(
+              String.valueOf(configEntryDN),
+              String.valueOf(certificateMapperDN));
+      bindOperation.setAuthFailureReason(message);
       return;
     }
 
@@ -300,9 +295,8 @@ public class ExternalSASLMechanismHandler
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLEXTERNAL_NO_MAPPING;
-      String message = getMessage(msgID);
-      bindOperation.setAuthFailureReason(msgID, message);
+      Message message = ERR_SASLEXTERNAL_NO_MAPPING.get();
+      bindOperation.setAuthFailureReason(message);
       return;
     }
     else
@@ -324,10 +318,9 @@ public class ExternalSASLMechanismHandler
           {
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-            int    msgID   = MSGID_SASLEXTERNAL_NO_CERT_IN_ENTRY;
-            String message = getMessage(msgID,
-                                        String.valueOf(userEntry.getDN()));
-            bindOperation.setAuthFailureReason(msgID, message);
+            Message message = ERR_SASLEXTERNAL_NO_CERT_IN_ENTRY.get(
+                    String.valueOf(userEntry.getDN()));
+            bindOperation.setAuthFailureReason(message);
             return;
           }
         }
@@ -354,10 +347,9 @@ public class ExternalSASLMechanismHandler
             {
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              int    msgID   = MSGID_SASLEXTERNAL_PEER_CERT_NOT_FOUND;
-              String message = getMessage(msgID,
-                                          String.valueOf(userEntry.getDN()));
-              bindOperation.setAuthFailureReason(msgID, message);
+              Message message = ERR_SASLEXTERNAL_PEER_CERT_NOT_FOUND.get(
+                      String.valueOf(userEntry.getDN()));
+              bindOperation.setAuthFailureReason(message);
               return;
             }
           }
@@ -370,11 +362,10 @@ public class ExternalSASLMechanismHandler
 
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-            int    msgID   = MSGID_SASLEXTERNAL_CANNOT_VALIDATE_CERT;
-            String message = getMessage(msgID,
-                                        String.valueOf(userEntry.getDN()),
-                                        getExceptionMessage(e));
-            bindOperation.setAuthFailureReason(msgID, message);
+            Message message = ERR_SASLEXTERNAL_CANNOT_VALIDATE_CERT.get(
+                    String.valueOf(userEntry.getDN()),
+                    getExceptionMessage(e));
+            bindOperation.setAuthFailureReason(message);
             return;
           }
         }
@@ -404,10 +395,9 @@ public class ExternalSASLMechanismHandler
             {
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-              int    msgID   = MSGID_SASLEXTERNAL_PEER_CERT_NOT_FOUND;
-              String message = getMessage(msgID,
-                                          String.valueOf(userEntry.getDN()));
-              bindOperation.setAuthFailureReason(msgID, message);
+              Message message = ERR_SASLEXTERNAL_PEER_CERT_NOT_FOUND.get(
+                      String.valueOf(userEntry.getDN()));
+              bindOperation.setAuthFailureReason(message);
               return;
             }
           }
@@ -420,11 +410,10 @@ public class ExternalSASLMechanismHandler
 
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-            int    msgID   = MSGID_SASLEXTERNAL_CANNOT_VALIDATE_CERT;
-            String message = getMessage(msgID,
-                                        String.valueOf(userEntry.getDN()),
-                                        getExceptionMessage(e));
-            bindOperation.setAuthFailureReason(msgID, message);
+            Message message = ERR_SASLEXTERNAL_CANNOT_VALIDATE_CERT.get(
+                    String.valueOf(userEntry.getDN()),
+                    getExceptionMessage(e));
+            bindOperation.setAuthFailureReason(message);
             return;
           }
         }
@@ -470,7 +459,7 @@ public class ExternalSASLMechanismHandler
   @Override()
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     ExternalSASLMechanismHandlerCfg config =
          (ExternalSASLMechanismHandlerCfg) configuration;
@@ -484,7 +473,7 @@ public class ExternalSASLMechanismHandler
    */
   public boolean isConfigurationChangeAcceptable(
                       ExternalSASLMechanismHandlerCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
     DN cfgEntryDN = configuration.dn();
@@ -500,9 +489,9 @@ public class ExternalSASLMechanismHandler
          DirectoryServer.getAttributeType(toLowerCase(attrTypeName), false);
     if (newCertificateType == null)
     {
-      int msgID = MSGID_SASLEXTERNAL_UNKNOWN_CERT_ATTR;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(attrTypeName),
-                                         String.valueOf(cfgEntryDN)));
+      unacceptableReasons.add(ERR_SASLEXTERNAL_UNKNOWN_CERT_ATTR.get(
+              String.valueOf(attrTypeName),
+              String.valueOf(cfgEntryDN)));
       configAcceptable = false;
     }
 
@@ -513,9 +502,9 @@ public class ExternalSASLMechanismHandler
               configuration.getCertificateMapperDN());
     if (certificateMapper == null)
     {
-      int msgID = MSGID_SASLEXTERNAL_INVALID_CERTIFICATE_MAPPER_DN;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(cfgEntryDN),
-           String.valueOf(configuration.getCertificateMapperDN())));
+      unacceptableReasons.add(ERR_SASLEXTERNAL_INVALID_CERTIFICATE_MAPPER_DN
+              .get(String.valueOf(cfgEntryDN),
+                   String.valueOf(configuration.getCertificateMapperDN())));
       configAcceptable = false;
     }
 
@@ -533,7 +522,7 @@ public class ExternalSASLMechanismHandler
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // See if we should attempt to validate client certificates against those in
@@ -570,9 +559,10 @@ public class ExternalSASLMechanismHandler
         resultCode = ResultCode.NO_SUCH_ATTRIBUTE;
       }
 
-      int msgID = MSGID_SASLEXTERNAL_UNKNOWN_CERT_ATTR;
-      messages.add(getMessage(msgID, String.valueOf(attrTypeName),
-                              String.valueOf(configEntryDN)));
+
+      messages.add(ERR_SASLEXTERNAL_UNKNOWN_CERT_ATTR.get(
+              String.valueOf(attrTypeName),
+              String.valueOf(configEntryDN)));
     }
 
 

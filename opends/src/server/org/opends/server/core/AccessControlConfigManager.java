@@ -25,13 +25,13 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -55,8 +55,6 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
@@ -269,11 +267,10 @@ public final class AccessControlConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int msgID = MSGID_CONFIG_AUTHZ_UNABLE_TO_INSTANTIATE_HANDLER;
-        String message = getMessage(msgID, newHandlerClass,
-                                    String.valueOf(configEntryDN.toString()),
-                                    stackTraceToSingleLineString(e));
-        throw new InitializationException(msgID, message, e);
+        Message message = ERR_CONFIG_AUTHZ_UNABLE_TO_INSTANTIATE_HANDLER.
+            get(newHandlerClass, String.valueOf(configEntryDN.toString()),
+                stackTraceToSingleLineString(e));
+        throw new InitializationException(message, e);
       }
 
       // Switch the handlers without interfering with other threads.
@@ -288,26 +285,22 @@ public final class AccessControlConfigManager
       // If access control has been disabled put a warning in the log.
       if (newHandlerClass.equals(DefaultAccessControlHandler.class.getName()))
       {
-        int msgID = MSGID_CONFIG_AUTHZ_DISABLED;
-        String message = getMessage(msgID);
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+        Message message = WARN_CONFIG_AUTHZ_DISABLED.get();
+        logError(message);
         if (currentConfiguration != null)
         {
           DirectoryServer.sendAlertNotification(this,
-               ALERT_TYPE_ACCESS_CONTROL_DISABLED, msgID, message);
+               ALERT_TYPE_ACCESS_CONTROL_DISABLED, message);
         }
       }
       else
       {
-        int msgID = MSGID_CONFIG_AUTHZ_ENABLED;
-        String message = getMessage(msgID, newHandlerClass);
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.NOTICE,
-                 message, msgID);
+        Message message = NOTE_CONFIG_AUTHZ_ENABLED.get(newHandlerClass);
+        logError(message);
         if (currentConfiguration != null)
         {
           DirectoryServer.sendAlertNotification(this,
-               ALERT_TYPE_ACCESS_CONTROL_ENABLED, msgID, message);
+               ALERT_TYPE_ACCESS_CONTROL_ENABLED, message);
         }
       }
     }
@@ -323,7 +316,7 @@ public final class AccessControlConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
                       AccessControlHandlerCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     try
     {
@@ -337,7 +330,7 @@ public final class AccessControlConfigManager
     }
     catch (InitializationException e)
     {
-      unacceptableReasons.add(e.getMessage());
+      unacceptableReasons.add(e.getMessageObject());
       return false;
     }
 
@@ -353,7 +346,7 @@ public final class AccessControlConfigManager
                                  AccessControlHandlerCfg configuration)
   {
     ResultCode resultCode = ResultCode.SUCCESS;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     try
     {
@@ -362,12 +355,12 @@ public final class AccessControlConfigManager
     }
     catch (ConfigException e)
     {
-      messages.add(e.getMessage());
+      messages.add(e.getMessageObject());
       resultCode = ResultCode.CONSTRAINT_VIOLATION;
     }
     catch (InitializationException e)
     {
-      messages.add(e.getMessage());
+      messages.add(e.getMessageObject());
       resultCode = DirectoryServer.getServerErrorResultCode();
     }
 
@@ -462,7 +455,7 @@ public final class AccessControlConfigManager
                                            AccessControlHandlerCfg.class,
                                            List.class);
 
-        List<String> unacceptableReasons = new ArrayList<String>();
+        List<Message> unacceptableReasons = new ArrayList<Message>();
         Boolean acceptable = (Boolean) method.invoke(provider, configuration,
                                                      unacceptableReasons);
         if (! acceptable)
@@ -470,7 +463,7 @@ public final class AccessControlConfigManager
           StringBuilder buffer = new StringBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<String> iterator = unacceptableReasons.iterator();
+            Iterator<Message> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -479,10 +472,9 @@ public final class AccessControlConfigManager
             }
           }
 
-          int    msgID   = MSGID_CONFIG_AUTHZ_CONFIG_NOT_ACCEPTABLE;
-          String message = getMessage(msgID, String.valueOf(configuration.dn()),
-                                      buffer.toString());
-          throw new InitializationException(msgID, message);
+          Message message = ERR_CONFIG_AUTHZ_CONFIG_NOT_ACCEPTABLE.get(
+              String.valueOf(configuration.dn()), buffer.toString());
+          throw new InitializationException(message);
         }
       }
 
@@ -490,11 +482,10 @@ public final class AccessControlConfigManager
     }
     catch (Exception e)
     {
-      int msgID = MSGID_CONFIG_AUTHZ_UNABLE_TO_INSTANTIATE_HANDLER;
-      String message = getMessage(msgID, className,
-                                  String.valueOf(configuration.dn()),
-                                  stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_AUTHZ_UNABLE_TO_INSTANTIATE_HANDLER.
+          get(className, String.valueOf(configuration.dn()),
+              stackTraceToSingleLineString(e));
+      throw new InitializationException(message, e);
     }
   }
 }

@@ -34,6 +34,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.*;
 import org.opends.server.types.LDAPException;
 import static org.opends.server.util.ServerConstants.EOL;
+import org.opends.messages.Message;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertEquals;
@@ -68,7 +69,7 @@ public class TestCompareResponseProtocolOp extends LdapTestCase
   /**
    * The error message to use for compare result operations.
    */
-  private static final String resultMsg = "Test Successful";
+  private static final Message resultMsg = Message.raw("Test Successful");
 
 /**
    * The DN to use for compare result operations

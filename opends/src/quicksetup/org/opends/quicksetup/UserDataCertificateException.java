@@ -26,6 +26,7 @@
  */
 
 package org.opends.quicksetup;
+import org.opends.messages.Message;
 
 import java.security.cert.X509Certificate;
 
@@ -64,7 +65,7 @@ public class UserDataCertificateException extends UserDataException
   /**
    * Constructor for UserDataCertificateException.
    * @param step the step in the wizard where the exception occurred.
-   * @param localizedMessage the localized message describing the error.
+   * @param message describing the error.
    * @param t the root cause for this exception.
    * @param host the host we tried to connect to.
    * @param port the port we tried to connect to.
@@ -72,11 +73,11 @@ public class UserDataCertificateException extends UserDataException
    * @param authType the authentication type.
    * @param type the type of the exception.
    */
-  public UserDataCertificateException(WizardStep step, String localizedMessage,
+  public UserDataCertificateException(WizardStep step, Message message,
       Throwable t, String host, int port, X509Certificate[] chain,
       String authType, Type type)
   {
-    super(step, localizedMessage);
+    super(step, message);
     initCause(t);
     this.host = host;
     this.port = port;

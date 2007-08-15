@@ -34,6 +34,7 @@ import java.util.SortedSet;
 import javax.naming.ldap.LdapName;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.admin.AdminTestCase;
 import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.MockLDAPProfile;
@@ -109,7 +110,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
      * {@inheritDoc}
      */
     public boolean isConfigurationAddAcceptable(TestChildCfg configuration,
-        List<String> unacceptableReasons) {
+        List<Message> unacceptableReasons) {
       child = configuration;
       return true;
     }
@@ -169,7 +170,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
      * {@inheritDoc}
      */
     public boolean isConfigurationChangeAcceptable(TestChildCfg configuration,
-        List<String> unacceptableReasons) {
+        List<Message> unacceptableReasons) {
       child = configuration;
       return true;
     }

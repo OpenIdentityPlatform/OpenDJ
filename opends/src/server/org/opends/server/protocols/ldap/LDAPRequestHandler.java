@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
+import org.opends.messages.Message;
 
 
 
@@ -45,14 +46,12 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.InitializationException;
 
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
+import org.opends.server.loggers.ErrorLogger;
+import static org.opends.messages.ProtocolMessages.*;
+
 import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -138,9 +137,9 @@ public class LDAPRequestHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDAP_REQHANDLER_OPEN_SELECTOR_FAILED;
-      String message = getMessage(msgID, handlerName, String.valueOf(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_LDAP_REQHANDLER_OPEN_SELECTOR_FAILED.get(
+          handlerName, String.valueOf(e));
+      throw new InitializationException(message, e);
     }
 
     try
@@ -160,9 +159,9 @@ public class LDAPRequestHandler
             (ste.getMethodName().indexOf("poll") >= 0) &&
             ioe.getMessage().equalsIgnoreCase("Invalid argument"))
         {
-          int    msgID   = MSGID_LDAP_REQHANDLER_DETECTED_JVM_ISSUE_CR6322825;
-          String message = getMessage(msgID, String.valueOf(ioe));
-          throw new InitializationException(msgID, message, ioe);
+          Message message = ERR_LDAP_REQHANDLER_DETECTED_JVM_ISSUE_CR6322825.
+              get(String.valueOf(ioe));
+          throw new InitializationException(message, ioe);
         }
       }
     }
@@ -234,7 +233,7 @@ public class LDAPRequestHandler
                   // FIXME -- Should we log this?
                   key.cancel();
                   clientConnection.disconnect(DisconnectReason.SERVER_ERROR,
-                                              false, String.valueOf(e), -1);
+                                              false, null);
                 }
               }
               catch (Exception e)
@@ -252,7 +251,7 @@ public class LDAPRequestHandler
                 if (clientConnection != null)
                 {
                   clientConnection.disconnect(DisconnectReason.SERVER_ERROR,
-                                              false, String.valueOf(e), -1);
+                                              false, null);
                 }
               }
             }
@@ -282,11 +281,9 @@ public class LDAPRequestHandler
 
             // This should not happen, and it would have caused our reader
             // thread to die.  Log a severe error.
-            int    msgID   = MSGID_LDAP_REQHANDLER_UNEXPECTED_SELECT_EXCEPTION;
-            String message = getMessage(msgID, getName(),
-                                        getExceptionMessage(e));
-            logError(ErrorLogCategory.REQUEST_HANDLING,
-                     ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+            Message message = ERR_LDAP_REQHANDLER_UNEXPECTED_SELECT_EXCEPTION.
+                get(getName(), getExceptionMessage(e));
+            ErrorLogger.logError(message);
           }
           finally
           {
@@ -316,8 +313,8 @@ public class LDAPRequestHandler
           }
 
           c.disconnect(DisconnectReason.SERVER_ERROR, true,
-                       MSGID_LDAP_REQHANDLER_CANNOT_REGISTER, handlerName,
-                       String.valueOf(e));
+                       ERR_LDAP_REQHANDLER_CANNOT_REGISTER.get(handlerName,
+                       String.valueOf(e)));
         }
       }
     }
@@ -345,7 +342,7 @@ public class LDAPRequestHandler
     if (shutdownRequested)
     {
       clientConnection.disconnect(DisconnectReason.SERVER_SHUTDOWN, true,
-           MSGID_LDAP_REQHANDLER_REJECT_DUE_TO_SHUTDOWN);
+           ERR_LDAP_REQHANDLER_REJECT_DUE_TO_SHUTDOWN.get());
       return false;
     }
 
@@ -361,7 +358,7 @@ public class LDAPRequestHandler
     else
     {
       clientConnection.disconnect(DisconnectReason.ADMIN_LIMIT_EXCEEDED, true,
-           MSGID_LDAP_REQHANDLER_REJECT_DUE_TO_QUEUE_FULL, handlerName);
+           ERR_LDAP_REQHANDLER_REJECT_DUE_TO_QUEUE_FULL.get(handlerName));
       return false;
     }
   }
@@ -503,7 +500,7 @@ public class LDAPRequestHandler
    *
    * @param  reason  The human-readable reason for the shutdown.
    */
-  public void processServerShutdown(String reason)
+  public void processServerShutdown(Message reason)
   {
     shutdownRequested = true;
 
@@ -517,8 +514,8 @@ public class LDAPRequestHandler
         try
         {
           c.disconnect(DisconnectReason.SERVER_SHUTDOWN, true,
-                       MSGID_LDAP_REQHANDLER_DEREGISTER_DUE_TO_SHUTDOWN,
-                       reason);
+                       ERR_LDAP_REQHANDLER_DEREGISTER_DUE_TO_SHUTDOWN.get(
+                               reason));
         }
         catch (Exception e)
         {

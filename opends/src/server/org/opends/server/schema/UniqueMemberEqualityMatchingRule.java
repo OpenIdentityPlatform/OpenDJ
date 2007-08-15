@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+import org.opends.messages.Message;
 
 
 
@@ -38,17 +39,14 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.ErrorLogger.*;
+import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -193,17 +191,16 @@ public class UniqueMemberEqualityMatchingRule
       // We couldn't normalize the DN for some reason.  If we're supposed to use
       // strict syntax enforcement, then throw an exception.  Otherwise, log a
       // message and just try our best.
-      int msgID = MSGID_ATTR_SYNTAX_NAMEANDUID_INVALID_DN;
-      String message = getMessage(msgID, valueString, getExceptionMessage(e));
+      Message message = ERR_ATTR_SYNTAX_NAMEANDUID_INVALID_DN.get(
+              valueString, getExceptionMessage(e));
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
         case REJECT:
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
+                                       message);
         case WARN:
-          logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.MILD_ERROR,
-                   message, msgID);
+          ErrorLogger.logError(message);
 
           valueBuffer.append(toLowerCase(valueString).substring(0, dnEndPos));
           break;
@@ -235,20 +232,18 @@ public class UniqueMemberEqualityMatchingRule
         {
           // There was an invalid binary digit.  We'll either throw an exception
           // or log a message and continue, based on the server's configuration.
-          int    msgID   = MSGID_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT;
-          String message = getMessage(msgID, valueString, c, i);
+          Message message = ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT.get(
+                  valueString, String.valueOf(c), i);
 
           switch (DirectoryServer.getSyntaxEnforcementPolicy())
           {
             case REJECT:
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                           message, msgID);
+                                           message);
             case WARN:
               if (! logged)
               {
-                logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.MILD_ERROR,
-                         message, msgID);
-
+                ErrorLogger.logError(message);
                 logged = true;
               }
               break;

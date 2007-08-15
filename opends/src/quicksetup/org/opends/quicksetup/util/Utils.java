@@ -26,6 +26,9 @@
  */
 package org.opends.quicksetup.util;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -48,8 +51,10 @@ import javax.net.ssl.TrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.webstart.JnlpProperties;
-import org.opends.quicksetup.i18n.ResourceProvider;
+
 import org.opends.server.util.SetupUtils;
+import org.opends.messages.MessageBuilder;
+import org.opends.messages.MessageDescriptor;
 
 
 /**
@@ -527,6 +532,36 @@ public class Utils
   }
 
   /**
+   * This is a helper method that gets a Message representation of the elements
+   * in the Collection of Messages. The Message will display the different
+   * elements separated by the separator String.
+   *
+   * @param col
+   *          the collection containing the messages.
+   * @param separator
+   *          the separator String to be used.
+   * @return the message representation for the collection;
+   *          null if <code>col</code> is null
+   */
+  public static Message getMessageFromCollection(Collection<Message> col,
+                                                 String separator) {
+    Message message = null;
+    if (col != null) {
+      MessageBuilder mb = null;
+      for (Message m : col) {
+        if (mb == null) {
+          mb = new MessageBuilder(m);
+        } else {
+          mb.append(separator).append(m);
+        }
+      }
+      if (mb == null) mb = new MessageBuilder();
+      message = mb.toMessage();
+    }
+    return message;
+  }
+
+  /**
    * Returns the default server location that will be proposed to the user
    * in the installation.
    * @return the default server location that will be proposed to the user
@@ -604,42 +639,29 @@ public class Utils
 
   /**
    * Returns a localized message for a given properties key an throwable.
-   * @param key the key of the message in the properties file.
-   * @param i18n the ResourceProvider to be used.
-   * @param args the arguments of the message in the properties file.
+   * @param message prefix
    * @param t the throwable for which we want to get a message.
    *
    * @return a localized message for a given properties key and throwable.
    */
-  public static String getThrowableMsg(ResourceProvider i18n, String key,
-      String[] args, Throwable t)
+  public static Message getThrowableMsg(Message message, Throwable t)
   {
-    String msg;
-    if (args != null)
-    {
-      msg = i18n.getMsg(key, args);
-    } else
-    {
-      msg = i18n.getMsg(key);
-    }
-
-    String tag;
+    MessageBuilder mb = new MessageBuilder(message);
+    MessageDescriptor.Arg1<CharSequence> tag;
     if (isOutOfMemory(t))
     {
-      tag = "exception-out-of-memory-details";
+      tag = INFO_EXCEPTION_OUT_OF_MEMORY_DETAILS;
     }
     else
     {
-      tag = "exception-details";
+      tag = INFO_EXCEPTION_DETAILS;
     }
     String detail = t.toString();
     if (detail != null)
     {
-      String[] arg =
-      { detail };
-      msg = msg + "  " + i18n.getMsg(tag, arg);
+      mb.append("  ").append(tag.get(detail));
     }
-    return msg;
+    return mb.toMessage();
   }
 
   /**
@@ -971,11 +993,11 @@ public class Utils
    * @param appName
    *          application name to display in the menu bar and the dock.
    */
-  public static void setMacOSXMenuBar(String appName)
+  public static void setMacOSXMenuBar(Message appName)
   {
     System.setProperty("apple.laf.useScreenMenuBar", "true");
     System.setProperty("com.apple.mrj.application.apple.menu.about.name",
-                       appName);
+                       String.valueOf(appName));
   }
 
   /**
@@ -1045,6 +1067,35 @@ public class Utils
    */
   static public String listToString(List<?> list, String separator) {
     return listToString(list, separator, null, null);
+  }
+
+  /**
+   * Creates a message consisting of the string representation of the
+   * elements in the <code>list</code> separated by <code>separator</code>.
+   * @param list the list to print
+   * @param separator to use in separating elements
+   * @param prefix prepended to each individual element in the list before
+   *        adding to the returned string.
+   * @param suffix appended to each individual element in the list before
+   *        adding to the returned string.
+   * @return String representing the list
+   */
+  static public Message listToMessage(List<Message> list, String separator,
+                                      String prefix, String suffix) {
+    MessageBuilder sb = new MessageBuilder();
+    for (int i = 0; i < list.size(); i++) {
+      if (prefix != null) {
+        sb.append(prefix);
+      }
+      sb.append(list.get(i));
+      if (suffix != null) {
+        sb.append(suffix);
+      }
+      if (i < list.size() - 1) {
+        sb.append(separator);
+      }
+    }
+    return sb.toMessage();
   }
 
   /**
@@ -1160,8 +1211,7 @@ public class Utils
       LOG.log(Level.INFO, "error trying to determine current build string", e);
     }
     if (b == null) {
-      b = ResourceProvider.getInstance().
-              getMsg("upgrade-build-id-unknown");
+      b = INFO_UPGRADE_BUILD_ID_UNKNOWN.get().toString();
     }
     return b;
   }
@@ -1190,48 +1240,53 @@ public class Utils
    * respected by this method when calculating where to place
    * new breaks to control the maximum line length.
    *
-   * @param d String to break
+   * @param cs String to break
    * @param maxll int maximum line length
    * @return String representing <code>d</code> with HTML break
    *         tags inserted
    */
-  static public String breakHtmlString(String d, int maxll) {
-    int len = d.length();
-    if (len <= 0)
-      return d;
-    if (len > maxll) {
+  static public String breakHtmlString(CharSequence cs, int maxll) {
+    if (cs != null) {
+      String d = cs.toString();
+      int len = d.length();
+      if (len <= 0)
+        return d;
+      if (len > maxll) {
 
-      // First see if there are any tags that would cause a
-      // natural break in the line.  If so start line break
-      // point evaluation from that point.
-      for (String tag : Constants.BREAKING_TAGS) {
-        int p = d.lastIndexOf(tag, maxll);
-        if (p > 0 && p < len) {
-          return d.substring(0, p + tag.length()) +
-                 breakHtmlString(
-                         d.substring(p + tag.length()),
-                         maxll);
+        // First see if there are any tags that would cause a
+        // natural break in the line.  If so start line break
+        // point evaluation from that point.
+        for (String tag : Constants.BREAKING_TAGS) {
+          int p = d.lastIndexOf(tag, maxll);
+          if (p > 0 && p < len) {
+            return d.substring(0, p + tag.length()) +
+                   breakHtmlString(
+                           d.substring(p + tag.length()),
+                           maxll);
+          }
         }
-      }
 
-      // Now look for spaces in which to insert a break.
-      // First see if there are any spaces counting backward
-      // from the max line length.  If there aren't any, then
-      // use the first space encountered after the max line
-      // lenght.
-      int p = d.lastIndexOf(' ', maxll);
-      if (p <= 0) {
-        p = d.indexOf(' ', maxll);
-      }
-      if (p > 0 && p < len) {
-        return d.substring(0, p) +
-                Constants.HTML_LINE_BREAK +
-               breakHtmlString(d.substring(p + 1), maxll);
+        // Now look for spaces in which to insert a break.
+        // First see if there are any spaces counting backward
+        // from the max line length.  If there aren't any, then
+        // use the first space encountered after the max line
+        // lenght.
+        int p = d.lastIndexOf(' ', maxll);
+        if (p <= 0) {
+          p = d.indexOf(' ', maxll);
+        }
+        if (p > 0 && p < len) {
+          return d.substring(0, p) +
+                  Constants.HTML_LINE_BREAK +
+                 breakHtmlString(d.substring(p + 1), maxll);
+        } else {
+          return d;
+        }
       } else {
         return d;
       }
     } else {
-      return d;
+      return null;
     }
   }
 
@@ -1276,5 +1331,18 @@ public class Utils
             text.indexOf('<') != -1 &&
             text.indexOf('>') != -1);
   }
+
+  /**
+   * Wraps a message accoring to client tool console width.
+   * @param text to wrap
+   * @return raw message representing wrapped string
+   */
+  static public Message wrap(Message text)
+  {
+    return Message.raw(
+            org.opends.server.util.StaticUtils.wrapText(text,
+                    getCommandLineMaxLineWidth()));
+  }
+
 
 }

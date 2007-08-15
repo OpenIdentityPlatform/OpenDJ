@@ -27,6 +27,8 @@
 
 package org.opends.quicksetup.ui;
 
+import static org.opends.messages.QuickSetupMessages.*;
+
 import java.awt.*;
 
 import java.util.HashMap;
@@ -149,7 +151,8 @@ public class CurrentStepPanel extends QuickSetupPanel
     JPanel loadingPanel = UIFactory.makeJPanel();
     loadingPanel.setLayout(new GridBagLayout());
     loadingPanel.add(UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-            getMsg("general-loading"), UIFactory.TextStyle.PRIMARY_FIELD_VALID),
+            INFO_GENERAL_LOADING.get(),
+            UIFactory.TextStyle.PRIMARY_FIELD_VALID),
             new GridBagConstraints());
     add(loadingPanel, LOADING_PANEL);
 

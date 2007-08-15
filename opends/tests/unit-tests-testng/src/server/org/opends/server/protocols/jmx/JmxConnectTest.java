@@ -47,6 +47,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.JMXConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.server.JMXConnectionHandlerCfg;
@@ -496,7 +497,7 @@ public class JmxConnectTest extends JmxTestCase {
    * @throws Exception
    */
   private void configureJmx(Entry entry) throws Exception {
-    ArrayList<String> reasons = new ArrayList<String>();
+    ArrayList<Message> reasons = new ArrayList<Message>();
 
     // Get the Jmx connection handler from the core server
     JmxConnectionHandler jmxConnectionHandler = getJmxConnectionHandler();

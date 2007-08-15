@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+import org.opends.messages.Message;
 
 
 
@@ -46,14 +47,12 @@ import org.opends.server.api.CertificateMapper;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
+import static org.opends.messages.ConfigMessages.*;
+
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -135,9 +134,7 @@ public class CertificateMapperConfigManager
         }
         catch (InitializationException ie)
         {
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_ERROR,
-                   ie.getMessage(), ie.getMessageID());
+          logError(ie.getMessageObject());
           continue;
         }
       }
@@ -151,7 +148,7 @@ public class CertificateMapperConfigManager
    */
   public boolean isConfigurationAddAcceptable(
                       CertificateMapperCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -164,7 +161,7 @@ public class CertificateMapperConfigManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add(ie.getMessage());
+        unacceptableReasons.add(ie.getMessageObject());
         return false;
       }
     }
@@ -181,9 +178,9 @@ public class CertificateMapperConfigManager
   public ConfigChangeResult applyConfigurationAdd(
                                  CertificateMapperCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ResultCode         resultCode          = ResultCode.SUCCESS;
+    boolean            adminActionRequired = false;
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     configuration.addChangeListener(this);
 
@@ -208,7 +205,7 @@ public class CertificateMapperConfigManager
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
 
-      messages.add(ie.getMessage());
+      messages.add(ie.getMessageObject());
     }
 
     if (resultCode == ResultCode.SUCCESS)
@@ -228,7 +225,7 @@ public class CertificateMapperConfigManager
    */
   public boolean isConfigurationDeleteAcceptable(
                       CertificateMapperCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // FIXME -- We should try to perform some check to determine whether the
     // certificate mapper is in use.
@@ -243,9 +240,9 @@ public class CertificateMapperConfigManager
   public ConfigChangeResult applyConfigurationDelete(
                                  CertificateMapperCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ResultCode         resultCode          = ResultCode.SUCCESS;
+    boolean            adminActionRequired = false;
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     DirectoryServer.deregisterCertificateMapper(configuration.dn());
 
@@ -266,7 +263,7 @@ public class CertificateMapperConfigManager
    */
   public boolean isConfigurationChangeAcceptable(
                       CertificateMapperCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
@@ -279,7 +276,7 @@ public class CertificateMapperConfigManager
       }
       catch (InitializationException ie)
       {
-        unacceptableReasons.add(ie.getMessage());
+        unacceptableReasons.add(ie.getMessageObject());
         return false;
       }
     }
@@ -298,7 +295,7 @@ public class CertificateMapperConfigManager
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Get the existing mapper if it's already enabled.
@@ -354,7 +351,7 @@ public class CertificateMapperConfigManager
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
 
-      messages.add(ie.getMessage());
+      messages.add(ie.getMessageObject());
     }
 
     if (resultCode == ResultCode.SUCCESS)
@@ -413,7 +410,7 @@ public class CertificateMapperConfigManager
                                                     CertificateMapperCfg.class,
                                                     List.class);
 
-        List<String> unacceptableReasons = new ArrayList<String>();
+        List<Message> unacceptableReasons = new ArrayList<Message>();
         Boolean acceptable = (Boolean) method.invoke(mapper, configuration,
                                                      unacceptableReasons);
         if (! acceptable)
@@ -421,7 +418,7 @@ public class CertificateMapperConfigManager
           StringBuilder buffer = new StringBuilder();
           if (! unacceptableReasons.isEmpty())
           {
-            Iterator<String> iterator = unacceptableReasons.iterator();
+            Iterator<Message> iterator = unacceptableReasons.iterator();
             buffer.append(iterator.next());
             while (iterator.hasNext())
             {
@@ -430,10 +427,9 @@ public class CertificateMapperConfigManager
             }
           }
 
-          int    msgID   = MSGID_CONFIG_CERTMAPPER_CONFIG_NOT_ACCEPTABLE;
-          String message = getMessage(msgID, String.valueOf(configuration.dn()),
-                                      buffer.toString());
-          throw new InitializationException(msgID, message);
+          Message message = ERR_CONFIG_CERTMAPPER_CONFIG_NOT_ACCEPTABLE.get(
+              String.valueOf(configuration.dn()), buffer.toString());
+          throw new InitializationException(message);
         }
       }
 
@@ -441,11 +437,10 @@ public class CertificateMapperConfigManager
     }
     catch (Exception e)
     {
-      int msgID = MSGID_CONFIG_CERTMAPPER_INITIALIZATION_FAILED;
-      String message = getMessage(msgID, className,
-                                  String.valueOf(configuration.dn()),
-                                  stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_CERTMAPPER_INITIALIZATION_FAILED.
+          get(className, String.valueOf(configuration.dn()),
+              stackTraceToSingleLineString(e));
+      throw new InitializationException(message, e);
     }
   }
 }

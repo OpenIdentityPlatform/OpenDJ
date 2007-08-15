@@ -26,6 +26,8 @@
  */
 
 package org.opends.server.admin.client;
+import org.opends.messages.Message;
+
 
 
 
@@ -74,7 +76,7 @@ public class CommunicationException extends AdminClientException {
    * @param cause
    *          The cause.
    */
-  public CommunicationException(String message, Throwable cause) {
+  public CommunicationException(Message message, Throwable cause) {
     super(message, cause);
   }
 
@@ -86,7 +88,7 @@ public class CommunicationException extends AdminClientException {
    * @param message
    *          The message.
    */
-  public CommunicationException(String message) {
+  public CommunicationException(Message message) {
     super(message);
   }
 }

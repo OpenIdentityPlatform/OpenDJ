@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -53,8 +54,7 @@ import org.opends.server.types.SearchScope;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.Validator.*;
 
@@ -151,11 +151,10 @@ public class VirtualStaticGroup
         {
           if (targetDN != null)
           {
-            int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_MULTIPLE_TARGETS;
-            String message = getMessage(msgID,
-                                        String.valueOf(groupEntry.getDN()));
+            Message message = ERR_VIRTUAL_STATIC_GROUP_MULTIPLE_TARGETS.get(
+                String.valueOf(groupEntry.getDN()));
             throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
-                                         message, msgID);
+                                         message);
           }
 
           try
@@ -169,12 +168,11 @@ public class VirtualStaticGroup
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_CANNOT_DECODE_TARGET;
-            String message = getMessage(msgID, v.getStringValue(),
-                                        String.valueOf(groupEntry.getDN()),
-                                        de.getErrorMessage());
+            Message message = ERR_VIRTUAL_STATIC_GROUP_CANNOT_DECODE_TARGET.
+                get(v.getStringValue(), String.valueOf(groupEntry.getDN()),
+                    de.getMessageObject());
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, msgID, de);
+                                         message, de);
           }
         }
       }
@@ -182,10 +180,9 @@ public class VirtualStaticGroup
 
     if (targetDN == null)
     {
-      int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_NO_TARGET;
-      String message = getMessage(msgID, String.valueOf(groupEntry.getDN()));
-      throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET.get(
+          String.valueOf(groupEntry.getDN()));
+      throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
     }
 
     return new VirtualStaticGroup(groupEntry.getDN(), targetDN);
@@ -280,9 +277,8 @@ public class VirtualStaticGroup
          throws UnsupportedOperationException, DirectoryException
   {
     // Virtual static groups don't support nesting.
-    int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_NESTING_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_VIRTUAL_STATIC_GROUP_NESTING_NOT_SUPPORTED.get();
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -295,9 +291,8 @@ public class VirtualStaticGroup
          throws UnsupportedOperationException, DirectoryException
   {
     // Virtual static groups don't support nesting.
-    int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_NESTING_NOT_SUPPORTED;
-    String message = getMessage(msgID);
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_VIRTUAL_STATIC_GROUP_NESTING_NOT_SUPPORTED.get();
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -318,19 +313,16 @@ public class VirtualStaticGroup
          DirectoryServer.getGroupManager().getGroupInstance(targetGroupDN);
     if (targetGroup == null)
     {
-      int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP;
-      String message = getMessage(msgID, String.valueOf(targetGroupDN),
-                                  String.valueOf(groupEntryDN));
+      Message message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(
+          String.valueOf(targetGroupDN), String.valueOf(groupEntryDN));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
     else if (targetGroup instanceof VirtualStaticGroup)
     {
-      int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL;
-      String message = getMessage(msgID, String.valueOf(groupEntryDN),
-                                  String.valueOf(targetGroupDN));
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(
+          String.valueOf(groupEntryDN), String.valueOf(targetGroupDN));
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
     else
     {
@@ -356,19 +348,16 @@ public class VirtualStaticGroup
          DirectoryServer.getGroupManager().getGroupInstance(targetGroupDN);
     if (targetGroup == null)
     {
-      int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP;
-      String message = getMessage(msgID, String.valueOf(targetGroupDN),
-                                  String.valueOf(groupEntryDN));
+      Message message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(
+          String.valueOf(targetGroupDN), String.valueOf(groupEntryDN));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
     else if (targetGroup instanceof VirtualStaticGroup)
     {
-      int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL;
-      String message = getMessage(msgID, String.valueOf(groupEntryDN),
-                                  String.valueOf(targetGroupDN));
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(
+          String.valueOf(groupEntryDN), String.valueOf(targetGroupDN));
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
     else
     {
@@ -389,19 +378,16 @@ public class VirtualStaticGroup
          DirectoryServer.getGroupManager().getGroupInstance(targetGroupDN);
     if (targetGroup == null)
     {
-      int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP;
-      String message = getMessage(msgID, String.valueOf(targetGroupDN),
-                                  String.valueOf(groupEntryDN));
+      Message message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(
+          String.valueOf(targetGroupDN), String.valueOf(groupEntryDN));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
     else if (targetGroup instanceof VirtualStaticGroup)
     {
-      int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL;
-      String message = getMessage(msgID, String.valueOf(groupEntryDN),
-                                  String.valueOf(targetGroupDN));
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(
+          String.valueOf(groupEntryDN), String.valueOf(targetGroupDN));
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
     else
     {
@@ -423,19 +409,16 @@ public class VirtualStaticGroup
          DirectoryServer.getGroupManager().getGroupInstance(targetGroupDN);
     if (targetGroup == null)
     {
-      int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP;
-      String message = getMessage(msgID, String.valueOf(targetGroupDN),
-                                  String.valueOf(groupEntryDN));
+      Message message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(
+          String.valueOf(targetGroupDN), String.valueOf(groupEntryDN));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
     else if (targetGroup instanceof VirtualStaticGroup)
     {
-      int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL;
-      String message = getMessage(msgID, String.valueOf(groupEntryDN),
-                                  String.valueOf(targetGroupDN));
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
-                                   msgID);
+      Message message = ERR_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL.get(
+          String.valueOf(groupEntryDN), String.valueOf(targetGroupDN));
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
     else
     {
@@ -464,9 +447,9 @@ public class VirtualStaticGroup
          throws UnsupportedOperationException, DirectoryException
   {
     // Virtual static groups don't support altering the member list.
-    int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_ALTERING_MEMBERS_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(groupEntryDN));
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_VIRTUAL_STATIC_GROUP_ALTERING_MEMBERS_NOT_SUPPORTED.
+        get(String.valueOf(groupEntryDN));
+    throw new UnsupportedOperationException(message.toString());
   }
 
 
@@ -479,9 +462,9 @@ public class VirtualStaticGroup
          throws UnsupportedOperationException, DirectoryException
   {
     // Virtual static groups don't support altering the member list.
-    int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_ALTERING_MEMBERS_NOT_SUPPORTED;
-    String message = getMessage(msgID, String.valueOf(groupEntryDN));
-    throw new UnsupportedOperationException(message);
+    Message message = ERR_VIRTUAL_STATIC_GROUP_ALTERING_MEMBERS_NOT_SUPPORTED.
+        get(String.valueOf(groupEntryDN));
+    throw new UnsupportedOperationException(message.toString());
   }
 
 

@@ -25,7 +25,8 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
-
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 
 import java.io.BufferedWriter;
@@ -56,9 +57,8 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.UtilityMessages.*;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.LDIFWriter.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -332,10 +332,10 @@ public class Entry
       ObjectClass oc = DirectoryServer.getObjectClass(lowerName);
       if (oc == null)
       {
-        int    msgID   = MSGID_ENTRY_ADD_UNKNOWN_OC;
-        String message = getMessage(msgID, name, String.valueOf(dn));
+        Message message =
+            ERR_ENTRY_ADD_UNKNOWN_OC.get(name, String.valueOf(dn));
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
-                                     message, msgID);
+                                     message);
       }
 
       ocMap.put(oc, name);
@@ -384,10 +384,10 @@ public class Entry
     ObjectClass oc = DirectoryServer.getObjectClass(lowerName, true);
     if (objectClasses.containsKey(oc))
     {
-      int    msgID   = MSGID_ENTRY_ADD_DUPLICATE_OC;
-      String message = getMessage(msgID, name, String.valueOf(dn));
+      Message message =
+          ERR_ENTRY_ADD_DUPLICATE_OC.get(name, String.valueOf(dn));
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
-                                   message, msgID);
+                                   message);
     }
 
     objectClasses.put(oc, name);
@@ -411,11 +411,10 @@ public class Entry
 
     if (objectClasses.containsKey(oc))
     {
-      int    msgID   = MSGID_ENTRY_ADD_DUPLICATE_OC;
-      String message = getMessage(msgID, oc.getNameOrOID(),
-                                  String.valueOf(dn));
+      Message message = ERR_ENTRY_ADD_DUPLICATE_OC.get(
+          oc.getNameOrOID(), String.valueOf(dn));
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
-                                   message, msgID);
+                                   message);
     }
 
     objectClasses.put(oc, oc.getNameOrOID());
@@ -469,26 +468,26 @@ public class Entry
       ObjectClass oc = DirectoryServer.getObjectClass(lowerName);
       if (oc == null)
       {
-        int    msgID   = MSGID_ENTRY_ADD_UNKNOWN_OC;
-        String message = getMessage(msgID, name, String.valueOf(dn));
+        Message message =
+            ERR_ENTRY_ADD_UNKNOWN_OC.get(name, String.valueOf(dn));
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
-                                     message, msgID);
+                                     message);
       }
 
       if (objectClasses.containsKey(oc))
       {
-        int    msgID   = MSGID_ENTRY_ADD_DUPLICATE_OC;
-        String message = getMessage(msgID, name, String.valueOf(dn));
+        Message message =
+            ERR_ENTRY_ADD_DUPLICATE_OC.get(name, String.valueOf(dn));
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
-                                     message, msgID);
+                                     message);
       }
 
       if (oc.isObsolete())
       {
-        int    msgID   = MSGID_ENTRY_ADD_OBSOLETE_OC;
-        String message = getMessage(msgID, name, String.valueOf(dn));
+        Message message =
+            ERR_ENTRY_ADD_OBSOLETE_OC.get(name, String.valueOf(dn));
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
-                                     message, msgID);
+                                     message);
       }
 
       tmpOCMap.put(oc, name);
@@ -2104,11 +2103,11 @@ public class Entry
           {
             if (objectClasses.containsKey(oc))
             {
-              int    msgID   = MSGID_ENTRY_DUPLICATE_VALUES;
-              String message = getMessage(msgID, a.getName());
+              Message message =
+                  ERR_ENTRY_DUPLICATE_VALUES.get(a.getName());
               throw new DirectoryException(
                              ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
-                             message, msgID);
+                             message);
             }
             else
             {
@@ -2122,11 +2121,10 @@ public class Entry
           {
             if (objectClasses.remove(oc) == null)
             {
-              int    msgID   = MSGID_ENTRY_NO_SUCH_VALUE;
-              String message = getMessage(msgID, a.getName());
+              Message message =
+                  ERR_ENTRY_NO_SUCH_VALUE.get(a.getName());
               throw new DirectoryException(
-                             ResultCode.NO_SUCH_ATTRIBUTE, message,
-                             msgID);
+                             ResultCode.NO_SUCH_ATTRIBUTE, message);
             }
           }
           break;
@@ -2136,19 +2134,16 @@ public class Entry
           break;
 
         case INCREMENT:
-          int msgID = MSGID_ENTRY_OC_INCREMENT_NOT_SUPPORTED;
-          String message = getMessage(msgID);
+          Message message =
+              ERR_ENTRY_OC_INCREMENT_NOT_SUPPORTED.get();
           throw new DirectoryException(
-                         ResultCode.UNWILLING_TO_PERFORM, message,
-                         msgID);
+                         ResultCode.UNWILLING_TO_PERFORM, message);
 
         default:
-          msgID   = MSGID_ENTRY_UNKNOWN_MODIFICATION_TYPE;
-          message = getMessage(msgID,
-                         String.valueOf(mod.getModificationType()));
+          message = ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE.get(
+              String.valueOf(mod.getModificationType()));
           throw new DirectoryException(
-                         ResultCode.UNWILLING_TO_PERFORM, message,
-                         msgID);
+                         ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
       return;
@@ -2162,11 +2157,11 @@ public class Entry
         addAttribute(a, duplicateValues);
         if (! duplicateValues.isEmpty())
         {
-          int    msgID   = MSGID_ENTRY_DUPLICATE_VALUES;
-          String message = getMessage(msgID, a.getName());
+          Message message =
+              ERR_ENTRY_DUPLICATE_VALUES.get(a.getName());
           throw new DirectoryException(
                          ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
-                         message, msgID);
+                         message);
         }
         break;
 
@@ -2176,10 +2171,9 @@ public class Entry
         removeAttribute(a, missingValues);
         if (! missingValues.isEmpty())
         {
-          int    msgID   = MSGID_ENTRY_NO_SUCH_VALUE;
-          String message = getMessage(msgID, a.getName());
+          Message message = ERR_ENTRY_NO_SUCH_VALUE.get(a.getName());
           throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
-                                       message, msgID);
+                                       message);
         }
         break;
 
@@ -2199,46 +2193,43 @@ public class Entry
         List<Attribute> attrList = getAttribute(t);
         if ((attrList == null) || attrList.isEmpty())
         {
-          int    msgID   = MSGID_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE;
-          String message = getMessage(msgID, a.getName());
+          Message message =
+              ERR_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE.get(a.getName());
           throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
-                                       message, msgID);
+                                       message);
         }
         else if (attrList.size() != 1)
         {
-          int    msgID   = MSGID_ENTRY_INCREMENT_MULTIPLE_VALUES;
-          String message = getMessage(msgID, a.getName());
+          Message message =
+              ERR_ENTRY_INCREMENT_MULTIPLE_VALUES.get(a.getName());
           throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message,
-                         msgID);
+                         ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
         LinkedHashSet<AttributeValue> values =
              attrList.get(0).getValues();
         if (values.isEmpty())
         {
-          int    msgID   = MSGID_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE;
-          String message = getMessage(msgID, a.getName());
+          Message message =
+              ERR_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE.get(a.getName());
           throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
-                                       message, msgID);
+                                       message);
         }
         else if (values.size() > 1)
         {
-          int    msgID   = MSGID_ENTRY_INCREMENT_MULTIPLE_VALUES;
-          String message = getMessage(msgID, a.getName());
+          Message message =
+              ERR_ENTRY_INCREMENT_MULTIPLE_VALUES.get(a.getName());
           throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message,
-                         msgID);
+                         ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
         LinkedHashSet<AttributeValue> newValues = a.getValues();
         if (newValues.size() != 1)
         {
-          int msgID = MSGID_ENTRY_INCREMENT_INVALID_VALUE_COUNT;
-          String message = getMessage(msgID);
+          Message message = ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT.
+              get(a.getName());
           throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message,
-                         msgID);
+                         ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
         long newValue;
@@ -2254,11 +2245,10 @@ public class Entry
         }
         catch (NumberFormatException nfe)
         {
-          int msgID = MSGID_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT;
-          String message = getMessage(msgID);
+          Message message = ERR_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT.
+              get(a.getName());
           throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message,
-                         msgID);
+                         ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
         values.clear();
@@ -2266,12 +2256,10 @@ public class Entry
         break;
 
       default:
-        int    msgID   = MSGID_ENTRY_UNKNOWN_MODIFICATION_TYPE;
-        String message =
-             getMessage(msgID,
-                        String.valueOf(mod.getModificationType()));
+        Message message = ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE.get(
+            String.valueOf(mod.getModificationType()));
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                     message, msgID);
+                                     message);
     }
   }
 
@@ -2353,7 +2341,7 @@ public class Entry
                                   boolean parentProvided,
                                   boolean validateNameForms,
                                   boolean validateStructureRules,
-                                  StringBuilder invalidReason)
+                                  MessageBuilder invalidReason)
   {
     // Get the structural objectclass for the entry.  If there isn't
     // one, or if there's more than one, then see if that's OK.
@@ -2372,10 +2360,11 @@ public class Entry
         }
         else if (! structuralClass.isDescendantOf(oc))
         {
-          int msgID = MSGID_ENTRY_SCHEMA_MULTIPLE_STRUCTURAL_CLASSES;
-          String message = getMessage(msgID, String.valueOf(dn),
-                                structuralClass.getNameOrOID(),
-                                oc.getNameOrOID());
+          Message message =
+                  ERR_ENTRY_SCHEMA_MULTIPLE_STRUCTURAL_CLASSES.get(
+                    String.valueOf(dn),
+                    structuralClass.getNameOrOID(),
+                    oc.getNameOrOID());
 
           if (structuralPolicy == AcceptRejectWarn.REJECT)
           {
@@ -2386,9 +2375,7 @@ public class Entry
           {
             if (! multipleOCErrorLogged)
             {
-              logError(ErrorLogCategory.SCHEMA,
-                       ErrorLogSeverity.SEVERE_WARNING, message,
-                       msgID);
+              logError(message);
               multipleOCErrorLogged = true;
             }
           }
@@ -2401,8 +2388,8 @@ public class Entry
     DITStructureRule ditStructureRule = null;
     if (structuralClass == null)
     {
-      int msgID = MSGID_ENTRY_SCHEMA_NO_STRUCTURAL_CLASS;
-      String message = getMessage(msgID, String.valueOf(dn));
+      Message message = ERR_ENTRY_SCHEMA_NO_STRUCTURAL_CLASS.get(
+              String.valueOf(dn));
 
       if (structuralPolicy == AcceptRejectWarn.REJECT)
       {
@@ -2411,8 +2398,7 @@ public class Entry
       }
       else if (structuralPolicy == AcceptRejectWarn.WARN)
       {
-        logError(ErrorLogCategory.SCHEMA,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+        logError(message);
       }
     }
     else
@@ -2453,9 +2439,9 @@ public class Entry
     {
       if (DirectoryServer.getObjectClass(o.getOID()) == null)
       {
-        int    msgID   = MSGID_ENTRY_SCHEMA_UNKNOWN_OC;
-        String message = getMessage(msgID, String.valueOf(dn), o
-                                    .getNameOrOID());
+        Message message = ERR_ENTRY_SCHEMA_UNKNOWN_OC.get(
+                String.valueOf(dn), o
+                .getNameOrOID());
         invalidReason.append(message);
         return false;
       }
@@ -2464,10 +2450,11 @@ public class Entry
           (ditContentRule != null) &&
           (! ditContentRule.getAuxiliaryClasses().contains(o)))
       {
-        int msgID = MSGID_ENTRY_SCHEMA_DISALLOWED_AUXILIARY_CLASS;
-        String message = getMessage(msgID, String.valueOf(dn),
-                                    o.getNameOrOID(),
-                                    ditContentRule.getName());
+        Message message =
+                ERR_ENTRY_SCHEMA_DISALLOWED_AUXILIARY_CLASS.get(
+                  String.valueOf(dn),
+                  o.getNameOrOID(),
+                  ditContentRule.getName());
         if (structuralPolicy == AcceptRejectWarn.REJECT)
         {
           invalidReason.append(message);
@@ -2475,8 +2462,7 @@ public class Entry
         }
         else if (structuralPolicy == AcceptRejectWarn.WARN)
         {
-          logError(ErrorLogCategory.SCHEMA,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          logError(message);
         }
       }
 
@@ -2486,10 +2472,11 @@ public class Entry
                operationalAttributes.containsKey(t) ||
                t.isObjectClassType()))
         {
-          int msgID = MSGID_ENTRY_SCHEMA_MISSING_REQUIRED_ATTR_FOR_OC;
-          String message = getMessage(msgID, String.valueOf(dn),
-                                      t.getNameOrOID(),
-                                      o.getNameOrOID());
+          Message message =
+                  ERR_ENTRY_SCHEMA_MISSING_REQUIRED_ATTR_FOR_OC.get(
+                    String.valueOf(dn),
+                    t.getNameOrOID(),
+                    o.getNameOrOID());
           invalidReason.append(message);
           return false;
         }
@@ -2522,9 +2509,10 @@ public class Entry
 
       if (! found)
       {
-        int msgID = MSGID_ENTRY_SCHEMA_DISALLOWED_USER_ATTR_FOR_OC;
-        String message = getMessage(msgID, String.valueOf(dn),
-                                    t.getNameOrOID());
+        Message message =
+                ERR_ENTRY_SCHEMA_DISALLOWED_USER_ATTR_FOR_OC.get(
+                  String.valueOf(dn),
+                  t.getNameOrOID());
         invalidReason.append(message);
         return false;
       }
@@ -2537,18 +2525,18 @@ public class Entry
           LinkedHashSet<AttributeValue> values = a.getValues();
           if (values.isEmpty())
           {
-            int    msgID   = MSGID_ENTRY_SCHEMA_ATTR_NO_VALUES;
-            String message = getMessage(msgID, String.valueOf(dn),
-                                        t.getNameOrOID());
+            Message message = ERR_ENTRY_SCHEMA_ATTR_NO_VALUES.get(
+                    String.valueOf(dn),
+                    t.getNameOrOID());
 
             invalidReason.append(message);
             return false;
           }
           else if (t.isSingleValue() && (values.size() != 1))
           {
-            int    msgID   = MSGID_ENTRY_SCHEMA_ATTR_SINGLE_VALUED;
-            String message = getMessage(msgID, String.valueOf(dn),
-                                        t.getNameOrOID());
+            Message message = ERR_ENTRY_SCHEMA_ATTR_SINGLE_VALUED.get(
+                    String.valueOf(dn),
+                    t.getNameOrOID());
 
             invalidReason.append(message);
             return false;
@@ -2571,9 +2559,10 @@ public class Entry
           {
             if (a.getValues().size() > 1)
             {
-              int    msgID   = MSGID_ENTRY_SCHEMA_ATTR_SINGLE_VALUED;
-              String message = getMessage(msgID, String.valueOf(dn),
-                                          t.getNameOrOID());
+              Message message =
+                      ERR_ENTRY_SCHEMA_ATTR_SINGLE_VALUED.get(
+                        String.valueOf(dn),
+                        t.getNameOrOID());
 
               invalidReason.append(message);
               return false;
@@ -2596,10 +2585,11 @@ public class Entry
         {
           if (! rdn.hasAttributeType(t))
           {
-            int msgID = MSGID_ENTRY_SCHEMA_RDN_MISSING_REQUIRED_ATTR;
-            String message = getMessage(msgID, String.valueOf(dn),
-                                        t.getNameOrOID(),
-                                        nameForm.getNameOrOID());
+            Message message =
+                    ERR_ENTRY_SCHEMA_RDN_MISSING_REQUIRED_ATTR.get(
+                      String.valueOf(dn),
+                      t.getNameOrOID(),
+                      nameForm.getNameOrOID());
 
             if (structuralPolicy == AcceptRejectWarn.REJECT)
             {
@@ -2608,9 +2598,7 @@ public class Entry
             }
             else if (structuralPolicy == AcceptRejectWarn.WARN)
             {
-              logError(ErrorLogCategory.SCHEMA,
-                       ErrorLogSeverity.SEVERE_WARNING, message,
-                       msgID);
+              logError(message);
             }
           }
         }
@@ -2622,10 +2610,11 @@ public class Entry
           AttributeType t = rdn.getAttributeType(i);
           if (! nameForm.isRequiredOrOptional(t))
           {
-            int    msgID   = MSGID_ENTRY_SCHEMA_RDN_DISALLOWED_ATTR;
-            String message = getMessage(msgID, String.valueOf(dn),
-                                        t.getNameOrOID(),
-                                        nameForm.getNameOrOID());
+            Message message =
+                    ERR_ENTRY_SCHEMA_RDN_DISALLOWED_ATTR.get(
+                      String.valueOf(dn),
+                      t.getNameOrOID(),
+                      nameForm.getNameOrOID());
 
             if (structuralPolicy == AcceptRejectWarn.REJECT)
             {
@@ -2634,9 +2623,7 @@ public class Entry
             }
             else if (structuralPolicy == AcceptRejectWarn.WARN)
             {
-              logError(ErrorLogCategory.SCHEMA,
-                       ErrorLogSeverity.SEVERE_WARNING, message,
-                       msgID);
+              logError(message);
             }
           }
         }
@@ -2655,11 +2642,11 @@ public class Entry
                operationalAttributes.containsKey(t) ||
                t.isObjectClassType()))
         {
-          int msgID =
-               MSGID_ENTRY_SCHEMA_MISSING_REQUIRED_ATTR_FOR_DCR;
-          String message = getMessage(msgID, String.valueOf(dn),
-                                      t.getNameOrOID(),
-                                      ditContentRule.getName());
+          Message message =
+                  ERR_ENTRY_SCHEMA_MISSING_REQUIRED_ATTR_FOR_DCR.get(
+                    String.valueOf(dn),
+                    t.getNameOrOID(),
+                    ditContentRule.getName());
 
           if (structuralPolicy == AcceptRejectWarn.REJECT)
           {
@@ -2668,8 +2655,7 @@ public class Entry
           }
           else if (structuralPolicy == AcceptRejectWarn.WARN)
           {
-            logError(ErrorLogCategory.SCHEMA,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+            logError(message);
           }
         }
       }
@@ -2680,10 +2666,11 @@ public class Entry
         if (userAttributes.containsKey(t) ||
             operationalAttributes.containsKey(t))
         {
-          int    msgID   = MSGID_ENTRY_SCHEMA_PROHIBITED_ATTR_FOR_DCR;
-          String message = getMessage(msgID, String.valueOf(dn),
-                                      t.getNameOrOID(),
-                                      ditContentRule.getName());
+          Message message =
+                  ERR_ENTRY_SCHEMA_PROHIBITED_ATTR_FOR_DCR.get(
+                    String.valueOf(dn),
+                    t.getNameOrOID(),
+                    ditContentRule.getName());
 
           if (structuralPolicy == AcceptRejectWarn.REJECT)
           {
@@ -2692,8 +2679,7 @@ public class Entry
           }
           else if (structuralPolicy == AcceptRejectWarn.WARN)
           {
-            logError(ErrorLogCategory.SCHEMA,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+            logError(message);
           }
         }
       }
@@ -2739,9 +2725,9 @@ public class Entry
 
           if (lock == null)
           {
-            int msgID = MSGID_ENTRY_SCHEMA_DSR_COULD_NOT_LOCK_PARENT;
-            String message = getMessage(msgID, String.valueOf(dn),
-                                  String.valueOf(parentDN));
+            Message message =
+                    ERR_ENTRY_SCHEMA_DSR_COULD_NOT_LOCK_PARENT.get(
+                      String.valueOf(dn), String.valueOf(parentDN));
 
             if (structuralPolicy == AcceptRejectWarn.REJECT)
             {
@@ -2750,9 +2736,7 @@ public class Entry
             }
             else if (structuralPolicy == AcceptRejectWarn.WARN)
             {
-              logError(ErrorLogCategory.SCHEMA,
-                       ErrorLogSeverity.SEVERE_WARNING, message,
-                       msgID);
+              logError(message);
             }
           }
           else
@@ -2762,10 +2746,10 @@ public class Entry
               parentEntry = DirectoryServer.getEntry(parentDN);
               if (parentEntry == null)
               {
-                int msgID = MSGID_ENTRY_SCHEMA_DSR_NO_PARENT_ENTRY;
-                String message =
-                     getMessage(msgID, String.valueOf(dn),
-                                String.valueOf(parentDN));
+                Message message =
+                     ERR_ENTRY_SCHEMA_DSR_NO_PARENT_ENTRY.get(
+                             String.valueOf(dn),
+                             String.valueOf(parentDN));
 
                 if (structuralPolicy == AcceptRejectWarn.REJECT)
                 {
@@ -2774,9 +2758,7 @@ public class Entry
                 }
                 else if (structuralPolicy == AcceptRejectWarn.WARN)
                 {
-                  logError(ErrorLogCategory.SCHEMA,
-                           ErrorLogSeverity.SEVERE_WARNING, message,
-                           msgID);
+                  logError(message);
                 }
               }
               else
@@ -2800,11 +2782,11 @@ public class Entry
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              int    msgID   = MSGID_ENTRY_SCHEMA_COULD_NOT_CHECK_DSR;
-              String message =
-                   getMessage(msgID, String.valueOf(dn),
-                              ditStructureRule.getNameOrRuleID(),
-                              getExceptionMessage(e));
+              Message message =
+                   ERR_ENTRY_SCHEMA_COULD_NOT_CHECK_DSR.get(
+                           String.valueOf(dn),
+                           ditStructureRule.getNameOrRuleID(),
+                           getExceptionMessage(e));
 
               if (structuralPolicy == AcceptRejectWarn.REJECT)
               {
@@ -2813,9 +2795,7 @@ public class Entry
               }
               else if (structuralPolicy == AcceptRejectWarn.WARN)
               {
-                logError(ErrorLogCategory.SCHEMA,
-                         ErrorLogSeverity.SEVERE_WARNING, message,
-                         msgID);
+                logError(message);
               }
             }
             finally
@@ -2857,9 +2837,10 @@ public class Entry
 
           if (lock == null)
           {
-            int msgID = MSGID_ENTRY_SCHEMA_DSR_COULD_NOT_LOCK_PARENT;
-            String message = getMessage(msgID, String.valueOf(dn),
-                                  String.valueOf(parentDN));
+            Message message =
+                    ERR_ENTRY_SCHEMA_DSR_COULD_NOT_LOCK_PARENT.get(
+                      String.valueOf(dn),
+                      String.valueOf(parentDN));
 
             if (structuralPolicy == AcceptRejectWarn.REJECT)
             {
@@ -2868,9 +2849,7 @@ public class Entry
             }
             else if (structuralPolicy == AcceptRejectWarn.WARN)
             {
-              logError(ErrorLogCategory.SCHEMA,
-                       ErrorLogSeverity.SEVERE_WARNING, message,
-                       msgID);
+              logError(message);
             }
           }
           else
@@ -2880,10 +2859,10 @@ public class Entry
               parentEntry = DirectoryServer.getEntry(parentDN);
               if (parentEntry == null)
               {
-                int msgID = MSGID_ENTRY_SCHEMA_DSR_NO_PARENT_ENTRY;
-                String message =
-                     getMessage(msgID, String.valueOf(dn),
-                                String.valueOf(parentDN));
+                Message message =
+                     ERR_ENTRY_SCHEMA_DSR_NO_PARENT_ENTRY.get(
+                             String.valueOf(dn),
+                             String.valueOf(parentDN));
 
                 if (structuralPolicy == AcceptRejectWarn.REJECT)
                 {
@@ -2892,9 +2871,7 @@ public class Entry
                 }
                 else if (structuralPolicy == AcceptRejectWarn.WARN)
                 {
-                  logError(ErrorLogCategory.SCHEMA,
-                           ErrorLogSeverity.SEVERE_WARNING, message,
-                           msgID);
+                  logError(message);
                 }
               }
               else
@@ -2911,11 +2888,10 @@ public class Entry
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              int msgID =
-                   MSGID_ENTRY_SCHEMA_COULD_NOT_CHECK_PARENT_DSR;
-              String message =
-                   getMessage(msgID, String.valueOf(dn),
-                              getExceptionMessage(e));
+              Message message =
+                   ERR_ENTRY_SCHEMA_COULD_NOT_CHECK_PARENT_DSR.get(
+                           String.valueOf(dn),
+                           getExceptionMessage(e));
 
               if (structuralPolicy == AcceptRejectWarn.REJECT)
               {
@@ -2924,9 +2900,7 @@ public class Entry
               }
               else if (structuralPolicy == AcceptRejectWarn.WARN)
               {
-                logError(ErrorLogCategory.SCHEMA,
-                         ErrorLogSeverity.SEVERE_WARNING, message,
-                         msgID);
+                logError(message);
               }
             }
             finally
@@ -2941,9 +2915,9 @@ public class Entry
       {
         if (parentStructuralClass == null)
         {
-          int    msgID   = MSGID_ENTRY_SCHEMA_DSR_NO_PARENT_OC;
-          String message = getMessage(msgID, String.valueOf(dn),
-                                String.valueOf(parentEntry.getDN()));
+          Message message = ERR_ENTRY_SCHEMA_DSR_NO_PARENT_OC.get(
+                  String.valueOf(dn),
+                  String.valueOf(parentEntry.getDN()));
 
           if (structuralPolicy == AcceptRejectWarn.REJECT)
           {
@@ -2952,8 +2926,7 @@ public class Entry
           }
           else if (structuralPolicy == AcceptRejectWarn.WARN)
           {
-            logError(ErrorLogCategory.SCHEMA,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+            logError(message);
           }
         }
         else
@@ -2966,10 +2939,10 @@ public class Entry
                  DirectoryServer.getDITStructureRule(parentNF);
             if ((parentDSR != null) && (! parentDSR.isObsolete()))
             {
-              int    msgID   = MSGID_ENTRY_SCHEMA_VIOLATES_PARENT_DSR;
-              String message =
-                   getMessage(msgID, String.valueOf(dn),
-                              String.valueOf(parentEntry.getDN()));
+              Message message =
+                   ERR_ENTRY_SCHEMA_VIOLATES_PARENT_DSR.get(
+                           String.valueOf(dn),
+                           String.valueOf(parentEntry.getDN()));
 
               if (structuralPolicy == AcceptRejectWarn.REJECT)
               {
@@ -2978,9 +2951,7 @@ public class Entry
               }
               else if (structuralPolicy == AcceptRejectWarn.WARN)
               {
-                logError(ErrorLogCategory.SCHEMA,
-                         ErrorLogSeverity.SEVERE_WARNING, message,
-                         msgID);
+                logError(message);
               }
             }
           }
@@ -3017,14 +2988,14 @@ public class Entry
   private boolean validateDITStructureRule(DITStructureRule dsr,
                        ObjectClass structuralClass, Entry parentEntry,
                        AcceptRejectWarn structuralPolicy,
-                       StringBuilder invalidReason)
+                       MessageBuilder invalidReason)
   {
     ObjectClass oc = parentEntry.getStructuralObjectClass();
     if (oc == null)
     {
-      int    msgID   = MSGID_ENTRY_SCHEMA_DSR_NO_PARENT_OC;
-      String message = getMessage(msgID, String.valueOf(dn),
-                            String.valueOf(parentEntry.getDN()));
+      Message message = ERR_ENTRY_SCHEMA_DSR_NO_PARENT_OC.get(
+              String.valueOf(dn),
+              String.valueOf(parentEntry.getDN()));
 
       if (structuralPolicy == AcceptRejectWarn.REJECT)
       {
@@ -3033,9 +3004,7 @@ public class Entry
       }
       else if (structuralPolicy == AcceptRejectWarn.WARN)
       {
-        logError(ErrorLogCategory.SCHEMA,
-                 ErrorLogSeverity.SEVERE_WARNING, message,
-                 msgID);
+        logError(message);
       }
     }
 
@@ -3050,11 +3019,12 @@ public class Entry
 
     if (! matchFound)
     {
-      int msgID = MSGID_ENTRY_SCHEMA_DSR_DISALLOWED_SUPERIOR_OC;
-      String message = getMessage(msgID, String.valueOf(dn),
-                            dsr.getNameOrRuleID(),
-                            structuralClass.getNameOrOID(),
-                            oc.getNameOrOID());
+      Message message =
+              ERR_ENTRY_SCHEMA_DSR_DISALLOWED_SUPERIOR_OC.get(
+                String.valueOf(dn),
+                dsr.getNameOrRuleID(),
+                structuralClass.getNameOrOID(),
+                oc.getNameOrOID());
 
       if (structuralPolicy == AcceptRejectWarn.REJECT)
       {
@@ -3063,8 +3033,7 @@ public class Entry
       }
       else if (structuralPolicy == AcceptRejectWarn.WARN)
       {
-        logError(ErrorLogCategory.SCHEMA,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+        logError(message);
       }
     }
 
@@ -4424,12 +4393,11 @@ public class Entry
       case 0x02:
         return decodeV2(entryBytes);
       default:
-        int    msgID   = MSGID_ENTRY_DECODE_UNRECOGNIZED_VERSION;
-        String message = getMessage(msgID,
-                                    byteToHex(entryBytes[0]));
+        Message message = ERR_ENTRY_DECODE_UNRECOGNIZED_VERSION.get(
+            byteToHex(entryBytes[0]));
         throw new DirectoryException(
                        DirectoryServer.getServerErrorResultCode(),
-                       message, msgID);
+                       message);
     }
   }
 
@@ -4456,12 +4424,11 @@ public class Entry
       // we recognize, then that's an error.
       if (entryBytes[0] != 0x01)
       {
-        int    msgID   = MSGID_ENTRY_DECODE_UNRECOGNIZED_VERSION;
-        String message = getMessage(msgID,
-                                    byteToHex(entryBytes[0]));
+        Message message = ERR_ENTRY_DECODE_UNRECOGNIZED_VERSION.get(
+            byteToHex(entryBytes[0]));
         throw new DirectoryException(
                        DirectoryServer.getServerErrorResultCode(),
-                       message, msgID);
+                       message);
       }
 
 
@@ -4792,11 +4759,11 @@ public class Entry
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_ENTRY_DECODE_EXCEPTION;
-      String message = getMessage(msgID, getExceptionMessage(e));
+      Message message =
+          ERR_ENTRY_DECODE_EXCEPTION.get(getExceptionMessage(e));
       throw new DirectoryException(
                      DirectoryServer.getServerErrorResultCode(),
-                     message, msgID, e);
+                     message, e);
     }
   }
 
@@ -4823,12 +4790,11 @@ public class Entry
       // we recognize, then that's an error.
       if (entryBytes[0] != 0x02)
       {
-        int    msgID   = MSGID_ENTRY_DECODE_UNRECOGNIZED_VERSION;
-        String message = getMessage(msgID,
-                                    byteToHex(entryBytes[0]));
+        Message message = ERR_ENTRY_DECODE_UNRECOGNIZED_VERSION.get(
+            byteToHex(entryBytes[0]));
         throw new DirectoryException(
                        DirectoryServer.getServerErrorResultCode(),
-                       message, msgID);
+                       message);
       }
 
 
@@ -5276,11 +5242,11 @@ public class Entry
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_ENTRY_DECODE_EXCEPTION;
-      String message = getMessage(msgID, getExceptionMessage(e));
+      Message message =
+          ERR_ENTRY_DECODE_EXCEPTION.get(getExceptionMessage(e));
       throw new DirectoryException(
                      DirectoryServer.getServerErrorResultCode(),
-                     message, msgID, e);
+                     message, e);
     }
   }
 
@@ -5406,10 +5372,10 @@ public class Entry
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_EXPORT;
-      String message = getMessage(msgID, String.valueOf(dn),
-                                  String.valueOf(e));
-      throw new LDIFException(msgID, message, e);
+      Message message =
+          ERR_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_EXPORT.
+            get(String.valueOf(dn), String.valueOf(e));
+      throw new LDIFException(message, e);
     }
 
 

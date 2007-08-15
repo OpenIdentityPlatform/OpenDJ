@@ -34,6 +34,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.LDAPException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.messages.Message;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -66,7 +67,7 @@ public class TestAddResponseProtocolOp
   /**
    * The error message to use for add result operations.
    */
-  private static final String resultMsg = "Test Successful";
+  private static final Message resultMsg = Message.raw("Test Successful");
 
   /**
    * The DN to use for add result operations

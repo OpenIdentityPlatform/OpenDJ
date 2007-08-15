@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
+import org.opends.messages.Message;
 
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -35,14 +36,12 @@ import org.opends.server.admin.std.server.JEBackendCfg;
 import org.opends.server.types.*;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import static org.opends.server.util.StaticUtils.getFileForPath;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_INDEX_MERGE_NO_DATA;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_INDEX_MERGE_START;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_INDEX_MERGE_COMPLETE;
-import static org.opends.server.messages.MessageHandler.getMessage;
-
+import static org.opends.messages.JebMessages.
+    INFO_JEB_INDEX_MERGE_NO_DATA;
+import static org.opends.messages.JebMessages.
+    INFO_JEB_INDEX_MERGE_START;
+import static org.opends.messages.JebMessages.
+    INFO_JEB_INDEX_MERGE_COMPLETE;
 import java.util.*;
 import java.io.*;
 
@@ -176,18 +175,16 @@ public class VLVIndexMergeThread extends DirectoryThread
 
     if (files == null || files.length == 0)
     {
-      int msgID = MSGID_JEB_INDEX_MERGE_NO_DATA;
-      String message = getMessage(msgID, vlvIndex.getName());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-               message, msgID);
+      Message message = INFO_JEB_INDEX_MERGE_NO_DATA.get(vlvIndex.getName());
+      logError(message);
       return;
     }
 
     if (debugEnabled())
     {
-      int msgID = MSGID_JEB_INDEX_MERGE_START;
-      String message = getMessage(msgID, files.length, vlvIndex.getName());
-      TRACER.debugInfo(message);
+      Message message = INFO_JEB_INDEX_MERGE_START.get(
+              files.length, vlvIndex.getName());
+      TRACER.debugInfo(message.toString());
     }
 
     Transaction txn = null;
@@ -340,9 +337,8 @@ public class VLVIndexMergeThread extends DirectoryThread
 
     if (debugEnabled())
     {
-      int msgID = MSGID_JEB_INDEX_MERGE_COMPLETE;
-      String message = getMessage(msgID, vlvIndex.getName());
-      TRACER.debugInfo(message);
+      Message message = INFO_JEB_INDEX_MERGE_COMPLETE.get(vlvIndex.getName());
+      TRACER.debugInfo(message.toString());
     }
   }
 

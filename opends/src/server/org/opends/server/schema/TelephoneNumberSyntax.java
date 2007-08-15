@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+import org.opends.messages.Message;
 
 
 
@@ -41,14 +42,14 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -103,18 +104,16 @@ public class TelephoneNumberSyntax
          DirectoryServer.getEqualityMatchingRule(EMR_TELEPHONE_OID);
     if (defaultEqualityMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
-               EMR_TELEPHONE_OID, SYNTAX_TELEPHONE_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
+          EMR_TELEPHONE_OID, SYNTAX_TELEPHONE_NAME));
     }
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_TELEPHONE_OID);
     if (defaultSubstringMatchingRule == null)
     {
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
-               SMR_TELEPHONE_OID, SYNTAX_TELEPHONE_NAME);
+      logError(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
+          SMR_TELEPHONE_OID, SYNTAX_TELEPHONE_NAME));
     }
 
 
@@ -253,14 +252,14 @@ public class TelephoneNumberSyntax
    *          this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(ByteString value,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // No matter what, the value can't be empty or null.
     String valueStr;
     if ((value == null) ||
         ((valueStr = value.stringValue().trim()).length() == 0))
     {
-      invalidReason.append(getMessage(MSGID_ATTR_SYNTAX_TELEPHONE_EMPTY));
+      invalidReason.append(ERR_ATTR_SYNTAX_TELEPHONE_EMPTY.get());
       return false;
     }
 
@@ -273,8 +272,7 @@ public class TelephoneNumberSyntax
       // acceptable.
       if (valueStr.charAt(0) != '+')
       {
-        int    msgID   = MSGID_ATTR_SYNTAX_TELEPHONE_NO_PLUS;
-        String message = getMessage(msgID, valueStr);
+        Message message = ERR_ATTR_SYNTAX_TELEPHONE_NO_PLUS.get(valueStr);
         invalidReason.append(message);
         return false;
       }
@@ -293,8 +291,8 @@ public class TelephoneNumberSyntax
         }
         else if (! isSeparator(c))
         {
-          int    msgID   = MSGID_ATTR_SYNTAX_TELEPHONE_ILLEGAL_CHAR;
-          String message = getMessage(msgID, valueStr, c, i);
+          Message message = ERR_ATTR_SYNTAX_TELEPHONE_ILLEGAL_CHAR.get(
+                  valueStr, String.valueOf(c), i);
           invalidReason.append(message);
           return false;
         }
@@ -302,8 +300,7 @@ public class TelephoneNumberSyntax
 
       if (! digitSeen)
       {
-        int    msgID   = MSGID_ATTR_SYNTAX_TELEPHONE_NO_DIGITS;
-        String message = getMessage(msgID, valueStr);
+        Message message = ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS.get(valueStr);
         invalidReason.append(message);
         return false;
       }
@@ -325,8 +322,7 @@ public class TelephoneNumberSyntax
       }
 
       // If we made it here, then we didn't find any digits.
-      int    msgID   = MSGID_ATTR_SYNTAX_TELEPHONE_NO_DIGITS;
-      String message = getMessage(msgID, valueStr);
+      Message message = ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS.get(valueStr);
       invalidReason.append(message);
       return false;
     }
@@ -362,7 +358,7 @@ public class TelephoneNumberSyntax
    */
   public boolean isConfigurationChangeAcceptable(
                       TelephoneNumberAttributeSyntaxCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // The configuration will always be acceptable.
     return true;

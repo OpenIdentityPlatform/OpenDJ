@@ -1096,7 +1096,7 @@ public class ADSContext
   /**
    * This method returns the DN of the entry that corresponds to the given host
    * name port representation.
-   * @param hostnameport the host name and port.
+   * @param serverUniqueId the host name and port.
    * @return the DN of the entry that corresponds to the given host name and
    * port.
    * @throws ADSContextException if something goes wrong.
@@ -1306,7 +1306,7 @@ public class ADSContext
 
   /**
    * Returns the attributes for some server group properties.
-   * @param serverProperties the server group properties.
+   * @param serverGroupProperties the server group properties.
    * @return the attributes for the given server group properties.
    * @throws ADSContextException if something goes wrong.
    */
@@ -1330,7 +1330,7 @@ public class ADSContext
 
   /**
    * Returns the attributes for some server group properties.
-   * @param serverProperties the server group properties.
+   * @param serverGroupProperties the server group properties.
    * @return the attributes for the given server group properties.
    * @throws ADSContextException if something goes wrong.
    */

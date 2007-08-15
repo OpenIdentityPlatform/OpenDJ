@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.admin;
+import org.opends.messages.Message;
 
 
 
@@ -467,7 +468,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
    *         the default locale, or <code>null</code> if there is no
    *         description.
    */
-  public final String getDescription() {
+  public final Message getDescription() {
     return getDescription(Locale.getDefault());
   }
 
@@ -483,7 +484,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
    *         the specified locale, or <code>null</code> if there is
    *         no description.
    */
-  public final String getDescription(Locale locale) {
+  public final Message getDescription(Locale locale) {
     ManagedObjectDefinitionI18NResource resource =
       ManagedObjectDefinitionI18NResource.getInstance();
     String property = "property." + propertyName + ".description";
@@ -528,7 +529,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
    * @return Returns the synopsis of this property definition in the
    *         default locale.
    */
-  public final String getSynopsis() {
+  public final Message getSynopsis() {
     return getSynopsis(Locale.getDefault());
   }
 
@@ -543,7 +544,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
    * @return Returns the synopsis of this property definition in the
    *         specified locale.
    */
-  public final String getSynopsis(Locale locale) {
+  public final Message getSynopsis(Locale locale) {
     ManagedObjectDefinitionI18NResource resource =
       ManagedObjectDefinitionI18NResource.getInstance();
     String property = "property." + propertyName + ".synopsis";

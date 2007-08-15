@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -52,8 +53,8 @@ import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -126,7 +127,7 @@ public class DictionaryPasswordValidator
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
-                                      StringBuilder invalidReason)
+                                      MessageBuilder invalidReason)
   {
     // Get a handle to the current configuration.
     DictionaryPasswordValidatorCfg config = currentConfig;
@@ -143,8 +144,8 @@ public class DictionaryPasswordValidator
 
     if (dictionary.contains(password))
     {
-      int msgID = MSGID_DICTIONARY_VALIDATOR_PASSWORD_IN_DICTIONARY;
-      invalidReason.append(getMessage(msgID));
+      invalidReason.append(
+              ERR_DICTIONARY_VALIDATOR_PASSWORD_IN_DICTIONARY.get());
       return false;
     }
 
@@ -154,8 +155,8 @@ public class DictionaryPasswordValidator
     {
       if (dictionary.contains(new StringBuilder(password).reverse().toString()))
       {
-        int msgID = MSGID_DICTIONARY_VALIDATOR_PASSWORD_IN_DICTIONARY;
-        invalidReason.append(getMessage(msgID));
+        invalidReason.append(
+                ERR_DICTIONARY_VALIDATOR_PASSWORD_IN_DICTIONARY.get());
         return false;
       }
     }
@@ -187,9 +188,9 @@ public class DictionaryPasswordValidator
     File dictionaryFile = getFileForPath(configuration.getDictionaryFile());
     if (! dictionaryFile.exists())
     {
-      int    msgID   = MSGID_DICTIONARY_VALIDATOR_NO_SUCH_FILE;
-      String message = getMessage(msgID, configuration.getDictionaryFile());
-      throw new ConfigException(msgID, message);
+      Message message = ERR_DICTIONARY_VALIDATOR_NO_SUCH_FILE.get(
+          configuration.getDictionaryFile());
+      throw new ConfigException(message);
     }
 
 
@@ -218,10 +219,9 @@ public class DictionaryPasswordValidator
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_DICTIONARY_VALIDATOR_CANNOT_READ_FILE;
-      String message = getMessage(msgID, configuration.getDictionaryFile(),
-                                  String.valueOf(e));
-      throw new InitializationException(msgID, message);
+      Message message = ERR_DICTIONARY_VALIDATOR_CANNOT_READ_FILE.get(
+          configuration.getDictionaryFile(), String.valueOf(e));
+      throw new InitializationException(message);
     }
     finally
     {
@@ -244,7 +244,7 @@ public class DictionaryPasswordValidator
    */
   @Override()
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     DictionaryPasswordValidatorCfg config =
          (DictionaryPasswordValidatorCfg) configuration;
@@ -258,7 +258,7 @@ public class DictionaryPasswordValidator
    */
   public boolean isConfigurationChangeAcceptable(
                       DictionaryPasswordValidatorCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     // Make sure that we can load the dictionary.  If so, then we'll accept the
     // new configuration.
@@ -268,12 +268,12 @@ public class DictionaryPasswordValidator
     }
     catch (ConfigException ce)
     {
-      unacceptableReasons.add(ce.getMessage());
+      unacceptableReasons.add(ce.getMessageObject());
       return false;
     }
     catch (InitializationException ie)
     {
-      unacceptableReasons.add(ie.getMessage());
+      unacceptableReasons.add(ie.getMessageObject());
       return false;
     }
     catch (Exception e)
@@ -295,7 +295,7 @@ public class DictionaryPasswordValidator
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
 
     // Make sure we can load the dictionary.  If we can, then activate the new

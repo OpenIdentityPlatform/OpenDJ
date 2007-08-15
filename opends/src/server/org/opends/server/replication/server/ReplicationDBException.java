@@ -25,11 +25,11 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
+import org.opends.messages.Message;
 
 
 
 import org.opends.server.types.IdentifiedException;
-
 
 
 /**
@@ -39,7 +39,6 @@ import org.opends.server.types.IdentifiedException;
  */
 public class ReplicationDBException extends IdentifiedException
 {
-  private int messageID;
 
   private static final long serialVersionUID = -8812600147768060090L;
 
@@ -48,22 +47,11 @@ public class ReplicationDBException extends IdentifiedException
    * This Exception must be used when the full replicationServer service is
    * compromised by the exception
    *
-   * @param  messageID  The unique message ID for the provided message.
    * @param  message    The message to use for this exception.
    */
-  public ReplicationDBException(int messageID, String message)
+  public ReplicationDBException(Message message)
   {
     super(message);
-
-    this.messageID = messageID;
   }
 
-  /**
-   * Returns the message Id associated to this Exception.
-   * @return the message ID associated to this Exception.
-   */
-  public int getMessageID()
-  {
-    return messageID;
-  }
 }

@@ -25,8 +25,10 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
 import org.opends.server.types.IdentifiedException;
+
 
 /**
  * The AciException class defines an exception that may be thrown
@@ -44,11 +46,6 @@ public class AciException extends IdentifiedException {
    */
   private static final long serialVersionUID = -2763328522960628853L;
 
-    /*
-     * The unique message ID for the associated message.
-     */
-    private int messageID;
-
     /**
      * Constructs a new exception with <code>null</code> as its detail message.
      * The cause is not initialized. Used to break out of a recursive bind rule
@@ -61,36 +58,22 @@ public class AciException extends IdentifiedException {
     /**
      * Creates a new ACI exception with the provided message.
      *
-     * @param  messageID  The unique message ID for the provided message.
      * @param  message    The message to use for this ACI exception.
      */
-    public AciException(int messageID, String message) {
+    public AciException(Message message) {
       super(message);
-      this.messageID = messageID;
     }
 
     /**
      * Creates a new ACI exception with the provided message and root
      * cause.
      *
-     * @param  messageID  The unique identifier for the associated message.
      * @param  message    The message that explains the problem that occurred.
      * @param  cause      The exception that was caught to trigger this
      *                    exception.
      */
-    public AciException(int messageID, String message, Throwable cause) {
+    public AciException(Message message, Throwable cause) {
       super(message, cause);
-
-
-      this.messageID = messageID;
     }
 
-  /**
-   * Retrieves the message ID for this exception.
-   *
-   * @return  The message ID for this exception.
-   */
-  public int getMessageID() {
-    return messageID;
-  }
 }

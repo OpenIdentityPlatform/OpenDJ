@@ -26,10 +26,10 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import org.opends.messages.Message;
 
-import static org.opends.server.messages.AciMessages.*;
+import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
 import java.util.HashSet;
 import java.util.regex.Pattern;
 import org.opends.server.core.DirectoryServer;
@@ -107,10 +107,10 @@ public class TargetAttr {
                         //after conversion to AttributeType.
                         arrayToAttributeTypes(attributeArray, attrString);
                     } else {
-                      int msgID =
-                         MSGID_ACI_SYNTAX_INVALID_TARGETATTRKEYWORD_EXPRESSION;
-                      String message = getMessage(msgID, attrString);
-                      throw new AciException(msgID, message);
+                      Message message =
+                          WARN_ACI_SYNTAX_INVALID_TARGETATTRKEYWORD_EXPRESSION.
+                            get(attrString);
+                      throw new AciException(message);
                     }
                 }
             }
@@ -137,17 +137,17 @@ public class TargetAttr {
                 if(!allUserAttributes)
                     allUserAttributes=true;
                 else {
-                    int msgID = MSGID_ACI_TARGETATTR_INVALID_ATTR_TOKEN;
-                    String message = getMessage(msgID, attrStr);
-                    throw new AciException(msgID, message);
+                    Message message =
+                        WARN_ACI_TARGETATTR_INVALID_ATTR_TOKEN.get(attrStr);
+                    throw new AciException(message);
                 }
             } else if(attribute.equals("+")) {
                 if(!allOpAttributes)
                     allOpAttributes=true;
                 else {
-                    int msgID = MSGID_ACI_TARGETATTR_INVALID_ATTR_TOKEN;
-                    String message = getMessage(msgID, attrStr);
-                    throw new AciException(msgID, message);
+                    Message message =
+                        WARN_ACI_TARGETATTR_INVALID_ATTR_TOKEN.get(attrStr);
+                    throw new AciException(message);
                 }
             } else {
                 AttributeType attributeType;

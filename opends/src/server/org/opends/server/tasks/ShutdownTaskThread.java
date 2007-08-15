@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
+import org.opends.messages.Message;
 
 
 
@@ -51,7 +52,7 @@ public class ShutdownTaskThread
 
 
   // The shutdown message that will be used.
-  private String shutdownMessage;
+  private Message shutdownMessage;
 
 
 
@@ -61,7 +62,7 @@ public class ShutdownTaskThread
    *
    * @param  shutdownMessage  The shutdown message that will be used.
    */
-  public ShutdownTaskThread(String shutdownMessage)
+  public ShutdownTaskThread(Message shutdownMessage)
   {
     super("Shutdown Task Thread");
 

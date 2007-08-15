@@ -25,7 +25,9 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util.args;
+import org.opends.messages.Message;
 
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -50,10 +52,8 @@ public class StringArgument
    *                           be displayed in usage information, or
    *                           <CODE>null</CODE> if this argument does not
    *                           require a value.
-   * @param  descriptionID     The unique ID of the description for this
+   * @param  description       Message for the description of this
    *                           argument.
-   * @param  descriptionArgs   The arguments that are to be used when generating
-   *                           the description for this argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
    *                             parameters used to create this argument.
@@ -61,11 +61,11 @@ public class StringArgument
   public StringArgument(String name, Character shortIdentifier,
                         String longIdentifier, boolean isRequired,
                         boolean needsValue, String valuePlaceholder,
-                        int descriptionID, Object... descriptionArgs)
+                        Message description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, false, needsValue,
-          valuePlaceholder, null, null, descriptionID, descriptionArgs);
+          valuePlaceholder, null, null, description);
   }
 
 
@@ -95,10 +95,8 @@ public class StringArgument
    * @param  propertyName      The name of the property in a property file that
    *                           may be used to override the default value but
    *                           will be overridden by a command-line argument.
-   * @param  descriptionID     The unique ID of the description for this
+   * @param  description       Message for the description of this
    *                           argument.
-   * @param  descriptionArgs   The arguments that are to be used when generating
-   *                           the description for this argument.
    *
    * @throws  ArgumentException  If there is a problem with any of the
    *                             parameters used to create this argument.
@@ -107,13 +105,12 @@ public class StringArgument
                         String longIdentifier, boolean isRequired,
                         boolean isMultiValued, boolean needsValue,
                         String valuePlaceholder, String defaultValue,
-                        String propertyName, int descriptionID,
-                        Object... descriptionArgs)
+                        String propertyName, Message description)
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, isMultiValued,
           needsValue, valuePlaceholder, defaultValue, propertyName,
-          descriptionID, descriptionArgs);
+          description);
   }
 
 
@@ -130,7 +127,7 @@ public class StringArgument
    *          <CODE>false</CODE> if it is not.
    */
   public boolean valueIsAcceptable(String valueString,
-                                   StringBuilder invalidReason)
+                                   MessageBuilder invalidReason)
   {
     // All values will be acceptable for this argument.
     return true;

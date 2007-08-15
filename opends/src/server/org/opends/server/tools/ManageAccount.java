@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.messages.Message;
 
 
 
@@ -55,8 +56,7 @@ import org.opends.server.util.args.SubCommandArgumentParser;
 
 import static org.opends.server.extensions.
                    PasswordPolicyStateExtendedOperation.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -598,8 +598,8 @@ public class ManageAccount
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_PWPSTATE_CANNOT_SEND_REQUEST_EXTOP;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_PWPSTATE_CANNOT_SEND_REQUEST_EXTOP.get(
+                getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
       }
@@ -612,8 +612,8 @@ public class ManageAccount
         LDAPMessage responseMessage = ldapReader.readMessage();
         if (responseMessage == null)
         {
-          int    msgID   = MSGID_PWPSTATE_CONNECTION_CLOSED_READING_RESPONSE;
-          String message = getMessage(msgID);
+          Message message =
+                  ERR_PWPSTATE_CONNECTION_CLOSED_READING_RESPONSE.get();
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
         }
@@ -624,9 +624,8 @@ public class ManageAccount
         int resultCode = extendedResponse.getResultCode();
         if (resultCode != LDAPResultCode.SUCCESS)
         {
-          int msgID = MSGID_PWPSTATE_REQUEST_FAILED;
-          String message =
-               getMessage(msgID, resultCode,
+          Message message =
+               ERR_PWPSTATE_REQUEST_FAILED.get(resultCode,
                           LDAPResultCode.toString(resultCode),
                           String.valueOf(extendedResponse.getErrorMessage()));
           err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -640,8 +639,8 @@ public class ManageAccount
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_PWPSTATE_CANNOT_DECODE_RESPONSE_MESSAGE;
-        String message = getMessage(msgID, getExceptionMessage(e));
+        Message message = ERR_PWPSTATE_CANNOT_DECODE_RESPONSE_MESSAGE.get(
+                getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
       }
@@ -669,8 +668,8 @@ public class ManageAccount
         }
         catch (Exception e)
         {
-          int msgID = MSGID_PWPSTATE_CANNOT_DECODE_RESPONSE_OP;
-          String message = getMessage(msgID, getExceptionMessage(e));
+          Message message = ERR_PWPSTATE_CANNOT_DECODE_RESPONSE_OP.get(
+                  getExceptionMessage(e));
           err.println(wrapText(message, MAX_LINE_WIDTH));
           continue;
         }
@@ -678,109 +677,118 @@ public class ManageAccount
         switch (opType)
         {
           case OP_GET_PASSWORD_POLICY_DN:
-            int msgID = MSGID_PWPSTATE_LABEL_PASSWORD_POLICY_DN;
-            printLabelAndValues(msgID, opValues);
+            Message message = INFO_PWPSTATE_LABEL_PASSWORD_POLICY_DN.get();
+            printLabelAndValues(message, opValues);
             break;
 
           case OP_GET_ACCOUNT_DISABLED_STATE:
-            msgID = MSGID_PWPSTATE_LABEL_ACCOUNT_DISABLED_STATE;
-            printLabelAndValues(msgID, opValues);
+            message = INFO_PWPSTATE_LABEL_ACCOUNT_DISABLED_STATE.get();
+            printLabelAndValues(message, opValues);
             break;
 
           case OP_GET_ACCOUNT_EXPIRATION_TIME:
-            msgID = MSGID_PWPSTATE_LABEL_ACCOUNT_EXPIRATION_TIME;
-            printLabelAndValues(msgID, opValues);
+            message = INFO_PWPSTATE_LABEL_ACCOUNT_EXPIRATION_TIME.get();
+            printLabelAndValues(message, opValues);
             break;
 
           case OP_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION:
-            msgID = MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_ACCOUNT_EXPIRATION;
-            printLabelAndValues(msgID, opValues);
+            message =
+                    INFO_PWPSTATE_LABEL_SECONDS_UNTIL_ACCOUNT_EXPIRATION.get();
+            printLabelAndValues(message, opValues);
             break;
 
           case OP_GET_PASSWORD_CHANGED_TIME:
-            msgID = MSGID_PWPSTATE_LABEL_PASSWORD_CHANGED_TIME;
-            printLabelAndValues(msgID, opValues);
+            message = INFO_PWPSTATE_LABEL_PASSWORD_CHANGED_TIME.get();
+            printLabelAndValues(message, opValues);
             break;
 
           case OP_GET_PASSWORD_EXPIRATION_WARNED_TIME:
-            msgID = MSGID_PWPSTATE_LABEL_PASSWORD_EXPIRATION_WARNED_TIME;
-            printLabelAndValues(msgID, opValues);
+            message = INFO_PWPSTATE_LABEL_PASSWORD_EXPIRATION_WARNED_TIME.get();
+            printLabelAndValues(message, opValues);
             break;
 
           case OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION:
-            msgID = MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_PASSWORD_EXPIRATION;
-            printLabelAndValues(msgID, opValues);
+            message =
+                    INFO_PWPSTATE_LABEL_SECONDS_UNTIL_PASSWORD_EXPIRATION.get();
+            printLabelAndValues(message, opValues);
             break;
 
           case OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING:
-            msgID =
-                 MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING;
-            printLabelAndValues(msgID, opValues);
+            message =
+                  INFO_PWPSTATE_LABEL_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING
+                          .get();
+            printLabelAndValues(message, opValues);
             break;
 
           case OP_GET_AUTHENTICATION_FAILURE_TIMES:
-            msgID = MSGID_PWPSTATE_LABEL_AUTH_FAILURE_TIMES;
-            printLabelAndValues(msgID, opValues);
+            message = INFO_PWPSTATE_LABEL_AUTH_FAILURE_TIMES.get();
+            printLabelAndValues(message, opValues);
             break;
 
           case OP_GET_SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK:
-            msgID = MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_AUTH_FAILURE_UNLOCK;
-            printLabelAndValues(msgID, opValues);
+            message =
+                    INFO_PWPSTATE_LABEL_SECONDS_UNTIL_AUTH_FAILURE_UNLOCK.get();
+            printLabelAndValues(message, opValues);
             break;
 
           case OP_GET_REMAINING_AUTHENTICATION_FAILURE_COUNT:
-            msgID = MSGID_PWPSTATE_LABEL_REMAINING_AUTH_FAILURE_COUNT;
-            printLabelAndValues(msgID, opValues);
+            message = INFO_PWPSTATE_LABEL_REMAINING_AUTH_FAILURE_COUNT.get();
+            printLabelAndValues(message, opValues);
             break;
 
           case OP_GET_LAST_LOGIN_TIME:
-            msgID = MSGID_PWPSTATE_LABEL_LAST_LOGIN_TIME;
-            printLabelAndValues(msgID, opValues);
+            message = INFO_PWPSTATE_LABEL_LAST_LOGIN_TIME.get();
+            printLabelAndValues(message, opValues);
             break;
 
           case OP_GET_SECONDS_UNTIL_IDLE_LOCKOUT:
-            msgID = MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_IDLE_LOCKOUT;
-            printLabelAndValues(msgID, opValues);
+            message = INFO_PWPSTATE_LABEL_SECONDS_UNTIL_IDLE_LOCKOUT.get();
+            printLabelAndValues(message, opValues);
             break;
 
           case OP_GET_PASSWORD_RESET_STATE:
-            msgID = MSGID_PWPSTATE_LABEL_PASSWORD_RESET_STATE;
-            printLabelAndValues(msgID, opValues);
+            message = INFO_PWPSTATE_LABEL_PASSWORD_RESET_STATE.get();
+            printLabelAndValues(message, opValues);
             break;
 
           case OP_GET_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT:
-            msgID = MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT;
-            printLabelAndValues(msgID, opValues);
+            message =
+                    INFO_PWPSTATE_LABEL_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT
+                            .get();
+            printLabelAndValues(message, opValues);
             break;
 
           case OP_GET_GRACE_LOGIN_USE_TIMES:
-            msgID = MSGID_PWPSTATE_LABEL_GRACE_LOGIN_USE_TIMES;
-            printLabelAndValues(msgID, opValues);
+            message = INFO_PWPSTATE_LABEL_GRACE_LOGIN_USE_TIMES.get();
+            printLabelAndValues(message, opValues);
             break;
 
           case OP_GET_REMAINING_GRACE_LOGIN_COUNT:
-            msgID = MSGID_PWPSTATE_LABEL_REMAINING_GRACE_LOGIN_COUNT;
-            printLabelAndValues(msgID, opValues);
+            message = INFO_PWPSTATE_LABEL_REMAINING_GRACE_LOGIN_COUNT.get();
+            printLabelAndValues(message, opValues);
             break;
 
           case OP_GET_PASSWORD_CHANGED_BY_REQUIRED_TIME:
-            msgID = MSGID_PWPSTATE_LABEL_PASSWORD_CHANGED_BY_REQUIRED_TIME;
-            printLabelAndValues(msgID, opValues);
+            message =
+                    INFO_PWPSTATE_LABEL_PASSWORD_CHANGED_BY_REQUIRED_TIME.get();
+            printLabelAndValues(message, opValues);
             break;
 
           case OP_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME:
-            msgID = MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_REQUIRED_CHANGE_TIME;
-            printLabelAndValues(msgID, opValues);
+            message =
+                    INFO_PWPSTATE_LABEL_SECONDS_UNTIL_REQUIRED_CHANGE_TIME
+                            .get();
+            printLabelAndValues(message, opValues);
             break;
 
           case OP_GET_PASSWORD_HISTORY:
-            msgID = MSGID_PWPSTATE_LABEL_PASSWORD_HISTORY;
-            printLabelAndValues(msgID, opValues);
+            message = INFO_PWPSTATE_LABEL_PASSWORD_HISTORY.get();
+            printLabelAndValues(message, opValues);
             break;
 
           default:
-            msgID = MSGID_PWPSTATE_INVALID_RESPONSE_OP_TYPE;
-            String message = getMessage(msgID, opType);
+            message = ERR_PWPSTATE_INVALID_RESPONSE_OP_TYPE.get(
+                    String.valueOf(opType));
             err.println(wrapText(message, MAX_LINE_WIDTH));
             break;
         }
@@ -813,9 +821,9 @@ public class ManageAccount
    */
   private static int parseArgsAndConnect(String[] args)
   {
-    int msgID = MSGID_PWPSTATE_TOOL_DESCRIPTION;
-    argParser = new SubCommandArgumentParser(CLASS_NAME, getMessage(msgID),
-                                             false);
+    argParser = new SubCommandArgumentParser(
+            CLASS_NAME, INFO_PWPSTATE_TOOL_DESCRIPTION.get(),
+            false);
 
     BooleanArgument   showUsage;
     BooleanArgument   trustAll;
@@ -841,61 +849,65 @@ public class ManageAccount
       host = new StringArgument("host", OPTION_SHORT_HOST,
                                 OPTION_LONG_HOST, false, false, true,
                                 OPTION_VALUE_HOST, "127.0.0.1", null,
-                                MSGID_PWPSTATE_DESCRIPTION_HOST);
+                                INFO_PWPSTATE_DESCRIPTION_HOST.get());
       argParser.addGlobalArgument(host);
 
-      port = new IntegerArgument("port", OPTION_SHORT_PORT,
-                                 OPTION_LONG_PORT, false, false, true,
-                                 OPTION_VALUE_PORT, 389, null, true, 1,
-                                 true, 65535, MSGID_PWPSTATE_DESCRIPTION_PORT);
+      port = new IntegerArgument(
+              "port", OPTION_SHORT_PORT,
+              OPTION_LONG_PORT, false, false, true,
+              OPTION_VALUE_PORT, 389, null, true, 1,
+              true, 65535, INFO_PWPSTATE_DESCRIPTION_PORT.get());
       argParser.addGlobalArgument(port);
 
       useSSL = new BooleanArgument("usessl", OPTION_SHORT_USE_SSL,
                                    OPTION_LONG_USE_SSL,
-                                   MSGID_PWPSTATE_DESCRIPTION_USESSL);
+                                   INFO_PWPSTATE_DESCRIPTION_USESSL.get());
       argParser.addGlobalArgument(useSSL);
 
-      useStartTLS = new BooleanArgument("usestarttls", OPTION_SHORT_START_TLS,
-                                        OPTION_LONG_START_TLS,
-                                        MSGID_PWPSTATE_DESCRIPTION_USESTARTTLS);
+      useStartTLS = new BooleanArgument(
+              "usestarttls", OPTION_SHORT_START_TLS,
+              OPTION_LONG_START_TLS,
+              INFO_PWPSTATE_DESCRIPTION_USESTARTTLS.get());
       argParser.addGlobalArgument(useStartTLS);
 
       bindDN = new StringArgument("binddn", OPTION_SHORT_BINDDN,
                                   OPTION_LONG_BINDDN, false, false, true,
                                   OPTION_VALUE_BINDDN, null, null,
-                                  MSGID_PWPSTATE_DESCRIPTION_BINDDN);
+                                  INFO_PWPSTATE_DESCRIPTION_BINDDN.get());
       argParser.addGlobalArgument(bindDN);
 
       bindPW = new StringArgument("bindpw", OPTION_SHORT_BINDPWD,
                                   OPTION_LONG_BINDPWD, false, false,
                                   true,
                                   OPTION_VALUE_BINDPWD, null, null,
-                                  MSGID_PWPSTATE_DESCRIPTION_BINDPW);
+                                  INFO_PWPSTATE_DESCRIPTION_BINDPW.get());
       argParser.addGlobalArgument(bindPW);
 
-      bindPWFile = new FileBasedArgument("bindpwfile",
-                                         OPTION_SHORT_BINDPWD_FILE,
-                                         OPTION_LONG_BINDPWD_FILE,
-                                         false, false,
-                                         OPTION_VALUE_BINDPWD_FILE,
-                                         null, null,
-                                         MSGID_PWPSTATE_DESCRIPTION_BINDPWFILE);
+      bindPWFile = new FileBasedArgument(
+              "bindpwfile",
+              OPTION_SHORT_BINDPWD_FILE,
+              OPTION_LONG_BINDPWD_FILE,
+              false, false,
+              OPTION_VALUE_BINDPWD_FILE,
+              null, null,
+              INFO_PWPSTATE_DESCRIPTION_BINDPWFILE.get());
       argParser.addGlobalArgument(bindPWFile);
 
       targetDN = new StringArgument("targetdn", 'b', "targetDN", true, false,
                                     true, "{targetDN}", null, null,
-                                    MSGID_PWPSTATE_DESCRIPTION_TARGETDN);
+                                    INFO_PWPSTATE_DESCRIPTION_TARGETDN.get());
       argParser.addGlobalArgument(targetDN);
 
-      saslOption = new StringArgument("sasloption", OPTION_SHORT_SASLOPTION,
-                                      OPTION_LONG_SASLOPTION, false,
-                                      true, true,
-                                      OPTION_VALUE_SASLOPTION, null, null,
-                                      MSGID_PWPSTATE_DESCRIPTION_SASLOPTIONS);
+      saslOption = new StringArgument(
+              "sasloption", OPTION_SHORT_SASLOPTION,
+              OPTION_LONG_SASLOPTION, false,
+              true, true,
+              OPTION_VALUE_SASLOPTION, null, null,
+              INFO_PWPSTATE_DESCRIPTION_SASLOPTIONS.get());
       argParser.addGlobalArgument(saslOption);
 
       trustAll = new BooleanArgument("trustall", 'X', "trustAll",
-                                     MSGID_PWPSTATE_DESCRIPTION_TRUST_ALL);
+                                     INFO_PWPSTATE_DESCRIPTION_TRUST_ALL.get());
       argParser.addGlobalArgument(trustAll);
 
       keyStoreFile = new StringArgument("keystorefile",
@@ -904,7 +916,7 @@ public class ManageAccount
                                         false, false, true,
                                         OPTION_VALUE_KEYSTOREPATH,
                                         null, null,
-                                        MSGID_PWPSTATE_DESCRIPTION_KSFILE);
+                                        INFO_PWPSTATE_DESCRIPTION_KSFILE.get());
       argParser.addGlobalArgument(keyStoreFile);
 
       keyStorePW = new StringArgument("keystorepw", OPTION_SHORT_KEYSTORE_PWD,
@@ -912,35 +924,38 @@ public class ManageAccount
                                       false, false, true,
                                       OPTION_VALUE_KEYSTORE_PWD,
                                       null, null,
-                                      MSGID_PWPSTATE_DESCRIPTION_KSPW);
+                                      INFO_PWPSTATE_DESCRIPTION_KSPW.get());
       argParser.addGlobalArgument(keyStorePW);
 
       keyStorePWFile = new FileBasedArgument("keystorepwfile",
                                 OPTION_SHORT_KEYSTORE_PWD_FILE,
                                 OPTION_LONG_KEYSTORE_PWD_FILE, false, false,
                                 OPTION_VALUE_KEYSTORE_PWD_FILE, null, null,
-                                MSGID_PWPSTATE_DESCRIPTION_KSPWFILE);
+                                INFO_PWPSTATE_DESCRIPTION_KSPWFILE.get());
       argParser.addGlobalArgument(keyStorePWFile);
 
-      certNickname = new StringArgument("certnickname", 'N', "certNickname",
-                                        false, false, true, "{nickname}", null,
-                                        null, MSGID_DESCRIPTION_CERT_NICKNAME);
+      certNickname = new StringArgument(
+              "certnickname", 'N', "certNickname",
+              false, false, true, "{nickname}", null,
+              null, INFO_DESCRIPTION_CERT_NICKNAME.get());
       argParser.addGlobalArgument(certNickname);
 
-      trustStoreFile = new StringArgument("truststorefile",
-                                          OPTION_SHORT_TRUSTSTOREPATH,
-                                          OPTION_LONG_TRUSTSTOREPATH,
-                                          false, false, true,
-                                          OPTION_VALUE_TRUSTSTOREPATH,
-                                          null, null,
-                                          MSGID_PWPSTATE_DESCRIPTION_TSFILE);
+      trustStoreFile = new StringArgument(
+              "truststorefile",
+              OPTION_SHORT_TRUSTSTOREPATH,
+              OPTION_LONG_TRUSTSTOREPATH,
+              false, false, true,
+              OPTION_VALUE_TRUSTSTOREPATH,
+              null, null,
+              INFO_PWPSTATE_DESCRIPTION_TSFILE.get());
       argParser.addGlobalArgument(trustStoreFile);
 
-      trustStorePW = new StringArgument("truststorepw", 'T',
-                                        OPTION_LONG_TRUSTSTORE_PWD,
-                                        false, false,
-                                        true, OPTION_VALUE_TRUSTSTORE_PWD, null,
-                                        null, MSGID_PWPSTATE_DESCRIPTION_TSPW);
+      trustStorePW = new StringArgument(
+              "truststorepw", 'T',
+              OPTION_LONG_TRUSTSTORE_PWD,
+              false, false,
+              true, OPTION_VALUE_TRUSTSTORE_PWD, null,
+              null, INFO_PWPSTATE_DESCRIPTION_TSPW.get());
       argParser.addGlobalArgument(trustStorePW);
 
       trustStorePWFile = new FileBasedArgument("truststorepwfile",
@@ -948,12 +963,13 @@ public class ManageAccount
                                   OPTION_LONG_TRUSTSTORE_PWD_FILE,
                                   false, false,
                                   OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
-                                  MSGID_PWPSTATE_DESCRIPTION_TSPWFILE);
+                                  INFO_PWPSTATE_DESCRIPTION_TSPWFILE.get());
       argParser.addGlobalArgument(trustStorePWFile);
 
-      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
-                                      OPTION_LONG_HELP,
-                                      MSGID_PWPSTATE_DESCRIPTION_SHOWUSAGE);
+      showUsage = new BooleanArgument(
+              "showusage", OPTION_SHORT_HELP,
+              OPTION_LONG_HELP,
+              INFO_PWPSTATE_DESCRIPTION_SHOWUSAGE.get());
       argParser.addGlobalArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);
 
@@ -963,203 +979,217 @@ public class ManageAccount
       booleanValues.add("false");
 
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_ALL;
-      new SubCommand(argParser, SC_GET_ALL, msgID);
+      Message msg = INFO_DESCRIPTION_PWPSTATE_GET_ALL.get();
+      new SubCommand(argParser, SC_GET_ALL, msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_PASSWORD_POLICY_DN;
-      new SubCommand(argParser, SC_GET_PASSWORD_POLICY_DN, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_GET_PASSWORD_POLICY_DN.get();
+      new SubCommand(argParser, SC_GET_PASSWORD_POLICY_DN, msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_ACCOUNT_DISABLED_STATE;
-      new SubCommand(argParser, SC_GET_ACCOUNT_DISABLED_STATE, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_GET_ACCOUNT_DISABLED_STATE.get();
+      new SubCommand(argParser, SC_GET_ACCOUNT_DISABLED_STATE, msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_SET_ACCOUNT_DISABLED_STATE;
+      msg = INFO_DESCRIPTION_PWPSTATE_SET_ACCOUNT_DISABLED_STATE.get();
       SubCommand sc = new SubCommand(argParser, SC_SET_ACCOUNT_DISABLED_STATE,
-                                     msgID);
+                                     msg);
       sc.addArgument(new MultiChoiceArgument(ARG_OP_VALUE, 'O',
                               "operationValue", true, false, true,
                               "{true|false}", null, null, booleanValues, false,
-                              MSGID_DESCRIPTION_OPERATION_BOOLEAN_VALUE));
+                              INFO_DESCRIPTION_OPERATION_BOOLEAN_VALUE.get()));
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_CLEAR_ACCOUNT_DISABLED_STATE;
-      new SubCommand(argParser, SC_CLEAR_ACCOUNT_DISABLED_STATE, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_CLEAR_ACCOUNT_DISABLED_STATE.get();
+      new SubCommand(argParser, SC_CLEAR_ACCOUNT_DISABLED_STATE, msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_ACCOUNT_EXPIRATION_TIME;
-      new SubCommand(argParser, SC_GET_ACCOUNT_EXPIRATION_TIME, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_GET_ACCOUNT_EXPIRATION_TIME.get();
+      new SubCommand(argParser, SC_GET_ACCOUNT_EXPIRATION_TIME, msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_SET_ACCOUNT_EXPIRATION_TIME;
-      sc = new SubCommand(argParser, SC_SET_ACCOUNT_EXPIRATION_TIME, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_SET_ACCOUNT_EXPIRATION_TIME.get();
+      sc = new SubCommand(argParser, SC_SET_ACCOUNT_EXPIRATION_TIME, msg);
       sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
                               false, false, true, "{time}", null, null,
-                              MSGID_DESCRIPTION_OPERATION_TIME_VALUE));
+                              INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
       sc.setHidden(true);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_CLEAR_ACCOUNT_EXPIRATION_TIME;
-      sc = new SubCommand(argParser, SC_CLEAR_ACCOUNT_EXPIRATION_TIME, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_CLEAR_ACCOUNT_EXPIRATION_TIME.get();
+      sc = new SubCommand(argParser, SC_CLEAR_ACCOUNT_EXPIRATION_TIME, msg);
       sc.setHidden(true);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION;
-      new SubCommand(argParser, SC_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION, msgID);
+      msg =
+              INFO_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION
+                      .get();
+      new SubCommand(argParser,
+              SC_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION,
+              msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_PASSWORD_CHANGED_TIME;
-      new SubCommand(argParser, SC_GET_PASSWORD_CHANGED_TIME, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_GET_PASSWORD_CHANGED_TIME.get();
+      new SubCommand(argParser, SC_GET_PASSWORD_CHANGED_TIME, msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_SET_PASSWORD_CHANGED_TIME;
-      sc = new SubCommand(argParser, SC_SET_PASSWORD_CHANGED_TIME, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_SET_PASSWORD_CHANGED_TIME.get();
+      sc = new SubCommand(argParser, SC_SET_PASSWORD_CHANGED_TIME, msg);
       sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
                               false, false, true, "{time}", null, null,
-                              MSGID_DESCRIPTION_OPERATION_TIME_VALUE));
+                              INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
       sc.setHidden(true);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_CHANGED_TIME;
-      sc = new SubCommand(argParser, SC_CLEAR_PASSWORD_CHANGED_TIME, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_CHANGED_TIME.get();
+      sc = new SubCommand(argParser, SC_CLEAR_PASSWORD_CHANGED_TIME, msg);
       sc.setHidden(true);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_PASSWORD_EXPIRATION_WARNED_TIME;
-      new SubCommand(argParser, SC_GET_PASSWORD_EXP_WARNED_TIME, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_GET_PASSWORD_EXPIRATION_WARNED_TIME
+              .get();
+      new SubCommand(argParser, SC_GET_PASSWORD_EXP_WARNED_TIME, msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_SET_PASSWORD_EXPIRATION_WARNED_TIME;
-      sc = new SubCommand(argParser, SC_SET_PASSWORD_EXP_WARNED_TIME, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_SET_PASSWORD_EXPIRATION_WARNED_TIME
+              .get();
+      sc = new SubCommand(argParser, SC_SET_PASSWORD_EXP_WARNED_TIME, msg);
       sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
                               false, false, true, "{time}", null, null,
-                              MSGID_DESCRIPTION_OPERATION_TIME_VALUE));
+                              INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
       sc.setHidden(true);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_EXPIRATION_WARNED_TIME;
-      sc = new SubCommand(argParser, SC_CLEAR_PASSWORD_EXP_WARNED_TIME, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_EXPIRATION_WARNED_TIME
+              .get();
+      sc = new SubCommand(argParser, SC_CLEAR_PASSWORD_EXP_WARNED_TIME, msg);
       sc.setHidden(true);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_PASSWORD_EXP;
+      msg = INFO_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_PASSWORD_EXP.get();
       new SubCommand(argParser, SC_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION,
-                     msgID);
+                     msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_PASSWORD_EXP_WARNING;
+      msg = INFO_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_PASSWORD_EXP_WARNING
+              .get();
       new SubCommand(argParser,
-                     SC_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING, msgID);
+                     SC_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING, msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_AUTH_FAILURE_TIMES;
-      new SubCommand(argParser, SC_GET_AUTHENTICATION_FAILURE_TIMES, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_GET_AUTH_FAILURE_TIMES.get();
+      new SubCommand(argParser, SC_GET_AUTHENTICATION_FAILURE_TIMES, msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_ADD_AUTH_FAILURE_TIME;
-      sc = new SubCommand(argParser, SC_ADD_AUTHENTICATION_FAILURE_TIME, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_ADD_AUTH_FAILURE_TIME.get();
+      sc = new SubCommand(argParser, SC_ADD_AUTHENTICATION_FAILURE_TIME,
+              msg);
       sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
                               false, true, true, "{time}", null, null,
-                              MSGID_DESCRIPTION_OPERATION_TIME_VALUE));
+                              INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
       sc.setHidden(true);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_SET_AUTH_FAILURE_TIMES;
+      msg = INFO_DESCRIPTION_PWPSTATE_SET_AUTH_FAILURE_TIMES.get();
       sc = new SubCommand(argParser, SC_SET_AUTHENTICATION_FAILURE_TIMES,
-                          msgID);
+                          msg);
       sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
                               false, true, true, "{time}", null, null,
-                              MSGID_DESCRIPTION_OPERATION_TIME_VALUES));
+                              INFO_DESCRIPTION_OPERATION_TIME_VALUES.get()));
       sc.setHidden(true);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_CLEAR_AUTH_FAILURE_TIMES;
+      msg = INFO_DESCRIPTION_PWPSTATE_CLEAR_AUTH_FAILURE_TIMES.get();
       sc = new SubCommand(argParser, SC_CLEAR_AUTHENTICATION_FAILURE_TIMES,
-                          msgID);
+                          msg);
       sc.setHidden(true);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_AUTH_FAILURE_UNLOCK;
+      msg = INFO_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_AUTH_FAILURE_UNLOCK
+              .get();
       new SubCommand(argParser,
-                     SC_GET_SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK, msgID);
+                     SC_GET_SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK,
+                     msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_REMAINING_AUTH_FAILURE_COUNT;
+      msg =
+              INFO_DESCRIPTION_PWPSTATE_GET_REMAINING_AUTH_FAILURE_COUNT.get();
       new SubCommand(argParser, SC_GET_REMAINING_AUTHENTICATION_FAILURE_COUNT,
-                     msgID);
+                     msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_LAST_LOGIN_TIME;
-      new SubCommand(argParser, SC_GET_LAST_LOGIN_TIME, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_GET_LAST_LOGIN_TIME.get();
+      new SubCommand(argParser, SC_GET_LAST_LOGIN_TIME, msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_SET_LAST_LOGIN_TIME;
-      sc = new SubCommand(argParser, SC_SET_LAST_LOGIN_TIME, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_SET_LAST_LOGIN_TIME.get();
+      sc = new SubCommand(argParser, SC_SET_LAST_LOGIN_TIME, msg);
       sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
                               false, false, true, "{time}", null, null,
-                              MSGID_DESCRIPTION_OPERATION_TIME_VALUE));
+                              INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
       sc.setHidden(true);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_CLEAR_LAST_LOGIN_TIME;
-      sc = new SubCommand(argParser, SC_CLEAR_LAST_LOGIN_TIME, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_CLEAR_LAST_LOGIN_TIME.get();
+      sc = new SubCommand(argParser, SC_CLEAR_LAST_LOGIN_TIME, msg);
       sc.setHidden(true);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_IDLE_LOCKOUT;
-      new SubCommand(argParser, SC_GET_SECONDS_UNTIL_IDLE_LOCKOUT, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_IDLE_LOCKOUT.get();
+      new SubCommand(argParser, SC_GET_SECONDS_UNTIL_IDLE_LOCKOUT, msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_PASSWORD_RESET_STATE;
-      new SubCommand(argParser, SC_GET_PASSWORD_RESET_STATE, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_GET_PASSWORD_RESET_STATE.get();
+      new SubCommand(argParser, SC_GET_PASSWORD_RESET_STATE, msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_SET_PASSWORD_RESET_STATE;
-      sc = new SubCommand(argParser, SC_SET_PASSWORD_RESET_STATE, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_SET_PASSWORD_RESET_STATE.get();
+      sc = new SubCommand(argParser, SC_SET_PASSWORD_RESET_STATE, msg);
       sc.addArgument(new MultiChoiceArgument(ARG_OP_VALUE, 'O',
                               "operationValue", true, false, true,
                               "{true|false}", null, null, booleanValues, false,
-                              MSGID_DESCRIPTION_OPERATION_BOOLEAN_VALUE));
+                              INFO_DESCRIPTION_OPERATION_BOOLEAN_VALUE.get()));
       sc.setHidden(true);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_RESET_STATE;
-      sc = new SubCommand(argParser, SC_CLEAR_PASSWORD_RESET_STATE, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_RESET_STATE.get();
+      sc = new SubCommand(argParser, SC_CLEAR_PASSWORD_RESET_STATE, msg);
       sc.setHidden(true);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_RESET_LOCKOUT;
+      msg = INFO_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_RESET_LOCKOUT.get();
       new SubCommand(argParser, SC_GET_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT,
-                     msgID);
+                     msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_GRACE_LOGIN_USE_TIMES;
-      new SubCommand(argParser, SC_GET_GRACE_LOGIN_USE_TIMES, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_GET_GRACE_LOGIN_USE_TIMES.get();
+      new SubCommand(argParser, SC_GET_GRACE_LOGIN_USE_TIMES, msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_ADD_GRACE_LOGIN_USE_TIME;
-      sc = new SubCommand(argParser, SC_ADD_GRACE_LOGIN_USE_TIME, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_ADD_GRACE_LOGIN_USE_TIME.get();
+      sc = new SubCommand(argParser, SC_ADD_GRACE_LOGIN_USE_TIME, msg);
       sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
                               false, true, true, "{time}", null, null,
-                              MSGID_DESCRIPTION_OPERATION_TIME_VALUE));
+                              INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
       sc.setHidden(true);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_SET_GRACE_LOGIN_USE_TIMES;
-      sc = new SubCommand(argParser, SC_SET_GRACE_LOGIN_USE_TIMES, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_SET_GRACE_LOGIN_USE_TIMES.get();
+      sc = new SubCommand(argParser, SC_SET_GRACE_LOGIN_USE_TIMES, msg);
       sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
                               false, true, true, "{time}", null, null,
-                              MSGID_DESCRIPTION_OPERATION_TIME_VALUES));
+                              INFO_DESCRIPTION_OPERATION_TIME_VALUES.get()));
       sc.setHidden(true);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_CLEAR_GRACE_LOGIN_USE_TIMES;
-      sc = new SubCommand(argParser, SC_CLEAR_GRACE_LOGIN_USE_TIMES, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_CLEAR_GRACE_LOGIN_USE_TIMES.get();
+      sc = new SubCommand(argParser, SC_CLEAR_GRACE_LOGIN_USE_TIMES, msg);
       sc.setHidden(true);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_REMAINING_GRACE_LOGIN_COUNT;
+      msg = INFO_DESCRIPTION_PWPSTATE_GET_REMAINING_GRACE_LOGIN_COUNT.get();
       new SubCommand(argParser, SC_GET_REMAINING_GRACE_LOGIN_COUNT,
-                     msgID);
+                     msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_PW_CHANGED_BY_REQUIRED_TIME;
+      msg = INFO_DESCRIPTION_PWPSTATE_GET_PW_CHANGED_BY_REQUIRED_TIME.get();
       new SubCommand(argParser, SC_GET_PASSWORD_CHANGED_BY_REQUIRED_TIME,
-                     msgID);
+                     msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_SET_PW_CHANGED_BY_REQUIRED_TIME;
+      msg = INFO_DESCRIPTION_PWPSTATE_SET_PW_CHANGED_BY_REQUIRED_TIME.get();
       sc = new SubCommand(argParser, SC_SET_PASSWORD_CHANGED_BY_REQUIRED_TIME,
-                          msgID);
+                          msg);
       sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
                               false, false, true, "{time}", null, null,
-                              MSGID_DESCRIPTION_OPERATION_TIME_VALUE));
+                              INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
       sc.setHidden(true);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_CLEAR_PW_CHANGED_BY_REQUIRED_TIME;
+      msg =
+              INFO_DESCRIPTION_PWPSTATE_CLEAR_PW_CHANGED_BY_REQUIRED_TIME.get();
       sc = new SubCommand(argParser, SC_CLEAR_PASSWORD_CHANGED_BY_REQUIRED_TIME,
-                          msgID);
+                          msg);
       sc.setHidden(true);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME;
+      msg =
+              INFO_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME
+                      .get();
       new SubCommand(argParser, SC_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME,
-                     msgID);
+                     msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_PASSWORD_HISTORY;
-      new SubCommand(argParser, SC_GET_PASSWORD_HISTORY, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_GET_PASSWORD_HISTORY.get();
+      new SubCommand(argParser, SC_GET_PASSWORD_HISTORY, msg);
 
-      msgID = MSGID_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_HISTORY;
-      sc = new SubCommand(argParser, SC_CLEAR_PASSWORD_HISTORY, msgID);
+      msg = INFO_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_HISTORY.get();
+      sc = new SubCommand(argParser, SC_CLEAR_PASSWORD_HISTORY, msg);
       sc.setHidden(true);
     }
     catch (ArgumentException ae)
     {
-      msgID = MSGID_CANNOT_INITIALIZE_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
@@ -1171,8 +1201,7 @@ public class ManageAccount
     }
     catch (ArgumentException ae)
     {
-      msgID = MSGID_ERROR_PARSING_ARGS;
-      String message = getMessage(msgID, ae.getMessage());
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
@@ -1205,8 +1234,8 @@ public class ManageAccount
     {
       if (useStartTLS.isPresent())
       {
-        msgID = MSGID_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS;
-        String message = getMessage(msgID, useSSL.getLongIdentifier(),
+        Message message = ERR_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+                useSSL.getLongIdentifier(),
                                     useStartTLS.getLongIdentifier());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
@@ -1248,8 +1277,8 @@ public class ManageAccount
       }
       catch (SSLConnectionException sce)
       {
-        msgID = MSGID_PWPSTATE_CANNOT_INITIALIZE_SSL;
-        String message = getMessage(msgID, sce.getMessage());
+        Message message = ERR_PWPSTATE_CANNOT_INITIALIZE_SSL.get(
+                sce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
       }
@@ -1268,8 +1297,7 @@ public class ManageAccount
         int equalPos = s.indexOf('=');
         if (equalPos <= 0)
         {
-          msgID = MSGID_PWPSTATE_CANNOT_PARSE_SASL_OPTION;
-          String message = getMessage(msgID, s);
+          Message message = ERR_PWPSTATE_CANNOT_PARSE_SASL_OPTION.get(s);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
         }
@@ -1290,8 +1318,7 @@ public class ManageAccount
 
       if (mechanism == null)
       {
-        msgID = MSGID_PWPSTATE_NO_SASL_MECHANISM;
-        String message = getMessage(msgID);
+        Message message = ERR_PWPSTATE_NO_SASL_MECHANISM.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
       }
@@ -1316,16 +1343,15 @@ public class ManageAccount
     }
     catch (ArgumentException ae)
     {
-      msgID = MSGID_PWPSTATE_CANNOT_DETERMINE_PORT;
-      String message = getMessage(msgID, port.getLongIdentifier(),
-                                  ae.getMessage());
+      Message message = ERR_PWPSTATE_CANNOT_DETERMINE_PORT.get(
+              port.getLongIdentifier(),
+              ae.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
     catch (LDAPConnectionException lce)
     {
-      msgID = MSGID_PWPSTATE_CANNOT_CONNECT;
-      String message = getMessage(msgID, lce.getMessage());
+      Message message = ERR_PWPSTATE_CANNOT_CONNECT.get(lce.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
     }
@@ -1353,8 +1379,7 @@ public class ManageAccount
     SubCommand subCommand = argParser.getSubCommand();
     if (subCommand == null)
     {
-      msgID = MSGID_PWPSTATE_NO_SUBCOMMAND;
-      String message = getMessage(msgID);
+      Message message = ERR_PWPSTATE_NO_SUBCOMMAND.get();
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
@@ -1389,16 +1414,14 @@ public class ManageAccount
         }
         else
         {
-          msgID = MSGID_PWPSTATE_INVALID_BOOLEAN_VALUE;
-          String message = getMessage(msgID, valueStr);
+          Message message = ERR_PWPSTATE_INVALID_BOOLEAN_VALUE.get(valueStr);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
         }
       }
       else
       {
-        msgID = MSGID_PWPSTATE_NO_BOOLEAN_VALUE;
-        String message = getMessage(msgID);
+        Message message = ERR_PWPSTATE_NO_BOOLEAN_VALUE.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
       }
@@ -1578,16 +1601,14 @@ public class ManageAccount
         }
         else
         {
-          msgID = MSGID_PWPSTATE_INVALID_BOOLEAN_VALUE;
-          String message = getMessage(msgID, valueStr);
+          Message message = ERR_PWPSTATE_INVALID_BOOLEAN_VALUE.get(valueStr);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
         }
       }
       else
       {
-        msgID = MSGID_PWPSTATE_NO_BOOLEAN_VALUE;
-        String message = getMessage(msgID);
+        Message message = ERR_PWPSTATE_NO_BOOLEAN_VALUE.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
       }
@@ -1680,8 +1701,7 @@ public class ManageAccount
     }
     else
     {
-      msgID = MSGID_PWPSTATE_INVALID_SUBCOMMAND;
-      String message = getMessage(msgID, subCommandName);
+      Message message = ERR_PWPSTATE_INVALID_SUBCOMMAND.get(subCommandName);
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
@@ -1696,12 +1716,12 @@ public class ManageAccount
    * Prints information about a password policy state variable to standard
    * output.
    *
-   * @param  msgID   The message ID for the message to use as the label.
+   * @param  msg     The message ID for the message to use as the label.
    * @param  values  The set of values for the associated state variable.
    */
-  private static void printLabelAndValues(int msgID, ArrayList<String> values)
+  private static void printLabelAndValues(Message msg, ArrayList<String> values)
   {
-    String label = getMessage(msgID);
+    String label = String.valueOf(msg);
     if ((values == null) || values.isEmpty())
     {
       out.print(label);

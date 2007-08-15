@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import org.opends.messages.Message;
 
 
 
@@ -32,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.opends.server.api.ClientConnection;
-
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -76,15 +77,11 @@ public interface Operation
    * @param  message           The message to send to the client.  It
    *                           may be {@code null} if no notification
    *                           is to be sent.
-   * @param  messageID         The unique identifier associated with
-   *                           the message to send to the client.  It
-   *                           may be -1 if no notification is to be
-   *                           sent.
    */
   public abstract void disconnectClient(
-                            DisconnectReason disconnectReason,
-                            boolean sendNotification, String message,
-                            int messageID);
+          DisconnectReason disconnectReason,
+          boolean sendNotification, Message message
+  );
 
   /**
    * Retrieves a set of standard elements that should be logged in all
@@ -238,7 +235,7 @@ public interface Operation
    *
    * @return  The error message for this operation.
    */
-  public abstract StringBuilder getErrorMessage();
+  public abstract MessageBuilder getErrorMessage();
 
   /**
    * Specifies the error message for this operation.  This method may
@@ -246,7 +243,7 @@ public interface Operation
    *
    * @param  errorMessage  The error message for this operation.
    */
-  public abstract void setErrorMessage(StringBuilder errorMessage);
+  public abstract void setErrorMessage(MessageBuilder errorMessage);
 
   /**
    * Appends the provided message to the error message buffer.  If the
@@ -255,9 +252,8 @@ public interface Operation
    * by post-response plugins.
    *
    * @param  message  The message to append to the error message
-   *                  buffer.
    */
-  public abstract void appendErrorMessage(String message);
+  public abstract void appendErrorMessage(Message message);
 
   /**
    * Retrieves the additional log message for this operation, which
@@ -268,7 +264,7 @@ public interface Operation
    *
    * @return  The additional log message for this operation.
    */
-  public abstract StringBuilder getAdditionalLogMessage();
+  public abstract MessageBuilder getAdditionalLogMessage();
 
   /**
    * Specifies the additional log message for this operation, which
@@ -277,10 +273,9 @@ public interface Operation
    * plugins.
    *
    * @param  additionalLogMessage  The additional log message for this
-   *                               operation.
    */
   public abstract void setAdditionalLogMessage(
-      StringBuilder additionalLogMessage);
+      MessageBuilder additionalLogMessage);
 
   /**
    * Appends the provided message to the additional log information
@@ -288,9 +283,8 @@ public interface Operation
    * post-response plugins.
    *
    * @param  message  The message that should be appended to the
-   *                  additional log information for this operation.
    */
-  public abstract void appendAdditionalLogMessage(String message);
+  public abstract void appendAdditionalLogMessage(Message message);
 
   /**
    * Retrieves the matched DN for this operation.

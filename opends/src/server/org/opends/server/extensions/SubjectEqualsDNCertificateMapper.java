@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -47,8 +48,7 @@ import org.opends.server.types.ResultCode;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -117,10 +117,8 @@ public class SubjectEqualsDNCertificateMapper
     // Make sure that a peer certificate was provided.
     if ((certificateChain == null) || (certificateChain.length == 0))
     {
-      int    msgID   = MSGID_SEDCM_NO_PEER_CERTIFICATE;
-      String message = getMessage(msgID);
-      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
-                                   msgID);
+      Message message = ERR_SEDCM_NO_PEER_CERTIFICATE.get();
+      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
 
@@ -137,11 +135,9 @@ public class SubjectEqualsDNCertificateMapper
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_SEDCM_PEER_CERT_NOT_X509;
-      String message =
-           getMessage(msgID, String.valueOf(certificateChain[0].getType()));
-      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
-                                   msgID);
+      Message message = ERR_SEDCM_PEER_CERT_NOT_X509.get(
+          String.valueOf(certificateChain[0].getType()));
+      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
 
@@ -159,11 +155,9 @@ public class SubjectEqualsDNCertificateMapper
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_SEDCM_CANNOT_DECODE_SUBJECT_AS_DN;
-      String message = getMessage(msgID, String.valueOf(peerPrincipal),
-                                  getExceptionMessage(e));
-      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
-                                   msgID);
+      Message message = ERR_SEDCM_CANNOT_DECODE_SUBJECT_AS_DN.get(
+          String.valueOf(peerPrincipal), getExceptionMessage(e));
+      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
 
@@ -181,10 +175,9 @@ public class SubjectEqualsDNCertificateMapper
 
     if (readLock == null)
     {
-      int    msgID   = MSGID_SEDCM_CANNOT_LOCK_ENTRY;
-      String message = getMessage(msgID, String.valueOf(subjectDN));
-      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
-                                   msgID);
+      Message message =
+          ERR_SEDCM_CANNOT_LOCK_ENTRY.get(String.valueOf(subjectDN));
+      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
 
@@ -201,11 +194,10 @@ public class SubjectEqualsDNCertificateMapper
         TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
-      int    msgID   = MSGID_SEDCM_CANNOT_GET_ENTRY;
-      String message = getMessage(msgID, String.valueOf(subjectDN),
-                                  de.getErrorMessage());
+      Message message = ERR_SEDCM_CANNOT_GET_ENTRY.get(
+          String.valueOf(subjectDN), de.getMessageObject());
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
-                                   msgID, de);
+                                   de);
     }
     catch (Exception e)
     {
@@ -214,11 +206,10 @@ public class SubjectEqualsDNCertificateMapper
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_SEDCM_CANNOT_GET_ENTRY;
-      String message = getMessage(msgID, String.valueOf(subjectDN),
-                                  getExceptionMessage(e));
+      Message message = ERR_SEDCM_CANNOT_GET_ENTRY.get(
+          String.valueOf(subjectDN), getExceptionMessage(e));
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
-                                   msgID, e);
+                                   e);
     }
     finally
     {
@@ -228,10 +219,8 @@ public class SubjectEqualsDNCertificateMapper
 
     if (userEntry == null)
     {
-      int    msgID   = MSGID_SEDCM_NO_USER_FOR_DN;
-      String message = getMessage(msgID, String.valueOf(subjectDN));
-      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
-                                   msgID);
+      Message message = ERR_SEDCM_NO_USER_FOR_DN.get(String.valueOf(subjectDN));
+      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
     else
     {

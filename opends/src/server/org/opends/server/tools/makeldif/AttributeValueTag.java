@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
+import org.opends.messages.Message;
 
 
 
@@ -34,8 +35,8 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
+
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -109,26 +110,23 @@ public class AttributeValueTag
    */
   public void initializeForBranch(TemplateFile templateFile, Branch branch,
                                   String[] arguments, int lineNumber,
-                                  List<String> warnings)
+                                  List<Message> warnings)
          throws InitializationException
   {
     if ((arguments.length < 1) || (arguments.length > 2))
     {
-      int    msgID   = MSGID_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT;
-      String message = getMessage(msgID, getName(), lineNumber, 1, 2,
-                                  arguments.length);
-
-      throw new InitializationException(msgID, message);
+      Message message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
+          getName(), lineNumber, 1, 2, arguments.length);
+      throw new InitializationException(message);
     }
 
     String lowerName = toLowerCase(arguments[0]);
     attributeType = DirectoryServer.getAttributeType(lowerName, true);
     if (! branch.hasAttribute(attributeType))
     {
-      int    msgID   = MSGID_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE;
-      String message = getMessage(msgID, arguments[0], lineNumber);
-
-      throw new InitializationException(msgID, message);
+      Message message =
+          ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
+      throw new InitializationException(message);
     }
 
     if (arguments.length == 2)
@@ -138,19 +136,16 @@ public class AttributeValueTag
         numCharacters = Integer.parseInt(arguments[1]);
         if (numCharacters < 0)
         {
-          int    msgID   = MSGID_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND;
-          String message = getMessage(msgID, numCharacters, 0, getName(),
-                                      lineNumber);
-
-          throw new InitializationException(msgID, message);
+          Message message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
+              numCharacters, 0, getName(), lineNumber);
+          throw new InitializationException(message);
         }
       }
       catch (NumberFormatException nfe)
       {
-        int    msgID   = MSGID_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER;
-        String message = getMessage(msgID, arguments[1], getName(), lineNumber);
-
-        throw new InitializationException(msgID, message);
+        Message message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
+            arguments[1], getName(), lineNumber);
+        throw new InitializationException(message);
       }
     }
     else
@@ -178,26 +173,23 @@ public class AttributeValueTag
    */
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
-                                    int lineNumber, List<String> warnings)
+                                    int lineNumber, List<Message> warnings)
          throws InitializationException
   {
     if ((arguments.length < 1) || (arguments.length > 2))
     {
-      int    msgID   = MSGID_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT;
-      String message = getMessage(msgID, getName(), lineNumber, 1, 2,
-                                  arguments.length);
-
-      throw new InitializationException(msgID, message);
+      Message message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
+          getName(), lineNumber, 1, 2, arguments.length);
+      throw new InitializationException(message);
     }
 
     String lowerName = toLowerCase(arguments[0]);
     attributeType = DirectoryServer.getAttributeType(lowerName, true);
     if (! template.hasAttribute(attributeType))
     {
-      int    msgID   = MSGID_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE;
-      String message = getMessage(msgID, arguments[0], lineNumber);
-
-      throw new InitializationException(msgID, message);
+      Message message =
+          ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
+      throw new InitializationException(message);
     }
 
     if (arguments.length == 2)
@@ -207,19 +199,16 @@ public class AttributeValueTag
         numCharacters = Integer.parseInt(arguments[1]);
         if (numCharacters < 0)
         {
-          int    msgID   = MSGID_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND;
-          String message = getMessage(msgID, numCharacters, 0, getName(),
-                                      lineNumber);
-
-          throw new InitializationException(msgID, message);
+          Message message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(
+              numCharacters, 0, getName(), lineNumber);
+          throw new InitializationException(message);
         }
       }
       catch (NumberFormatException nfe)
       {
-        int    msgID   = MSGID_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER;
-        String message = getMessage(msgID, arguments[1], getName(), lineNumber);
-
-        throw new InitializationException(msgID, message);
+        Message message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(
+            arguments[1], getName(), lineNumber);
+        throw new InitializationException(message);
       }
     }
     else

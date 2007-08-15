@@ -25,10 +25,11 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.client.cli;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
-import static org.opends.server.messages.AdminMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.messages.AdminMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 
 import java.io.OutputStream;
@@ -65,20 +66,20 @@ import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
 {
   // Strings used in property help.
-  private final static String DESCRIPTION_OPTIONS_TITLE =
-    getMessage(MSGID_DSCFG_HELP_DESCRIPTION_OPTION);
+  private final static Message DESCRIPTION_OPTIONS_TITLE =
+    INFO_DSCFG_HELP_DESCRIPTION_OPTION.get();
 
-  private final static String DESCRIPTION_OPTIONS_READ =
-    getMessage(MSGID_DSCFG_HELP_DESCRIPTION_READ);
+  private final static Message DESCRIPTION_OPTIONS_READ =
+    INFO_DSCFG_HELP_DESCRIPTION_READ.get();
 
-  private final static String DESCRIPTION_OPTIONS_WRITE =
-    getMessage(MSGID_DSCFG_HELP_DESCRIPTION_WRITE);
+  private final static Message DESCRIPTION_OPTIONS_WRITE =
+    INFO_DSCFG_HELP_DESCRIPTION_WRITE.get();
 
-  private final static String DESCRIPTION_OPTIONS_MANDATORY =
-    getMessage(MSGID_DSCFG_HELP_DESCRIPTION_MANDATORY);
+  private final static Message DESCRIPTION_OPTIONS_MANDATORY =
+    INFO_DSCFG_HELP_DESCRIPTION_MANDATORY.get();
 
-  private final static String DESCRIPTION_OPTIONS_SINGLE =
-    getMessage(MSGID_DSCFG_HELP_DESCRIPTION_SINGLE_VALUED);
+  private final static Message DESCRIPTION_OPTIONS_SINGLE =
+    INFO_DSCFG_HELP_DESCRIPTION_SINGLE_VALUED.get();
 
   /**
    * The subcommand Parser.
@@ -284,51 +285,51 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
     // list-server-properties subcommand
     listServerPropertiesSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.LIST_SERVER_PROPERTIES.toString(),
-        MSGID_ADMIN_SUBCMD_LIST_SERVER_PROPS_DESCRIPTION);
+        INFO_ADMIN_SUBCMD_LIST_SERVER_PROPS_DESCRIPTION.get());
     subCommands.add(listServerPropertiesSubCmd);
 
     // register-server subcommand
     registerServerSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.REGISTER_SERVER.toString(),
-        MSGID_ADMIN_SUBCMD_REGISTER_SERVER_DESCRIPTION);
+        INFO_ADMIN_SUBCMD_REGISTER_SERVER_DESCRIPTION.get());
     subCommands.add(registerServerSubCmd);
 
     registerServerServerIdArg = new StringArgument("serverID", null,
         OPTION_LONG_SERVERID, false, true, OPTION_VALUE_SERVERID,
-        MSGID_ADMIN_ARG_SERVERID_DESCRIPTION);
+        INFO_ADMIN_ARG_SERVERID_DESCRIPTION.get());
     registerServerSubCmd.addArgument(registerServerServerIdArg);
 
     registerServerSetArg = new StringArgument(OPTION_LONG_SET,
         OPTION_SHORT_SET, OPTION_LONG_SET, false, true, true,
-        OPTION_VALUE_SET, null, null, MSGID_DSCFG_DESCRIPTION_PROP_VAL);
+        OPTION_VALUE_SET, null, null, INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
     registerServerSubCmd.addArgument(registerServerSetArg);
 
     // unregister-server subcommand
     unregisterServerSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.UNREGISTER_SERVER.toString(),
-        MSGID_ADMIN_SUBCMD_UNREGISTER_SERVER_DESCRIPTION);
+        INFO_ADMIN_SUBCMD_UNREGISTER_SERVER_DESCRIPTION.get());
     subCommands.add(unregisterServerSubCmd);
 
     unregisterServerServerIDArg = new StringArgument("serverID", null,
         OPTION_LONG_SERVERID, false, true, OPTION_VALUE_SERVERID,
-        MSGID_ADMIN_ARG_SERVERID_DESCRIPTION);
+        INFO_ADMIN_ARG_SERVERID_DESCRIPTION.get());
     unregisterServerSubCmd.addArgument(unregisterServerServerIDArg);
 
     // list-servers subcommand
     listServersSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.LIST_SERVERS.toString(),
-        MSGID_ADMIN_SUBCMD_LIST_SERVERS_DESCRIPTION);
+        INFO_ADMIN_SUBCMD_LIST_SERVERS_DESCRIPTION.get());
     subCommands.add(listServersSubCmd);
 
     // get-server-properties subcommand
     getServerPropertiesSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.GET_SERVER_PROPERTIES.toString(),
-        MSGID_ADMIN_SUBCMD_GET_SERVER_PROPERTIES_DESCRIPTION);
+        INFO_ADMIN_SUBCMD_GET_SERVER_PROPERTIES_DESCRIPTION.get());
     subCommands.add(getServerPropertiesSubCmd);
 
     getServerPropertiesServerIdArg = new StringArgument("serverID", null,
         OPTION_LONG_SERVERID, false, true, OPTION_VALUE_SERVERID,
-        MSGID_ADMIN_ARG_SERVERID_DESCRIPTION);
+        INFO_ADMIN_ARG_SERVERID_DESCRIPTION.get());
     getServerPropertiesServerIdArg.setMultiValued(true);
     getServerPropertiesSubCmd.addArgument(getServerPropertiesServerIdArg);
 
@@ -336,17 +337,17 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
     // set-server-properties subcommand
     setServerPropertiesSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.SET_SERVER_PROPERTIES.toString(),
-        MSGID_ADMIN_SUBCMD_SET_SERVER_PROPERTIES_DESCRIPTION);
+        INFO_ADMIN_SUBCMD_SET_SERVER_PROPERTIES_DESCRIPTION.get());
     subCommands.add(setServerPropertiesSubCmd);
 
     setServerPropertiesServerIdArg = new StringArgument("serverID", null,
         OPTION_LONG_SERVERID, true, true, OPTION_VALUE_SERVERID,
-        MSGID_ADMIN_ARG_SERVERID_DESCRIPTION);
+        INFO_ADMIN_ARG_SERVERID_DESCRIPTION.get());
     setServerPropertiesSubCmd.addArgument(setServerPropertiesServerIdArg);
 
     setServerPropertiesSetArg = new StringArgument(OPTION_LONG_SET,
         OPTION_SHORT_SET, OPTION_LONG_SET, false, true, true,
-        OPTION_VALUE_SET, null, null, MSGID_DSCFG_DESCRIPTION_PROP_VAL);
+        OPTION_VALUE_SET, null, null, INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
     setServerPropertiesSubCmd.addArgument(setServerPropertiesSetArg);
 
 
@@ -363,7 +364,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.ID;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          prop.getAttributeName(), false, false, true, "", null, null, -1);
+          prop.getAttributeName(), false, false, true, "", null, null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -375,7 +376,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       String attName = prop.getAttributeName();
       readonlyServerProperties.add(prop);
       StringArgument arg = new StringArgument(attName, null, attName, true,
-          false, true, "", "localhost", null, -1);
+          false, true, "", "localhost", null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -386,7 +387,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.LDAP_PORT;
       String attName = prop.getAttributeName();
       IntegerArgument arg = new IntegerArgument(attName, null, attName, true,
-          true, true, attName, 389, null, -1);
+          true, true, attName, 389, null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -397,7 +398,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.JMX_PORT;
       String attName = prop.getAttributeName();
       IntegerArgument arg = new IntegerArgument(attName, null, attName,
-          false, true, attName, -1);
+          false, true, attName, null);
       arg.setMultiValued(true);
       serverProperties.put(prop, arg);
     }
@@ -409,7 +410,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.JMXS_PORT;
       String attName = prop.getAttributeName();
       IntegerArgument arg = new IntegerArgument(attName, null, attName,
-          false, true, attName, -1);
+          false, true, attName, null);
       arg.setMultiValued(true);
       serverProperties.put(prop, arg);
     }
@@ -421,7 +422,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.LDAPS_PORT;
       String attName = prop.getAttributeName();
       IntegerArgument arg = new IntegerArgument(attName, null, attName,
-          false, true, attName, -1);
+          false, true, attName, null);
       arg.setMultiValued(true);
       serverProperties.put(prop, arg);
     }
@@ -433,7 +434,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.CERTIFICATE;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, attName, false,
-          false, true, attName, null, null, -1);
+          false, true, attName, null, null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -444,7 +445,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.INSTANCE_PATH;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, attName, false,
-          false, true, attName, null, null, -1);
+          false, true, attName, null, null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -455,7 +456,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.DESCRIPTION;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, attName, false,
-          false, true, attName, null, null, -1);
+          false, true, attName, null, null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -466,7 +467,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.HOST_OS;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, attName, false,
-          false, true, attName, null, null, -1);
+          false, true, attName, null, null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -476,7 +477,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
     {
       ServerProperty prop = ServerProperty.LDAP_ENABLED;
       String attName = prop.getAttributeName();
-      BooleanArgument arg = new BooleanArgument(attName, null, attName, -1);
+      BooleanArgument arg = new BooleanArgument(attName, null, attName, null);
       arg.setDefaultValue("false");
       serverProperties.put(prop, arg);
     }
@@ -487,7 +488,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
     {
       ServerProperty prop = ServerProperty.LDAPS_ENABLED;
       String attName = prop.getAttributeName();
-      BooleanArgument arg = new BooleanArgument(attName, null, attName, -1);
+      BooleanArgument arg = new BooleanArgument(attName, null, attName, null);
       arg.setDefaultValue("false");
       serverProperties.put(prop, arg);
     }
@@ -498,7 +499,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
     {
       ServerProperty prop = ServerProperty.STARTTLS_ENABLED;
       String attName = prop.getAttributeName();
-      BooleanArgument arg = new BooleanArgument(attName, null, attName, -1);
+      BooleanArgument arg = new BooleanArgument(attName, null, attName, null);
       arg.setDefaultValue("false");
       serverProperties.put(prop, arg);
     }
@@ -509,7 +510,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
     {
       ServerProperty prop = ServerProperty.JMX_ENABLED;
       String attName = prop.getAttributeName();
-      BooleanArgument arg = new BooleanArgument(attName, null, attName, -1);
+      BooleanArgument arg = new BooleanArgument(attName, null, attName, null);
       arg.setDefaultValue("false");
       serverProperties.put(prop, arg);
     }
@@ -520,7 +521,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
     {
       ServerProperty prop = ServerProperty.JMXS_ENABLED;
       String attName = prop.getAttributeName();
-      BooleanArgument arg = new BooleanArgument(attName, null, attName, -1);
+      BooleanArgument arg = new BooleanArgument(attName, null, attName, null);
       arg.setDefaultValue("false");
       serverProperties.put(prop, arg);
     }
@@ -532,7 +533,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.LOCATION;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, attName, false,
-          false, true, attName, null, null, -1);
+          false, true, attName, null, null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -543,7 +544,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.GROUPS;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, attName, false,
-          true, true, attName, null, null, -1);
+          true, true, attName, null, null, null);
       arg.setHidden(true);
       serverProperties.put(prop, arg);
     }
@@ -766,11 +767,10 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
         out.println();
 
         TableBuilder table = new TableBuilder();
-        table.appendHeading(getMessage(MSGID_DSCFG_HEADING_PROPERTY_NAME));
-        table.appendHeading(getMessage(MSGID_DSCFG_HEADING_PROPERTY_OPTIONS));
-        table.appendHeading(getMessage(MSGID_DSCFG_HEADING_PROPERTY_SYNTAX));
-        table.appendHeading(getMessage(
-            MSGID_CLI_HEADING_PROPERTY_DEFAULT_VALUE));
+        table.appendHeading(INFO_DSCFG_HEADING_PROPERTY_NAME.get());
+        table.appendHeading(INFO_DSCFG_HEADING_PROPERTY_OPTIONS.get());
+        table.appendHeading(INFO_DSCFG_HEADING_PROPERTY_SYNTAX.get());
+        table.appendHeading(INFO_CLI_HEADING_PROPERTY_DEFAULT_VALUE.get());
         for (ServerProperty serverProp : serverProperties.keySet())
         {
           if (serverProperties.get(serverProp).isHidden())
@@ -910,27 +910,25 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
           .getServerPropFromName(propertyName);
       if (serverProperty == null)
       {
-        int msgID = MSGID_CLI_ERROR_PROPERTY_UNRECOGNIZED;
-        String message = getMessage(msgID, propertyName);
-        throw new ArgumentException(msgID, message);
+        Message message = ERR_CLI_ERROR_PROPERTY_UNRECOGNIZED.get(propertyName);
+        throw new ArgumentException(message);
       }
 
       // Check that propName is not hidden.
       if (serverProperties.get(serverProperty).isHidden())
       {
-        int msgID = MSGID_CLI_ERROR_PROPERTY_UNRECOGNIZED;
-        String message = getMessage(msgID, propertyName);
-        throw new ArgumentException(msgID, message);
+        Message message = ERR_CLI_ERROR_PROPERTY_UNRECOGNIZED.get(propertyName);
+        throw new ArgumentException(message);
       }
 
       // Check the property Syntax.
-      StringBuilder invalidReason = new StringBuilder();
+      MessageBuilder invalidReason = new MessageBuilder();
       Argument arg = serverProperties.get(serverProperty) ;
       if ( ! arg.valueIsAcceptable(value, invalidReason))
       {
-        int msgID = MSGID_CLI_ERROR_INVALID_PROPERTY_VALUE;
-        String message = getMessage(msgID, propertyName, value);
-        throw new ArgumentException(msgID, message);
+        Message message =
+            ERR_CLI_ERROR_INVALID_PROPERTY_VALUE.get(propertyName, value);
+        throw new ArgumentException(message);
       }
       serverProperties.get(serverProperty).addValue(value);
 
@@ -959,9 +957,9 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       // but not yet is the map. Check if we have a default value.
       if (arg.getDefaultValue() == null)
       {
-        int msgID = MSGID_CLI_ERROR_MISSING_PROPERTY;
-        String message = getMessage(msgID, s.getAttributeName());
-        throw new ArgumentException(msgID, message);
+        Message message =
+            ERR_CLI_ERROR_MISSING_PROPERTY.get(s.getAttributeName());
+        throw new ArgumentException(message);
       }
       else
       {

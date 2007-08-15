@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -85,8 +86,8 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
+
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
@@ -109,8 +110,8 @@ import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.ConfigMessages.*;
+import org.opends.messages.MessageBuilder;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.admin.Configuration;
@@ -218,9 +219,8 @@ public class ConfigFileHandler
     {
       if (! f.exists())
       {
-        int    msgID   = MSGID_CONFIG_FILE_DOES_NOT_EXIST;
-        String message = getMessage(msgID, configFile);
-        throw new InitializationException(msgID, message);
+        Message message = ERR_CONFIG_FILE_DOES_NOT_EXIST.get(configFile);
+        throw new InitializationException(message);
       }
     }
     catch (InitializationException ie)
@@ -239,9 +239,9 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_FILE_CANNOT_VERIFY_EXISTENCE;
-      String message = getMessage(msgID, configFile, String.valueOf(e));
-      throw new InitializationException(msgID, message);
+      Message message = ERR_CONFIG_FILE_CANNOT_VERIFY_EXISTENCE.get(
+          configFile, String.valueOf(e));
+      throw new InitializationException(message);
     }
 
 
@@ -254,8 +254,7 @@ public class ConfigFileHandler
     }
     catch (DirectoryException de)
     {
-      throw new InitializationException(de.getMessageID(),
-                                        de.getErrorMessage(), de.getCause());
+      throw new InitializationException(de.getMessageObject(), de.getCause());
     }
 
     File archiveDirectory = new File(f.getParent(), CONFIG_ARCHIVE_DIR_NAME);
@@ -299,10 +298,9 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_UNABLE_TO_APPLY_STARTUP_CHANGES;
-      String message = getMessage(msgID, changesFile.getAbsolutePath(),
-                                  String.valueOf(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_UNABLE_TO_APPLY_STARTUP_CHANGES.get(
+          changesFile.getAbsolutePath(), String.valueOf(e));
+      throw new InitializationException(message, e);
     }
 
 
@@ -324,9 +322,9 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_FILE_CANNOT_OPEN_FOR_READ;
-      String message = getMessage(msgID, configFile, String.valueOf(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_FILE_CANNOT_OPEN_FOR_READ.get(
+          configFile, String.valueOf(e));
+      throw new InitializationException(message, e);
     }
 
 
@@ -355,10 +353,9 @@ public class ConfigFileHandler
         }
       }
 
-      int    msgID   = MSGID_CONFIG_FILE_INVALID_LDIF_ENTRY;
-      String message = getMessage(msgID, le.getLineNumber(), configFile,
-                                  String.valueOf(le));
-      throw new InitializationException(msgID, message, le);
+      Message message = ERR_CONFIG_FILE_INVALID_LDIF_ENTRY.get(
+          le.getLineNumber(), configFile, String.valueOf(le));
+      throw new InitializationException(message, le);
     }
     catch (Exception e)
     {
@@ -379,9 +376,9 @@ public class ConfigFileHandler
         }
       }
 
-      int    msgID   = MSGID_CONFIG_FILE_READ_ERROR;
-      String message = getMessage(msgID, configFile, String.valueOf(e));
-      throw new InitializationException(msgID, message, e);
+      Message message =
+          ERR_CONFIG_FILE_READ_ERROR.get(configFile, String.valueOf(e));
+      throw new InitializationException(message, e);
     }
 
 
@@ -400,9 +397,8 @@ public class ConfigFileHandler
         }
       }
 
-      int    msgID   = MSGID_CONFIG_FILE_EMPTY;
-      String message = getMessage(msgID, configFile);
-      throw new InitializationException(msgID, message);
+      Message message = ERR_CONFIG_FILE_EMPTY.get(configFile);
+      throw new InitializationException(message);
     }
 
 
@@ -412,10 +408,9 @@ public class ConfigFileHandler
       DN configRootDN = DN.decode(DN_CONFIG_ROOT);
       if (! entry.getDN().equals(configRootDN))
       {
-        int    msgID   = MSGID_CONFIG_FILE_INVALID_BASE_DN;
-        String message = getMessage(msgID, configFile, entry.getDN().toString(),
-                                    DN_CONFIG_ROOT);
-        throw new InitializationException(msgID, message);
+        Message message = ERR_CONFIG_FILE_INVALID_BASE_DN.get(
+            configFile, entry.getDN().toString(), DN_CONFIG_ROOT);
+        throw new InitializationException(message);
       }
     }
     catch (InitializationException ie)
@@ -459,9 +454,9 @@ public class ConfigFileHandler
       }
 
       // This should not happen, so we can use a generic error here.
-      int    msgID   = MSGID_CONFIG_FILE_GENERIC_ERROR;
-      String message = getMessage(msgID, configFile, String.valueOf(e));
-      throw new InitializationException(msgID, message, e);
+      Message message =
+          ERR_CONFIG_FILE_GENERIC_ERROR.get(configFile, String.valueOf(e));
+      throw new InitializationException(message, e);
     }
 
 
@@ -500,10 +495,9 @@ public class ConfigFileHandler
           }
         }
 
-        int    msgID   = MSGID_CONFIG_FILE_INVALID_LDIF_ENTRY;
-        String message = getMessage(msgID, le.getLineNumber(), configFile,
-                                    String.valueOf(le));
-        throw new InitializationException(msgID, message, le);
+        Message message = ERR_CONFIG_FILE_INVALID_LDIF_ENTRY.get(
+            le.getLineNumber(), configFile, String.valueOf(le));
+        throw new InitializationException(message, le);
       }
       catch (Exception e)
       {
@@ -524,9 +518,9 @@ public class ConfigFileHandler
           }
         }
 
-        int    msgID   = MSGID_CONFIG_FILE_READ_ERROR;
-        String message = getMessage(msgID, configFile, String.valueOf(e));
-        throw new InitializationException(msgID, message, e);
+        Message message =
+            ERR_CONFIG_FILE_READ_ERROR.get(configFile, String.valueOf(e));
+        throw new InitializationException(message, e);
       }
 
 
@@ -566,11 +560,10 @@ public class ConfigFileHandler
           }
         }
 
-        int    msgID   = MSGID_CONFIG_FILE_DUPLICATE_ENTRY;
-        String message = getMessage(msgID, entryDN.toString(),
-                                    reader.getLastEntryLineNumber(),
-                                    configFile);
-        throw new InitializationException(msgID, message);
+        Message message = ERR_CONFIG_FILE_DUPLICATE_ENTRY.get(
+            entryDN.toString(), String.valueOf(reader.getLastEntryLineNumber()),
+                configFile);
+        throw new InitializationException(message);
       }
 
 
@@ -590,11 +583,9 @@ public class ConfigFileHandler
           }
         }
 
-        int    msgID   = MSGID_CONFIG_FILE_UNKNOWN_PARENT;
-        String message = getMessage(msgID, entryDN.toString(),
-                                    reader.getLastEntryLineNumber(),
-                                    configFile);
-        throw new InitializationException(msgID, message);
+        Message message = ERR_CONFIG_FILE_UNKNOWN_PARENT.get(
+            entryDN.toString(), reader.getLastEntryLineNumber(), configFile);
+        throw new InitializationException(message);
       }
 
       ConfigEntry parentEntry = configEntries.get(parentDN);
@@ -612,11 +603,10 @@ public class ConfigFileHandler
           }
         }
 
-        int    msgID   = MSGID_CONFIG_FILE_NO_PARENT;
-        String message = getMessage(msgID, entryDN.toString(),
-                                    reader.getLastEntryLineNumber(),
-                                    configFile, parentDN.toString());
-        throw new InitializationException(msgID, message);
+        Message message = ERR_CONFIG_FILE_NO_PARENT.
+            get(entryDN.toString(), reader.getLastEntryLineNumber(), configFile,
+                parentDN.toString());
+        throw new InitializationException(message);
       }
 
 
@@ -648,9 +638,9 @@ public class ConfigFileHandler
           }
         }
 
-        int    msgID   = MSGID_CONFIG_FILE_GENERIC_ERROR;
-        String message = getMessage(msgID, configFile, String.valueOf(e));
-        throw new InitializationException(msgID, message, e);
+        Message message =
+            ERR_CONFIG_FILE_GENERIC_ERROR.get(configFile, String.valueOf(e));
+        throw new InitializationException(message, e);
       }
     }
 
@@ -672,9 +662,9 @@ public class ConfigFileHandler
 
         if (serverRoot == null)
         {
-          int    msgID   = MSGID_CONFIG_CANNOT_DETERMINE_SERVER_ROOT;
-          String message = getMessage(msgID, ENV_VAR_INSTANCE_ROOT);
-          throw new InitializationException(msgID, message);
+          Message message = ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT.get(
+              ENV_VAR_INSTANCE_ROOT);
+          throw new InitializationException(message);
         }
       }
       catch (InitializationException ie)
@@ -693,9 +683,9 @@ public class ConfigFileHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_CONFIG_CANNOT_DETERMINE_SERVER_ROOT;
-        String message = getMessage(msgID, ENV_VAR_INSTANCE_ROOT);
-        throw new InitializationException(msgID, message);
+        Message message =
+            ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT.get(ENV_VAR_INSTANCE_ROOT);
+        throw new InitializationException(message);
       }
     }
     else
@@ -724,10 +714,9 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_CANNOT_REGISTER_AS_PRIVATE_SUFFIX;
-      String message = getMessage(msgID, configRootEntry.getDN(),
-                                  getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      Message message = ERR_CONFIG_CANNOT_REGISTER_AS_PRIVATE_SUFFIX.get(
+          String.valueOf(configRootEntry.getDN()), getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
   }
 
@@ -765,11 +754,10 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_CONFIG_CANNOT_CALCULATE_DIGEST;
-      String message = getMessage(msgID, configFile,
-                                  stackTraceToSingleLineString(e));
+      Message message = ERR_CONFIG_CANNOT_CALCULATE_DIGEST.get(
+          configFile, stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
     finally
     {
@@ -895,11 +883,10 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_CONFIG_CANNOT_CALCULATE_DIGEST;
-      String message = getMessage(msgID, latestFile.getAbsolutePath(),
-                                  stackTraceToSingleLineString(e));
+      Message message = ERR_CONFIG_CANNOT_CALCULATE_DIGEST.get(
+          latestFile.getAbsolutePath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
   }
 
@@ -943,7 +930,7 @@ public class ConfigFileHandler
 
 
     // Apply the changes and make sure there were no errors.
-    LinkedList<String> errorList = new LinkedList<String>();
+    LinkedList<Message> errorList = new LinkedList<Message>();
     boolean successful = LDIFModify.modifyLDIF(sourceReader, changesReader,
                                                targetWriter, errorList);
 
@@ -965,17 +952,14 @@ public class ConfigFileHandler
     if (! successful)
     {
       // FIXME -- Log each error message and throw an exception.
-      for (String s : errorList)
+      for (Message s : errorList)
       {
-        int    msgID   = MSGID_CONFIG_ERROR_APPLYING_STARTUP_CHANGE;
-        String message = getMessage(msgID, s);
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 msgID, message);
+        Message message = ERR_CONFIG_ERROR_APPLYING_STARTUP_CHANGE.get(s);
+        logError(message);
       }
 
-      int    msgID   = MSGID_CONFIG_UNABLE_TO_APPLY_CHANGES_FILE;
-      String message = getMessage(msgID);
-      throw new LDIFException(msgID, message);
+      Message message = ERR_CONFIG_UNABLE_TO_APPLY_CHANGES_FILE.get();
+      throw new LDIFException(message);
     }
 
 
@@ -1223,10 +1207,9 @@ public class ConfigFileHandler
       if (! (clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
                                                addOperation)))
       {
-        int    msgID   = MSGID_CONFIG_FILE_ADD_INSUFFICIENT_PRIVILEGES;
-        String message = getMessage(msgID);
+        Message message = ERR_CONFIG_FILE_ADD_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -1242,10 +1225,9 @@ public class ConfigFileHandler
       DN entryDN = e.getDN();
       if (configEntries.containsKey(entryDN))
       {
-        int    msgID   = MSGID_CONFIG_FILE_ADD_ALREADY_EXISTS;
-        String message = getMessage(msgID, String.valueOf(entryDN));
-        throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message,
-                                     msgID);
+        Message message =
+            ERR_CONFIG_FILE_ADD_ALREADY_EXISTS.get(String.valueOf(entryDN));
+        throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
       }
 
 
@@ -1254,18 +1236,18 @@ public class ConfigFileHandler
       if (parentDN == null)
       {
         // The entry DN doesn't have a parent.  This is not allowed.
-        int    msgID   = MSGID_CONFIG_FILE_ADD_NO_PARENT_DN;
-        String message = getMessage(msgID, String.valueOf(entryDN));
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+        Message message =
+            ERR_CONFIG_FILE_ADD_NO_PARENT_DN.get(String.valueOf(entryDN));
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
 
       ConfigEntry parentEntry = configEntries.get(parentDN);
       if (parentEntry == null)
       {
         // The parent entry does not exist.  This is not allowed.
-        int msgID = MSGID_CONFIG_FILE_ADD_NO_PARENT;
-        String message = getMessage(msgID, String.valueOf(entryDN),
-                                    String.valueOf(parentDN));
+        Message message = ERR_CONFIG_FILE_ADD_NO_PARENT.get(
+                String.valueOf(entryDN),
+                String.valueOf(parentDN));
 
         // Get the matched DN, if possible.
         DN matchedDN = null;
@@ -1281,7 +1263,7 @@ public class ConfigFileHandler
           parentDN = parentDN.getParent();
         }
 
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID,
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
                                      matchedDN, null);
       }
 
@@ -1294,17 +1276,16 @@ public class ConfigFileHandler
       // through them and make sure the new entry is acceptable.
       CopyOnWriteArrayList<ConfigAddListener> addListeners =
            parentEntry.getAddListeners();
-      StringBuilder unacceptableReason = new StringBuilder();
+      MessageBuilder unacceptableReason = new MessageBuilder();
       for (ConfigAddListener l : addListeners)
       {
         if (! l.configAddIsAcceptable(newEntry, unacceptableReason))
         {
-          int msgID = MSGID_CONFIG_FILE_ADD_REJECTED_BY_LISTENER;
-          String message = getMessage(msgID, String.valueOf(entryDN),
-                                      String.valueOf(parentDN),
-                                      String.valueOf(unacceptableReason));
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                       msgID);
+          Message message = ERR_CONFIG_FILE_ADD_REJECTED_BY_LISTENER.
+              get(String.valueOf(entryDN), String.valueOf(parentDN),
+                  String.valueOf(unacceptableReason));
+          throw new DirectoryException(
+                  ResultCode.UNWILLING_TO_PERFORM, message);
 
         }
       }
@@ -1325,18 +1306,17 @@ public class ConfigFileHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, ce);
         }
 
-        int    msgID   = MSGID_CONFIG_FILE_ADD_FAILED;
-        String message = getMessage(msgID, String.valueOf(entryDN),
-                                    String.valueOf(parentDN),
-                                    getExceptionMessage(ce));
+        Message message = ERR_CONFIG_FILE_ADD_FAILED.
+            get(String.valueOf(entryDN), String.valueOf(parentDN),
+                getExceptionMessage(ce));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID);
+                                     message);
       }
 
 
       // Notify all the add listeners that the entry has been added.
-      ResultCode         resultCode = ResultCode.SUCCESS;
-      LinkedList<String> messages   = new LinkedList<String>();
+      ResultCode          resultCode = ResultCode.SUCCESS;
+      LinkedList<Message> messages   = new LinkedList<Message>();
       for (ConfigAddListener l : addListeners)
       {
         ConfigChangeResult result = l.applyConfigurationAdd(newEntry);
@@ -1357,10 +1337,10 @@ public class ConfigFileHandler
 
       if (resultCode != ResultCode.SUCCESS)
       {
-        StringBuilder buffer = new StringBuilder();
+        MessageBuilder buffer = new MessageBuilder();
         if (! messages.isEmpty())
         {
-          Iterator<String> iterator = messages.iterator();
+          Iterator<Message> iterator = messages.iterator();
           buffer.append(iterator.next());
           while (iterator.hasNext())
           {
@@ -1369,9 +1349,9 @@ public class ConfigFileHandler
           }
         }
 
-        int    msgID   = MSGID_CONFIG_FILE_ADD_APPLY_FAILED;
-        String message = getMessage(msgID, String.valueOf(buffer));
-        throw new DirectoryException(resultCode, message, msgID);
+        Message message =
+            ERR_CONFIG_FILE_ADD_APPLY_FAILED.get(String.valueOf(buffer));
+        throw new DirectoryException(resultCode, message);
       }
     }
     finally
@@ -1407,10 +1387,9 @@ public class ConfigFileHandler
       if (! (clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
                                                deleteOperation)))
       {
-        int    msgID   = MSGID_CONFIG_FILE_DELETE_INSUFFICIENT_PRIVILEGES;
-        String message = getMessage(msgID);
+        Message message = ERR_CONFIG_FILE_DELETE_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -1442,20 +1421,20 @@ public class ConfigFileHandler
           }
         }
 
-        int    msgID   = MSGID_CONFIG_FILE_DELETE_NO_SUCH_ENTRY;
-        String message = getMessage(msgID, String.valueOf(entryDN));
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID,
-                                     matchedDN, null);
+        Message message =
+            ERR_CONFIG_FILE_DELETE_NO_SUCH_ENTRY.get(String.valueOf(entryDN));
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
+                matchedDN, null);
       }
 
 
       // If the entry has children, then fail.
       if (entry.hasChildren())
       {
-        int    msgID   = MSGID_CONFIG_FILE_DELETE_HAS_CHILDREN;
-        String message = getMessage(msgID, String.valueOf(entryDN));
-        throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF, message,
-                                     msgID);
+        Message message =
+            ERR_CONFIG_FILE_DELETE_HAS_CHILDREN.get(String.valueOf(entryDN));
+        throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF,
+                message);
       }
 
 
@@ -1464,10 +1443,9 @@ public class ConfigFileHandler
       ConfigEntry parentEntry = entry.getParent();
       if (parentEntry == null)
       {
-        int    msgID   = MSGID_CONFIG_FILE_DELETE_NO_PARENT;
-        String message = getMessage(msgID, String.valueOf(entryDN));
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
+        Message message =
+            ERR_CONFIG_FILE_DELETE_NO_PARENT.get(String.valueOf(entryDN));
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
 
@@ -1475,17 +1453,16 @@ public class ConfigFileHandler
       // all OK with the delete.
       CopyOnWriteArrayList<ConfigDeleteListener> deleteListeners =
            parentEntry.getDeleteListeners();
-      StringBuilder unacceptableReason = new StringBuilder();
+      MessageBuilder unacceptableReason = new MessageBuilder();
       for (ConfigDeleteListener l : deleteListeners)
       {
         if (! l.configDeleteIsAcceptable(entry, unacceptableReason))
         {
-          int    msgID   = MSGID_CONFIG_FILE_DELETE_REJECTED;
-          String message = getMessage(msgID, String.valueOf(entryDN),
-                                      String.valueOf(parentEntry.getDN()),
-                                      String.valueOf(unacceptableReason));
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                       msgID);
+          Message message = ERR_CONFIG_FILE_DELETE_REJECTED.
+              get(String.valueOf(entryDN), String.valueOf(parentEntry.getDN()),
+                  String.valueOf(unacceptableReason));
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                  message);
         }
       }
 
@@ -1505,18 +1482,17 @@ public class ConfigFileHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, ce);
         }
 
-        int    msgID   = MSGID_CONFIG_FILE_DELETE_FAILED;
-        String message = getMessage(msgID, String.valueOf(entryDN),
-                                    String.valueOf(parentEntry.getDN()),
-                                    getExceptionMessage(ce));
+        Message message = ERR_CONFIG_FILE_DELETE_FAILED.
+            get(String.valueOf(entryDN), String.valueOf(parentEntry.getDN()),
+                getExceptionMessage(ce));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID);
+                                     message);
       }
 
 
       // Notify all the delete listeners that the entry has been removed.
-      ResultCode         resultCode = ResultCode.SUCCESS;
-      LinkedList<String> messages   = new LinkedList<String>();
+      ResultCode          resultCode = ResultCode.SUCCESS;
+      LinkedList<Message> messages   = new LinkedList<Message>();
       for (ConfigDeleteListener l : deleteListeners)
       {
         ConfigChangeResult result = l.applyConfigurationDelete(entry);
@@ -1540,7 +1516,7 @@ public class ConfigFileHandler
         StringBuilder buffer = new StringBuilder();
         if (! messages.isEmpty())
         {
-          Iterator<String> iterator = messages.iterator();
+          Iterator<Message> iterator = messages.iterator();
           buffer.append(iterator.next());
           while (iterator.hasNext())
           {
@@ -1549,9 +1525,9 @@ public class ConfigFileHandler
           }
         }
 
-        int    msgID   = MSGID_CONFIG_FILE_DELETE_APPLY_FAILED;
-        String message = getMessage(msgID, String.valueOf(buffer));
-        throw new DirectoryException(resultCode, message, msgID);
+        Message message =
+            ERR_CONFIG_FILE_DELETE_APPLY_FAILED.get(String.valueOf(buffer));
+        throw new DirectoryException(resultCode, message);
       }
     }
     finally
@@ -1591,10 +1567,9 @@ public class ConfigFileHandler
       if (! (clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
                                                modifyOperation)))
       {
-        int    msgID   = MSGID_CONFIG_FILE_MODIFY_INSUFFICIENT_PRIVILEGES;
-        String message = getMessage(msgID);
+        Message message = ERR_CONFIG_FILE_MODIFY_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                                     message, msgID);
+                                     message);
       }
 
       AttributeType privType =
@@ -1607,10 +1582,10 @@ public class ConfigFileHandler
           if (! clientConnection.hasPrivilege(Privilege.PRIVILEGE_CHANGE,
                                               modifyOperation))
           {
-            int msgID = MSGID_CONFIG_FILE_MODIFY_PRIVS_INSUFFICIENT_PRIVILEGES;
-            String message = getMessage(msgID);
+            Message message =
+                ERR_CONFIG_FILE_MODIFY_PRIVS_INSUFFICIENT_PRIVILEGES.get();
             throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                                         message, msgID);
+                                         message);
           }
 
           break;
@@ -1651,10 +1626,10 @@ public class ConfigFileHandler
           }
         }
 
-        int    msgID   = MSGID_CONFIG_FILE_MODIFY_NO_SUCH_ENTRY;
-        String message = getMessage(msgID, String.valueOf(entryDN));
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID,
-                                     matchedDN, null);
+        Message message =
+            ERR_CONFIG_FILE_MODIFY_NO_SUCH_ENTRY.get(String.valueOf(entryDN));
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
+                matchedDN, null);
       }
 
 
@@ -1663,9 +1638,9 @@ public class ConfigFileHandler
       if (! currentEntry.getEntry().getStructuralObjectClass().equals(
                  entry.getStructuralObjectClass()))
       {
-        int    msgID   = MSGID_CONFIG_FILE_MODIFY_STRUCTURAL_CHANGE_NOT_ALLOWED;
-        String message = getMessage(msgID, String.valueOf(entryDN));
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+        Message message = ERR_CONFIG_FILE_MODIFY_STRUCTURAL_CHANGE_NOT_ALLOWED.
+            get(String.valueOf(entryDN));
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
 
 
@@ -1677,16 +1652,15 @@ public class ConfigFileHandler
       // If there are, then make sure they are all OK with the change.
       CopyOnWriteArrayList<ConfigChangeListener> changeListeners =
            currentEntry.getChangeListeners();
-      StringBuilder unacceptableReason = new StringBuilder();
+      MessageBuilder unacceptableReason = new MessageBuilder();
       for (ConfigChangeListener l : changeListeners)
       {
         if (! l.configChangeIsAcceptable(newEntry, unacceptableReason))
         {
-          int    msgID   = MSGID_CONFIG_FILE_MODIFY_REJECTED_BY_CHANGE_LISTENER;
-          String message = getMessage(msgID, String.valueOf(entryDN),
-                                      String.valueOf(unacceptableReason));
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                       msgID);
+          Message message = ERR_CONFIG_FILE_MODIFY_REJECTED_BY_CHANGE_LISTENER.
+              get(String.valueOf(entryDN), String.valueOf(unacceptableReason));
+          throw new DirectoryException(
+                  ResultCode.UNWILLING_TO_PERFORM, message);
         }
       }
 
@@ -1700,8 +1674,8 @@ public class ConfigFileHandler
 
 
       // Notify all the change listeners of the update.
-      ResultCode         resultCode = ResultCode.SUCCESS;
-      LinkedList<String> messages   = new LinkedList<String>();
+      ResultCode         resultCode  = ResultCode.SUCCESS;
+      LinkedList<Message> messages   = new LinkedList<Message>();
       for (ConfigChangeListener l : changeListeners)
       {
         ConfigChangeResult result = l.applyConfigurationChange(newEntry);
@@ -1722,10 +1696,10 @@ public class ConfigFileHandler
 
       if (resultCode != ResultCode.SUCCESS)
       {
-        StringBuilder buffer = new StringBuilder();
+        MessageBuilder buffer = new MessageBuilder();
         if (! messages.isEmpty())
         {
-          Iterator<String> iterator = messages.iterator();
+          Iterator<Message> iterator = messages.iterator();
           buffer.append(iterator.next());
           while (iterator.hasNext())
           {
@@ -1734,9 +1708,9 @@ public class ConfigFileHandler
           }
         }
 
-        int    msgID   = MSGID_CONFIG_FILE_MODIFY_APPLY_FAILED;
-        String message = getMessage(msgID, String.valueOf(buffer));
-        throw new DirectoryException(resultCode, message, msgID);
+        Message message =
+            ERR_CONFIG_FILE_MODIFY_APPLY_FAILED.get(String.valueOf(buffer));
+        throw new DirectoryException(resultCode, message);
       }
     }
     finally
@@ -1775,20 +1749,17 @@ public class ConfigFileHandler
       if (! (clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
                                                modifyDNOperation)))
       {
-        int    msgID   = MSGID_CONFIG_FILE_MODDN_INSUFFICIENT_PRIVILEGES;
-        String message = getMessage(msgID);
+        Message message = ERR_CONFIG_FILE_MODDN_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                                     message, msgID);
+                                     message);
       }
     }
 
 
     // Modify DN operations will not be allowed in the configuration, so this
     // will always throw an exception.
-    int msgID = MSGID_CONFIG_FILE_MODDN_NOT_ALLOWED;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_CONFIG_FILE_MODDN_NOT_ALLOWED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -1810,10 +1781,9 @@ public class ConfigFileHandler
     ClientConnection clientConnection = searchOperation.getClientConnection();
     if (! clientConnection.hasPrivilege(Privilege.CONFIG_READ, searchOperation))
     {
-      int    msgID   = MSGID_CONFIG_FILE_SEARCH_INSUFFICIENT_PRIVILEGES;
-      String message = getMessage(msgID);
+      Message message = ERR_CONFIG_FILE_SEARCH_INSUFFICIENT_PRIVILEGES.get();
       throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -1822,9 +1792,8 @@ public class ConfigFileHandler
     ConfigEntry baseEntry = configEntries.get(baseDN);
     if (baseEntry == null)
     {
-      int    msgID   = MSGID_CONFIG_FILE_SEARCH_NO_SUCH_BASE;
-      String message = getMessage(msgID, String.valueOf(baseDN));
-
+      Message message = ERR_CONFIG_FILE_SEARCH_NO_SUCH_BASE.get(
+              String.valueOf(baseDN));
       DN matchedDN = null;
       if (baseDN.isDescendantOf(configRootEntry.getDN()))
       {
@@ -1841,7 +1810,7 @@ public class ConfigFileHandler
         }
       }
 
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID,
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
                                    matchedDN, null);
     }
 
@@ -1902,9 +1871,9 @@ public class ConfigFileHandler
 
       default:
         // The user provided an invalid scope.
-        int    msgID   = MSGID_CONFIG_FILE_SEARCH_INVALID_SCOPE;
-        String message = getMessage(msgID, String.valueOf(scope));
-        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, msgID);
+        Message message =
+            ERR_CONFIG_FILE_SEARCH_INVALID_SCOPE.get(String.valueOf(scope));
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
   }
 
@@ -2004,15 +1973,12 @@ public class ConfigFileHandler
         inputStream.close();
         outputStream.close();
 
-        int    msgID   = MSGID_CONFIG_MANUAL_CHANGES_DETECTED;
-        String message = getMessage(msgID, configFile,
-                                    newConfigFile.getAbsolutePath());
-
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+        Message message = WARN_CONFIG_MANUAL_CHANGES_DETECTED.get(
+            configFile, newConfigFile.getAbsolutePath());
+        logError(message);
 
         DirectoryServer.sendAlertNotification(this,
-             ALERT_TYPE_MANUAL_CONFIG_EDIT_HANDLED, msgID, message);
+             ALERT_TYPE_MANUAL_CONFIG_EDIT_HANDLED, message);
       }
     }
     catch (Exception e)
@@ -2022,15 +1988,12 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_MANUAL_CHANGES_LOST;
-      String message = getMessage(msgID, configFile,
-                                  stackTraceToSingleLineString(e));
-
-      logError(ErrorLogCategory.CONFIGURATION,
-               ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+      Message message = ERR_CONFIG_MANUAL_CHANGES_LOST.get(
+          configFile, stackTraceToSingleLineString(e));
+      logError(message);
 
       DirectoryServer.sendAlertNotification(this,
-           ALERT_TYPE_MANUAL_CONFIG_EDIT_HANDLED, msgID, message);
+           ALERT_TYPE_MANUAL_CONFIG_EDIT_HANDLED, message);
     }
 
 
@@ -2051,15 +2014,12 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_FILE_WRITE_CANNOT_EXPORT_NEW_CONFIG;
-      String message = getMessage(msgID, String.valueOf(tempConfig),
-                                  stackTraceToSingleLineString(e));
-
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_CONFIG_FILE_WRITE_CANNOT_EXPORT_NEW_CONFIG.get(
+          String.valueOf(tempConfig), stackTraceToSingleLineString(e));
+      logError(message);
 
       DirectoryServer.sendAlertNotification(this,
-           ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
+           ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, message);
       return;
     }
 
@@ -2078,16 +2038,13 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_FILE_WRITE_CANNOT_RENAME_NEW_CONFIG;
-      String message = getMessage(msgID, String.valueOf(tempConfig),
-                                  String.valueOf(configFile),
-                                  stackTraceToSingleLineString(e));
-
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_CONFIG_FILE_WRITE_CANNOT_RENAME_NEW_CONFIG.
+          get(String.valueOf(tempConfig), String.valueOf(configFile),
+              stackTraceToSingleLineString(e));
+      logError(message);
 
       DirectoryServer.sendAlertNotification(this,
-           ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
+           ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, message);
       return;
     }
 
@@ -2119,15 +2076,12 @@ public class ConfigFileHandler
       {
         if (! archiveDirectory.mkdirs())
         {
-          int msgID = MSGID_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR_NO_REASON;
-          String message = getMessage(msgID,
-                                      archiveDirectory.getAbsolutePath());
-
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+          Message message = ERR_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR_NO_REASON.
+              get(archiveDirectory.getAbsolutePath());
+          logError(message);
 
           DirectoryServer.sendAlertNotification(this,
-               ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
+               ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, message);
           return;
         }
       }
@@ -2138,15 +2092,13 @@ public class ConfigFileHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR;
-        String message = getMessage(msgID, archiveDirectory.getAbsolutePath(),
-                                    stackTraceToSingleLineString(e));
-
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+        Message message = ERR_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR.
+            get(archiveDirectory.getAbsolutePath(),
+                stackTraceToSingleLineString(e));
+        logError(message);
 
         DirectoryServer.sendAlertNotification(this,
-             ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
+             ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, message);
         return;
       }
     }
@@ -2179,14 +2131,12 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-
-      logError(ErrorLogCategory.CONFIGURATION,
-               ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+      Message message = ERR_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE.get(
+          stackTraceToSingleLineString(e));
+      logError(message);
 
       DirectoryServer.sendAlertNotification(this,
-           ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
+           ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, message);
       return;
     }
 
@@ -2214,14 +2164,12 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-
-      logError(ErrorLogCategory.CONFIGURATION,
-               ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+      Message message = ERR_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE.get(
+          stackTraceToSingleLineString(e));
+      logError(message);
 
       DirectoryServer.sendAlertNotification(this,
-           ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
+           ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, message);
       return;
     }
     finally
@@ -2300,7 +2248,7 @@ public class ConfigFileHandler
     try
     {
       writer = new LDIFWriter(exportConfig);
-      writer.writeComment(getMessage(MSGID_CONFIG_FILE_HEADER), 80);
+      writer.writeComment(INFO_CONFIG_FILE_HEADER.get(), 80);
       writeEntryAndChildren(writer, configRootEntry);
     }
     catch (Exception e)
@@ -2310,10 +2258,9 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_CONFIG_LDIF_WRITE_ERROR;
-      String message = getMessage(msgID, String.valueOf(e));
+      Message message = ERR_CONFIG_LDIF_WRITE_ERROR.get(String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
     try
@@ -2327,10 +2274,9 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_FILE_CLOSE_ERROR;
-      String message = getMessage(msgID, String.valueOf(e));
+      Message message = ERR_CONFIG_FILE_CLOSE_ERROR.get(String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
   }
 
@@ -2363,11 +2309,10 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_FILE_WRITE_ERROR;
-      String message = getMessage(msgID, configEntry.getDN().toString(),
-                                  String.valueOf(e));
+      Message message = ERR_CONFIG_FILE_WRITE_ERROR.get(
+          configEntry.getDN().toString(), String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
 
@@ -2404,10 +2349,8 @@ public class ConfigFileHandler
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
-    int msgID     =  MSGID_CONFIG_FILE_UNWILLING_TO_IMPORT;
-    String message = getMessage(msgID);
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                 msgID);
+    Message message = ERR_CONFIG_FILE_UNWILLING_TO_IMPORT.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -2505,12 +2448,11 @@ public class ConfigFileHandler
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_CONFIG_BACKUP_CANNOT_GET_MAC;
-          String message = getMessage(msgID, macAlgorithm,
-                                      stackTraceToSingleLineString(e));
+          Message message = ERR_CONFIG_BACKUP_CANNOT_GET_MAC.get(
+              macAlgorithm, stackTraceToSingleLineString(e));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(), message,
-                         msgID, e);
+                         e);
         }
       }
       else
@@ -2529,12 +2471,11 @@ public class ConfigFileHandler
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_CONFIG_BACKUP_CANNOT_GET_DIGEST;
-          String message = getMessage(msgID, digestAlgorithm,
-                                      stackTraceToSingleLineString(e));
+          Message message = ERR_CONFIG_BACKUP_CANNOT_GET_DIGEST.get(
+              digestAlgorithm, stackTraceToSingleLineString(e));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(), message,
-                         msgID, e);
+                         e);
         }
       }
     }
@@ -2582,12 +2523,11 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int    msgID   = MSGID_CONFIG_BACKUP_CANNOT_CREATE_ARCHIVE_FILE;
-      String message = getMessage(msgID, String.valueOf(filename),
-                                  backupDirectory.getPath(),
-                                  stackTraceToSingleLineString(e));
+      Message message = ERR_CONFIG_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
+          get(String.valueOf(filename), backupDirectory.getPath(),
+              stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
 
@@ -2610,11 +2550,10 @@ public class ConfigFileHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        int    msgID   = MSGID_CONFIG_BACKUP_CANNOT_GET_CIPHER;
-        String message = getMessage(msgID, cipherAlgorithm,
-                                    stackTraceToSingleLineString(e));
+        Message message = ERR_CONFIG_BACKUP_CANNOT_GET_CIPHER.get(
+            cipherAlgorithm, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
 
       outputStream = new CipherOutputStream(outputStream, cipher);
@@ -2624,10 +2563,10 @@ public class ConfigFileHandler
     // Wrap the file output stream in a zip output stream.
     ZipOutputStream zipStream = new ZipOutputStream(outputStream);
 
-    int    msgID   = MSGID_CONFIG_BACKUP_ZIP_COMMENT;
-    String message = getMessage(msgID, DynamicConstants.PRODUCT_NAME,
-                                backupID);
-    zipStream.setComment(message);
+    Message message = ERR_CONFIG_BACKUP_ZIP_COMMENT.get(
+            DynamicConstants.PRODUCT_NAME,
+            backupID);
+    zipStream.setComment(message.toString());
 
     if (compress)
     {
@@ -2656,10 +2595,10 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID   = MSGID_CONFIG_BACKUP_CANNOT_DETERMINE_CONFIG_FILE_LOCATION;
-      message = getMessage(msgID, getExceptionMessage(e));
+      message = ERR_CONFIG_BACKUP_CANNOT_DETERMINE_CONFIG_FILE_LOCATION.
+          get(getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
 
@@ -2717,10 +2656,10 @@ public class ConfigFileHandler
         zipStream.close();
       } catch (Exception e2) {}
 
-      msgID   = MSGID_CONFIG_BACKUP_CANNOT_BACKUP_CONFIG_FILE;
-      message = getMessage(msgID, configFile, stackTraceToSingleLineString(e));
+      message = ERR_CONFIG_BACKUP_CANNOT_BACKUP_CONFIG_FILE.get(
+          configFile, stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
 
@@ -2783,10 +2722,10 @@ public class ConfigFileHandler
         zipStream.close();
       } catch (Exception e2) {}
 
-      msgID   = MSGID_CONFIG_BACKUP_CANNOT_BACKUP_ARCHIVED_CONFIGS;
-      message = getMessage(msgID, configFile, stackTraceToSingleLineString(e));
+      message = ERR_CONFIG_BACKUP_CANNOT_BACKUP_ARCHIVED_CONFIGS.get(
+          configFile, stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
 
@@ -2803,11 +2742,10 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID   = MSGID_CONFIG_BACKUP_CANNOT_CLOSE_ZIP_STREAM;
-      message = getMessage(msgID, filename, backupDirectory.getPath(),
-                           getExceptionMessage(e));
+      message = ERR_CONFIG_BACKUP_CANNOT_CLOSE_ZIP_STREAM.get(
+          filename, backupDirectory.getPath(), getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
 
@@ -2847,11 +2785,10 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_CONFIG_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR;
-      message = getMessage(msgID, backupDirectory.getDescriptorPath(),
-                           stackTraceToSingleLineString(e));
+      message = ERR_CONFIG_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
+          backupDirectory.getDescriptorPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
   }
 
@@ -2905,10 +2842,10 @@ public class ConfigFileHandler
     BackupInfo      backupInfo      = backupDirectory.getBackupInfo(backupID);
     if (backupInfo == null)
     {
-      int    msgID   = MSGID_CONFIG_RESTORE_NO_SUCH_BACKUP;
-      String message = getMessage(msgID, backupID, backupPath);
+      Message message =
+          ERR_CONFIG_RESTORE_NO_SUCH_BACKUP.get(backupID, backupPath);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
 
 
@@ -2918,10 +2855,10 @@ public class ConfigFileHandler
          backupInfo.getBackupProperty(BACKUP_PROPERTY_ARCHIVE_FILENAME);
     if (backupFilename == null)
     {
-      int    msgID   = MSGID_CONFIG_RESTORE_NO_BACKUP_FILE;
-      String message = getMessage(msgID, backupID, backupPath);
+      Message message =
+          ERR_CONFIG_RESTORE_NO_BACKUP_FILE.get(backupID, backupPath);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID);
+                                   message);
     }
 
     File backupFile = new File(backupPath + File.separator + backupFilename);
@@ -2929,10 +2866,10 @@ public class ConfigFileHandler
     {
       if (! backupFile.exists())
       {
-        int    msgID   = MSGID_CONFIG_RESTORE_NO_SUCH_FILE;
-        String message = getMessage(msgID, backupID, backupFile.getPath());
+        Message message =
+            ERR_CONFIG_RESTORE_NO_SUCH_FILE.get(backupID, backupFile.getPath());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID);
+                                     message);
       }
     }
     catch (DirectoryException de)
@@ -2941,11 +2878,10 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_CONFIG_RESTORE_CANNOT_CHECK_FOR_ARCHIVE;
-      String message = getMessage(msgID, backupID, backupFile.getPath(),
-                                  stackTraceToSingleLineString(e));
+      Message message = ERR_CONFIG_RESTORE_CANNOT_CHECK_FOR_ARCHIVE.get(
+          backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
 
@@ -2959,10 +2895,9 @@ public class ConfigFileHandler
            backupInfo.getBackupProperty(BACKUP_PROPERTY_DIGEST_ALGORITHM);
       if (digestAlgorithm == null)
       {
-        int    msgID   = MSGID_CONFIG_RESTORE_UNKNOWN_DIGEST;
-        String message = getMessage(msgID, backupID);
+        Message message = ERR_CONFIG_RESTORE_UNKNOWN_DIGEST.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID);
+                                     message);
       }
 
       try
@@ -2972,10 +2907,10 @@ public class ConfigFileHandler
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CONFIG_RESTORE_CANNOT_GET_DIGEST;
-        String message = getMessage(msgID, backupID, digestAlgorithm);
+        Message message =
+            ERR_CONFIG_RESTORE_CANNOT_GET_DIGEST.get(backupID, digestAlgorithm);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
     }
 
@@ -2989,10 +2924,9 @@ public class ConfigFileHandler
            backupInfo.getBackupProperty(BACKUP_PROPERTY_MAC_ALGORITHM);
       if (macAlgorithm == null)
       {
-        int    msgID   = MSGID_CONFIG_RESTORE_UNKNOWN_MAC;
-        String message = getMessage(msgID, backupID);
+        Message message = ERR_CONFIG_RESTORE_UNKNOWN_MAC.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID);
+                                     message);
       }
 
       try
@@ -3001,11 +2935,10 @@ public class ConfigFileHandler
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CONFIG_RESTORE_CANNOT_GET_MAC;
-        String message = getMessage(msgID, backupID, macAlgorithm,
-                                    backupFile.getPath());
+        Message message = ERR_CONFIG_RESTORE_CANNOT_GET_MAC.get(
+            backupID, macAlgorithm);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
     }
 
@@ -3019,11 +2952,10 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_CONFIG_RESTORE_CANNOT_OPEN_BACKUP_FILE;
-      String message = getMessage(msgID, backupID, backupFile.getPath(),
-                                  stackTraceToSingleLineString(e));
+      Message message = ERR_CONFIG_RESTORE_CANNOT_OPEN_BACKUP_FILE.get(
+          backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
     // If the backup is encrypted, then we need to wrap the file input stream
@@ -3034,10 +2966,9 @@ public class ConfigFileHandler
            backupInfo.getBackupProperty(BACKUP_PROPERTY_CIPHER_ALGORITHM);
       if (cipherAlgorithm == null)
       {
-        int    msgID   = MSGID_CONFIG_RESTORE_UNKNOWN_CIPHER;
-        String message = getMessage(msgID, backupID);
+        Message message = ERR_CONFIG_RESTORE_UNKNOWN_CIPHER.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID);
+                                     message);
       }
 
       Cipher cipher;
@@ -3048,12 +2979,10 @@ public class ConfigFileHandler
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CONFIG_RESTORE_CANNOT_GET_CIPHER;
-        String message = getMessage(msgID, cipherAlgorithm,
-                                    backupFile.getPath(),
-                                    stackTraceToSingleLineString(e));
+        Message message = ERR_CONFIG_RESTORE_CANNOT_GET_CIPHER.
+            get(backupFile.getPath(), cipherAlgorithm);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
 
       inputStream = new CipherInputStream(inputStream, cipher);
@@ -3119,12 +3048,11 @@ public class ConfigFileHandler
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_CONFIG_RESTORE_CANNOT_BACKUP_EXISTING_CONFIG;
-        String message = getMessage(msgID, backupID, configDirPath,
-                                    String.valueOf(backupDirPath),
-                                    getExceptionMessage(e));
+        Message message = ERR_CONFIG_RESTORE_CANNOT_BACKUP_EXISTING_CONFIG.
+            get(backupID, configDirPath, String.valueOf(backupDirPath),
+                getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
 
 
@@ -3142,26 +3070,23 @@ public class ConfigFileHandler
           try
           {
             configBackupDir.renameTo(configDir);
-            int    msgID   = MSGID_CONFIG_RESTORE_RESTORED_OLD_CONFIG;
-            String message = getMessage(msgID, configDirPath);
-            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                     msgID);
+            Message message =
+                NOTE_CONFIG_RESTORE_RESTORED_OLD_CONFIG.get(configDirPath);
+            logError(message);
           }
           catch (Exception e2)
           {
-            int msgID = MSGID_CONFIG_RESTORE_CANNOT_RESTORE_OLD_CONFIG;
-            String message = getMessage(msgID, configBackupDir.getPath());
-            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
+            Message message = ERR_CONFIG_RESTORE_CANNOT_RESTORE_OLD_CONFIG.get(
+                configBackupDir.getPath());
+            logError(message);
           }
         }
 
 
-        int    msgID   = MSGID_CONFIG_RESTORE_CANNOT_CREATE_CONFIG_DIRECTORY;
-        String message = getMessage(msgID, backupID, configDirPath,
-                                    getExceptionMessage(e));
+        Message message = ERR_CONFIG_RESTORE_CANNOT_CREATE_CONFIG_DIRECTORY.get(
+            backupID, configDirPath, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
     }
 
@@ -3182,17 +3107,15 @@ public class ConfigFileHandler
         // Tell the user where the previous config was archived.
         if (configBackupDir != null)
         {
-          int    msgID   = MSGID_CONFIG_RESTORE_OLD_CONFIG_SAVED;
-          String message = getMessage(msgID, configBackupDir.getPath());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                   msgID);
+          Message message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
+              configBackupDir.getPath());
+          logError(message);
         }
 
-        int    msgID   = MSGID_CONFIG_RESTORE_CANNOT_GET_ZIP_ENTRY;
-        String message = getMessage(msgID, backupID, backupFile.getPath(),
-                                    stackTraceToSingleLineString(e));
+        Message message = ERR_CONFIG_RESTORE_CANNOT_GET_ZIP_ENTRY.get(
+            backupID, backupFile.getPath(), stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
 
       if (zipEntry == null)
@@ -3236,19 +3159,17 @@ public class ConfigFileHandler
           // Tell the user where the previous config was archived.
           if (configBackupDir != null)
           {
-            int    msgID   = MSGID_CONFIG_RESTORE_OLD_CONFIG_SAVED;
-            String message = getMessage(msgID, configBackupDir.getPath());
-            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                     msgID);
+            Message message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
+                configBackupDir.getPath());
+            logError(message);
           }
 
-          int    msgID   = MSGID_CONFIG_RESTORE_CANNOT_CREATE_FILE;
-          String message = getMessage(msgID, backupID,
-                                      restoreFile.getAbsolutePath(),
-                                      stackTraceToSingleLineString(e));
+          Message message = ERR_CONFIG_RESTORE_CANNOT_CREATE_FILE.
+              get(backupID, restoreFile.getAbsolutePath(),
+                  stackTraceToSingleLineString(e));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(), message,
-                         msgID, e);
+                         e);
         }
       }
 
@@ -3300,17 +3221,15 @@ public class ConfigFileHandler
         // Tell the user where the previous config was archived.
         if (configBackupDir != null)
         {
-          int    msgID   = MSGID_CONFIG_RESTORE_OLD_CONFIG_SAVED;
-          String message = getMessage(msgID, configBackupDir.getPath());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                   msgID);
+          Message message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
+              configBackupDir.getPath());
+          logError(message);
         }
 
-        int msgID = MSGID_CONFIG_RESTORE_CANNOT_PROCESS_ARCHIVE_FILE;
-        String message = getMessage(msgID, backupID, fileName,
-                                    stackTraceToSingleLineString(e));
+        Message message = ERR_CONFIG_RESTORE_CANNOT_PROCESS_ARCHIVE_FILE.get(
+            backupID, fileName, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
     }
 
@@ -3322,11 +3241,10 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_CONFIG_RESTORE_ERROR_ON_ZIP_STREAM_CLOSE;
-      String message = getMessage(msgID, backupID, backupFile.getPath(),
-                                  getExceptionMessage(e));
+      Message message = ERR_CONFIG_RESTORE_ERROR_ON_ZIP_STREAM_CLOSE.get(
+          backupID, backupFile.getPath(), getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
+                                   message, e);
     }
 
 
@@ -3338,26 +3256,23 @@ public class ConfigFileHandler
       byte[] calculatedHash = digest.digest();
       if (Arrays.equals(calculatedHash, unsignedHash))
       {
-        int    msgID = MSGID_CONFIG_RESTORE_UNSIGNED_HASH_VALID;
-        String message = getMessage(msgID);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                 msgID);
+        Message message = NOTE_CONFIG_RESTORE_UNSIGNED_HASH_VALID.get();
+        logError(message);
       }
       else
       {
         // Tell the user where the previous config was archived.
         if (configBackupDir != null)
         {
-          int    msgID   = MSGID_CONFIG_RESTORE_OLD_CONFIG_SAVED;
-          String message = getMessage(msgID, configBackupDir.getPath());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                   msgID);
+          Message message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
+              configBackupDir.getPath());
+          logError(message);
         }
 
-        int    msgID = MSGID_CONFIG_RESTORE_UNSIGNED_HASH_INVALID;
-        String message = getMessage(msgID, backupID);
+        Message message =
+            ERR_CONFIG_RESTORE_UNSIGNED_HASH_INVALID.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -3366,26 +3281,23 @@ public class ConfigFileHandler
       byte[] calculatedSignature = mac.doFinal();
       if (Arrays.equals(calculatedSignature, signedHash))
       {
-        int    msgID = MSGID_CONFIG_RESTORE_SIGNED_HASH_VALID;
-        String message = getMessage(msgID);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                 msgID);
+        Message message = NOTE_CONFIG_RESTORE_SIGNED_HASH_VALID.get();
+        logError(message);
       }
       else
       {
         // Tell the user where the previous config was archived.
         if (configBackupDir != null)
         {
-          int    msgID   = MSGID_CONFIG_RESTORE_OLD_CONFIG_SAVED;
-          String message = getMessage(msgID, configBackupDir.getPath());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-                   msgID);
+          Message message = ERR_CONFIG_RESTORE_OLD_CONFIG_SAVED.get(
+              configBackupDir.getPath());
+          logError(message);
         }
 
-        int    msgID = MSGID_CONFIG_RESTORE_SIGNED_HASH_INVALID;
-        String message = getMessage(msgID);
+        Message message = ERR_CONFIG_RESTORE_SIGNED_HASH_INVALID.get(
+                configBackupDir.getPath());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID);
+                                     message);
       }
     }
 
@@ -3393,10 +3305,9 @@ public class ConfigFileHandler
     // If we are just verifying the archive, then we're done.
     if (verifyOnly)
     {
-      int    msgID   = MSGID_CONFIG_RESTORE_VERIFY_SUCCESSFUL;
-      String message = getMessage(msgID, backupID, backupPath);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-               msgID);
+      Message message =
+          NOTE_CONFIG_RESTORE_VERIFY_SUCCESSFUL.get(backupID, backupPath);
+      logError(message);
       return;
     }
 
@@ -3409,10 +3320,8 @@ public class ConfigFileHandler
       recursiveDelete(configBackupDir);
     }
 
-    int    msgID   = MSGID_CONFIG_RESTORE_SUCCESSFUL;
-    String message = getMessage(msgID, backupID, backupPath);
-    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
-             msgID);
+    Message message = NOTE_CONFIG_RESTORE_SUCCESSFUL.get(backupID, backupPath);
+    logError(message);
   }
 
 
@@ -3491,23 +3400,21 @@ public class ConfigFileHandler
   {
     if (result == null)
     {
-      int    msgID   = MSGID_CONFIG_CHANGE_NO_RESULT;
-      String message = getMessage(msgID, String.valueOf(className),
-                                  String.valueOf(methodName),
-                                  String.valueOf(entryDN));
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_CONFIG_CHANGE_NO_RESULT.
+          get(String.valueOf(className), String.valueOf(methodName),
+              String.valueOf(entryDN));
+      logError(message);
       return;
     }
 
-    ResultCode   resultCode          = result.getResultCode();
-    boolean      adminActionRequired = result.adminActionRequired();
-    List<String> messages            = result.getMessages();
+    ResultCode    resultCode          = result.getResultCode();
+    boolean       adminActionRequired = result.adminActionRequired();
+    List<Message> messages            = result.getMessages();
 
-    StringBuilder messageBuffer = new StringBuilder();
+    MessageBuilder messageBuffer = new MessageBuilder();
     if (messages != null)
     {
-      for (String s : messages)
+      for (Message s : messages)
       {
         if (messageBuffer.length() > 0)
         {
@@ -3520,35 +3427,25 @@ public class ConfigFileHandler
 
     if (resultCode != ResultCode.SUCCESS)
     {
-      int    msgID   = MSGID_CONFIG_CHANGE_RESULT_ERROR;
-      String message = getMessage(msgID, String.valueOf(className),
-                                  String.valueOf(methodName),
-                                  String.valueOf(entryDN),
-                                  String.valueOf(resultCode),
-                                  adminActionRequired,
-                                  messageBuffer.toString());
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      Message message = ERR_CONFIG_CHANGE_RESULT_ERROR.
+          get(String.valueOf(className), String.valueOf(methodName),
+              String.valueOf(entryDN), String.valueOf(resultCode),
+              adminActionRequired, messageBuffer.toString());
+      logError(message);
     }
     else if (adminActionRequired)
     {
-      int    msgID   = MSGID_CONFIG_CHANGE_RESULT_ACTION_REQUIRED;
-      String message = getMessage(msgID, String.valueOf(className),
-                                  String.valueOf(methodName),
-                                  String.valueOf(entryDN),
-                                  messageBuffer.toString());
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_WARNING,
-               message, msgID);
+      Message message = WARN_CONFIG_CHANGE_RESULT_ACTION_REQUIRED.
+          get(String.valueOf(className), String.valueOf(methodName),
+              String.valueOf(entryDN), messageBuffer.toString());
+      logError(message);
     }
     else if (messageBuffer.length() > 0)
     {
-      int    msgID   = MSGID_CONFIG_CHANGE_RESULT_MESSAGES;
-      String message = getMessage(msgID, String.valueOf(className),
-                                  String.valueOf(methodName),
-                                  String.valueOf(entryDN),
-                                  messageBuffer.toString());
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.INFORMATIONAL,
-               message, msgID);
+      Message message = INFO_CONFIG_CHANGE_RESULT_MESSAGES.
+          get(String.valueOf(className), String.valueOf(methodName),
+              String.valueOf(entryDN), messageBuffer.toString());
+      logError(message);
     }
   }
 }

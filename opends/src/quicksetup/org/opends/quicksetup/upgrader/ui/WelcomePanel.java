@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup.upgrader.ui;
 
+import org.opends.messages.Message;
+import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.Installation;
@@ -99,22 +102,21 @@ public class WelcomePanel extends QuickSetupStepPanel {
   /**
    * {@inheritDoc}
    */
-  protected String getTitle() {
-    return getMsg("upgrade-welcome-panel-title");
+  protected Message getTitle() {
+    return INFO_UPGRADE_WELCOME_PANEL_TITLE.get();
   }
 
   /**
    * {@inheritDoc}
    */
-  protected String getInstructions() {
+  protected Message getInstructions() {
     /*
      * We can use org.opends.server.util.DynamicConstants without problems as it
      * has been added to quicksetup.jar during build time.
      */
-    return getMsg("upgrade-welcome-panel-webstart-instructions",
-            new String[] {
+    return INFO_UPGRADE_WELCOME_PANEL_WEBSTART_INSTRUCTIONS.get(
                     DynamicConstants.COMPACT_VERSION_STRING,
-                    DynamicConstants.BUILD_ID});
+                    DynamicConstants.BUILD_ID);
   }
 
   /**
@@ -124,22 +126,22 @@ public class WelcomePanel extends QuickSetupStepPanel {
     Component c;
 
     LabelFieldDescriptor serverLocationDescriptor =
-            new LabelFieldDescriptor(getMsg("upgrade-location-label"),
-                    getMsg("upgrade-location-tooltip"),
+            new LabelFieldDescriptor(INFO_UPGRADE_LOCATION_LABEL.get(),
+                    INFO_UPGRADE_LOCATION_TOOLTIP.get(),
                     LabelFieldDescriptor.FieldType.TEXTFIELD,
                     LabelFieldDescriptor.LabelType.PRIMARY,
                     UIFactory.PATH_FIELD_SIZE);
 
     LabelFieldDescriptor serverLocationDescriptorRO =
-            new LabelFieldDescriptor(getMsg("upgrade-location-label"),
-                    getMsg("upgrade-location-tooltip"),
+            new LabelFieldDescriptor(INFO_UPGRADE_LOCATION_LABEL.get(),
+                    INFO_UPGRADE_LOCATION_TOOLTIP.get(),
                     LabelFieldDescriptor.FieldType.READ_ONLY,
                     LabelFieldDescriptor.LabelType.PRIMARY,
                     UIFactory.PATH_FIELD_SIZE);
 
     LabelFieldDescriptor serverBuildDescriptorRO =
-            new LabelFieldDescriptor(getMsg("upgrade-build-id-label"),
-                    getMsg("upgrade-build-id-tooltip"),
+            new LabelFieldDescriptor(INFO_UPGRADE_BUILD_ID_LABEL.get(),
+                    INFO_UPGRADE_BUILD_ID_TOOLTIP.get(),
                     LabelFieldDescriptor.FieldType.READ_ONLY,
                     LabelFieldDescriptor.LabelType.PRIMARY,
                     UIFactory.PATH_FIELD_SIZE);
@@ -162,8 +164,8 @@ public class WelcomePanel extends QuickSetupStepPanel {
                       userData.getServerLocation());
 
       JButton butBrowse =
-              UIFactory.makeJButton(getMsg("browse-button-label"),
-                      getMsg("browse-button-tooltip"));
+              UIFactory.makeJButton(INFO_BROWSE_BUTTON_LABEL.get(),
+                      INFO_BROWSE_BUTTON_TOOLTIP.get());
 
       BrowseActionListener l =
               new BrowseActionListener(tcServerLocation,
@@ -205,7 +207,7 @@ public class WelcomePanel extends QuickSetupStepPanel {
       try {
         buildId = installation.getBuildInformation().getBuildId();
       } catch (Exception e) {
-        buildId = getMsg("upgrade-build-id-unknown");
+        buildId = INFO_UPGRADE_BUILD_ID_UNKNOWN.get().toString();
       }
 
       tcCurrentServerBuildNumber = UIFactory.makeJTextComponent(

@@ -27,6 +27,8 @@
 
 package org.opends.admin.ads;
 
+import org.opends.messages.Message;
+import org.opends.server.types.OpenDsException;
 
 
 /**
@@ -34,7 +36,7 @@ package org.opends.admin.ads;
  * @see org.opends.admin.ads.ADSContext
  *
  */
-public class ADSContextException extends Exception {
+public class ADSContextException extends OpenDsException {
 
   private static final long serialVersionUID = 1984039711031042813L;
 
@@ -154,7 +156,7 @@ public class ADSContextException extends Exception {
   /**
    * {@inheritDoc}
    */
-  public String toString()
+  public Message getReason()
   {
     if (toString == null)
     {
@@ -164,7 +166,7 @@ public class ADSContextException extends Exception {
         toString += "  Root cause: "+getCause().toString();
       }
     }
-    return toString;
+    return Message.raw(toString); // TODO: i18n
   }
 
   /**

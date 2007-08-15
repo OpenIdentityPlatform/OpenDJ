@@ -25,9 +25,10 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import org.opends.messages.MessageDescriptor;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.util.ArrayList;
@@ -37,8 +38,7 @@ import java.util.SortedSet;
 
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 
@@ -83,10 +83,10 @@ public class EntryCacheCommon
     private EntryCacheCommon.ConfigPhase _configPhase;
 
     // Unacceptable reasons. Used when _configPhase is PHASE_ACCEPTABLE.
-    private List<String> _unacceptableReasons;
+    private List<Message> _unacceptableReasons;
 
     // Error messages. Used when _configPhase is PHASE_APPLY.
-    private ArrayList<String> _errorMessages;
+    private ArrayList<Message> _errorMessages;
 
     // Result code. Used when _configPhase is PHASE_APPLY.
     private ResultCode _resultCode;
@@ -107,8 +107,8 @@ public class EntryCacheCommon
      */
     public ConfigErrorHandler (
         EntryCacheCommon.ConfigPhase configPhase,
-        List<String>                 unacceptableReasons,
-        ArrayList<String>            errorMessages
+        List<Message> unacceptableReasons,
+        ArrayList<Message>            errorMessages
         )
     {
       _configPhase         = configPhase;
@@ -121,44 +121,32 @@ public class EntryCacheCommon
     /**
      * Report an error.
      *
-     * @param category     the category of the error to report
-     * @param severity     the severity of the error to report
-     * @param errorID      the error ID of the error to report
-     * @param arg1         the first  argument of the error message
-     * @param arg2         the second argument of the error message
-     * @param arg3         the third  argument of the error message
+     * @param error        the error to report
      * @param isAcceptable <code>true</code> if the configuration is acceptable
      * @param resultCode   the change result for the current configuration
      */
     public void reportError(
-        ErrorLogCategory category,
-        ErrorLogSeverity severity,
-        int              errorID,
-        String           arg1,
-        String           arg2,
-        String           arg3,
-        boolean          isAcceptable,
-        ResultCode       resultCode
-        )
+            Message error,
+            boolean isAcceptable,
+            ResultCode resultCode
+    )
     {
       switch (_configPhase)
       {
       case PHASE_INIT:
         {
-        logError (category, severity, errorID, arg1, arg2, arg3);
+        logError (error);
         break;
         }
       case PHASE_ACCEPTABLE:
         {
-        String message = getMessage (errorID, arg1, arg2, arg3);
-        _unacceptableReasons.add (message);
+        _unacceptableReasons.add (error);
         _isAcceptable = isAcceptable;
         break;
         }
       case PHASE_APPLY:
         {
-        String message = getMessage (errorID, arg1, arg2, arg3);
-        _errorMessages.add (message);
+        _errorMessages.add (error);
         _isAcceptable = isAcceptable;
         if (_resultCode == ResultCode.SUCCESS)
         {
@@ -197,7 +185,7 @@ public class EntryCacheCommon
      *
      * @return the list of unacceptable reasons
      */
-    public List<String> getUnacceptableReasons()
+    public List<Message> getUnacceptableReasons()
     {
       return _unacceptableReasons;
     }
@@ -208,7 +196,7 @@ public class EntryCacheCommon
      *
      * @return the list of error messages
      */
-    public ArrayList<String> getErrorMessages()
+    public ArrayList<Message> getErrorMessages()
     {
       return _errorMessages;
     }
@@ -232,10 +220,10 @@ public class EntryCacheCommon
    * filters.
    *
    * @param filters  the list of string filter to convert to search filters
-   * @param decodeErrorMsgId  the error message ID to use in case of error
+   * @param decodeErrorMsg  the error message ID to use in case of error
    * @param errorHandler      an handler used to report errors
    *                          during decoding of filter
-   * @param noFilterMsgId     the error message ID to use when none of the
+   * @param noFilterMsg     the error message ID to use when none of the
    *                          filters was decoded properly
    * @param configEntryDN     the DN of the configuration entry for the
    *                          entry cache
@@ -243,11 +231,13 @@ public class EntryCacheCommon
    * @return the set of search filters
    */
   public static HashSet<SearchFilter> getFilters (
-      SortedSet<String>  filters,
-      int                decodeErrorMsgId,
-      int                noFilterMsgId,
-      ConfigErrorHandler errorHandler,
-      DN                 configEntryDN
+      SortedSet<String>       filters,
+      MessageDescriptor.Arg3<CharSequence, CharSequence, CharSequence>
+                              decodeErrorMsg,
+      MessageDescriptor.Arg1<CharSequence>
+                              noFilterMsg,
+      ConfigErrorHandler      errorHandler,
+      DN                      configEntryDN
       )
   {
     // Returned value
@@ -266,15 +256,13 @@ public class EntryCacheCommon
         {
           // We couldn't decode this filter. Log a warning and continue.
           errorHandler.reportError(
-              ErrorLogCategory.CONFIGURATION,
-              ErrorLogSeverity.SEVERE_WARNING,
-              decodeErrorMsgId,
-              String.valueOf(configEntryDN),
-              curFilter,
-              stackTraceToSingleLineString (de),
-              false,
-              ResultCode.INVALID_ATTRIBUTE_SYNTAX
-              );
+                  decodeErrorMsg.get(
+                          String.valueOf(configEntryDN),
+                          curFilter,
+                          stackTraceToSingleLineString(de)),
+                  false,
+                  ResultCode.INVALID_ATTRIBUTE_SYNTAX
+          );
         }
       }
 
@@ -283,16 +271,15 @@ public class EntryCacheCommon
       if ((errorHandler.getConfigPhase() == ConfigPhase.PHASE_INIT)
           && searchFilters.isEmpty())
       {
-        errorHandler.reportError(
-            ErrorLogCategory.CONFIGURATION,
-            ErrorLogSeverity.SEVERE_ERROR,
-            noFilterMsgId,
-            null,
-            null,
-            null,
-            false,
-            null
-            );
+        if (noFilterMsg != null) {
+          errorHandler.reportError(
+                  noFilterMsg.get(String.valueOf(configEntryDN)),
+                  false, null);
+        } else {
+          errorHandler.reportError( // TODO: i18n
+                  Message.raw("No filter provided: %s", configEntryDN),
+                  false, null);
+        }
       }
     }
 
@@ -315,8 +302,8 @@ public class EntryCacheCommon
    */
   public static ConfigErrorHandler getConfigErrorHandler (
       EntryCacheCommon.ConfigPhase  configPhase,
-      List<String>                  unacceptableReasons,
-      ArrayList<String>             errorMessages
+      List<Message> unacceptableReasons,
+      ArrayList<Message>             errorMessages
       )
   {
     ConfigErrorHandler errorHandler = null;

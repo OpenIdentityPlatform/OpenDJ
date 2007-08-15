@@ -30,7 +30,7 @@ package org.opends.server.api;
 
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.types.ConfigChangeResult;
-
+import org.opends.messages.MessageBuilder;
 
 
 /**
@@ -56,7 +56,7 @@ public interface ConfigChangeListener
    *          does not.
    */
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
-                      StringBuilder unacceptableReason);
+                      MessageBuilder unacceptableReason);
 
 
 

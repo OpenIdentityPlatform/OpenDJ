@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.messages.Message;
 import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
@@ -1029,7 +1030,8 @@ public class InternalClientConnectionTestCase
   {
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    conn.disconnect(DisconnectReason.OTHER, false, "testDisconnect", -1);
+    conn.disconnect(DisconnectReason.OTHER, false,
+            Message.raw("testDisconnect"));
   }
 
 
@@ -1112,7 +1114,7 @@ public class InternalClientConnectionTestCase
          InternalClientConnection.getRootConnection();
     CancelResult cancelResult =
          conn.cancelOperation(1,
-              new CancelRequest(true, "testCancelOperation"));
+              new CancelRequest(true, Message.raw("testCancelOperation")));
     assertEquals(cancelResult, CancelResult.CANNOT_CANCEL);
   }
 
@@ -1126,7 +1128,8 @@ public class InternalClientConnectionTestCase
   {
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    conn.cancelAllOperations(new CancelRequest(true, "testCancelOperation"));
+    conn.cancelAllOperations(new CancelRequest(true,
+            Message.raw("testCancelOperation")));
   }
 
 
@@ -1140,7 +1143,7 @@ public class InternalClientConnectionTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     conn.cancelAllOperationsExcept(
-         new CancelRequest(true, "testCancelOperation"), 1);
+            new CancelRequest(true, Message.raw("testCancelOperation")), 1);
   }
 
 

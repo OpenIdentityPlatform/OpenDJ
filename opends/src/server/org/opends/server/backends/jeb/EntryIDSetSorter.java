@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
+import org.opends.messages.Message;
 
 
 
@@ -47,8 +48,7 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 import org.opends.server.types.SortOrder;
 
-import static org.opends.server.messages.JebMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -110,11 +110,10 @@ public class EntryIDSetSorter
       }
       catch (Exception e)
       {
-        int msgID = MSGID_ENTRYIDSORTER_CANNOT_EXAMINE_ENTRY;
-        String message = getMessage(msgID, String.valueOf(id),
-                                    getExceptionMessage(e));
+        Message message = ERR_ENTRYIDSORTER_CANNOT_EXAMINE_ENTRY.get(
+            String.valueOf(id), getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, msgID, e);
+                                     message, e);
       }
     }
 
@@ -139,10 +138,9 @@ public class EntryIDSetSorter
                new VLVResponseControl(targetOffset, sortMap.size(),
                                       LDAPResultCode.OFFSET_RANGE_ERROR));
 
-          int    msgID   = MSGID_ENTRYIDSORTER_NEGATIVE_START_POS;
-          String message = getMessage(msgID);
+          Message message = ERR_ENTRYIDSORTER_NEGATIVE_START_POS.get();
           throw new DirectoryException(ResultCode.VIRTUAL_LIST_VIEW_ERROR,
-                                       message, msgID);
+                                       message);
         }
         else if (targetOffset == 0)
         {

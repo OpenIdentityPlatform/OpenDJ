@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import org.opends.messages.Message;
 
 
 
@@ -41,16 +42,15 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.EMailMessage;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import org.opends.server.loggers.ErrorLogger;
+import static org.opends.messages.ExtensionMessages.*;
+
+import org.opends.messages.MessageDescriptor;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -98,9 +98,8 @@ public class SMTPAlertHandler
     if ((DirectoryServer.getMailServerPropertySets() == null) ||
         DirectoryServer.getMailServerPropertySets().isEmpty())
     {
-      int    msgID   = MSGID_SMTPALERTHANDLER_NO_SMTP_SERVERS;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
+      Message message = ERR_SMTPALERTHANDLER_NO_SMTP_SERVERS.get();
+      throw new ConfigException(message);
     }
 
     configuration.addSMTPChangeListener(this);
@@ -123,7 +122,7 @@ public class SMTPAlertHandler
    * {@inheritDoc}
    */
   public boolean isConfigurationAcceptable(AlertHandlerCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     return true;
   }
@@ -144,24 +143,32 @@ public class SMTPAlertHandler
    * {@inheritDoc}
    */
   public void sendAlertNotification(AlertGenerator generator, String alertType,
-                                    int alertID, String alertMessage)
+                                    Message alertMessage)
   {
     SMTPAlertHandlerCfg cfg = currentConfig;
 
     ArrayList<String> recipients =
          new ArrayList<String>(cfg.getRecipientAddress());
 
-    String alertIDStr = String.valueOf(alertID);
+    String alertIDStr;
+    String alertMessageStr;
+    if (alertMessage != null) {
+      alertIDStr = String.valueOf(alertMessage.getDescriptor().getId());
+      alertMessageStr = alertMessage.toString();
+    } else {
+      alertIDStr = String.valueOf(MessageDescriptor.NULL_ID);
+      alertMessageStr = "none";
+    }
     String subject = replaceTokens(cfg.getMessageSubject(), alertType,
-                                   alertIDStr, alertMessage);
+                                   alertIDStr, alertMessageStr);
 
     String body = replaceTokens(cfg.getMessageBody(), alertType, alertIDStr,
-                                alertMessage);
+                                alertMessageStr);
 
     EMailMessage message = new EMailMessage(cfg.getSenderAddress(), recipients,
                                             subject);
 
-    message.setBody(wrapText(body, 75));
+    message.setBody(Message.raw(wrapText(body, 75)));
 
     try
     {
@@ -174,11 +181,9 @@ public class SMTPAlertHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_SMTPALERTHANDLER_ERROR_SENDING_MESSAGE;
-      String msg = getMessage(msgID, alertType, alertMessage,
-                              stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_WARNING,
-               msg, msgID);
+      Message msg = WARN_SMTPALERTHANDLER_ERROR_SENDING_MESSAGE.get(
+          alertType, alertMessage, stackTraceToSingleLineString(e));
+      ErrorLogger.logError(msg);
     }
   }
 
@@ -220,7 +225,7 @@ public class SMTPAlertHandler
    */
   public boolean isConfigurationChangeAcceptable(
                       SMTPAlertHandlerCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     return true;
   }

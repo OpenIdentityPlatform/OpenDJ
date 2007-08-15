@@ -27,6 +27,7 @@
 
 package org.opends.quicksetup.event;
 
+import org.opends.messages.Message;
 import org.opends.quicksetup.ProgressStep;
 
 /**
@@ -44,22 +45,22 @@ public class ProgressUpdateEvent {
 
   private Integer progressRatio;
 
-  private String currentPhaseSummary;
+  private Message currentPhaseSummary;
 
-  private String newLogs;
+  private Message newLogs;
 
   /**
    * Constructor of the ProgressUpdateEvent.
    * @param step the ProgressStep object describing in which step
    * of the installation we are (configuring server, starting server, etc.)
    * @param progressRatio the integer that specifies which percentage of
-   * the whole installation has been completed.
+ * the whole installation has been completed.
    * @param currentPhaseSummary the localized summary message for the
-   * current installation progress.
+* current installation progress.
    * @param newLogs the new log messages that we have for the installation.
    */
   public ProgressUpdateEvent(ProgressStep step,
-      Integer progressRatio, String currentPhaseSummary, String newLogs)
+      Integer progressRatio, Message currentPhaseSummary, Message newLogs)
   {
     this.step = step;
     this.progressRatio = progressRatio;
@@ -72,7 +73,7 @@ public class ProgressUpdateEvent {
    * status.
    * @return the localized message summary describing the progress status.
    */
-  public String getCurrentPhaseSummary()
+  public Message getCurrentPhaseSummary()
   {
     return currentPhaseSummary;
   }
@@ -81,7 +82,7 @@ public class ProgressUpdateEvent {
    * Gets the new logs for the install progress.
    * @return the new logs for the current install progress.
    */
-  public String getNewLogs()
+  public Message getNewLogs()
   {
     return newLogs;
   }

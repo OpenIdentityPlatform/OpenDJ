@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
+import org.opends.messages.Message;
 
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -35,6 +36,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
 import org.opends.server.config.ConfigException;
+
 
 import java.util.List;
 import java.util.ArrayList;
@@ -73,7 +75,7 @@ public class SizeBasedRotationPolicy implements
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-      SizeLimitLogRotationPolicyCfg config, List<String> unacceptableReasons)
+      SizeLimitLogRotationPolicyCfg config, List<Message> unacceptableReasons)
   {
     // Changes should always be OK
     return true;
@@ -88,7 +90,7 @@ public class SizeBasedRotationPolicy implements
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
+    ArrayList<Message> messages = new ArrayList<Message>();
 
     sizeLimit = config.getFileSizeLimit();
 

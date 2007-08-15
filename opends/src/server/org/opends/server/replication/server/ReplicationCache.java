@@ -25,10 +25,11 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ReplicationMessages.*;
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.IOException;
@@ -47,8 +48,6 @@ import org.opends.server.replication.protocol.RoutableMessage;
 import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.replication.protocol.ReplServerInfoMessage;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -179,11 +178,10 @@ public class ReplicationCache
            * This replicationServer therefore can't do it's job properly anymore
            * and needs to close all its connections and shutdown itself.
            */
-          int    msgID   = MSGID_CHANGELOG_SHUTDOWN_DATABASE_ERROR;
-          String message = getMessage(msgID) + stackTraceToSingleLineString(e);
-          logError(ErrorLogCategory.SYNCHRONIZATION,
-                   ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          MessageBuilder mb = new MessageBuilder();
+          mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
+          mb.append(stackTraceToSingleLineString(e));
+          logError(mb.toMessage());
           replicationServer.shutdown();
           return;
         }
@@ -245,12 +243,9 @@ public class ReplicationCache
       {
         // looks like two LDAP servers have the same serverId
         // log an error message and drop this connection.
-        int    msgID   = MSGID_DUPLICATE_SERVER_ID;
-        String message = getMessage(msgID, oldHandler.toString(),
-            handler.toString(), handler.getServerId());
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-                 ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        Message message = ERR_DUPLICATE_SERVER_ID.get(
+            oldHandler.toString(), handler.toString(), handler.getServerId());
+        logError(message);
         return false;
       }
       connectedServers.put(handler.getServerId(), handler);
@@ -314,12 +309,10 @@ public class ReplicationCache
         {
           // looks like two replication servers have the same serverId
           // log an error message and drop this connection.
-          int    msgID   = MSGID_DUPLICATE_REPLICATION_SERVER_ID;
-          String message = getMessage(msgID, oldHandler.getServerAddressURL(),
-                handler.getServerAddressURL(), handler.getServerId());
-          logError(ErrorLogCategory.SYNCHRONIZATION,
-                   ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_DUPLICATE_REPLICATION_SERVER_ID.
+              get(oldHandler.getServerAddressURL(),
+                  handler.getServerAddressURL(), handler.getServerId());
+          logError(message);
         }
         return false;
       }
@@ -577,9 +570,11 @@ public class ReplicationCache
 
     if (servers.isEmpty())
     {
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get());
+      mb.append("serverID:" + msg.getDestination());
       ErrorMessage errMsg = new ErrorMessage(
-          msg.getsenderID(), MSGID_NO_REACHABLE_PEER_IN_THE_DOMAIN,
-          "serverID:" + msg.getDestination());
+              msg.getsenderID(), mb.toMessage());
       try
       {
         senderHandler.send(errMsg);
@@ -591,12 +586,10 @@ public class ReplicationCache
          * An error happened trying the send back an ack to this server.
          * Log an error and close the connection to this server.
          */
-        int msgID = MSGID_CHANGELOG_ERROR_SENDING_ERROR;
-        String message = getMessage(msgID, this.toString())
-        + stackTraceToSingleLineString(ioe);
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-            ErrorLogSeverity.SEVERE_ERROR,
-            message, msgID);
+        MessageBuilder mb2 = new MessageBuilder();
+        mb2.append(ERR_CHANGELOG_ERROR_SENDING_ERROR.get(this.toString()));
+        mb2.append(stackTraceToSingleLineString(ioe));
+        logError(mb2.toMessage());
         senderHandler.shutdown();
       }
     }
@@ -614,13 +607,12 @@ public class ReplicationCache
            * An error happened trying the send back an ack to this server.
            * Log an error and close the connection to this server.
            */
-          int msgID = MSGID_CHANGELOG_ERROR_SENDING_MSG;
-          String message = getMessage(msgID, this.toString())
-          + stackTraceToSingleLineString(ioe) + " "
-          + msg.getClass().getCanonicalName();
-          logError(ErrorLogCategory.SYNCHRONIZATION,
-              ErrorLogSeverity.SEVERE_ERROR,
-              message, msgID);
+          MessageBuilder mb = new MessageBuilder();
+          mb.append(ERR_CHANGELOG_ERROR_SENDING_MSG.get(this.toString()));
+          mb.append(stackTraceToSingleLineString(ioe));
+          mb.append(" ");
+          mb.append(msg.getClass().getCanonicalName());
+          logError(mb.toMessage());
           senderHandler.shutdown();
           // TODO Handle error properly (sender timeout in addition)
         }
@@ -671,12 +663,10 @@ public class ReplicationCache
          * An error happened trying the send back an ack to this server.
          * Log an error and close the connection to this server.
          */
-        int    msgID   = MSGID_CHANGELOG_ERROR_SENDING_ACK;
-        String message = getMessage(msgID, this.toString())
-        + stackTraceToSingleLineString(e);
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-            ErrorLogSeverity.SEVERE_ERROR,
-            message, msgID);
+        MessageBuilder mb = new MessageBuilder();
+        mb.append(ERR_CHANGELOG_ERROR_SENDING_ACK.get(this.toString()));
+        mb.append(stackTraceToSingleLineString(e));
+        logError(mb.toMessage());
         handler.shutdown();
       }
     }
@@ -793,12 +783,10 @@ public class ReplicationCache
            * An error happened trying the send back an ack to this server.
            * Log an error and close the connection to this server.
            */
-          int    msgID   = MSGID_CHANGELOG_ERROR_SENDING_INFO;
-          String message = getMessage(msgID, this.toString())
-          + stackTraceToSingleLineString(e);
-          logError(ErrorLogCategory.SYNCHRONIZATION,
-              ErrorLogSeverity.SEVERE_ERROR,
-              message, msgID);
+          MessageBuilder mb = new MessageBuilder();
+          mb.append(ERR_CHANGELOG_ERROR_SENDING_INFO.get(this.toString()));
+          mb.append(stackTraceToSingleLineString(e));
+          logError(mb.toMessage());
           handler.shutdown();
         }
       }

@@ -324,7 +324,7 @@ public class InvokableMethod
         TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
-      throw new MBeanException(de, de.getErrorMessage());
+      throw new MBeanException(de, de.getMessage());
     }
     catch (Exception e)
     {

@@ -25,6 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins.profiler;
+import org.opends.messages.Message;
 
 
 
@@ -44,17 +45,15 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
 
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.PluginMessages.*;
+import org.opends.server.loggers.ErrorLogger;
+import static org.opends.messages.PluginMessages.*;
+
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -150,9 +149,9 @@ public final class ProfilerPlugin
     // Make sure that this plugin is only registered as a startup plugin.
     if (pluginTypes.isEmpty())
     {
-      int    msgID   = MSGID_PLUGIN_PROFILER_NO_PLUGIN_TYPES;
-      String message = getMessage(msgID, String.valueOf(configEntryDN));
-      throw new ConfigException(msgID, message);
+      Message message = ERR_PLUGIN_PROFILER_NO_PLUGIN_TYPES.get(
+          String.valueOf(configEntryDN));
+      throw new ConfigException(message);
     }
     else
     {
@@ -160,10 +159,9 @@ public final class ProfilerPlugin
       {
         if (t != PluginType.STARTUP)
         {
-          int    msgID   = MSGID_PLUGIN_PROFILER_INVALID_PLUGIN_TYPE;
-          String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                      String.valueOf(t));
-          throw new ConfigException(msgID, message);
+          Message message = ERR_PLUGIN_PROFILER_INVALID_PLUGIN_TYPE.get(
+              String.valueOf(configEntryDN), String.valueOf(t));
+          throw new ConfigException(message);
         }
       }
     }
@@ -173,10 +171,9 @@ public final class ProfilerPlugin
     File profileDirectory = getFileForPath(configuration.getProfileDirectory());
     if (! (profileDirectory.exists() && profileDirectory.isDirectory()))
     {
-      int    msgID   = MSGID_PLUGIN_PROFILER_INVALID_PROFILE_DIR;
-      String message = getMessage(msgID, profileDirectory.getAbsolutePath(),
-                                  String.valueOf(configEntryDN));
-      throw new ConfigException(msgID, message);
+      Message message = WARN_PLUGIN_PROFILER_INVALID_PROFILE_DIR.get(
+          profileDirectory.getAbsolutePath(), String.valueOf(configEntryDN));
+      throw new ConfigException(message);
     }
   }
 
@@ -211,12 +208,10 @@ public final class ProfilerPlugin
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          int    msgID   = MSGID_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA;
-          String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                      filename,
-                                      stackTraceToSingleLineString(e));
-          logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
+          Message message = ERR_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA.
+              get(String.valueOf(configEntryDN), filename,
+                  stackTraceToSingleLineString(e));
+          ErrorLogger.logError(message);
         }
       }
     }
@@ -249,7 +244,7 @@ public final class ProfilerPlugin
    */
   @Override()
   public boolean isConfigurationAcceptable(PluginCfg configuration,
-                                           List<String> unacceptableReasons)
+                                           List<Message> unacceptableReasons)
   {
     ProfilerPluginCfg config = (ProfilerPluginCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
@@ -262,7 +257,7 @@ public final class ProfilerPlugin
    */
   public boolean isConfigurationChangeAcceptable(
                       ProfilerPluginCfg configuration,
-                      List<String> unacceptableReasons)
+                      List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
     DN cfgEntryDN = configuration.dn();
@@ -270,8 +265,8 @@ public final class ProfilerPlugin
     // Make sure that the plugin is only registered as a startup plugin.
     if (configuration.getPluginType().isEmpty())
     {
-      int    msgID   = MSGID_PLUGIN_PROFILER_NO_PLUGIN_TYPES;
-      String message = getMessage(msgID, String.valueOf(cfgEntryDN));
+      Message message = ERR_PLUGIN_PROFILER_NO_PLUGIN_TYPES.get(
+              String.valueOf(cfgEntryDN));
       unacceptableReasons.add(message);
       configAcceptable = false;
     }
@@ -281,8 +276,8 @@ public final class ProfilerPlugin
       {
         if (t != PluginCfgDefn.PluginType.STARTUP)
         {
-          int    msgID   = MSGID_PLUGIN_PROFILER_INVALID_PLUGIN_TYPE;
-          String message = getMessage(msgID, String.valueOf(cfgEntryDN),
+          Message message = ERR_PLUGIN_PROFILER_INVALID_PLUGIN_TYPE.get(
+                  String.valueOf(cfgEntryDN),
                                       String.valueOf(t));
           unacceptableReasons.add(message);
           configAcceptable = false;
@@ -296,10 +291,9 @@ public final class ProfilerPlugin
     File profileDirectory = getFileForPath(configuration.getProfileDirectory());
     if (! (profileDirectory.exists() && profileDirectory.isDirectory()))
     {
-      int msgID = MSGID_PLUGIN_PROFILER_INVALID_PROFILE_DIR;
-      unacceptableReasons.add(getMessage(msgID,
-                                         profileDirectory.getAbsolutePath(),
-                                         String.valueOf(cfgEntryDN)));
+      unacceptableReasons.add(WARN_PLUGIN_PROFILER_INVALID_PROFILE_DIR.get(
+              profileDirectory.getAbsolutePath(),
+              String.valueOf(cfgEntryDN)));
       configAcceptable = false;
     }
 
@@ -321,7 +315,7 @@ public final class ProfilerPlugin
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    ArrayList<Message> messages            = new ArrayList<Message>();
 
     currentConfig = configuration;
 
@@ -339,13 +333,13 @@ public final class ProfilerPlugin
                  new ProfilerThread(configuration.getProfileSampleInterval());
             profilerThread.start();
 
-            int msgID = MSGID_PLUGIN_PROFILER_STARTED_PROFILING;
-            messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
+            messages.add(INFO_PLUGIN_PROFILER_STARTED_PROFILING.get(
+                    String.valueOf(configEntryDN)));
           }
           else
           {
-            int msgID = MSGID_PLUGIN_PROFILER_ALREADY_PROFILING;
-            messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
+            messages.add(INFO_PLUGIN_PROFILER_ALREADY_PROFILING.get(
+                    String.valueOf(configEntryDN)));
           }
         }
         break;
@@ -357,15 +351,15 @@ public final class ProfilerPlugin
         {
           if (profilerThread == null)
           {
-            int msgID = MSGID_PLUGIN_PROFILER_NOT_RUNNING;
-            messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
+            messages.add(INFO_PLUGIN_PROFILER_NOT_RUNNING.get(
+                    String.valueOf(configEntryDN)));
           }
           else
           {
             profilerThread.stopProfiling();
 
-            int msgID = MSGID_PLUGIN_PROFILER_STOPPED_PROFILING;
-            messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
+            messages.add(INFO_PLUGIN_PROFILER_STOPPED_PROFILING.get(
+                    String.valueOf(configEntryDN)));
 
             String filename =
                  getFileForPath(
@@ -376,9 +370,9 @@ public final class ProfilerPlugin
             {
               profilerThread.writeCaptureData(filename);
 
-              msgID = MSGID_PLUGIN_PROFILER_WROTE_PROFILE_DATA;
-              messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                      filename));
+              messages.add(INFO_PLUGIN_PROFILER_WROTE_PROFILE_DATA.get(
+                      String.valueOf(configEntryDN),
+                      filename));
             }
             catch (Exception e)
             {
@@ -387,10 +381,10 @@ public final class ProfilerPlugin
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              msgID = MSGID_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA;
-              messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                      filename,
-                                      stackTraceToSingleLineString(e)));
+              messages.add(ERR_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA.get(
+                      String.valueOf(configEntryDN),
+                      filename,
+                      stackTraceToSingleLineString(e)));
 
               resultCode = DirectoryConfig.getServerErrorResultCode();
             }
@@ -407,15 +401,15 @@ public final class ProfilerPlugin
         {
           if (profilerThread == null)
           {
-            int msgID = MSGID_PLUGIN_PROFILER_NOT_RUNNING;
-            messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
+            messages.add(INFO_PLUGIN_PROFILER_NOT_RUNNING.get(
+                    String.valueOf(configEntryDN)));
           }
           else
           {
             profilerThread.stopProfiling();
 
-            int msgID = MSGID_PLUGIN_PROFILER_STOPPED_PROFILING;
-            messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
+            messages.add(INFO_PLUGIN_PROFILER_STOPPED_PROFILING.get(
+                    String.valueOf(configEntryDN)));
 
             profilerThread = null;
           }
