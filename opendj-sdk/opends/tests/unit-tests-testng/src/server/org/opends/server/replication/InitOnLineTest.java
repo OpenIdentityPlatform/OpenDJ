@@ -145,7 +145,8 @@ public class InitOnLineTest extends ReplicationTestCase
 
   private void log(String s)
   {
-    logError(Message.raw("InitOnLineTests/" + s, Category.SYNC, Severity.INFORMATION));
+    logError(Message.raw(Category.SYNC, Severity.INFORMATION, 
+        "InitOnLineTests/" + s));
     if (debugEnabled())
     {
       TRACER.debugInfo(s);

@@ -295,8 +295,8 @@ public class UpdateOperationTest extends ReplicationTestCase
   @Test(enabled=false)
   public void toggleReceiveStatus() throws Exception
   {
-    logError(Message.raw("Starting synchronization test : toggleReceiveStatus",
-            Category.SYNC, Severity.INFORMATION));
+    logError(Message.raw(Category.SYNC, Severity.INFORMATION,
+        "Starting synchronization test : toggleReceiveStatus"));
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
@@ -375,8 +375,8 @@ public class UpdateOperationTest extends ReplicationTestCase
   @Test(groups = "slow")
   public void lostHeartbeatFailover() throws Exception
   {
-    logError(Message.raw("Starting replication test : lostHeartbeatFailover",
-            Category.SYNC, Severity.INFORMATION));
+    logError(Message.raw(Category.SYNC, Severity.INFORMATION,
+        "Starting replication test : lostHeartbeatFailover"));
 
     cleanRealEntries();
 
@@ -604,8 +604,8 @@ public class UpdateOperationTest extends ReplicationTestCase
   @Test(enabled=true, groups="slow")
   public void namingConflicts() throws Exception
   {
-    logError(Message.raw("Starting replication test : namingConflicts",
-            Category.SYNC, Severity.INFORMATION));
+    logError(Message.raw(Category.SYNC, Severity.INFORMATION,
+        "Starting replication test : namingConflicts"));
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
     String resolvedMonitorAttr = "resolved-naming-conflicts";
@@ -1138,8 +1138,8 @@ public class UpdateOperationTest extends ReplicationTestCase
   public void updateOperations(boolean assured) throws Exception
   {
     logError(Message.raw(
-            "Starting replication test : updateOperations " + assured,
-            Category.SYNC, Severity.INFORMATION));
+        Category.SYNC, Severity.INFORMATION,
+        "Starting replication test : updateOperations " + assured));
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
@@ -1401,8 +1401,8 @@ public class UpdateOperationTest extends ReplicationTestCase
   @Test(enabled=true)
   public void deleteNoSuchObject() throws Exception
   {
-    logError(Message.raw("Starting replication test : deleteNoSuchObject",
-            Category.SYNC, Severity.INFORMATION));
+    logError(Message.raw(Category.SYNC, Severity.INFORMATION,
+        "Starting replication test : deleteNoSuchObject"));
 
     DN dn = DN.decode("cn=No Such Object,ou=People,dc=example,dc=com");
     DeleteOperationBasis op =
@@ -1422,8 +1422,8 @@ public class UpdateOperationTest extends ReplicationTestCase
   @Test(enabled=false)
   public void infiniteReplayLoop() throws Exception
   {
-    logError(Message.raw("Starting replication test : infiniteReplayLoop",
-            Category.SYNC, Severity.INFORMATION));
+    logError(Message.raw(Category.SYNC, Severity.INFORMATION,
+        "Starting replication test : infiniteReplayLoop"));
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 

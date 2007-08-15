@@ -131,8 +131,8 @@ public class SchemaReplicationTest extends ReplicationTestCase
   @Test()
   public void pushSchemaChange() throws Exception
   {
-    logError(Message.raw("Starting replication test : pushSchemaChange ",
-            Category.SYNC, Severity.NOTICE));
+    logError(Message.raw(Category.SYNC, Severity.NOTICE,
+        "Starting replication test : pushSchemaChange "));
 
     final DN baseDn = DN.decode("cn=schema");
 
@@ -216,8 +216,8 @@ public class SchemaReplicationTest extends ReplicationTestCase
   @Test(dependsOnMethods = { "pushSchemaChange" })
   public void replaySchemaChange() throws Exception
   {
-    logError(Message.raw("Starting replication test : pushSchemaChange ",
-            Category.SYNC, Severity.NOTICE));
+    logError(Message.raw(Category.SYNC, Severity.NOTICE,
+        "Starting replication test : pushSchemaChange "));
 
     final DN baseDn = DN.decode("cn=schema");
 
@@ -249,8 +249,8 @@ public class SchemaReplicationTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "replaySchemaChange" })
   public void pushSchemaFilesChange() throws Exception
   {
-    logError(Message.raw("Starting replication test : pushSchemaFilesChange ",
-            Category.SYNC, Severity.NOTICE));
+    logError(Message.raw(Category.SYNC, Severity.NOTICE,
+        "Starting replication test : pushSchemaFilesChange "));
 
     final DN baseDn = DN.decode("cn=schema");
 

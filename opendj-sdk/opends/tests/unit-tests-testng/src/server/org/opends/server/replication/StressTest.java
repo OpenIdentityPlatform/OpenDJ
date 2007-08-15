@@ -85,8 +85,8 @@ public class StressTest extends ReplicationTestCase
   @Test(enabled=true, groups="slow")
   public void fromServertoBroker() throws Exception
   {
-    logError(Message.raw("Starting replication StressTest : fromServertoBroker",
-            Category.SYNC, Severity.NOTICE));
+    logError(Message.raw(Category.SYNC, Severity.NOTICE,
+        "Starting replication StressTest : fromServertoBroker"));
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
     final int TOTAL_MESSAGES = 1000;

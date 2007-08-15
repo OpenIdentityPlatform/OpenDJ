@@ -83,16 +83,16 @@ public class Message implements CharSequence, Formattable, Comparable {
    * are creating is locale sensitive.  If so you should instead create
    * a formal message.
    *
-   * @param formatString of the message or the message itself if not
-   *        arguments are necessary
    * @param category of this message
    * @param severity of this message
+   * @param formatString of the message or the message itself if not
+   *        arguments are necessary
    * @param args any arguments for the format string
    * @return a message object that will render the same in all locales;
    *         null if <code>formatString</code> is null
    */
-  static public Message raw(CharSequence formatString, Category category,
-                            Severity severity, Object... args) {
+  static public Message raw(Category category, Severity severity,
+                            CharSequence formatString, Object... args) {
     Message message = null;
     if (formatString != null) {
       MessageDescriptor.Raw md =

@@ -94,8 +94,8 @@ public class ProtocolWindowTest extends ReplicationTestCase
   public void saturateQueueAndRestart() throws Exception
   {
     logError(Message.raw(
-        "Starting Replication ProtocolWindowTest : saturateAndRestart",
-            Category.SYNC, Severity.INFORMATION));
+        Category.SYNC, Severity.INFORMATION,
+        "Starting Replication ProtocolWindowTest : saturateAndRestart"));
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
@@ -339,8 +339,8 @@ public class ProtocolWindowTest extends ReplicationTestCase
   public void protocolVersion() throws Exception
   {
     logError(Message.raw(
-            "Starting Replication ProtocolWindowTest : protocolVersion",
-            Category.SYNC, Severity.INFORMATION));
+        Category.SYNC, Severity.INFORMATION,
+        "Starting Replication ProtocolWindowTest : protocolVersion"));
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
