@@ -645,7 +645,7 @@ public class GenerateMessageFile extends Task {
   }
 
   private String getBase() {
-    String srcPath = source.getAbsolutePath();
+    String srcPath = unixifyPath(source.getAbsolutePath());
     String base = srcPath.substring(srcPath.lastIndexOf("messages/"));
     if (base.endsWith(".properties")) {
       base = base.substring(0, base.length() - ".properties".length());
@@ -654,7 +654,7 @@ public class GenerateMessageFile extends Task {
   }
 
   private String getPackage() {
-    String destPath = dest.getAbsolutePath();
+    String destPath = unixifyPath(dest.getAbsolutePath());
     String c = destPath.substring(destPath.indexOf("org/opends"));
     c = c.replace('/', '.');
     c = c.substring(0, c.lastIndexOf(".")); // strip .java
@@ -737,6 +737,10 @@ public class GenerateMessageFile extends Task {
       registry.createNewFile();
     }
     return registry;
+  }
+
+  private static String unixifyPath(String path) {
+    return path.replace("\\", "/");
   }
 
 
