@@ -26,6 +26,8 @@
  */
 package org.opends.quicksetup.util;
 
+import javax.swing.SwingUtilities;
+
 
 
 /**
@@ -62,12 +64,24 @@ class BackgroundTaskThread<T>
   {
     try
     {
-      T returnValue = backgroundTask.processBackgroundTask();
-      backgroundTask.backgroundTaskCompleted(returnValue, null);
+      final T returnValue = backgroundTask.processBackgroundTask();
+      SwingUtilities.invokeLater(new Runnable()
+      {
+        public void run()
+        {
+          backgroundTask.backgroundTaskCompleted(returnValue, null);
+        }
+      });
     }
-    catch (Throwable t)
+    catch (final Throwable t)
     {
-      backgroundTask.backgroundTaskCompleted(null, t);
+      SwingUtilities.invokeLater(new Runnable()
+      {
+        public void run()
+        {
+          backgroundTask.backgroundTaskCompleted(null, t);
+        }
+      });
     }
   }
 }
