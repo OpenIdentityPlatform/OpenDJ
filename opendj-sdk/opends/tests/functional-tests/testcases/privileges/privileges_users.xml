@@ -103,12 +103,9 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Users: bypass-acl, removing search global ACI'
@@ -143,12 +140,9 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
-                
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Users: bypass-acl, Admin adding privilege'
@@ -185,12 +179,9 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Users: bypass-acl, Admin deleting privilege'
@@ -227,13 +218,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
               
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-               
                 <message>
                    'Privileges: Users:  Putting Back Search Global ACI'
                 </message>
@@ -350,12 +338,9 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                  'Privileges: Users: bypass-acl with proxy, proxied user searching targeted entry'
@@ -377,13 +362,10 @@
   
                 <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                    'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
               
-                <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-                </if>
-  
                 <message>
                  'Privileges: Users: bypass-acl with proxy, adding proxy aci'
                 </message>
@@ -423,13 +405,10 @@
   
                 <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                    'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
               
-                <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-                </if>
-  
                 <message>
                    'Privileges: Users: bypass-acl with proxy, Admin deleting ACI'
                 </message>
@@ -480,12 +459,9 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
-                
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Users:  bypass-acl with proxy, Putting Back Search Global ACI'
@@ -603,12 +579,9 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Users: bypass-acl with minus notation, Admin adding privilege with minus notation'
@@ -645,12 +618,9 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
-                
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Users: bypass-acl with minus notation, Admin deleting privilege with minus notation'
@@ -687,12 +657,9 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Users: bypass-acl with proxy, Admin deleting privilege'
@@ -729,12 +696,9 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
-                
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Users:  bypass-acl with minus notation, Putting Back Search Global ACI'
@@ -849,12 +813,9 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
-                
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Users:  bypass-acl self-modify add, Putting Back Search Global ACI'
@@ -1522,21 +1483,15 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: cn=config' }
+                      'testString'         : 'dn: cn=config' ,
+                      'expectedResult'     : '1' }
                 </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'ds-cfg-check-schema:' }
+                      'testString'         : 'ds-cfg-check-schema:' ,
+                      'expectedResult'     : '1' }
                 </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Users: config-read, Admin deleting privilege'
@@ -2221,21 +2176,15 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=bhall,ou=People,o=Privileges Tests' }
+                      'testString'         : 'dn: uid=bhall,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid: bhall' }
+                      'testString'         : 'uid: bhall' ,
+                      'expectedResult'     : '1' }
                 </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Users: password-reset - delete aci, Admin deleting ACI'
@@ -2465,21 +2414,15 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=sfish,ou=People,o=Privileges Tests' }
+                      'testString'         : 'dn: uid=sfish,ou=People,o=Privileges Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid: sfish' }
+                      'testString'         : 'uid: sfish' ,
+                      'expectedResult'     : '1' }
                 </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Users: update-schema, Admin deleting ACI'
