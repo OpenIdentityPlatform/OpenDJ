@@ -34,7 +34,7 @@
       <sequence>
 
         <!--- Test Case : Add Entries for Password Policy Tests -->
-        <testcase name="'Security:Pwd Policy: Add Initial Entries'">
+        <testcase name="getTestCaseName('Add Initial Entries')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

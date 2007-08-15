@@ -54,7 +54,7 @@
             #@TestResult                Success if OpenDS returns 0 
                                         for all ldap operations.
           -->
-          <testcase name="'Security: SASL CRAM-MD5: Preamble'">
+          <testcase name="getTestCaseName('Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -126,7 +126,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
           -->
-          <testcase name="'Security: SASL CRAM-MD5: User (u:) Binding With CRAM-MD5 SASL Mech'">
+          <testcase name="getTestCaseName('User (u:) Binding With CRAM-MD5 SASL Mech')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -159,7 +159,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
           -->
-        <testcase name="'Security: SASL CRAM-MD5: User (dn:) Binding With CRAM-MD5 SASL Mech'">
+        <testcase name="getTestCaseName('User (dn:) Binding With CRAM-MD5 SASL Mech')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -192,7 +192,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 49.
         -->
-          <testcase name="'Security: SASL CRAM-MD5: User With Duplicate uid (u:) Binding'">
+          <testcase name="getTestCaseName('User With Duplicate uid (u:) Binding')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -226,7 +226,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
         -->
-        <testcase name="'Security: SASL CRAM-MD5: User With Duplicate uid (dn:) Binding'">
+        <testcase name="getTestCaseName('User With Duplicate uid (dn:) Binding')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -261,7 +261,7 @@
             #@TestResult                Success if OpenDS returns 0
                                         for all ldap operations.
         -->
-        <testcase name="'Security: SASL CRAM-MD5: User With Duplicate uid (u:) Binding 2'">
+        <testcase name="getTestCaseName('User With Duplicate uid (u:) Binding 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -311,7 +311,7 @@
                                         In step 3, the ldap operation should return 49
                                         because the password is no longer stored as CLEAR.
           -->
-        <testcase name="'Security: SASL CRAM-MD5: Postamble'">
+        <testcase name="getTestCaseName('Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

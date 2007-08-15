@@ -34,7 +34,7 @@
     <sequence>
       
       <!--- Test case: User Bind Before Deactivation -->
-      <testcase name="'Security: Acct Exp: Preamble'">
+      <testcase name="getTestCaseName('Preamble')">
         <sequence>
           <call function="'testCase_Preamble'"/>
           <message>
@@ -56,7 +56,7 @@
       </testcase>
 
       <!--- Test Case : Admin Expire User-->
-      <testcase name="'Security: Acct Exp: Admin Expire User'">
+      <testcase name="getTestCaseName('Admin Expire User')">
         <sequence>
           <call function="'testCase_Preamble'"/>
           <message>
@@ -79,7 +79,7 @@
       </testcase>
 
       <!--- Test Case : User Bind After Expiration-->
-      <testcase name="'Security: Acct Exp: User Bind After Expiration'">
+      <testcase name="getTestCaseName('User Bind After Expiration')">
         <sequence>
           <call function="'testCase_Preamble'"/>
           <message>
@@ -101,7 +101,7 @@
         </sequence>
       </testcase>
 
-      <testcase name="'Security: Acct Exp: Admin Expire User in Future'">
+      <testcase name="getTestCaseName('Admin Expire User in Future')">
         <sequence>
           <call function="'testCase_Preamble'"/>
           <message>
@@ -124,7 +124,7 @@
       </testcase>
 
       <!--- Test Case : User Bind After Expiration-->
-      <testcase name="'Security: Acct Exp: User Bind With Future Expiration'">
+      <testcase name="getTestCaseName('User Bind With Future Expiration')">
         <sequence>
           <call function="'testCase_Preamble'"/>
           <message>
@@ -146,7 +146,7 @@
       </testcase>
 
      <!--- Test case: Admin Reactivate User -->
-      <testcase name="'Security: Acct Exp: Postamble'">
+      <testcase name="getTestCaseName('Postamble')">
         <sequence>
           <call function="'testCase_Preamble'"/>
           <message>

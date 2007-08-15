@@ -80,7 +80,7 @@
               #@TestResult                Success if OpenDS returns 0
           --> 
         
-              <testcase name="'Schema: Dynamic Schema: Update via File'">
+              <testcase name="getTestCaseName('Update via File')">
            
                 <sequence>
         
@@ -161,7 +161,7 @@
           -->  
     
           <!--- Test Case : Schema: Update Over Protocol: Add -->
-          <testcase name="'Schema: Update Over Protocol: Add'">
+          <testcase name="getTestCaseName('Add')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -240,7 +240,7 @@
         -->
 
         
-          <testcase name="'Schema: Update Over Protocol: Replace'">
+          <testcase name="getTestCaseName('Replace')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -316,7 +316,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-          <testcase name="'Schema: Update Over Protocol: Remove'">
+          <testcase name="getTestCaseName('Remove')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

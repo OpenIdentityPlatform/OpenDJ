@@ -34,7 +34,7 @@
       <sequence>
 
         <!--- Test Case : Preamble Check -->
-        <testcase name="'Security:Min Pwd Age: Preamble Check'">
+        <testcase name="getTestCaseName('Preamble Check')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -56,7 +56,7 @@
         </testcase>
 
         <!--- Test Case : Test -->
-        <testcase name="'Security:Min Pwd Age: Test'">
+        <testcase name="getTestCaseName('Test')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -111,7 +111,7 @@
         </testcase>
 
         <!--- Test Case : Postamble Reset -->
-        <testcase name="'Security:Min Pwd Age: Postamble Reset'">
+        <testcase name="getTestCaseName('Postamble Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

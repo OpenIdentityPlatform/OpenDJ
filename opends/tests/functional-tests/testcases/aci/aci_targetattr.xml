@@ -73,7 +73,7 @@
                                           and no entries are returned 
                                           for all operations.
           -->
-          <testcase name="'ACI: Targetattr: Preamble'">
+          <testcase name="getTestCaseName('Preamble')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -164,7 +164,7 @@
           -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetattr: Targetattr Equals One Attribute'">
+          <testcase name="getTestCaseName('Targetattr Equals One Attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -325,7 +325,7 @@
           -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetattr: Targetattr Not Equals One Attribute'">
+          <testcase name="getTestCaseName('Targetattr Not Equals One Attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -486,7 +486,7 @@
           -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetattr: Targetattr Equals Three Attributes'">
+          <testcase name="getTestCaseName('Targetattr Equals Three Attributes')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -666,7 +666,7 @@
           -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetattr: Targetattr Not Equals Three Attributes'">
+          <testcase name="getTestCaseName('Targetattr Not Equals Three Attributes')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -841,7 +841,7 @@
             #@TestResult                Success if OpenDS returns 0 for all ldap operations
                                         and no attributes are returned.
           -->
-          <testcase name="'ACI: Targetattr: Bad Targetattr'">
+          <testcase name="getTestCaseName('Bad Targetattr')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -987,7 +987,7 @@
               #@TestResult                Success if OpenDS returns 21
           -->
         <!-- cross reference to syntax.ksh Test Case 5 -->
-          <testcase name="'ACI: Targetattr: Multiple Targets'">
+          <testcase name="getTestCaseName('Multiple Targets')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -1051,7 +1051,7 @@
               #@TestPostamble             none
               #@TestResult                Success if OpenDS returns 21
           -->
-          <testcase name="'ACI: Targetattr: Keyword Targetattr Mispelled'">
+          <testcase name="getTestCaseName('Keyword Targetattr Mispelled')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -1115,7 +1115,7 @@
               #@TestPostamble             none
               #@TestResult                Success if OpenDS returns 21
           -->
-          <testcase name="'ACI: Targetattr: Targetattr With Missing Quotes'">
+          <testcase name="getTestCaseName('Targetattr With Missing Quotes')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -1184,7 +1184,7 @@
                                           Entry is returned only for step 1 
                                           and only with the specified attribute.
           -->
-          <testcase name="'ACI: Targetattr: Targetattr With Spaces'">
+          <testcase name="getTestCaseName('Targetattr With Spaces')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -1344,7 +1344,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Target: Targetattr Not Equals Wildcard'">
+            <testcase name="getTestCaseName('Targetattr Not Equals Wildcard')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1480,7 +1480,7 @@
               #@TestPostamble             none
               #@TestResult                Success if OpenDS returns 21.
           -->
-          <testcase name="'ACI: Targetattr: Targetattr Equals One Attribute with wildcard'">
+          <testcase name="getTestCaseName('Targetattr Equals One Attribute with wildcard')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -1523,7 +1523,7 @@
                                           and no entries are returned 
                                           for all operations.
           -->
-          <testcase name="'ACI: Targetattr: Postamble'">
+          <testcase name="getTestCaseName('Postamble')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>

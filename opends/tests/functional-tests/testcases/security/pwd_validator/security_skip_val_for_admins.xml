@@ -34,7 +34,7 @@
       <sequence>
 
         <!--- Test Case : Setup -->
-        <testcase name="'Security: Pwd Validator: Root User Bypass Valid: Preamble Setup'">
+        <testcase name="getTestCaseName('Root User Bypass Valid: Preamble Setup')">
           <sequence>
           
             <call function="'testCase_Preamble'"/>
@@ -60,7 +60,7 @@
         </testcase>
 
         <!--- Root Change Password - Too Short-->
-        <testcase name="'Security: Pwd Validator: Root User Bypass Valid: No Bypass'">
+        <testcase name="getTestCaseName('Root User Bypass Valid: No Bypass')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -101,7 +101,7 @@
         </testcase>
 
        <!--- Enable Bypass Validator-->
-        <testcase name="'Security: Pwd Validator: Root User Bypass Valid: Bypass Enabled 1'">
+        <testcase name="getTestCaseName('Root User Bypass Valid: Bypass Enabled 1')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -154,7 +154,7 @@
         </testcase>
 
         <!--- Admin Change Minimum Pwd Length -->
-        <testcase name="'Security: Pwd Validator: Root User Bypass Valid: Bypass Enabled 2'">
+        <testcase name="getTestCaseName('Root User Bypass Valid: Bypass Enabled 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -210,7 +210,7 @@
         </testcase>
 
         <!--- Check Self-Change Pwd -->
-        <testcase name="'Security: Pwd Validator: Root User Bypass Valid: Self-Change Pwd'">
+        <testcase name="getTestCaseName('Root User Bypass Valid: Self-Change Pwd')">
           <sequence>
           
             <call function="'testCase_Preamble'"/>
@@ -254,7 +254,7 @@
         </testcase>
 
         <!--- Test Case : Admin Reset Minimum Pwd Length -->
-        <testcase name="'Security: Pwd Validator: Root User Bypass Valid: Postamble Teardown'">
+        <testcase name="getTestCaseName('Root User Bypass Valid: Postamble Teardown')">
           <sequence>
           
             <call function="'testCase_Preamble'"/>

@@ -94,7 +94,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export default backend'">
+          <testcase name="getTestCaseName('Export default backend')">
             <sequence>
               <call function="'testCase_Preamble'" />
               <message>
@@ -175,7 +175,7 @@
                 #@TestPostamble
                 #@TestResult          Success if Success if exportLDIF, importLDIF returns 0
           -->
-          <testcase name="'Backend: Export: Export non-default backend'">
+          <testcase name="getTestCaseName('Export non-default backend')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -221,7 +221,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Fractional Include Branch'">
+          <testcase name="getTestCaseName('Export Fractional Include Branch')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -303,7 +303,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Fractional Include Branches'">
+          <testcase name="getTestCaseName('Export Fractional Include Branches')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -383,7 +383,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Fractional Exclude Branch'">
+          <testcase name="getTestCaseName('Export Fractional Exclude Branch')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -465,7 +465,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Fractional Exclude Branches'">
+          <testcase name="getTestCaseName('Export Fractional Exclude Branches')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -547,7 +547,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Fractional Branches Mix'">
+          <testcase name="getTestCaseName('Export Fractional Branches Mix')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -625,7 +625,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Fractional Include Attribute'">
+          <testcase name="getTestCaseName('Export Fractional Include Attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -706,7 +706,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Fractional Include Attributes'">
+          <testcase name="getTestCaseName('Export Fractional Include Attributes')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -788,7 +788,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Fractional Exclude Attribute'">
+          <testcase name="getTestCaseName('Export Fractional Exclude Attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -869,7 +869,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Fractional Exclude Attributes'">
+          <testcase name="getTestCaseName('Export Fractional Exclude Attributes')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -952,7 +952,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Fractional Mix'">
+          <testcase name="getTestCaseName('Export Fractional Mix')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -1035,7 +1035,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Filtered Include'">
+          <testcase name="getTestCaseName('Export Filtered Include')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -1117,7 +1117,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Filtered Includes'">
+          <testcase name="getTestCaseName('Export Filtered Includes')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -1199,7 +1199,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Filtered Exclude'">
+          <testcase name="getTestCaseName('Export Filtered Exclude')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -1283,7 +1283,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Filtered Excludes'">
+          <testcase name="getTestCaseName('Export Filtered Excludes')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -1366,7 +1366,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Filtered Includes'">
+          <testcase name="getTestCaseName('Export Filtered Includes')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -1444,7 +1444,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Filtered Includes Complex'">
+          <testcase name="getTestCaseName('Export Filtered Includes Complex')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -1523,7 +1523,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Filtered Excludes Complex'">
+          <testcase name="getTestCaseName('Export Filtered Excludes Complex')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -1605,7 +1605,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Fractional Filtered Mix'">
+          <testcase name="getTestCaseName('Export Fractional Filtered Mix')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -1687,7 +1687,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Append To LDIF'">
+          <testcase name="getTestCaseName('Export Append To LDIF')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -1770,7 +1770,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Compress LDIF'">
+          <testcase name="getTestCaseName('Export Compress LDIF')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -1851,7 +1851,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Encrypt LDIF'">
+          <testcase name="getTestCaseName('Export Encrypt LDIF')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -1938,7 +1938,7 @@
                 #@TestPostamble
                 #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-          <testcase name="'Backend: Export: Export Wrap Column'">
+          <testcase name="getTestCaseName('Export Wrap Column')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>

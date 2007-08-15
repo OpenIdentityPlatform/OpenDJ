@@ -81,7 +81,7 @@
                                             for all other ldap operations. 
                                             Proper entries returned for searches.
             -->
-          <testcase name="'Privileges: Export Tasks: export-ldif'">
+          <testcase name="getTestCaseName('export-ldif')">
     
             <sequence>
     
@@ -248,7 +248,7 @@
                                             for step 3, and 0
                                             for all other ldap operations. 
             -->
-          <testcase name="'Privileges: Export Tasks: export-ldif Directory Manager'">
+          <testcase name="getTestCaseName('export-ldif Directory Manager')">
     
             <sequence>
     
@@ -362,7 +362,7 @@
                                             for step 3, and 0
                                             for all other ldap operations.
            -->
-          <testcase name="'Privileges: Export Tasks: export-ldif New Root User'">
+          <testcase name="getTestCaseName('export-ldif New Root User')">
     
             <sequence>
     

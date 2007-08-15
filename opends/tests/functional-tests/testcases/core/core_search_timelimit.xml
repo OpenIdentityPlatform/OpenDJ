@@ -26,334 +26,303 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-
-  <defaultcall function="core_search_timelimit"/>
-
+  <defaultcall function="core_search_timelimit" />
   <function name="core_search_timelimit">
-
     <sequence>
-
       <block name="'search-timelimit'">
-      
         <sequence>
-  
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='core'								  
+              CurrentTestPath['group']='core'
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
-            
-          <call function="'testSuite_Preamble'"/>
-
-
+          <call function="'testSuite_Preamble'" />
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)"/>
-          <call function="'core_setup'"/>
-
-	  <!--- Set the server wide size limit 0 to allow time limit tests to run properly-->
-            <sequence>
-              <message>
-                 'Set the server wide size limit 0 to allow time limit tests to run properly'
-              </message>
-                                          
-              <call function="'modifyGlobal'">
-                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                      'attributeName'          : 'size-limit' ,
-                      'attributeValue'         : '0' }
-              </call>
-    
-              <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-              </call>
-            </sequence>
-											    
+                  file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)" />
+          <call function="'core_setup'" />
+          <!--- Set the server wide size limit 0 to allow time limit tests to run properly-->
+          <sequence>
+            <message>
+              'Set the server wide size limit 0 to allow time limit tests to run properly'
+            </message>
+            <call function="'modifyGlobal'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'attributeName'  : 'size-limit',
+                'attributeValue' : '0'
+              }
+            </call>
+            <call function="'checktestRC'">
+              { 'returncode' : RC,
+                'result'     : STAXResult
+              }
+            </call>
+          </sequence>
+          
           <!--- Test Case : Search Time Limit: Time Limit Exceeded -->
-          <testcase name="'Core: Search Time Limit: Time Limit Exceeded'">
+          <testcase name="getTestCaseName('Time Limit Exceeded')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core STmL1: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined in the command line and the search time is exceeeded'
+                'Core STmL1: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined in the command line and the search time is exceeeded'
               </message>
-    
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' ,
-                  'extraParams'	     : '-l 1' ,
-                  'expectedRC'       : 3
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'o=core tests,dc=example,dc=com',
+                  'dsFilter'       : 'objectclass=*',
+                  'extraParams'	   : '-l 1',
+                  'expectedRC'     : 3
                 }
               </call>
-
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Search Time Limit: Time Limit Not Exceeded -->
-          <testcase name="'Core: Search Time Limit: Time Limit Not Exceeded'">
+          <testcase name="getTestCaseName('Time Limit Not Exceeded')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core STmL2: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined in the command line and the search time is not exceeed'
+                'Core STmL2: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined in the command line and the search time is not exceeed'
               </message>
-    
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' ,
-                  'extraParams'	   : '-l 500' }
-                  
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'o=core tests,dc=example,dc=com',
+                  'dsFilter'       : 'objectclass=*',
+                  'extraParams'	   : '-l 500'
+                }
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
-           <!--- Test Case : Search Time Limit: Server Wide Time Limit 1 second -->
-          <testcase name="'Core: Search Time Limit: Server Wide Time Limit 1 second'">
+          <!--- Test Case : Search Time Limit: Server Wide Time Limit 1 second -->
+          <testcase name="getTestCaseName('Server Wide Time Limit 1 second')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core STmL3: Change the server-wide search time limit to 1 second'
+                'Core STmL3: Change the server-wide search time limit to 1 second'
               </message>
-
-                                                        
               <call function="'modifyGlobal'">
-                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                      'attributeName'          : 'time-limit' ,
-                      'attributeValue'         : '1s' }
-              </call>
-              
-    
-              <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-              </call>
-              <call function="'testCase_Postamble'"/>
-            </sequence>
-          </testcase> 
-        
-          <!--- Test Case : Search Time Limit: Server Wide Time Limit Exceeded -->
-          <testcase name="'Core: Search Time Limit: Server Wide Time Limit Exceeded'">
-            <sequence>
-              <call function="'testCase_Preamble'"/>
-              <message>
-                 'Core STmL4: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined by the server-wide parameter, ds-cfg-time-limit, and the search time limit is exceeded'
-              </message>
-    
-              <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' ,
-                  'expectedRC'       : 3
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'attributeName'  : 'time-limit',
+                  'attributeValue' : '1s'
                 }
               </call>
-
-              <call function="'testCase_Postamble'"/>
+              <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
+              </call>
+              <call function="'testCase_Postamble'" />
+            </sequence>
+          </testcase>
+          
+          <!--- Test Case : Search Time Limit: Server Wide Time Limit Exceeded -->
+          <testcase name="getTestCaseName('Server Wide Time Limit Exceeded')">
+            <sequence>
+              <call function="'testCase_Preamble'" />
+              <message>
+                'Core STmL4: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined by the server-wide parameter, ds-cfg-time-limit, and the search time limit is exceeded'
+              </message>
+              <call function="'SearchObject'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsBaseDN'       : 'o=core tests,dc=example,dc=com',
+                  'dsFilter'       : 'objectclass=*',
+                  'expectedRC'     : 3
+                }
+              </call>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Search Time Limit: Server Wide Time Limit 120 seconds -->
-          <testcase name="'Core: Search Time Limit: Server Wide Time Limit 120'seconds">
+          <testcase name="getTestCaseName('Server Wide Time Limit 120 seconds')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core STmL5: Change the server-wide search time limit to 120 seconds'
+                'Core STmL5: Change the server-wide search time limit to 120 seconds'
               </message>
-                                                                     
               <call function="'modifyGlobal'">
-                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                      'attributeName'          : 'time-limit' ,
-                      'attributeValue'         : '120s' }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'attributeName'  : 'time-limit',
+                  'attributeValue' : '120s'
+                }
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Search Time Limit: Server Wide Time Limit Not Exceeded -->
-          <testcase name="'Core: Search Time Limit: Server Wide Time Limit Not Exceeded'">
+          <testcase name="getTestCaseName('Server Wide Time Limit Not Exceeded')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core STmL6: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined by the server-wide parameter, ds-cfg-time-limit, and the search time limit is not exceeded'
+                'Core STmL6: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined by the server-wide parameter, ds-cfg-time-limit, and the search time limit is not exceeded'
               </message>
-    
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' }
-                  
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsBaseDN'       : 'o=core tests,dc=example,dc=com',
+                  'dsFilter'       : 'objectclass=*'}
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC,
+                  'result'     : STAXResult
+                }
               </call>
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Search Time Limit: Directory Manager Time Limit 1 -->
-          <testcase name="'Core: Search Time Limit: Directory Manager Time Limit 1'">
+          <testcase name="getTestCaseName('Directory Manager Time Limit 1')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core STmL7: Change the search time limit for cn=Directory Manager to 1'
+                'Core STmL7: Change the search time limit for cn=Directory Manager to 1'
               </message>
-    
               <call function="'addEntry'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/core/ldifs/mod_timelimit3.ldif' % logsRemoteDataDir }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'entryToBeAdded' : '%s/core/ldifs/mod_timelimit3.ldif' % logsRemoteDataDir
+                }
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Search Time Limit: User Specific Time Limit Exceeded -->
-          <testcase name="'Core: Search Time Limit: User Specific Time Limit Exceeded'">
+          <testcase name="getTestCaseName('User Specific Time Limit Exceeded')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core STmL8: Check the response of OpenDS when an ldap search request is conducted with a user search time limit defined by the user-specific parameter, ds-rlim-time-limit, and the search time limit is exceeded'
+                'Core STmL8: Check the response of OpenDS when an ldap search request is conducted with a user search time limit defined by the user-specific parameter, ds-rlim-time-limit, and the search time limit is exceeded'
               </message>
-    
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' ,
-                  'expectedRC'       : 3
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'o=core tests,dc=example,dc=com',
+                  'dsFilter'       : 'objectclass=*',
+                  'expectedRC'     : 3
                 }
               </call>
-
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Search Time Limit: Time Limit Not Applicable -->
-          <testcase name="'Core: Search Time Limit: Time Limit Not Applicable'">
+          <testcase name="getTestCaseName('Time Limit Not Applicable')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
                  'Core STmL9: Check the response of OpenDS when an ldap search request is conducted with a user search time limit defined by the user-specific parameter, ds-rlim-time-limit, and the search is conducted as a bind to a different user'
               </message>
-    
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' }
-                  
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                  'dsBaseDN'         : 'o=core tests,dc=example,dc=com',
+                  'dsFilter'         : 'objectclass=*'
+                }
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC,
+                  'result'     : STAXResult
+                }
               </call>
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Search Time Limit: Directory Manager Time Limit 60 -->
-          <testcase name="'Core: Search Time Limit: Directory Manager Time Limit 60'">
+          <testcase name="getTestCaseName('Directory Manager Time Limit 60')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core STmL10: Change the search time limit for cn=Directory Manager to 60'
+                'Core STmL10: Change the search time limit for cn=Directory Manager to 60'
               </message>
-    
               <call function="'addEntry'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/core/ldifs/mod_timelimit4.ldif' % logsRemoteDataDir }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'entryToBeAdded' : '%s/core/ldifs/mod_timelimit4.ldif' % logsRemoteDataDir
+                }
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Search Time Limit: No Time Limit -->
-          <testcase name="'Core: Search Time Limit: No Time Limit'">
+          <testcase name="getTestCaseName('No Time Limit')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core STmL11: Check the response of OpenDS when an ldap search request is conducted with a user search time limit defined by the user-specific parameter ds-rlim-time-limit, equal to 60 and the search is conducted against 1150 entries'
+                'Core STmL11: Check the response of OpenDS when an ldap search request is conducted with a user search time limit defined by the user-specific parameter ds-rlim-time-limit, equal to 60 and the search is conducted against 1150 entries'
               </message>
-    
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' }
-                  
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'o=core tests,dc=example,dc=com',
+                  'dsFilter'       : 'objectclass=*'
+                }
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
-
-
+          
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/core/core_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'core_cleanup'"/>
-
-												          
-          <call function="'testSuite_Postamble'"/>
-
+                  file="'%s/testcases/core/core_cleanup.xml' % (TESTS_DIR)" />
+          <call function="'core_cleanup'" />
+          <call function="'testSuite_Postamble'" />
         </sequence>
-    
       </block>
-    
     </sequence>
-
   </function>
-
 </stax>

@@ -45,7 +45,7 @@
       -->
 		  
     
-  <testcase name="'Security: client_auth:  setup - subject_attribute_mapper'">
+  <testcase name="getTestCaseName(' setup - subject_attribute_mapper')">
 
 	  <sequence>
       <call function="'testCase_Preamble'"/>
@@ -94,7 +94,7 @@
 	#@TestResult               Success if OpenDS returns 0 for all operations
       -->
     
-  <testcase name="'Security: client_auth: subject attribute mapping'">
+  <testcase name="getTestCaseName('subject attribute mapping')">
     <sequence>
 
     <call function="'testCase_Preamble'"/>

@@ -61,7 +61,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: LDIF Default'">
+          <testcase name="getTestCaseName('LDIF Default')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <call function="'importLdifTask'">
@@ -99,7 +99,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Fractional Include Branch'">
+          <testcase name="getTestCaseName('Fractional Include Branch')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <call function="'importLdifTask'">
@@ -138,7 +138,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Fractional Include Branches'">
+          <testcase name="getTestCaseName('Fractional Include Branches')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <call function="'importLdifTask'">
@@ -177,7 +177,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Fractional Exclude Branch'">
+          <testcase name="getTestCaseName('Fractional Exclude Branch')">
             <sequence>
               <call function="'testCase_Preamble'" />
               <call function="'importLdifTask'">
@@ -218,7 +218,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Fractional Exclude Branches'">
+          <testcase name="getTestCaseName('Fractional Exclude Branches')">
             <sequence>
               <call function="'testCase_Preamble'" />
               <call function="'importLdifTask'">
@@ -261,7 +261,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Fractional Branches Mix'">
+          <testcase name="getTestCaseName('Fractional Branches Mix')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <call function="'importLdifTask'">
@@ -305,7 +305,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Fractional Include Attribute'">
+          <testcase name="getTestCaseName('Fractional Include Attribute')">
             <sequence>
               <call function="'testCase_Preamble'" />
               <call function="'importLdifTask'">
@@ -343,7 +343,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Fractional Include Attributes'">
+          <testcase name="getTestCaseName('Fractional Include Attributes')">
             <sequence>
               <call function="'testCase_Preamble'" />
               <call function="'importLdifTask'">
@@ -382,7 +382,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Fractional Exclude Attribute'">
+          <testcase name="getTestCaseName('Fractional Exclude Attribute')">
             <sequence>
               <call function="'testCase_Preamble'" />
               <call function="'importLdifTask'">
@@ -419,7 +419,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Fractional Exclude Attributes'">
+          <testcase name="getTestCaseName('Fractional Exclude Attributes')">
             <sequence>
               <call function="'testCase_Preamble'" />
               <call function="'importLdifTask'">
@@ -457,7 +457,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Fractional Mix'">
+          <testcase name="getTestCaseName('Fractional Mix')">
             <sequence>
               <call function="'testCase_Preamble'" />
               <call function="'importLdifTask'">
@@ -500,7 +500,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Filtered Include'">
+          <testcase name="getTestCaseName('Filtered Include')">
             <sequence>
               <call function="'testCase_Preamble'" />
               <call function="'importLdifTask'">
@@ -538,7 +538,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Filtered Exclude'">
+          <testcase name="getTestCaseName('Filtered Exclude')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <call function="'importLdifTask'">
@@ -579,7 +579,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Filtered Includes'">
+          <testcase name="getTestCaseName('Filtered Includes')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <call function="'importLdifTask'">
@@ -620,7 +620,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Filtered Excludes'">
+          <testcase name="getTestCaseName('Filtered Excludes')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <call function="'importLdifTask'">
@@ -658,7 +658,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Filtered Includes Complex'">
+          <testcase name="getTestCaseName('Filtered Includes Complex')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <call function="'importLdifTask'">
@@ -696,7 +696,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Filtered Excludes Complex'">
+          <testcase name="getTestCaseName('Filtered Excludes Complex')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <call function="'importLdifTask'">
@@ -734,7 +734,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Fractional Filtered Mix'">
+          <testcase name="getTestCaseName('Fractional Filtered Mix')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <call function="'importLdifTask'">
@@ -774,7 +774,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Append'">
+          <testcase name="getTestCaseName('Append')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <call function="'importLdifTask'">
@@ -812,7 +812,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Append Replace Existing'">
+          <testcase name="getTestCaseName('Append Replace Existing')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <call function="'importLdifTask'">
@@ -851,7 +851,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Compressed'">
+          <testcase name="getTestCaseName('Compressed')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <call function="'importLdifTask'">
@@ -891,7 +891,7 @@
             #@TestResult
           -->
           
-          <testcase name="'Backend: Import Tasks: Encrypted'">
+          <testcase name="getTestCaseName('Encrypted')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <call function="'importLdifTask'">
@@ -947,7 +947,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Rejects File'">
+          <testcase name="getTestCaseName('Rejects File')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <call function="'importLdifTask'">
@@ -987,7 +987,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="'Backend: Import Tasks: Rejects File'">
+          <testcase name="getTestCaseName('Rejects File')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <call function="'importLdifTask'">
@@ -1028,7 +1028,7 @@
             #@TestPostamble
             #@TestResult
           -->
-            <testcase name="'Backend: Import Tasks: Skip Schema Validation Accept'">
+            <testcase name="getTestCaseName('Skip Schema Validation Accept')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                 <call function="'importLdifTask'">
@@ -1067,7 +1067,7 @@
               #@TestPostamble
               #@TestResult
             -->
-          <testcase name="'Backend: Import Tasks: Skip Schema Validation Reject'">
+          <testcase name="getTestCaseName('Skip Schema Validation Reject')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <call function="'importLdifTask'">

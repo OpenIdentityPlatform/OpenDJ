@@ -34,7 +34,7 @@
       <sequence>
 
         <!--- Test Case : User Search With Password -->
-        <testcase name="'Security: Pwd Change: Preamble Setup'">
+        <testcase name="getTestCaseName('Preamble Setup')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -85,7 +85,7 @@
         </testcase>
 
         <!--- Test Case : User Search With Expired Password -->
-        <testcase name="'Security: Pwd Change: User Search With Exp Password'">
+        <testcase name="getTestCaseName('User Search With Exp Password')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -108,7 +108,7 @@
         </testcase>
 
         <!--- Test Case : Admin Disable Exp Pwd No Warning -->
-        <testcase name="'Security: Pwd Change: Admin Disable Exp Pwd No Warning'">
+        <testcase name="getTestCaseName('Admin Disable Exp Pwd No Warning')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -130,7 +130,7 @@
         </testcase>
 
         <!--- Test Case : User Search With Expired Password 2-->
-        <testcase name="'Security: Pwd Change: User Search With Exp Password 2'">
+        <testcase name="getTestCaseName('User Search With Exp Password 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -160,7 +160,7 @@
         </testcase>
 
         <!--- Test Case : Admin Reset Pwd Time Exp -->
-        <testcase name="'Security: Pwd Change: Postamble Reset'">
+        <testcase name="getTestCaseName('Postamble Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

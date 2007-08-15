@@ -71,7 +71,7 @@
                 #@TestResult                Success if OpenDS returns 0
                                             for all operations.
             -->
-            <testcase name="'ACI: Effective Rights: Preamble'">
+            <testcase name="getTestCaseName('Preamble')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
 
@@ -144,7 +144,7 @@
                                             for all ldap operations, and
                                             proper entries are returned for all steps.
             -->
-            <testcase name="'ACI: Effective Rights: Basic - wildcard'">
+            <testcase name="getTestCaseName('Basic - wildcard')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -222,7 +222,7 @@
                                             for all ldap operations, and
                                             no entries are returned for any step.
             -->
-            <testcase name="'ACI: Effective Rights: Basic - read'">
+            <testcase name="getTestCaseName('Basic - read')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -386,7 +386,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Effective Rights: Basic - search'">
+            <testcase name="getTestCaseName('Basic - search')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -552,7 +552,7 @@
                                             Also, for step 1, the entryLevel permission is 1 for read,
                                             and the attributeLevel permissions are 1 for search and read for uid and roomnumber. 
             -->
-            <testcase name="'ACI: Effective Rights: Basic - search-read'">
+            <testcase name="getTestCaseName('Basic - search-read')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -780,7 +780,7 @@
                                             Also, for step 1, the entryLevel permission is 1 for read,
                                             and the attributeLevel permissions are 1 for search and read for uid and roomnumber. 
             -->
-            <testcase name="'ACI: Effective Rights: Basic - search-read, separate ACIs'">
+            <testcase name="getTestCaseName('Basic - search-read, separate ACIs')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -943,7 +943,7 @@
                                             Also, for step 1, the entryLevel permission is 1 for read,
                                             and the attributeLevel permissions are 1 for search, read and compare for uid and roomnumber. 
             -->
-            <testcase name="'ACI: Effective Rights: Basic - compare'">
+            <testcase name="getTestCaseName('Basic - compare')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1106,7 +1106,7 @@
                                             Also, for step 1, the entryLevel permission is 1 for read,
                                             and the attributeLevel permissions are 1 for search and read for uid and roomnumber. 
             -->
-            <testcase name="'ACI: Effective Rights: Basic - add'">
+            <testcase name="getTestCaseName('Basic - add')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1274,7 +1274,7 @@
                                             Also, for step 1, the entryLevel permission is 1 for read and delete,
                                             and the attributeLevel permissions are 1 for search and read for uid and roomnumber. 
             -->
-            <testcase name="'ACI: Effective Rights: Basic - delete'">
+            <testcase name="getTestCaseName('Basic - delete')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1442,7 +1442,7 @@
                                             Also, for step 1, the entryLevel permission is 1 for read and write,
                                             and the attributeLevel permissions are 1 for search, read, write, selfwrite_add and selfwrite_delete for uid and roomnumber. 
             -->
-            <testcase name="'ACI: Effective Rights: Basic - write'">
+            <testcase name="getTestCaseName('Basic - write')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1610,7 +1610,7 @@
                                             Also, for step 1, the entryLevel permission is 1 for read and proxy,
                                             and the attributeLevel permissions are 1 for search, read, and proxy for uid and roomnumber. 
             -->
-            <testcase name="'ACI: Effective Rights: Basic - proxy'">
+            <testcase name="getTestCaseName('Basic - proxy')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1778,7 +1778,7 @@
                                             Also, for step 1, the entryLevel permission is 1 for read and write,
                                             and the attributeLevel permissions are 1 for search, read, selfwrite_add and selfwrite_delete for uid and roomnumber. 
             -->
-            <testcase name="'ACI: Effective Rights: Basic - selfwrite'">
+            <testcase name="getTestCaseName('Basic - selfwrite')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1948,7 +1948,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Effective Rights: Basic - all'">
+            <testcase name="getTestCaseName('Basic - all')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2116,7 +2116,7 @@
                                             Also, for step 1, the entryLevel permission is 1 for read,
                                             and the attributeLevel permissions are 1 for search and read for uid and roomnumber. 
             -->
-            <testcase name="'ACI: Effective Rights: Basic - export'">
+            <testcase name="getTestCaseName('Basic - export')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2279,7 +2279,7 @@
                                             Also, for step 1, the entryLevel permission is 1 for read,
                                             and the attributeLevel permissions are 1 for search and read for uid and roomnumber. 
             -->
-            <testcase name="'ACI: Effective Rights: Basic - import'">
+            <testcase name="getTestCaseName('Basic - import')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2443,7 +2443,7 @@
                                             the attributeLevel permissions are 1 for search and read for roomnumber, 
                                             and all attribute permissions are 0 for uid.
             -->
-            <testcase name="'ACI: Effective Rights: targetattr with search,read'">
+            <testcase name="getTestCaseName('targetattr with search,read')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2607,7 +2607,7 @@
                                             the attributeLevel permissions are 1 for search and read for uid, 
                                             and all attribute permissions are 0 for roomnumber.
             -->
-            <testcase name="'ACI: Effective Rights: targetattr with not equal and search,read'">
+            <testcase name="getTestCaseName('targetattr with not equal and search,read')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2771,7 +2771,7 @@
                                             are returned.
             -->
             <!--
-            <testcase name="'ACI: Effective Rights: targetattr with not equal and search,read - aclRightsInfo'">
+            <testcase name="getTestCaseName('targetattr with not equal and search,read - aclRightsInfo')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -3020,7 +3020,7 @@
                 #@TestResult                Success if OpenDS returns 0
                                             for all operations.
             -->
-            <testcase name="'ACI: Effective Rights: Postamble'">
+            <testcase name="getTestCaseName('Postamble')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
 

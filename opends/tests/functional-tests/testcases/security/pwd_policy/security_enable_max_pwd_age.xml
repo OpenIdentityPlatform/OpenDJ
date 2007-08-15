@@ -34,7 +34,7 @@
       <sequence>
 
         <!--- Test Case : Check Existence of ds-cfg-maximum-password-age -->
-        <testcase name="'Security:Pwd Change: Check Existence of ds-cfg-maximum-password-age'">
+        <testcase name="getTestCaseName('Check Existence of ds-cfg-maximum-password-age')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -57,7 +57,7 @@
         </testcase>
 
         <!--- Test Case : Admin Change Max Pwd Age -->
-        <testcase name="'Security:Pwd Change: Admin Change Max Pwd Age'">
+        <testcase name="getTestCaseName('Admin Change Max Pwd Age')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

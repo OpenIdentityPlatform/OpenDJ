@@ -75,7 +75,7 @@
             #@TestResult          Success if ldapSearchWithScript returns 0
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #1'">
+                 <testcase name="getTestCaseName('Test Case #1')">
         
                   <sequence>
           
@@ -116,7 +116,7 @@
                                   
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #2'">
+                 <testcase name="getTestCaseName('Test Case #2')">
         
                   <sequence>
           
@@ -155,7 +155,7 @@
                                   
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #3'">
+                 <testcase name="getTestCaseName('Test Case #3')">
         
                   <sequence>
           
@@ -196,7 +196,7 @@
                                   
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #4'">
+                 <testcase name="getTestCaseName('Test Case #4')">
         
                   <sequence>
           
@@ -236,7 +236,7 @@
                                   
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #5'">
+                 <testcase name="getTestCaseName('Test Case #5')">
         
                   <sequence>
           
@@ -277,7 +277,7 @@
                                   
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #6'">
+                 <testcase name="getTestCaseName('Test Case #6')">
         
                   <sequence>
           
@@ -318,7 +318,7 @@
                                   
           -->
                
-         <!--        <testcase name="'Clu: Ldap Search: Test Case #7'">
+         <!--        <testcase name="getTestCaseName('Test Case #7')">
         
                   <sequence>
           
@@ -358,7 +358,7 @@
                                   
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #8'">
+                 <testcase name="getTestCaseName('Test Case #8')">
         
                   <sequence>
           
@@ -399,7 +399,7 @@
                                   
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #9'">
+                 <testcase name="getTestCaseName('Test Case #9')">
         
                   <sequence>
           
@@ -441,7 +441,7 @@
                                   
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #10'">
+                 <testcase name="getTestCaseName('Test Case #10')">
         
                   <sequence>
           
@@ -483,7 +483,7 @@
                                   
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #11'">
+                 <testcase name="getTestCaseName('Test Case #11')">
         
                   <sequence>
           
@@ -523,7 +523,7 @@
                                   
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #12'">
+                 <testcase name="getTestCaseName('Test Case #12')">
         
                   <sequence>
           
@@ -564,7 +564,7 @@
                                   
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #13'">
+                 <testcase name="getTestCaseName('Test Case #13')">
         
                   <sequence>
           
@@ -603,7 +603,7 @@
                                                                     
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #14'">
+                 <testcase name="getTestCaseName('Test Case #14')">
         
                   <sequence>
           
@@ -644,7 +644,7 @@
                                                                     
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #15'">
+                 <testcase name="getTestCaseName('Test Case #15')">
         
                   <sequence>
           
@@ -684,7 +684,7 @@
                                                                     
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #17'">
+                 <testcase name="getTestCaseName('Test Case #17')">
         
                   <sequence>
           
@@ -724,7 +724,7 @@
                                                                     
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #18'">
+                 <testcase name="getTestCaseName('Test Case #18')">
         
                   <sequence>
           
@@ -765,7 +765,7 @@
                                                                     
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #19'">
+                 <testcase name="getTestCaseName('Test Case #19')">
         
                   <sequence>
           
@@ -805,7 +805,7 @@
                                                                     
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #20'">
+                 <testcase name="getTestCaseName('Test Case #20')">
         
                   <sequence>
           
@@ -847,7 +847,7 @@
                                                                     
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #21'">
+                 <testcase name="getTestCaseName('Test Case #21')">
         
                   <sequence>
           
@@ -888,7 +888,7 @@
                                                                     
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #24'">
+                 <testcase name="getTestCaseName('Test Case #24')">
         
                   <sequence>
           
@@ -929,7 +929,7 @@
                                                                     
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #31'">
+                 <testcase name="getTestCaseName('Test Case #31')">
         
                   <sequence>
           
@@ -970,7 +970,7 @@
                                                                     
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #32'">
+                 <testcase name="getTestCaseName('Test Case #32')">
         
                   <sequence>
           
@@ -1012,7 +1012,7 @@
                                                                     
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #33'">
+                 <testcase name="getTestCaseName('Test Case #33')">
         
                   <sequence>
           
@@ -1053,7 +1053,7 @@
                                                                     
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #34'">
+                 <testcase name="getTestCaseName('Test Case #34')">
         
                   <sequence>
           
@@ -1095,7 +1095,7 @@
                                                                     
           -->
                
-                 <testcase name="'Clu: Ldap Search: Test Case #35'">
+                 <testcase name="getTestCaseName('Test Case #35')">
         
                   <sequence>
           

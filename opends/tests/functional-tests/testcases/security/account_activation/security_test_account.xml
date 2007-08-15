@@ -34,7 +34,7 @@
       <sequence>
 
         <!--- Test case: User Bind Before Deactivation -->
-        <testcase name="'Security: Acct Act: Preamble'">
+        <testcase name="getTestCaseName('Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -56,7 +56,7 @@
         </testcase>
 
         <!--- Test Case : Admin Deactivate User-->
-        <testcase name="'Security: Acct Act: Admin Deactivate User'">
+        <testcase name="getTestCaseName('Admin Deactivate User')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -79,7 +79,7 @@
         </testcase>
 
         <!--- Test Case : User Bind After Deactivation-->
-        <testcase name="'Security: Acct Act: User Bind After Deactivation'">
+        <testcase name="getTestCaseName('User Bind After Deactivation')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -102,7 +102,7 @@
         </testcase>
 
        <!--- Test case: Admin Reactivate User -->
-        <testcase name="'Security: Acct Act: Postamble'">
+        <testcase name="getTestCaseName('Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

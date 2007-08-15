@@ -33,7 +33,7 @@
 
       <sequence>
 
-        <testcase name="'Security: TLS: Preamble - Force Pwd Change On Add'">
+        <testcase name="getTestCaseName('Preamble - Force Pwd Change On Add')">
           <sequence>
           
             <call function="'testCase_Preamble'"/>
@@ -70,7 +70,7 @@
         </testcase>
 
         <!--- Test Case : Add Single New User -->
-        <testcase name="'Security: TLS: Add Single New User'">
+        <testcase name="getTestCaseName('Add Single New User')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -107,7 +107,7 @@
         </testcase>
 
         <!--- Test Case : User Change Password -->
-        <testcase name="'Security: TLS: Added User Change Password'">
+        <testcase name="getTestCaseName('Added User Change Password')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -143,7 +143,7 @@
         </testcase>
 
         <!--- Test Case : Admin Disable Force Password On Add -->
-        <testcase name="'Security: TLS: Postamble - Disable Force Pwd On Add'">
+        <testcase name="getTestCaseName('Postamble - Disable Force Pwd On Add')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -191,7 +191,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: TLS: Preamble - Force Pwd Change On Reset'">
+        <testcase name="getTestCaseName('Preamble - Force Pwd Change On Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -227,7 +227,7 @@
         </testcase>
 
         <!--- Test Case : Admin Change User Pwd -->
-        <testcase name="'Security: TLS: Admin Reset User Pwd'">
+        <testcase name="getTestCaseName('Admin Reset User Pwd')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -250,7 +250,7 @@
 
 
         <!--- Test Case : User Search With Old Pwd -->
-        <testcase name="'Security: TLS: Old Pwd - Search'">
+        <testcase name="getTestCaseName('Old Pwd - Search')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -274,7 +274,7 @@
         </testcase>
 
         <!--- Test Case : User Add With Old Pwd -->
-        <testcase name="'Security: TLS: Old Pwd - Add'">
+        <testcase name="getTestCaseName('Old Pwd - Add')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -311,7 +311,7 @@
         </testcase>
 
      <!--- Test Case : User Delete With Old Pwd -->
-        <testcase name="'Security: TLS: Old Pwd - Delete'">
+        <testcase name="getTestCaseName('Old Pwd - Delete')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -348,7 +348,7 @@
         </testcase>
 
      <!--- Test Case : User Delete With Old Pwd -->
-        <testcase name="'Security: TLS: Old Pwd - Compare'">
+        <testcase name="getTestCaseName('Old Pwd - Compare')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -372,7 +372,7 @@
         </testcase>
 
         <!--- Test Case : User Search With Assigned Pwd -->
-        <testcase name="'Security: TLS: Search With Assigned Pwd'">
+        <testcase name="getTestCaseName('Search With Assigned Pwd')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -396,7 +396,7 @@
         </testcase>
 
         <!--- Test Case : User Change Password -->
-        <testcase name="'Security: TLS: User Change Password After Reset'">
+        <testcase name="getTestCaseName('User Change Password After Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -448,7 +448,7 @@
         </testcase>
 
         <!--- Test Case : Admin Enable Maximum Reset Age -->
-        <testcase name="'Security: TLS: Admin Enable Max Reset Age Long'">
+        <testcase name="getTestCaseName('Admin Enable Max Reset Age Long')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -470,7 +470,7 @@
         </testcase>
 
         <!--- Test Case : Admin Change User Pwd -->
-        <testcase name="'Security: TLS: Admin Reset User Pwd - Long Reset Time'">
+        <testcase name="getTestCaseName('Admin Reset User Pwd - Long Reset Time')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -492,7 +492,7 @@
         </testcase>
 
         <!--- Test Case : User Change Password -->
-        <testcase name="'Security: TLS: User Change Password - Long Reset Time'">
+        <testcase name="getTestCaseName('User Change Password - Long Reset Time')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -528,7 +528,7 @@
         </testcase>
 
         <!--- Test Case : Admin Enable Maxmimum Reset Age -->
-        <testcase name="'Security: TLS: Admin Enable Max Reset Age Short'">
+        <testcase name="getTestCaseName('Admin Enable Max Reset Age Short')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -550,7 +550,7 @@
         </testcase>
 
         <!--- Test Case : Admin Change User Pwd -->
-        <testcase name="'Security: TLS: Admin Reset User Pwd - Short Reset Time'">
+        <testcase name="getTestCaseName('Admin Reset User Pwd - Short Reset Time')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -572,7 +572,7 @@
         </testcase>
 
         <!--- Test Case : User Change Password -->
-        <testcase name="'Security: TLS: User Change Password - Short Reset Time'">
+        <testcase name="getTestCaseName('User Change Password - Short Reset Time')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -618,7 +618,7 @@
         </testcase>
 
         <!--- Test Case : Admin Disable Force Password On Reset -->
-        <testcase name="'Security: TLS: Postamble - Disable Force Pwd On Reset'">
+        <testcase name="getTestCaseName('Postamble - Disable Force Pwd On Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

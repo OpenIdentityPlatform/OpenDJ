@@ -65,7 +65,7 @@
           #@TestResult
           -->
             
-          <testcase name="'Backend: Backend Setup'">
+          <testcase name="getTestCaseName('Backend Setup')">
     
             <sequence>
     

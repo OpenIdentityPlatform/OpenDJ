@@ -34,7 +34,7 @@
       <sequence>
 
         <!--- Test Case : Preamble 1 - Check Default-->
-        <testcase name="'Security: Preencoded Pwds: Preamble'">
+        <testcase name="getTestCaseName('Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -56,7 +56,7 @@
         </testcase>
 
         <!--- Test Case : Add Entry With Pre-encoded Password -->
-        <testcase name="'Security: Preencoded Pwds: Default - Add New Entry'">
+        <testcase name="getTestCaseName('Default - Add New Entry')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -89,7 +89,7 @@
         </testcase>
 
         <!--- Test Case : Enable Pre-encoded Passwords -->
-        <testcase name="'Security: Preencoded Pwds: Enable Preencoded Pwds'">
+        <testcase name="getTestCaseName('Enable Preencoded Pwds')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -113,7 +113,7 @@
 
             
         <!--- Test Case : Test Enabled Pre-encoded Passwords -->
-        <testcase name="'Security: Preencoded Pwds: Enabled - Add New Entry'">
+        <testcase name="getTestCaseName('Enabled - Add New Entry')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -144,7 +144,7 @@
         </testcase>
 
         <!--- Test Case : Disable Pre-encoded Passwordds -->
-        <testcase name="'Security: Preencoded Pwds: Disable Preencoded Pwds'">
+        <testcase name="getTestCaseName('Disable Preencoded Pwds')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

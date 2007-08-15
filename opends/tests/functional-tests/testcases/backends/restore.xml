@@ -79,7 +79,7 @@
             #@TestPostamble
             #@TestResult Success if restore returns 0
           -->
-          <testcase name="'Backend: Restore: Test 1'">
+          <testcase name="getTestCaseName('Test 1')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -149,7 +149,7 @@
             #@TestPostamble
             #@TestResult Success if restore returns 0
           -->
-           <testcase name="'Backend: Restore: Test 2'">
+           <testcase name="getTestCaseName('Test 2')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>

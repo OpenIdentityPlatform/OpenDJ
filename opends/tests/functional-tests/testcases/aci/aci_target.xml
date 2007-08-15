@@ -76,7 +76,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Target: Preamble'">
+            <testcase name="getTestCaseName('Preamble')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                 <message>
@@ -167,7 +167,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Target: Target Equals DN'">
+            <testcase name="getTestCaseName('Target Equals DN')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -310,7 +310,7 @@
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
           
-            <testcase name="'ACI: Target: Target Equals DN - new branch'">
+            <testcase name="getTestCaseName('Target Equals DN - new branch')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
 
@@ -471,7 +471,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Target: Target Equals DN With Trailing Wildcard'">
+            <testcase name="getTestCaseName('Target Equals DN With Trailing Wildcard')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
 
@@ -613,7 +613,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Target: Target Equals DN With Leading Wildcard'">
+            <testcase name="getTestCaseName('Target Equals DN With Leading Wildcard')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
 
@@ -755,7 +755,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Target: Target Equals DN With Internal Wildcard'">
+            <testcase name="getTestCaseName('Target Equals DN With Internal Wildcard')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
 
@@ -897,7 +897,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Target: Target Equals DN With Multiple Wildcards'">
+            <testcase name="getTestCaseName('Target Equals DN With Multiple Wildcards')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
 
@@ -1036,7 +1036,7 @@
                                             and the aci has not been added.
             -->
             <!-- cross reference to syntax.ksh Test Case 1 -->
-            <testcase name="'ACI: Target: Target Equals DN With Keyword self'">
+            <testcase name="getTestCaseName('Target Equals DN With Keyword self')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
 
@@ -1104,7 +1104,7 @@
                                             and the aci has not been added.
             -->
             <!-- cross reference to syntax.ksh Test Case 2 -->
-            <testcase name="'ACI: Target: Target Equals DN Above Entry'">
+            <testcase name="getTestCaseName('Target Equals DN Above Entry')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
 
@@ -1173,7 +1173,7 @@
                                             and entry is returned only for step 1.
             -->
             <!-- cross reference to syntax.ksh Test Case 2 -->
-            <testcase name="'ACI: Target: Target Equals DN Below Entry'">
+            <testcase name="getTestCaseName('Target Equals DN Below Entry')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
 
@@ -1314,7 +1314,7 @@
                                           and the aci has not been added.
           -->
           <!-- cross reference to syntax.ksh Test Case 3 -->
-          <testcase name="'ACI: Target: Multiple Targets'">
+          <testcase name="getTestCaseName('Multiple Targets')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -1383,7 +1383,7 @@
                                           and the aci has not been added.
           -->
           <!-- cross reference to syntax.ksh Test Case 13 -->
-          <testcase name="'ACI: Target: Keyword Target Misspelled'">
+          <testcase name="getTestCaseName('Keyword Target Misspelled')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -1452,7 +1452,7 @@
                                           and the aci has not been added.
           -->
           <!-- cross reference to syntax.ksh Test Case 13 -->
-          <testcase name="'ACI: Target: Missing Leading ldap:'">
+          <testcase name="getTestCaseName('Missing Leading ldap:')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -1520,7 +1520,7 @@
               #@TestResult                Success if OpenDS returns 21, 
                                           and the aci has not been added.
           -->
-          <testcase name="'ACI: Target: With ldap:all'">
+          <testcase name="getTestCaseName('With ldap:all')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -1586,7 +1586,7 @@
               #@TestResult                Success if OpenDS returns 21, 
                                           and the aci has not been added.
           -->
-          <testcase name="'ACI: Target: Keyword version mispelled'">
+          <testcase name="getTestCaseName('Keyword version mispelled')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -1664,7 +1664,7 @@
                                             for all ldap operations, and
                                             and entry is returned only for steps 1 and 5.
             -->
-            <testcase name="'ACI: Target: Enable and disable ACIs'">
+            <testcase name="getTestCaseName('Enable and disable ACIs')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1962,7 +1962,7 @@
                                             for all ldap operations, and
                                             and entry is returned only for step 3.
             -->
-            <testcase name="'ACI: Target: Enable and disable global ACIs'">
+            <testcase name="getTestCaseName('Enable and disable global ACIs')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2115,7 +2115,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Target: Target Equals DN with userdn equals all'">
+            <testcase name="getTestCaseName('Target Equals DN with userdn equals all')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2255,7 +2255,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Target: Target Equals DN with userdn equals anyone'">
+            <testcase name="getTestCaseName('Target Equals DN with userdn equals anyone')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2395,7 +2395,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Target: Target Equals DN with userdn not equals all'">
+            <testcase name="getTestCaseName('Target Equals DN with userdn not equals all')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2535,7 +2535,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Target: Target Equals DN with userdn equal self'">
+            <testcase name="getTestCaseName('Target Equals DN with userdn equal self')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2677,7 +2677,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Target: Target Equals DN with userdn equal self with wildcard'">
+            <testcase name="getTestCaseName('Target Equals DN with userdn equal self with wildcard')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2819,7 +2819,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Target: Target Equals DN with userdn equal self with wildcard and filter'">
+            <testcase name="getTestCaseName('Target Equals DN with userdn equal self with wildcard and filter')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2961,7 +2961,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Target: Target Equals DN with userdn equal self with wildcard and filter, deny'">
+            <testcase name="getTestCaseName('Target Equals DN with userdn equal self with wildcard and filter, deny')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -3099,7 +3099,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Target: Target Equals DN with userdn equal self with wildcard and filter, allow and deny'">
+            <testcase name="getTestCaseName('Target Equals DN with userdn equal self with wildcard and filter, allow and deny')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -3241,7 +3241,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Target: userdn equals self - modify operational attributes'">
+            <testcase name="getTestCaseName('userdn equals self - modify operational attributes')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -3371,7 +3371,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Target: search for operational attributes'">
+            <testcase name="getTestCaseName('search for operational attributes')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -3675,7 +3675,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Target: Target Equals DN with comma'">
+            <testcase name="getTestCaseName('Target Equals DN with comma')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -3835,7 +3835,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Target: Target Equals DN, default targetattr'">
+            <testcase name="getTestCaseName('Target Equals DN, default targetattr')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -3976,7 +3976,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Target: Postamble'">
+          <testcase name="getTestCaseName('Postamble')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>

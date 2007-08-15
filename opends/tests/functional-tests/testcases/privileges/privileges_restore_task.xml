@@ -82,7 +82,7 @@
                                             for all other ldap operations. 
                                             Proper entries returned for searches.
             -->
-          <testcase name="'Privileges: Restore Tasks: backend-restore'">
+          <testcase name="getTestCaseName('backend-restore')">
     
             <sequence>
     
@@ -287,7 +287,7 @@
                                             for all other ldap operations. 
                                             Proper entries returned for searches.
             -->
-          <testcase name="'Privileges: Restore Tasks: backend-restore Directory Manager'">
+          <testcase name="getTestCaseName('backend-restore Directory Manager')">
     
             <sequence>
     
@@ -474,7 +474,7 @@
                                             for all other ldap operations. 
                                             Proper entries returned for searches.
             -->
-          <testcase name="'Privileges: Restore Tasks: backend-restore New User Root'">
+          <testcase name="getTestCaseName('backend-restore New User Root')">
     
             <sequence>
     

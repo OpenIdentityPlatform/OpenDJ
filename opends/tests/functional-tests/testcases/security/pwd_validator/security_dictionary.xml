@@ -33,7 +33,7 @@
 
       <sequence>
 
-        <testcase name="'Security: Pwd Validator: Dictionary: Preamble'">
+        <testcase name="getTestCaseName('Dictionary: Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -71,7 +71,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: Dictionary: user modifying password to string with all letters'">
+        <testcase name="getTestCaseName('Dictionary: user modifying password to string with all letters')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -111,7 +111,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Dictionary: Using Using Reverse Password'">
+        <testcase name="getTestCaseName('Dictionary: Using Using Reverse Password')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -151,7 +151,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Dictionary: Disable Reverse Password'">
+        <testcase name="getTestCaseName('Dictionary: Disable Reverse Password')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -175,7 +175,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: Dictionary: Using Using Reverse Password 2'">
+        <testcase name="getTestCaseName('Dictionary: Using Using Reverse Password 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -213,7 +213,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Dictionary: Postamble'">
+        <testcase name="getTestCaseName('Dictionary: Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

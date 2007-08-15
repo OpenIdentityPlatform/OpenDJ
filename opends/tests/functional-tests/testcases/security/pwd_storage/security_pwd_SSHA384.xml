@@ -53,7 +53,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'Security: Pwd Storage SSHA384: Preamble'">
+        <testcase name="getTestCaseName('Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -92,7 +92,7 @@
             #@TestResult                Success if OpenDS returns 0 for the ldap
                                         operations and the password has the {SSHA384} prefix.
         -->
-        <testcase name="'Security: Pwd Storage SSHA384: Pwd Change'">
+        <testcase name="getTestCaseName('Pwd Change')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -166,7 +166,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
          -->
-        <testcase name="'Security: Pwd Storage SSHA384: Postamble'">
+        <testcase name="getTestCaseName('Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

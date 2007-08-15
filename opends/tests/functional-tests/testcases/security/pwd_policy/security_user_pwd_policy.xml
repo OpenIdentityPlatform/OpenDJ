@@ -33,7 +33,7 @@
 
       <sequence>
 
-        <testcase name="'Security: Pwd Policy: Preamble'">
+        <testcase name="getTestCaseName('Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -55,7 +55,7 @@
         </testcase>
 
         <!--- Test Case : User Search With Password -->
-        <testcase name="'Security: Pwd Policy: User Search'">
+        <testcase name="getTestCaseName('User Search')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -78,7 +78,7 @@
         </testcase>
 
         <!--- Test Case : User Search With Bad Password -->
-        <testcase name="'Security: Pwd Policy: User Search With Bad Password'">
+        <testcase name="getTestCaseName('User Search With Bad Password')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -102,7 +102,7 @@
         </testcase>
 
         <!--- Test Case : User Change Password With Bad Credentials -->
-        <testcase name="'Security: Pwd Policy: User With Bad Credentials Change Password '">
+        <testcase name="getTestCaseName('User With Bad Credentials Change Password ')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -127,7 +127,7 @@
         </testcase>
 
         <!--- Test Case : User Change Password -->
-        <testcase name="'Security: Pwd Policy: User Change Password'">
+        <testcase name="getTestCaseName('User Change Password')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -180,7 +180,7 @@
         </testcase>
 
         <!--- Test Case : Admin Change Password Policy -->
-        <testcase name="'Security: Pwd Policy: Admin Change Password Policy'">
+        <testcase name="getTestCaseName('Admin Change Password Policy')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -219,7 +219,7 @@
         </testcase>
 
         <!--- Test Case : Admin Reset Password Policy -->
-        <testcase name="'Security: Pwd Policy: Postamble'">
+        <testcase name="getTestCaseName('Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

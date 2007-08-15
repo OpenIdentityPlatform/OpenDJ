@@ -74,7 +74,7 @@
           #@TestPostamble
           #@TestResult
           -->									
-          <testcase name="'Replication: Basic: Add Entry'">
+          <testcase name="getTestCaseName('Add Entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -126,7 +126,7 @@
           #@TestPostamble
           #@TestResult
           -->											
-          <testcase name="'Replication: Basic: Modify Entry'">
+          <testcase name="getTestCaseName('Modify Entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -197,7 +197,7 @@
           #@TestPostamble
           #@TestResult
           -->											
-          <testcase name="'Replication: Basic: Delete Entry'">
+          <testcase name="getTestCaseName('Delete Entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -250,7 +250,7 @@
           #@TestPostamble
           #@TestResult
           -->									
-          <testcase name="'Replication: Basic: Add Multiple Entries'">
+          <testcase name="getTestCaseName('Add Multiple Entries')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -315,7 +315,7 @@
           #@TestPostamble
           #@TestResult
           -->											
-          <testcase name="'Replication: Basic: Modify Entry - add single attribute'">
+          <testcase name="getTestCaseName('Modify Entry - add single attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -381,7 +381,7 @@
           #@TestPostamble
           #@TestResult
           -->											
-          <testcase name="'Replication: Basic: Modify Entry - add single value'">
+          <testcase name="getTestCaseName('Modify Entry - add single value')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -445,7 +445,7 @@
           #@TestPostamble
           #@TestResult
           -->											
-          <testcase name="'Replication: Basic: Modify Entry - delete single attribute'">
+          <testcase name="getTestCaseName('Modify Entry - delete single attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -529,7 +529,7 @@
           #@TestPostamble
           #@TestResult
           -->											
-          <testcase name="'Replication: Basic: Modify Entry - delete single value'">
+          <testcase name="getTestCaseName('Modify Entry - delete single value')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -595,7 +595,7 @@
           #@TestPostamble
           #@TestResult
           -->											
-          <testcase name="'Replication: Basic: Modify Entry - add multiple values'">
+          <testcase name="getTestCaseName('Modify Entry - add multiple values')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -667,7 +667,7 @@
           #@TestPostamble
           #@TestResult
           -->											
-          <testcase name="'Replication: Basic: Modify Entry - delete multiple values'">
+          <testcase name="getTestCaseName('Modify Entry - delete multiple values')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -741,7 +741,7 @@
           #@TestPostamble
           #@TestResult
           -->											
-          <testcase name="'Replication: Basic: Modify Entry - replace multiple values'">
+          <testcase name="getTestCaseName('Modify Entry - replace multiple values')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -814,7 +814,7 @@
           #@TestPostamble
           #@TestResult
           -->											
-          <testcase name="'Replication: Basic: Modify Entry - add single value to multiple valued attribute'">
+          <testcase name="getTestCaseName('Modify Entry - add single value to multiple valued attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -886,7 +886,7 @@
           #@TestPostamble
           #@TestResult
           -->											
-          <testcase name="'Replication: Basic: Modify Entry - delete single value from multiple valued attribute'">
+          <testcase name="getTestCaseName('Modify Entry - delete single value from multiple valued attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -957,7 +957,7 @@
           #@TestPostamble
           #@TestResult
           -->											
-          <testcase name="'Replication: Basic: Modify Entry - replace case sensitive attribute'">
+          <testcase name="getTestCaseName('Modify Entry - replace case sensitive attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -1038,7 +1038,7 @@
           #@TestPostamble
           #@TestResult
           -->											
-          <testcase name="'Replication: Basic: Modify Entry - add binary attribute'">
+          <testcase name="getTestCaseName('Modify Entry - add binary attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -1123,7 +1123,7 @@
           #@TestPostamble
           #@TestResult
           -->											
-          <testcase name="'Replication: Basic: Modify Entry - replace binary attribute'">
+          <testcase name="getTestCaseName('Modify Entry - replace binary attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -1208,7 +1208,7 @@
           #@TestPostamble
           #@TestResult
           -->											
-          <testcase name="'Replication: Basic: Modify Entry - delete binary attribute'">
+          <testcase name="getTestCaseName('Modify Entry - delete binary attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -1293,7 +1293,7 @@
           #@TestPostamble
           #@TestResult
           -->									
-          <testcase name="'Replication: Basic: Rename Entry'">
+          <testcase name="getTestCaseName('Rename Entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -1382,7 +1382,7 @@
           #@TestPostamble
           #@TestResult
           -->									
-          <testcase name="'Replication: Basic: Rename Entry (preserving old rdn)'">
+          <testcase name="getTestCaseName('Rename Entry (preserving old rdn)')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -1481,7 +1481,7 @@
           #@TestPostamble
           #@TestResult
           -->									
-          <testcase name="'Replication: Basic: Rename Subtree'">
+          <testcase name="getTestCaseName('Rename Subtree')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>

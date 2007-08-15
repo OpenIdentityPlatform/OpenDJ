@@ -73,7 +73,7 @@
           #@TestResult
           -->
             
-          <testcase name="'Backend: Import: LDIF Default'">
+          <testcase name="getTestCaseName('LDIF Default')">
     
             <sequence>
     
@@ -114,7 +114,7 @@
           -->
     
           <!--  Not clear how to create a second backend    
-          <testcase name="'Backend: Import: LDIF Non Default'">
+          <testcase name="getTestCaseName('LDIF Non Default')">
     
             <sequence>
     
@@ -152,7 +152,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Fractional Include Branch'">
+          <testcase name="getTestCaseName('Fractional Include Branch')">
     
             <sequence>
     
@@ -194,7 +194,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Fractional Include Branch with backend ID'">
+          <testcase name="getTestCaseName('Fractional Include Branch with backend ID')">
     
             <sequence>
     
@@ -236,7 +236,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Fractional Include Branches'">
+          <testcase name="getTestCaseName('Fractional Include Branches')">
     
             <sequence>
     
@@ -277,7 +277,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Fractional Exclude Branch'">
+          <testcase name="getTestCaseName('Fractional Exclude Branch')">
     
             <sequence>
     
@@ -322,7 +322,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Fractional Exclude Branches'">
+          <testcase name="getTestCaseName('Fractional Exclude Branches')">
     
             <sequence>
     
@@ -367,7 +367,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Fractional Branches Mix'">
+          <testcase name="getTestCaseName('Fractional Branches Mix')">
     
             <sequence>
     
@@ -412,7 +412,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Fractional Include Attribute'">
+          <testcase name="getTestCaseName('Fractional Include Attribute')">
     
             <sequence>
     
@@ -454,7 +454,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Fractional Include Attributes'">
+          <testcase name="getTestCaseName('Fractional Include Attributes')">
     
             <sequence>
     
@@ -497,7 +497,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Fractional Exclude Attribute'">
+          <testcase name="getTestCaseName('Fractional Exclude Attribute')">
     
             <sequence>
     
@@ -539,7 +539,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Fractional Exclude Attributes'">
+          <testcase name="getTestCaseName('Fractional Exclude Attributes')">
     
             <sequence>
     
@@ -581,7 +581,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Fractional Mix'">
+          <testcase name="getTestCaseName('Fractional Mix')">
     
             <sequence>
     
@@ -627,7 +627,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Filtered Include'">
+          <testcase name="getTestCaseName('Filtered Include')">
     
             <sequence>
     
@@ -670,7 +670,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Filtered Exclude'">
+          <testcase name="getTestCaseName('Filtered Exclude')">
     
             <sequence>
     
@@ -715,7 +715,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Filtered Includes'">
+          <testcase name="getTestCaseName('Filtered Includes')">
     
             <sequence>
     
@@ -760,7 +760,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Filtered Excludes'">
+          <testcase name="getTestCaseName('Filtered Excludes')">
     
             <sequence>
     
@@ -802,7 +802,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Filtered Includes Complex'">
+          <testcase name="getTestCaseName('Filtered Includes Complex')">
     
             <sequence>
     
@@ -845,7 +845,7 @@
           #@TestResult
           -->
           
-          <testcase name="'Backend: Import: Filtered Excludes Complex'">
+          <testcase name="getTestCaseName('Filtered Excludes Complex')">
     
             <sequence>
     
@@ -887,7 +887,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Fractional Filtered Mix'">
+          <testcase name="getTestCaseName('Fractional Filtered Mix')">
     
             <sequence>
     
@@ -930,7 +930,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Append'">
+          <testcase name="getTestCaseName('Append')">
     
             <sequence>
     
@@ -973,7 +973,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Append Replace Existing'">
+          <testcase name="getTestCaseName('Append Replace Existing')">
     
             <sequence>
     
@@ -1017,7 +1017,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Compressed'">
+          <testcase name="getTestCaseName('Compressed')">
     
             <sequence>
     
@@ -1060,7 +1060,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Encrypted'">
+          <testcase name="getTestCaseName('Encrypted')">
     
             <sequence>
     
@@ -1122,7 +1122,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Rejects File'">
+          <testcase name="getTestCaseName('Rejects File')">
     
             <sequence>
     
@@ -1165,7 +1165,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Rejects File Overwrite'">
+          <testcase name="getTestCaseName('Rejects File Overwrite')">
     
             <sequence>
     
@@ -1208,7 +1208,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Skip Schema Validation Accept'">
+          <testcase name="getTestCaseName('Skip Schema Validation Accept')">
     
             <sequence>
     
@@ -1251,7 +1251,7 @@
           #@TestResult
           -->
     
-          <testcase name="'Backend: Import: Skip Schema Validation Reject'">
+          <testcase name="getTestCaseName('Skip Schema Validation Reject')">
     
             <sequence>
     

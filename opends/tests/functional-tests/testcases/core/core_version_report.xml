@@ -26,70 +26,52 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-
-  <defaultcall function="core_version_report"/>
-
+  <defaultcall function="core_version_report" />
   <function name="core_version_report">
-
     <sequence>
-
       <block name="'version-report'">
-      
         <sequence>
-  
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='core'								  
+              CurrentTestPath['group']='core'
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
-            
-          <call function="'testSuite_Preamble'"/>
-
-
+          <call function="'testSuite_Preamble'" />
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)"/>
-          <call function="'core_setup'"/>
-															
-
+                  file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)" />
+          <call function="'core_setup'" />
+          
           <!--- Test Case : Version Report 1 -->
-          <testcase name="'Core: Version Report: Search Version'">
+          <testcase name="getTestCaseName('Search Version')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core VR1:  Check the response of OpenDS when an ldap search request is conducted for the current version of OpenDS '
+                'Core VR1:  Check the response of OpenDS when an ldap search request is conducted for the current version of OpenDS '
               </message>
-    
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'dsBaseDN'         : 'cn=version,cn=monitor' ,
-                  'dsFilter'         : 'objectclass=*' }                
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'cn=version,cn=monitor',
+                  'dsFilter'       : 'objectclass=*'
+                }
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
-
-
+          
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/core/core_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'core_cleanup'"/>
-
-												               
-          <call function="'testSuite_Postamble'"/>
-
+                  file="'%s/testcases/core/core_cleanup.xml' % (TESTS_DIR)" />
+          <call function="'core_cleanup'" />
+          <call function="'testSuite_Postamble'" />
         </sequence>
-    
       </block>
-    
     </sequence>
-
   </function>
-
 </stax>

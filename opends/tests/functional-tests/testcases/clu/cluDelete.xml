@@ -78,7 +78,7 @@
             #@TestResult          Success if ldapDeleteWithScript returns 0
           -->
                
-                 <testcase name="'Clu: Ldap Delete: Test Case #1'">
+                 <testcase name="getTestCaseName('Test Case #1')">
         
                   <sequence>
           

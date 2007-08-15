@@ -26,318 +26,283 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-
-  <defaultcall function="core_search_sizelimit"/>
-
+  <defaultcall function="core_search_sizelimit" />
   <function name="core_search_sizelimit">
-
     <sequence>
-
       <block name="'search-sizelimit'">
-      
         <sequence>
-  
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='core'								  
+              CurrentTestPath['group']='core'
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
-            
-          <call function="'testSuite_Preamble'"/>
-
-
+          <call function="'testSuite_Preamble'" />
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)"/>
-          <call function="'core_setup'"/>
-
-												    
-
+                  file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)" />
+          <call function="'core_setup'" />
           <!--- Test Case : Search Size Limit: Size Limit Exceeded -->
-          <testcase name="'Core: Search Size Limit: Size Limit Exceeded'">
+          <testcase name="getTestCaseName('Size Limit Exceeded')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core SSzL1: Check the response of OpenDS when an ldap search request is conducted with a search size limit defined in the command line and the search size is exceeed '
+               'Core SSzL1: Check the response of OpenDS when an ldap search request is conducted with a search size limit defined in the command line and the search size is exceeed '
               </message>
-    
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' ,
-                  'extraParams'	     : '-z 150' ,
-                  'expectedRC'       : 4
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'ou=People,o=core tests,dc=example,dc=com',
+                  'dsFilter'       : 'objectclass=*',
+                  'extraParams'	   : '-z 150',
+                  'expectedRC'     : 4
                 }
-                  
               </call>
-    
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Search Size Limit: Size Limit Not Exceeded -->
-          <testcase name="'Core: Search Size Limit: Size Limit Not Exceeded'">
+          <testcase name="getTestCaseName('Size Limit Not Exceeded')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core SSzL2: Check the response of OpenDS when an ldap search request is conducted with a search size limit defined in the command line and the search size is not exceeed'
+               'Core SSzL2: Check the response of OpenDS when an ldap search request is conducted with a search size limit defined in the command line and the search size is not exceeed'
               </message>
-    
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' ,
-                  'extraParams'	     : '-z 151' }
-                  
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'ou=People,o=core tests,dc=example,dc=com',
+                  'dsFilter'       : 'objectclass=*',
+                  'extraParams'	   : '-z 151'
+                }
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
-           <!--- Test Case : Search Size Limit: Server Wide Size Limit 5 -->
-          <testcase name="'Core: Search Size Limit: Server Wide Size Limit 5'">
+          <!--- Test Case : Search Size Limit: Server Wide Size Limit 5 -->
+          <testcase name="getTestCaseName('Server Wide Size Limit 5')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core SSzL3: Change the server-wide search size limit to 5'
+               'Core SSzL3: Change the server-wide search size limit to 5'
               </message>
-              
               <call function="'modifyGlobal'">
-                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                      'attributeName'          : 'size-limit' ,
-                      'attributeValue'         : '5' }
-              </call>
-    
-              <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-              </call>
-              <call function="'testCase_Postamble'"/>
-            </sequence>
-          </testcase> 
-        
-          <!--- Test Case : Search Size Limit: Server Wide Size Limit Exceeded  -->
-          <testcase name="'Core: Search Size Limit: Server Wide Size Limit Exceeded'">
-            <sequence>
-              <call function="'testCase_Preamble'"/>
-              <message>
-                 'Core SSzL4: Check the response of OpenDS when an ldap search request is conducted with a search size limit defined by the server-wide parameter, ds-cfg-size-limit, and the search size limit is exceeded'
-              </message>
-    
-              <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' ,
-                  'expectedRC'       : 4
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'attributeName'  : 'size-limit',
+                  'attributeValue' : '5'
                 }
-                  
               </call>
-    
-              <call function="'testCase_Postamble'"/>
+              <call function="'checktestRC'">
+                { 'returncode' : RC,
+                  'result'     : STAXResult
+                }
+              </call>
+              <call function="'testCase_Postamble'" />
+            </sequence>
+          </testcase>
+          
+          <!--- Test Case : Search Size Limit: Server Wide Size Limit Exceeded  -->
+          <testcase name="getTestCaseName('Server Wide Size Limit Exceeded')">
+            <sequence>
+              <call function="'testCase_Preamble'" />
+              <message>
+               'Core SSzL4: Check the response of OpenDS when an ldap search request is conducted with a search size limit defined by the server-wide parameter, ds-cfg-size-limit, and the search size limit is exceeded'
+              </message>
+              <call function="'SearchObject'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsBaseDN'       : 'ou=People,o=core tests,dc=example,dc=com',
+                  'dsFilter'       : 'objectclass=*',
+                  'expectedRC'     : 4
+                }
+              </call>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Search Size Limit: Server Wide Size Limit 1000-->
-          <testcase name="'Core: Search Size Limit: Server Wide Size Limit 1000'">
+          <testcase name="getTestCaseName('Server Wide Size Limit 1000')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core SSzL5: Change the server-wide search size limit to 1000'
+               'Core SSzL5: Change the server-wide search size limit to 1000'
               </message>
-              
               <call function="'modifyGlobal'">
-                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                      'attributeName'          : 'size-limit' ,
-                      'attributeValue'         : '1000' }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'attributeName'  : 'size-limit',
+                  'attributeValue' : '1000'
+                }
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Search Size Limit: Server Wide Size Limit Not Exceeded -->
-          <testcase name="'Core: Search Size Limit: Server Wide Size Limit Not Exceeded '">
+          <testcase name="getTestCaseName('Server Wide Size Limit Not Exceeded ')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core SSzL6: Check the response of OpenDS when an ldap search request is conducted with a search size limit defined by the server-wide parameter, ds-cfg-size-limit, and the search size limit is not exceeded'
+               'Core SSzL6: Check the response of OpenDS when an ldap search request is conducted with a search size limit defined by the server-wide parameter, ds-cfg-size-limit, and the search size limit is not exceeded'
               </message>
-    
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' }
-                  
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsBaseDN'       : 'ou=People,o=core tests,dc=example,dc=com',
+                  'dsFilter'       : 'objectclass=*'
+                }
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Search Size Limit: Directory Manager Size Limit 5 -->
-          <testcase name="'Core: Search Size Limit: Directory Manager Size Limit 5'">
+          <testcase name="getTestCaseName('Directory Manager Size Limit 5')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core SSzL7: Change the search size limit for cn=Directory Manager to 5'
+               'Core SSzL7: Change the search size limit for cn=Directory Manager to 5'
               </message>
-    
               <call function="'addEntry'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/core/ldifs/mod_searchsizelimit3.ldif' % logsRemoteDataDir }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'entryToBeAdded' : '%s/core/ldifs/mod_searchsizelimit3.ldif' % logsRemoteDataDir
+                }
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Search Size Limit: User Specific Size Limit Exceeded -->
-          <testcase name="'Core: Search Size Limit: User Specific Size Limit Exceeded'">
+          <testcase name="getTestCaseName('User Specific Size Limit Exceeded')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core SSzL8: Check the response of OpenDS when an ldap search request is conducted with a user search size limit defined by the user-specific parameter, ds-rlim-size-limit, and the search size limit is exceeded'
+               'Core SSzL8: Check the response of OpenDS when an ldap search request is conducted with a user search size limit defined by the user-specific parameter, ds-rlim-size-limit, and the search size limit is exceeded'
               </message>
-    
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' ,
-                  'expectedRC'       : 4
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'ou=People,o=core tests,dc=example,dc=com',
+                  'dsFilter'       : 'objectclass=*',
+                  'expectedRC'     : 4
                 }
-                  
               </call>
-    
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Search Size Limit: Size Limit Not Applicable  -->
-          <testcase name="'Core: Search Size Limit: Size Limit Not Applicable'">
+          <testcase name="getTestCaseName('Size Limit Not Applicable')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core SSzL9: Check the response of OpenDS when an ldap search request is conducted with a user search size limit defined by the user-specific parameter, ds-rlim-size-limit, and the search is conducted as a bind to a different user'
+               'Core SSzL9: Check the response of OpenDS when an ldap search request is conducted with a user search size limit defined by the user-specific parameter, ds-rlim-size-limit, and the search is conducted as a bind to a different user'
               </message>
-    
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' }
-                  
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsBaseDN'       : 'ou=People,o=core tests,dc=example,dc=com',
+                  'dsFilter'       : 'objectclass=*'
+                }
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Search Size Limit: Modify Directory Manager Limit 0 -->
-          <testcase name="'Core: Search Size Limit: Modify Directory Manager Limit 0'">
+          <testcase name="getTestCaseName('Modify Directory Manager Limit 0')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core SSzL10: Change the search size limit for cn=Directory Manager to 0'
+                'Core SSzL10: Change the search size limit for cn=Directory Manager to 0'
               </message>
-    
               <call function="'addEntry'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/core/ldifs/mod_searchsizelimit4.ldif' % logsRemoteDataDir }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'entryToBeAdded' : '%s/core/ldifs/mod_searchsizelimit4.ldif' % logsRemoteDataDir
+                }
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Search Size Limit: No Size Limit -->
-          <testcase name="'Core: Search Size Limit: No Size Limit'">
+          <testcase name="getTestCaseName('No Size Limit')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core SSzL11: Check the response of OpenDS when an ldap search request is conducted with a user search size limit defined as "unlimited" by the user-specific parameter, ds-rlim-size-limit, equal to -1 and the search is against 1150 entries'
+                'Core SSzL11: Check the response of OpenDS when an ldap search request is conducted with a user search size limit defined as "unlimited" by the user-specific parameter, ds-rlim-size-limit, equal to -1 and the search is against 1150 entries'
               </message>
-    
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' }
-                  
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'ou=People,o=core tests,dc=example,dc=com',
+                  'dsFilter'       : 'objectclass=*'
+                }
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              
-              <call function="'testCase_Postamble'"/>
-              
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
 
-
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/core/core_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'core_cleanup'"/>
-
-												          
-          <call function="'testSuite_Postamble'"/>
-
+                  file="'%s/testcases/core/core_cleanup.xml' % (TESTS_DIR)" />
+          <call function="'core_cleanup'" />
+          <call function="'testSuite_Postamble'" />
         </sequence>
-    
       </block>
-    
     </sequence>
-
   </function>
-
 </stax>

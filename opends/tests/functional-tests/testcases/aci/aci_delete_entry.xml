@@ -76,7 +76,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Delete: Preamble'">
+            <testcase name="getTestCaseName('Preamble')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                 <message>
@@ -160,7 +160,7 @@
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to deladd.ksh Test Cases tp1 and tp3 -->
-            <testcase name="'ACI: Delete: Delete Entry - userdn equals all'">
+            <testcase name="getTestCaseName('Delete Entry - userdn equals all')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -288,7 +288,7 @@
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to deladd.ksh Test Cases tp4 -->
-            <testcase name="'ACI: Delete: Delete Entry - userdn equals a dn'">
+            <testcase name="getTestCaseName('Delete Entry - userdn equals a dn')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -430,7 +430,7 @@
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to deladd.ksh Test Cases tp4 -->
-            <testcase name="'ACI: Delete: Delete Entry - userdn not equals a dn'">
+            <testcase name="getTestCaseName('Delete Entry - userdn not equals a dn')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -568,7 +568,7 @@
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to deladd.ksh Test Cases tp1 and tp3 -->
-            <testcase name="'ACI: Delete: Delete Entry - delete not allowed'">
+            <testcase name="getTestCaseName('Delete Entry - delete not allowed')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -664,7 +664,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Delete: Delete Entry - targetfilter equals one statement'">
+            <testcase name="getTestCaseName('Delete Entry - targetfilter equals one statement')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -788,7 +788,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Delete: Delete Entry - targetfilter equals three statements (or) all false'">
+            <testcase name="getTestCaseName('Delete Entry - targetfilter equals three statements (or) all false')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -896,7 +896,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Delete: Delete Entry - targetfilter not equals three statements (or) all false'">
+            <testcase name="getTestCaseName('Delete Entry - targetfilter not equals three statements (or) all false')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1006,7 +1006,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Delete: Delete Entry - targetfilter equals three statements (and) all true'">
+            <testcase name="getTestCaseName('Delete Entry - targetfilter equals three statements (and) all true')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1116,7 +1116,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Delete: Delete Entry - targetfilter contains attribute not present'">
+            <testcase name="getTestCaseName('Delete Entry - targetfilter contains attribute not present')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1226,7 +1226,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Delete: Delete Entry - targetattr equals three attributes'">
+            <testcase name="getTestCaseName('Delete Entry - targetattr equals three attributes')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1336,7 +1336,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Delete: Delete Entry - targetattr equals attribute not present'">
+            <testcase name="getTestCaseName('Delete Entry - targetattr equals attribute not present')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1447,7 +1447,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Delete: Delete Entry - targetattr equals attr value'">
+            <testcase name="getTestCaseName('Delete Entry - targetattr equals attr value')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1557,7 +1557,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Delete: Delete Entry - delete branch'">
+            <testcase name="getTestCaseName('Delete Entry - delete branch')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1697,7 +1697,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Delete: Delete Entry - multi ACIs 1, overall deny'">
+            <testcase name="getTestCaseName('Delete Entry - multi ACIs 1, overall deny')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1805,7 +1805,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Delete: Delete Entry - multi ACIs 2, overall allow'">
+            <testcase name="getTestCaseName('Delete Entry - multi ACIs 2, overall allow')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1916,7 +1916,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Delete: Delete Entry - multi ACIs 3, mixed allow and deny'">
+            <testcase name="getTestCaseName('Delete Entry - multi ACIs 3, mixed allow and deny')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2040,7 +2040,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Delete: Delete Entry - multi ACIs 4, overall allow with many ACIs'">
+            <testcase name="getTestCaseName('Delete Entry - multi ACIs 4, overall allow with many ACIs')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2151,7 +2151,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Delete: Delete Entry - multi ACIs 5, mixed allow and deny with many ACIs'">
+            <testcase name="getTestCaseName('Delete Entry - multi ACIs 5, mixed allow and deny with many ACIs')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2272,7 +2272,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Delete: Postamble'">
+            <testcase name="getTestCaseName('Postamble')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                 <message>

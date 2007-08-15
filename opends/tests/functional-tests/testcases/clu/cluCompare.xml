@@ -78,7 +78,7 @@
             #@TestResult          Success if ldapCompareWithScript returns 0
           -->
                
-                 <testcase name="'Clu: Ldap Compare: Test Case #1'">
+                 <testcase name="getTestCaseName('Test Case #1')">
         
                   <sequence>
           

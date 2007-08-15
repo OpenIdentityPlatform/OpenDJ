@@ -33,7 +33,7 @@
 
       <sequence>
 
-        <testcase name="'Security: Grace Login: Preamble, Admin Changing Pwd Policy Settings'">
+        <testcase name="getTestCaseName('Preamble, Admin Changing Pwd Policy Settings')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -64,7 +64,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Grace Login: Search Bad Pwd 4x'">
+        <testcase name="getTestCaseName('Search Bad Pwd 4x')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -140,7 +140,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Grace Login: Reset Pwd'">
+        <testcase name="getTestCaseName('Reset Pwd')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -221,7 +221,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Grace Login: Postamble, Admin Resetting Pwd Policy Settings'">
+        <testcase name="getTestCaseName('Postamble, Admin Resetting Pwd Policy Settings')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             

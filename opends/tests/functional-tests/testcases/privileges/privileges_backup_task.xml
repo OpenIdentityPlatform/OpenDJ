@@ -79,7 +79,7 @@
                                             for steps 1, 3, and 8 and 0
                                             for all other ldap operations.
             -->
-          <testcase name="'Privileges: Backup Tasks: backend-backup'">
+          <testcase name="getTestCaseName('backend-backup')">
     
             <sequence>
     
@@ -246,7 +246,7 @@
                                             for steps 1 and 5 and 0
                                             for all other ldap operations.
             -->
-          <testcase name="'Privileges: Backup Tasks: backend-backup Directory Manager'">
+          <testcase name="getTestCaseName('backend-backup Directory Manager')">
     
             <sequence>
     
@@ -360,7 +360,7 @@
                                             for steps 1 and 5 and 0
                                             for all other ldap operations.
             -->
-          <testcase name="'Privileges: Backup Tasks: backend-backup New Root User'">
+          <testcase name="getTestCaseName('backend-backup New Root User')">
     
             <sequence>
     

@@ -76,7 +76,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Multiple ACIs: Preamble'">
+            <testcase name="getTestCaseName('Preamble')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                 <message>
@@ -185,7 +185,7 @@
         -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Multiple ACIs: Different targetfilters, one aci-one entry'">
+          <testcase name="getTestCaseName('Different targetfilters, one aci-one entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -383,7 +383,7 @@
         -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1'">
+          <testcase name="getTestCaseName('Different targetfilters, one aci-two entries 1')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -608,7 +608,7 @@
         -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 2'">
+          <testcase name="getTestCaseName('Different targetfilters, one aci-two entries 2')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -833,7 +833,7 @@
         -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 3'">
+          <testcase name="getTestCaseName('Different targetfilters, one aci-two entries 3')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -1057,7 +1057,7 @@
         -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Multiple ACIs: Different targetfilters, one aci-one entry, deny'">
+          <testcase name="getTestCaseName('Different targetfilters, one aci-one entry, deny')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -1227,7 +1227,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, deny'">
+          <testcase name="getTestCaseName('Different targetfilters, one aci-two entries 1, deny')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -1397,7 +1397,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 2, deny'">
+          <testcase name="getTestCaseName('Different targetfilters, one aci-two entries 2, deny')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -1568,7 +1568,7 @@
         -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 3, deny'">
+          <testcase name="getTestCaseName('Different targetfilters, one aci-two entries 3, deny')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -1766,7 +1766,7 @@
         -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Multiple ACIs: Different targetfilters and targetattr'">
+          <testcase name="getTestCaseName('Different targetfilters and targetattr')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -1991,7 +1991,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Multiple ACIs: Different targetfilters and targeattr, deny one attr'">
+          <testcase name="getTestCaseName('Different targetfilters and targeattr, deny one attr')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -2216,7 +2216,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Multiple ACIs: Different targetfilters and targetattr with not equals'">
+          <testcase name="getTestCaseName('Different targetfilters and targetattr with not equals')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -2441,7 +2441,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read with missing read'">
+          <testcase name="getTestCaseName('Different targetfilters and targetattr, separate search-read with missing read')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -2648,7 +2648,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read'">
+          <testcase name="getTestCaseName('Different targetfilters and targetattr, separate search-read')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -2873,7 +2873,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read with deny search'">
+          <testcase name="getTestCaseName('Different targetfilters and targetattr, separate search-read with deny search')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -3071,7 +3071,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Multiple ACIs: Separate targattrfilters with add:l and del:l'">
+            <testcase name="getTestCaseName('Separate targattrfilters with add:l and del:l')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -3195,7 +3195,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Multiple ACIs: Separate targattrfilters with deny add:l and allow del:l'">
+            <testcase name="getTestCaseName('Separate targattrfilters with deny add:l and allow del:l')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -3317,7 +3317,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Multiple ACIs: Separate targattrfilters with allow add:l and deny del:l'">
+            <testcase name="getTestCaseName('Separate targattrfilters with allow add:l and deny del:l')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -3437,7 +3437,7 @@
                                             for all ldapmodify operations, 
                                             and 50 for all other steps.
             -->
-            <testcase name="'ACI: Multiple ACIs: Separate targetattrs'">
+            <testcase name="getTestCaseName('Separate targetattrs')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -3560,7 +3560,7 @@
                                             0 for steps 1, 2 and 3, and
                                             50 for all other steps.
             -->
-            <testcase name="'ACI: Multiple ACIs: Separate targetattrs with not equals'">
+            <testcase name="getTestCaseName('Separate targetattrs with not equals')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -3688,7 +3688,7 @@
                                             0 for steps 1 and 2, and
                                             50 for all other steps.
             -->
-            <testcase name="'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with equals and not equals'">
+            <testcase name="getTestCaseName('Separate targetattrs and targattrfilters with equals and not equals')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -3826,7 +3826,7 @@
                                             0 for steps 1, 2,`and 3, and
                                             50 for all other steps.
             -->
-            <testcase name="'ACI: Separate targetattrs and targattrfilters with not equals'">
+            <testcase name="getTestCaseName('Separate targetattrs and targattrfilters with not equals')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -3963,7 +3963,7 @@
                                             0 for step 1, and
                                             50 for all other steps.
             -->
-            <testcase name="'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with deny'">
+            <testcase name="getTestCaseName('Separate targetattrs and targattrfilters with deny')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -4100,7 +4100,7 @@
                                             0 for steps 1, 2, and 3 and
                                             50 for all other steps.
             -->
-            <testcase name="'ACI: Multiple ACIs: Separate targetattrs with deny and targattrfilters '">
+            <testcase name="getTestCaseName('Separate targetattrs with deny and targattrfilters ')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -4232,7 +4232,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Multiple ACIs: Postamble'">
+            <testcase name="getTestCaseName('Postamble')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>

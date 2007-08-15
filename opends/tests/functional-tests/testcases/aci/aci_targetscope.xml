@@ -76,7 +76,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Targetscope: Preamble'">
+            <testcase name="getTestCaseName('Preamble')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                 <message>
@@ -132,7 +132,7 @@
                                             for all ldap operations, and
                                             and parent entry is returned in step 1.
             -->
-            <testcase name="'ACI: Targetscope: base'">
+            <testcase name="getTestCaseName('base')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -340,7 +340,7 @@
                                             for all ldap operations.
                                             Child entry are returned in steps 1 and 2.
             -->
-            <testcase name="'ACI: Targetscope: onelevel'">
+            <testcase name="getTestCaseName('onelevel')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -557,7 +557,7 @@
                                             for all ldap operations.
                                             All entries are returned in steps 1, 2 and 3.
             -->
-            <testcase name="'ACI: Targetscope: subtree'">
+            <testcase name="getTestCaseName('subtree')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -783,7 +783,7 @@
                                             for all ldap operations.
                                             All entries except the parent are returned in steps 1, 2 and 3.
             -->
-            <testcase name="'ACI: Targetscope: subordinate'">
+            <testcase name="getTestCaseName('subordinate')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1003,7 +1003,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 21.
             -->
-            <testcase name="'ACI: Targetscope: bad keyword'">
+            <testcase name="getTestCaseName('bad keyword')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1043,7 +1043,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 21.
             -->
-            <testcase name="'ACI: Targetscope: wildcard'">
+            <testcase name="getTestCaseName('wildcard')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1083,7 +1083,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 21.
             -->
-            <testcase name="'ACI: Targetscope: not equals'">
+            <testcase name="getTestCaseName('not equals')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1127,7 +1127,7 @@
                                           and no entries are returned 
                                           for all operations.
           -->
-          <testcase name="'ACI: Targetscope: Postamble'">
+          <testcase name="getTestCaseName('Postamble')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                 <message>

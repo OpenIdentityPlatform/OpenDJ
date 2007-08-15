@@ -52,7 +52,7 @@
 									      
          
           <!--- Test Case : Schema RFC Test 2079 -->
-          <testcase name="'Core: Schema: RFC 2079'">
+          <testcase name="getTestCaseName('RFC 2079')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -76,7 +76,7 @@
           </testcase> 
         
           <!--- Test Case : Schema RFC Test 2247 -->
-          <testcase name="'Core: Schema: RFC 2247 1'">
+          <testcase name="getTestCaseName('RFC 2247 1')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -100,7 +100,7 @@
           </testcase>
           
           <!--- Test Case : Schema RFC Test 2247 -->
-          <testcase name="'Core: Schema: RFC 2247 2'">
+          <testcase name="getTestCaseName('RFC 2247 2')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -124,7 +124,7 @@
           </testcase>
           
           <!--- Test Case : Schema RFC Test 2247 -->
-          <testcase name="'Core: Schema: RFC 2247 3'">
+          <testcase name="getTestCaseName('RFC 2247 3')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -146,7 +146,7 @@
           </testcase>
           
           <!--- Test Case : Schema RFC 2247 -->
-          <testcase name="'Core: Schema: RFC 2247 4'">
+          <testcase name="getTestCaseName('RFC 2247 4')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -168,7 +168,7 @@
           </testcase>
           
           <!--- Test Case : Schema RFC 2247 -->
-          <testcase name="'Core: Schema: RFC 2247 5'">
+          <testcase name="getTestCaseName('RFC 2247 5')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -190,7 +190,7 @@
           </testcase>   
       
           <!--- Test Case : Schema RFC Test 2377 -->
-          <testcase name="'Core: Schema: RFC 2377'">
+          <testcase name="getTestCaseName('RFC 2377')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -214,7 +214,7 @@
           </testcase>
           
           <!--- Test Case : Schema RFC Test 2798 -->
-          <testcase name="'Core: Schema: RFC 2798'">
+          <testcase name="getTestCaseName('RFC 2798')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -238,7 +238,7 @@
           </testcase> 
           
           <!--- Test Case : Schema RFC 3045 -->
-          <testcase name="'Core: Schema: RFC 3045 1'">
+          <testcase name="getTestCaseName('RFC 3045 1')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -260,7 +260,7 @@
           </testcase>
           
           <!--- Test Case : Schema RFC 3045 -->
-          <testcase name="'Core: Schema: RFC 3045 2'">
+          <testcase name="getTestCaseName('RFC 3045 2')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -282,7 +282,7 @@
           </testcase>
           
           <!--- Test Case : Schema RFC 4403 -->
-          <testcase name="'Core: Schema: RFC 4403 1'">
+          <testcase name="getTestCaseName('RFC 4403 1')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -306,7 +306,7 @@
           </testcase>
           
           <!--- Test Case : Schema RFC 4403 -->
-          <testcase name="'Core: Schema: RFC 4403 2'">
+          <testcase name="getTestCaseName('RFC 4403 2')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -330,7 +330,7 @@
           </testcase>
           
           <!--- Test Case : Schema RFC Test 4403 -->
-          <testcase name="'Core: Schema: RFC 4403 3'">
+          <testcase name="getTestCaseName('RFC 4403 3')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -352,7 +352,7 @@
           </testcase>  
       
           <!--- Test Case : Schema RFC Test 4403 -->
-          <testcase name="'Core: Schema: RFC 4403 4'">
+          <testcase name="getTestCaseName('RFC 4403 4')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -376,7 +376,7 @@
           </testcase>
           
           <!--- Test Case : Schema RFC Test 4403 -->
-          <testcase name="'Core: Schema: RFC 4403 5'">
+          <testcase name="getTestCaseName('RFC 4403 5')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -398,7 +398,7 @@
           </testcase>
           
           <!--- Test Case : Schema RFC Test 2307 -->
-          <testcase name="'Core: Schema: Draft Howard RFC 2307bis 1'">
+          <testcase name="getTestCaseName('Draft Howard RFC 2307bis 1')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -422,7 +422,7 @@
           </testcase>
           
           <!--- Test Case : Schema RFC 2307 -->
-          <testcase name="'Core: Schema: Draft Howard RFC 2307bis 2'">
+          <testcase name="getTestCaseName('Draft Howard RFC 2307bis 2')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -446,7 +446,7 @@
           </testcase>  
   
           <!--- Test Case : Schema RFC 2307 -->
-          <testcase name="'Core: Schema: Draft Howard RFC 2307bis 1'">
+          <testcase name="getTestCaseName('Draft Howard RFC 2307bis 1')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -470,7 +470,7 @@
           </testcase>
           
           <!--- Test Case : Schema RFC Test 2307 -->
-          <testcase name="'Core: Schema: Draft Howard RFC 2307bis 1'">
+          <testcase name="getTestCaseName('Draft Howard RFC 2307bis 1')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -492,7 +492,7 @@
           </testcase>  
       
           <!--- Test Case : Schema RFC draft-furseth-ldap-untypedobject -->
-          <testcase name="'Core: Schema: Draft Furseth LDAP Untypedobject'">
+          <testcase name="getTestCaseName('Draft Furseth LDAP Untypedobject')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -516,7 +516,7 @@
           </testcase> 
          
           <!--- Test Case : Schema RFC draft-good-ldap-changelog -->
-          <testcase name="'Core: Schema: Draft Good LDAP Changelog 1'">
+          <testcase name="getTestCaseName('Draft Good LDAP Changelog 1')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -540,7 +540,7 @@
           </testcase>
           
           <!--- Test Case : Schema RFC draft-good-ldap-changelog -->
-          <testcase name="'Core: Schema: Draft Good LDAP Changelog 2'">
+          <testcase name="getTestCaseName('Draft Good LDAP Changelog 2')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -564,7 +564,7 @@
           </testcase>  
       
           <!--- Test Case : Schema RFC draft-good-ldap-changelog -->
-          <testcase name="'Core: Schema: Draft Good LDAP Changelog 2'">
+          <testcase name="getTestCaseName('Draft Good LDAP Changelog 2')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -588,7 +588,7 @@
           </testcase> 
       
           <!--- Test Case : Schema RFC Test draft-howard-namedobject -->
-          <testcase name="'Core: Schema: Draft Howard NamedObject 1'">
+          <testcase name="getTestCaseName('Draft Howard NamedObject 1')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -612,7 +612,7 @@
           </testcase>  
         
           <!--- Test Case : Schema RFC Test draft-howard-namedobject -->
-          <testcase name="'Core: Schema: Draft Howard NamedObject 2'">
+          <testcase name="getTestCaseName('Draft Howard NamedObject 2')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -636,7 +636,7 @@
         </testcase>  
     
         <!--- Test Case : Schema RFC Test draft-ietf-ldup-subentry -->
-        <testcase name="'Core: Schema: Draft IETF LDUP Subentry 1'">
+        <testcase name="getTestCaseName('Draft IETF LDUP Subentry 1')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -660,7 +660,7 @@
         </testcase> 
         
         <!--- Test Case : Schema RFC Test draft-ietf-ldup-subentry -->
-        <testcase name="'Core: Schema: Draft IETF LDUP Subentry 2'">
+        <testcase name="getTestCaseName('Draft IETF LDUP Subentry 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -684,7 +684,7 @@
         </testcase>
     
         <!--- Test Case : Schema RFC Test draft-ietf-ldup-subentry -->
-        <testcase name="'Core: Schema: Draft IETF LDUP Subentry 3'">
+        <testcase name="getTestCaseName('Draft IETF LDUP Subentry 3')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -706,7 +706,7 @@
         </testcase>  
     
         <!--- Test Case : Schema Disable Schema Checking -->
-        <testcase name="'Core: Schema: Disable Schema Checking'">
+        <testcase name="getTestCaseName('Disable Schema Checking')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -731,7 +731,7 @@
         </testcase>
         
         <!--- Test Case : Schema: Enable Schema Checking' -->
-        <testcase name="'Core: Schema: Enable Schema Checking'">
+        <testcase name="getTestCaseName('Enable Schema Checking')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -756,7 +756,7 @@
         </testcase>
                 
         <!--- Test Case : Schema: Disable Syntax Checking -->
-        <testcase name="'Core: Schema: Disable Syntax Checking'">
+        <testcase name="getTestCaseName('Disable Syntax Checking')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -784,7 +784,7 @@
         </testcase>
         
         <!--- Test Case : Schema: Enable Syntax Checking -->
-        <testcase name="'Core: Schema: Enable Syntax Checking'">
+        <testcase name="getTestCaseName('Enable Syntax Checking')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -812,7 +812,7 @@
         </testcase>
         
         <!--- Test Case : Schema RFC Test draft-ietf-zeilenga-ldap-cosine -->
-        <testcase name="'Core: Schema: Draft IETF Zeilenga LDAP COSINE 1'">
+        <testcase name="getTestCaseName('Draft IETF Zeilenga LDAP COSINE 1')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -836,7 +836,7 @@
         </testcase>
         
         <!--- Test Case : Schema RFC Test draft-ietf-zeilenga-ldap-cosine -->
-        <testcase name="'Core: Schema: Draft IETF Zeilenga LDAP COSINE 2'">
+        <testcase name="getTestCaseName('Draft IETF Zeilenga LDAP COSINE 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -860,7 +860,7 @@
         </testcase>
         
         <!--- Test Case : Schema RFC Test draft-ietf-zeilenga-ldap-cosine -->
-        <testcase name="'Core: Schema: Draft IETF Zeilenga LDAP COSINE 3'">
+        <testcase name="getTestCaseName('Draft IETF Zeilenga LDAP COSINE 3')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -881,7 +881,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Core: Schema: RFC 2739'">
+        <testcase name="getTestCaseName('RFC 2739')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -923,7 +923,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Core: Schema: RFC 2714 1'">
+        <testcase name="getTestCaseName('RFC 2714 1')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -944,7 +944,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Core: Schema: RFC 2714 2'">
+        <testcase name="getTestCaseName('RFC 2714 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -985,7 +985,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Core: Schema: RFC 2713'">
+        <testcase name="getTestCaseName('RFC 2713')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

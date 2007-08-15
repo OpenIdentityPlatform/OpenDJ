@@ -61,7 +61,7 @@
             #@TestResult                Success if OpenDS returns 0 for all operations
         -->
         <!--- Generate Server Cert -->
-        <testcase name="'Security: JKS: Preamble Setup'">
+        <testcase name="getTestCaseName('Preamble Setup')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

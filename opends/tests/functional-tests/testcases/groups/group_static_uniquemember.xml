@@ -93,7 +93,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Static: uniquemember: add a static group entry'">
+          <testcase name="getTestCaseName('uniquemember: add a static group entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -159,7 +159,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Static: uniquemember: delete a static group entry'">
+          <testcase name="getTestCaseName('uniquemember: delete a static group entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -207,7 +207,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Static: uniquemember: ldapsearch out of the group'">
+          <testcase name="getTestCaseName('uniquemember: ldapsearch out of the group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -245,7 +245,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Static: uniquemember: ldapsearch through group'">
+          <testcase name="getTestCaseName('uniquemember: ldapsearch through group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -292,7 +292,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Static: uniquemember: application search in group'">
+          <testcase name="getTestCaseName('uniquemember: application search in group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -337,7 +337,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Static: uniquemember: application add user in group'">
+          <testcase name="getTestCaseName('uniquemember: application add user in group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -428,7 +428,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Static: uniquemember: delete user entry belonging to the group'">
+          <testcase name="getTestCaseName('uniquemember: delete user entry belonging to the group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -529,7 +529,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Static: uniquemember: application delete user from group'">
+          <testcase name="getTestCaseName('uniquemember: application delete user from group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -620,7 +620,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Static: uniquemember: delete all attributes in a static group entry'">
+          <testcase name="getTestCaseName('uniquemember: delete all attributes in a static group entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -734,7 +734,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Static: uniquemember: enable referential integrity plugin'">
+          <testcase name="getTestCaseName('uniquemember: enable referential integrity plugin')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>

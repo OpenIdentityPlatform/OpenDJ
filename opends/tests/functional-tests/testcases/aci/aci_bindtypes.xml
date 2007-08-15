@@ -81,7 +81,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Bind Types: Preamble'">
+            <testcase name="getTestCaseName('Preamble')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                 <message>
@@ -265,7 +265,7 @@
                                             for all ldap operations, and
                                             and entry is returned only for step 1.
             -->
-            <testcase name="'ACI: Bind Types: groupdn equals one static group'">
+            <testcase name="getTestCaseName('groupdn equals one static group')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -470,7 +470,7 @@
                                             for all ldap operations, and
                                             and entry is returned only for steps 1 and 4.
             -->
-            <testcase name="'ACI: Bind Types: groupdn equals two static groups'">
+            <testcase name="getTestCaseName('groupdn equals two static groups')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -684,7 +684,7 @@
                                             for all ldap operations, and
                                             and entry is returned only for steps 1 and 3.
             -->
-            <testcase name="'ACI: Bind Types: groupdn not equals one static group'">
+            <testcase name="getTestCaseName('groupdn not equals one static group')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -898,7 +898,7 @@
                                             for all ldap operations, and
                                             and entry is returned only for step 3.
             -->
-            <testcase name="'ACI: Bind Types: groupdn not equals two static groups'">
+            <testcase name="getTestCaseName('groupdn not equals two static groups')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1103,7 +1103,7 @@
                                             for all ldap operations, and
                                             and entry is returned only for step 1.
             -->
-            <testcase name="'ACI: Bind Types: groupdn equals one dynamic group'">
+            <testcase name="getTestCaseName('groupdn equals one dynamic group')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1308,7 +1308,7 @@
                                             for all ldap operations, and
                                             and entry is returned only for steps 1 and 4.
             -->
-            <testcase name="'ACI: Bind Types: groupdn equals two dynamic groups'">
+            <testcase name="getTestCaseName('groupdn equals two dynamic groups')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1522,7 +1522,7 @@
                                             for all ldap operations, and
                                             and entry is returned only for steps 1 and 3.
             -->
-            <testcase name="'ACI: Bind Types: groupdn not equals one dynamic group'">
+            <testcase name="getTestCaseName('groupdn not equals one dynamic group')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1736,7 +1736,7 @@
                                             for all ldap operations, and
                                             and entry is returned only for step 3.
             -->
-            <testcase name="'ACI: Bind Types: groupdn not equals two dynamic groups'">
+            <testcase name="getTestCaseName('groupdn not equals two dynamic groups')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1941,7 +1941,7 @@
                                             for all ldap operations, and
                                             no entries are returned for any step.
             -->
-            <testcase name="'ACI: Bind Types: groupdn equals one static group with wildcard'">
+            <testcase name="getTestCaseName('groupdn equals one static group with wildcard')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2137,7 +2137,7 @@
                                             for all ldap operations, and
                                             and entry is returned only for steps 1 and 4.
             -->
-            <testcase name="'ACI: Bind Types: groupdn equals one static and one dynamic group'">
+            <testcase name="getTestCaseName('groupdn equals one static and one dynamic group')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2352,7 +2352,7 @@
                                             for all ldap operations, and
                                             entry is returned only for step 3.
             -->
-            <testcase name="'ACI: Bind Types: groupdn - selfwrite add member'">
+            <testcase name="getTestCaseName('groupdn - selfwrite add member')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2556,7 +2556,7 @@
                                             for all ldap operations and
                                             entry returned in step 4.
             -->
-            <testcase name="'ACI: Bind Types: groupdn - selfwrite delete member'">
+            <testcase name="getTestCaseName('groupdn - selfwrite delete member')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2733,7 +2733,7 @@
                                             for all ldap operations,
                                             50 for step 2, and the entry is returned in step 4.
             -->
-            <testcase name="'ACI: Bind Types: groupdn - selfwrite replace member'">
+            <testcase name="getTestCaseName('groupdn - selfwrite replace member')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2908,7 +2908,7 @@
                                             for all ldap operations,
                                             50 for step 2, and the entry is returned in step 4.
             -->
-            <testcase name="'ACI: Bind Types: groupdn - selfwrite add description'">
+            <testcase name="getTestCaseName('groupdn - selfwrite add description')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -3086,7 +3086,7 @@
                                             and entries is returned only for steps 1, 2, and 3.
                                             Attribute values returned only for steps 1, 2 and 3.
             -->
-            <testcase name="'ACI: Bind Types: userattr equals one attr'">
+            <testcase name="getTestCaseName('userattr equals one attr')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -3356,7 +3356,7 @@
                                             and entries is returned only for steps 1, 2, 3, 5 and 6.
                                             Attribute values returned only for steps 1, 2 and 6.
             -->
-            <testcase name="'ACI: Bind Types: userattr not equals one attr'">
+            <testcase name="getTestCaseName('userattr not equals one attr')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -3654,7 +3654,7 @@
                                             for all ldap operations, and
                                             and entries is returned only for step 1.
             -->
-            <testcase name="'ACI: Bind Types: userattr equals one attr with bindtype'">
+            <testcase name="getTestCaseName('userattr equals one attr with bindtype')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -3841,7 +3841,7 @@
                                             for all ldap operations, and
                                             and entries is returned only for step 1.
             -->
-            <testcase name="'ACI: Bind Types: userattr equals one attr with groupdn'">
+            <testcase name="getTestCaseName('userattr equals one attr with groupdn')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -4053,7 +4053,7 @@
                                             for all ldap operations, and
                                             and entries is returned only for step 1.
             -->
-            <testcase name="'ACI: Bind Types: userattr equals one attr with groupdn, url expression'">
+            <testcase name="getTestCaseName('userattr equals one attr with groupdn, url expression')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -4225,7 +4225,7 @@
                                             for all ldap operations, and
                                             and entries is returned only for step 1.
             -->
-            <testcase name="'ACI: Bind Types: inheritance with bindtype, deny children'">
+            <testcase name="getTestCaseName('inheritance with bindtype, deny children')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -4443,7 +4443,7 @@
                                             for all ldap operations, and
                                             and entries is returned only for steps 1 and 2.
             -->
-            <testcase name="'ACI: Bind Types: inheritance with bindtype, allow one child level'">
+            <testcase name="getTestCaseName('inheritance with bindtype, allow one child level')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -4660,7 +4660,7 @@
                                             for all ldap operations, and
                                             and entries is returned only for steps 1, 2, and 3.
             -->
-            <testcase name="'ACI: Bind Types: inheritance with bindtype, allow two child levels'">
+            <testcase name="getTestCaseName('inheritance with bindtype, allow two child levels')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -4876,7 +4876,7 @@
                                             for all ldap operations, and
                                             and entries is returned only for step 1.
             -->
-            <testcase name="'ACI: Bind Types: userattr equals one operational attr with bindtype'">
+            <testcase name="getTestCaseName('userattr equals one operational attr with bindtype')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -5036,7 +5036,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 21.
             -->
-            <testcase name="'ACI: Bind Types: groupdn with missing slash'">
+            <testcase name="getTestCaseName('groupdn with missing slash')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -5076,7 +5076,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 21.
             -->
-            <testcase name="'ACI: Bind Types: groupdn with single quote'">
+            <testcase name="getTestCaseName('groupdn with single quote')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -5116,7 +5116,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 21.
             -->
-            <testcase name="'ACI: Bind Types: groupdn with null value'">
+            <testcase name="getTestCaseName('groupdn with null value')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -5156,7 +5156,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 21.
             -->
-            <testcase name="'ACI: Bind Types: userdn with null value'">
+            <testcase name="getTestCaseName('userdn with null value')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -5196,7 +5196,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 21.
             -->
-            <testcase name="'ACI: Bind Types: userattr with null value'">
+            <testcase name="getTestCaseName('userattr with null value')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -5236,7 +5236,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 21.
             -->
-            <testcase name="'ACI: Bind Types: roledn'">
+            <testcase name="getTestCaseName('roledn')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -5282,7 +5282,7 @@
                                             for all ldap operations, and
                                             and entry is returned only for step 1.
             -->
-            <testcase name="'ACI: Bind Types: groupdn equals userdn with filter'">
+            <testcase name="getTestCaseName('groupdn equals userdn with filter')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -5441,7 +5441,7 @@
             #@TestResult                Success if OpenDS returns 0 for all ldap operations.
                                         Entry returned for step 3.
         -->
-        <testcase name="'ACI: Bind Types: authmethod equals none'">
+        <testcase name="getTestCaseName('authmethod equals none')">
           <sequence>
             <call function="'testCase_Preamble'"/>
 
@@ -5580,7 +5580,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Bind Types Postamble'">
+          <testcase name="getTestCaseName('Bind Types Postamble')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                 <message>

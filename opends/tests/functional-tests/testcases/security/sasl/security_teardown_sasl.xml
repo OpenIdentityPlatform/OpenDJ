@@ -54,7 +54,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0 for all operations
          -->
-        <testcase name="'Security: SASL: Postamble Reset'">
+        <testcase name="getTestCaseName('Postamble Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

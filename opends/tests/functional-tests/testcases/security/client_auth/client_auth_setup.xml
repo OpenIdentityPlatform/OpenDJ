@@ -42,7 +42,7 @@
           #@TestResult                Success if OpenDS returns 0 for all operations
       -->
       <!-- Generate Server Cert -->
-      <testcase name="'Security: client_auth:  Setup. certificates configuration'">
+      <testcase name="getTestCaseName(' Setup. certificates configuration')">
         <sequence>
           <call function="'testCase_Preamble'"/>
           <!-- Load in the local shared python objects from libraries -->
@@ -159,7 +159,7 @@
             #@TestResult                Success if OpenDS returns 0 for all operations
         -->
 		  
-      <testcase name="'Security: client_auth:  setup. Export and Import certificates'">
+      <testcase name="getTestCaseName(' setup. Export and Import certificates')">
         <sequence>
           <call function="'testCase_Preamble'" />
           
@@ -273,7 +273,7 @@
             #@TestPostamble          none
             #@TestResult                Success if OpenDS returns 0 for all operations
       -->
-      <testcase name="'Security: client_auth: setup. Configure SSL and StartTLS'">
+      <testcase name="getTestCaseName('setup. Configure SSL and StartTLS')">
         <sequence>
           <call function="'testCase_Preamble'"/>
           <!-- Load in the local shared python objects from libraries -->
@@ -337,7 +337,7 @@
             #@TestPostamble          none
             #@TestResult                Success if OpenDS returns 0 for all operations
        -->
-      <testcase name="'Security: client_auth: setup. Create users entries'">
+      <testcase name="getTestCaseName('setup. Create users entries')">
         <sequence>
           <call function="'testCase_Preamble'"/>
           <!-- Load in the local shared python objects from libraries -->

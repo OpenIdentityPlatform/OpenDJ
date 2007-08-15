@@ -33,7 +33,7 @@
 
       <sequence>
 
-        <testcase name="'Security: Pwd Validator: Repeat Chars: Preamble'">
+        <testcase name="getTestCaseName('Repeat Chars: Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -56,7 +56,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: Repeat Chars: password with 3 repeat chars'">
+        <testcase name="getTestCaseName('Repeat Chars: password with 3 repeat chars')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -96,7 +96,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Repeat Chars: password with 2 repeat chars'">
+        <testcase name="getTestCaseName('Repeat Chars: password with 2 repeat chars')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -134,7 +134,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Repeat Chars: change maximum length'">
+        <testcase name="getTestCaseName('Repeat Chars: change maximum length')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -157,7 +157,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: Repeat Chars: password with 3 repeat chars 2'">
+        <testcase name="getTestCaseName('Repeat Chars: password with 3 repeat chars 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -195,7 +195,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Repeat Chars: reset maximum length'">
+        <testcase name="getTestCaseName('Repeat Chars: reset maximum length')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -217,7 +217,7 @@
           </sequence>
         </testcase>
        
-        <testcase name="'Security: Pwd Validator: Repeat Chars: enable case sensitive chars'">
+        <testcase name="getTestCaseName('Repeat Chars: enable case sensitive chars')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -240,7 +240,7 @@
           </sequence>
         </testcase>
        
-        <testcase name="'Security: Pwd Validator: Repeat Chars: password with 3 repeat chars 3'">
+        <testcase name="getTestCaseName('Repeat Chars: password with 3 repeat chars 3')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -280,7 +280,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Repeat Chars: password with 3 case sensitive repeat chars'">
+        <testcase name="getTestCaseName('Repeat Chars: password with 3 case sensitive repeat chars')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -318,7 +318,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Repeat Chars: Postamble'">
+        <testcase name="getTestCaseName('Repeat Chars: Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

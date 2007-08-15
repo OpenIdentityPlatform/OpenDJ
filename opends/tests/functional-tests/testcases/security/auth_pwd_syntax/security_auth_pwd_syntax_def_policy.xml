@@ -52,7 +52,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'Security: Auth Pwd Syntax: Default Policy - Preamble'">
+        <testcase name="getTestCaseName('Default Policy - Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -93,7 +93,7 @@
                                         new user. The bind by the old user should 
                                         return 49.
         -->
-        <testcase name="'Security: Auth Pwd Syntax: Default Policy - Add Users'">
+        <testcase name="getTestCaseName('Default Policy - Add Users')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -161,7 +161,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'Security: Auth Pwd Syntax: Default Policy - Postamble'">
+        <testcase name="getTestCaseName('Default Policy - Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

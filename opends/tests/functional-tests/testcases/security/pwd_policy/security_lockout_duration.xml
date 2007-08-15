@@ -33,7 +33,7 @@
 
       <sequence>
 
-        <testcase name="'Security: Lockout Duration: Preamble'">
+        <testcase name="getTestCaseName('Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -119,7 +119,7 @@
         </testcase>
 
         <!--- Test Case : Amin Change Lockout Cnt -->
-        <testcase name="'Security: Lockout Duration: Make Lockout Duration Short'">
+        <testcase name="getTestCaseName('Make Lockout Duration Short')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -142,7 +142,7 @@
         </testcase>
 
         <!--- Test Case : Amin Change Lockout Duration -->
-        <testcase name="'Security: Lockout Duration: Short Lockout Duration'">
+        <testcase name="getTestCaseName('Short Lockout Duration')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -209,7 +209,7 @@
         </testcase>
 
         <!--- Test Case : Amin Change Lockout Cnt -->
-        <testcase name="'Security: Lockout Duration: Make Lockout Duration Long'">
+        <testcase name="getTestCaseName('Make Lockout Duration Long')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -232,7 +232,7 @@
         </testcase>
 
         <!--- Test Case : Amin Change Lockout Duration -->
-        <testcase name="'Security: Lockout Duration: Long Lockout Duration'">
+        <testcase name="getTestCaseName('Long Lockout Duration')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -314,7 +314,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Lockout Duration: Postamble'">
+        <testcase name="getTestCaseName('Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

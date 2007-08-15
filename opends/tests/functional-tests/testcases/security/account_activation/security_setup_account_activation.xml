@@ -34,7 +34,7 @@
       <sequence>
 
         <!--- Test Case : Add Entries for Acount Activation Tests -->
-        <testcase name="'Security: Acct Act: Add Initial Entries'">
+        <testcase name="getTestCaseName('Add Initial Entries')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

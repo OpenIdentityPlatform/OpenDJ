@@ -42,7 +42,7 @@
             #@TestScript                security_teardown_jks.xml
         -->
         <!--- Delete Branch through SSL port -->
-        <testcase name="'Security: JKS: Postamble Reset'">
+        <testcase name="getTestCaseName('Postamble Reset')">
         <!---
             Place test-specific test information here.
             The tag, TestMarker, must be the same as the tag, TestSuiteName.

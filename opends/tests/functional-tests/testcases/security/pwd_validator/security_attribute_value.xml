@@ -33,7 +33,7 @@
 
       <sequence>
 
-        <testcase name="'Security: Pwd Validator: Attribute Value: Preamble'">
+        <testcase name="getTestCaseName('Attribute Value: Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -69,7 +69,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: Attribute Value: add attribute sn'">
+        <testcase name="getTestCaseName('Attribute Value: add attribute sn')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -92,7 +92,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Attribute Value: user modifying password to sn'">
+        <testcase name="getTestCaseName('Attribute Value: user modifying password to sn')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -132,7 +132,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: Attribute Value: user modifying password to lower case sn'">
+        <testcase name="getTestCaseName('Attribute Value: user modifying password to lower case sn')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -172,7 +172,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: Attribute Value: user modifying password to upper case sn'">
+        <testcase name="getTestCaseName('Attribute Value: user modifying password to upper case sn')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -212,7 +212,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: Attribute Value: user modifying password to mixed case sn'">
+        <testcase name="getTestCaseName('Attribute Value: user modifying password to mixed case sn')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -252,7 +252,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: Attribute Value: user modifying password to reversed upper case sn'">
+        <testcase name="getTestCaseName('Attribute Value: user modifying password to reversed upper case sn')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -292,7 +292,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: Attribute Value: add attribute roomnumber'">
+        <testcase name="getTestCaseName('Attribute Value: add attribute roomnumber')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -315,7 +315,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Attribute Value: user modifying password to roomnumber'">
+        <testcase name="getTestCaseName('Attribute Value: user modifying password to roomnumber')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -355,7 +355,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: Attribute Value: user modifying password to sn 2'">
+        <testcase name="getTestCaseName('Attribute Value: user modifying password to sn 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -395,7 +395,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: Attribute Value: disable reverse match-attribute'">
+        <testcase name="getTestCaseName('Attribute Value: disable reverse match-attribute')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -418,7 +418,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Attribute Value: user modifying password to reverse sn'">
+        <testcase name="getTestCaseName('Attribute Value: user modifying password to reverse sn')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -456,7 +456,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: Attribute Value: user modifying password to sn 3'">
+        <testcase name="getTestCaseName('Attribute Value: user modifying password to sn 3')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -497,7 +497,7 @@
         </testcase>
 
         
-        <testcase name="'Security: Pwd Validator: Attribute Value: Postamble'">
+        <testcase name="getTestCaseName('Attribute Value: Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
