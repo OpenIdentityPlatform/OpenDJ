@@ -25,78 +25,52 @@
  !
  !      Portions Copyright 2007 Sun Microsystems, Inc.
  ! -->
-
 <stax>
-
   <defaultcall function="main_backup-tasks"/>
-
   <function name="main_backup-tasks">
-
     <sequence>
-
       <block name="'backup-tasks'">
-      
         <sequence>
-  
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='backends'						  
+              CurrentTestPath['group']='backends'
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
+          <call function="'testSuite_Preamble'" />
           
-          <call function="'testSuite_Preamble'"/>
-
-
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/backends/backend_setup.xml' % (TESTS_DIR)"/>
+                  file="'%s/testcases/backends/backend_setup.xml' % (TESTS_DIR)" />
           <call function="'backend_setup'"> { 'loadBackend' : True } </call>
-
-															
-                  
-                  <testcase name="'Backend: Backup Tasks 1'">
-                  
-                  <sequence>
+          <testcase name="'Backend: Backup Tasks: Test 1'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                'Backend ExportTasks1: Backup the data in OpenDS by scheduling a task'
+              </message>
+              <call function="'backupTask'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'taskID'         : '3',
+                  'backupDir'       : '%s/backends/' % logsRemoteDataDir
+                }
+              </call>
+              <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
+              </call>
+              <call function="'testCase_Postamble'" />
+            </sequence>
+          </testcase>
           
-                    <call function="'testCase_Preamble'"/>
-                    <message>
-                      'Backend ExportTasks1: Backup the data in OpenDS by scheduling a task'
-                    </message>
-                    <call function="'backupTask'">
-                      { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                        'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                        'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                        'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                        'taskID'         : '3',
-                        'backupDir'       : '%s/backends/' % logsRemoteDataDir
-                      }
-                    </call>
-          
-                    <call function="'checktestRC'">
-                      { 'returncode' : RC ,
-                        'result'     : STAXResult }
-                    </call>
-                         
-                    <call function="'testCase_Postamble'"/>
-          
-                  </sequence>
-          
-                </testcase>
-            
-
-
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/backends/backend_cleanup.xml' % (TESTS_DIR)"/>
+                  file="'%s/testcases/backends/backend_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'backend_cleanup'"/>
-
-												    
           <call function="'testSuite_Postamble'"/>
-      
         </sequence>
-    
       </block>
-    
     </sequence>
-
   </function>
-
 </stax>
