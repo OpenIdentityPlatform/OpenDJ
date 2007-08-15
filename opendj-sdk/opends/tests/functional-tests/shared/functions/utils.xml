@@ -532,8 +532,11 @@
             self.start=start
             self.stop=stop
             tmp=fullname.split(":")
-            del tmp[0:2]
-            self.name=''.join(tmp)
+            if len(tmp) > 2:
+              del tmp[0:2]
+              self.name=''.join(tmp)
+            else:
+              self.name=fullname
             self.duration = 0
             if failures == 0:
               if successes == 0:

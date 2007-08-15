@@ -27,27 +27,24 @@
  ! -->
 
 <stax>
-  
   <function name="_dsconfigCommonArgs">
     <function-prolog>
       This function resolves common dsconfig arguments
     </function-prolog>
-    <function-no-args/>
-  
+    <function-no-args />
     <script>
-        if dsInstanceHost:
-          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
-                  
-        if dsInstancePort:
-          STAFCmdParamsList.append('-p %s' % dsInstancePort)
-
-        if dsInstanceDn:
-          STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
-        
-        if dsInstancePswd:
-          STAFCmdParamsList.append('-w "%s"' % dsInstancePswd)
+      if dsInstanceHost:
+        STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+      
+      if dsInstancePort:
+        STAFCmdParamsList.append('-p %s' % dsInstancePort)
+      
+      if dsInstanceDn:
+        STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
+      
+      if dsInstancePswd:
+        STAFCmdParamsList.append('-w "%s"' % dsInstancePswd)
     </script>
-              
   </function>
   
   
@@ -57,279 +54,268 @@
       This function modifies a property value using dsconfig
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
+        <function-arg-property name="type" value="hostname" />
       </function-arg-def>
-		
+      
       <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>
+        <function-arg-property name="type" value="filepath" />
       </function-arg-def>
-		
-      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      
+      <function-arg-def name="dsInstanceHost" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
-		<function-arg-property name="type" value="hostname"/>
-      </function-arg-def>      
-		
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
       <function-arg-def name="dsInstancePort" type="required">
         <function-arg-description>
           Directory server port number
-        </function-arg-description>		  
-        <function-arg-property name="type" value="Port number"/>
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
       </function-arg-def>
-		
+      
       <function-arg-def name="dsInstanceDn" type="required">
         <function-arg-description>
           Bind DN
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
-      </function-arg-def> 
-		
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePswd" type="required">
         <function-arg-description>
           Bind password
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>          
-		
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
       <function-arg-def name="objectName" type="required">
         <function-arg-description>
           Object to modify, e.g. password validator
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="propertyType" type="required">
         <function-arg-description>
           Property type to modify, e.g. validator
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="propertyName" type="required">
         <function-arg-description>
           Property to modify, e.g. enabled
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="attributeName" type="required">
         <function-arg-description>
           Attribute to modify, e.g. minimum-password-length
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="attributeValue" type="optional" default="'none'">
         <function-arg-description>
           New attribute value
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="modifyType" type="optional" default="'set'">
         <function-arg-description>
           The modify type. Default value is set.
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>			
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
 			
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>			
-	
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
-    
+      
       <!-- Local variables -->
       <script>
         mylocation=location
-        STAFCmdParams=''	
+        STAFCmdParams=''
         STAFCmd=''
-      
+        
         if dsPath:
           dsBinPath='%s/%s' % (dsPath,fileFolder)
           STAFCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
-            
+        
         STAFCmdParamsList=[]
         STAFCmdParamsList.append('set-%s-prop ' % (objectName))
         STAFCmdParamsList.append('--%s-name "%s" ' % (propertyType,propertyName))
-            
+        
         if modifyType == 'reset':
             STAFCmdParamsList.append('--%s %s' % (modifyType,attributeName))
-            
-        else: 
+        else:
             STAFCmdParamsList.append('--%s "%s:%s"' % (modifyType,attributeName,attributeValue))
       </script>
-     
-      <call function="'_dsconfigCommonArgs'"/>
-      
+      <call function="'_dsconfigCommonArgs'" />
       <script>
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
-      
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
-           
-      <process name="'Modify dsconfig object'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-
+      <call function="'runCommand'">
+        { 'name'      : 'Modify dsconfig object',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult
       </script>
-
       <return>
         STAXReason
       </return>
-      
     </sequence>
-    
   </function>
-
-
+  
+  
   <!-- Get property value using dsconfig -->
   <function name="dsconfigGet">
     <function-prolog>
       This function get a property value using dsconfig
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
+        <function-arg-property name="type" value="hostname" />
       </function-arg-def>
-		
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>
+        <function-arg-property name="type" value="filepath" />
       </function-arg-def>
-		
-      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
-		<function-arg-property name="type" value="hostname"/>
-      </function-arg-def>      
-		
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePort" type="required">
         <function-arg-description>
           Directory server port number
-        </function-arg-description>		  
-        <function-arg-property name="type" value="Port number"/>
+        </function-arg-description>
+        <function-arg-property name="type" value="integer" />
       </function-arg-def>
-		
+      
       <function-arg-def name="dsInstanceDn" type="required">
         <function-arg-description>
           Bind DN
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
-      </function-arg-def> 
-		
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePswd" type="required">
         <function-arg-description>
           Bind password
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>          
-		
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
       <function-arg-def name="objectName" type="required">
         <function-arg-description>
           Object to get, e.g. password validator. it's used to make the subcommand name get-...-prop
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="propertyType" type="required">
         <function-arg-description>
           Property type to get, e.g. backend. it's used to make the  property type: --backend-name
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="propertyName" type="required">
         <function-arg-description>
           Property to get, e.g. userroot
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="attributeName" type="required">
         <function-arg-description>
           Attribute to get, e.g. minimum-password-length
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
-
+      
       <function-arg-def name="extraParams" type="optional">
         <function-arg-description>
           Optional extra parameters for specific test cases. ie -M
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
-							
+      
       <function-arg-def name="expectedAttributeValue" type="optional" default="'none'">
         <function-arg-description>
           expected attribute value
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
-		
+      
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>			
-	
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
-    
       <!-- Local variables -->
       <script>
         mylocation=location
-        STAFCmdParams=''	
+        STAFCmdParams=''
         STAFCmd=''
-      
+        
         if dsPath:
           dsBinPath='%s/%s' % (dsPath,fileFolder)
           STAFCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
-            
+        
         STAFCmdParamsList=[]
         STAFCmdParamsList.append('get-%s-prop ' % (objectName))
         STAFCmdParamsList.append('--%s-name "%s" -s' % (propertyType,propertyName))
-            
+        
         STAFCmdParamsList.append('--property "%s"' % (attributeName))
         if extraParams:
-          STAFCmdParamsList.append('%s' % extraParams)		  
+          STAFCmdParamsList.append(extraParams)
       </script>
-     
-      <call function="'_dsconfigCommonArgs'"/>
       
+      <call function="'_dsconfigCommonArgs'" />
       <script>
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
@@ -337,48 +323,37 @@
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
-           
-      <process name="'Get dsconfig object'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-
+      <call function="'runCommand'" >
+        { 'name'      : 'Get dsconfig object',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult[0][1]
       </script>
-
-	  <sequence>
 	    <if expr="expectedAttributeValue == 'none'">
-           <call function="'checktestRC'">
-           { 'returncode' : STAXCode ,
-           'result'     : STAXReason,
-           'expected'   : expectedRC }
-           </call>		
-		 <else>		
-			 <call function="'checktestString'">
-               { 'expectedString'	   : expectedAttributeValue ,
-                  'returnString'	   :  STAXReason}
-	   	     </call>
-		 </else>
-		</if>
-		</sequence>  
+        <call function="'checktestRC'">
+          { 'returncode' : STAXCode,
+            'result'     : STAXReason,
+            'expected'   : expectedRC
+          }
+        </call>
+        <else>
+          <call function="'checktestString'">
+            { 'expectedString'	: expectedAttributeValue,
+              'returnString'	  :  STAXReason
+            }
+          </call>
+        </else>
+      </if>
       <return>
         STAXReason
       </return>
-      
     </sequence>
-    
   </function>
-
   
   
   <!-- generic wrapper on dsconfig -->
@@ -389,144 +364,130 @@
       This function lists, get or set a list of attributes using dsconfig
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
+        <function-arg-property name="type" value="hostname" />
       </function-arg-def>
-		
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>
+        <function-arg-property name="type" value="filepath" />
       </function-arg-def>
-		
-      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      
+      <function-arg-def name="dsInstanceHost" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
-		<function-arg-property name="type" value="hostname"/>
-      </function-arg-def>      
-		
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePort" type="required">
         <function-arg-description>
           Directory server port number
-        </function-arg-description>		  
-        <function-arg-property name="type" value="Port number"/>
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
       </function-arg-def>
-		
+      
       <function-arg-def name="dsInstanceDn" type="required">
         <function-arg-description>
           Bind DN
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
-      </function-arg-def> 
-		
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePswd" type="required">
         <function-arg-description>
           Bind password
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>          
-		
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
       <function-arg-def name="subcommand" type="required">
         <function-arg-description>
           dsconfig subcommand to execute
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="objectType" type="optional">
         <function-arg-description>
           Object type to modify, e.g. backend-name
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="objectName" type="optional">
         <function-arg-description>
           object name  to modify, e.g. userroot
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="optionsString" type="optional">
         <function-arg-description>
           String containing  the dsconfig options.  e.g. --set enabled:true --set key-store-pin:servercert
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 					
       <function-arg-def name="expectedRC" type="optional" default="0">
-      <function-arg-description>
-        Expected return code value. Default value is 0
-      </function-arg-description>
-      <function-arg-property name="type" value="string"/>
-    </function-arg-def>			
-	
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
-    
       <!-- Local variables -->
       <script>
         mylocation=location
-        STAFCmdParams=''	
+        STAFCmdParams=''
         STAFCmd=''
-      
+        
         if dsPath:
           dsBinPath='%s/%s' % (dsPath,fileFolder)
           STAFCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
-            
+        
         STAFCmdParamsList=[]
-        STAFCmdParamsList.append('%s' % (subcommand))
+        STAFCmdParamsList.append(subcommand)
         if objectType:
           STAFCmdParamsList.append('--%s "%s" ' % (objectType,objectName))		  
         if optionsString:
-          STAFCmdParamsList.append(' %s' % (optionsString))
+          STAFCmdParamsList.append(' %s' % optionsString)
       </script>
-     
-      <call function="'_dsconfigCommonArgs'"/>
-      
+      <call function="'_dsconfigCommonArgs'" />
       <script>
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
-      
-      <message>
-        '%s %s' % (STAFCmd, STAFCmdParams)
-      </message>
-           
-      <process name="'execute dsconfig subcommand'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-				
+      <call function="'runCommand'">
+        { 'name'      : 'execute dsconfig subcommand',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult
       </script>
-				
       <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
+        { 'returncode' : STAXCode,
           'result'     : STAXReason,
-          'expected'   : expectedRC }
-      </call>		
-
+          'expected'   : expectedRC
+        }
+      </call>
       <return>
         STAXReason
       </return>
-      
     </sequence>
-    
   </function>	
 	
   <!-- Modify password policy using dsconfig -->
@@ -535,345 +496,342 @@
       This function modifies a password policy using dsconfig
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
+        <function-arg-property name="type" value="hostname" />
       </function-arg-def>
-		
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>
+        <function-arg-property name="type" value="filepath" />
       </function-arg-def>
-		
-      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
-		<function-arg-property name="type" value="hostname"/>
-      </function-arg-def>      
-		
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePort" type="required">
         <function-arg-description>
           Directory server port number
-        </function-arg-description>		  
-        <function-arg-property name="type" value="Port number"/>
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
       </function-arg-def>
 		
       <function-arg-def name="dsInstanceDn" type="required">
         <function-arg-description>
           Bind DN
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
-      </function-arg-def> 
-		
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePswd" type="required">
         <function-arg-description>
           Bind password
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>          
-		
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
       <function-arg-def name="propertyName" type="required">
         <function-arg-description>
           Property to modify, e.g. enabled
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="attributeName" type="required">
         <function-arg-description>
           Attribute to modify, e.g. minimum-password-length
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="attributeValue" type="optional" default="'none'">
         <function-arg-description>
           New attribute value
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="modifyType" type="optional" default="'set'">
         <function-arg-description>
           The modify type. Default value is set.
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>			
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
 			
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>			
-	
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
-    
-    <call function="'dsconfigSet'">
-      { 'location'               : '%s' % location ,
-        'dsPath'                 : '%s' % dsPath ,
-        'dsInstanceHost'         : '%s' % dsInstanceHost ,
-        'dsInstancePort'         : '%s' % dsInstancePort ,
-        'dsInstanceDn'           : '%s' % dsInstanceDn ,
-        'dsInstancePswd'         : '%s' % dsInstancePswd ,
-        'objectName'             : 'password-policy' ,
-        'propertyType'           : 'policy' ,
-        'propertyName'           : '%s' % (propertyName) ,
-        'attributeName'          : '%s' % (attributeName) ,
-        'attributeValue'         : '%s' % (attributeValue) ,
-        'modifyType'             : '%s' % (modifyType) ,
-        'expectedRC'             : expectedRC }
-    </call>
-        
-    <call function="'checktestRC'">
-      { 'returncode' : STAXCode ,
-        'result'     : STAXReason ,
-        'expected'   : expectedRC }
-    </call>
-
-    <return>
+      <call function="'dsconfigSet'">
+        { 'location'               : location,
+          'dsPath'                 : dsPath,
+          'dsInstanceHost'         : dsInstanceHost,
+          'dsInstancePort'         : dsInstancePort,
+          'dsInstanceDn'           : dsInstanceDn,
+          'dsInstancePswd'         : dsInstancePswd,
+          'objectName'             : 'password-policy',
+          'propertyType'           : 'policy',
+          'propertyName'           : propertyName,
+          'attributeName'          : attributeName,
+          'attributeValue'         : attributeValue,
+          'modifyType'             : modifyType,
+          'expectedRC'             : expectedRC
+        }
+      </call>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode,
+          'result'     : STAXReason,
+          'expected'   : expectedRC
+        }
+      </call>
+      <return>
         STAXReason
-    </return>
-      
+      </return>
    </sequence>
-    
   </function>
-
+  
+  
   <!-- Modify password validator using dsconfig -->
   <function name="modifyPwdValidator">
     <function-prolog>
       This function modifies a password validator using dsconfig
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" 
+                        type="optional" 
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
+        <function-arg-property name="type" value="hostname" />
       </function-arg-def>
-		
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>
+        <function-arg-property name="type" value="filepath" />
       </function-arg-def>
-		
-      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
-		<function-arg-property name="type" value="hostname"/>
-      </function-arg-def>      
-		
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePort" type="required">
         <function-arg-description>
           Directory server port number
-        </function-arg-description>		  
-        <function-arg-property name="type" value="Port number"/>
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
       </function-arg-def>
-		
+      
       <function-arg-def name="dsInstanceDn" type="required">
         <function-arg-description>
           Bind DN
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
-      </function-arg-def> 
-		
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePswd" type="required">
         <function-arg-description>
           Bind password
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>          
-		
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
       <function-arg-def name="propertyName" type="required">
         <function-arg-description>
           Property to modify, e.g. enabled
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="attributeName" type="required">
         <function-arg-description>
           Attribute to modify, e.g. match-attribute
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="attributeValue" type="optional" default="'none'">
         <function-arg-description>
           New attribute value
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="modifyType" type="optional" default="'set'">
         <function-arg-description>
           The modify type. Default value is set.
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>			
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
 			
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>			
-	
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
-    
-    <call function="'dsconfigSet'">
-      { 'location'               : '%s' % location ,
-        'dsPath'                 : '%s' % dsPath ,
-        'dsInstanceHost'         : '%s' % dsInstanceHost ,
-        'dsInstancePort'         : '%s' % dsInstancePort ,
-        'dsInstanceDn'           : '%s' % dsInstanceDn ,
-        'dsInstancePswd'         : '%s' % dsInstancePswd ,
-        'objectName'             : 'password-validator' ,
-        'propertyType'           : 'validator' ,
-        'propertyName'           : '%s' % (propertyName) ,
-        'attributeName'          : '%s' % (attributeName) ,
-        'attributeValue'         : '%s' % (attributeValue) ,
-        'modifyType'             : '%s' % (modifyType) ,
-        'expectedRC'             : expectedRC }
-    </call>
-        
-    <call function="'checktestRC'">
-      { 'returncode' : STAXCode ,
-        'result'     : STAXReason ,
-        'expected'   : expectedRC }
-    </call>
-
-    <return>
+      <call function="'dsconfigSet'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : dsInstanceHost,
+          'dsInstancePort' : dsInstancePort,
+          'dsInstanceDn'   : dsInstanceDn,
+          'dsInstancePswd' : dsInstancePswd,
+          'objectName'     : 'password-validator',
+          'propertyType'   : 'validator',
+          'propertyName'   : propertyName,
+          'attributeName'  : attributeName,
+          'attributeValue' : attributeValue,
+          'modifyType'     : modifyType,
+          'expectedRC'     : expectedRC
+        }
+      </call>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode,
+          'result'     : STAXReason,
+          'expected'   : expectedRC
+        }
+      </call>
+      <return>
         STAXReason
-    </return>
-      
+      </return>
    </sequence>
-    
   </function>
-
+  
+  
   <!-- Modify password policy using dsconfig -->
   <function name="modifyGlobal">
     <function-prolog>
       This function modifies a global attribute value using dsconfig
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
+        <function-arg-property name="type" value="hostname" />
       </function-arg-def>
-		
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>
+        <function-arg-property name="type" value="filepath" />
       </function-arg-def>
-		
-      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
-		<function-arg-property name="type" value="hostname"/>
-      </function-arg-def>      
-		
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePort" type="required">
         <function-arg-description>
           Directory server port number
         </function-arg-description>		  
-        <function-arg-property name="type" value="Port number"/>
+        <function-arg-property name="type" value="integer" />
       </function-arg-def>
-		
+      
       <function-arg-def name="dsInstanceDn" type="required">
         <function-arg-description>
           Bind DN
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
-      </function-arg-def> 
-		
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePswd" type="required">
         <function-arg-description>
           Bind password
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>          
-		
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
       <function-arg-def name="attributeName" type="required">
         <function-arg-description>
           Attribute to modify, e.g. bind-with-dn-requires-password
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="attributeValue" type="required">
         <function-arg-description>
           New attribute value
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="expectedRC" type="optional" default="0">
-      <function-arg-description>
-	 Expected return code value. Default value is 0
-      </function-arg-description>
-      <function-arg-property name="type" value="string"/>
-    </function-arg-def>			
-	
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
-    
       <!-- Local variables -->
       <script>
         mylocation=location
         STAFCmdParams=''	
-        STAFCmd=''			  	
-      
+        STAFCmd=''
+        
         if dsPath:
           dsBinPath='%s/%s' % (dsPath,fileFolder)
           STAFCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
-
+        
         if attributeValue:
             attributeValue=attributeValue.replace('"','QUOT')
-            
+        
         STAFCmdParamsList=[]
         STAFCmdParamsList.append('set-global-configuration-prop ')
         STAFCmdParamsList.append('--set "%s:%s"' % (attributeName,attributeValue))
       </script>
-     
-      <call function="'_dsconfigCommonArgs'"/>
-      
+      <call function="'_dsconfigCommonArgs'" />
       <script>
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
-      
-      <message>
-        '%s %s' % (STAFCmd, STAFCmdParams)
-      </message>
-           
-      <process name="'Modify dsconfig object'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-
+      <call function="'runCommand'">
+        { 'name'      : 'Modify dsconfig object',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult
@@ -886,370 +844,368 @@
       <return>
         STAXReason
       </return>
-      
     </sequence>
-    
   </function>
-
+  
+  
   <!-- Modify identity mapper using dsconfig -->
   <function name="modifyIdentityMapper">
     <function-prolog>
       This function modifies an identity mapper using dsconfig
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
+        <function-arg-property name="type" value="hostname" />
       </function-arg-def>
-		
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>
+        <function-arg-property name="type" value="filepath" />
       </function-arg-def>
-		
-      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
-		<function-arg-property name="type" value="hostname"/>
-      </function-arg-def>      
-		
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePort" type="required">
         <function-arg-description>
           Directory server port number
         </function-arg-description>		  
-        <function-arg-property name="type" value="Port number"/>
+        <function-arg-property name="type" value="integer" />
       </function-arg-def>
-		
+      
       <function-arg-def name="dsInstanceDn" type="required">
         <function-arg-description>
           Bind DN
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
-      </function-arg-def> 
-		
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePswd" type="required">
         <function-arg-description>
           Bind password
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>          
-		
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
       <function-arg-def name="mapperName" type="required">
         <function-arg-description>
           Mapper to modify, e.g. Exact Match
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="attributeName" type="required">
         <function-arg-description>
           Attribute to modify, e.g. match-attribute
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="attributeValue" type="required">
         <function-arg-description>
           New attribute value
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="modifyType" type="optional" default="'set'">
         <function-arg-description>
           The modify type. Default value is set.
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>			
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
 			
       <function-arg-def name="expectedRC" type="optional" default="0">
-      <function-arg-description>
-	 Expected return code value. Default value is 0
-      </function-arg-description>
-      <function-arg-property name="type" value="string"/>
-    </function-arg-def>			
-	
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
-    
-    <call function="'dsconfigSet'">
-      { 'location'               : '%s' % location ,
-        'dsPath'                 : '%s' % dsPath ,
-        'dsInstanceHost'         : '%s' % dsInstanceHost ,
-        'dsInstancePort'         : '%s' % dsInstancePort ,
-        'dsInstanceDn'           : '%s' % dsInstanceDn ,
-        'dsInstancePswd'         : '%s' % dsInstancePswd ,
-        'objectName'             : 'identity-mapper' ,
-        'propertyType'           : 'mapper' ,
-        'propertyName'           : '%s' % (mapperName) ,
-        'attributeName'          : '%s' % (attributeName) ,
-        'attributeValue'         : '%s' % (attributeValue) ,
-        'modifyType'             : '%s' % (modifyType) ,
-        'expectedRC'             : expectedRC }
-    </call>
-            
-    <call function="'checktestRC'">
-      { 'returncode' : STAXCode ,
-        'result'     : STAXReason ,
-        'expected'   : expectedRC }
-    </call>
-    <return>
+      <call function="'dsconfigSet'">
+        { 'location'               : location,
+          'dsPath'                 : dsPath,
+          'dsInstanceHost'         : dsInstanceHost,
+          'dsInstancePort'         : dsInstancePort,
+          'dsInstanceDn'           : dsInstanceDn,
+          'dsInstancePswd'         : dsInstancePswd,
+          'objectName'             : 'identity-mapper',
+          'propertyType'           : 'mapper',
+          'propertyName'           : mapperName,
+          'attributeName'          : attributeName,
+          'attributeValue'         : attributeValue,
+          'modifyType'             : modifyType,
+          'expectedRC'             : expectedRC
+        }
+      </call>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode,
+          'result'     : STAXReason,
+          'expected'   : expectedRC
+        }
+      </call>
+      <return>
         STAXReason
-    </return>
-      
+      </return>
    </sequence>
-    
   </function>
-
+  
+  
   <!-- Modify password policy using dsconfig -->
   <function name="modifyGlobalAci">
     <function-prolog>
       This function modifies a global aci using dsconfig
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
+        <function-arg-property name="type" value="hostname" />
       </function-arg-def>
-		
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>
+        <function-arg-property name="type" value="filepath" />
       </function-arg-def>
-		
-      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
-		<function-arg-property name="type" value="hostname"/>
-      </function-arg-def>      
-		
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePort" type="required">
         <function-arg-description>
           Directory server port number
-        </function-arg-description>		  
-        <function-arg-property name="type" value="Port number"/>
+        </function-arg-description>
+        <function-arg-property name="type" value="integer" />
       </function-arg-def>
-		
+      
       <function-arg-def name="dsInstanceDn" type="required">
         <function-arg-description>
           Bind DN
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
-      </function-arg-def> 
-		
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePswd" type="required">
         <function-arg-description>
           Bind password
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>          
-		
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
       <function-arg-def name="aciValue" type="required">
         <function-arg-description>
           New property value
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="opType" type="optional" default="set">
         <function-arg-description>
           Operation type, one of set, add, and remove
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="expectedRC" type="optional" default="0">
-      <function-arg-description>
-	 Expected return code value. Default value is 0
-      </function-arg-description>
-      <function-arg-property name="type" value="string"/>
-    </function-arg-def>			
-	
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
-    
-    <script>
+      <script>
         mylocation=location
-        STAFCmdParams=''	
-        STAFCmd=''			  	
-      
+        STAFCmdParams=''
+        STAFCmd=''
+        
         if dsPath:
           dsBinPath='%s/%s' % (dsPath,fileFolder)
           STAFCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
-
+        
         if aciValue:
             aciValue=aciValue.replace('"','\\"')
-      
+        
         STAFCmdParamsList=[]
         STAFCmdParamsList.append('set-access-control-handler-prop ')
         STAFCmdParamsList.append('--%s "global-aci:%s"' % (opType,aciValue))
       </script>
-     
-      <call function="'_dsconfigCommonArgs'"/>
-      
+      <call function="'_dsconfigCommonArgs'" />
       <script>
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
-      
-      <message>
-        '%s %s' % (STAFCmd, STAFCmdParams)
-      </message>
-           
-      <process name="'Modify dsconfig object'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-
+      <call function="'runCommand'">
+        { 'name' : 'Modify dsconfig object',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult
       </script>
-      
       <call function="'checktestRC'">
-          { 'returncode' : STAXCode ,
-            'result'     : STAXReason ,
-            'expected'   : expectedRC }
+        { 'returncode' : STAXCode,
+          'result'     : STAXReason,
+          'expected'   : expectedRC
+        }
       </call>
-    <return>
+      <return>
         STAXReason
-    </return>
-      
+      </return>
     </sequence>
-    
   </function>
+  
+  
   <!-- Modify password policy using dsconfig -->
   <function name="modifySaslMech">
     <function-prolog>
       This function modifies a sasl  mechanism using dsconfig
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
+        <function-arg-property name="type" value="hostname" />
       </function-arg-def>
-		
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>
+        <function-arg-property name="type" value="filepath" />
       </function-arg-def>
-		
-      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
-		<function-arg-property name="type" value="hostname"/>
-      </function-arg-def>      
-		
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePort" type="required">
         <function-arg-description>
           Directory server port number
-        </function-arg-description>		  
-        <function-arg-property name="type" value="Port number"/>
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
       </function-arg-def>
-		
+      
       <function-arg-def name="dsInstanceDn" type="required">
         <function-arg-description>
           Bind DN
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
-      </function-arg-def> 
-		
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePswd" type="required">
         <function-arg-description>
           Bind password
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>          
-		
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
       <function-arg-def name="handlerName" type="required">
         <function-arg-description>
           Handle to modify, e.g. DIGEST-MD5
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="propertyName" type="required">
         <function-arg-description>
           Property to modify, e.g. realm
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="propertyValue" type="required">
         <function-arg-description>
           New property value
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="modifyType" type="optional" default="'set'">
         <function-arg-description>
           The modify type. Default value is set.
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>			
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
 			
       <function-arg-def name="expectedRC" type="optional" default="0">
-      <function-arg-description>
-	 Expected return code value. Default value is 0
-      </function-arg-description>
-      <function-arg-property name="type" value="string"/>
-    </function-arg-def>			
-	
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
-    
-    <call function="'dsconfigSet'">
-      { 'location'               : '%s' % location ,
-        'dsPath'                 : '%s' % dsPath ,
-        'dsInstanceHost'         : '%s' % dsInstanceHost ,
-        'dsInstancePort'         : '%s' % dsInstancePort ,
-        'dsInstanceDn'           : '%s' % dsInstanceDn ,
-        'dsInstancePswd'         : '%s' % dsInstancePswd ,
-        'objectName'             : 'sasl-mechanism-handler' ,
-        'propertyType'           : 'handler' ,
-        'propertyName'           : '%s' % (handlerName) ,
-        'attributeName'          : '%s' % (propertyName) ,
-        'attributeValue'         : '%s' % (propertyValue) ,
-        'modifyType'             : '%s' % (modifyType) ,
-        'expectedRC'             : expectedRC }
-    </call>
-            
-    <call function="'checktestRC'">
-      { 'returncode' : STAXCode ,
-        'result'     : STAXReason ,
-        'expected'   : expectedRC }
-    </call>
-    <return>
+      <call function="'dsconfigSet'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : dsInstanceHost,
+          'dsInstancePort' : dsInstancePort,
+          'dsInstanceDn'   : dsInstanceDn,
+          'dsInstancePswd' : dsInstancePswd,
+          'objectName'     : 'sasl-mechanism-handler',
+          'propertyType'   : 'handler',
+          'propertyName'   : handlerName,
+          'attributeName'  : propertyName,
+          'attributeValue' : propertyValue,
+          'modifyType'     : modifyType,
+          'expectedRC'     : expectedRC
+        }
+      </call>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode,
+          'result'     : STAXReason,
+          'expected'   : expectedRC
+        }
+      </call>
+      <return>
         STAXReason
-    </return>
-      
+      </return>
     </sequence>
-    
   </function>
-
+  
+  
   <function name="addIndex">
     <function-prolog>
       This function eases adding JEB DB indexes
@@ -1257,11 +1213,11 @@
     <function-map-args>
       <function-arg-def name="location" 
                         type="optional" 
-                        default="'%s' % STAF_REMOTE_HOSTNAME">
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
+        <function-arg-property name="type" value="hostname" />
       </function-arg-def>
 		
       <function-arg-def name="dsPath" 
@@ -1270,47 +1226,47 @@
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>
+        <function-arg-property name="type" value="filepath" />
       </function-arg-def>
 		
       <function-arg-def name="host" 
                         type="optional" 
-                        default="'%s' % STAF_REMOTE_HOSTNAME">
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
+        <function-arg-property name="type" value="hostname" />
       </function-arg-def>      
 		
       <function-arg-def name="port" 
                         type="optional" 
-                        default="'%s' % DIRECTORY_INSTANCE_PORT">
+                        default="DIRECTORY_INSTANCE_PORT">
         <function-arg-description>
           Directory server port number
         </function-arg-description>		  
-        <function-arg-property name="type" value="Port number"/>
+        <function-arg-property name="type" value="Port number" />
       </function-arg-def>
 		
       <function-arg-def name="rootDN" 
                         type="optional" 
-                        default="'%s' % DIRECTORY_INSTANCE_DN">
+                        default="DIRECTORY_INSTANCE_DN">
         <function-arg-description>
           Bind DN
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
+        <function-arg-property name="type" value="DN" />
       </function-arg-def> 
 		
       <function-arg-def name="rootPwd" 
                         type="optional" 
-                        default="'%s' % DIRECTORY_INSTANCE_PSWD">
+                        default="DIRECTORY_INSTANCE_PSWD">
         <function-arg-description>
           Bind password
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
       
       <function-arg-def name="backendID" 
-                        default="'%s' % DIRECTORY_INSTANCE_BE" 
+                        default="DIRECTORY_INSTANCE_BE" 
                         type="optional">
         <function-arg-description>
           The Back-end ID on to which to add an index
@@ -1321,7 +1277,7 @@
         <function-arg-description>
           ldap attribute on to which to add indexing
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="indexTypes" type="required">
@@ -1334,10 +1290,10 @@
           <function-arg-property-description>
             This argument can only have one of those values
           </function-arg-property-description>
-          <function-arg-property-data type="choice" value="'equality'"/>
-          <function-arg-property-data type="choice" value="'ordering'"/>
+          <function-arg-property-data type="choice" value="'equality'" />
+          <function-arg-property-data type="choice" value="'ordering'" />
           <function-arg-property-data type="choice" value="'presence'" />
-          <function-arg-property-data type="choice" value="'substring'"/>
+          <function-arg-property-data type="choice" value="'substring'" />
         </function-arg-property>
       </function-arg-def>
     </function-map-args>
@@ -1350,30 +1306,17 @@
         dsconfigCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
         dsconfigParams = 'create-je-index -h %s -p %s -D "%s" -w %s --backend-name %s --index-name %s --set index-type:%s' % (host,port,rootDN,rootPwd,backendID, indexAttribute, ' --set index-type:'.join(indexTypes))
       </script>
-     
-      <call function="'_dsconfigCommonArgs'"/>
-            
-      <message>
-        'Running [%s %s]' % (dsconfigCmd, dsconfigParams)
-      </message>
-           
-      <process name="'dsconfig addIndex'">
-        <location>'%s' % location</location>
-        <command>'%s' % dsconfigCmd</command>
-        <parms>'%s' % dsconfigParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-      <message>
-        '%s returned [%s] with [%s]' % (dsconfigCmd, RC,STAXResult)
-      </message>
+      
+      <call function="'_dsconfigCommonArgs'" />
+      <call function="'runCommand'">
+        { 'name'      : 'dsconfig addIndex',
+          'location'  : location,
+          'command'   : dsconfigCmd,
+          'arguments' : dsconfigParams
+        }
+      </call>
       <return>
-        RC, STAXResult
+        STAXResult
       </return>
     </sequence>
   </function>
@@ -1386,11 +1329,11 @@
     <function-map-args>
       <function-arg-def name="location" 
                         type="optional" 
-                        default="'%s' % STAF_REMOTE_HOSTNAME">
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
+        <function-arg-property name="type" value="hostname" />
       </function-arg-def>
 		
       <function-arg-def name="dsPath" 
@@ -1399,47 +1342,47 @@
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>
+        <function-arg-property name="type" value="filepath" />
       </function-arg-def>
 		
       <function-arg-def name="host" 
                         type="optional" 
-                        default="'%s' % STAF_REMOTE_HOSTNAME">
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
+        <function-arg-property name="type" value="hostname" />
       </function-arg-def>      
 		
       <function-arg-def name="port" 
                         type="optional" 
-                        default="'%s' % DIRECTORY_INSTANCE_PORT">
+                        default="DIRECTORY_INSTANCE_PORT">
         <function-arg-description>
           Directory server port number
         </function-arg-description>		  
-        <function-arg-property name="type" value="Port number"/>
+        <function-arg-property name="type" value="Port number" />
       </function-arg-def>
 		
       <function-arg-def name="rootDN" 
                         type="optional" 
-                        default="'%s' % DIRECTORY_INSTANCE_DN">
+                        default="DIRECTORY_INSTANCE_DN">
         <function-arg-description>
           Bind DN
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
+        <function-arg-property name="type" value="DN" />
       </function-arg-def> 
 		
       <function-arg-def name="rootPwd" 
                         type="optional" 
-                        default="'%s' % DIRECTORY_INSTANCE_PSWD">
+                        default="DIRECTORY_INSTANCE_PSWD">
         <function-arg-description>
           Bind password
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
       
       <function-arg-def name="backendID" 
-                        default="'%s' % DIRECTORY_INSTANCE_BE" 
+                        default="DIRECTORY_INSTANCE_BE" 
                         type="optional">
         <function-arg-description>
           The Back-end ID on to which to add an index
@@ -1450,7 +1393,7 @@
         <function-arg-description>
           ldap attribute on to which add indexing
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="operation">
@@ -1462,9 +1405,9 @@
             This argument can only have one of the following values
           </function-arg-property-description>
           <function-arg-property-data type="choice" value="'add'" />
-          <function-arg-property-data type="choice" value="'remove'"/>
-          <function-arg-property-data type="choice" value="'reset'"/>
-          <function-arg-property-data type="choice" value="'set'"/>
+          <function-arg-property-data type="choice" value="'remove'" />
+          <function-arg-property-data type="choice" value="'reset'" />
+          <function-arg-property-data type="choice" value="'set'" />
         </function-arg-property>
       
       </function-arg-def> 
@@ -1473,13 +1416,13 @@
         <function-arg-description>
           the property to manipulate if the operation is add or set
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
       <function-arg-def name="indexPropertyValue" type="optional">
         <function-arg-description>
           the value for the provided property
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -1494,27 +1437,16 @@
           operationArguments = '%s:%s' % (indexProperty, indexPropertyValue)
         dsconfigParams = 'set-je-index-prop -h %s -p %s -D "%s" -w %s --backend-name %s --index-name %s --%s %s' % ( host, port, rootDN, rootPwd, backendID, indexAttribute, operation, operationArguments )
       </script>
-     
-      <call function="'_dsconfigCommonArgs'"/>
-            
-      <message>
-        '%s %s' % (dsconfigCmd, dsconfigParams)
-      </message>
-           
-      <process name="'dsconfig modifyIndex'">
-        <location>'%s' % location</location>
-        <command>'%s' % dsconfigCmd</command>
-        <parms>'%s' % dsconfigParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      <call function="'_dsconfigCommonArgs'" />
+      <call function="'runCommand'">
+        { 'name'      : 'dsconfig modifyIndex',
+          'location'  : location,
+          'command'   : dsconfigCmd,
+          'arguments' : dsconfigParams
+        }
+      </call>
       <return>
-        STAXReason
+        STAXResult
       </return>
     </sequence>
   </function>
@@ -1527,11 +1459,11 @@
     <function-map-args>
       <function-arg-def name="location" 
                         type="optional" 
-                        default="'%s' % STAF_REMOTE_HOSTNAME">
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
+        <function-arg-property name="type" value="hostname" />
       </function-arg-def>
 		
       <function-arg-def name="dsPath" 
@@ -1540,60 +1472,59 @@
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>
+        <function-arg-property name="type" value="filepath" />
       </function-arg-def>
 		
       <function-arg-def name="host" 
                         type="optional" 
-                        default="'%s' % STAF_REMOTE_HOSTNAME">
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
+        <function-arg-property name="type" value="hostname" />
       </function-arg-def>      
 		
       <function-arg-def name="port" 
                         type="optional" 
-                        default="'%s' % DIRECTORY_INSTANCE_PORT">
+                        default="DIRECTORY_INSTANCE_PORT">
         <function-arg-description>
           Directory server port number
         </function-arg-description>		  
-        <function-arg-property name="type" value="Port number"/>
+        <function-arg-property name="type" value="Port number" />
       </function-arg-def>
 		
       <function-arg-def name="rootDN" 
                         type="optional" 
-                        default="'%s' % DIRECTORY_INSTANCE_DN">
+                        default="DIRECTORY_INSTANCE_DN">
         <function-arg-description>
           Bind DN
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
+        <function-arg-property name="type" value="DN" />
       </function-arg-def> 
 		
       <function-arg-def name="rootPwd" 
                         type="optional" 
-                        default="'%s' % DIRECTORY_INSTANCE_PSWD">
+                        default="DIRECTORY_INSTANCE_PSWD">
         <function-arg-description>
           Bind password
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
       
       <function-arg-def name="backendID" 
-                        default="'%s' % DIRECTORY_INSTANCE_BE" 
+                        default="DIRECTORY_INSTANCE_BE" 
                         type="optional">
         <function-arg-description>
           The Back-end ID on to which to remove an index from
         </function-arg-description>
       </function-arg-def>
-					
+      
       <function-arg-def name="indexAttribute" type="required">
         <function-arg-description>
           ldap attribute on to which to remove indexing
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
     </function-map-args>
     <sequence>
       <!-- Local variables -->
@@ -1604,470 +1535,428 @@
         dsconfigCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
         dsconfigParams = 'delete-je-index -h %s -p %s -D "%s" -w %s --backend-name %s --index-name %s' % (host,port,rootDN,rootPwd,backendID, indexAttribute)
       </script>
-     
-      <call function="'_dsconfigCommonArgs'"/>
-            
-      <message>
-        'Running [%s %s]' % (dsconfigCmd, dsconfigParams)
-      </message>
-           
-      <process name="'dsconfig removeIndex'">
-        <location>'%s' % location</location>
-        <command>'%s' % dsconfigCmd</command>
-        <parms>'%s' % dsconfigParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-      <message>
-        '%s returned [%s] with [%s]' % (dsconfigCmd, RC,STAXResult)
-      </message>
+      <call function="'_dsconfigCommonArgs'" />
+      <call function="'runCommand'">
+        { 'name'      : 'dsconfig removeIndex',
+          'location'  : location,
+          'command'   : dsconfigCmd,
+          'arguments' : dsconfigParams
+        }
+      </call>
       <return>
-        RC, STAXResult
+        STAXResult
       </return>
     </sequence>
   </function>
-
-    
+  
+  
   <!-- Create synchronization provider using dsconfig -->
   <function name="createSyncProvider">
     <function-prolog>
       This function creates a synchronization provider using dsconfig
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
+        <function-arg-property name="type" value="hostname" />
       </function-arg-def>
-		
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>
+        <function-arg-property name="type" value="filepath" />
       </function-arg-def>
-		
-      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
-		<function-arg-property name="type" value="hostname"/>
-      </function-arg-def>      
-		
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePort" type="required">
         <function-arg-description>
           Directory server port number
-        </function-arg-description>		  
-        <function-arg-property name="type" value="Port number"/>
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
       </function-arg-def>
-		
+      
       <function-arg-def name="dsInstanceDn" type="required">
         <function-arg-description>
           Bind DN
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
-      </function-arg-def> 
-		
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePswd" type="required">
         <function-arg-description>
           Bind password
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>          
-		
-      <function-arg-def name="providerName" type="optional" default="MultimasterSync">
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
+      <function-arg-def name="providerName"
+                        type="optional"
+                        default="MultimasterSync">
         <function-arg-description>
           Name for the synchronization provider
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
-      <function-arg-def name="providerType" type="optional" default="MultimasterType">
+      <function-arg-def name="providerType"
+                        type="optional"
+                        default="MultimasterType">
         <function-arg-description>
           Synchronization provider type
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
 	      Expected return code value. Default value is 0
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>			
-	
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
-    
       <!-- Local variables -->
       <script>
         mylocation=location
-        STAFCmdParams=''	
-        STAFCmd=''			  	
-      
+        STAFCmdParams=''
+        STAFCmd=''
+        
         if dsPath:
           dsBinPath='%s/%s' % (dsPath,fileFolder)
           STAFCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
-
-            
+        
         STAFCmdParamsList=[]
         STAFCmdParamsList.append('create-synchronization-provider')
         STAFCmdParamsList.append('--provider-name "%s"' % providerName)
         STAFCmdParamsList.append('-t %s' % providerType)
         STAFCmdParamsList.append('--set "enabled:true"')
       </script>
-     
-      <call function="'_dsconfigCommonArgs'"/>
-      
+      <call function="'_dsconfigCommonArgs'" />
       <script>
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
-      
-      <message>
-        '%s %s' % (STAFCmd, STAFCmdParams)
-      </message>
-           
-      <process name="'Modify dsconfig object'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-
+      <call function="'runCommand'">
+        { 'name'      : 'Modify dsconfig object',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult
       </script>
       <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason ,
-          'expected'   : expectedRC }
+        { 'returncode' : STAXCode,
+          'result'     : STAXReason,
+          'expected'   : expectedRC
+        }
       </call>
       <return>
         STAXReason
       </return>
-      
     </sequence>
-    
   </function>
-    
-
-
-
-
+  
+  
   <!-- Create a replication server using dsconfig -->
   <function name="createReplicationServer">
     <function-prolog>
       This function creates a replication server under a given synchronization provider using dsconfig
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
+        <function-arg-property name="type" value="hostname" />
       </function-arg-def>
-		
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>
+        <function-arg-property name="type" value="filepath" />
       </function-arg-def>
-		
-      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
-		<function-arg-property name="type" value="hostname"/>
-      </function-arg-def>      
-		
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePort" type="required">
         <function-arg-description>
           Directory server port number
-        </function-arg-description>		  
-        <function-arg-property name="type" value="Port number"/>
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
       </function-arg-def>
-		
+      
       <function-arg-def name="dsInstanceDn" type="required">
         <function-arg-description>
           Bind DN
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
-      </function-arg-def> 
-		
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePswd" type="required">
         <function-arg-description>
           Bind password
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>          
-		
-      <function-arg-def name="providerName" type="optional" default="MultimasterSync">
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
+      <function-arg-def name="providerName"
+                        type="optional"
+                        default="MultimasterSync">
         <function-arg-description>
           Name for the synchronization provider
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
 			
       <function-arg-def name="replicationPort" type="required">
         <function-arg-description>
           Replication port number
         </function-arg-description>
-        <function-arg-property name="type" value="Port number"/>
+        <function-arg-property name="type" value="Port number" />
       </function-arg-def>
-        
+      
       <function-arg-def name="replicationServerId" type="required">
         <function-arg-description>
           Replication server ID
         </function-arg-description>
-        <function-arg-property name="type" value="ID number"/>
-      </function-arg-def>        
-        
+        <function-arg-property name="type" value="ID number" />
+      </function-arg-def>
+      
       <function-arg-def name="replicationServerList" type="required">
         <function-arg-description>
           List of replication servers (as in host:replicationServerPort)
         </function-arg-description>
-        <function-arg-property name="type" value="list"/>
+        <function-arg-property name="type" value="list" />
       </function-arg-def>
 			
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
 	      Expected return code value. Default value is 0
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>			
-	
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
-    
       <!-- Local variables -->
       <script>
         mylocation=location
-        STAFCmdParams=''	
-        STAFCmd=''			  	
-      
+        STAFCmdParams=''
+        STAFCmd=''
+        
         if dsPath:
           dsBinPath='%s/%s' % (dsPath,fileFolder)
           STAFCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
-
-            
+        
         STAFCmdParamsList=[]
         STAFCmdParamsList.append('create-replication-server')
         STAFCmdParamsList.append('--provider-name "%s"' % providerName)
         STAFCmdParamsList.append('--set "replication-port:%s"' % replicationPort)
         STAFCmdParamsList.append('--set "replication-server-id:%s"' % replicationServerId)                    
-
+        
         for replServer in replicationServerList :  
           STAFCmdParamsList.append('--set "replication-server:%s"' % replServer)
       </script>
-     
-      <call function="'_dsconfigCommonArgs'"/>
       
+      <call function="'_dsconfigCommonArgs'" />
       <script>
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
-      
-      <message>
-        '%s %s' % (STAFCmd, STAFCmdParams)
-      </message>
-           
-      <process name="'Modify dsconfig object'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-
+      <call function="'runCommand'">
+        { 'name'      : 'Modify dsconfig object',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult
       </script>
       <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason ,
-          'expected'   : expectedRC }
+        { 'returncode' : STAXCode,
+          'result'     : STAXReason,
+          'expected'   : expectedRC
+        }
       </call> 
       <return>
         STAXReason
       </return>
-      
     </sequence>
-    
-  </function>     
-
-
-
+  </function>
+  
+  
   <!-- Create a multimaster domain using dsconfig -->
   <function name="createMultimasterDomain">
     <function-prolog>
       This function creates a multimaster domain under a given synchronization provider using dsconfig
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
+        <function-arg-property name="type" value="hostname" />
       </function-arg-def>
-		
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>
+        <function-arg-property name="type" value="filepath" />
       </function-arg-def>
-		
-      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
-		<function-arg-property name="type" value="hostname"/>
-      </function-arg-def>      
-		
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePort" type="required">
         <function-arg-description>
           Directory server port number
-        </function-arg-description>		  
-        <function-arg-property name="type" value="Port number"/>
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
       </function-arg-def>
-		
+      
       <function-arg-def name="dsInstanceDn" type="required">
         <function-arg-description>
           Bind DN
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
-      </function-arg-def> 
-		
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      
       <function-arg-def name="dsInstancePswd" type="required">
         <function-arg-description>
           Bind password
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>          
-		
-      <function-arg-def name="providerName" type="optional" default="MultimasterSync">
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
+      <function-arg-def name="providerName"
+                        type="optional"
+                        default="MultimasterSync">
         <function-arg-description>
           Name for the synchronization provider
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
-
+      
       <function-arg-def name="domainName" type="required">
         <function-arg-description>
           Name for multimaster domain
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
+        <function-arg-property name="type" value="string" />
       </function-arg-def>
-        			
+      
       <function-arg-def name="replicationDn" type="required">
         <function-arg-description>
           DN of the replicated suffix
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
+        <function-arg-property name="type" value="DN" />
       </function-arg-def>
-        
+      
       <function-arg-def name="serverId" type="required">
         <function-arg-description>
           Server ID
         </function-arg-description>
-        <function-arg-property name="type" value="ID number"/>
-      </function-arg-def>        
-        
+        <function-arg-property name="type" value="ID number" />
+      </function-arg-def>
+      
       <function-arg-def name="replicationServerList" type="required">
         <function-arg-description>
           List of replication servers (as in host:replicationServerPort)
         </function-arg-description>
-        <function-arg-property name="type" value="list"/>
+        <function-arg-property name="type" value="list" />
       </function-arg-def>
 			
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
 	      Expected return code value. Default value is 0
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>			
-	
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
-    
       <!-- Local variables -->
       <script>
         mylocation=location
         STAFCmdParams=''	
-        STAFCmd=''			  	
-      
+        STAFCmd=''
+        
         if dsPath:
           dsBinPath='%s/%s' % (dsPath,fileFolder)
           STAFCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
-
-            
+        
         STAFCmdParamsList=[]
         STAFCmdParamsList.append('create-multimaster-domain')
         STAFCmdParamsList.append('--provider-name "%s"' % providerName)
         STAFCmdParamsList.append('--domain-name "%s"' % domainName)          
         STAFCmdParamsList.append('--set "replication-dn:%s"' % replicationDn)
         STAFCmdParamsList.append('--set "server-id:%s"' % serverId)                    
-
+        
         for replServer in replicationServerList :  
           STAFCmdParamsList.append('--set "replication-server:%s"' % replServer)
       </script>
-     
-      <call function="'_dsconfigCommonArgs'"/>
-      
+      <call function="'_dsconfigCommonArgs'" />
       <script>
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
-      
-      <message>
-        '%s %s' % (STAFCmd, STAFCmdParams)
-      </message>
-           
-      <process name="'Modify dsconfig object'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-
+      <call function="'runCommand'">
+        { 'name'      : 'Modify dsconfig object',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }
+      </call>
       <script>
         STAXCode=RC
         STAXReason=STAXResult
       </script>
       <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason ,
-          'expected'   : expectedRC }
+        { 'returncode' : STAXCode,
+          'result'     : STAXReason,
+          'expected'   : expectedRC
+        }
       </call>
       <return>
         STAXReason
       </return>
-      
     </sequence>
-    
-  </function>     
+  </function>
 </stax>
