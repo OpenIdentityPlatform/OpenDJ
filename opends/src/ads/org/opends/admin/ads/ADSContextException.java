@@ -154,7 +154,9 @@ public class ADSContextException extends OpenDsException {
   }
 
   /**
-   * {@inheritDoc}
+   * Retrieves a message providing the reason for this exception.
+   *
+   * @return  A message providing the reason for this exception.
    */
   public Message getReason()
   {
