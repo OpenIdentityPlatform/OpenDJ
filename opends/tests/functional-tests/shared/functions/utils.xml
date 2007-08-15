@@ -243,8 +243,41 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="expectedResult" type="optional" default="'2'">
+        <function-arg-description>
+          the expected result, 0 for false (not present), 1 for true (present), 2 for old behavior
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
     </function-map-args>
 
+    <!-- Until all the test cases are refactored to use the expectedResult param,
+         we need this if-else conditional. -->
+    <sequence>
+    <if expr="expectedResult == '2'">   
+        <sequence>
+        <script>
+            searchre = re.compile(testString)
+        </script>
+        <if expr='re.search(searchre, returnString) == None'>
+            <sequence>
+            <script>returnCode='0'</script>
+            <message log="1">
+                'Did Not Find substring, %s, in the return string' % (testString)
+            </message>
+            </sequence>
+            <else>
+            <sequence>
+                <script>returnCode='1'</script>
+                <message log="1">
+                    'Found substring, %s, in the return string' % (testString)
+                </message>
+            </sequence>
+            </else>
+        </if>
+        <return>returnCode</return>
+        </sequence>
+    <else>
     <sequence>
       <script>
         searchre = re.compile(testString)
@@ -252,20 +285,49 @@
       <if expr='re.search(searchre, returnString) == None'>
         <sequence>
           <script>returnCode='0'</script>
-          <message log="1">
-            'Did Not Find substring, %s, in the return string' % (testString)
-          </message>
+          <if expr="expectedResult == '0'">
+              <sequence>
+              <tcstatus result="'pass'"/>
+              <message log="1">
+                'SUCCESS :  Did Not Find substring, %s, in the return string' % (testString)
+              </message>
+              </sequence>
+          <else>
+              <sequence>
+              <tcstatus result="'fail'"/>
+              <message log="1">
+                'ERROR :  Did Not Find substring, %s, in the return string' % (testString)
+              </message>
+              </sequence>
+          </else>
+          </if>
         </sequence>
         <else>
-          <sequence>
-            <script>returnCode='1'</script>
-            <message log="1">
-              'Found substring, %s, in the return string' % (testString)
-            </message>
-          </sequence>
+        <sequence>
+          <script>returnCode='1'</script>
+          <if expr="expectedResult == '1'">
+              <sequence>
+              <tcstatus result="'pass'"/>
+              <message log="1">
+                'SUCCESS :  Found substring, %s, in the return string' % (testString)
+              </message>
+              </sequence>
+          <else>
+              <sequence>
+              <tcstatus result="'fail'"/>
+              <message log="1">
+                'ERROR :  Found substring, %s, in the return string' % (testString)
+              </message>
+              </sequence>
+          </else>
+          </if>
+        </sequence>
         </else>
       </if>
       <return>returnCode</return>
+    </sequence>
+    </else>
+    </if>
     </sequence>
   </function>
   
