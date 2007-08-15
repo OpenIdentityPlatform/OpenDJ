@@ -71,7 +71,7 @@ public class MessageTest extends DirectoryServerTestCase {
   @Test(dataProvider = "rawData1")
   public void testRaw1(String fmt, Category c, Severity s,
                        String result, Object... args) {
-    Message message = Message.raw(fmt, c, s, args);
+    Message message = Message.raw(c, s, fmt, args);
     assert (message.toString().equals(result));
     assert (message.toString(Locale.CHINESE).equals(result));
   }
@@ -91,7 +91,7 @@ public class MessageTest extends DirectoryServerTestCase {
   @Test(dataProvider = "rawData1")
   public void testGetDescriptor(String fmt, Category c, Severity s,
                                 String result, Object... args) {
-    Message message = Message.raw(fmt, c, s, args);
+    Message message = Message.raw(c, s, fmt, args);
     MessageDescriptor desc = message.getDescriptor();
     assert(desc.getCategory().equals(c));
     assert(desc.getSeverity().equals(s));

@@ -250,8 +250,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void cleanConfigEntries()
   {
-    logError(Message.raw("ReplicationTestCase/Cleaning config entries",
-            Category.SYNC, Severity.NOTICE));
+    logError(Message.raw(Category.SYNC, Severity.NOTICE,
+        "ReplicationTestCase/Cleaning config entries"));
 
     DeleteOperationBasis op;
     // Delete entries
@@ -260,8 +260,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       while (true)
       {
         DN dn = configEntryList.removeLast();
-             logError(Message.raw("cleaning config entry " + dn,
-                     Category.SYNC, Severity.NOTICE));
+             logError(Message.raw(Category.SYNC, Severity.NOTICE,
+                 "cleaning config entry " + dn));
 
         op = new DeleteOperationBasis(connection, InternalClientConnection
             .nextOperationID(), InternalClientConnection.nextMessageID(), null,
@@ -279,8 +279,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void cleanRealEntries()
   {
-  	logError(Message.raw("ReplicationTestCase/Cleaning entries",
-            Category.SYNC, Severity.NOTICE));
+  	logError(Message.raw(Category.SYNC, Severity.NOTICE,
+        "ReplicationTestCase/Cleaning entries"));
 
     DeleteOperationBasis op;
     // Delete entries
@@ -289,8 +289,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       while (true)
       {
         DN dn = entryList.removeLast();
-        logError(Message.raw("cleaning entry " + dn,
-                Category.SYNC, Severity.NOTICE));
+        logError(Message.raw(Category.SYNC, Severity.NOTICE,
+            "cleaning entry " + dn));
 
         op = new DeleteOperationBasis(connection, InternalClientConnection
             .nextOperationID(), InternalClientConnection.nextMessageID(), null,
