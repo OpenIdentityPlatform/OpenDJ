@@ -45,7 +45,7 @@
       
           <call function="'testSuite_Preamble'"/>
           
-            <testcase name="'ACI: Modify Filter: ACI 1'">
+            <testcase name="getTestCaseName('ACI 1')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                 <message>

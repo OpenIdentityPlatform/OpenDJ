@@ -33,7 +33,7 @@
 
       <sequence>
 
-        <testcase name="'Security: Pwd Validator: Unique Chars: Preamble'">
+        <testcase name="getTestCaseName('Unique Chars: Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -56,7 +56,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: Unique Chars: password with 3 unique chars'">
+        <testcase name="getTestCaseName('Unique Chars: password with 3 unique chars')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -96,7 +96,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Unique Chars: password with 4 unique chars'">
+        <testcase name="getTestCaseName('Unique Chars: password with 4 unique chars')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -136,7 +136,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Unique Chars: password with 5 unique chars'">
+        <testcase name="getTestCaseName('Unique Chars: password with 5 unique chars')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -174,7 +174,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Unique Chars: cahnge unique chars'">
+        <testcase name="getTestCaseName('Unique Chars: cahnge unique chars')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -197,7 +197,7 @@
           </sequence>
         </testcase>
        
-        <testcase name="'Security: Pwd Validator: Unique Chars: password with 3 unique chars 2'">
+        <testcase name="getTestCaseName('Unique Chars: password with 3 unique chars 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -235,7 +235,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Unique Chars: reset unique chars'">
+        <testcase name="getTestCaseName('Unique Chars: reset unique chars')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -258,7 +258,7 @@
           </sequence>
         </testcase>
        
-        <testcase name="'Security: Pwd Validator: Unique Chars: enable case sensitive chars'">
+        <testcase name="getTestCaseName('Unique Chars: enable case sensitive chars')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -281,7 +281,7 @@
           </sequence>
         </testcase>
        
-        <testcase name="'Security: Pwd Validator: Unique Chars: password with 3 unique chars 3'">
+        <testcase name="getTestCaseName('Unique Chars: password with 3 unique chars 3')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -321,7 +321,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Unique Chars: password with 3 unique case sensitive chars'">
+        <testcase name="getTestCaseName('Unique Chars: password with 3 unique case sensitive chars')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -359,7 +359,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Unique Chars: Postamble'">
+        <testcase name="getTestCaseName('Unique Chars: Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

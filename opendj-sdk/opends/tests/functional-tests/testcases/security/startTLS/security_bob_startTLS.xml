@@ -34,7 +34,7 @@
       <sequence>
 
        <!--- Test Case : Add Entries through StartTLS port -->
-        <testcase name="'Security: TLS: Add Entries'">
+        <testcase name="getTestCaseName('Add Entries')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -56,7 +56,7 @@
         </testcase>
 
         <!--- Test Case : Add Attribute to Entry through StartTLS port -->
-        <testcase name="'Security: TLS: Add Attr To Entry'">
+        <testcase name="getTestCaseName('Add Attr To Entry')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -78,7 +78,7 @@
         </testcase>
 
         <!--- Test Case : Modify Attribute in Entry through StartTLS port -->
-        <testcase name="'Security: TLS: Modify Attr In Entry'">
+        <testcase name="getTestCaseName('Modify Attr In Entry')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -100,7 +100,7 @@
         </testcase>
 
         <!--- Test Case : Delete Entry through StartTLS port -->
-        <testcase name="'Security: TLS: Delete Entry'">
+        <testcase name="getTestCaseName('Delete Entry')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

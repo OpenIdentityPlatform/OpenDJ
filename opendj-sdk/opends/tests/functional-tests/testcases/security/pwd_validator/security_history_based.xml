@@ -33,7 +33,7 @@
 
       <sequence>
 
-        <testcase name="'Security: Pwd Validator: History Based: Preamble'">
+        <testcase name="getTestCaseName('History Based: Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -56,7 +56,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: History Based: user modifying password 1'">
+        <testcase name="getTestCaseName('History Based: user modifying password 1')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -110,7 +110,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: History Based: user modifying password 2'">
+        <testcase name="getTestCaseName('History Based: user modifying password 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -170,7 +170,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: History Based: user modifying password 3'">
+        <testcase name="getTestCaseName('History Based: user modifying password 3')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -230,7 +230,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: History Based: user modifying password 4'">
+        <testcase name="getTestCaseName('History Based: user modifying password 4')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -305,7 +305,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: History Based: Modify password history duration'">
+        <testcase name="getTestCaseName('History Based: Modify password history duration')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -328,7 +328,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: History Based: user modifying password after duration'">
+        <testcase name="getTestCaseName('History Based: user modifying password after duration')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -374,7 +374,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: History Based: Postamble'">
+        <testcase name="getTestCaseName('History Based: Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

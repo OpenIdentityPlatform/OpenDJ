@@ -78,7 +78,7 @@
           -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: RDN Wildcards: Preamble'">
+            <testcase name="getTestCaseName('Preamble')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                 <message>
@@ -198,7 +198,7 @@
                                             for all ldap operations, and
                                             and entry is returned only for the last step.
             -->
-            <testcase name="'ACI: RDN Wildcards: DN with whole-type wildcard, single entry'">
+            <testcase name="getTestCaseName('DN with whole-type wildcard, single entry')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -314,7 +314,7 @@
                                             are returned in step 2, and the appropriate entry
                                             is returned in the last step.
             -->
-            <testcase name="'ACI: RDN Wildcards: DN with whole-type wildcard, several entries'">
+            <testcase name="getTestCaseName('DN with whole-type wildcard, several entries')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -448,7 +448,7 @@
                                             are returned in step 2, and the appropriate entry
                                             is returned in the last step.
             -->
-            <testcase name="'ACI: RDN Wildcards: DN with whole-type wildcard, several entries, shorthand'">
+            <testcase name="getTestCaseName('DN with whole-type wildcard, several entries, shorthand')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -581,7 +581,7 @@
                                             and the appropriate entry
                                             is returned in the last step.
             -->
-            <testcase name="'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry'">
+            <testcase name="getTestCaseName('DN with whole-rdn wildcard, single entry')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -696,7 +696,7 @@
                                             and the appropriate entrries
                                             are returned in the step 1 and the last step.
             -->
-            <testcase name="'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, two level allow'">
+            <testcase name="getTestCaseName('DN with whole-rdn wildcard, single entry, two level allow')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -811,7 +811,7 @@
                                             and the appropriate entry
                                             is returned in the last step.
             -->
-            <testcase name="'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard, single entry, two level deny'">
+            <testcase name="getTestCaseName('DN with multiple-whole-rdn wildcard, single entry, two level deny')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -926,7 +926,7 @@
                                             and the appropriate entry
                                             is returned in the last step.
             -->
-            <testcase name="'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, two level deny'">
+            <testcase name="getTestCaseName('DN with whole-rdn wildcard, single entry, two level deny')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1041,7 +1041,7 @@
                                             and the appropriate entry
                                             is returned in the last step.
             -->
-            <testcase name="'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard, single entry, three level deny'">
+            <testcase name="getTestCaseName('DN with multiple-whole-rdn wildcard, single entry, three level deny')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1156,7 +1156,7 @@
                                             and the appropriate entry
                                             is returned in the last step.
             -->
-            <testcase name="'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, three level deny'">
+            <testcase name="getTestCaseName('DN with whole-rdn wildcard, single entry, three level deny')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1271,7 +1271,7 @@
                                             and the appropriate entry
                                             is returned in the last step.
             -->
-            <testcase name="'ACI: RDN Wildcards: DN with whole-type and multiple-whole-rdn wildcard, several entries, shorthand'">
+            <testcase name="getTestCaseName('DN with whole-type and multiple-whole-rdn wildcard, several entries, shorthand')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1404,7 +1404,7 @@
                                             and the appropriate entry
                                             is returned in the last step.
             -->
-            <testcase name="'ACI: RDN Wildcards: DN with several multiple-whole-rdn wildcards, three level deny'">
+            <testcase name="getTestCaseName('DN with several multiple-whole-rdn wildcards, three level deny')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1519,7 +1519,7 @@
                                             and the appropriate entry
                                             is returned in the last step.
             -->
-            <testcase name="'ACI: RDN Wildcards: DN with several multiple-whole-rdn wildcards with bad branch'">
+            <testcase name="getTestCaseName('DN with several multiple-whole-rdn wildcards with bad branch')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1634,7 +1634,7 @@
                                             and the appropriate entry
                                             is returned in the last step.
             -->
-            <testcase name="'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard syntax, multiple spaces'">
+            <testcase name="getTestCaseName('DN with multiple-whole-rdn wildcard syntax, multiple spaces')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1744,7 +1744,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 21.
             -->
-            <testcase name="'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard syntax, extra internal space'">
+            <testcase name="getTestCaseName('DN with multiple-whole-rdn wildcard syntax, extra internal space')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1784,7 +1784,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 21.
             -->
-            <testcase name="'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard syntax, extra wildcard'">
+            <testcase name="getTestCaseName('DN with multiple-whole-rdn wildcard syntax, extra wildcard')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1824,7 +1824,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 21.
             -->
-            <testcase name="'ACI: RDN Wildcards: DN with usrdn syntax, single wildcard for branch'">
+            <testcase name="getTestCaseName('DN with usrdn syntax, single wildcard for branch')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1864,7 +1864,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 21.
             -->
-            <testcase name="'ACI: RDN Wildcards: DN with usrdn syntax, double wildcard notation for branch'">
+            <testcase name="getTestCaseName('DN with usrdn syntax, double wildcard notation for branch')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1910,7 +1910,7 @@
                                             and the appropriate entry
                                             is returned in step 2 and the last step.
             -->
-            <testcase name="'ACI: RDN Wildcards: DN with usrdn syntax, wildcard notation for uid'">
+            <testcase name="getTestCaseName('DN with usrdn syntax, wildcard notation for uid')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2050,7 +2050,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: RDN Wildcards: Postamble'">
+            <testcase name="getTestCaseName('Postamble')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                 <message>

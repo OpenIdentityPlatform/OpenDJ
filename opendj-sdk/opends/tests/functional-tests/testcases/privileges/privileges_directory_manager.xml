@@ -79,7 +79,7 @@
                                             for all other ldap operations. 
                                             Proper entries returned for allowed searches.
             -->
-            <testcase name="'Privileges: Directory Manager: bypass-acl'">
+            <testcase name="getTestCaseName('bypass-acl')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -275,7 +275,7 @@
                                             for all other ldap operations. 
                                             Proper entries returned for allowed searches.
             -->
-            <testcase name="'Privileges: Directory Manager: bypass-acl, alternate bind DN'">
+            <testcase name="getTestCaseName('bypass-acl, alternate bind DN')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -404,7 +404,7 @@
                                             for step 3, and 0
                                             for all other ldap operations.
             -->
-            <testcase name="'Privileges: Directory Manager: modify-acl - add aci'">
+            <testcase name="getTestCaseName('modify-acl - add aci')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -556,7 +556,7 @@
                                             for step 3, and 0
                                             for all other ldap operations.
             -->
-            <testcase name="'Privileges: Directory Manager: modify-acl - replace aci'">
+            <testcase name="getTestCaseName('modify-acl - replace aci')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -671,7 +671,7 @@
                                             for step 3, and 0
                                             for all other ldap operations.
             -->
-            <testcase name="'Privileges: Directory Manager: modify-acl - delete aci'">
+            <testcase name="getTestCaseName('modify-acl - delete aci')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -776,7 +776,7 @@
                                             for all other ldap operations. 
                                             Proper entries returned for allowed searches.
             -->
-            <testcase name="'Privileges: Directory Manager: config-read'">
+            <testcase name="getTestCaseName('config-read')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -911,7 +911,7 @@
                                             for step 3, 5, and 7 and 0
                                             for all other ldap operations.
             -->
-            <testcase name="'Privileges: Directory Manager: config-write'">
+            <testcase name="getTestCaseName('config-write')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1094,7 +1094,7 @@
                                             for step 3, 6, and 8, and 0
                                             for all other ldap operations.
             -->
-            <testcase name="'Privileges: Directory Manager: config-write - add global aci'">
+            <testcase name="getTestCaseName('config-write - add global aci')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1295,7 +1295,7 @@
                                             for step 3, and 0
                                             for all other ldap operations.
             -->
-            <testcase name="'Privileges: Directory Manager: password-reset'">
+            <testcase name="getTestCaseName('password-reset')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1409,7 +1409,7 @@
                                             for step 3, 65 for step 1, and 0
                                             for all other ldap operations.
             -->
-            <testcase name="'Privileges: Directory Manager: update-schema'">
+            <testcase name="getTestCaseName('update-schema')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1556,7 +1556,7 @@
                                             for step 2, and 0
                                             for all other ldap operations.
             -->
-            <testcase name="'Privileges: Directory Manager: privilege-change'">
+            <testcase name="getTestCaseName('privilege-change')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1740,7 +1740,7 @@
                                             for step 2, and 0
                                             for all other ldap operations.
             -->
-            <testcase name="'Privileges: Directory Manager: server-shutdown'">
+            <testcase name="getTestCaseName('server-shutdown')">
     
             <sequence>
     
@@ -1884,7 +1884,7 @@
                                             for step 2, and 0
                                             for all other ldap operations.
             -->
-            <testcase name="'Privileges: Directory Manager: server-restart'">
+            <testcase name="getTestCaseName('server-restart')">
     
             <sequence>
     

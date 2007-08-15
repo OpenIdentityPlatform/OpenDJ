@@ -79,7 +79,7 @@
                                             for all other ldap operations. 
                                             Proper entries returned for allowed searches.
             -->
-            <testcase name="'Privileges: Users: bypass-acl'">
+            <testcase name="getTestCaseName('bypass-acl')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -286,7 +286,7 @@
                                             for all ldap operations. 
                                             Proper entries returned for allowed searches.
             -->
-            <testcase name="'Privileges: Users: bypass-acl with proxy'">
+            <testcase name="getTestCaseName('bypass-acl with proxy')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -527,7 +527,7 @@
                                             for all ldap operations. 
                                             Proper entries returned for allowed searches.
             -->
-            <testcase name="'Privileges: Users: bypass-acl with minus notation'">
+            <testcase name="getTestCaseName('bypass-acl with minus notation')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -759,7 +759,7 @@
                                             for all other ldap operations. 
                                             Proper entries returned for allowed searches.
             -->
-            <testcase name="'Privileges: Users: bypass-acl self-modify add'">
+            <testcase name="getTestCaseName('bypass-acl self-modify add')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -881,7 +881,7 @@
                                             for steps 1, 3, 7 and 10, and 0
                                             for all other ldap operations.
             -->
-            <testcase name="'Privileges: Users: modify-acl - add aci'">
+            <testcase name="getTestCaseName('modify-acl - add aci')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1091,7 +1091,7 @@
                                             for steps 1, 3, 7 and 9, and 0
                                             for all other ldap operations.
             -->
-            <testcase name="'Privileges: Users: modify-acl - replace aci'">
+            <testcase name="getTestCaseName('modify-acl - replace aci')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1276,7 +1276,7 @@
                                             for steps 1 and 3, and 0
                                             for all other ldap operations.
             -->
-            <testcase name="'Privileges: Users: modify-acl - delete aci'">
+            <testcase name="getTestCaseName('modify-acl - delete aci')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1426,7 +1426,7 @@
                                             for all other ldap operations. 
                                             Proper entries returned for allowed searches.
             -->
-            <testcase name="'Privileges: Users: config-read'">
+            <testcase name="getTestCaseName('config-read')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1565,7 +1565,7 @@
                                             for steps 1, 3, 5, 9, 11, and 13, and 0
                                             for all other ldap operations. 
             -->
-            <testcase name="'Privileges: Users: config-write'">
+            <testcase name="getTestCaseName('config-write')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1817,7 +1817,7 @@
                                             for steps 1, 3, 5, 9, 11, and 14, and 0
                                             for all other ldap operations. 
             -->
-            <testcase name="'Privileges: Users: config-write - add global aci'">
+            <testcase name="getTestCaseName('config-write - add global aci')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2086,7 +2086,7 @@
                                             for steps 1, 6, and 8, and 0
                                             for all other ldap operations. 
             -->
-            <testcase name="'Privileges: Users: password-reset'">
+            <testcase name="getTestCaseName('password-reset')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2281,7 +2281,7 @@
                                             for step 1, 65 for step 2, and 0
                                             for all other ldap operations. 
             -->
-            <testcase name="'Privileges: Users: update-schema'">
+            <testcase name="getTestCaseName('update-schema')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2483,7 +2483,7 @@
                 #@TestResult                Success if OpenDS returns 0
                                             for all other ldap operations. 
             -->
-            <testcase name="'Privileges: Users: privilege-change'">
+            <testcase name="getTestCaseName('privilege-change')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2647,7 +2647,7 @@
                                             for steps 1, 3, 7, and 9, and 0
                                             for all other ldap operations. 
             -->
-            <testcase name="'Privileges: Users: server-shutdown'">
+            <testcase name="getTestCaseName('server-shutdown')">
     
             <sequence>
     
@@ -2857,7 +2857,7 @@
                                             for steps 1, 3, 7, and 9, and 0
                                             for all other ldap operations. 
             -->
-            <testcase name="'Privileges: Users: server-restart'">
+            <testcase name="getTestCaseName('server-restart')">
     
             <sequence>
     

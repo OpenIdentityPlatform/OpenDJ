@@ -89,7 +89,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Virtual Static: enable member virtual attribute'">
+          <testcase name="getTestCaseName('enable member virtual attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -120,7 +120,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Virtual Static: add a Virtual Static group entry'">
+          <testcase name="getTestCaseName('add a Virtual Static group entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -181,7 +181,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Virtual Static: delete a Virtual Static group entry'">
+          <testcase name="getTestCaseName('delete a Virtual Static group entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -230,7 +230,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Virtual Static: search members of group'">
+          <testcase name="getTestCaseName('search members of group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -293,7 +293,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Virtual Static: application add entry that belong to a group'">
+          <testcase name="getTestCaseName('application add entry that belong to a group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -364,7 +364,7 @@
           #@TestResult
           -->
 <!--          
-          <testcase name="'Group: Virtual Static: application rename entry that belong to a group'">
+          <testcase name="getTestCaseName('application rename entry that belong to a group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -428,7 +428,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Virtual Static: application delete entry belonging to a group'">
+          <testcase name="getTestCaseName('application delete entry belonging to a group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -481,7 +481,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Virtual Static: Change ds-target-group-dn to another dynamic group'">
+          <testcase name="getTestCaseName('Change ds-target-group-dn to another dynamic group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <script>
@@ -547,7 +547,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Virtual Static: Change ds-target-group-dn to static group (uniquemember type)'">
+          <testcase name="getTestCaseName('Change ds-target-group-dn to static group (uniquemember type)')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <script>
@@ -614,7 +614,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Virtual Static: Change ds-target-group-dn to static group (member type)'">
+          <testcase name="getTestCaseName('Change ds-target-group-dn to static group (member type)')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <script>
@@ -680,7 +680,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Virtual Static: Remove ds-target-group-dn attribute'">
+          <testcase name="getTestCaseName('Remove ds-target-group-dn attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>

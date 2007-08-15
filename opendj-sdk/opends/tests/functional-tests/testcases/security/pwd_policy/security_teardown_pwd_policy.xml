@@ -35,7 +35,7 @@
 
         <!--- Test Case : Password Policy Teardown -->
         <!--- Delete Branch -->
-        <testcase name="'Security: Pwd Policy: Postamble Reset'">
+        <testcase name="getTestCaseName('Postamble Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

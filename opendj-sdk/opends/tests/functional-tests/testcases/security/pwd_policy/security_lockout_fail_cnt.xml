@@ -34,7 +34,7 @@
       <sequence>
 
         <!--- Test Case : Preamble 1 - Check Default-->
-        <testcase name="'Security: Lockout Fail Cnt: Preamble'">
+        <testcase name="getTestCaseName('Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -86,7 +86,7 @@
         </testcase>
 
         <!--- Test Case : Amin Change Lockout Cnt -->
-        <testcase name="'Security: Lockout Fail Cnt: Admin Change Lockout Cnt'">
+        <testcase name="getTestCaseName('Admin Change Lockout Cnt')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -109,7 +109,7 @@
         </testcase>
 
         <!--- Test Case : Lockout With Bad Pwd 3x -->
-        <testcase name="'Security: Lockout Fail Cnt: Lockout With Bad Pwd 3x'">
+        <testcase name="getTestCaseName('Lockout With Bad Pwd 3x')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -139,7 +139,7 @@
         </testcase>
 
         <!--- Test Case : Postamble Reset -->
-        <testcase name="'Security: Lockout Fail Cnt: Postamble Reset'">
+        <testcase name="getTestCaseName('Postamble Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

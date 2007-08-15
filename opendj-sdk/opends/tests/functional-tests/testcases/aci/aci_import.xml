@@ -81,7 +81,7 @@
                                             for all other ldap operations. 
                                             Proper entries returned for searches.
             -->
-          <testcase name="'ACI: Import: import-ldif with bad ACI'">
+          <testcase name="getTestCaseName('import-ldif with bad ACI')">
     
             <sequence>
     

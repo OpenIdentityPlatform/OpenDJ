@@ -75,7 +75,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Modify RDN: Preamble'">
+            <testcase name="getTestCaseName('Preamble')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                 <message>
@@ -123,7 +123,7 @@
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to modrdn.ksh -->
-            <testcase name="'ACI: Modify RDN: Leaf - targetattr=* and userdn=all'">
+            <testcase name="getTestCaseName('Leaf - targetattr=* and userdn=all')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -280,7 +280,7 @@
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to modrdn.ksh -->
-            <testcase name="'ACI: Modify RDN: Branch - targetattr=* and userdn=all'">
+            <testcase name="getTestCaseName('Branch - targetattr=* and userdn=all')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -452,7 +452,7 @@
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to modrdn.ksh -->
-            <testcase name="'ACI: Modify RDN: Leaf - targetattr equals three attributes with uid'">
+            <testcase name="getTestCaseName('Leaf - targetattr equals three attributes with uid')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -606,7 +606,7 @@
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to modrdn.ksh -->
-            <testcase name="'ACI: Modify RDN: Leaf - targetattr equals three attributes without uid'">
+            <testcase name="getTestCaseName('Leaf - targetattr equals three attributes without uid')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -718,7 +718,7 @@
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to modrdn.ksh -->
-            <testcase name="'ACI: Modify RDN: Branch - targetattr with three attributes equals ou'">
+            <testcase name="getTestCaseName('Branch - targetattr with three attributes equals ou')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -887,7 +887,7 @@
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to modrdn.ksh -->
-            <testcase name="'ACI: Modify RDN: Branch - targetattr with three attributes not equals ou'">
+            <testcase name="getTestCaseName('Branch - targetattr with three attributes not equals ou')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -999,7 +999,7 @@
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to modrdn.ksh -->
-            <testcase name="'ACI: Modify RDN: Leaf - Multi ACIs, allow and deny'">
+            <testcase name="getTestCaseName('Leaf - Multi ACIs, allow and deny')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1172,7 +1172,7 @@
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to modrdn.ksh -->
-            <testcase name="'ACI: Modify RDN: Branch - Multi ACIs, deny write on new branch'">
+            <testcase name="getTestCaseName('Branch - Multi ACIs, deny write on new branch')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1372,7 +1372,7 @@
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to modrdn.ksh -->
-            <testcase name="'ACI: Modify RDN: Leaf - targetattr with three attributes not equals uid, delete old rdn'">
+            <testcase name="getTestCaseName('Leaf - targetattr with three attributes not equals uid, delete old rdn')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1484,7 +1484,7 @@
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to modrdn.ksh -->
      
-            <testcase name="'ACI: Modify RDN: Leaf - targetattr with three attributes not equals uid, dont delete old rdn'">
+            <testcase name="getTestCaseName('Leaf - targetattr with three attributes not equals uid, dont delete old rdn')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1640,7 +1640,7 @@
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to modrdn.ksh -->
      
-            <testcase name="'ACI: Modify RDN: Leaf - targetattr with three attributes not equals sn and cn, dont delete old rdn'">
+            <testcase name="getTestCaseName('Leaf - targetattr with three attributes not equals sn and cn, dont delete old rdn')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1752,7 +1752,7 @@
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to modrdn.ksh -->
-            <testcase name="'ACI: Modify RDN: Branch - Multi ACIs, targattrfilters add:ou, del:ou'">
+            <testcase name="getTestCaseName('Branch - Multi ACIs, targattrfilters add:ou, del:ou')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1927,7 +1927,7 @@
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to modrdn.ksh -->
-            <testcase name="'ACI: Modify RDN: Branch - Multi ACIs, targattrfilters add:ou, del:ou 2'">
+            <testcase name="getTestCaseName('Branch - Multi ACIs, targattrfilters add:ou, del:ou 2')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2120,7 +2120,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Modify RDN: Postamble'">
+            <testcase name="getTestCaseName('Postamble')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                 <message>

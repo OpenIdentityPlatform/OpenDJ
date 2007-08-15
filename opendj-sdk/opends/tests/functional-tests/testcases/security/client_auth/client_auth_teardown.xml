@@ -42,7 +42,7 @@
             #@TestScript                   teardown_client_auth.xml
       -->
      <!--- Delete Branch through SSL port -->
-     <testcase name="'Security: client_auth: teardown'">
+     <testcase name="getTestCaseName('teardown')">
         <!---
             Place test-specific test information here.
             The tag, TestMarker, must be the same as the tag, TestSuiteName.

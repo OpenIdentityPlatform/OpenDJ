@@ -46,7 +46,7 @@
       -->
 		  
     
-  <testcase name="'Security: client_auth:  setup - fingerprint_mapper'">
+  <testcase name="getTestCaseName(' setup - fingerprint_mapper')">
 
    <sequence>
     <call function="'testCase_Preamble'"/>
@@ -88,7 +88,7 @@
 #@TestResult               Success if OpenDS returns 0 for all operations
  -->
     
-  <testcase name="'Security: client_auth: fingerprint mapping on ds-certificate-fingerprint attribute'">
+  <testcase name="getTestCaseName('fingerprint mapping on ds-certificate-fingerprint attribute')">
     <sequence>
  
     <call function="'testCase_Preamble'"/>
@@ -466,7 +466,7 @@
 #@TestResult               Success if OpenDS returns 0 for all operations
  -->
     
-  <testcase name="'Security: client_auth: fingerprint mapping on description attribute'">
+  <testcase name="getTestCaseName('fingerprint mapping on description attribute')">
     <sequence>
  
     <call function="'testCase_Preamble'"/>

@@ -53,7 +53,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'Security: Pwd Storage CLEAR: Preamble'">
+        <testcase name="getTestCaseName('Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -92,7 +92,7 @@
             #@TestResult                Success if OpenDS returns 0 for the ldap
                                         operations and the password has the {CLEAR} prefix.
         -->
-        <testcase name="'Security: Pwd Storage CLEAR: Pwd Change'">
+        <testcase name="getTestCaseName('Pwd Change')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -167,7 +167,7 @@
             #@TestResult                Success if OpenDS returns 0 for the ldap
                                         operations and the password is the expected string.
         -->
-        <testcase name="'Security: Pwd Storage CLEAR: Check Pwd'">
+        <testcase name="getTestCaseName('Check Pwd')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <call function="'SearchObject'">
@@ -208,7 +208,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
          -->
-        <testcase name="'Security: Pwd Storage CLEAR: Postamble'">
+        <testcase name="getTestCaseName('Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

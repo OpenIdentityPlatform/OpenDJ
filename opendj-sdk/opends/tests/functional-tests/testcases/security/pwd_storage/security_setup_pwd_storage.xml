@@ -57,7 +57,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0 for all operations
         -->
-        <testcase name="'Security: Pwd Storage: Add Initial Entries'">
+        <testcase name="getTestCaseName('Add Initial Entries')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

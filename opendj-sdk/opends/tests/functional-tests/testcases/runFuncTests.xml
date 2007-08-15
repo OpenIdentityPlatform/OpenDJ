@@ -104,6 +104,10 @@
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/sample/sample.xml' % TESTS_DIR" />
       <script>
+        # this function return a well-formatted testcase name
+        def getTestCaseName(name):
+          return '%s: %s: %s' % (CurrentTestPath['group'],CurrentTestPath['suite'],name)
+        
         class functionToRun:
           def __init__(self, name):
             self.name = name

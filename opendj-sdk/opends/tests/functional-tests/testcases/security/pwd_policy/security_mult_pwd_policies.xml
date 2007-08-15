@@ -34,7 +34,7 @@
       <sequence>
 
         <!--- Test Case : Preamble 1 - Add New Passwords Policy-->
-        <testcase name="'Security: Mult Pwd Policies: Preamble'">
+        <testcase name="getTestCaseName('Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -55,7 +55,7 @@
         </testcase>
 
         <!--- Test Case : Add Entry With New Password Policy -->
-        <testcase name="'Security: Mult Pwd Policies: Add New Entry'">
+        <testcase name="getTestCaseName('Add New Entry')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -96,7 +96,7 @@
         </testcase>
 
         <!--- Test Case : Modify Sales Pwd Policy -->
-        <testcase name="'Security: Mult Pwd Policies: Modify Sales Pwd Policy'">
+        <testcase name="getTestCaseName('Modify Sales Pwd Policy')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -120,7 +120,7 @@
 
             
         <!--- Test Case : Test Sales Password Policy -->
-        <testcase name="'Security: Mult Pwd Policies: Test Sales Pwd Policy'">
+        <testcase name="getTestCaseName('Test Sales Pwd Policy')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -149,7 +149,7 @@
         </testcase>
 
         <!--- Test Case : Test Default Password Policy -->
-        <testcase name="'Security: Mult Pwd Policies: Test Default Pwd Policy'">
+        <testcase name="getTestCaseName('Test Default Pwd Policy')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -189,7 +189,7 @@
         </testcase>
 
         <!--- Test Case : Delete Sales Pwd Policy -->
-        <testcase name="'Security: Mult Pwd Policies: Delete Sales Pwd Policy'">
+        <testcase name="getTestCaseName('Delete Sales Pwd Policy')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -210,7 +210,7 @@
         </testcase>
 
         <!--- Test Case : Test Sales Password Policy 2-->
-        <testcase name="'Security: Mult Pwd Policies: Test Sales Pwd Policy 2'">
+        <testcase name="getTestCaseName('Test Sales Pwd Policy 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

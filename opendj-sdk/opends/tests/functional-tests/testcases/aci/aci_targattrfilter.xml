@@ -75,7 +75,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Targattrfilter: Preamble'">
+            <testcase name="getTestCaseName('Preamble')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                 <message>
@@ -170,7 +170,7 @@
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to valueacl.ksh Test Cases 2 and 3 -->
             <!-- Special note: when "del" is missing from targattrfilter, it should evaluate as true. -->
-            <testcase name="'ACI: Targattrfilter: Targattrfilter equals add:title'">
+            <testcase name="getTestCaseName('Targattrfilter equals add:title')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -314,7 +314,7 @@
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to valueacl.ksh Test Cases 4 and 5 -->
             <!-- Special note: when "add" is missing from targattrfilter, it should evaluate as true. -->
-            <testcase name="'ACI: Targattrfilter: Targattrfilter equals del:roomnumber'">
+            <testcase name="getTestCaseName('Targattrfilter equals del:roomnumber')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -456,7 +456,7 @@
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to valueacl.ksh Test Cases 6 and 8 -->
-            <testcase name="'ACI: Targattrfilter: Targattrfilter equals add:l,del:l'">
+            <testcase name="getTestCaseName('Targattrfilter equals add:l,del:l')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -582,7 +582,7 @@
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to valueacl.ksh Test Cases 7 -->
-            <testcase name="'ACI: Targattrfilter: Targattrfilter equals add:st,del:st'">
+            <testcase name="getTestCaseName('Targattrfilter equals add:st,del:st')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -708,7 +708,7 @@
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to valueacl.ksh Test Cases 6 and 8 -->
-            <testcase name="'ACI: Targattrfilter: Targattrfilter equals add:l,del:l wildcard only'">
+            <testcase name="getTestCaseName('Targattrfilter equals add:l,del:l wildcard only')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -835,7 +835,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Targattrfilter: Targattrfilter equals add:street,del:street wildcard only, street not present'">
+            <testcase name="getTestCaseName('Targattrfilter equals add:street,del:street wildcard only, street not present')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -960,7 +960,7 @@
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
             <!-- cross reference to valueacl.ksh Test Cases 7 -->
-            <testcase name="'ACI: Targattrfilter: Targattrfilter equals add:title,del:title with wildcards'">
+            <testcase name="getTestCaseName('Targattrfilter equals add:title,del:title with wildcards')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1062,7 +1062,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Targattrfilter: Targattrfilter with mispelled add'">
+            <testcase name="getTestCaseName('Targattrfilter with mispelled add')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1104,7 +1104,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Targattrfilter: Targattrfilter with mispelled del'">
+            <testcase name="getTestCaseName('Targattrfilter with mispelled del')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1146,7 +1146,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Targattrfilter: Targattrfilter with mispelled del with add'">
+            <testcase name="getTestCaseName('Targattrfilter with mispelled del with add')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1188,7 +1188,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Targattrfilter: Targattrfilter with missing comma'">
+            <testcase name="getTestCaseName('Targattrfilter with missing comma')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1249,7 +1249,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Targattrfilter: Targattrfilter with extra quotes'">
+            <testcase name="getTestCaseName('Targattrfilter with extra quotes')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1291,7 +1291,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Targattrfilter: Targattrfilter with extra commas'">
+            <testcase name="getTestCaseName('Targattrfilter with extra commas')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1352,7 +1352,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Targattrfilter: Targattrfilter with missing argument for add '">
+            <testcase name="getTestCaseName('Targattrfilter with missing argument for add ')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1394,7 +1394,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Targattrfilter: Targattrfilter with missing argument for del'">
+            <testcase name="getTestCaseName('Targattrfilter with missing argument for del')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1436,7 +1436,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Targattrfilter: Targattrfilter with missing argument for del with add'">
+            <testcase name="getTestCaseName('Targattrfilter with missing argument for del with add')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1478,7 +1478,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Targattrfilter: Targattrfilter equals del:l,add:l'">
+            <testcase name="getTestCaseName('Targattrfilter equals del:l,add:l')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1528,7 +1528,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-           <testcase name="'ACI: Targattrfilter: Targattrfilter with very long comment portion'">
+           <testcase name="getTestCaseName('Targattrfilter with very long comment portion')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1621,7 +1621,7 @@
           -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Targattrfilter: Postamble'">
+            <testcase name="getTestCaseName('Postamble')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                 <message>

@@ -54,7 +54,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'Security: PKCS12: Add Entries'">
+        <testcase name="getTestCaseName('Add Entries')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -89,7 +89,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'Security: PKCS12: Modify Entry'">
+        <testcase name="getTestCaseName('Modify Entry')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -124,7 +124,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'Security: PKCS12: Add Attr to Entry'">
+        <testcase name="getTestCaseName('Add Attr to Entry')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -159,7 +159,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'Security: PKCS12: Modify Attr in Entry'">
+        <testcase name="getTestCaseName('Modify Attr in Entry')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -194,7 +194,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'Security: PKCS12: Delete Entry'">
+        <testcase name="getTestCaseName('Delete Entry')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

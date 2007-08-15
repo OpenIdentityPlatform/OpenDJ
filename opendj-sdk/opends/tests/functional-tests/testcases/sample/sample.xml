@@ -109,7 +109,7 @@
         <script>
           CurrentTestPath['suite']= 'search'
         </script>
-        <testcase name="'%s: %s: %s' % (CurrentTestPath['group'],CurrentTestPath['suite'],STAXCurrentBlock)">
+        <testcase name="getTestCaseName(STAXCurrentBlock)">
           <sequence>
             <call function="'testCase_Preamble'" />
             <call function="'SearchObject'">
@@ -146,7 +146,7 @@
         <script>
           CurrentTestPath['suite']= 'dummy'
         </script>
-        <testcase name="'%s: %s: %s' % (CurrentTestPath['group'],CurrentTestPath['suite'],STAXCurrentBlock)">
+        <testcase name="getTestCaseName(STAXCurrentBlock)">
           <sequence>
             <call function="'testCase_Preamble'" />
             <tcstatus result="'fail'" />
@@ -176,7 +176,7 @@
         <script>
           CurrentTestPath['suite']= 'dummy'
         </script>
-        <testcase name="'%s: %s: %s' % (CurrentTestPath['group'],CurrentTestPath['suite'],STAXCurrentBlock)">
+        <testcase name="getTestCaseName(STAXCurrentBlock)">
           <sequence>
             <call function="'testCase_Preamble'" />
             <tcstatus result="'pass'" />

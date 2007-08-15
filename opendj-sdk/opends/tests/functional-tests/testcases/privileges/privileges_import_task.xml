@@ -79,7 +79,7 @@
                                             for all other ldap operations. 
                                             Proper entries returned for searches.
             -->
-          <testcase name="'Privileges: Import Tasks: import-ldif'">
+          <testcase name="getTestCaseName('import-ldif')">
     
             <sequence>
     
@@ -236,7 +236,7 @@
                                             for all other ldap operations. 
                                             Proper entries returned for searches.
             -->
-          <testcase name="'Privileges: Import Tasks: import-ldif Directory Manager'">
+          <testcase name="getTestCaseName('import-ldif Directory Manager')">
     
             <sequence>
     
@@ -356,7 +356,7 @@
                                             for all other ldap operations. 
                                             Proper entries returned for searches.
            -->
-          <testcase name="'Privileges: Import Tasks: import-ldif New Root User'">
+          <testcase name="getTestCaseName('import-ldif New Root User')">
     
             <sequence>
     

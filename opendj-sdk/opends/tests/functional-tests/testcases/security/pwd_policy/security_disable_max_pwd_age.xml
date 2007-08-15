@@ -34,7 +34,7 @@
       <sequence>
 
         <!--- Test Case : Admin Reset Max Pwd Age -->
-        <testcase name="'Security:Pwd Change: Admin Reset Max Pwd Age'">
+        <testcase name="getTestCaseName('Admin Reset Max Pwd Age')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

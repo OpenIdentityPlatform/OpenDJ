@@ -73,7 +73,7 @@
                                             and no entries are returned 
                                             for all operations.
             -->
-            <testcase name="'ACI: Targetfilter: Preamble'">
+            <testcase name="getTestCaseName('Preamble')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                 <message>
@@ -165,7 +165,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Targetfilter: Targetfilter Equals One Statement'">
+            <testcase name="getTestCaseName('Targetfilter Equals One Statement')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -364,7 +364,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Targetfilter: Targetfilter Equals One Statement 2'">
+            <testcase name="getTestCaseName('Targetfilter Equals One Statement 2')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -561,7 +561,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Targetfilter: Targetfilter Equals One Statement 3'">
+            <testcase name="getTestCaseName('Targetfilter Equals One Statement 3')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -729,7 +729,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetfilter: Targetfilter Not Equals One Statement'">
+          <testcase name="getTestCaseName('Targetfilter Not Equals One Statement')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -927,7 +927,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetfilter: Targetfilter Equals Three Statements With or, one true'">
+          <testcase name="getTestCaseName('Targetfilter Equals Three Statements With or, one true')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -1125,7 +1125,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetfilter: Targetfilter Not Equals Three Statements With or, one true'">
+          <testcase name="getTestCaseName('Targetfilter Not Equals Three Statements With or, one true')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -1321,7 +1321,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetfilter: Targetfilter Equals Three Statements With or, none true'">
+          <testcase name="getTestCaseName('Targetfilter Equals Three Statements With or, none true')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -1464,7 +1464,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetfilter: Targetfilter Equals Three Statements With and, one true'">
+          <testcase name="getTestCaseName('Targetfilter Equals Three Statements With and, one true')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -1608,7 +1608,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetfilter: Targetfilter Equals Three Statements With and, all true'">
+          <testcase name="getTestCaseName('Targetfilter Equals Three Statements With and, all true')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -1806,7 +1806,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetfilter: Targetfilter Not Equals Three Statements With and, all true'">
+          <testcase name="getTestCaseName('Targetfilter Not Equals Three Statements With and, all true')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -2004,7 +2004,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard and or, one true'">
+          <testcase name="getTestCaseName('Targetfilter Equals Three Statements With Wildcard and or, one true')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -2202,7 +2202,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetfilter: Targetfilter Equals Three Statements With Two Wildcards and or, one true'">
+          <testcase name="getTestCaseName('Targetfilter Equals Three Statements With Two Wildcards and or, one true')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -2400,7 +2400,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard With and, all true'">
+          <testcase name="getTestCaseName('Targetfilter Equals Three Statements With Wildcard With and, all true')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -2598,7 +2598,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetfilter: Targetfilter Equals Three Statements With Three Wildcards With and, all true'">
+          <testcase name="getTestCaseName('Targetfilter Equals Three Statements With Three Wildcards With and, all true')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -2793,7 +2793,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetfilter: Targetfilter With Extra Spaces'">
+          <testcase name="getTestCaseName('Targetfilter With Extra Spaces')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -2905,7 +2905,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetfilter: Targetfilter With Missing Quotes'">
+          <testcase name="getTestCaseName('Targetfilter With Missing Quotes')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -2972,7 +2972,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetfilter: Targetfilter With Missing Quotes 2'">
+          <testcase name="getTestCaseName('Targetfilter With Missing Quotes 2')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -3039,7 +3039,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetfilter: Targetfilter With Improperly Formatted Filter with or'">
+          <testcase name="getTestCaseName('Targetfilter With Improperly Formatted Filter with or')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -3106,7 +3106,7 @@
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
         <!-- cross reference to DS6 docs -->
-          <testcase name="'ACI: Targetfilter: Targetfilter With Improperly Formatted Filter with and'">
+          <testcase name="getTestCaseName('Targetfilter With Improperly Formatted Filter with and')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                           
@@ -3172,7 +3172,7 @@
                                           and no entries are returned 
                                           for all operations.
           -->
-          <testcase name="'ACI: Targetfilter: Postamble'">
+          <testcase name="getTestCaseName('Postamble')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>

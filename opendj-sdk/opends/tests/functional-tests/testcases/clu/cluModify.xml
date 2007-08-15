@@ -78,7 +78,7 @@
             #@TestResult          Success if ldapModifyWithScript returns 0
           -->
                
-                 <testcase name="'Clu: Ldap Modify: Test Case #1'">
+                 <testcase name="getTestCaseName('Test Case #1')">
         
                   <sequence>
           
@@ -117,7 +117,7 @@
             #@TestResult          Success if ldapModifyWithScript returns 0
           -->
                
-                 <testcase name="'Clu: Ldap Modify: Test Case #2'">
+                 <testcase name="getTestCaseName('Test Case #2')">
         
                   <sequence>
           
@@ -157,7 +157,7 @@
             #@TestResult          Success if ldapModifyWithScript returns 0
           -->
                
-                 <testcase name="'Clu: Ldap Modify: Test Case #3'">
+                 <testcase name="getTestCaseName('Test Case #3')">
         
                   <sequence>
           
@@ -197,7 +197,7 @@
             #@TestResult          Success if ldapModifyWithScript returns 0
           -->
                
-                 <testcase name="'Clu: Ldap Modify: Test Case #4'">
+                 <testcase name="getTestCaseName('Test Case #4')">
         
                   <sequence>
           
@@ -235,7 +235,7 @@
             #@TestResult          Success if ldapModifyWithScript returns 0
           -->
                
-         <!--        <testcase name="'Clu: Ldap Modify: Test Case #5'">
+         <!--        <testcase name="getTestCaseName('Test Case #5')">
         
                   <sequence>
           
@@ -275,7 +275,7 @@
             #@TestResult          Success if ldapModifyWithScript returns 0
           -->
                
-                 <testcase name="'Clu: Ldap Modify: Test Case #6'">
+                 <testcase name="getTestCaseName('Test Case #6')">
         
                   <sequence>
           
@@ -313,7 +313,7 @@
             #@TestResult          Success if ldapModifyWithScript returns 0
           -->
                
-                 <testcase name="'Clu: Ldap Modify: Test Case #7'">
+                 <testcase name="getTestCaseName('Test Case #7')">
         
                   <sequence>
           
@@ -353,7 +353,7 @@
           -->
                <!-- this test is prompting for the password 
                
-                 <testcase name="'Clu: Ldap Modify: Test Case #8'">
+                 <testcase name="getTestCaseName('Test Case #8')">
         
                   <sequence>
           
@@ -391,7 +391,7 @@
             #@TestResult          Success if ldapModifyWithScript returns 0
           -->
                
-                 <testcase name="'Clu: Ldap Modify: Test Case #9'">
+                 <testcase name="getTestCaseName('Test Case #9')">
         
                   <sequence>
           
@@ -430,7 +430,7 @@
             #@TestResult          Success if ldapModifyWithScript returns 0
           -->
                
-                 <testcase name="'Clu: Ldap Modify: Test Case #10'">
+                 <testcase name="getTestCaseName('Test Case #10')">
         
                   <sequence>
           
@@ -469,7 +469,7 @@
             #@TestResult          Success if ldapModifyWithScript returns 0
           -->
                
-                 <testcase name="'Clu: Ldap Modify: Test Case #11'">
+                 <testcase name="getTestCaseName('Test Case #11')">
         
                   <sequence>
           
@@ -508,7 +508,7 @@
             #@TestResult          Success if ldapModifyWithScript returns 0
           -->
                
-                 <testcase name="'Clu: Ldap Modify: Test Case #12'">
+                 <testcase name="getTestCaseName('Test Case #12')">
         
                   <sequence>
           
@@ -546,7 +546,7 @@
             #@TestResult          Success if ldapModifyWithScript returns 0
           -->
                
-                 <testcase name="'Clu: Ldap Modify: Test Case #13'">
+                 <testcase name="getTestCaseName('Test Case #13')">
         
                   <sequence>
           
@@ -585,7 +585,7 @@
             #@TestResult          Success if ldapModifyWithScript returns 0
           -->
                
-                 <testcase name="'Clu: Ldap Modify: Test Case #14'">
+                 <testcase name="getTestCaseName('Test Case #14')">
         
                   <sequence>
           
@@ -624,7 +624,7 @@
             #@TestResult          Success if ldapModifyWithScript returns 0
           -->
                <!-- needs a -R option?
-                 <testcase name="'Clu: Ldap Modify: Test Case #15'">
+                 <testcase name="getTestCaseName('Test Case #15')">
         
                   <sequence>
           
@@ -662,7 +662,7 @@
             #@TestResult          Success if ldapModifyWithScript returns 0
           -->
                
-                 <testcase name="'Clu: Ldap Modify: Test Case #16'">
+                 <testcase name="getTestCaseName('Test Case #16')">
         
                   <sequence>
           
@@ -701,7 +701,7 @@
             #@TestResult          Success if ldapModifyWithScript returns 0
           -->
                <!-- need a -b option
-                 <testcase name="'Clu: Ldap Modify: Test Case #17'">
+                 <testcase name="getTestCaseName('Test Case #17')">
         
                   <sequence>
           
@@ -739,7 +739,7 @@
             #@TestResult          Success if ldapModifyWithScript returns 0
           -->
                <!-- need a -F option
-                 <testcase name="'Clu: Ldap Modify: Test Case #18'">
+                 <testcase name="getTestCaseName('Test Case #18')">
         
                   <sequence>
           
@@ -777,7 +777,7 @@
             #@TestResult          Success if ldapModifyWithScript returns 0
           -->
                <!-- need a -e option
-                 <testcase name="'Clu: Ldap Modify: Test Case #19'">
+                 <testcase name="getTestCaseName('Test Case #19')">
         
                   <sequence>
           
@@ -815,7 +815,7 @@
             #@TestResult          Success if ldapModifyWithScript returns 0
           -->
                
-                 <testcase name="'Clu: Ldap Modify: Test Case #20'">
+                 <testcase name="getTestCaseName('Test Case #20')">
         
                   <sequence>
           

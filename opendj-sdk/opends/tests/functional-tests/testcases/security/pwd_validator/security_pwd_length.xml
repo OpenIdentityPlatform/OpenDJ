@@ -34,7 +34,7 @@
       <sequence>
 
         <!--- Admin Check Existence of Min Pwd Length Attr -->
-        <testcase name="'Security: Pwd Validator: Pwd Length Min: Preamble Setup'">
+        <testcase name="getTestCaseName('Pwd Length Min: Preamble Setup')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -72,7 +72,7 @@
         </testcase>
 
         <!--- Test Case : User Change Password - Too Short-->
-        <testcase name="'Security: Pwd Validator: Pwd Length Min: Pwd Too Short 1'">
+        <testcase name="getTestCaseName('Pwd Length Min: Pwd Too Short 1')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -113,7 +113,7 @@
         </testcase>
 
         <!--- Test Case : Admin Change Minimum Pwd Length -->
-        <testcase name="'Security: Pwd Validator: Pwd Length Min: Admin Change Min Pwd Length'">
+        <testcase name="getTestCaseName('Pwd Length Min: Admin Change Min Pwd Length')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -138,7 +138,7 @@
         </testcase>
 
         <!--- Test Case : User Change Password - Too Short 2-->
-        <testcase name="'Security: Pwd Validator: Pwd Length Min: Pwd Too Short 2'">
+        <testcase name="getTestCaseName('Pwd Length Min: Pwd Too Short 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -179,7 +179,7 @@
         </testcase>
 
         <!--- Test Case : User Change Password-->
-        <testcase name="'Security: Pwd Validator: Pwd Length Min: User Change Pwd'">
+        <testcase name="getTestCaseName('Pwd Length Min: User Change Pwd')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -218,7 +218,7 @@
         </testcase>
 
         <!--- Test Case : Admin Reset Minimum Pwd Length -->
-        <testcase name="'Security: Pwd Validator: Pwd Length Min: Postamble Reset'">
+        <testcase name="getTestCaseName('Pwd Length Min: Postamble Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -242,7 +242,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: Pwd Length Max: Preamble Setup'">
+        <testcase name="getTestCaseName('Pwd Length Max: Preamble Setup')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -281,7 +281,7 @@
         </testcase>
 
         <!--- Test Case : User Change Password - Too Long-->
-        <testcase name="'Security: Pwd Validator: Pwd Length Max: Pwd Too Long 1'">
+        <testcase name="getTestCaseName('Pwd Length Max: Pwd Too Long 1')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -322,7 +322,7 @@
         </testcase>
 
         <!--- Test Case : User Change Password-->
-        <testcase name="'Security: Pwd Validator: Pwd Length Max: User Change Pwd'">
+        <testcase name="getTestCaseName('Pwd Length Max: User Change Pwd')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -361,7 +361,7 @@
         </testcase>
 
         <!--- Test Case : Admin Reset Maximum Pwd Length -->
-        <testcase name="'Security: Pwd Validator: Pwd Length Max: Postamble Reset'">
+        <testcase name="getTestCaseName('Pwd Length Max: Postamble Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

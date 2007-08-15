@@ -33,7 +33,7 @@
 
       <sequence>
 
-        <testcase name="'Security: Pwd Validator: Character Set: Preamble'">
+        <testcase name="getTestCaseName('Character Set: Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -69,7 +69,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: Character Set: user modifying password to string with all letters'">
+        <testcase name="getTestCaseName('Character Set: user modifying password to string with all letters')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -109,7 +109,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Character Set: user modifying password to string with all numbers'">
+        <testcase name="getTestCaseName('Character Set: user modifying password to string with all numbers')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -149,7 +149,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Character Set: change letter characters'">
+        <testcase name="getTestCaseName('Character Set: change letter characters')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -194,7 +194,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Character Set: user modifying password to string with all letters 2'">
+        <testcase name="getTestCaseName('Character Set: user modifying password to string with all letters 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -234,7 +234,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Character Set: user modifying password to string with all numbers 2'">
+        <testcase name="getTestCaseName('Character Set: user modifying password to string with all numbers 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -274,7 +274,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Character Set: user modifying password to valid string'">
+        <testcase name="getTestCaseName('Character Set: user modifying password to valid string')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -312,7 +312,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Character Set: disable validator'">
+        <testcase name="getTestCaseName('Character Set: disable validator')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -336,7 +336,7 @@
         </testcase>
         
         
-        <testcase name="'Security: Pwd Validator: Character Set: user modifying password to valid string 2'">
+        <testcase name="getTestCaseName('Character Set: user modifying password to valid string 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -374,7 +374,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Character Set: Postamble'">
+        <testcase name="getTestCaseName('Character Set: Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

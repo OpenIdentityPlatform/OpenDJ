@@ -46,7 +46,7 @@
       -->
 		  
     
-  <testcase name="'Security: client_auth:  setup - Subject_dn_mapper'">
+  <testcase name="getTestCaseName(' setup - Subject_dn_mapper')">
 
    <sequence>
     <call function="'testCase_Preamble'"/>
@@ -88,7 +88,7 @@
 #@TestResult               Success if OpenDS returns 0 for all operations
  -->
     
-  <testcase name="'Security: client_auth: subject dn mapping on ds-certificate-subject-dn'">
+  <testcase name="getTestCaseName('subject dn mapping on ds-certificate-subject-dn')">
     <sequence>
 
     <call function="'testCase_Preamble'"/>
@@ -277,7 +277,7 @@
 #@TestResult               Success if OpenDS returns 0 for all operations
   -->
     
-  <testcase name="'Security: client_auth: subject dn mapping on attribut description'">
+  <testcase name="getTestCaseName('subject dn mapping on attribut description')">
     <sequence>
 	
     <call function="'testCase_Preamble'"/>

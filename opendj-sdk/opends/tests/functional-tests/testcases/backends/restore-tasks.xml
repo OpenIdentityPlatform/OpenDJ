@@ -62,7 +62,7 @@
             #@TestPostamble
             #@TestResult          Success if OpenDS returns 0
           -->
-          <testcase name="'Backend: Restore Tasks: Test 1'">
+          <testcase name="getTestCaseName('Test 1')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>

@@ -26,55 +26,23 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-
-  <defaultcall function="main_core"/>
-
+  <defaultcall function="main_core" />
   <function name="main_core">
-
-    <sequence>
-
-      <block name="'core'">
-      
-        <sequence>
-  
-          <script>
-            CurrentTestPath['group']='core'
-          </script>
-            
-          <call function="'testGroup_Preamble'"/>
-			
-			
-			          
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/core/core_entry_cache.xml' % (TESTS_DIR)"/>
-          <call function="'core_entry_cache'" />
-             
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/core/core_search_sizelimit.xml' % (TESTS_DIR)"/>
-          <call function="'core_search_sizelimit'" />
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/core/core_search_timelimit.xml' % (TESTS_DIR)"/>
-          <call function="'core_search_timelimit'" />
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/core/core_tf_filters.xml' % (TESTS_DIR)"/>
-          <call function="'core_tf_filters'" />
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/core/core_version_report.xml' % (TESTS_DIR)"/>
-          <call function="'core_version_report'" />
-          
-						
-			    
-          <call function="'testGroup_Postamble'"/>
-      
-        </sequence>
-    
-      </block>
-    
-    </sequence>
-
+    <block name="'core'">
+      <sequence>
+        <script>
+          CurrentTestPath['group']='core'
+        </script>
+        <call function="'testGroup_Preamble'" />
+        <iterate var="_test" in="['core_entry_cache','core_search_sizelimit','core_tf_filters','core_version_report']">
+          <sequence>
+            <import machine="STAF_LOCAL_HOSTNAME"
+                    file="'%s/testcases/core/%s.xml' % (TESTS_DIR,_test)" />
+            <call function="'%s' % _test" />
+          </sequence>
+        </iterate>
+        <call function="'testGroup_Postamble'" />
+      </sequence>
+    </block>
   </function>
-
 </stax>

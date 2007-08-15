@@ -53,7 +53,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'Security: Auth Pwd Syntax: SHA1 Policy - Preamble'">
+        <testcase name="getTestCaseName('SHA1 Policy - Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -90,7 +90,7 @@
             #@TestResult                Success if OpenDS returns 0
                                         for all ldap operations.
         -->
-        <testcase name="'Security: Auth Pwd Syntax: SHA1 Policy - Add Users'">
+        <testcase name="getTestCaseName('SHA1 Policy - Add Users')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -157,7 +157,7 @@
             #@TestResult                Success if OpenDS returns 65
                                         and a search for the user returns 49.
         -->
-        <testcase name="'Security: Auth Pwd Syntax: SHA1 Policy - Add User w/o Objectclass'">
+        <testcase name="getTestCaseName('SHA1 Policy - Add User w/o Objectclass')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -209,7 +209,7 @@
             #@TestResult                Success if OpenDS returns 21
                                         and a search for the user returns 49.
         -->
-        <testcase name="'Security: Auth Pwd Syntax: SHA1 Policy - Add User w/o Pwd Policy'">
+        <testcase name="getTestCaseName('SHA1 Policy - Add User w/o Pwd Policy')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -258,7 +258,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'Security: Auth Pwd Syntax: SHA1 Policy - Postamble'">
+        <testcase name="getTestCaseName('SHA1 Policy - Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

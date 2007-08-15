@@ -26,241 +26,192 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-
-  <defaultcall function="core_entry_cache"/>
-
+  <defaultcall function="core_entry_cache" />
   <function name="core_entry_cache">
-
     <sequence>
-
       <block name="'entry-cache'">
-      
         <sequence>
-  
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='core'						  
+              CurrentTestPath['group']='core'
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
-            
-          <call function="'testSuite_Preamble'"/>
-
-
+          <call function="'testSuite_Preamble'" />
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)"/>
-          <call function="'core_setup'"/>
-
-												    
+                  file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)" />
+          <call function="'core_setup'" />
           <!--- Test Case : Entry Cache: Default Search -->
-          <testcase name="'Core: Entry Cache: Default Search'">
+          <testcase name="getTestCaseName('Default Search')">
             <sequence>
-            
-              <call function="'testCase_Preamble'"/>
-              
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Check the response of OpenDS when an ldap search request is conducted with a single pipe character ("|") for an existing entry'
+               'Check the response of OpenDS when an ldap search request is conducted with a single pipe character ("|") for an existing entry'
               </message>
-    
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'dsBaseDN'         : 'cn=version,cn=monitor' ,
-                  'dsFilter'         : '|' ,
-                  'extraParams'	   : '' }
-                  
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'cn=version,cn=monitor',
+                  'dsFilter'       : '|' ,
+                  'extraParams'	   : ''
+                }
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              
-              <call function="'testCase_Postamble'"/>
-              
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Entry Cache: Enable Default -->
-          <testcase name="'Core: Entry Cache: Enable Default'">
+          <testcase name="getTestCaseName('Enable Default')">
             <sequence>
-            
-              <call function="'testCase_Preamble'"/>
-              
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Enable the default entry cache'
+               'Enable the default entry cache'
               </message>
-              
               <call function="'dsconfig'">
-                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                      'subcommand'             : 'set-entry-cache-prop' ,
-                      'optionsString'          : '--set enabled:true'
-                    }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'subcommand'     : 'set-entry-cache-prop',
+                  'optionsString'  : '--set enabled:true'
+                }
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              
-              <call function="'testCase_Postamble'"/>
-              
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Entry Cache: Add Attributes -->
-          <testcase name="'Core: Entry Cache: Add Attributes'">
+          <testcase name="getTestCaseName('Add Attributes')">
             <sequence>
-            
-              <call function="'testCase_Preamble'"/>
-              
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Add three attributes to cn=Entry Cache,cn=config'
+               'Add three attributes to cn=Entry Cache,cn=config'
               </message>
-                            
               <call function="'dsconfig'">
-                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                      'subcommand'             : 'set-entry-cache-prop' ,
-                      'optionsString'          : '--set lock-timeout:60s'
-                    }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'subcommand'     : 'set-entry-cache-prop',
+                  'optionsString'  : '--set lock-timeout:60s'
+                }
+              </call>
+              <call function="'dsconfig'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'subcommand'     : 'set-entry-cache-prop',
+                  'optionsString'  : '--set exclude-filter:telephonenumber=*'
+                }
               </call>
                             
               <call function="'dsconfig'">
-                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                      'subcommand'             : 'set-entry-cache-prop' ,
-                      'optionsString'          : '--set exclude-filter:telephonenumber=*'
-                    }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'subcommand'     : 'set-entry-cache-prop',
+                  'optionsString'  : '--set include-filter:roomNumber=*'
+                }
               </call>
-                            
-              <call function="'dsconfig'">
-                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                      'subcommand'             : 'set-entry-cache-prop' ,
-                      'optionsString'          : '--set include-filter:roomNumber=*'
-                    }
-              </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              
-              <call function="'testCase_Postamble'"/>
-              
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Entry Cache: Attribute Already Exists -->
-          <testcase name="'Core: Entry Cache: Attribute Already Exists'">
+          <testcase name="getTestCaseName('Attribute Already Exists')">
             <sequence>
-            
-              <call function="'testCase_Preamble'"/>
-              
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Add one attribute that is not allowed under cn=Entry Cache,cn=config'
+               'Add one attribute that is not allowed under cn=Entry Cache,cn=config'
               </message>
-                                          
               <call function="'dsconfig'">
-                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                      'subcommand'             : 'set-entry-cache-prop' ,
-                      'optionsString'          : '--add max-entries:100000',
-                      'expectedRC'             : 1  
-                    }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'subcommand'     : 'set-entry-cache-prop',
+                  'optionsString'  : '--add max-entries:100000',
+                  'expectedRC'     : 1  
+                }
               </call>
-              
-              <call function="'testCase_Postamble'"/>
-              
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
            
           <!--- Test Case : Entry Cache: FIFO Cache-->
-          <testcase name="'Core: Entry Cache: FIFO Cache'">
+          <testcase name="getTestCaseName('FIFO Cache')">
             <sequence>
-            
-              <call function="'testCase_Preamble'"/>
-              
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Add second entry cache which is an object of the ds-cfg-fifo-entry-cache class'
+               'Add second entry cache which is an object of the ds-cfg-fifo-entry-cache class'
               </message>
-              
               <call function="'addEntry'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/core/ldifs/mod_entrycache5.ldif' % logsRemoteDataDir }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'entryToBeAdded' : '%s/core/ldifs/mod_entrycache5.ldif' % logsRemoteDataDir
+                }
               </call>
-              
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              
-              <call function="'testCase_Postamble'"/>
-              
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : Entry Cache: Search -->
-          <testcase name="'Core: Entry Cache: Cache Search'">
+          <testcase name="getTestCaseName('Cache Search')">
             <sequence>
-            
-              <call function="'testCase_Preamble'"/>
-              
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Check the response of OpenDS when an ldap search request is conducted'
+               'Check the response of OpenDS when an ldap search request is conducted'
               </message>
-              
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' ,
-                  'extraParams'	   : '' }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'ou=People,o=core tests,dc=example,dc=com',
+                  'dsFilter'       : 'objectclass=*',
+                  'extraParams'	   : ''
+                }
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              
-              <call function="'testCase_Postamble'"/>
-              
+              <call function="'testCase_Postamble'" />
             </sequence>
-            
           </testcase>
-
-
+          
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/core/core_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'core_cleanup'"/>
-
-												          
-          <call function="'testSuite_Postamble'"/>
-
+                  file="'%s/testcases/core/core_cleanup.xml' % (TESTS_DIR)" />
+          <call function="'core_cleanup'" />
+          <call function="'testSuite_Postamble'" />
         </sequence>
-    
       </block>
-    
     </sequence>
-
   </function>
-
 </stax>

@@ -34,7 +34,7 @@
       <sequence>
 
         <!--- Test Case : Add Entries for Bind No Pwd Tests -->
-        <testcase name="'Security: Bind No Pwd: Add Initial Entries'">
+        <testcase name="getTestCaseName('Add Initial Entries')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

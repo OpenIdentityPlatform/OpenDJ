@@ -35,7 +35,7 @@
 
         <!--- Test Case : startTLS Setup -->
         <!--- Generate Server Cert -->
-        <testcase name="'Security: TLS: Preamble Setup'">
+        <testcase name="getTestCaseName('Preamble Setup')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

@@ -64,7 +64,7 @@
             #@TestPostamble
             #@TestResult Success if backup returns 0
           -->
-          <testcase name="'Backend: Backup: Test 1'">
+          <testcase name="getTestCaseName('Test 1')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -96,7 +96,7 @@
             #@TestPostamble
             #@TestResult Success if backup returns 0
           -->
-          <testcase name="'Backend: Backup: Test 2'">
+          <testcase name="getTestCaseName('Test 2')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -128,7 +128,7 @@
             #@TestPostamble
             #@TestResult Success if backup returns 0
           -->
-          <testcase name="'Backend: Backup: Test 3'">
+          <testcase name="getTestCaseName('Test 3')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -159,7 +159,7 @@
             #@TestPostamble
             #@TestResult Success if backup returns 0
           -->
-          <testcase name="'Backend: Backup: Test 4'">
+          <testcase name="getTestCaseName('Test 4')">
             <sequence>
               <call function="'testCase_Preamble'" />
               <message>
@@ -190,7 +190,7 @@
             #@TestPostamble
             #@TestResult Success if backup returns 0
           -->
-          <testcase name="'Backend: Backup: Test 5'">
+          <testcase name="getTestCaseName('Test 5')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>

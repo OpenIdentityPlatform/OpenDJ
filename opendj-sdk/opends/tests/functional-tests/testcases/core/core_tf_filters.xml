@@ -26,142 +26,118 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-
-  <defaultcall function="core_tf_filters"/>
-
+  <defaultcall function="core_tf_filters" />
   <function name="core_tf_filters">
-
     <sequence>
-
       <block name="'filters'">
-      
         <sequence>
-  
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='core'								  
+              CurrentTestPath['group']='core'
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
-            
-          <call function="'testSuite_Preamble'"/>
-
-
+          <call function="'testSuite_Preamble'" />
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)"/>
-          <call function="'core_setup'"/>
+                  file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)" />
+          <call function="'core_setup'" />
 
-												    
           <!--- Test Case : True False Filters: And Filter -->
-          <testcase name="'Core: True False Filters: And Filter'">
+          <testcase name="getTestCaseName('And Filter')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core TFF1: Check the response of OpenDS when an ldap search request is conducted with a single ampersand character '
+                'Core TFF1: Check the response of OpenDS when an ldap search request is conducted with a single ampersand character '
               </message>
-    
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'dsBaseDN'         : 'cn=version,cn=monitor' ,
-                  'dsFilter'         : '&amp;' }                
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'cn=version,cn=monitor',
+                  'dsFilter'       : '&amp;'
+                }
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : True False Filters: Or Filter -->
-          <testcase name="'Core: True False Filters: Or Filter'">
+          <testcase name="getTestCaseName('Or Filter')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core TFF2: Check the response of OpenDS when an ldap search request is conducted with a single pipe character'
+                'Core TFF2: Check the response of OpenDS when an ldap search request is conducted with a single pipe character'
               </message>
-    
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'dsBaseDN'         : 'cn=version,cn=monitor' ,
-                  'dsFilter'         : '|' }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'cn=version,cn=monitor',
+                  'dsFilter'       : '|'
+                }
               </call>
-    
               <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                { 'returncode' : RC ,
+                  'result'     : STAXResult
+                }
               </call>
-              <call function="'testCase_Postamble'"/>
+              <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
           <!--- Test Case : True False Filters: And Filter Entry Not Exists -->
-          <testcase name="'Core: True False Filters: And Filter Entry Not Exists'">
+          <testcase name="getTestCaseName('And Filter Entry Not Exists')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
-                 'Core TFF3: Check the response of OpenDS when an ldap search request is conducted with a single ampersand character for a non-existent entry'
+                'Core TFF3: Check the response of OpenDS when an ldap search request is conducted with a single ampersand character for a non-existent entry'
               </message>
-    
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'dsBaseDN'         : 'cn=bad,cn=monitor' ,
-                  'dsFilter'         : '&amp;' ,
-                  'expectedRC'       : 32
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'cn=bad,cn=monitor',
+                  'dsFilter'       : '&amp;',
+                  'expectedRC'     : 32
                 }
               </call>
-    
-              <call function="'testCase_Postamble'"/>
-             </sequence>
+              <call function="'testCase_Postamble'" />
+            </sequence>
           </testcase>
-    
+          
           <!--- Test Case : True False Filters: Or Filter Entry Not Exists -->
-          <testcase name="'Core: True False Filters: Or Filter Entry Not Exists'">
+          <testcase name="getTestCaseName('Or Filter Entry Not Exists')">
             <sequence>
-              <call function="'testCase_Preamble'"/>
+              <call function="'testCase_Preamble'" />
               <message>
                  'Core TFF4: Check the response of OpenDS when an ldap search request is conducted with a single pipe character for a non-existent entry'
               </message>
-    
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'dsBaseDN'         : 'cn=bad,cn=monitor' ,
-                  'dsFilter'         : '|' ,
-                  'expectedRC'       : 32
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'cn=bad,cn=monitor',
+                  'dsFilter'       : '|',
+                  'expectedRC'     : 32
                 }
               </call>
-    
-              <call function="'testCase_Postamble'"/>
-             </sequence>
-    
+              <call function="'testCase_Postamble'" />
+            </sequence>
           </testcase>
-
-
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/core/core_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'core_cleanup'"/>
-
-												          
-          <call function="'testSuite_Postamble'"/>
-
+                  file="'%s/testcases/core/core_cleanup.xml' % (TESTS_DIR)" />
+          <call function="'core_cleanup'" />
+          <call function="'testSuite_Postamble'" />
         </sequence>
-    
       </block>
-    
     </sequence>
-
   </function>
-
 </stax>

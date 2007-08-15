@@ -54,7 +54,7 @@
             #@TestResult                Success if OpenDS returns 0 
                                         for all ldap operations.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: Preamble'">
+        <testcase name="getTestCaseName('Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -126,7 +126,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 49.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (u:) Bind'">
+        <testcase name="getTestCaseName('Dupe uid (u:) Bind')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -160,7 +160,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind'">
+        <testcase name="getTestCaseName('User (u:) Bind')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -193,7 +193,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind authzid'">
+        <testcase name="getTestCaseName('User (u:) Bind authzid')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -226,7 +226,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 49.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind another authzid'">
+        <testcase name="getTestCaseName('User (u:) Bind another authzid')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -260,7 +260,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 89.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind with authzid without authid'">
+        <testcase name="getTestCaseName('User (u:) Bind with authzid without authid')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -294,7 +294,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: Admin Change authzid Attr'">
+        <testcase name="getTestCaseName('Admin Change authzid Attr')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -329,7 +329,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 49.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind authzid After Attr Change'">
+        <testcase name="getTestCaseName('User (u:) Bind authzid After Attr Change')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -363,7 +363,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind authzid After Attr Change 2'">
+        <testcase name="getTestCaseName('User (u:) Bind authzid After Attr Change 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -396,7 +396,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: Admin Reset authzid Attr'">
+        <testcase name="getTestCaseName('Admin Reset authzid Attr')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -431,7 +431,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind authzid After Attr Reset'">
+        <testcase name="getTestCaseName('User (u:) Bind authzid After Attr Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -464,7 +464,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (dn:) Bind'">
+        <testcase name="getTestCaseName('Dupe uid (dn:) Bind')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -497,7 +497,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 49.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (dn:) Bind authzid'">
+        <testcase name="getTestCaseName('Dupe uid (dn:) Bind authzid')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -531,7 +531,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: User (dn:) Bind'">
+        <testcase name="getTestCaseName('User (dn:) Bind')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -564,7 +564,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: Create Realm'">
+        <testcase name="getTestCaseName('Create Realm')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -600,7 +600,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 49.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (u:) Bind With Realm'">
+        <testcase name="getTestCaseName('Dupe uid (u:) Bind With Realm')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -635,7 +635,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind With Realm'">
+        <testcase name="getTestCaseName('User (u:) Bind With Realm')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -669,7 +669,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (dn:) Bind With Realm'">
+        <testcase name="getTestCaseName('Dupe uid (dn:) Bind With Realm')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -703,7 +703,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: User (dn:) Bind With Realm'">
+        <testcase name="getTestCaseName('User (dn:) Bind With Realm')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -738,7 +738,7 @@
             #@TestResult                Success if OpenDS returns 0.
         -->
       <!--
-        <testcase name="'Security: SASL DIGEST-MD5: User (dn:) Bind With Realm and digest-uri'">
+        <testcase name="getTestCaseName('User (dn:) Bind With Realm and digest-uri')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -773,7 +773,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 49.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (u:) Bind With Undefined Realm'">
+        <testcase name="getTestCaseName('Dupe uid (u:) Bind With Undefined Realm')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -808,7 +808,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 49.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind With Undefined Realm'">
+        <testcase name="getTestCaseName('User (u:) Bind With Undefined Realm')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -843,7 +843,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 49.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (dn:) Bind With Undefined Realm'">
+        <testcase name="getTestCaseName('Dupe uid (dn:) Bind With Undefined Realm')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -878,7 +878,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 49.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: User (dn:) Bind With Undefined Realm'">
+        <testcase name="getTestCaseName('User (dn:) Bind With Undefined Realm')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -921,7 +921,7 @@
             #@TestResult                Success if OpenDS returns 0 for all ldap operations.
                                         Entries returned for steps 1, 2, and 7.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: User (dn:) Bind with ACI with authmethod equal sasl'">
+        <testcase name="getTestCaseName('User (dn:) Bind with ACI with authmethod equal sasl')">
           <sequence>
             <call function="'testCase_Preamble'"/>
 
@@ -1169,7 +1169,7 @@
             #@TestResult                Success if OpenDS returns 0 for all ldap operations.
                                         Entries returned for steps 1, 2, and 8.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: User (dn:) Bind with ACI with authmethod equal simple'">
+        <testcase name="getTestCaseName('User (dn:) Bind with ACI with authmethod equal simple')">
           <sequence>
             <call function="'testCase_Preamble'"/>
 
@@ -1417,7 +1417,7 @@
             #@TestResult                Success if OpenDS returns 0 for all ldap operations.
                                         Entries returned for steps 1, 2, and 7.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: User (dn:) Bind with ACI with authmethod  not equals simple'">
+        <testcase name="getTestCaseName('User (dn:) Bind with ACI with authmethod  not equals simple')">
           <sequence>
             <call function="'testCase_Preamble'"/>
 
@@ -1665,7 +1665,7 @@
             #@TestResult                Success if OpenDS returns 0 for all ldap operations.
                                         Entries returned for steps 1, 2, and 7.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: User (dn:) Bind with ACI with authmethod equals none'">
+        <testcase name="getTestCaseName('User (dn:) Bind with ACI with authmethod equals none')">
           <sequence>
             <call function="'testCase_Preamble'"/>
 
@@ -1914,7 +1914,7 @@
                                         In step 5, the ldap operation should return 49
                                         because the password is no longer stored as CLEAR.
         -->
-        <testcase name="'Security: SASL DIGEST-MD5: Postamble'">
+        <testcase name="getTestCaseName('Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

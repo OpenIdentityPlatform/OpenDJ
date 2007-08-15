@@ -73,7 +73,7 @@
             -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Compare: Preamble'">
+            <testcase name="getTestCaseName('Preamble')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                 <message>
@@ -116,7 +116,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Compare: Compare Attr - userdn equals all'">
+            <testcase name="getTestCaseName('Compare Attr - userdn equals all')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -240,7 +240,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Compare: Compare Attr - userdn not equals a dn'">
+            <testcase name="getTestCaseName('Compare Attr - userdn not equals a dn')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -377,7 +377,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Compare: Compare Attr - userdn equals a branch dn'">
+            <testcase name="getTestCaseName('Compare Attr - userdn equals a branch dn')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -505,7 +505,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Compare: Compare Attr - userdn not equals a branch dn'">
+            <testcase name="getTestCaseName('Compare Attr - userdn not equals a branch dn')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -655,7 +655,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Compare: Compare Attr - userdn equals two dns'">
+            <testcase name="getTestCaseName('Compare Attr - userdn equals two dns')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -803,7 +803,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Compare: Compare Attr - userdn not equals two dns'">
+            <testcase name="getTestCaseName('Compare Attr - userdn not equals two dns')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -927,7 +927,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Compare: Compare Attr - compare not allowed'">
+            <testcase name="getTestCaseName('Compare Attr - compare not allowed')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1040,7 +1040,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Compare: Compare Attr - targetattr with one attribute'">
+            <testcase name="getTestCaseName('Compare Attr - targetattr with one attribute')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1179,7 +1179,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Compare: Compare Attr - targetfilter with one statement'">
+            <testcase name="getTestCaseName('Compare Attr - targetfilter with one statement')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1318,7 +1318,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Compare: Compare Attr - targetattrfilter with add:,del:'">
+            <testcase name="getTestCaseName('Compare Attr - targetattrfilter with add:,del:')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1468,7 +1468,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, returns false'">
+            <testcase name="getTestCaseName('Compare Attr - targetattrfilter with add:,del:, returns false')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1614,7 +1614,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Compare: Compare Attr - Multi ACIs 1, overall deny'">
+            <testcase name="getTestCaseName('Compare Attr - Multi ACIs 1, overall deny')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1710,7 +1710,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Compare: Compare Attr - Multi ACIs 2, overall allow'">
+            <testcase name="getTestCaseName('Compare Attr - Multi ACIs 2, overall allow')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1811,7 +1811,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Compare: Postamble'">
+            <testcase name="getTestCaseName('Postamble')">
             <sequence>
               <call function="'testCase_Preamble'"/>
                 <message>

@@ -74,7 +74,7 @@
                                             The attributes, sn and dn, should be returned 
                                             but not userpassword.
             -->
-            <testcase name="'ACI: Global: Search'">
+            <testcase name="getTestCaseName('Search')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -138,7 +138,7 @@
                                             and entry for step 1.
                                             The attributes, creatorsname and dn, should be returned.
             -->
-            <testcase name="'ACI: Global: Search Operational Attribute of an entry'">
+            <testcase name="getTestCaseName('Search Operational Attribute of an entry')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -193,7 +193,7 @@
                                             and entry for step 1.
                                             Six attributes and the dn should be returned.
             -->
-            <testcase name="'ACI: Global: Search All Operational Attributes of an entry'">
+            <testcase name="getTestCaseName('Search All Operational Attributes of an entry')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -309,7 +309,7 @@
                                             and entry for step 1.
                                             The attributes, matchingrules and dn, should be returned.
             -->
-            <testcase name="'ACI: Global: Search Operational Attribute, cn=schema'">
+            <testcase name="getTestCaseName('Search Operational Attribute, cn=schema')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -365,7 +365,7 @@
                                             and entry for step 1.
                                             Six attributes and the dn should be returned.
             -->
-            <testcase name="'ACI: Global: Search All Operational Attributes, cn=schema'">
+            <testcase name="getTestCaseName('Search All Operational Attributes, cn=schema')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -466,7 +466,7 @@
                                             and entry for step 1.
                                             The attributes, vendorname and dn, should be returned.
             -->
-            <testcase name="'ACI: Global: Search Operational Attribute, root dse'">
+            <testcase name="getTestCaseName('Search Operational Attribute, root dse')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -522,7 +522,7 @@
                                             and entry for step 1.
                                             Eight attributes and the dn should be returned.
             -->
-            <testcase name="'ACI: Global: Search All Operational Attribute, root dse'">
+            <testcase name="getTestCaseName('Search All Operational Attribute, root dse')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -639,7 +639,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 50.
             -->
-            <testcase name="'ACI: Global: Search Operational Attribute, cn=config'">
+            <testcase name="getTestCaseName('Search Operational Attribute, cn=config')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -678,7 +678,7 @@
                                             and entry for step 1.
                                             The attributes, uid, sn and dn, should be returned for specified dn.
             -->
-            <testcase name="'ACI: Global: Anon Search'">
+            <testcase name="getTestCaseName('Anon Search')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -742,7 +742,7 @@
                                             The attributes, uid, sn and dn, should be returned for all other entries but the 
                                             for the specified dn.
             -->
-            <testcase name="'ACI: Global: Anon Search, not equals filter'">
+            <testcase name="getTestCaseName('Anon Search, not equals filter')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -804,7 +804,7 @@
                 #@TestResult                Success if OpenDS returns 0
                                             and returns true for step 1.
             -->
-            <testcase name="'ACI: Global: Compare'">
+            <testcase name="getTestCaseName('Compare')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -847,7 +847,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 50.
             -->
-            <testcase name="'ACI: Global: Modify'">
+            <testcase name="getTestCaseName('Modify')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -882,7 +882,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 50.
             -->
-            <testcase name="'ACI: Global: Delete'">
+            <testcase name="getTestCaseName('Delete')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -917,7 +917,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 50.
             -->
-            <testcase name="'ACI: Global: Modify RDN'">
+            <testcase name="getTestCaseName('Modify RDN')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -952,7 +952,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0.
             -->
-            <testcase name="'ACI: Global: Self Modify'">
+            <testcase name="getTestCaseName('Self Modify')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           

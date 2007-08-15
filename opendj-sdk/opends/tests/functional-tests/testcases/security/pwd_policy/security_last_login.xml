@@ -34,7 +34,7 @@
       <sequence>
 
         <!--- Test Case : Check for ds-cfg-idle-lockout-interval -->
-        <testcase name="'Security: Last Login: Preamble'">
+        <testcase name="getTestCaseName('Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>          
             <message>
@@ -56,7 +56,7 @@
         </testcase>
 
         <!--- Test Case : Admin enable last login attribute only-->
-        <testcase name="'Security: Last Login: Admin Enable Last Login Attr Only'">
+        <testcase name="getTestCaseName('Admin Enable Last Login Attr Only')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -116,7 +116,7 @@
         </testcase>
 
         <!--- Test Case : Admin enable last login format only -->
-        <testcase name="'Security: Last Login: Admin Enable Last Login Format Only'">
+        <testcase name="getTestCaseName('Admin Enable Last Login Format Only')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -190,7 +190,7 @@
         </testcase>
 
         <!--- Test Case : Admin enable both last login attribute and format-->
-        <testcase name="'Security: Last Login: Admin Enable Last Login Attr And Format'">
+        <testcase name="getTestCaseName('Admin Enable Last Login Attr And Format')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -250,7 +250,7 @@
         </testcase>
 
         <!--- Test Case : Long Idle Lockout Interval -->
-        <testcase name="'Security: Last Login: Long Idle Lockout'">
+        <testcase name="getTestCaseName('Long Idle Lockout')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -326,7 +326,7 @@
         </testcase>
 
         <!--- Test Case : Amin Reset Idle Lockout Interval -->
-        <testcase name="'Security: Last Login: Reset Idle Lockout'">
+        <testcase name="getTestCaseName('Reset Idle Lockout')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -386,7 +386,7 @@
         </testcase>
 
         <!--- Test Case : Password Change Override -->
-        <testcase name="'Security: Last Login: Long Idle Lockout - Pwd Change Override'">
+        <testcase name="getTestCaseName('Long Idle Lockout - Pwd Change Override')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -484,7 +484,7 @@
         </testcase>
 
         <!--- Test Case : Amin Reset Idle Lockout Interval -->
-        <testcase name="'Security: Last Login: Reset Idle Lockout 2'">
+        <testcase name="getTestCaseName('Reset Idle Lockout 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -543,7 +543,7 @@
         </testcase>
 
         <!--- Test Case : User Bind Reset Last Login Time -->
-        <testcase name="'Security: Last Login: Long Idle Lockout - User Bind Reset'">
+        <testcase name="getTestCaseName('Long Idle Lockout - User Bind Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -641,7 +641,7 @@
         </testcase>
 
         <!--- Test Case : Amin Reset Idle Lockout Interval -->
-        <testcase name="'Security: Last Login: Reset Idle Lockout 3'">
+        <testcase name="getTestCaseName('Reset Idle Lockout 3')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -700,7 +700,7 @@
         </testcase>
 
         <!--- Test Case : Long Idle Lockout Interval -->
-        <testcase name="'Security: Last Login: Long Idle Lockout - Disabled Last Login'">
+        <testcase name="getTestCaseName('Long Idle Lockout - Disabled Last Login')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -766,7 +766,7 @@
         </testcase>
 
         <!--- Test Case : Amin Reset Idle Lockout Interval -->
-        <testcase name="'Security: Last Login: Reset Idle Lockout 4'">
+        <testcase name="getTestCaseName('Reset Idle Lockout 4')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -839,7 +839,7 @@
         </testcase>
 
         <!--- Test Case : Long Idle Lockout Interval -->
-        <testcase name="'Security: Last Login: Long Idle Lockout - Disabled Last Login 2'">
+        <testcase name="getTestCaseName('Long Idle Lockout - Disabled Last Login 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -905,7 +905,7 @@
         </testcase>
 
         <!--- Test Case : Amin Reset Idle Lockout Interval -->
-        <testcase name="'Security: Last Login: Reset Idle Lockout 5'">
+        <testcase name="getTestCaseName('Reset Idle Lockout 5')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -979,7 +979,7 @@
         </testcase>
 
         <!--- Test Case : Long Idle Lockout Interval -->
-        <testcase name="'Security: Last Login: Long Idle Lockout - Repeat'">
+        <testcase name="getTestCaseName('Long Idle Lockout - Repeat')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -1055,7 +1055,7 @@
         </testcase>
 
         <!--- Test Case : Amin Reset Idle Lockout Interval -->
-        <testcase name="'Security: Last Login: Reset Idle Lockout 6'">
+        <testcase name="getTestCaseName('Reset Idle Lockout 6')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -1116,7 +1116,7 @@
         </testcase>
 
         <!--- Test Case : Long Idle Lockout Interval -->
-        <testcase name="'Security: Last Login: Long Idle Lockout - Pwd Change Override 2'">
+        <testcase name="getTestCaseName('Long Idle Lockout - Pwd Change Override 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -1206,7 +1206,7 @@
         </testcase>
 
         <!--- Test Case : Amin Reset Idle Lockout Interval -->
-        <testcase name="'Security: Last Login: Reset Idle Lockout 7'">
+        <testcase name="getTestCaseName('Reset Idle Lockout 7')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -1267,7 +1267,7 @@
         </testcase>
 
         <!--- Test Case : Long Idle Lockout Interval -->
-        <testcase name="'Security: Last Login: Long Idle Lockout - Pwd Change Override 3'">
+        <testcase name="getTestCaseName('Long Idle Lockout - Pwd Change Override 3')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -1363,7 +1363,7 @@
         </testcase>
 
         <!--- Test Case : Amin Reset Idle Lockout Interval -->
-        <testcase name="'Security: Last Login: Postamble'">
+        <testcase name="getTestCaseName('Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

@@ -45,7 +45,7 @@
       -->
 		  
     
-  <testcase name="'Security: client_auth:  setup - equal_dn_mapper'">
+  <testcase name="getTestCaseName(' setup - equal_dn_mapper')">
 
 	  <sequence>
       <call function="'testCase_Preamble'"/>
@@ -84,7 +84,7 @@
 	#@TestResult               Success if OpenDS returns 0 for all operations
       -->
     
-  <testcase name="'Security: client_auth: Equal DN mapping '">
+  <testcase name="getTestCaseName('Equal DN mapping ')">
     <sequence>
 
     <call function="'testCase_Preamble'"/>

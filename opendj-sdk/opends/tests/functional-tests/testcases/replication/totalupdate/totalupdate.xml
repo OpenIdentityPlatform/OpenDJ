@@ -54,7 +54,7 @@
           </script>
           
           <!--- Test Case : Total Update -->          
-          <testcase name="'Replication: Total Update: Simple LDIF'">
+          <testcase name="getTestCaseName('Simple LDIF')">
             <sequence>
             
               <call function="'testCase_Preamble'"/>

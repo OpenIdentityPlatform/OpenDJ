@@ -57,7 +57,7 @@
                                         for all operations and a user password
                                         is successfully stored in the MD5 scheme.
         -->
-        <testcase name="'Security: Depr Pwd Schemes: Preamble'">
+        <testcase name="getTestCaseName('Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -155,7 +155,7 @@
             #@TestResult                Success if OpenDS returns 0
                                         for all operations.
         -->
-        <testcase name="'Security: Depr Pwd Schemes: Admin Deprecate MD5'">
+        <testcase name="getTestCaseName('Admin Deprecate MD5')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -206,7 +206,7 @@
             #@TestResult                Success if OpenDS returns 0
                                         and the user binds successfully.
         -->
-        <testcase name="'Security: Depr Pwd Schemes: User Bind'">
+        <testcase name="getTestCaseName('User Bind')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -242,7 +242,7 @@
             #@TestResult                Success if the prefix string, {MD5}, is not found
                                         in the userpassword.
         -->
-        <testcase name="'Security: Depr Pwd Schemes: Check For Deletion'">
+        <testcase name="getTestCaseName('Check For Deletion')">
           <sequence>
             <call function="'testCase_Preamble'"/>
              <message>
@@ -287,7 +287,7 @@
             #@TestResult                Success if the prefix string, {SSHA256}, is found
                                         in the userpassword.
         -->
-        <testcase name="'Security: Depr Pwd Schemes: Check For Non-Deletions - SSHA256'">
+        <testcase name="getTestCaseName('Check For Non-Deletions - SSHA256')">
           <sequence>
             <call function="'testCase_Preamble'"/>
              <message>
@@ -331,7 +331,7 @@
             #@TestResult                Success if the prefix string, {BASE64}, is found
                                         in the userpassword.
         -->
-        <testcase name="'Security: Depr Pwd Schemes: Check For Non-Deletions - BASE64'">
+        <testcase name="getTestCaseName('Check For Non-Deletions - BASE64')">
           <sequence>
             <call function="'testCase_Preamble'"/>
              <message>
@@ -375,7 +375,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="'Security: Depr Pwd Schemes: Postamble'">
+        <testcase name="getTestCaseName('Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

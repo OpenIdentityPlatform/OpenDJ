@@ -97,7 +97,7 @@
           #@TestPostamble
           #@TestResult
           -->					     
-          <testcase name="'Replication: Schema Replication: Add objectclass'">
+          <testcase name="getTestCaseName('Add objectclass')">
             <sequence>            
               <call function="'testCase_Preamble'"/>
               <message>
@@ -170,7 +170,7 @@
           #@TestPostamble
           #@TestResult
           -->					     
-          <testcase name="'Replication: Schema Replication: Add attributetype'">
+          <testcase name="getTestCaseName('Add attributetype')">
             <sequence>            
               <call function="'testCase_Preamble'"/>
               <message>
@@ -243,7 +243,7 @@
           #@TestPostamble
           #@TestResult
           	     
-          <testcase name="'Replication: Schema Replication: Delete objectclass'">
+          <testcase name="getTestCaseName('Delete objectclass')">
             <sequence>            
               <call function="'testCase_Preamble'"/>
               <message>

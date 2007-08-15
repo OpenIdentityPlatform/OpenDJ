@@ -74,7 +74,7 @@
           #@TestPostamble
           #@TestResult
           -->					     
-          <testcase name="'Replication: Binary Copy: Off-line initialisation'">
+          <testcase name="getTestCaseName('Off-line initialisation')">
             <sequence>            
               <call function="'testCase_Preamble'"/>
               <message>
@@ -175,7 +175,7 @@
           #@TestPostamble
           #@TestResult
           -->					     
-          <testcase name="'Replication: Binary Copy: On-line initialisation'">
+          <testcase name="getTestCaseName('On-line initialisation')">
             <sequence>            
               <call function="'testCase_Preamble'"/>
               <message>

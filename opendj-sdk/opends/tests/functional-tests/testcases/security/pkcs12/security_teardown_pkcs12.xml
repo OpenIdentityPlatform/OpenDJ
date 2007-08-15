@@ -42,7 +42,7 @@
 
         <!--- Test Case : PKCS12 Teardown -->
         <!--- Delete Branch through SSL port -->
-        <testcase name="'Security: PKCS12: Postamble Reset'">
+        <testcase name="getTestCaseName('Postamble Reset')">
         <!---
             Place test-specific test information here.
             The tag, TestMarker, must be the same as the tag, TestSuiteName.

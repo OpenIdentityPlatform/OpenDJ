@@ -34,7 +34,7 @@
     <sequence>
 
       <!--- Check Existence of ds-cfg-default-password-storage-scheme Attr -->
-      <testcase name="'Security: Pwd Policy Root: Default Pwd Scheme'">
+      <testcase name="getTestCaseName('Default Pwd Scheme')">
         <sequence>
           <call function="'testCase_Preamble'"/>
           <message>
@@ -66,7 +66,7 @@
       </testcase>
 
       <!--- Check Existence of ds-cfg-password-generator-dn Attr -->
-      <testcase name="'Security: Pwd Policy Root: No Default Pwd Generator'">
+      <testcase name="getTestCaseName('No Default Pwd Generator')">
         <sequence>
           <call function="'testCase_Preamble'"/>
           <message>
@@ -89,7 +89,7 @@
       </testcase>
 
      <!--- Check Existence of ds-cfg-password-change-requires-current-password Attr -->
-      <testcase name="'Security: Pwd Policy Root: Default Pwd Change Setting'">
+      <testcase name="getTestCaseName('Default Pwd Change Setting')">
         <sequence>
           <call function="'testCase_Preamble'"/>
           <message>

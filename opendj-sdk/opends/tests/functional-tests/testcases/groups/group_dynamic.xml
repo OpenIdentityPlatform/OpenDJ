@@ -97,7 +97,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Dynamic: add a dynamic group entry'">
+          <testcase name="getTestCaseName('add a dynamic group entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -156,7 +156,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Dynamic: delete a dynamic group entry'">
+          <testcase name="getTestCaseName('delete a dynamic group entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -203,7 +203,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Dynamic: no group user do a search'">
+          <testcase name="getTestCaseName('no group user do a search')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -240,7 +240,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Dynamic: group user do a search'">
+          <testcase name="getTestCaseName('group user do a search')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -287,7 +287,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Dynamic: application add entry that belong to a group'">
+          <testcase name="getTestCaseName('application add entry that belong to a group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -358,7 +358,7 @@
           #@TestResult
           -->
  <!---
-            <testcase name="'Group: Dynamic: application rename entry that belong to a group'">
+            <testcase name="getTestCaseName('application rename entry that belong to a group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -422,7 +422,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Dynamic: application delete entry belonging to a group'">
+          <testcase name="getTestCaseName('application delete entry belonging to a group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
