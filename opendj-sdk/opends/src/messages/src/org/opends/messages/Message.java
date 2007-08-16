@@ -30,6 +30,7 @@ package org.opends.messages;
 import java.util.Locale;
 import java.util.Formatter;
 import java.util.Formattable;
+import java.util.UnknownFormatConversionException;
 
 /**
  * Renders sensitive textural strings.  In most cases message are intended
@@ -153,9 +154,16 @@ public class Message implements CharSequence, Formattable, Comparable {
    * @return String representation of this message
    */
   public String toString(Locale locale) {
-    String s = descriptor.getFormatString(locale);
-    if (needsFormatting(s)) {
-      s = new Formatter(locale).format(locale, s, args).toString();
+    String s;
+    String fmt = descriptor.getFormatString(locale);
+    if (needsFormatting(fmt)) {
+      try {
+        s = new Formatter(locale).format(locale, fmt, args).toString();
+      } catch (UnknownFormatConversionException e) {
+        s = fmt; // This shouldn't happen but just in case...
+      }
+    } else {
+      s = fmt;
     }
     if (s == null) s = "";
     return s;
@@ -316,19 +324,6 @@ public class Message implements CharSequence, Formattable, Comparable {
   }
 
   /**
-   * Indicates whether or not formatting should be applied
-   * to the given format string.  Note that a format string
-   * might have literal specifiers (%% or %n for example)that
-   * require formatting but are not replaced by arguments.
-   * @param s candiate for formatting
-   * @return boolean where true indicates that the format
-   *         string requires formatting
-   */
-  private boolean needsFormatting(String s) {
-    return s != null && (args != null || s.indexOf('%') > 0);
-  }
-
-  /**
    * {@inheritDoc}
    */
   public int compareTo(Object o) {
@@ -356,4 +351,20 @@ public class Message implements CharSequence, Formattable, Comparable {
     result = 31 * toString().hashCode();
     return result;
   }
+
+  /**
+   * Indicates whether or not formatting should be applied
+   * to the given format string.  Note that a format string
+   * might have literal specifiers (%% or %n for example) that
+   * require formatting but are not replaced by arguments.
+   * @param s candiate for formatting
+   * @return boolean where true indicates that the format
+   *         string requires formatting
+   */
+  protected boolean needsFormatting(String s) {
+    return s != null &&
+            ((args != null && args.length > 0)
+                   || s.matches(".*%[n|%].*")); // match Formatter literals
+  }
+
 }

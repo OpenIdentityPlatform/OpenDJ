@@ -768,16 +768,17 @@ public abstract class Application implements ProgressNotifier, Runnable {
     /**
      * {@inheritDoc}
      */
-    public void println(Message msg)
+    @Override
+    public void println(String msg)
     {
       MessageBuilder mb = new MessageBuilder();
       if (isFirstLine)
       {
-        mb.append(getFormattedLogError(msg));
+        mb.append(getFormattedLogError(Message.raw(msg)));
       } else
       {
         mb.append(formatter.getLineBreak());
-        mb.append(getFormattedLogError(msg));
+        mb.append(getFormattedLogError(Message.raw(msg)));
       }
       notifyListeners(mb.toMessage());
       isFirstLine = false;
@@ -786,6 +787,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void write(byte[] b, int off, int len)
     {
       if (b == null)
