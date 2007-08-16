@@ -45,6 +45,11 @@ import org.opends.server.types.InitializationException;
  * @param  <T>  The type of configuration handled by this alert
  *              handler.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public interface AlertHandler<T extends AlertHandlerCfg>
 {
   /**
@@ -109,9 +114,8 @@ public interface AlertHandler<T extends AlertHandlerCfg>
    *
    * @param  generator     The alert generator that created the alert.
    * @param  alertType     The alert type name for this alert.
-   * @param  alertMessage  A message (possibly <CODE>null</CODE>) that
-   *                       can provide more information about this
-   *                       alert.
+   * @param  alertMessage  A message (possibly {@code null}) that can
+   *                       provide more information about this alert.
    */
   public void sendAlertNotification(AlertGenerator generator,
                                     String alertType,

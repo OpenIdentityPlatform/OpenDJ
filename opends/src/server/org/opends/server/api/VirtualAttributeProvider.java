@@ -58,6 +58,11 @@ import org.opends.server.loggers.debug.DebugTracer;
  * @param  <T>  The type of configuration handled by this virtual
  *              attribute provider.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class VirtualAttributeProvider
        <T extends VirtualAttributeCfg>
 {

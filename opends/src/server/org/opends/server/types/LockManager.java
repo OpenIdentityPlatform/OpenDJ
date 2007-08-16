@@ -48,7 +48,12 @@ import static org.opends.server.util.StaticUtils.*;
  * intended primarily for entry locking but support for other types of
  * objects might be added in the future.
  */
-public class LockManager
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
+public final class LockManager
 {
   /**
    * The tracer object for the debug logger.

@@ -87,6 +87,11 @@ import org.opends.messages.MessageBuilder;
  *      failed</li>
  * </ul>
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public class Validator {
   /**
    * The tracer object for the debug logger.

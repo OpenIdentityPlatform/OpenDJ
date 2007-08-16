@@ -61,6 +61,11 @@ import static org.opends.server.util.StaticUtils.*;
  * the <CODE>org.opends.server.DisableExec</CODE> system property with
  * a value of "true".
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
 public class FilePermission
 {
   /**

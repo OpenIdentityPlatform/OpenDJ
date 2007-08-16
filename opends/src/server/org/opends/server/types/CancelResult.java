@@ -33,6 +33,11 @@ package org.opends.server.types;
  * result from processing a cancel request.  This is based on the
  * specification contained in RFC 3909.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public enum CancelResult
 {
   /**

@@ -28,16 +28,6 @@ package org.opends.server.types;
 
 
 
-/********************
- * NOTE:  Any changes to the set of non-static public methods defined
- *        in this class or the arguments that they contain must also
- *        be made in the org.opends.server.interop.LazyDN package to
- *        ensure continued interoperability with third-party
- *        applications that rely on that functionality.
- ********************/
-
-
-
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -59,9 +49,24 @@ import static org.opends.server.util.StaticUtils.*;
  * with the distinguished names associated with entries in the
  * Directory Server.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
 public class DN
        implements Comparable<DN>, Serializable
 {
+/*
+ * NOTE:  Any changes to the set of non-static public methods defined
+ *        in this class or the arguments that they contain must also
+ *        be made in the org.opends.server.interop.LazyDN package to
+ *        ensure continued interoperability with third-party
+ *        applications that rely on that functionality.
+ */
+
+
+
   /**
    * The tracer object for the debug logger.
    */

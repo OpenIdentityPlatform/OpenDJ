@@ -66,6 +66,11 @@ import static org.opends.messages.BackendMessages.*;
  * This class defines the set of methods and structures that must be
  * implemented for a Directory Server backend.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class Backend
 {
   // The backend that holds a portion of the DIT that is
@@ -94,7 +99,7 @@ public abstract class Backend
   /**
    * Creates a new backend with the provided information.  All backend
    * implementations must implement a default constructor that use
-   * <CODE>super()</CODE> to invoke this constructor.
+   * {@code super} to invoke this constructor.
    */
   protected Backend()
   {
@@ -207,9 +212,9 @@ public abstract class Backend
    * accessed by the Directory Server but managed through some other
    * means).
    *
-   * @return  <CODE>true</CODE> if the data associated with this
-   *          backend may be considered local, or <CODE>false</CODE>
-   *          if it is remote.
+   * @return  {@code true} if the data associated with this backend
+   *          may be considered local, or {@code false} if it is
+   *          remote.
    */
   public abstract boolean isLocal();
 
@@ -221,8 +226,8 @@ public abstract class Backend
    *
    * @param  entryDN  The distinguished name of the entry to retrieve.
    *
-   * @return  The requested entry, or <CODE>null</CODE> if the entry
-   *          does not exist.
+   * @return  The requested entry, or {@code null} if the entry does
+   *          not exist.
    *
    * @throws  DirectoryException  If a problem occurs while trying to
    *                              retrieve the entry.
@@ -235,15 +240,15 @@ public abstract class Backend
   /**
    * Indicates whether an entry with the specified DN exists in the
    * backend. The default implementation obtains a read lock and calls
-   * <CODE>getEntry</CODE>, but backend implementations may override
-   * this with a more efficient version that does not require a lock.
-   * The caller is not required to hold any locks on the specified DN.
+   * {@code getEntry}, but backend implementations may override this
+   * with a more efficient version that does not require a lock.  The
+   * caller is not required to hold any locks on the specified DN.
    *
    * @param  entryDN  The DN of the entry for which to determine
    *                  existence.
    *
-   * @return  <CODE>true</CODE> if the specified entry exists in this
-   *          backend, or <CODE>false</CODE> if it does not.
+   * @return  {@code true} if the specified entry exists in this
+   *          backend, or {@code false} if it does not.
    *
    * @throws  DirectoryException  If a problem occurs while trying to
    *                              make the determination.
@@ -290,9 +295,8 @@ public abstract class Backend
    *
    * @param  entry         The entry to add to this backend.
    * @param  addOperation  The add operation with which the new entry
-   *                       is associated.  This may be
-   *                       <CODE>null</CODE> for adds performed
-   *                       internally.
+   *                       is associated.  This may be {@code null}
+   *                       for adds performed internally.
    *
    * @throws  DirectoryException  If a problem occurs while trying to
    *                              add the entry.
@@ -320,7 +324,7 @@ public abstract class Backend
    *                          backend.
    * @param  deleteOperation  The delete operation with which this
    *                          action is associated.  This may be
-   *                          <CODE>null</CODE> for deletes performed
+   *                          {@code null} for deletes performed
    *                          internally.
    *
    * @throws  DirectoryException  If a problem occurs while trying to
@@ -347,8 +351,8 @@ public abstract class Backend
    *                          existing entry with the same DN.
    * @param  modifyOperation  The modify operation with which this
    *                          action is associated.  This may be
-   *                          <CODE>null</CODE> for modifications
-   *                          performed internally.
+   *                          {@code null} for modifications performed
+   *                          internally.
    *
    * @throws  DirectoryException  If a problem occurs while trying to
    *                              replace the entry.
@@ -377,9 +381,8 @@ public abstract class Backend
    * @param  entry              The new content to use for the entry.
    * @param  modifyDNOperation  The modify DN operation with which
    *                            this action is associated.  This may
-   *                            be <CODE>null</CODE>
-   *                            for modify DN operations performed
-   *                            internally.
+   *                            be {@code null} for modify DN
+   *                            operations performed internally.
    *
    * @throws  DirectoryException  If a problem occurs while trying to
    *                              perform the rename.
@@ -398,8 +401,8 @@ public abstract class Backend
   /**
    * Processes the specified search in this backend.  Matching entries
    * should be provided back to the core server using the
-   * <CODE>SearchOperation.returnEntry</CODE> method.  The caller is
-   * not required to have any locks when calling this operation.
+   * {@code SearchOperation.returnEntry} method.  The caller is not
+   * required to have any locks when calling this operation.
    *
    * @param  searchOperation  The search operation to be processed.
    *
@@ -478,8 +481,8 @@ public abstract class Backend
    * Indicates whether this backend provides a mechanism to export the
    * data it contains to an LDIF file.
    *
-   * @return  <CODE>true</CODE> if this backend provides an LDIF
-   *          export mechanism, or <CODE>false</CODE> if not.
+   * @return  {@code true} if this backend provides an LDIF export
+   *          mechanism, or {@code false} if not.
    */
   public abstract boolean supportsLDIFExport();
 
@@ -487,8 +490,8 @@ public abstract class Backend
 
   /**
    * Exports the contents of this backend to LDIF.  This method should
-   * only be called if <CODE>supportsLDIFExport</CODE> returns
-   * <CODE>true</CODE>.  Note that the server will not explicitly
+   * only be called if {@code supportsLDIFExport} returns
+   * {@code true}.  Note that the server will not explicitly
    * initialize this backend before calling this method.
    *
    * @param  exportConfig  The configuration to use when performing
@@ -506,8 +509,8 @@ public abstract class Backend
    * Indicates whether this backend provides a mechanism to import its
    * data from an LDIF file.
    *
-   * @return  <CODE>true</CODE> if this backend provides an LDIF
-   *          import mechanism, or <CODE>false</CODE> if not.
+   * @return  {@code true} if this backend provides an LDIF import
+   *          mechanism, or {@code false} if not.
    */
   public abstract boolean supportsLDIFImport();
 
@@ -515,9 +518,9 @@ public abstract class Backend
 
   /**
    * Imports information from an LDIF file into this backend.  This
-   * method should only be called if <CODE>supportsLDIFImport</CODE>
-   * returns <CODE>true</CODE>.  Note that the server will not
-   * explicitly initialize this backend before calling this method.
+   * method should only be called if {@code supportsLDIFImport}
+   * returns {@code true}.  Note that the server will not explicitly
+   * initialize this backend before calling this method.
    *
    * @param  importConfig  The configuration to use when performing
    *                       the import.
@@ -537,13 +540,13 @@ public abstract class Backend
    * Indicates whether this backend provides a backup mechanism of any
    * kind.  This method is used by the backup process when backing up
    * all backends to determine whether this backend is one that should
-   * be skipped.  It should only return <CODE>true</CODE> for backends
-   * that it is not possible to archive directly (e.g., those that
-   * don't store their data locally, but rather pass through requests
-   * to some other repository).
+   * be skipped.  It should only return {@code true} for backends that
+   * it is not possible to archive directly (e.g., those that don't
+   * store their data locally, but rather pass through requests to
+   * some other repository).
    *
-   * @return  <CODE>true</CODE> if this backend provides any kind of
-   *          backup mechanism, or <CODE>false</CODE> if it does not.
+   * @return  {@code true} if this backend provides any kind of backup
+   *          mechanism, or {@code false} if it does not.
    */
   public abstract boolean supportsBackup();
 
@@ -561,9 +564,9 @@ public abstract class Backend
    *                            explaining why the requested backup is
    *                            not supported.
    *
-   * @return  <CODE>true</CODE> if this backend provides a mechanism
-   *          for performing backups with the provided configuration,
-   *          or <CODE>false</CODE> if not.
+   * @return  {@code true} if this backend provides a mechanism for
+   *          performing backups with the provided configuration, or
+   *          {@code false} if not.
    */
   public abstract boolean supportsBackup(BackupConfig backupConfig,
                                StringBuilder unsupportedReason);
@@ -573,9 +576,9 @@ public abstract class Backend
   /**
    * Creates a backup of the contents of this backend in a form that
    * may be restored at a later date if necessary.  This method should
-   * only be called if <CODE>supportsBackup</CODE> returns
-   * <CODE>true</CODE>.  Note that the server will not explicitly
-   * initialize this backend before calling this method.
+   * only be called if {@code supportsBackup} returns {@code true}.
+   * Note that the server will not explicitly initialize this backend
+   * before calling this method.
    *
    * @param  backupConfig  The configuration to use when performing
    *                       the backup.
@@ -613,8 +616,8 @@ public abstract class Backend
    * Indicates whether this backend provides a mechanism to restore a
    * backup.
    *
-   * @return  <CODE>true</CODE> if this backend provides a mechanism
-   *          for restoring backups, or <CODE>false</CODE> if not.
+   * @return  {@code true} if this backend provides a mechanism for
+   *          restoring backups, or {@code false} if not.
    */
   public abstract boolean supportsRestore();
 
@@ -622,8 +625,8 @@ public abstract class Backend
 
   /**
    * Restores a backup of the contents of this backend.  This method
-   * should only be called if <CODE>supportsRestore</CODE> returns
-   * <CODE>true</CODE>.  Note that the server will not explicitly
+   * should only be called if {@code supportsRestore} returns
+   * {@code true}.  Note that the server will not explicitly
    * initialize this backend before calling this method.
    *
    * @param  restoreConfig  The configuration to use when performing
@@ -642,7 +645,7 @@ public abstract class Backend
    *
    * @return  The unique identifier for this backend.
    */
-  public String getBackendID()
+  public final String getBackendID()
   {
     return backendID;
   }
@@ -654,7 +657,7 @@ public abstract class Backend
    *
    * @param  backendID  The unique identifier for this backend.
    */
-  public void setBackendID(String backendID)
+  public final void setBackendID(String backendID)
   {
     this.backendID = backendID;
   }
@@ -664,10 +667,10 @@ public abstract class Backend
   /**
    * Indicates whether this backend holds private data or user data.
    *
-   * @return  <CODE>true</CODE> if this backend holds private data, or
-   *          <CODE>false</CODE> if it holds user data.
+   * @return  {@code true} if this backend holds private data, or
+   *          {@code false} if it holds user data.
    */
-  public boolean isPrivateBackend()
+  public final boolean isPrivateBackend()
   {
     return isPrivateBackend;
   }
@@ -680,7 +683,7 @@ public abstract class Backend
    * @param  isPrivateBackend  Specifies whether this backend holds
    *                           private data or user data.
    */
-  public void setPrivateBackend(boolean isPrivateBackend)
+  public final void setPrivateBackend(boolean isPrivateBackend)
   {
     this.isPrivateBackend = isPrivateBackend;
   }
@@ -692,7 +695,7 @@ public abstract class Backend
    *
    * @return  The writability mode for this backend.
    */
-  public WritabilityMode getWritabilityMode()
+  public final WritabilityMode getWritabilityMode()
   {
     return writabilityMode;
   }
@@ -704,7 +707,8 @@ public abstract class Backend
    *
    * @param  writabilityMode  The writability mode for this backend.
    */
-  public void setWritabilityMode(WritabilityMode writabilityMode)
+  public final void setWritabilityMode(
+                         WritabilityMode writabilityMode)
   {
     if (writabilityMode == null)
     {
@@ -725,7 +729,7 @@ public abstract class Backend
    * @return  The backend monitor that is associated with this
    *          backend, or {@code null} if none has been assigned.
    */
-  public BackendMonitor getBackendMonitor()
+  public final BackendMonitor getBackendMonitor()
   {
     return backendMonitor;
   }
@@ -737,7 +741,7 @@ public abstract class Backend
    *
    * @param  backendMonitor  The backend monitor for this backend.
    */
-  public void setBackendMonitor(BackendMonitor backendMonitor)
+  public final void setBackendMonitor(BackendMonitor backendMonitor)
   {
     this.backendMonitor = backendMonitor;
   }
@@ -758,10 +762,10 @@ public abstract class Backend
   /**
    * Retrieves the parent backend for this backend.
    *
-   * @return  The parent backend for this backend, or
-   *          <CODE>null</CODE> if there is none.
+   * @return  The parent backend for this backend, or {@code null} if
+   *          there is none.
    */
-  public Backend getParentBackend()
+  public final Backend getParentBackend()
   {
     return parentBackend;
   }
@@ -773,7 +777,7 @@ public abstract class Backend
    *
    * @param  parentBackend  The parent backend for this backend.
    */
-  public void setParentBackend(Backend parentBackend)
+  public final void setParentBackend(Backend parentBackend)
   {
     synchronized (this)
     {
@@ -789,7 +793,7 @@ public abstract class Backend
    * @return  The set of subordinate backends for this backend, or an
    *          empty array if none exist.
    */
-  public Backend[] getSubordinateBackends()
+  public final Backend[] getSubordinateBackends()
   {
     return subordinateBackends;
   }
@@ -802,7 +806,8 @@ public abstract class Backend
    * @param  subordinateBackends  The set of subordinate backends for
    *                              this backend.
    */
-  public void setSubordinateBackends(Backend[] subordinateBackends)
+  public final void setSubordinateBackends(
+                         Backend[] subordinateBackends)
   {
     synchronized (this)
     {
@@ -820,11 +825,11 @@ public abstract class Backend
    * @param  subSuffixDN  The DN of the sub-suffix for which to make
    *                      the determination.
    *
-   * @return  <CODE>true</CODE> if this backend has a subordinate
-   *          backend registered with the provided base DN, or
-   *          <CODE>false</CODE> if it does not.
+   * @return  {@code true} if this backend has a subordinate backend
+   *          registered with the provided base DN, or {@code false}
+   *          if it does not.
    */
-  public boolean hasSubSuffix(DN subSuffixDN)
+  public final boolean hasSubSuffix(DN subSuffixDN)
   {
     Backend[] subBackends = subordinateBackends;
     for (Backend b : subBackends)
@@ -862,7 +867,7 @@ public abstract class Backend
    * @throws  ConfigException  If the sub-suffix exists but it is not
    *                           possible to remove it for some reason.
    */
-  public void removeSubSuffix(DN subSuffixDN, DN parentDN)
+  public final void removeSubSuffix(DN subSuffixDN, DN parentDN)
          throws ConfigException
   {
     synchronized (this)
@@ -926,7 +931,7 @@ public abstract class Backend
    *                             subordinate backends for this
    *                             backend.
    */
-  public void addSubordinateBackend(Backend subordinateBackend)
+  public final void addSubordinateBackend(Backend subordinateBackend)
   {
     synchronized (this)
     {
@@ -958,7 +963,8 @@ public abstract class Backend
    *                             subordinate backends for this
    *                             backend.
    */
-  public void removeSubordinateBackend(Backend subordinateBackend)
+  public final void removeSubordinateBackend(
+                         Backend subordinateBackend)
   {
     synchronized (this)
     {
@@ -997,11 +1003,10 @@ public abstract class Backend
    * @param  entryDN  The DN of the entry for which to make the
    *                  determination.
    *
-   * @return  <CODE>true</CODE> if this backend handles operations for
-   *          the provided entry, or <CODE>false</CODE> if it does
-   *          not.
+   * @return  {@code true} if this backend handles operations for the
+   *          provided entry, or {@code false} if it does not.
    */
-  public boolean handlesEntry(DN entryDN)
+  public final boolean handlesEntry(DN entryDN)
   {
     DN[] baseDNs = getBaseDNs();
     for (DN dn : baseDNs)
@@ -1036,9 +1041,8 @@ public abstract class Backend
    * @param  excludeDNs  The set of DNs that should be excluded from
    *                     the backend.
    *
-   * @return  <CODE>true</CODE> if the backend should handle
-   *          operations for the provided entry, or <CODE>false</CODE>
-   *          if it does not.
+   * @return  {@code true} if the backend should handle operations for
+   *          the provided entry, or {@code false} if it does not.
    */
   public static final boolean handlesEntry(DN entryDN,
                                            List<DN> baseDNs,

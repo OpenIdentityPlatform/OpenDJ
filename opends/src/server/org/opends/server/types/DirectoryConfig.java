@@ -61,11 +61,13 @@ import org.opends.server.core.DirectoryServer;
  * third-party code.  It is merely used to control which elements are
  * intended for use by external classes.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public final class DirectoryConfig
 {
-
-
-
   /**
    * Retrieves a reference to the Directory Server crypto manager.
    *

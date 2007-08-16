@@ -50,7 +50,12 @@ import static org.opends.server.util.StaticUtils.*;
  * create an LDAP URL based on all of these individual components, as
  * well as parsing them from their string representations.
  */
-public class LDAPURL
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class LDAPURL
 {
   /**
    * The tracer object for the debug logger.

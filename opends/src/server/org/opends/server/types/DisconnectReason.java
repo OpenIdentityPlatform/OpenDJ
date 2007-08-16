@@ -37,6 +37,11 @@ import static org.opends.messages.CoreMessages.*;
  * This enumeration defines the set of possible reasons for the
  * closure of a connection between a client and the Directory Server.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public enum DisconnectReason
 {
   /**

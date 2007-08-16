@@ -51,6 +51,11 @@ import static org.opends.server.util.ServerConstants.*;
  * interacting with a raw modification, which describes a change that
  * should be made to an attribute.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
 public abstract class RawModification
 {
   /**

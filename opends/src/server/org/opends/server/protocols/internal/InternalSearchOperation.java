@@ -54,7 +54,12 @@ import org.opends.server.types.SearchScope;
  * and references will be queued in memory rather than sent to a
  * client since there is no real client.
  */
-public class InternalSearchOperation
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class InternalSearchOperation
        extends SearchOperationBasis
 {
   // The internal search listener for this search, if one was
@@ -228,6 +233,11 @@ public class InternalSearchOperation
    *                              the provided entry and the search
    *                              should be terminated.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
   public void addSearchEntry(SearchResultEntry searchEntry)
          throws DirectoryException
   {
@@ -270,6 +280,11 @@ public class InternalSearchOperation
    *                              the provided reference and the
    *                              search should be terminated.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
   public void addSearchReference(
                    SearchResultReference searchReference)
          throws DirectoryException
@@ -285,25 +300,59 @@ public class InternalSearchOperation
     }
   }
 
+
+
   /**
-   * {@inheritDoc}
+   * Sends the provided search result entry to the client.
+   *
+   * @param  searchEntry  The search result entry to be sent to the
+   *                      client.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to send the entry to the client and
+   *                              the search should be terminated.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  @Override()
   public void sendSearchEntry(SearchResultEntry searchEntry)
-    throws DirectoryException
-    {
+         throws DirectoryException
+  {
     addSearchEntry(searchEntry);
   }
 
+
+
   /**
-   * {@inheritDoc}
+   * Sends the provided search result reference to the client.
+   *
+   * @param  searchReference  The search result reference to be sent
+   *                          to the client.
+   *
+   * @return  {@code true} if the client is able to accept referrals,
+   *          or {@code false} if the client cannot handle referrals
+   *          and no more attempts should be made to send them for the
+   *          associated search operation.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to send the reference to the client
+   *                              and the search should be terminated.
    */
-  public boolean sendSearchReference(SearchResultReference
-      searchReference)
-  throws DirectoryException
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  @Override()
+  public boolean sendSearchReference(
+                      SearchResultReference searchReference)
+         throws DirectoryException
   {
     addSearchReference(searchReference);
     return true;
   }
-
 }
 

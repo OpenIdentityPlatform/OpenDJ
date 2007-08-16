@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -306,7 +307,7 @@ public class FIFOEntryCache
     // Obtain a lock on the cache.  If this fails, then don't do anything.
     try
     {
-      if (! cacheLock.tryLock(lockTimeout, TimeUnit.MILLISECONDS))
+      if (! cacheLock.tryLock(getLockTimeout(), TimeUnit.MILLISECONDS))
       {
         return;
       }
@@ -422,7 +423,7 @@ public class FIFOEntryCache
     // Obtain a lock on the cache.  If this fails, then don't do anything.
     try
     {
-      if (! cacheLock.tryLock(lockTimeout, TimeUnit.MILLISECONDS))
+      if (! cacheLock.tryLock(getLockTimeout(), TimeUnit.MILLISECONDS))
       {
         // We can't rule out the possibility of a conflict, so return false.
         return false;
@@ -943,11 +944,11 @@ public class FIFOEntryCache
       )
   {
     // Store the current value to detect changes.
-    long                  prevLockTimeout      = lockTimeout;
-    long                  prevMaxEntries       = maxEntries;
-    int                   prevMaxMemoryPercent = maxMemoryPercent;
-    HashSet<SearchFilter> prevIncludeFilters   = includeFilters;
-    HashSet<SearchFilter> prevExcludeFilters   = excludeFilters;
+    long              prevLockTimeout      = getLockTimeout();
+    long              prevMaxEntries       = maxEntries;
+    int               prevMaxMemoryPercent = maxMemoryPercent;
+    Set<SearchFilter> prevIncludeFilters   = getIncludeFilters();
+    Set<SearchFilter> prevExcludeFilters   = getExcludeFilters();
 
     // Activate the new configuration.
     ConfigChangeResult changeResult = applyConfigurationChange(configuration);
@@ -971,19 +972,19 @@ public class FIFOEntryCache
             INFO_FIFOCACHE_UPDATED_MAX_ENTRIES.get(maxEntries));
       }
 
-      if (lockTimeout != prevLockTimeout)
+      if (getLockTimeout() != prevLockTimeout)
       {
         changeResult.addMessage(
-            INFO_FIFOCACHE_UPDATED_LOCK_TIMEOUT.get(lockTimeout));
+            INFO_FIFOCACHE_UPDATED_LOCK_TIMEOUT.get(getLockTimeout()));
       }
 
-      if (!includeFilters.equals(prevIncludeFilters))
+      if (!getIncludeFilters().equals(prevIncludeFilters))
       {
         changeResult.addMessage(
             INFO_FIFOCACHE_UPDATED_INCLUDE_FILTERS.get());
       }
 
-      if (!excludeFilters.equals(prevExcludeFilters))
+      if (!getExcludeFilters().equals(prevExcludeFilters))
       {
         changeResult.addMessage(
             INFO_FIFOCACHE_UPDATED_EXCLUDE_FILTERS.get());
@@ -1071,12 +1072,13 @@ public class FIFOEntryCache
     if (applyChanges && errorHandler.getIsAcceptable())
     {
       configEntryDN    = newConfigEntryDN;
-      lockTimeout      = newLockTimeout;
       maxEntries       = newMaxEntries;
       maxMemoryPercent = newMaxMemoryPercent;
       maxAllowedMemory = newMaxAllowedMemory;
-      includeFilters   = newIncludeFilters;
-      excludeFilters   = newExcludeFilters;
+
+      setLockTimeout(newLockTimeout);
+      setIncludeFilters(newIncludeFilters);
+      setExcludeFilters(newExcludeFilters);
     }
 
     return errorHandler.getIsAcceptable();

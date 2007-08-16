@@ -46,11 +46,13 @@ import static org.opends.messages.ConfigMessages.*;
  * values associated with a configurable property within the Directory Server.
  * Subclasses should define and enforce actual data types.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=true,
+     mayInvoke=true)
 public abstract class ConfigAttribute
 {
-
-
-
   // Indicates whether this configuration attribute has pending changes that
   // will be applied after appropriate administrative action has been performed.
   private boolean hasPendingValues;

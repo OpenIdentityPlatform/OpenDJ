@@ -31,6 +31,11 @@ package org.opends.server.util;
 /**
  * This enumeration defines the days of the week.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public enum ChangeOperationType
 {
   /**

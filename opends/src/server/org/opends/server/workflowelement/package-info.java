@@ -32,5 +32,7 @@
  * Different kinds of workflow elements are needed for different server roles
  * (e.g., local data storage, proxy/distribution/virtual access, etc.).
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.workflowelement;
 

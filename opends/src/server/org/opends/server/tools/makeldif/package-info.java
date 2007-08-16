@@ -35,5 +35,7 @@
  * types of information.  The template can also define the DIT structure for the
  * data to generate, as well as the number of entries of each type.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.tools.makeldif;
 

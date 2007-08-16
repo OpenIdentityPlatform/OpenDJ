@@ -39,5 +39,7 @@
  * received from a remote client using some other protocol (e.g.,
  * LDAP).
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED)
 package org.opends.server.protocols.internal;
 

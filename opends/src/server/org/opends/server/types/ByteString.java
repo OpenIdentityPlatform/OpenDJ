@@ -38,6 +38,11 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
  * a <CODE>ByteString</CODE> object is to use one of the
  * <CODE>ByteStringFactory.create</CODE> methods.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public interface ByteString
 {
   /**

@@ -39,10 +39,13 @@ import java.net.UnknownHostException;
  * efficient comparisons against IP addresses to determine whether a
  * particular IP address is in a given range.
  */
-
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
 public final class AddressMask
 {
-
   /**
      * Types of rules we have.
      *

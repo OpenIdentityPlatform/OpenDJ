@@ -25,6 +25,8 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
+
+
 /**
  * Server-side administration interface.
  * <p>
@@ -33,7 +35,7 @@
  * access the server's current configuration and register
  * to be notified when the configuration changes.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.admin.server;
-
-
 

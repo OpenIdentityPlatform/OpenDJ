@@ -59,7 +59,12 @@ import static org.opends.server.util.ServerConstants.*;
  * with a search filter that may serve as criteria for locating
  * entries in the Directory Server.
  */
-public class SearchFilter
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class SearchFilter
 {
   /**
    * The tracer object for the debug logger.

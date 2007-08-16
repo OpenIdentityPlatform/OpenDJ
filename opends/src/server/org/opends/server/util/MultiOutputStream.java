@@ -40,6 +40,11 @@ import org.opends.server.types.DebugLogLevel;
  * write all messages to multiple targets at the same time, much like the UNIX
  * "tee" command.  Note that this class will never throw any exceptions
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
 public final class MultiOutputStream
        extends OutputStream
 {

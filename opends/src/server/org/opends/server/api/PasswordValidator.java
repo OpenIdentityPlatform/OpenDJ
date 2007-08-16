@@ -50,6 +50,11 @@ import org.opends.messages.MessageBuilder;
  * @param  <T>  The type of configuration handled by this password
  *              validator.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class PasswordValidator
        <T extends PasswordValidatorCfg>
 {
@@ -142,8 +147,8 @@ public abstract class PasswordValidator
    *                           determined that the password is not
    *                           acceptable.
    *
-   * @return  <CODE>true</CODE> if the password is acceptable, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if the password is acceptable, or
+   *          {@code false} if not.
    */
   public abstract boolean passwordIsAcceptable(ByteString newPassword,
                                Set<ByteString> currentPasswords,

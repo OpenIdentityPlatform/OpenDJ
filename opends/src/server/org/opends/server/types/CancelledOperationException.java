@@ -34,7 +34,12 @@ import org.opends.messages.Message;
  * being processed is cancelled for some reason (e.g., an abandon or
  * cancel request from the client).
  */
-public class CancelledOperationException
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class CancelledOperationException
        extends IdentifiedException
 {
   /**
@@ -97,11 +102,9 @@ public class CancelledOperationException
    * @return  The cancel result for this cancelled operation
    *          exception.
    */
-  public final CancelResult getCancelResult()
+  public CancelResult getCancelResult()
   {
     return cancelResult;
   }
-
-
 }
 

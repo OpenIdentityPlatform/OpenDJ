@@ -48,6 +48,11 @@ import org.opends.server.types.InitializationException;
  * @param  <T>  The type of configuration handled by this
  *              password storage scheme
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class
        PasswordStorageScheme <T extends PasswordStorageSchemeCfg>
 {
@@ -181,9 +186,8 @@ public abstract class
    * @param  storedPassword     The stored password to compare against
    *                            the provided plaintext password.
    *
-   * @return  <CODE>true</CODE> if the provided plaintext password
-   *          matches the provided stored password, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if the provided plaintext password matches
+   *          the provided stored password, or {@code false} if not.
    */
   public abstract boolean passwordMatches(
                                ByteString plaintextPassword,
@@ -196,10 +200,10 @@ public abstract class
    * ability to interact with values using the authentication password
    * syntax defined in RFC 3112.
    *
-   * @return  <CODE>true</CODE> if this password storage scheme
-   *          supports the ability to interact with values using the
-   *          authentication password syntax, or <CODE>false</CODE> if
-   *          it does not.
+   * @return  {@code true} if this password storage scheme supports
+   *          the ability to interact with values using the
+   *          authentication password syntax, or {@code false} if it
+   *          does not.
    */
   public abstract boolean supportsAuthPasswordSyntax();
 
@@ -209,8 +213,7 @@ public abstract class
    * Retrieves the scheme name that should be used with this password
    * storage scheme when it is used in the context of the
    * authentication password syntax.  This default implementation will
-   * return the same value as the <CODE>getStorageSchemeName</CODE>
-   * method.
+   * return the same value as the {@code getStorageSchemeName} method.
    *
    * @return  The scheme name that should be used with this password
    *          storage scheme when it is used in the context of the
@@ -258,11 +261,11 @@ public abstract class
    *                            password encoded in the authentication
    *                            password syntax.
    *
-   * @return  <CODE>true</CODE> if the provided plaintext password
-   *          matches the encoded password according to the
-   *          authentication password info syntax, or
-   *          <CODE>false</CODE> if it does not or this storage scheme
-   *          does not support the authentication password syntax.
+   * @return  {@code true} if the provided plaintext password matches
+   *          the encoded password according to the authentication
+   *          password info syntax, or {@code false} if it does not or
+   *          this storage scheme does not support the authentication
+   *          password syntax.
    */
   public abstract boolean authPasswordMatches(
                                ByteString plaintextPassword,
@@ -275,8 +278,8 @@ public abstract class
    * possible to obtain the original plaintext value from the stored
    * password).
    *
-   * @return  <CODE>true</CODE> if this is a reversible password
-   *          storage scheme, or <CODE>false</CODE> if it is not.
+   * @return  {@code true} if this is a reversible password storage
+   *          scheme, or {@code false} if it is not.
    */
   public abstract boolean isReversible();
 
@@ -285,7 +288,7 @@ public abstract class
   /**
    * Retrieves the original plaintext value for the provided stored
    * password.  Note that this should only be called if
-   * <CODE>isReversible</CODE> returns <CODE>true</CODE>.
+   * {@code isReversible} returns {@code true}.
    *
    * @param  storedPassword  The password for which to obtain the
    *                         plaintext value.  It should not include
@@ -306,7 +309,7 @@ public abstract class
   /**
    * Retrieves the original plaintext value for the provided password
    * stored in the authPassword syntax.  Note that this should only be
-   * called if <CODE>isReversible</CODE> returns <CODE>true</CODE>.
+   * called if {@code isReversible} returns {@code true}.
    *
    * @param  authInfo   The authInfo component of the password encoded
    *                    in the authentication password syntax.
@@ -340,11 +343,11 @@ public abstract class
    * allow the password to be returned but the password is considered
    * too insecure to reveal.
    *
-   * @return  <CODE>false</CODE> if it may be trivial to discover the
+   * @return  {@code false} if it may be trivial to discover the
    *          original plain-text password from the encoded form, or
-   *          <CODE>true</CODE> if the scheme offers sufficient
-   *          protection that revealing the encoded password will not
-   *          easily reveal the corresponding plain-text value.
+   *          {@code true} if the scheme offers sufficient protection
+   *          that revealing the encoded password will not easily
+   *          reveal the corresponding plain-text value.
    */
   public abstract boolean isStorageSchemeSecure();
 }

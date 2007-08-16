@@ -34,5 +34,7 @@
  * or projects that wish to use them are encouraged to check with the OpenDS
  * developers first to ensure that they are suitable for the intended purpose.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE)
 package org.opends.server.interop;
 

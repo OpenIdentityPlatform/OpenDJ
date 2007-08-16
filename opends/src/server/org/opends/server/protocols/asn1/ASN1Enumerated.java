@@ -40,12 +40,14 @@ import static org.opends.server.util.StaticUtils.*;
  * This class defines the data structures and methods to use when interacting
  * with ASN.1 enumerated elements.
  */
-public class ASN1Enumerated
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class ASN1Enumerated
        extends ASN1Element
 {
-
-
-
   /**
    * The serial version identifier required to satisfy the compiler because this
    * class implements the <CODE>java.io.Serializable</CODE> interface.  This

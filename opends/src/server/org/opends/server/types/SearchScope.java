@@ -38,6 +38,11 @@ import org.opends.server.protocols.ldap.LDAPConstants;
  * defined in RFC 2251 but also includes the subordinate subtree
  * search scope defined in draft-sermersheim-ldap-subordinate-scope.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public enum SearchScope
 {
   /**

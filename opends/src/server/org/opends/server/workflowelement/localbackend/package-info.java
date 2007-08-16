@@ -32,5 +32,7 @@
  * are used to process operations against data stored in local backend databases
  * and other repositories that are considered "local".
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.workflowelement.localbackend;
 

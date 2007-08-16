@@ -32,15 +32,18 @@ package org.opends.server.types;
  * port number, as may be used to accept a connection from or initiate
  * a connection to a remote system.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public final class HostPort
 {
-
-
   // The host for this object.
-  private String host;
+  private final String host;
 
   // The port for this object;
-  private int port;
+  private final int port;
 
 
 
@@ -143,7 +146,9 @@ public final class HostPort
   }
 
   /**
-   * {@inheritDoc}
+   * Retrieves a hash code for this HostPort object.
+   *
+   * @return  A hash code for this HostPort object.
    */
   public int hashCode()
   {

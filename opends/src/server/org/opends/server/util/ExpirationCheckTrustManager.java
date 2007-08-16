@@ -47,7 +47,12 @@ import org.opends.messages.Message;
  * existing trust manager and makes it possible to reject a presented
  * certificate if that certificate is outside the validity window.
  */
-public class ExpirationCheckTrustManager
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class ExpirationCheckTrustManager
        implements X509TrustManager
 {
   // The trust manager that is wrapped by this trust manager.

@@ -33,5 +33,7 @@
  * trigger the generation of log messages, as well as actual implementations
  * that can write the log contents to various targets.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.loggers;
 

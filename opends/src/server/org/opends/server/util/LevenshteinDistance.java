@@ -75,6 +75,11 @@ import static org.opends.server.util.Validator.*;
  * Doing it in this way eliminates copyright and licensing concerns associated
  * with using an existing implementation.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public final class LevenshteinDistance
 {
   /**

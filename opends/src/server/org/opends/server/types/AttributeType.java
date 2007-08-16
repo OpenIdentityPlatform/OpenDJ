@@ -64,6 +64,11 @@ import static org.opends.server.util.Validator.*;
  * ordering will be preserved when the associated fields are accessed
  * via their getters or via the {@link #toString()} methods.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public final class AttributeType
        extends CommonSchemaElements
        implements SchemaFileElement
@@ -732,7 +737,11 @@ public final class AttributeType
 
 
   /**
-   * {@inheritDoc}
+   * Appends a string representation of this schema definition's
+   * non-generic properties to the provided buffer.
+   *
+   * @param  buffer  The buffer to which the information should be
+   *                 appended.
    */
   protected void toStringContent(StringBuilder buffer)
   {

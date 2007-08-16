@@ -40,6 +40,11 @@ import static org.opends.server.util.StaticUtils.*;
  * This class implements an enumeration that holds the possible event
  * types that can trigger an account status notification.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public enum AccountStatusNotificationType
 {
   /**

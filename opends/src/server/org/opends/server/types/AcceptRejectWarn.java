@@ -33,6 +33,11 @@ package org.opends.server.types;
  * configuration items that may have three possible values:  accept,
  * reject, or warn.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public enum AcceptRejectWarn
 {
   /**

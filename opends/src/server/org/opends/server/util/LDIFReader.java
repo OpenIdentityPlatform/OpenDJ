@@ -76,6 +76,11 @@ import org.opends.server.types.RDN;
  * provides support for both standard entries and change entries (as would be
  * used with a tool like ldapmodify).
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
 public final class LDIFReader
 {
   /**

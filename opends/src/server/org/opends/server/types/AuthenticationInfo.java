@@ -44,11 +44,13 @@ import static org.opends.server.util.Validator.*;
  * user, which is not currently supported by LDAP but may be offered
  * through some type of extension.
  */
-public class AuthenticationInfo
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class AuthenticationInfo
 {
-
-
-
   // The password used to authenticate using simple authentication.
   private ByteString simplePassword;
 

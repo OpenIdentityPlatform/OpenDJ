@@ -39,6 +39,11 @@ import org.opends.server.types.ConditionResult;
  * implemented by a Directory Server module that implements a matching
  * rule used for approximate matching.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class ApproximateMatchingRule
        extends MatchingRule<ApproximateMatchingRuleCfg>
 {
@@ -51,8 +56,8 @@ public abstract class ApproximateMatchingRule
    * @param  value2  The normalized form of the second value to
    *                 compare.
    *
-   * @return  <CODE>true</CODE> if the provided values are
-   *          approximately equal, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the provided values are approximately
+   *          equal, or {@code false} if not.
    */
   public abstract boolean approximatelyMatch(ByteString value1,
                                              ByteString value2);
@@ -64,7 +69,7 @@ public abstract class ApproximateMatchingRule
    * considered a match for the given assertion value.  This will only
    * be used for the purpose of extensible matching.  Other forms of
    * matching against approximate matching rules should use the
-   * <CODE>areEqual</CODE> method.
+   * {@code areEqual} method.
    *
    * @param  attributeValue  The attribute value in a form that has
    *                         been normalized according to this
@@ -73,10 +78,10 @@ public abstract class ApproximateMatchingRule
    *                         been normalized according to this
    *                         matching rule.
    *
-   * @return  <CODE>TRUE</CODE> if the attribute value should be
-   *          considered a match for the provided assertion value,
-   *          <CODE>FALSE</CODE> if it does not match, or
-   *          <CODE>UNDEFINED</CODE> if the result is undefined.
+   * @return  {@code TRUE} if the attribute value should be considered
+   *          a match for the provided assertion value, {@code FALSE}
+   *          if it does not match, or {@code UNDEFINED} if the result
+   *          is undefined.
    */
   public ConditionResult valuesMatch(ByteString attributeValue,
                                      ByteString assertionValue)

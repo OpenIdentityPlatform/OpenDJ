@@ -722,7 +722,7 @@ public class FileSystemEntryCache
 
     // Obtain a lock on the cache.  If this fails, then don't do anything.
     try {
-      if (!cacheWriteLock.tryLock(lockTimeout, TimeUnit.MILLISECONDS)) {
+      if (!cacheWriteLock.tryLock(getLockTimeout(), TimeUnit.MILLISECONDS)) {
         return;
       }
       putEntryToDB(entry, backend, entryID);
@@ -748,7 +748,7 @@ public class FileSystemEntryCache
 
     try {
       // Obtain a lock on the cache.  If this fails, then don't do anything.
-      if (! cacheWriteLock.tryLock(lockTimeout, TimeUnit.MILLISECONDS)) {
+      if (! cacheWriteLock.tryLock(getLockTimeout(), TimeUnit.MILLISECONDS)) {
         // We can't rule out the possibility of a conflict, so return false.
         return false;
       }
@@ -1097,10 +1097,10 @@ public class FileSystemEntryCache
       )
   {
     // Store the current value to detect changes.
-    long                  prevLockTimeout      = lockTimeout;
+    long                  prevLockTimeout      = getLockTimeout();
     long                  prevMaxEntries       = maxEntries.longValue();
-    Set<SearchFilter>     prevIncludeFilters   = includeFilters;
-    Set<SearchFilter>     prevExcludeFilters   = excludeFilters;
+    Set<SearchFilter>     prevIncludeFilters   = getIncludeFilters();
+    Set<SearchFilter>     prevExcludeFilters   = getExcludeFilters();
     long                  prevMaxAllowedMemory = maxAllowedMemory;
     int                   prevJECachePercent   = jeCachePercent;
     long                  prevJECacheSize      = jeCacheSize;
@@ -1120,19 +1120,19 @@ public class FileSystemEntryCache
             INFO_FSCACHE_UPDATED_MAX_ENTRIES.get(maxEntries));
       }
 
-      if (lockTimeout != prevLockTimeout)
+      if (getLockTimeout() != prevLockTimeout)
       {
         changeResult.addMessage(
-            INFO_FSCACHE_UPDATED_LOCK_TIMEOUT.get(lockTimeout));
+            INFO_FSCACHE_UPDATED_LOCK_TIMEOUT.get(getLockTimeout()));
       }
 
-      if (!includeFilters.equals(prevIncludeFilters))
+      if (!getIncludeFilters().equals(prevIncludeFilters))
       {
         changeResult.addMessage(
             INFO_FSCACHE_UPDATED_INCLUDE_FILTERS.get());
       }
 
-      if (!excludeFilters.equals(prevExcludeFilters))
+      if (!getExcludeFilters().equals(prevExcludeFilters))
       {
         changeResult.addMessage(
             INFO_FSCACHE_UPDATED_EXCLUDE_FILTERS.get());
@@ -1308,12 +1308,13 @@ public class FileSystemEntryCache
       }
 
       configEntryDN    = newConfigEntryDN;
-      lockTimeout      = newLockTimeout;
       maxEntries       = new AtomicLong(newMaxEntries);
       maxAllowedMemory = newMaxAllowedMemory;
-      includeFilters   = newIncludeFilters;
-      excludeFilters   = newExcludeFilters;
       persistentCache  = newPersistentCache;
+
+      setLockTimeout(newLockTimeout);
+      setIncludeFilters(newIncludeFilters);
+      setExcludeFilters(newExcludeFilters);
     }
 
     return errorHandler.getIsAcceptable();

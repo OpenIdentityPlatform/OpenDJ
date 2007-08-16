@@ -79,7 +79,12 @@ import static org.opends.server.util.StaticUtils.*;
  *   <LI>Name form definitions</LI>
  * </UL>
  */
-public class Schema
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
+public final class Schema
 {
   /**
    * The tracer object for the debug logger.
@@ -264,8 +269,7 @@ public class Schema
    *
    * @return  The attribute type definitions for this schema.
    */
-  public final ConcurrentHashMap<String,AttributeType>
-                    getAttributeTypes()
+  public ConcurrentHashMap<String,AttributeType> getAttributeTypes()
   {
     return attributeTypes;
   }
@@ -277,7 +281,7 @@ public class Schema
    *
    * @return  The set of defined attribute types for this schema.
    */
-  public final LinkedHashSet<AttributeValue> getAttributeTypeSet()
+  public LinkedHashSet<AttributeValue> getAttributeTypeSet()
   {
     return attributeTypeSet;
   }
@@ -313,7 +317,7 @@ public class Schema
    * @return  The requested attribute type, or <CODE>null</CODE> if no
    *          type is registered with the provided name or OID.
    */
-  public final AttributeType getAttributeType(String lowerName)
+  public AttributeType getAttributeType(String lowerName)
   {
     return attributeTypes.get(lowerName);
   }
@@ -335,8 +339,8 @@ public class Schema
    *                              <CODE>overwriteExisting</CODE> flag
    *                              is set to <CODE>false</CODE>
    */
-  public final void registerAttributeType(AttributeType attributeType,
-                                          boolean overwriteExisting)
+  public void registerAttributeType(AttributeType attributeType,
+                                    boolean overwriteExisting)
          throws DirectoryException
   {
     synchronized (attributeTypes)
@@ -405,8 +409,7 @@ public class Schema
    * @param  attributeType  The attribute type to deregister with this
    *                        schema.
    */
-  public final void deregisterAttributeType(
-                         AttributeType attributeType)
+  public void deregisterAttributeType(AttributeType attributeType)
   {
     synchronized (attributeTypes)
     {
@@ -449,9 +452,8 @@ public class Schema
    * @param  superiorType   The superior type for which to register
    *                        the given attribute type as a subtype.
    */
-  private final void registerSubordinateType(
-                          AttributeType attributeType,
-                          AttributeType superiorType)
+  private void registerSubordinateType(AttributeType attributeType,
+                                       AttributeType superiorType)
   {
     List<AttributeType> subTypes = subordinateTypes.get(superiorType);
     if (subTypes == null)
@@ -486,9 +488,8 @@ public class Schema
    * @param  superiorType   The superior type for which to deregister
    *                        the given attribute type as a subtype.
    */
-  private final void deregisterSubordinateType(
-                          AttributeType attributeType,
-                          AttributeType superiorType)
+  private void deregisterSubordinateType(AttributeType attributeType,
+                                         AttributeType superiorType)
   {
     List<AttributeType> subTypes = subordinateTypes.get(superiorType);
     if (subTypes != null)
@@ -517,8 +518,8 @@ public class Schema
    *          type, or an empty set if there are no subtypes
    *          registered for the attribute type.
    */
-  public final Iterable<AttributeType>
-                    getSubTypes(AttributeType attributeType)
+  public Iterable<AttributeType>
+              getSubTypes(AttributeType attributeType)
   {
     List<AttributeType> subTypes =
          subordinateTypes.get(attributeType);
@@ -543,8 +544,7 @@ public class Schema
    *
    * @return  The objectclass definitions for this schema.
    */
-  public final ConcurrentHashMap<String,ObjectClass>
-                    getObjectClasses()
+  public ConcurrentHashMap<String,ObjectClass> getObjectClasses()
   {
     return objectClasses;
   }
@@ -556,7 +556,7 @@ public class Schema
    *
    * @return  The set of defined objectclasses for this schema.
    */
-  public final LinkedHashSet<AttributeValue> getObjectClassSet()
+  public LinkedHashSet<AttributeValue> getObjectClassSet()
   {
     return objectClassSet;
   }
@@ -592,7 +592,7 @@ public class Schema
    * @return  The requested objectclass, or <CODE>null</CODE> if no
    *          class is registered with the provided name or OID.
    */
-  public final ObjectClass getObjectClass(String lowerName)
+  public ObjectClass getObjectClass(String lowerName)
   {
     return objectClasses.get(lowerName);
   }
@@ -613,8 +613,8 @@ public class Schema
    *                              <CODE>overwriteExisting</CODE> flag
    *                              is set to <CODE>false</CODE>.
    */
-  public final void registerObjectClass(ObjectClass objectClass,
-                                        boolean overwriteExisting)
+  public void registerObjectClass(ObjectClass objectClass,
+                                  boolean overwriteExisting)
          throws DirectoryException
   {
     synchronized (objectClasses)
@@ -676,7 +676,7 @@ public class Schema
    * @param  objectClass  The objectclass to deregister with this
    *                      schema.
    */
-  public final void deregisterObjectClass(ObjectClass objectClass)
+  public void deregisterObjectClass(ObjectClass objectClass)
   {
     synchronized (objectClasses)
     {
@@ -712,7 +712,7 @@ public class Schema
    *
    * @return  The attribute syntax definitions for this schema.
    */
-  public final ConcurrentHashMap<String,AttributeSyntax> getSyntaxes()
+  public ConcurrentHashMap<String,AttributeSyntax> getSyntaxes()
   {
     return syntaxes;
   }
@@ -724,7 +724,7 @@ public class Schema
    *
    * @return  The set of defined attribute syntaxes for this schema.
    */
-  public final LinkedHashSet<AttributeValue> getSyntaxSet()
+  public LinkedHashSet<AttributeValue> getSyntaxSet()
   {
     return syntaxSet;
   }
@@ -758,7 +758,7 @@ public class Schema
    * @return  The requested attribute syntax, or <CODE>null</CODE> if
    *          no syntax is registered with the provided OID.
    */
-  public final AttributeSyntax getSyntax(String lowerName)
+  public AttributeSyntax getSyntax(String lowerName)
   {
     return syntaxes.get(lowerName);
   }
@@ -780,8 +780,8 @@ public class Schema
    *                              <CODE>overwriteExisting</CODE> flag
    *                              is set to <CODE>false</CODE>
    */
-  public final void registerSyntax(AttributeSyntax syntax,
-                                   boolean overwriteExisting)
+  public void registerSyntax(AttributeSyntax syntax,
+                             boolean overwriteExisting)
          throws DirectoryException
   {
     synchronized (syntaxes)
@@ -824,7 +824,7 @@ public class Schema
    * @param  syntax  The attribute syntax to deregister with this
    *                 schema.
    */
-  public final void deregisterSyntax(AttributeSyntax syntax)
+  public void deregisterSyntax(AttributeSyntax syntax)
   {
     synchronized (syntaxes)
     {
@@ -855,8 +855,7 @@ public class Schema
    *
    * @return  The matching rule definitions for this schema.
    */
-  public final ConcurrentHashMap<String,MatchingRule>
-                    getMatchingRules()
+  public ConcurrentHashMap<String,MatchingRule> getMatchingRules()
   {
     return matchingRules;
   }
@@ -868,7 +867,7 @@ public class Schema
    *
    * @return  The set of defined matching rules for this schema.
    */
-  public final LinkedHashSet<AttributeValue> getMatchingRuleSet()
+  public LinkedHashSet<AttributeValue> getMatchingRuleSet()
   {
     return matchingRuleSet;
   }
@@ -904,7 +903,7 @@ public class Schema
    * @return  The requested matching rule, or <CODE>null</CODE> if no
    *          rule is registered with the provided name or OID.
    */
-  public final MatchingRule getMatchingRule(String lowerName)
+  public MatchingRule getMatchingRule(String lowerName)
   {
     return matchingRules.get(lowerName);
   }
@@ -926,8 +925,8 @@ public class Schema
    *                              <CODE>overwriteExisting</CODE> flag
    *                              is set to <CODE>false</CODE>
    */
-  public final void registerMatchingRule(MatchingRule matchingRule,
-                                         boolean overwriteExisting)
+  public void registerMatchingRule(MatchingRule matchingRule,
+                                   boolean overwriteExisting)
          throws DirectoryException
   {
     if (matchingRule instanceof ApproximateMatchingRule)
@@ -1016,7 +1015,7 @@ public class Schema
    * @param  matchingRule  The matching rule to deregister with this
    *                       schema.
    */
-  public final void deregisterMatchingRule(MatchingRule matchingRule)
+  public void deregisterMatchingRule(MatchingRule matchingRule)
   {
     if (matchingRule instanceof ApproximateMatchingRule)
     {
@@ -1079,8 +1078,8 @@ public class Schema
    * @return  The approximate matching rule definitions for this
    *          schema.
    */
-  public final ConcurrentHashMap<String,ApproximateMatchingRule>
-                    getApproximateMatchingRules()
+  public ConcurrentHashMap<String,ApproximateMatchingRule>
+              getApproximateMatchingRules()
   {
     return approximateMatchingRules;
   }
@@ -1099,8 +1098,8 @@ public class Schema
    *          approximate matching rule is registered with the
    *          provided name or OID.
    */
-  public final ApproximateMatchingRule
-                    getApproximateMatchingRule(String lowerName)
+  public ApproximateMatchingRule getApproximateMatchingRule(
+                                      String lowerName)
   {
     return approximateMatchingRules.get(lowerName);
   }
@@ -1122,9 +1121,9 @@ public class Schema
    *                              <CODE>overwriteExisting</CODE> flag
    *                              is set to <CODE>false</CODE>
    */
-  public final void registerApproximateMatchingRule(
-                         ApproximateMatchingRule matchingRule,
-                         boolean overwriteExisting)
+  public void registerApproximateMatchingRule(
+                   ApproximateMatchingRule matchingRule,
+                   boolean overwriteExisting)
          throws DirectoryException
   {
     synchronized (matchingRules)
@@ -1193,8 +1192,8 @@ public class Schema
    * @param  matchingRule  The approximate matching rule to deregister
    *                       with this schema.
    */
-  public final void deregisterApproximateMatchingRule(
-                         ApproximateMatchingRule matchingRule)
+  public void deregisterApproximateMatchingRule(
+                   ApproximateMatchingRule matchingRule)
   {
     synchronized (matchingRules)
     {
@@ -1234,8 +1233,8 @@ public class Schema
    *
    * @return  The equality matching rule definitions for this schema.
    */
-  public final ConcurrentHashMap<String,EqualityMatchingRule>
-                    getEqualityMatchingRules()
+  public ConcurrentHashMap<String,EqualityMatchingRule>
+              getEqualityMatchingRules()
   {
     return equalityMatchingRules;
   }
@@ -1254,8 +1253,8 @@ public class Schema
    *          equality matching rule is registered with the provided
    *          name or OID.
    */
-  public final EqualityMatchingRule getEqualityMatchingRule(
-                                         String lowerName)
+  public EqualityMatchingRule getEqualityMatchingRule(
+                                   String lowerName)
   {
     return equalityMatchingRules.get(lowerName);
   }
@@ -1276,9 +1275,9 @@ public class Schema
    *                              <CODE>overwriteExisting</CODE> flag
    *                              is set to <CODE>false</CODE>
    */
-  public final void registerEqualityMatchingRule(
-                         EqualityMatchingRule matchingRule,
-                         boolean overwriteExisting)
+  public void registerEqualityMatchingRule(
+                   EqualityMatchingRule matchingRule,
+                   boolean overwriteExisting)
          throws DirectoryException
   {
     synchronized (matchingRules)
@@ -1347,8 +1346,8 @@ public class Schema
    * @param  matchingRule  The equality matching rule to deregister
    *                       with this schema.
    */
-  public final void deregisterEqualityMatchingRule(
-                         EqualityMatchingRule matchingRule)
+  public void deregisterEqualityMatchingRule(
+                   EqualityMatchingRule matchingRule)
   {
     synchronized (matchingRules)
     {
@@ -1389,8 +1388,8 @@ public class Schema
    *
    * @return  The ordering matching rule definitions for this schema.
    */
-  public final ConcurrentHashMap<String,OrderingMatchingRule>
-                    getOrderingMatchingRules()
+  public ConcurrentHashMap<String,OrderingMatchingRule>
+              getOrderingMatchingRules()
   {
     return orderingMatchingRules;
   }
@@ -1409,8 +1408,8 @@ public class Schema
    *          ordering matching rule is registered with the provided
    *          name or OID.
    */
-  public final OrderingMatchingRule getOrderingMatchingRule(
-                                         String lowerName)
+  public OrderingMatchingRule getOrderingMatchingRule(
+                                   String lowerName)
   {
     return orderingMatchingRules.get(lowerName);
   }
@@ -1431,9 +1430,9 @@ public class Schema
    *                              <CODE>overwriteExisting</CODE> flag
    *                              is set to <CODE>false</CODE>
    */
-  public final void registerOrderingMatchingRule(
-                         OrderingMatchingRule matchingRule,
-                         boolean overwriteExisting)
+  public void registerOrderingMatchingRule(
+                   OrderingMatchingRule matchingRule,
+                   boolean overwriteExisting)
          throws DirectoryException
   {
     synchronized (matchingRules)
@@ -1502,8 +1501,8 @@ public class Schema
    * @param  matchingRule  The ordering matching rule to deregister
    *                       with this schema.
    */
-  public final void deregisterOrderingMatchingRule(
-                         OrderingMatchingRule matchingRule)
+  public void deregisterOrderingMatchingRule(
+                   OrderingMatchingRule matchingRule)
   {
     synchronized (matchingRules)
     {
@@ -1543,8 +1542,8 @@ public class Schema
    *
    * @return  The substring matching rule definitions for this schema.
    */
-  public final ConcurrentHashMap<String,SubstringMatchingRule>
-                    getSubstringMatchingRules()
+  public ConcurrentHashMap<String,SubstringMatchingRule>
+              getSubstringMatchingRules()
   {
     return substringMatchingRules;
   }
@@ -1563,8 +1562,8 @@ public class Schema
    *          substring matching rule is registered with the provided
    *          name or OID.
    */
-  public final SubstringMatchingRule getSubstringMatchingRule(
-                                          String lowerName)
+  public SubstringMatchingRule getSubstringMatchingRule(
+                                    String lowerName)
   {
     return substringMatchingRules.get(lowerName);
   }
@@ -1585,9 +1584,9 @@ public class Schema
    *                              <CODE>overwriteExisting</CODE> flag
    *                              is set to <CODE>false</CODE>
    */
-  public final void registerSubstringMatchingRule(
-                         SubstringMatchingRule matchingRule,
-                         boolean overwriteExisting)
+  public void registerSubstringMatchingRule(
+                   SubstringMatchingRule matchingRule,
+                   boolean overwriteExisting)
          throws DirectoryException
   {
     synchronized (matchingRules)
@@ -1656,8 +1655,8 @@ public class Schema
    * @param  matchingRule  The substring matching rule to deregister
    *                       with this schema.
    */
-  public final void deregisterSubstringMatchingRule(
-                         SubstringMatchingRule matchingRule)
+  public void deregisterSubstringMatchingRule(
+                   SubstringMatchingRule matchingRule)
   {
     synchronized (matchingRules)
     {
@@ -1697,8 +1696,8 @@ public class Schema
    *
    * @return  The matching rule use definitions for this schema.
    */
-  public final ConcurrentHashMap<MatchingRule,MatchingRuleUse>
-                    getMatchingRuleUses()
+  public ConcurrentHashMap<MatchingRule,MatchingRuleUse>
+              getMatchingRuleUses()
   {
     return matchingRuleUses;
   }
@@ -1710,7 +1709,7 @@ public class Schema
    *
    * @return  The set of defined matching rule uses for this schema.
    */
-  public final LinkedHashSet<AttributeValue> getMatchingRuleUseSet()
+  public LinkedHashSet<AttributeValue> getMatchingRuleUseSet()
   {
     return matchingRuleUseSet;
   }
@@ -1744,8 +1743,7 @@ public class Schema
    * @return  The matching rule use definition, or <CODE>null</CODE>
    *          if none exists for the specified matching rule.
    */
-  public final MatchingRuleUse getMatchingRuleUse(
-                                    MatchingRule matchingRule)
+  public MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule)
   {
     return matchingRuleUses.get(matchingRule);
   }
@@ -1767,9 +1765,8 @@ public class Schema
    *                              <CODE>overwriteExisting</CODE> flag
    *                              is set to <CODE>false</CODE>
    */
-  public final void registerMatchingRuleUse(
-                         MatchingRuleUse matchingRuleUse,
-                         boolean overwriteExisting)
+  public void registerMatchingRuleUse(MatchingRuleUse matchingRuleUse,
+                                      boolean overwriteExisting)
          throws DirectoryException
   {
     synchronized (matchingRuleUses)
@@ -1815,8 +1812,8 @@ public class Schema
    * @param  matchingRuleUse  The matching rule use to deregister with
    *                          this schema.
    */
-  public final void deregisterMatchingRuleUse(
-                         MatchingRuleUse matchingRuleUse)
+  public void deregisterMatchingRuleUse(
+                   MatchingRuleUse matchingRuleUse)
   {
     synchronized (matchingRuleUses)
     {
@@ -1847,8 +1844,8 @@ public class Schema
    *
    * @return  The DIT content rule definitions for this schema.
    */
-  public final ConcurrentHashMap<ObjectClass,DITContentRule>
-                    getDITContentRules()
+  public ConcurrentHashMap<ObjectClass,DITContentRule>
+              getDITContentRules()
   {
     return ditContentRules;
   }
@@ -1860,7 +1857,7 @@ public class Schema
    *
    * @return  The set of defined DIT content rules for this schema.
    */
-  public final LinkedHashSet<AttributeValue> getDITContentRuleSet()
+  public LinkedHashSet<AttributeValue> getDITContentRuleSet()
   {
     return ditContentRuleSet;
   }
@@ -1895,8 +1892,7 @@ public class Schema
    *          no DIT content rule is registered with the provided
    *          objectclass.
    */
-  public final DITContentRule getDITContentRule(
-                                   ObjectClass objectClass)
+  public DITContentRule getDITContentRule(ObjectClass objectClass)
   {
     return ditContentRules.get(objectClass);
   }
@@ -1917,9 +1913,8 @@ public class Schema
    *                              <CODE>overwriteExisting</CODE> flag
    *                              is set to <CODE>false</CODE>
    */
-  public final void registerDITContentRule(
-                          DITContentRule ditContentRule,
-                          boolean overwriteExisting)
+  public void registerDITContentRule(DITContentRule ditContentRule,
+                                     boolean overwriteExisting)
          throws DirectoryException
   {
     synchronized (ditContentRules)
@@ -1965,8 +1960,7 @@ public class Schema
    * @param  ditContentRule  The DIT content rule to deregister with
    *                         this schema.
    */
-  public final void deregisterDITContentRule(
-                         DITContentRule ditContentRule)
+  public void deregisterDITContentRule(DITContentRule ditContentRule)
   {
     synchronized (ditContentRules)
     {
@@ -1993,7 +1987,7 @@ public class Schema
    *
    * @return  The set of defined DIT structure rules for this schema.
    */
-  public final LinkedHashSet<AttributeValue> getDITStructureRuleSet()
+  public LinkedHashSet<AttributeValue> getDITStructureRuleSet()
   {
     return ditStructureRuleSet;
   }
@@ -2009,8 +2003,8 @@ public class Schema
    *
    * @return  The DIT structure rule definitions for this schema.
    */
-  public final ConcurrentHashMap<Integer,DITStructureRule>
-                    getDITStructureRulesByID()
+  public ConcurrentHashMap<Integer,DITStructureRule>
+              getDITStructureRulesByID()
   {
     return ditStructureRulesByID;
   }
@@ -2026,8 +2020,8 @@ public class Schema
    *
    * @return  The DIT structure rule definitions for this schema.
    */
-  public final ConcurrentHashMap<NameForm,DITStructureRule>
-                    getDITStructureRulesByNameForm()
+  public ConcurrentHashMap<NameForm,DITStructureRule>
+              getDITStructureRulesByNameForm()
   {
     return ditStructureRulesByNameForm;
   }
@@ -2079,7 +2073,7 @@ public class Schema
    *          if no DIT structure rule is registered with the provided
    *          rule ID.
    */
-  public final DITStructureRule getDITStructureRule(int ruleID)
+  public DITStructureRule getDITStructureRule(int ruleID)
   {
     return ditStructureRulesByID.get(ruleID);
   }
@@ -2097,7 +2091,7 @@ public class Schema
    *          if no DIT structure rule is registered with the provided
    *          name form.
    */
-  public final DITStructureRule getDITStructureRule(NameForm nameForm)
+  public DITStructureRule getDITStructureRule(NameForm nameForm)
   {
     return ditStructureRulesByNameForm.get(nameForm);
   }
@@ -2118,9 +2112,9 @@ public class Schema
    *                              <CODE>overwriteExisting</CODE> flag
    *                              is set to <CODE>false</CODE>
    */
-  public final void registerDITStructureRule(
-                         DITStructureRule ditStructureRule,
-                         boolean overwriteExisting)
+  public void registerDITStructureRule(
+                   DITStructureRule ditStructureRule,
+                   boolean overwriteExisting)
          throws DirectoryException
   {
     synchronized (ditStructureRulesByNameForm)
@@ -2183,8 +2177,8 @@ public class Schema
    * @param  ditStructureRule  The DIT structure rule to deregister
    *                           with this schema.
    */
-  public final void deregisterDITStructureRule(
-                         DITStructureRule ditStructureRule)
+  public void deregisterDITStructureRule(
+                   DITStructureRule ditStructureRule)
   {
     synchronized (ditStructureRulesByNameForm)
     {
@@ -2213,7 +2207,7 @@ public class Schema
    *
    * @return  The set of defined name forms for this schema.
    */
-  public final LinkedHashSet<AttributeValue> getNameFormSet()
+  public LinkedHashSet<AttributeValue> getNameFormSet()
   {
     return nameFormSet;
   }
@@ -2229,8 +2223,8 @@ public class Schema
    *
    * @return  The name form definitions for this schema.
    */
-  public final ConcurrentHashMap<ObjectClass,NameForm>
-                    getNameFormsByObjectClass()
+  public ConcurrentHashMap<ObjectClass,NameForm>
+              getNameFormsByObjectClass()
   {
     return nameFormsByOC;
   }
@@ -2246,8 +2240,7 @@ public class Schema
    *
    * @return  The name form definitions for this schema.
    */
-  public final ConcurrentHashMap<String,NameForm>
-                    getNameFormsByNameOrOID()
+  public ConcurrentHashMap<String,NameForm> getNameFormsByNameOrOID()
   {
     return nameFormsByName;
   }
@@ -2298,7 +2291,7 @@ public class Schema
    * @return  The requested name form, or <CODE>null</CODE> if no name
    *          form is registered with the provided objectClass.
    */
-  public final NameForm getNameForm(ObjectClass objectClass)
+  public NameForm getNameForm(ObjectClass objectClass)
   {
     return nameFormsByOC.get(objectClass);
   }
@@ -2314,7 +2307,7 @@ public class Schema
    * @return  The requested name form, or <CODE>null</CODE> if no name
    *          form is registered with the provided name or OID.
    */
-  public final NameForm getNameForm(String lowerName)
+  public NameForm getNameForm(String lowerName)
   {
     return nameFormsByName.get(lowerName);
   }
@@ -2334,8 +2327,8 @@ public class Schema
    *                              <CODE>overwriteExisting</CODE> flag
    *                              is set to <CODE>false</CODE>
    */
-  public final void registerNameForm(NameForm nameForm,
-                                     boolean overwriteExisting)
+  public void registerNameForm(NameForm nameForm,
+                               boolean overwriteExisting)
          throws DirectoryException
   {
     synchronized (nameFormsByOC)
@@ -2410,7 +2403,7 @@ public class Schema
    *
    * @param  nameForm  The name form definition to deregister.
    */
-  public final void deregisterNameForm(NameForm nameForm)
+  public void deregisterNameForm(NameForm nameForm)
   {
     synchronized (nameFormsByOC)
     {
@@ -2539,8 +2532,7 @@ public class Schema
    * @throws  DirectoryException  If a problem occurs while rebuilding
    *                              any of the schema elements.
    */
-  public final void rebuildDependentElements(
-                         SchemaFileElement element)
+  public void rebuildDependentElements(SchemaFileElement element)
          throws DirectoryException
   {
     try
@@ -2582,8 +2574,8 @@ public class Schema
    * @throws  DirectoryException  If a problem occurs while rebuilding
    *                              any of the schema elements.
    */
-  private final void rebuildDependentElements(
-                          SchemaFileElement element, int depth)
+  private void rebuildDependentElements(SchemaFileElement element,
+                                        int depth)
           throws DirectoryException
   {
     if (depth > 20)
@@ -2738,7 +2730,7 @@ public class Schema
    * @return  A new <CODE>Schema</CODE> object that is a duplicate of
    *          this one.
    */
-  public final Schema duplicate()
+  public Schema duplicate()
   {
     Schema dupSchema = new Schema();
 

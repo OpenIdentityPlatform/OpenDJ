@@ -37,7 +37,12 @@ import java.util.Arrays;
  * also includes the necessary {@code equals} and {@code hashCode}
  * methods to make it suitable for use in maps.
  */
-public class ByteArray
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
+public final class ByteArray
 {
   // The array that will be wrapped by this object.
   private final byte[] array;

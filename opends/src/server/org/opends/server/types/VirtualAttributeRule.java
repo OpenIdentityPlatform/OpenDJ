@@ -52,7 +52,12 @@ import static org.opends.server.util.Validator.*;
  * attribute, and how conflicts between real and virtual values should
  * be handled.
  */
-public class VirtualAttributeRule
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
+public final class VirtualAttributeRule
 {
   /**
    * The tracer object for the debug logger.

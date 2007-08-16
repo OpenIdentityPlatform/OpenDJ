@@ -63,7 +63,12 @@ import static org.opends.messages.ConfigMessages.*;
  * the actual value not on merely the integer portion.  This attribute may only
  * hold a single value and it will always be required.
  */
-public class IntegerWithUnitConfigAttribute
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class IntegerWithUnitConfigAttribute
        extends ConfigAttribute
 {
   /**

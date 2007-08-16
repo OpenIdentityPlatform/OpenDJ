@@ -42,11 +42,13 @@ import java.util.List;
  * This class defines a data structure that can be used to hold
  * information about the result of processing a configuration change.
  */
-public class ConfigChangeResult
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class ConfigChangeResult
 {
-
-
-
   // A set of messages describing the changes that were made, any
   // action that may be required, or any problems that were
   // encountered.

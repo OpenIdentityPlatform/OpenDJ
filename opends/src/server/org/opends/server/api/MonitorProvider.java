@@ -54,6 +54,11 @@ import static org.opends.server.util.ServerConstants.*;
  * @param  <T>  The type of configuration handled by this monitor
  *              provider.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class MonitorProvider<T extends MonitorProviderCfg>
        extends DirectoryThread
 {
@@ -73,7 +78,7 @@ public abstract class MonitorProvider<T extends MonitorProviderCfg>
   /**
    * Initializes this monitor provider.  Note that no initialization
    * should be done here, since it should be performed in the
-   * <CODE>initializeMonitorProvider</CODE> class.
+   * {@code initializeMonitorProvider} class.
    *
    * @param  threadName  The name to use for this thread for debugging
    *                     purposes.
@@ -148,7 +153,7 @@ public abstract class MonitorProvider<T extends MonitorProviderCfg>
    * monitor provider that has resources that should be released when
    * the monitor is no longer needed.  Any monitor that does override
    * this method must first invoke this version by calling
-   * <CODE>super.finalizeMonitorProvider()</CODE>.
+   * {@code super.finalizeMonitorProvider}.
    */
   public void finalizeMonitorProvider()
   {
@@ -205,14 +210,13 @@ public abstract class MonitorProvider<T extends MonitorProviderCfg>
 
   /**
    * Retrieves the length of time in milliseconds that should elapse
-   * between calls to the <CODE>updateMonitorData()</CODE> method.  A
+   * between calls to the {@code updateMonitorData} method.  A
    * negative or zero return value indicates that the
-   * <CODE>updateMonitorData()</CODE> method should not be
-   * periodically invoked.
+   * {@code updateMonitorData} method should not be periodically
+   * invoked.
    *
    * @return  The length of time in milliseconds that should elapse
-   *          between calls to the <CODE>updateMonitorData()</CODE>
-   *          method.
+   *          between calls to the {@code updateMonitorData()} method.
    */
   public abstract long getUpdateInterval();
 
@@ -222,8 +226,8 @@ public abstract class MonitorProvider<T extends MonitorProviderCfg>
    * Performs any processing periodic processing that may be desired
    * to update the information associated with this monitor.  Note
    * that best-effort attempts will be made to ensure that calls to
-   * this method come <CODE>getUpdateInterval()</CODE> milliseconds
-   * apart, but no guarantees will be made.
+   * this method come {@code getUpdateInterval} milliseconds apart,
+   * but no guarantees will be made.
    */
   public abstract void updateMonitorData();
 
@@ -244,8 +248,8 @@ public abstract class MonitorProvider<T extends MonitorProviderCfg>
 
   /**
    * Enters a loop, periodically invoking the
-   * <CODE>getUpdateInterval()</CODE> method to updates the data
-   * associated with this monitor.
+   * {@code getUpdateInterval} method to updates the data associated
+   * with this monitor.
    */
   public final void run()
   {

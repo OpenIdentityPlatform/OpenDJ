@@ -56,6 +56,11 @@ import static org.opends.server.util.ServerConstants.*;
  * attempt to change an environment configuration property while the
  * server is running will be rejected.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
 public final class DirectoryEnvironmentConfig
 {
   // The set of access loggers that should be put in place before the

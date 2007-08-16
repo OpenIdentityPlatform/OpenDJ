@@ -31,7 +31,12 @@ package org.opends.server.util;
  * Directory Server source.  It was dynamically generated as part of the
  * Directory Server build process and should not be edited directly.
  */
-public class DynamicConstants
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
+public final class DynamicConstants
 {
   /**
    * The official full product name for the Directory Server.

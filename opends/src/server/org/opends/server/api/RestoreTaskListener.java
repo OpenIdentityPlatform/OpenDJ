@@ -39,6 +39,11 @@ import org.opends.server.types.RestoreConfig;
  * will only be invoked for the restore task and not for offline
  * restore processing.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public interface RestoreTaskListener
 {
   /**

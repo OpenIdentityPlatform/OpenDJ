@@ -31,7 +31,12 @@ package org.opends.server.util;
  * Represents a particular version of OpenDS useful for making
  * comparisons between versions.
  */
-public class BuildVersion implements Comparable<BuildVersion> {
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
+public final class BuildVersion implements Comparable<BuildVersion> {
 
   /** Major release number. */
   int major;
@@ -105,7 +110,17 @@ public class BuildVersion implements Comparable<BuildVersion> {
   }
 
   /**
-   * {@inheritDoc}
+   * Retrieves an integer value that indicates the relative order between this
+   * build version and the provided build version object.
+   *
+   * @param  version  The build version object for which to make the
+   *                  determination.
+   *
+   * @return  A negative integer if this build version should be ordered before
+   *          the provided build version in a sorted list, a positive integer if
+   *          this build version should be ordered after the provided build
+   *          version in a sorted list, or zero if there is no difference in the
+   *          relative order between the build version objects.
    */
   public int compareTo(BuildVersion version) {
     if (major == version.major) {

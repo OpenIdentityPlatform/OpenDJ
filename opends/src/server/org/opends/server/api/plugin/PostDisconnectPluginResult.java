@@ -32,6 +32,11 @@ package org.opends.server.api.plugin;
  * This class defines a data structure that holds information about
  * the result of processing by a post-disconnect plugin.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
 public class PostDisconnectPluginResult
 {
   /**

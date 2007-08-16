@@ -46,6 +46,11 @@ import org.opends.server.types.Entry;
  * whether or not an entry is within the scope of one or more
  * contained {@code SubtreeSpecification}s.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
 public final class SubtreeSpecificationSet
        extends AbstractSet<SubtreeSpecification>
 {

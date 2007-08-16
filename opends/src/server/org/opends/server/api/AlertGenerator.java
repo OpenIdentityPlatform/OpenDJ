@@ -40,6 +40,11 @@ import org.opends.server.types.DN;
  * component.  The notifications will be made available through JMX
  * and may be published through other mechanisms as well.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public interface AlertGenerator
 {
   /**

@@ -51,6 +51,11 @@ import org.opends.server.types.InitializationException;
  * @param  <T>  The type of configuration handled by this password
  *              generator.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class PasswordGenerator
        <T extends PasswordGeneratorCfg>
 {

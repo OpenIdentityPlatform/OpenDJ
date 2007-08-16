@@ -42,11 +42,13 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
  * may be sent to the client in the form of an intermediate response.
  * It may contain an OID, value, and/or set of controls.
  */
-public class IntermediateResponse
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class IntermediateResponse
 {
-
-
-
   // The value for this intermediate response.
   private ASN1OctetString value;
 

@@ -48,12 +48,14 @@ import static org.opends.messages.ConfigMessages.*;
  * This class defines a configuration attribute that is only intended for use
  * in displaying information.  It will not allow its value to be altered.
  */
-public class ReadOnlyConfigAttribute
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class ReadOnlyConfigAttribute
        extends ConfigAttribute
 {
-
-
-
   // The set of values for this attribute.
   private List<String> values;
 

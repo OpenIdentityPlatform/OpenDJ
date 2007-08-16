@@ -44,5 +44,7 @@
  * the outermost ASN.1 sequence that comprises the LDAPMessage envelope will
  * best be done within the implementation for the LDAP connection handler.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED)
 package org.opends.server.protocols.asn1;
 

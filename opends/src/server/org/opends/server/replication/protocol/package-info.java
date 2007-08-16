@@ -25,6 +25,8 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
+
+
 /**
  * This package contains the code used by the replication server and by the
  * code running on the Directory Server side to exchange their information.
@@ -47,5 +49,7 @@
  * </li>
  *  </ul>
  */
-
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.replication.protocol;
+

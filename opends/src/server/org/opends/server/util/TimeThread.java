@@ -51,6 +51,11 @@ import static org.opends.server.util.ServerConstants.*;
  * debugging will be performed in this class due to the frequency with which it
  * will be called.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public final class TimeThread
        extends DirectoryThread
 {

@@ -51,6 +51,11 @@ import static org.opends.server.util.Validator.*;
  * given structural objectclass, and also indicates which auxiliary
  * classes that may be included in the entry.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public final class DITContentRule
        implements SchemaFileElement
 {

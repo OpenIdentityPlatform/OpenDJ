@@ -59,7 +59,12 @@ import static org.opends.server.util.StaticUtils.*;
  * This class provides a utility for interacting with compressed
  * representations of schema elements.
  */
-public class CompressedSchema
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=false)
+public final class CompressedSchema
 {
   /**
    * The tracer object for the debug logger.

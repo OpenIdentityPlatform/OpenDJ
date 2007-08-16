@@ -44,7 +44,12 @@ import static org.opends.messages.ProtocolMessages.*;
  * This class defines a utility that can be used to read ASN.1 elements from a
  * provided socket or input stream.
  */
-public class ASN1Reader
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class ASN1Reader
 {
   /**
    * The tracer object for the debug logger.

@@ -35,5 +35,7 @@
  * the server) and statistical (for tracking information about the volume and
  * rate of processing that the server performs).
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.monitors;
 

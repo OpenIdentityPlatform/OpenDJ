@@ -35,11 +35,13 @@ import org.opends.messages.MessageBuilder;
  * information about a request to cancel or abandon an operation in
  * progress.
  */
-public class CancelRequest
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
+public final class CancelRequest
 {
-
-
-
   // Indicates whether to send a response to the original request if
   // the operation is canceled.
   private final boolean notifyOriginalRequestor;
@@ -107,7 +109,7 @@ public class CancelRequest
    *          receive a response if the operation is canceled, or
    *          <CODE>false</CODE> if not.
    */
-  public final boolean notifyOriginalRequestor()
+  public boolean notifyOriginalRequestor()
   {
     return notifyOriginalRequestor;
   }
@@ -121,7 +123,7 @@ public class CancelRequest
    * @return  A message that explains the purpose for this
    *          cancellation.
    */
-  public final Message getCancelReason()
+  public Message getCancelReason()
   {
     return cancelReason;
   }
@@ -137,7 +139,7 @@ public class CancelRequest
    *          response that the server provided for the result of this
    *          cancellation.
    */
-  public final MessageBuilder getResponseMessage()
+  public MessageBuilder getResponseMessage()
   {
     return responseMessage;
   }
@@ -151,7 +153,7 @@ public class CancelRequest
    * @param  message  The message to append to the response message
    *                  buffer.
    */
-  public final void addResponseMessage(Message message)
+  public void addResponseMessage(Message message)
   {
     responseMessage.append(message);
   }

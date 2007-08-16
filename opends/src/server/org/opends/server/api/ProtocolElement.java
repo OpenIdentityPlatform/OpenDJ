@@ -33,6 +33,11 @@ package org.opends.server.api;
  * any class that forms the basis for a protocol element (e.g., an
  * ASN.1 element, an LDAP message, etc.).
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=true)
 public interface ProtocolElement
 {
   /**

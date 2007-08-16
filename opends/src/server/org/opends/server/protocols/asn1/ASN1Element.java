@@ -48,12 +48,14 @@ import static org.opends.server.util.StaticUtils.*;
  * with generic ASN.1 elements.  Subclasses may provide more specific
  * functionality for individual element types.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
 public class ASN1Element
        implements ProtocolElement, Serializable
 {
-
-
-
   /**
    * The serial version identifier required to satisfy the compiler because this
    * class implements the <CODE>java.io.Serializable</CODE> interface.  This
@@ -112,7 +114,7 @@ public class ASN1Element
    *
    * @return  The BER type for this ASN.1 element.
    */
-  public byte getType()
+  public final byte getType()
   {
     return type;
   }
@@ -124,7 +126,7 @@ public class ASN1Element
    *
    * @param  type  The BER type for this ASN.1 element.
    */
-  public void setType(byte type)
+  public final void setType(byte type)
   {
     this.type = type;
   }
@@ -137,7 +139,7 @@ public class ASN1Element
    * @return  <CODE>true</CODE> if this ASN.1 element is in the universal class,
    *          or <CODE>false</CODE> if not.
    */
-  public boolean isUniversal()
+  public final boolean isUniversal()
   {
     return ((type & TYPE_MASK_ALL_BUT_CLASS) == TYPE_MASK_UNIVERSAL);
   }
@@ -150,7 +152,7 @@ public class ASN1Element
    * @return  <CODE>true</CODE> if this ASN.1 element is in the
    *          application-specific class, or <CODE>false</CODE> if not.
    */
-  public boolean isApplicationSpecific()
+  public final boolean isApplicationSpecific()
   {
     return ((type & TYPE_MASK_ALL_BUT_CLASS) == TYPE_MASK_APPLICATION);
   }
@@ -163,7 +165,7 @@ public class ASN1Element
    * @return  <CODE>true</CODE> if this ASN.1 element is in the context-specific
    *          class, or <CODE>false</CODE> if not.
    */
-  public boolean isContextSpecific()
+  public final boolean isContextSpecific()
   {
     return ((type & TYPE_MASK_ALL_BUT_CLASS) == TYPE_MASK_CONTEXT);
   }
@@ -176,7 +178,7 @@ public class ASN1Element
    * @return  <CODE>true</CODE> if this ASN.1 element is in the private class,
    *          or <CODE>false</CODE> if not.
    */
-  public boolean isPrivate()
+  public final boolean isPrivate()
   {
     return ((type & TYPE_MASK_ALL_BUT_CLASS) == TYPE_MASK_PRIVATE);
   }
@@ -189,7 +191,7 @@ public class ASN1Element
    * @return  <CODE>true</CODE> if this ASN.1 element has a primitive value, or
    *          <CODE>false</CODE> if it is constructed.
    */
-  public boolean isPrimitive()
+  public final boolean isPrimitive()
   {
     return ((type & TYPE_MASK_ALL_BUT_PC) == TYPE_MASK_PRIMITIVE);
   }
@@ -202,7 +204,7 @@ public class ASN1Element
    * @return  <CODE>true</CODE> if this ASN.1 element has a constructed value,
    *          or <CODE>false</CODE> if it is primitive.
    */
-  public boolean isConstructed()
+  public final boolean isConstructed()
   {
     return ((type & TYPE_MASK_ALL_BUT_PC) == TYPE_MASK_CONSTRUCTED);
   }
@@ -214,7 +216,7 @@ public class ASN1Element
    *
    * @return  The encoded value for this ASN.1 element.
    */
-  public byte[] value()
+  public final byte[] value()
   {
     return value;
   }
@@ -320,7 +322,7 @@ public class ASN1Element
    *
    * @return  The byte array containing the encoded ASN.1 element.
    */
-  public byte[] encode()
+  public final byte[] encode()
   {
     if (value.length == 0)
     {
@@ -718,7 +720,7 @@ public class ASN1Element
    * @throws  ASN1Exception  If a problem occurs while attempting to decode this
    *                         element as an ASN.1 Boolean element.
    */
-  public ASN1Boolean decodeAsBoolean()
+  public final ASN1Boolean decodeAsBoolean()
          throws ASN1Exception
   {
     return ASN1Boolean.decodeAsBoolean(this);
@@ -734,7 +736,7 @@ public class ASN1Element
    * @throws  ASN1Exception  If a problem occurs while attempting to decode this
    *                         element as an ASN.1 enumerated element.
    */
-  public ASN1Enumerated decodeAsEnumerated()
+  public final ASN1Enumerated decodeAsEnumerated()
          throws ASN1Exception
   {
     return ASN1Enumerated.decodeAsEnumerated(this);
@@ -750,7 +752,7 @@ public class ASN1Element
    * @throws  ASN1Exception  If a problem occurs while attempting to decode this
    *                         element as an ASN.1 integer element.
    */
-  public ASN1Integer decodeAsInteger()
+  public final ASN1Integer decodeAsInteger()
          throws ASN1Exception
   {
     return ASN1Integer.decodeAsInteger(this);
@@ -766,7 +768,7 @@ public class ASN1Element
    * @throws  ASN1Exception  If a problem occurs while attempting to decode this
    *                         element as an ASN.1 long element.
    */
-  public ASN1Long decodeAsLong()
+  public final ASN1Long decodeAsLong()
          throws ASN1Exception
   {
     return ASN1Long.decodeAsLong(this);
@@ -782,7 +784,7 @@ public class ASN1Element
    * @throws  ASN1Exception  If a problem occurs while attempting to decode this
    *                         element as an ASN.1 null element.
    */
-  public ASN1Null decodeAsNull()
+  public final ASN1Null decodeAsNull()
          throws ASN1Exception
   {
     return ASN1Null.decodeAsNull(this);
@@ -798,7 +800,7 @@ public class ASN1Element
    * @throws  ASN1Exception  If a problem occurs while attempting to decode this
    *                         element as an ASN.1 octet string element.
    */
-  public ASN1OctetString decodeAsOctetString()
+  public final ASN1OctetString decodeAsOctetString()
          throws ASN1Exception
   {
     return ASN1OctetString.decodeAsOctetString(this);
@@ -814,7 +816,7 @@ public class ASN1Element
    * @throws  ASN1Exception  If a problem occurs while attempting to decode this
    *                         element as an ASN.1 sequence element.
    */
-  public ASN1Sequence decodeAsSequence()
+  public final ASN1Sequence decodeAsSequence()
          throws ASN1Exception
   {
     return ASN1Sequence.decodeAsSequence(this);
@@ -830,7 +832,7 @@ public class ASN1Element
    * @throws  ASN1Exception  If a problem occurs while attempting to decode this
    *                         element as an ASN.1 set element.
    */
-  public ASN1Set decodeAsSet()
+  public final ASN1Set decodeAsSet()
          throws ASN1Exception
   {
     return ASN1Set.decodeAsSet(this);
@@ -928,7 +930,7 @@ public class ASN1Element
    *
    * @return  The name of the protocol associated with this protocol element.
    */
-  public String getProtocolElementName()
+  public final String getProtocolElementName()
   {
     return "ASN.1";
   }
@@ -945,7 +947,7 @@ public class ASN1Element
    *          object will be considered equal if it is an ASN.1 element (or a
    *          subclass) with the same type and encoded value.
    */
-  public boolean equals(Object o)
+  public final boolean equals(Object o)
   {
     if (this == o)
     {
@@ -973,7 +975,7 @@ public class ASN1Element
    * @return  <CODE>true</CODE> if the values of the elements are equal, or
    *          <CODE>false</CODE> if not.
    */
-  public boolean equalsIgnoreType(ASN1Element element)
+  public final boolean equalsIgnoreType(ASN1Element element)
   {
     return Arrays.equals(value, element.value);
   }
@@ -990,7 +992,7 @@ public class ASN1Element
    * @return  <CODE>true</CODE> if the values are equal, or <CODE>false</CODE>
    *          if not.
    */
-  public boolean equalsIgnoreType(ByteString byteString)
+  public final boolean equalsIgnoreType(ByteString byteString)
   {
     return Arrays.equals(value, byteString.value());
   }
@@ -1006,7 +1008,7 @@ public class ASN1Element
    *          or <CODE>false</CODE> if not.  The elements will be considered
    *          equal if they have the same type and encoded value.
    */
-  public boolean equalsElement(ASN1Element e)
+  public final boolean equalsElement(ASN1Element e)
   {
     if (this == e)
     {
@@ -1029,7 +1031,7 @@ public class ASN1Element
    *
    * @return  The hash code for this ASN.1 element.
    */
-  public int hashCode()
+  public final int hashCode()
   {
     int hashCode = type;
     int length = Math.min(20, value.length);
@@ -1048,7 +1050,7 @@ public class ASN1Element
    *
    * @return  A string representation of this ASN.1 element.
    */
-  public String toString()
+  public final String toString()
   {
     StringBuilder buffer = new StringBuilder();
     toString(buffer);

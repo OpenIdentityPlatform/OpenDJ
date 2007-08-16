@@ -39,6 +39,11 @@ import org.opends.server.types.BackupConfig;
  * will only be invoked for the backup task and not for offline backup
  * processing.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public interface BackupTaskListener
 {
   /**

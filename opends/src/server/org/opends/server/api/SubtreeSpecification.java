@@ -35,6 +35,11 @@ import org.opends.server.types.Entry;
 /**
  * Generic subtree specification interface.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class SubtreeSpecification
 {
   /**
@@ -51,11 +56,10 @@ public abstract class SubtreeSpecification
    * Determine if an entry is within the scope of the subtree
    * specification.
    *
-   * @param entry
-   *          The entry.
-   * @return Returns <code>true</code> if the entry is within the
-   *         scope of the subtree specification, or <code>false</code>
-   *         otherwise.
+   * @param  entry  The entry.
+   *
+   * @return  {@code true} if the entry is within the scope of the
+   *          subtree specification, or {@code false} if not.
    */
   public abstract boolean isWithinScope(Entry entry);
 
@@ -90,9 +94,8 @@ public abstract class SubtreeSpecification
    * Append the string representation of the subtree specification to
    * the provided string builder.
    *
-   * @param builder
-   *          The string builder.
-   * @return The string builder.
+   * @param  builder  The string builder.
+   * @return  The string builder.
    */
   public abstract StringBuilder toString(StringBuilder builder);
 

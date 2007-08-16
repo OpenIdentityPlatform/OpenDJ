@@ -64,6 +64,11 @@ import static org.opends.server.util.StaticUtils.*;
  * accelerated compression may be available just as it is for
  * cryptographic operations.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public class CryptoManager
 {
   /**

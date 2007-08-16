@@ -37,7 +37,12 @@ import org.opends.server.types.IdentifiedException;
  * This class defines an exception that may be thrown if a problem occurs while
  * interacting with an ASN.1 element.
  */
-public class ASN1Exception
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class ASN1Exception
        extends IdentifiedException
 {
   /**
@@ -48,8 +53,6 @@ public class ASN1Exception
    * Java SDK.
    */
   private static final long serialVersionUID = -2640197609704069110L;
-
-
 
 
 
@@ -76,8 +79,5 @@ public class ASN1Exception
   {
     super(message, cause);
   }
-
-
-
 }
 

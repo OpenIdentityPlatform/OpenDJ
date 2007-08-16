@@ -37,10 +37,13 @@ import org.opends.server.types.DN;
  * includes operations to get the DN, as well as methods to
  * decode the entry.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public abstract class ChangeRecordEntry
 {
-
-
   // The DN for this entry.
   private DN dn;
 

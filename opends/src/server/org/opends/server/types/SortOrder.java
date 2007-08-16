@@ -41,7 +41,12 @@ package org.opends.server.types;
  * If all of the sort key attributes for two entries are identical,
  * then the relative order for those entries is undefined.
  */
-public class SortOrder
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class SortOrder
 {
   // The set of sort keys in this sort order.
   private SortKey[] sortKeys;

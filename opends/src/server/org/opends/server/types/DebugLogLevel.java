@@ -32,6 +32,11 @@ import org.opends.server.loggers.LogLevel;
 /**
  * Logging levels for the debug log messages.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public class DebugLogLevel extends LogLevel
 {
 

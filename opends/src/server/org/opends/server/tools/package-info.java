@@ -43,5 +43,7 @@
  * a set of default values for the protocol, address, port, use or non-use of
  * SSL, etc. if no value is given.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.tools;
 

@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -114,6 +115,9 @@ public class PasswordModifyExtendedOperation
 
   // The reference to the identity mapper.
   private IdentityMapper identityMapper;
+
+  // The default set of supported control OIDs for this extended
+  private Set<String> supportedControlOIDs = new HashSet<String>(0);
 
 
 
@@ -204,6 +208,17 @@ public class PasswordModifyExtendedOperation
     DirectoryServer.deregisterSupportedExtension(OID_PASSWORD_MODIFY_REQUEST);
 
     deregisterControlsAndFeatures();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public Set<String> getSupportedControls()
+  {
+    return supportedControlOIDs;
   }
 
 

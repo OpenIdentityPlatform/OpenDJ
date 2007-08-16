@@ -53,12 +53,14 @@ import static org.opends.server.util.StaticUtils.*;
  * <CODE>ASN1Integer</CODE> class and therefore that class should be used for
  * cases in which there is no danger of overflowing an <CODE>int</CODE> value.
  */
-public class ASN1Long
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class ASN1Long
        extends ASN1Element
 {
-
-
-
   /**
    * The serial version identifier required to satisfy the compiler because this
    * class implements the <CODE>java.io.Serializable</CODE> interface.  This

@@ -66,6 +66,11 @@ import org.opends.server.types.SearchScope;
  * @param  <T>  The type of configuration handled by this group
  *              implementation.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=true)
 public abstract class Group<T extends GroupImplementationCfg>
 {
   /**

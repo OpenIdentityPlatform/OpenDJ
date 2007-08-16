@@ -25,6 +25,8 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
+
+
 /**
  * This package contains the code for the Replication Server part
  * of the Multimaster replication feature.
@@ -75,5 +77,7 @@
  *  </li>
  *  </ul>
  */
-
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.replication.server;
+

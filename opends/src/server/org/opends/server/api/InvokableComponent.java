@@ -41,6 +41,11 @@ import org.opends.server.types.InvokableMethod;
  * either via adding configuration entries (e.g., task plugins) or
  * through JMX.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public interface InvokableComponent
 {
   /**
@@ -72,8 +77,8 @@ public interface InvokableComponent
    * @param  arguments   The set of configuration attributes holding
    *                     the arguments to use for the method.
    *
-   * @return  The return value for the method, or <CODE>null</CODE>
-   *          if it did not return a value.
+   * @return  The return value for the method, or {@code null} if it
+   *          did not return a value.
    *
    * @throws  DirectoryException  If there was no such method, or if
    *                              an error occurred while attempting

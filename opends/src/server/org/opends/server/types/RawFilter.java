@@ -52,6 +52,11 @@ import static org.opends.server.util.StaticUtils.*;
  * interacting with a raw search filter, which defines a set of
  * criteria for locating entries in a search request.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
 public abstract class RawFilter
 {
   /**

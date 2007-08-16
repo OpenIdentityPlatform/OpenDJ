@@ -56,6 +56,11 @@ import org.opends.server.types.DN;
  * @param  <T>  The type of debug log publisher configuration handled
  *              by this log publisher implementation.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class DebugLogPublisher
        <T extends DebugLogPublisherCfg>
 {
@@ -151,7 +156,8 @@ public abstract class DebugLogPublisher
    *         or {@code null} if no method-level tracing is configured
    *         for the scope.
    */
-  public Map<String,TraceSettings> getMethodSettings(String className)
+  public final Map<String,TraceSettings> getMethodSettings(
+                                              String className)
   {
     if(methodTraceSettings == null)
     {
@@ -173,7 +179,7 @@ public abstract class DebugLogPublisher
    *
    * @return  The current trace settings for the class.
    */
-  public TraceSettings getClassSettings(String className)
+  public final TraceSettings getClassSettings(String className)
   {
     TraceSettings settings = TraceSettings.DISABLED;
 
@@ -221,7 +227,8 @@ public abstract class DebugLogPublisher
    *                   global scope.
    * @param  settings  The trace settings for the specified scope.
    */
-  public void addTraceSettings(String scope, TraceSettings settings)
+  public final void addTraceSettings(String scope,
+                                     TraceSettings settings)
   {
     if (scope == null) {
       setClassSettings(GLOBAL, settings);
@@ -254,7 +261,7 @@ public abstract class DebugLogPublisher
    *          {@code null} if no trace setting is defined for that
    *          scope.
    */
-  public TraceSettings getTraceSettings(String scope)
+  public final TraceSettings getTraceSettings(String scope)
   {
     if (scope == null) {
       if(classTraceSettings != null)
@@ -304,7 +311,7 @@ public abstract class DebugLogPublisher
    *          {@code null} if no trace setting is defined for that
    *          scope.
    */
-  public TraceSettings removeTraceSettings(String scope)
+  public final TraceSettings removeTraceSettings(String scope)
   {
     TraceSettings removedSettings = null;
     if (scope == null) {
@@ -351,8 +358,8 @@ public abstract class DebugLogPublisher
    * @param  className  The class name.
    * @param  settings   The trace settings for the class.
    */
-  private synchronized void setClassSettings(String className,
-                                             TraceSettings settings)
+  private synchronized final void setClassSettings(String className,
+                                       TraceSettings settings)
   {
     if(classTraceSettings == null) classTraceSettings =
         new HashMap<String, TraceSettings>();
@@ -369,9 +376,9 @@ public abstract class DebugLogPublisher
    * @param  methodName  The method name.
    * @param  settings    The trace settings for the method.
    */
-  private synchronized void setMethodSettings(String className,
-                                              String methodName,
-                                              TraceSettings settings)
+  private synchronized final void setMethodSettings(String className,
+                                       String methodName,
+                                       TraceSettings settings)
   {
     if (methodTraceSettings == null) methodTraceSettings =
         new HashMap<String, Map<String, TraceSettings>>();

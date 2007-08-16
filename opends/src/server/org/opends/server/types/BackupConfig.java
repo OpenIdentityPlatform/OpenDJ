@@ -44,11 +44,13 @@ package org.opends.server.types;
  * prevent restoring an earlier incremental backup or the original
  * full backup with which the incremental backups are associated).
  */
-public class BackupConfig
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class BackupConfig
 {
-
-
-
   // The path to the directory in which the backup file(s) should be
   // created.
   private BackupDirectory backupDirectory;

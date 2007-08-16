@@ -44,12 +44,14 @@ import java.util.List;
  * types and values, the objectclass attribute will not be present in
  * the user attributes.
  */
-public class SearchResultEntry
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
+public final class SearchResultEntry
        extends Entry
 {
-
-
-
   // The set of controls associated with this search result entry.
   private List<Control> controls;
 

@@ -75,6 +75,11 @@ import static org.opends.server.util.StaticUtils.*;
  * This class defines the set of methods and structures that must be
  * implemented by a Directory Server client connection.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=true,
+     mayInvoke=true)
 public abstract class ClientConnection
 {
   /**
@@ -159,6 +164,13 @@ public abstract class ClientConnection
    * deregistered with the {@code AuthenticatedUsers} manager, and
    * will then invoke the {@code finalizeClientConnection} method.
    */
+ @org.opends.server.types.PublicAPI(
+      stability=org.opends.server.types.StabilityLevel.PRIVATE,
+      mayInstantiate=false,
+      mayExtend=false,
+      mayInvoke=true,
+      notes="This method should only be invoked by connection " +
+             "handlers.")
   protected final void finalizeConnectionInternal()
   {
     if (finalized)
@@ -218,6 +230,11 @@ public abstract class ClientConnection
    * then it will be called when the client connection object is
    * finalized by the garbage collector.
    */
+ @org.opends.server.types.PublicAPI(
+      stability=org.opends.server.types.StabilityLevel.VOLATILE,
+      mayInstantiate=false,
+      mayExtend=true,
+      mayInvoke=false)
   protected void finalizeClientConnection()
   {
     // No implementation is required by default.
@@ -232,7 +249,7 @@ public abstract class ClientConnection
    * @return  The time that this connection was established, measured
    *          in the number of milliseconds since January 1, 1970 UTC.
    */
-  public long getConnectTime()
+  public final long getConnectTime()
   {
     return connectTime;
   }
@@ -246,7 +263,7 @@ public abstract class ClientConnection
    * @return  A string representation of the time that this connection
    *          was established.
    */
-  public String getConnectTimeString()
+  public final String getConnectTimeString()
   {
     return connectTimeString;
   }
@@ -307,26 +324,25 @@ public abstract class ClientConnection
 
 
   /**
-   * Retrieves the <CODE>java.net.InetAddress</CODE> associated with
-   * the remote client system.
+   * Retrieves the {@code java.net.InetAddress} associated with the
+   * remote client system.
    *
-   * @return  The <CODE>java.net.InetAddress</CODE> associated with
-   *          the remote client system.  It may be <CODE>null</CODE>
-   *          if the client is not connected over an IP-based
-   *          connection.
+   * @return  The {@code java.net.InetAddress} associated with the
+   *          remote client system.  It may be {@code null} if the
+   *          client is not connected over an IP-based connection.
    */
   public abstract InetAddress getRemoteAddress();
 
 
 
   /**
-   * Retrieves the <CODE>java.net.InetAddress</CODE> for the Directory
+   * Retrieves the {@code java.net.InetAddress} for the Directory
    * Server system to which the client has established the connection.
    *
-   * @return  The <CODE>java.net.InetAddress</CODE> for the Directory
+   * @return  The {@code java.net.InetAddress} for the Directory
    *          Server system to which the client has established the
-   *          connection.  It may be <CODE>null</CODE> if the client
-   *          is not connected over an IP-based connection.
+   *          connection.  It may be {@code null} if the client is not
+   *          connected over an IP-based connection.
    */
   public abstract InetAddress getLocalAddress();
 
@@ -336,13 +352,12 @@ public abstract class ClientConnection
    * Indicates whether this client connection is currently using a
    * secure mechanism to communicate with the server.  Note that this
    * may change over time based on operations performed by the client
-   * or server (e.g., it may go from <CODE>false</CODE> to
-   * <CODE>true</CODE> if the client uses the StartTLS extended
-   * operation).
+   * or server (e.g., it may go from {@code false} to {@code true} if
+   * if the client uses the StartTLS extended operation).
    *
-   * @return  <CODE>true</CODE> if the client connection is currently
-   *          using a secure mechanism to communicate with the server,
-   *          or <CODE>false</CODE> if not.
+   * @return  {@code true} if the client connection is currently using
+   *          a secure mechanism to communicate with the server, or
+   *          {@code false} if not.
    */
   public abstract boolean isSecure();
 
@@ -380,7 +395,7 @@ public abstract class ClientConnection
    *
    * @return  The human-readable name of the security mechanism that
    *          is used to protect communication with this client, or
-   *          <CODE>null</CODE> if no security is in place.
+   *          {@code null} if no security is in place.
    */
   public abstract String getSecurityMechanism();
 
@@ -397,13 +412,13 @@ public abstract class ClientConnection
    * @param  buffer  The byte buffer containing the data available for
    *                 reading.
    *
-   * @return  <CODE>true</CODE> if all the data in the provided buffer
-   *          was processed and the client connection can remain
-   *          established, or <CODE>false</CODE> if a decoding error
+   * @return  {@code true} if all the data in the provided buffer was
+   *          processed and the client connection can remain
+   *          established, or {@code false} if a decoding error
    *          occurred and requests from this client should no longer
    *          be processed.  Note that if this method does return
-   *          <CODE>false</CODE>, then it must have already
-   *          disconnected the client.
+   *          {@code false}, then it must have already disconnected
+   *          the client.
    */
   public abstract boolean processDataRead(ByteBuffer buffer);
 
@@ -446,10 +461,10 @@ public abstract class ClientConnection
    * @param  searchReference  The search result reference to be sent
    *                          to the client.
    *
-   * @return  <CODE>true</CODE> if the client is able to accept
-   *          referrals, or <CODE>false</CODE> if the client cannot
-   *          handle referrals and no more attempts should be made to
-   *          send them for the associated search operation.
+   * @return  {@code true} if the client is able to accept referrals,
+   *          or {@code false} if the client cannot handle referrals
+   *          and no more attempts should be made to send them for the
+   *          associated search operation.
    *
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to send the reference to the client
@@ -469,8 +484,8 @@ public abstract class ClientConnection
    * @param  intermediateResponse  The intermediate response message
    *                               to be sent.
    *
-   * @return  <CODE>true</CODE> if processing on the associated
-   *          operation should continue, or <CODE>false</CODE> if not.
+   * @return  {@code true} if processing on the associated operation
+   *          should continue, or {@code false} if not.
    */
   public final boolean sendIntermediateResponse(
                             IntermediateResponse intermediateResponse)
@@ -502,8 +517,8 @@ public abstract class ClientConnection
    * @param  intermediateResponse  The intermediate response message
    *                               to be sent.
    *
-   * @return  <CODE>true</CODE> if processing on the associated
-   *          operation should continue, or <CODE>false</CODE> if not.
+   * @return  {@code true} if processing on the associated operation
+   *          should continue, or {@code false} if not.
    */
   protected abstract boolean
        sendIntermediateResponseMessage(
@@ -518,8 +533,8 @@ public abstract class ClientConnection
    * for all protocols or under all circumstances.  Also note that
    * when attempting to disconnect a client connection as a part of
    * operation processing (e.g., within a plugin or other extension),
-   * the <CODE>disconnectClient</CODE> method within that operation
-   * should be called rather than invoking this method directly.
+   * the {@code disconnectClient} method within that operation should
+   * be called rather than invoking this method directly.
    * <BR><BR>
    * All subclasses must invoke the {@code finalizeConnectionInternal}
    * method during the course of processing this method.
@@ -530,8 +545,8 @@ public abstract class ClientConnection
    *                           notification to the client that the
    *                           connection will be closed.
    * @param  message           The message to send to the client.  It
-   *                           may be <CODE>null</CODE> if no
-   *                           notification is to be sent.
+   *                           may be {@code null} if no notification
+   *                           is to be sent.
    */
   public abstract void disconnect(DisconnectReason disconnectReason,
                                   boolean sendNotification,
@@ -544,8 +559,8 @@ public abstract class ClientConnection
    * connection.  If so, then no new operations should be allowed
    * until the bind has completed.
    *
-   * @return  <CODE>true</CODE> if a bind operation is in progress on
-   *          this connection, or <CODE>false</CODE> if not.
+   * @return  {@code true} if a bind operation is in progress on this
+   *          connection, or {@code false} if not.
    */
   public boolean bindInProgress()
   {
@@ -574,12 +589,11 @@ public abstract class ClientConnection
    * must change their password before they will be allowed to do
    * anything else.
    *
-   * @return  <CODE>true</CODE> if the user associated with this
-   *          client connection must change their password before they
-   *          will be allowed to do anything else, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if the user associated with this client
+   *          connection must change their password before they will
+   *          be allowed to do anything else, or {@code false} if not.
    */
-  public boolean mustChangePassword()
+  public final boolean mustChangePassword()
   {
     if (authenticationInfo == null)
     {
@@ -603,7 +617,7 @@ public abstract class ClientConnection
    *                             change their password before they
    *                             will be allowed to do anything else.
    */
-  public void setMustChangePassword(boolean mustChangePassword)
+  public final void setMustChangePassword(boolean mustChangePassword)
   {
     if (authenticationInfo == null)
     {
@@ -634,8 +648,7 @@ public abstract class ClientConnection
    * @param  messageID  The message ID of the operation to retrieve.
    *
    * @return  The operation in progress with the specified message ID,
-   *          or <CODE>null</CODE> if no such operation could be
-   *          found.
+   *          or {@code null} if no such operation could be found.
    */
   public abstract AbstractOperation
                           getOperationInProgress(int messageID);
@@ -651,9 +664,9 @@ public abstract class ClientConnection
    * @param  messageID  The message ID of the operation to remove from
    *                    the set of operations in progress.
    *
-   * @return  <CODE>true</CODE> if the operation was found and removed
-   *          from the set of operations in progress, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if the operation was found and removed from
+   *          the set of operations in progress, or {@code false} if
+   *          not.
    */
   public abstract boolean removeOperationInProgress(int messageID);
 
@@ -666,8 +679,8 @@ public abstract class ClientConnection
    * @return  The set of persistent searches registered for this
    *          client.
    */
-  public CopyOnWriteArrayList<PersistentSearch>
-              getPersistentSearches()
+  public final CopyOnWriteArrayList<PersistentSearch>
+                    getPersistentSearches()
   {
     return persistentSearches;
   }
@@ -677,14 +690,19 @@ public abstract class ClientConnection
   /**
    * Registers the provided persistent search for this client.  Note
    * that this should only be called by
-   * <CODE>DirectoryServer.registerPersistentSearch</CODE> and not
-   * through any other means.
+   * {@code DirectoryServer.registerPersistentSearch} and not through
+   * any other means.
    *
    * @param  persistentSearch  The persistent search to register for
    *                           this client.
    */
-  public void registerPersistentSearch(PersistentSearch
-                                            persistentSearch)
+ @org.opends.server.types.PublicAPI(
+      stability=org.opends.server.types.StabilityLevel.PRIVATE,
+      mayInstantiate=false,
+      mayExtend=false,
+      mayInvoke=false)
+  public final void registerPersistentSearch(PersistentSearch
+                                                  persistentSearch)
   {
     persistentSearches.add(persistentSearch);
   }
@@ -694,14 +712,19 @@ public abstract class ClientConnection
   /**
    * Deregisters the provided persistent search for this client.  Note
    * that this should only be called by
-   * <CODE>DirectoryServer.deregisterPersistentSearch</CODE> and not
+   * {@code DirectoryServer.deregisterPersistentSearch} and not
    * through any other means.
    *
    * @param  persistentSearch  The persistent search to deregister for
    *                           this client.
    */
-  public void deregisterPersistentSearch(PersistentSearch
-                                              persistentSearch)
+ @org.opends.server.types.PublicAPI(
+      stability=org.opends.server.types.StabilityLevel.PRIVATE,
+      mayInstantiate=false,
+      mayExtend=false,
+      mayInvoke=false)
+  public final void deregisterPersistentSearch(PersistentSearch
+                                                    persistentSearch)
   {
     persistentSearches.remove(persistentSearch);
   }
@@ -770,7 +793,7 @@ public abstract class ClientConnection
    * @param  authenticationInfo  Information about the authentication
    *                             that has been performed for this
    *                             connection.  It should not be
-   *                             <CODE>null</CODE>.
+   *                             {@code null}.
    */
   public void setAuthenticationInfo(AuthenticationInfo
                                          authenticationInfo)
@@ -859,7 +882,8 @@ public abstract class ClientConnection
    *                   existing entry.  It may optionally have a
    *                   different DN than the old entry.
    */
-  public void updateAuthenticationInfo(Entry oldEntry, Entry newEntry)
+  public final void updateAuthenticationInfo(Entry oldEntry,
+                                             Entry newEntry)
   {
     Entry authNEntry = authenticationInfo.getAuthenticationEntry();
     Entry authZEntry = authenticationInfo.getAuthorizationEntry();
@@ -1559,7 +1583,7 @@ public abstract class ClientConnection
    *
    * @return the network group attached to the connection
    */
-  public NetworkGroup getNetworkGroup()
+  public final NetworkGroup getNetworkGroup()
   {
     return networkGroup;
   }
@@ -1570,7 +1594,7 @@ public abstract class ClientConnection
    * @param networkGroup  the network group to which the
    *                      connections belongs to
    */
-  public void setNetworkGroup (NetworkGroup networkGroup)
+  public final void setNetworkGroup (NetworkGroup networkGroup)
   {
     this.networkGroup = networkGroup;
   }

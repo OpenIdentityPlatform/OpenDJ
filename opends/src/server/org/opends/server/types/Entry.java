@@ -83,6 +83,11 @@ import static org.opends.server.util.StaticUtils.*;
  * be removed or overwritten at any time, and it will be invalidated
  * and removed if the entry is altered in any way.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
 public class Entry
        implements ProtocolElement
 {

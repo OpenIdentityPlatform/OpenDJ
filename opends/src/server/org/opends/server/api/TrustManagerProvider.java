@@ -47,6 +47,11 @@ import org.opends.server.types.InitializationException;
  * @param  <T>  The type of trust manager provider configuration
  *              handled by this trust manager provider implementation.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=true)
 public abstract class TrustManagerProvider<T extends TrustManagerCfg>
 {
   /**

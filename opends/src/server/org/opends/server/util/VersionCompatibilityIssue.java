@@ -45,7 +45,12 @@ import java.util.Collection;
  * or reversion may required additional steps, notification of issues, or
  * be prohibitted altogether.
  */
-public class VersionCompatibilityIssue {
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
+public final class VersionCompatibilityIssue {
 
   //***************************************************
   //
@@ -521,7 +526,9 @@ public class VersionCompatibilityIssue {
   }
 
   /**
-   * {@inheritDoc}
+   * Retrieves a string representation of this version compatibility issue.
+   *
+   * @return  A string representation of this version compatibility issue.
    */
   public String toString() {
     return Integer.toString(cause.getId());

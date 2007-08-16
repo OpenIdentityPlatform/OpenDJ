@@ -53,6 +53,11 @@ import static org.opends.server.util.Validator.*;
  * the set of attribute types that may be used for a given matching
  * rule.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public final class MatchingRuleUse
        implements SchemaFileElement
 {

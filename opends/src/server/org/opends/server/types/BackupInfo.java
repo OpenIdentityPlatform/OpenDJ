@@ -51,7 +51,12 @@ import static org.opends.server.util.StaticUtils.*;
  * This class defines a data structure for holding information about a
  * backup that is available in a backup directory.
  */
-public class BackupInfo
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
+public final class BackupInfo
 {
   /**
    * The tracer object for the debug logger.

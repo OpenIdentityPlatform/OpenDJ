@@ -46,6 +46,11 @@ import org.opends.server.types.InitializationException;
  * @param  <T>  The type of configuration handled by this SASL
  *              mechanism handler.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class SASLMechanismHandler
        <T extends SASLMechanismHandlerCfg>
 {
@@ -156,9 +161,9 @@ public abstract class SASLMechanismHandler
    *                    with names of mechanisms for which this
    *                    handler has previously registered.
    *
-   * @return  <CODE>true</CODE> if this SASL mechanism is
-   *          password-based, or <CODE>false</CODE> if it uses some
-   *          other form of credentials.
+   * @return  {@code true} if this SASL mechanism is password-based,
+   *          or {@code false} if it uses some other form of
+   *          credentials.
    */
   public abstract boolean isPasswordBased(String mechanism);
 
@@ -175,8 +180,8 @@ public abstract class SASLMechanismHandler
    *                    with names of mechanisms for which this
    *                    handler has previously registered.
    *
-   * @return  <CODE>true</CODE> if this SASL mechanism should be
-   *          considered secure, or <CODE>false</CODE> if not.
+   * @return  {@code true} if this SASL mechanism should be considered
+   *          secure, or {@code false} if not.
    */
   public abstract boolean isSecure(String mechanism);
 }

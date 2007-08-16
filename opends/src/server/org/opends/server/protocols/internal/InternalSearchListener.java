@@ -40,6 +40,11 @@ import org.opends.server.types.SearchResultReference;
  * notified of matching entries and referrals as they arrive rather
  * than altogether when the search has completed.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public interface InternalSearchListener
 {
   /**

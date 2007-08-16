@@ -43,11 +43,13 @@ import java.text.ParseException;
  * sets of three bytes with eight significant bits each to sets of four bytes
  * with six significant bits each.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public final class Base64
 {
-
-
-
   /**
    * The set of characters that may be used in base64-encoded values.
    */

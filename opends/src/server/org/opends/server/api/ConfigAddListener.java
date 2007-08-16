@@ -38,6 +38,11 @@ import org.opends.messages.MessageBuilder;
  * component should implement if it wishes to be able to receive
  * notification of new entries added below a configuration entry.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public interface ConfigAddListener
 {
   /**
@@ -51,9 +56,9 @@ public interface ConfigAddListener
    *                             explaining why the proposed entry is
    *                             not acceptable.
    *
-   * @return  <CODE>true</CODE> if the proposed entry contains an
-   *          acceptable configuration, or <CODE>false</CODE> if it
-   *          does not.
+   * @return  {@code true} if the proposed entry contains an
+   *          acceptable configuration, or {@code false} if it does
+   *          not.
    */
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                       MessageBuilder unacceptableReason);

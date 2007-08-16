@@ -43,7 +43,12 @@ import org.opends.server.loggers.debug.DebugTracer;
  * the sorting process, although if none is provided it will use the
  * default ordering matching rule for the attribute type.
  */
-public class SortKey
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class SortKey
 {
   /**
    * The tracer object for the debug logger.

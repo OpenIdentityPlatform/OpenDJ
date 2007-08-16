@@ -31,5 +31,7 @@
  * This package contains the implementation of the directory server
  * configuration tool.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.tools.dsconfig;
 

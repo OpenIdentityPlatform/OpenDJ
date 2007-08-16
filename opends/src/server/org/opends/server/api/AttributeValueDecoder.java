@@ -38,6 +38,11 @@ import org.opends.server.types.DirectoryException;
  *
  * @param  <T>  Decode the attribute value to an object of this type.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=true)
 public interface AttributeValueDecoder<T>
 {
   /**

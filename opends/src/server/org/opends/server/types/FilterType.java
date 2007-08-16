@@ -37,6 +37,11 @@ import static org.opends.server.protocols.ldap.LDAPConstants.*;
  * be used for search filters.  This is based on the LDAP
  * specification defined in RFC 2251.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public enum FilterType
 {
   /**

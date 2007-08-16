@@ -46,7 +46,12 @@ import javax.net.ssl.X509KeyManager;
  * selection will be based on the alias (also called the nickname) of the
  * certificate.
  */
-public class SelectableCertificateKeyManager
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class SelectableCertificateKeyManager
        extends X509ExtendedKeyManager
 {
   // The alias of the certificate that should be selected from the key manager.

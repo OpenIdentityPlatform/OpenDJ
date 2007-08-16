@@ -61,6 +61,11 @@ package org.opends.server.types;
  * explicit stability level, then it should be assumed that it has the
  * same stability level as the class that contains it.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public enum StabilityLevel
 {
   /**

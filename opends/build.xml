@@ -522,11 +522,10 @@
        description="Compile the Directory Server source files.">
     <mkdir dir="${classes.dir}" />
 
-    <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}" destdir="${classes.dir}"
-         excludes="**/package-info.java"
-         debug="on" debuglevel="${build.debuglevel}" source="1.5" target="1.5"
-         deprecation="true" fork="true" memoryInitialSize="${MEM}"
-         memoryMaximumSize="${MEM}">
+    <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
+         destdir="${classes.dir}" debug="on" debuglevel="${build.debuglevel}"
+         source="1.5" target="1.5" deprecation="true" fork="true"
+         memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
 
       <classpath>

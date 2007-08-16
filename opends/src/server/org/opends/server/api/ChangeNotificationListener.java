@@ -61,13 +61,18 @@ import org.opends.server.types.operation.
  * notified of changes to the configuration data just as easily as it
  * can be used for any other entry anywhere in the server, components
  * that are only interested in being notified of changes to the server
- * configuration should use the <CODE>ConfigurableComponent</CODE>,
- * <CODE>ConfigAddListener</CODE>, <CODE>ConfigDeleteListener</CODE>,
- * and/or the <CODE>ConfigChangeListener</CODE> interfaces instead.
- * They will be more efficient overall because they will only be
- * invoked for operations in the server configuration, and then only
- * for the specific entries with which the component has registered.
+ * configuration should use the {@code ConfigAddListener},
+ * {@code ConfigDeleteListener}, and/or the
+ * {@code ConfigChangeListener} interfaces instead.  They will be more
+ * efficient overall because they will only be invoked for operations
+ * in the server configuration, and then only for the specific entries
+ * with which the component has registered.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public interface ChangeNotificationListener
 {
   /**

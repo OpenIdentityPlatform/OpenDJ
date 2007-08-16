@@ -53,7 +53,12 @@ import static org.opends.server.util.StaticUtils.*;
  * to ASN.1 elements should be limited to cases in which ASN.1 is actually
  * involved.
  */
-public class ASN1OctetString
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class ASN1OctetString
        extends ASN1Element
        implements ByteString
 {

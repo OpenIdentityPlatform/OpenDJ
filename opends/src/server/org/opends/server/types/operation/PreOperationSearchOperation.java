@@ -49,6 +49,11 @@ import org.opends.server.types.SearchResultReference;
  * interface is intended only to define an API for use by plugins and
  * is not intended to be implemented by any custom classes.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public interface PreOperationSearchOperation
        extends PreOperationOperation
 {

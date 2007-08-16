@@ -57,6 +57,11 @@ import static org.opends.server.util.StaticUtils.*;
  *       that task.</LI>
  * </UL>
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=true,
+     mayInvoke=true)
 public class DirectoryThread
        extends Thread
 {
@@ -184,7 +189,7 @@ public class DirectoryThread
    * of running a task.
    *
    * @return  The task with which this thread is associated, or
-   *          <CODE>null</CODE> if there is none.
+   *          {@code null} if there is none.
    */
   public Task getAssociatedTask()
   {
@@ -195,8 +200,7 @@ public class DirectoryThread
 
   /**
    * Sets the task with which this thread is associated.  It may be
-   * <CODE>null</CODE> to indicate that it is not associated with any
-   * task.
+   * {@code null} to indicate that it is not associated with any task.
    *
    * @param  task  The task with which this thread is associated.
    */

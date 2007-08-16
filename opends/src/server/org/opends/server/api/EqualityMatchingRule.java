@@ -44,6 +44,11 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  * implemented by a Directory Server module that implements a matching
  * rule used for equality matching.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class EqualityMatchingRule
        extends MatchingRule<EqualityMatchingRuleCfg>
 {
@@ -61,8 +66,8 @@ public abstract class EqualityMatchingRule
    * @param  value2  The normalized form of the second value to
    *                 compare.
    *
-   * @return  <CODE>true</CODE> if the provided values are equal, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if the provided values are equal, or
+   *          {@code false} if not.
    */
   public abstract boolean areEqual(ByteString value1,
                                    ByteString value2);
@@ -74,7 +79,7 @@ public abstract class EqualityMatchingRule
    * considered a match for the given assertion value.  This will only
    * be used for the purpose of extensible matching.  Other forms of
    * matching against equality matching rules should use the
-   * <CODE>areEqual</CODE> method.
+   * {@code areEqual} method.
    *
    * @param  attributeValue  The attribute value in a form that has
    *                         been normalized according to this
@@ -83,9 +88,9 @@ public abstract class EqualityMatchingRule
    *                         been normalized according to this
    *                         matching rule.
    *
-   * @return  <CODE>true</CODE> if the attribute value should be
-   *          considered a match for the provided assertion value, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if the attribute value should be considered
+   *          a match for the provided assertion value, or
+   *          {@code false} if not.
    */
   public ConditionResult valuesMatch(ByteString attributeValue,
                                      ByteString assertionValue)

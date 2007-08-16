@@ -31,6 +31,7 @@ import org.opends.messages.Message;
 
 import java.util.List;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.core.DirectoryServer;
@@ -52,17 +53,16 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  * This class defines the set of methods that must be implemented by a
  * Directory Server entry cache.  Note that components accessing the
  * entry cache must not depend on any particular behavior.  For
- * example, if a call is made to <CODE>putEntry</CODE> to store an
- * entry in the cache, there is no guarantee that immediately calling
- * <CODE>getEntry</CODE> will be able to retrieve it.  There are
- * several potential reasons for this, including:
+ * example, if a call is made to {@code putEntry} to store an entry in
+ * the cache, there is no guarantee that immediately calling
+ * {@code getEntry} will be able to retrieve it.  There are several
+ * potential reasons for this, including:
  * <UL>
  *   <LI>The entry may have been deleted or replaced by another thread
- *       between the <CODE>putEntry</CODE> and <CODE>getEntry</CODE>
- *       calls.</LI>
+ *       between the {@code putEntry} and {@code getEntry} calls.</LI>
  *   <LI>The entry cache may implement a purging mechanism and the
  *       entry added may have been purged between the
- *       <CODE>putEntry</CODE> and <CODE>getEntry</CODE> calls.</LI>
+ *       {@code putEntry} and {@code getEntry} calls.</LI>
  *   <LI>The entry cache may implement some kind of filtering
  *       mechanism to determine which entries to store, and entries
  *       not matching the appropriate criteria may not be stored.</LI>
@@ -74,10 +74,39 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  * @param  <T>  The type of configuration handled by this entry
  *              cache.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=true,
+     notes="Entry cache methods may only be invoked by backends")
 public abstract class EntryCache
        <T extends EntryCacheCfg>
        implements BackendInitializationListener
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
+
+
+  //  The set of filters that define the entries that should be
+  // excluded from the cache.
+  private Set<SearchFilter> excludeFilters =
+       new HashSet<SearchFilter>(0);
+
+  //  The set of filters that define the entries that should be
+  // included in the cache.
+  private Set<SearchFilter> includeFilters =
+       new HashSet<SearchFilter>(0);
+
+  // The maximum length of time to try to obtain a lock before giving
+  // up.
+  private long lockTimeout = LockManager.DEFAULT_TIMEOUT;
+
+
+
   /**
    * Default constructor which is implicitly called from all entry
    * cache implementations.
@@ -88,37 +117,6 @@ public abstract class EntryCache
     // entries belonging to given backend that about to go offline.
     DirectoryServer.registerBackendInitializationListener(this);
   }
-
-
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
-
-
-  /**
-   * The maximum length of time to try to obtain a lock
-   * before giving up.
-   */
-  protected long lockTimeout;
-
-
-
-  /**
-   * The set of filters that define the entries that should
-   * be excluded from the cache.
-   */
-  protected HashSet<SearchFilter> excludeFilters;
-
-
-
-  /**
-   * The set of filters that define the entries that should
-   * be included in the cache.
-   */
-  protected HashSet<SearchFilter> includeFilters;
 
 
 
@@ -194,9 +192,8 @@ public abstract class EntryCache
    *
    * @param  entryDN  The DN for which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the entry cache currently contains
-   *          the entry with the specified DN, or <CODE>false</CODE>
-   *          if not.
+   * @return  {@code true} if the entry cache currently contains the
+   *          entry with the specified DN, or {@code false} if not.
    */
   public abstract boolean containsEntry(DN entryDN);
 
@@ -212,7 +209,7 @@ public abstract class EntryCache
    * @param  entryDN  The DN of the entry to retrieve.
    *
    * @return  The requested entry if it is present in the cache, or
-   *          <CODE>null</CODE> if it is not present.
+   *          {@code null} if it is not present.
    */
   public abstract Entry getEntry(DN entryDN);
 
@@ -229,13 +226,13 @@ public abstract class EntryCache
    *
    * @param  entryDN   The DN of the entry to retrieve.
    * @param  lockType  The type of lock to obtain (it may be
-   *                   <CODE>NONE</CODE>).
+   *                   {@code NONE}).
    * @param  lockList  The list to which the obtained lock will be
    *                   added (note that no lock will be added if the
-   *                   lock type was <CODE>NONE</CODE>).
+   *                   lock type was {@code NONE}).
    *
    * @return  The requested entry if it is present in the cache, or
-   *          <CODE>null</CODE> if it is not present.
+   *          {@code null} if it is not present.
    */
   public Entry getEntry(DN entryDN,
                         LockType lockType,
@@ -379,13 +376,13 @@ public abstract class EntryCache
    * @param  entryID   The entry ID within the provided backend for
    *                   the specified entry.
    * @param  lockType  The type of lock to obtain (it may be
-   *                   <CODE>NONE</CODE>).
+   *                   {@code NONE}).
    * @param  lockList  The list to which the obtained lock will be
    *                   added (note that no lock will be added if the
-   *                   lock type was <CODE>NONE</CODE>).
+   *                   lock type was {@code NONE}).
    *
    * @return  The requested entry if it is present in the cache, or
-   *          <CODE>null</CODE> if it is not present.
+   *          {@code null} if it is not present.
    */
   public Entry getEntry(Backend backend, long entryID,
                                  LockType lockType,
@@ -432,7 +429,7 @@ public abstract class EntryCache
    *                  for which to retrieve the entry DN.
    *
    * @return  The entry DN for the requested entry, or
-   *          <CODE>null</CODE> if it is not present in the cache.
+   *          {@code null} if it is not present in the cache.
    */
   protected abstract DN getEntryDN(Backend backend, long entryID);
 
@@ -467,12 +464,11 @@ public abstract class EntryCache
    * @param  entryID  The entry ID within the provided backend that
    *                  uniquely identifies the specified entry.
    *
-   * @return  <CODE>false</CODE> if an existing entry or some other
-   *          problem prevented the method from completing
-   *          successfully, or <CODE>true</CODE> if there was no
-   *          conflict and the entry was either stored or the cache
-   *          determined that this entry should never be cached for
-   *          some reason.
+   * @return  {@code false} if an existing entry or some other problem
+   *          prevented the method from completing successfully, or
+   *          {@code true} if there was no conflict and the entry was
+   *          either stored or the cache determined that this entry
+   *          should never be cached for some reason.
    */
   public abstract boolean putEntryIfAbsent(Entry entry,
                                            Backend backend,
@@ -530,12 +526,114 @@ public abstract class EntryCache
 
 
   /**
+   * Retrieves the maximum length of time in milliseconds to wait for
+   * a lock before giving up.
+   *
+   * @return  The maximum length of time in milliseconds to wait for a
+   *          lock before giving up.
+   */
+  public long getLockTimeout()
+  {
+    return lockTimeout;
+  }
+
+
+
+  /**
+   * Specifies the maximum length of time in milliseconds to wait for
+   * a lock before giving up.
+   *
+   * @param  lockTimeout  The maximum length of time in milliseconds
+   *                      to wait for a lock before giving up.
+   */
+  public void setLockTimeout(long lockTimeout)
+  {
+    this.lockTimeout = lockTimeout;
+  }
+
+
+
+  /**
+   * Retrieves the set of search filters that may be used to determine
+   * whether an entry should be excluded from the cache.
+   *
+   * @return  The set of search filters that may be used to determine
+   *          whether an entry should be excluded from the cache.
+   */
+  public Set<SearchFilter> getExcludeFilters()
+  {
+    return excludeFilters;
+  }
+
+
+
+  /**
+   * Specifies the set of search filters that may be used to determine
+   * whether an entry should be excluded from the cache.
+   *
+   * @param  excludeFilters  The set of search filters that may be
+   *                         used to determine whether an entry should
+   *                         be excluded from the cache.
+   */
+  public void setExcludeFilters(Set<SearchFilter> excludeFilters)
+  {
+    if (excludeFilters == null)
+    {
+      this.excludeFilters = new HashSet<SearchFilter>(0);
+    }
+    else
+    {
+      this.excludeFilters = excludeFilters;
+    }
+  }
+
+
+
+  /**
+   * Retrieves the set of search filters that may be used to determine
+   * whether an entry should be included in the cache.
+   *
+   * @return  The set of search filters that may be used to determine
+   *          whether an entry should be included in the cache.
+   */
+  public Set<SearchFilter> getIncludeFilters()
+  {
+    return includeFilters;
+  }
+
+
+
+  /**
+   * Specifies the set of search filters that may be used to determine
+   * whether an entry should be included in the cache.
+   *
+   * @param  includeFilters  The set of search filters that may be
+   *                         used to determine whether an entry should
+   *                         be included in the cache.
+   */
+  public void setIncludeFilters(Set<SearchFilter> includeFilters)
+  {
+    if (includeFilters == null)
+    {
+      this.includeFilters = new HashSet<SearchFilter>(0);
+    }
+    else
+    {
+      this.includeFilters = includeFilters;
+    }
+  }
+
+
+
+  /**
    * Indicates whether the current set of exclude and include filters
    * allow caching of the specified entry.
+   *
    * @param  entry  The entry to evaluate against exclude and include
    *                filter sets.
-   * @return <CODE>true</CODE> if current set of filters allow caching
-   * the entry and <CODE>false</CODE> otherwise.
+   *
+   * @return  {@code true} if current set of filters allow caching the
+   *          entry and {@code false} otherwise.
    */
   protected boolean filtersAllowCaching(Entry entry)
   {
@@ -606,7 +704,13 @@ public abstract class EntryCache
 
 
   /**
-   * {@inheritDoc}
+   * Performs any processing that may be required whenever a backend
+   * is initialized for use in the Directory Server.  This method will
+   * be invoked after the backend has been initialized but before it
+   * has been put into service.
+   *
+   * @param  backend  The backend that has been initialized and is
+   *                  about to be put into service.
    */
   public void performBackendInitializationProcessing(Backend backend)
   {
@@ -616,7 +720,12 @@ public abstract class EntryCache
 
 
   /**
-   * {@inheritDoc}
+   * Performs any processing that may be required whenever a backend
+   * is finalized.  This method will be invoked after the backend has
+   * been taken out of service but before it has been finalized.
+   *
+   * @param  backend  The backend that has been taken out of service
+   *                  and is about to be finalized.
    */
   public void performBackendFinalizationProcessing(Backend backend)
   {

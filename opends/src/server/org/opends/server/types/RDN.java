@@ -50,7 +50,12 @@ import static org.opends.server.util.StaticUtils.*;
  * with the relative distinguished names associated with entries in
  * the Directory Server.
  */
-public class RDN
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class RDN
        implements Comparable<RDN>
 {
   /**

@@ -33,6 +33,11 @@ package org.opends.server.types;
  * that may be used for an attribute modification.  This is based on
  * the LDAP specification defined in RFC 2251.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public enum ModificationType
 {
   /**

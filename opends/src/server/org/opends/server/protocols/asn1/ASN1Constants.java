@@ -32,7 +32,12 @@ package org.opends.server.protocols.asn1;
  * This class defines a number of constants that may be used when interacting
  * with ASN.1 elements.
  */
-public class ASN1Constants
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
+public final class ASN1Constants
 {
   /**
    * The BER type that is assigned to the universal Boolean element.

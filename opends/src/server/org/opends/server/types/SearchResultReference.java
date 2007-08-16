@@ -39,11 +39,13 @@ import java.util.Iterator;
  * This class defines a data structure for storing information about a
  * referral returned while processing a search request.
  */
-public class SearchResultReference
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
+public final class SearchResultReference
 {
-
-
-
   // The set of controls associated with this search result reference.
   private List<Control> controls;
 

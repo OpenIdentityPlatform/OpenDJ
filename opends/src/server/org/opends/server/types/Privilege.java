@@ -40,6 +40,11 @@ import static org.opends.server.util.StaticUtils.*;
  * This class implements an enumeration that defines the set of
  * privileges available in the Directory Server.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public enum Privilege
 {
   /**

@@ -48,6 +48,11 @@ import org.opends.server.types.InitializationException;
  * @param  <T>  The type of configuration handled by this certificate
  *              mapper.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class CertificateMapper
        <T extends CertificateMapperCfg>
 {
@@ -127,7 +132,7 @@ public abstract class CertificateMapper
    *                           as appropriate.
    *
    * @return  The entry for the user to whom the mapping was
-   *          established, or <CODE>null</CODE> if no mapping was
+   *          established, or {@code null} if no mapping was
    *          established and no special message is required to send
    *          back to the client.
    *

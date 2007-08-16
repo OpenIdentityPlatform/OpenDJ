@@ -37,10 +37,13 @@ import static org.opends.server.util.ServerConstants.*;
  * with a modification that may be requested of an entry in the
  * Directory Server.
  */
-public class Modification
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class Modification
 {
-
-
   // The attribute for this modification.
   private Attribute attribute;
 
@@ -111,6 +114,11 @@ public class Modification
    * @param  modificationType  The modification type for this
    *                           modification.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
   public void setModificationType(ModificationType modificationType)
   {
     this.modificationType = modificationType;
@@ -135,6 +143,11 @@ public class Modification
    *
    * @param  attribute  The attribute for this modification.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
   public void setAttribute(Attribute attribute)
   {
     this.attribute = attribute;

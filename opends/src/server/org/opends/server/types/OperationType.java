@@ -32,6 +32,11 @@ package org.opends.server.types;
  * This enumeration defines the set of possible operation types that
  * may be processed by the Directory Server.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public enum OperationType
 {
   /**

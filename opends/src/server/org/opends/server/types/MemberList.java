@@ -35,11 +35,13 @@ package org.opends.server.types;
  * to retrieve the next member (e.g., if the group contains a
  * malformed DN or references a member that doesn't exist).
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=true)
 public abstract class MemberList
 {
-
-
-
   /**
    * Indicates whether the group contains any more members.
    *

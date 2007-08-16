@@ -32,6 +32,11 @@ import org.opends.messages.Message;
 /**
  * This class defines a base exception for OpenDS exceptions.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public abstract class OpenDsException
         extends Exception
 {
@@ -115,5 +120,4 @@ public abstract class OpenDsException
   public Message getMessageObject() {
     return this.message;
   }
-
 }

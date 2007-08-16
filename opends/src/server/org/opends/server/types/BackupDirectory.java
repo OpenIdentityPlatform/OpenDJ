@@ -54,7 +54,12 @@ import static org.opends.server.util.StaticUtils.*;
  * associated with a backend.  Only backups for a single backend may
  * be placed in any given directory.
  */
-public class BackupDirectory
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class BackupDirectory
 {
   /**
    * The tracer object for the debug logger.
