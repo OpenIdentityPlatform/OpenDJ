@@ -117,7 +117,11 @@ public class SchemaConfigManager
   {
     File schemaDir =
               DirectoryServer.getEnvironmentConfig().getSchemaDirectory();
-    return schemaDir.getAbsolutePath();
+    if (schemaDir != null) {
+      return schemaDir.getAbsolutePath();
+    } else {
+      return null;
+    }
   }
 
 
@@ -212,7 +216,7 @@ public class SchemaConfigManager
 
     try
     {
-      if (! schemaDir.exists())
+      if (schemaDirPath == null || ! schemaDir.exists())
       {
         Message message = ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR.get(schemaDirPath);
         throw new InitializationException(message);

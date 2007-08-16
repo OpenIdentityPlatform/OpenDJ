@@ -791,7 +791,7 @@ public class DirectoryServer
    * @throws  InitializationException  If the Directory Server is currently
    *                                   running.
    */
-  private void setEnvironmentConfig(DirectoryEnvironmentConfig config)
+  public void setEnvironmentConfig(DirectoryEnvironmentConfig config)
           throws InitializationException
   {
     if (isRunning)

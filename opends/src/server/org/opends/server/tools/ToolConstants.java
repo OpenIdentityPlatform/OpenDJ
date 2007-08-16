@@ -636,5 +636,14 @@ public class ToolConstants
   */
  public static final String OPTION_VALUE_SET = "{PROP:VAL}";
 
+  /**
+   * Value for the server root option short form.
+   */
+  public static final Character OPTION_SHORT_SERVER_ROOT = 'R';
+
+  /**
+   * Value for the server root option long form.
+   */
+  public static final String OPTION_LONG_SERVER_ROOT = "serverRoot";
 }
 
