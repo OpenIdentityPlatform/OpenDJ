@@ -32,6 +32,7 @@ import org.opends.messages.Message;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
+import java.io.File;
 
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.config.BooleanConfigAttribute;
@@ -46,6 +47,8 @@ import org.opends.server.extensions.SaltedSHA512PasswordStorageScheme;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryEnvironmentConfig;
+import org.opends.server.types.InitializationException;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -170,6 +173,7 @@ public class ConfigureDS
     StringArgument    trustManagerProviderDN;
     StringArgument    certNickName;
     StringArgument    keyManagerPath;
+    StringArgument    serverRoot;
 
     Message toolDescription = INFO_CONFIGDS_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
@@ -290,6 +294,14 @@ public class ConfigureDS
                                       INFO_DESCRIPTION_USAGE.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
+
+      serverRoot = new StringArgument("serverRoot",
+              ToolConstants.OPTION_SHORT_SERVER_ROOT,
+              ToolConstants.OPTION_LONG_SERVER_ROOT,
+              false, false, true, "{serverRootDir}", null, null,
+              null);
+      serverRoot.setHidden(true);
+      argParser.addArgument(serverRoot);
     }
     catch (ArgumentException ae)
     {
@@ -377,6 +389,15 @@ public class ConfigureDS
       return 1;
     }
 
+    if (serverRoot.isPresent()) {
+      DirectoryEnvironmentConfig env = DirectoryServer.getEnvironmentConfig();
+      String root = serverRoot.getValue();
+      try {
+        env.setServerRoot(new File(serverRoot.getValue()));
+      } catch (InitializationException e) {
+        ERR_INITIALIZE_SERVER_ROOT.get(root, e.getMessageObject());
+      }
+    }
 
     // Initialize the Directory Server configuration handler using the
     // information that was provided.

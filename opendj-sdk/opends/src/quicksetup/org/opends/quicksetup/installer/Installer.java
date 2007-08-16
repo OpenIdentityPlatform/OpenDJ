@@ -839,6 +839,9 @@ public abstract class Installer extends GuiApplication {
       }
     }
 
+    argList.add("-R");
+    argList.add(getInstallation().getRootDirectory().getAbsolutePath());
+
     String[] args = new String[argList.size()];
     argList.toArray(args);
     try
