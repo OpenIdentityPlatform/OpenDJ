@@ -579,4 +579,17 @@ public class NetworkGroup
     return sb;
   }
 
+
+  /**
+   * Deregisters all network groups that have been registered.  This should be
+   * called when the server is shutting down.
+   */
+  public static void deregisterAll()
+  {
+    synchronized (registeredNetworkGroupsLock)
+    {
+      registeredNetworkGroups = new TreeMap<String,NetworkGroup>();
+      defaultNetworkGroup = new NetworkGroup ("default");
+    }
+  }
 }

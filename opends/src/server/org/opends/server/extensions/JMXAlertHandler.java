@@ -166,8 +166,11 @@ public class JMXAlertHandler
       }
     }
 
-    configuration.addChangeListener(this);
-    currentConfig = configuration;
+    if (configuration != null)
+    {
+      configuration.addChangeListener(this);
+      currentConfig = configuration;
+    }
   }
 
 
