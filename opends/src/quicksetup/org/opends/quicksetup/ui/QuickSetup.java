@@ -692,17 +692,6 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   }
 
   /**
-   * Indicates whether we are in a web start installation or not.
-   *
-   * @return <CODE>true</CODE> if we are in a web start installation and
-   *         <CODE>false</CODE> if not.
-   */
-  private boolean isWebStart()
-  {
-    return isWebStart();
-  }
-
-  /**
    * This is a class used when the user clicks on next and that extends
    * BackgroundTask.
    */
