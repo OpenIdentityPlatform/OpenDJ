@@ -660,7 +660,9 @@
         { 'returncode' : RC ,
           'result'     : STAXResult }
       </call>
-   
+      <call function="'Sleep'">
+        { 'sleepForMilliSeconds'  : 3000 }
+      </call>
     </sequence>
   </function>
 
