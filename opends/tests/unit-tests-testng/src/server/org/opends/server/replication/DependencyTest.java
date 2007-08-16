@@ -294,7 +294,7 @@ public class DependencyTest extends ReplicationTestCase
    * To increase the risks of failures a loop of add/del/add is done.
    */
   @SuppressWarnings("unchecked")
-  @Test(groups="slow")
+  @Test(enabled=false, groups="slow")
   public void addDelAddDependencyTest() throws Exception
   {
     ReplicationServer replServer = null;
