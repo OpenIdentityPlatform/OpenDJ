@@ -1694,7 +1694,8 @@ public class UIFactory
           boolean isSelected,
           boolean cellHasFocus)
       {
-        JLabel l = makeJLabel(IconType.NO_ICON, Message.raw(value), textStyle);
+        JLabel l = makeJLabel(IconType.NO_ICON, Message.fromObject(value),
+                              textStyle);
         l.setBorder(new EmptyBorder(TOP_INSET_SECONDARY_FIELD, 0, 0, 0));
         return l;
       }

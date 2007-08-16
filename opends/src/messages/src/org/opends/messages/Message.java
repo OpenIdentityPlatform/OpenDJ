@@ -112,7 +112,7 @@ public class Message implements CharSequence, Formattable, Comparable {
    * @return a message object that will render the same in all locales;
    *         null if <code>object</code> is null
    */
-  static public Message raw(Object object, Object... arguments) {
+  static public Message fromObject(Object object, Object... arguments) {
     Message message = null;
     if (object != null) {
       CharSequence cs = object.toString();
