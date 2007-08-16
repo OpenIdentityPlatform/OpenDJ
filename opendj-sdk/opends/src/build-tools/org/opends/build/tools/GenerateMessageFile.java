@@ -453,7 +453,7 @@ public class GenerateMessageFile extends Task {
         log("Generating " + dest.getName() + " from " + source.getName());
       }
 
-      stubReader = new BufferedReader(new FileReader(MESSAGES_FILE_STUB));
+      stubReader = new BufferedReader(new FileReader(getStubFile()));
       destWriter = new PrintWriter(new FileOutputStream(dest));
 
       String stubLine;
@@ -728,7 +728,7 @@ public class GenerateMessageFile extends Task {
   }
 
   static private File getRegistryFile() throws IOException {
-    File registry = new File(REGISTRY_FILE_NAME);
+    File registry = new File(System.getProperty("user.dir"), REGISTRY_FILE_NAME);
     if (!registry.exists()) {
       File parent = registry.getParentFile();
       if (!parent.exists()) {
@@ -743,6 +743,9 @@ public class GenerateMessageFile extends Task {
     return path.replace("\\", "/");
   }
 
+  private File getStubFile() {
+    return new File(System.getProperty("user.dir"), MESSAGES_FILE_STUB);
+  }
 
   /**
    * For testing.
