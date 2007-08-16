@@ -3,6 +3,7 @@ package org.opends.build.tools;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Location;
 import static org.opends.build.tools.Utilities.*;
 import org.opends.messages.Category;
 import org.opends.messages.Severity;
@@ -29,6 +30,7 @@ import java.util.TreeMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.EnumSet;
+import java.util.Hashtable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -695,7 +697,7 @@ public class GenerateMessageFile extends Task {
    * @return true if the class was acutally added to the registry;
    *         false indicates that the class was already present.
    */
-  static private boolean registerMessageDescriptor(String descClassName)
+  private boolean registerMessageDescriptor(String descClassName)
           throws IOException
   {
     boolean classAdded = false;
@@ -711,7 +713,7 @@ public class GenerateMessageFile extends Task {
     return classAdded;
   }
 
-  static private boolean isDescriptorRegistered(String descClassName)
+  private boolean isDescriptorRegistered(String descClassName)
           throws IOException
   {
     boolean isRegistered = false;
@@ -727,8 +729,8 @@ public class GenerateMessageFile extends Task {
     return isRegistered;
   }
 
-  static private File getRegistryFile() throws IOException {
-    File registry = new File(System.getProperty("user.dir"), REGISTRY_FILE_NAME);
+  private File getRegistryFile() throws IOException {
+    File registry = new File(getProjectBase(), REGISTRY_FILE_NAME);
     if (!registry.exists()) {
       File parent = registry.getParentFile();
       if (!parent.exists()) {
@@ -739,12 +741,18 @@ public class GenerateMessageFile extends Task {
     return registry;
   }
 
-  private static String unixifyPath(String path) {
+  private File getProjectBase() {
+    Location l = getLocation();
+    File f = new File(l.getFileName());
+    return f.getParentFile();
+  }
+
+  private String unixifyPath(String path) {
     return path.replace("\\", "/");
   }
 
   private File getStubFile() {
-    return new File(System.getProperty("user.dir"), MESSAGES_FILE_STUB);
+    return new File(getProjectBase(), MESSAGES_FILE_STUB);
   }
 
   /**
