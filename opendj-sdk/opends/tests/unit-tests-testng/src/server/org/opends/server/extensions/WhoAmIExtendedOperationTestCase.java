@@ -104,12 +104,14 @@ public class WhoAmIExtendedOperationTestCase
   /**
    * Tests the use of the Who Am I? extended operation with an internal
    * unauthenticated connection.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testAsInternalAnonymous()
+         throws Exception
   {
-    InternalClientConnection conn =
-         new InternalClientConnection(new AuthenticationInfo());
+    InternalClientConnection conn = new InternalClientConnection(DN.nullDN());
     ExtendedOperation extOp =
          conn.processExtendedOperation(OID_WHO_AM_I_REQUEST, null);
     assertEquals(extOp.getResultCode(), ResultCode.SUCCESS);
