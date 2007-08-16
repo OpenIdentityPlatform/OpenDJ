@@ -40,7 +40,9 @@
             <script>
                 listAttrs=[]
                 listAttrs.append("ds-cfg-expire-passwords-without-warning:true")
-                listAttrs.append("ds-cfg-maximum-password-age:1 seconds")
+                listAttrs.append("ds-cfg-minimum-password-age:1 seconds")
+                listAttrs.append("ds-cfg-maximum-password-age:3 seconds")
+                listAttrs.append("ds-cfg-password-expiration-warning-interval:1 seconds")
                 listAttrs.append("ds-cfg-grace-login-count:2")
             </script>
             
@@ -56,6 +58,105 @@
                     'DNToModify'             : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
                     'listAttributes'         : listAttrs ,
                     'changetype'             : 'replace' }
+            </call>
+            
+  
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!-- Issue 2032 -->
+        <testcase name="getTestCaseName('Preamble, Admin Changing min password age beyond limit')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <script>
+                listAttrs=[]
+                listAttrs.append("ds-cfg-minimum-password-age:10 seconds")
+                listAttrs.append("ds-cfg-maximum-password-age:3 seconds")
+                listAttrs.append("ds-cfg-password-expiration-warning-interval:1 seconds")
+            </script>
+            
+            <message>
+               'Security: Grace Login: Admin modifying password policy settings'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
+                    'listAttributes'         : listAttrs ,
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 53 }
+            </call>
+            
+  
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!-- Issue 2032 -->
+        <testcase name="getTestCaseName('Preamble, Admin Changing min password age to limit')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <script>
+                listAttrs=[]
+                listAttrs.append("ds-cfg-minimum-password-age:2 seconds")
+                listAttrs.append("ds-cfg-maximum-password-age:3 seconds")
+                listAttrs.append("ds-cfg-password-expiration-warning-interval:1 seconds")
+            </script>
+            
+            <message>
+               'Security: Grace Login: Admin modifying password policy settings'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
+                    'listAttributes'         : listAttrs ,
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 53 }
+            </call>
+            
+  
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!-- Issue 2032 -->
+        <testcase name="getTestCaseName('Preamble, Admin Changing expire warning interval beyond limit')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <script>
+                listAttrs=[]
+                listAttrs.append("ds-cfg-minimum-password-age:1 seconds")
+                listAttrs.append("ds-cfg-maximum-password-age:3 seconds")
+                listAttrs.append("ds-cfg-password-expiration-warning-interval:10 seconds")
+            </script>
+            
+            <message>
+               'Security: Grace Login: Admin modifying password policy settings'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
+                    'listAttributes'         : listAttrs ,
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 53 }
             </call>
             
   
@@ -229,6 +330,8 @@
                 listAttrs=[]
                 listAttrs.append("ds-cfg-expire-passwords-without-warning:false")
                 listAttrs.append("ds-cfg-maximum-password-age:0 seconds")
+                listAttrs.append("ds-cfg-minimum-password-age:0 seconds")
+                listAttrs.append("ds-cfg-password-expiration-warning-interval:5 d")
                 listAttrs.append("ds-cfg-grace-login-count:0")
             </script>
             
