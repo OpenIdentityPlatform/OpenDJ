@@ -678,7 +678,7 @@
 
     <!-- Recreate the classes directory and recompile into it. -->
     <mkdir dir="${classes.dir}" />
-    <javac srcdir="${src.dir}:${admin.src.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
+    <javac srcdir="${src.dir}:${msg.src.dir}:${msg.javagen.dir}:${admin.src.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
          destdir="${classes.dir}"
          debug="on" debuglevel="${build.debuglevel}" source="1.5" target="1.5"
          deprecation="true" fork="true" memoryInitialSize="${MEM}"
