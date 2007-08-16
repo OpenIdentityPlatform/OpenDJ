@@ -47,9 +47,11 @@ public class MessageTest extends DirectoryServerTestCase {
     return new Object[][]{
             {"Hello %s", "Hello World", new Object[]{"World"}},
             {"Hel%nlo %s", "Hel\nlo World", new Object[]{"World"}},
-         {"Hel%%lo %s", "Hel%lo World", new Object[]{"World"}},            
+            {"Hel%%lo %s", "Hel%lo World", new Object[]{"World"}},
             {"Hel%%lo", "Hel%lo", new Object[]{}},
-            {"Hel%nlo", "Hel\nlo", new Object[]{}}
+            {"Hel%nlo", "Hel\nlo", new Object[]{}},
+            {"Hel%Dlo", "Hel%Dlo", new Object[]{}},
+            {"Hel%Dlo", "Hel%Dlo", new Object[]{ "abc"}},
     };
   }
 
