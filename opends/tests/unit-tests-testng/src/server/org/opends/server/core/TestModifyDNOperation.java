@@ -153,10 +153,8 @@ public class TestModifyDNOperation extends OperationTestCase
          "ds-privilege-name: bypass-acl",
          "ds-privilege-name: proxied-auth");
 
-    Entry proxyUserEntry =
-               DirectoryServer.getEntry(DN.decode("uid=proxy.user,o=test"));
-    AuthenticationInfo authInfo = new AuthenticationInfo(proxyUserEntry, false);
-    proxyUserConn = new InternalClientConnection(authInfo);
+    proxyUserConn =
+         new InternalClientConnection(DN.decode("uid=proxy.user,o=test"));
   }
 
   /**

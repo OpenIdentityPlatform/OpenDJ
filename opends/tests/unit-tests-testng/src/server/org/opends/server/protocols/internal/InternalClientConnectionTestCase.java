@@ -136,7 +136,10 @@ public class InternalClientConnectionTestCase
       new Object[] { new InternalClientConnection(
            new AuthenticationInfo(dmEntry, true)) },
       new Object[] { new InternalClientConnection(
-           new AuthenticationInfo(userEntry, false)) }
+           new AuthenticationInfo(userEntry, false)) },
+      new Object[] { new InternalClientConnection(dmDN) },
+      new Object[] { new InternalClientConnection(DN.nullDN()) },
+      new Object[] { new InternalClientConnection((DN) null) }
     };
   }
 

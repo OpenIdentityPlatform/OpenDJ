@@ -311,6 +311,67 @@ public final class InternalClientConnection
 
 
   /**
+   * Creates a new internal client connection that will be
+   * authenticated as the specified user.
+   *
+   * @param  userDN  The DN of the entry to use as the
+   *                 authentication and authorization identity.
+   *
+   * @throws  DirectoryException  If a problem occurs while trying to
+   *                              get the entry for the provided user
+   *                              DN.
+   */
+  public InternalClientConnection(DN userDN)
+         throws DirectoryException
+  {
+    this(getAuthInfoForDN(userDN));
+  }
+
+
+
+  /**
+   * Creates an authentication information object for the user with
+   * the specified DN.
+   *
+   * @param  userDN  The DN of the user for whom to create an
+   *                 authentication information object.
+   *
+   * @return  The appropriate authentication information object.
+   *
+   * @throws  DirectoryException  If a problem occurs while trying to
+   *                              create the authentication
+   *                              information object, or there is no
+   *                              such user in the directory.
+   */
+  private static AuthenticationInfo getAuthInfoForDN(DN userDN)
+          throws DirectoryException
+  {
+    if ((userDN == null) || userDN.isNullDN())
+    {
+      return new AuthenticationInfo();
+    }
+
+    DN rootUserDN = DirectoryServer.getActualRootBindDN(userDN);
+    if (rootUserDN != null)
+    {
+      userDN = rootUserDN;
+    }
+
+    Entry userEntry = DirectoryServer.getEntry(userDN);
+    if (userEntry == null)
+    {
+      Message m =
+           ERR_INTERNALCONN_NO_SUCH_USER.get(String.valueOf(userDN));
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, m);
+    }
+
+    boolean isRoot = DirectoryServer.isRootDN(userDN);
+    return new AuthenticationInfo(userEntry, isRoot);
+  }
+
+
+
+  /**
    * Retrieves a shared internal client connection that is
    * authenticated as a root user.
    *

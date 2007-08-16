@@ -1203,8 +1203,7 @@ public class GroupManagerTestCase
 
     // Get a client connection authenticated as user1 and make sure it handles
     // group operations correctly.
-    AuthenticationInfo authInfo = new AuthenticationInfo();
-    InternalClientConnection conn0 = new InternalClientConnection(authInfo);
+    InternalClientConnection conn0 = new InternalClientConnection(DN.nullDN());
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(conn0, conn0.nextOperationID(),
                   conn0.nextMessageID(), null, DN.nullDN(),
@@ -1230,8 +1229,7 @@ public class GroupManagerTestCase
 
     // Get a client connection authenticated as user1 and make sure it handles
     // group operations correctly.
-    authInfo = new AuthenticationInfo(DirectoryServer.getEntry(user1DN), false);
-    InternalClientConnection conn1 = new InternalClientConnection(authInfo);
+    InternalClientConnection conn1 = new InternalClientConnection(user1DN);
     searchOperation =
          new InternalSearchOperation(conn1, conn1.nextOperationID(),
                   conn1.nextMessageID(), null, DN.nullDN(),
@@ -1261,8 +1259,7 @@ public class GroupManagerTestCase
 
     // Get a client connection authenticated as user2 and make sure it handles
     // group operations correctly.
-    authInfo = new AuthenticationInfo(DirectoryServer.getEntry(user2DN), false);
-    InternalClientConnection conn2 = new InternalClientConnection(authInfo);
+    InternalClientConnection conn2 = new InternalClientConnection(user2DN);
     searchOperation =
          new InternalSearchOperation(conn2, conn2.nextOperationID(),
                   conn2.nextMessageID(), null, DN.nullDN(),
@@ -1292,8 +1289,7 @@ public class GroupManagerTestCase
 
     // Get a client connection authenticated as user3 and make sure it handles
     // group operations correctly.
-    authInfo = new AuthenticationInfo(DirectoryServer.getEntry(user3DN), false);
-    InternalClientConnection conn3 = new InternalClientConnection(authInfo);
+    InternalClientConnection conn3 = new InternalClientConnection(user3DN);
     searchOperation =
          new InternalSearchOperation(conn3, conn3.nextOperationID(),
                   conn3.nextMessageID(), null, DN.nullDN(),
