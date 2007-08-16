@@ -8343,6 +8343,10 @@ public class DirectoryServer
     }
 
 
+    // Deregister all network group configuration.
+    NetworkGroup.deregisterAll();
+
+
     // Log a final message indicating that the server is stopped (which should
     // be true for all practical purposes), and then shut down all the error
     // loggers.
