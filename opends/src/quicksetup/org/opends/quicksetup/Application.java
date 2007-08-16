@@ -752,14 +752,74 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * ProgressUpdateListeners with the formatted messages.
    *
    */
-  protected class ErrorPrintStream extends PrintStream {
+  protected class ErrorPrintStream extends ApplicationPrintStream {
+
+    /**
+     * {@inheritDoc}
+     */
+    public ErrorPrintStream() {
+      super();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected Message formatString(String s) {
+      return getFormattedLogError(Message.raw(s));
+    }
+
+  }
+
+  /**
+   * This class is used to notify the ProgressUpdateListeners of events
+   * that are written to the standard output. It is used in WebStartInstaller
+   * and in OfflineInstaller. These classes just create a OutputPrintStream and
+   * then they do a call to System.out with it.
+   *
+   * The class just reads what is written to the standard output, obtains an
+   * formatted representation of it and then notifies the
+   * ProgressUpdateListeners with the formatted messages.
+   *
+   */
+  protected class OutputPrintStream extends ApplicationPrintStream
+  {
+
+    /**
+     * {@inheritDoc}
+     */
+    public OutputPrintStream() {
+      super();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected Message formatString(String s) {
+      return getFormattedLog(Message.raw(s));
+    }
+
+  }
+
+  /**
+   * This class is used to notify the ProgressUpdateListeners of events
+   * that are written to the standard streams.
+   */
+  protected abstract class ApplicationPrintStream extends PrintStream {
+
     private boolean isFirstLine;
+
+    /**
+     * Format a string before sending a listener notification.
+     * @param string to format
+     * @return formatted message
+     */
+    abstract protected Message formatString(String string);
 
     /**
      * Default constructor.
      *
      */
-    public ErrorPrintStream()
+    public ApplicationPrintStream()
     {
       super(new ByteArrayOutputStream(), true);
       isFirstLine = true;
@@ -774,11 +834,11 @@ public abstract class Application implements ProgressNotifier, Runnable {
       MessageBuilder mb = new MessageBuilder();
       if (isFirstLine)
       {
-        mb.append(getFormattedLogError(Message.raw(msg)));
+        mb.append(formatString(msg));
       } else
       {
         mb.append(formatter.getLineBreak());
-        mb.append(getFormattedLogError(Message.raw(msg)));
+        mb.append(formatString(msg));
       }
       notifyListeners(mb.toMessage());
       isFirstLine = false;
@@ -800,69 +860,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
         throw new IndexOutOfBoundsException(
             "len + off are bigger than the length of the byte array");
       }
-      println(new String(b, off, len));
-    }
-  }
-
-  /**
-   * This class is used to notify the ProgressUpdateListeners of events
-   * that are written to the standard output. It is used in WebStartInstaller
-   * and in OfflineInstaller. These classes just create a OutputPrintStream and
-   * then they do a call to System.out with it.
-   *
-   * The class just reads what is written to the standard output, obtains an
-   * formatted representation of it and then notifies the
-   * ProgressUpdateListeners with the formatted messages.
-   *
-   */
-  protected class OutputPrintStream extends PrintStream
-  {
-    private boolean isFirstLine;
-
-    /**
-     * Default constructor.
-     *
-     */
-    public OutputPrintStream()
-    {
-      super(new ByteArrayOutputStream(), true);
-      isFirstLine = true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void println(Message msg)
-    {
-      MessageBuilder mb = new MessageBuilder();
-      if (isFirstLine)
-      {
-        mb.append(getFormattedLog(Message.raw(msg)));
-      } else
-      {
-        mb.append(formatter.getLineBreak());
-        mb.append(getFormattedLog(Message.raw(msg)));
-      }
-      notifyListeners(mb.toMessage());
-      isFirstLine = false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void write(byte[] b, int off, int len)
-    {
-      if (b == null)
-      {
-        throw new NullPointerException("b is null");
-      }
-
-      if (off + len > b.length)
-      {
-        throw new IndexOutOfBoundsException(
-            "len + off are bigger than the length of the byte array");
-      }
-
       println(new String(b, off, len));
     }
   }
