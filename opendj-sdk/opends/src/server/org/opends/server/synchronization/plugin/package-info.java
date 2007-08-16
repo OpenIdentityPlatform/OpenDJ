@@ -34,5 +34,7 @@
  * only provided for historical reasons, and all active code can be found in the
  * org.opends.server.replication package and its sub-packages.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.synchronization.plugin;
 

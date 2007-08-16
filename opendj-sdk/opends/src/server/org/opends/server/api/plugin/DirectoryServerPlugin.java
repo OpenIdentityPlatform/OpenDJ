@@ -59,6 +59,11 @@ import static org.opends.messages.PluginMessages.*;
  *
  * @param  <T>  The type of configuration handled by this plugin.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class DirectoryServerPlugin
        <T extends PluginCfg>
 {
@@ -75,7 +80,7 @@ public abstract class DirectoryServerPlugin
    * plugin must implement a default constructor (it is the only one
    * that will be used to create plugins defined in the
    * configuration), and every plugin constructor must call
-   * <CODE>super()</CODE> as its first element.
+   * {@code super()} as its first action.
    */
   protected DirectoryServerPlugin()
   {
@@ -118,6 +123,11 @@ public abstract class DirectoryServerPlugin
    * @param  pluginTypes  The set of plugin types for which this
    *                      plugin is registered.
    */
+ @org.opends.server.types.PublicAPI(
+      stability=org.opends.server.types.StabilityLevel.PRIVATE,
+      mayInstantiate=false,
+      mayExtend=false,
+      mayInvoke=false)
   public final void initializeInternal(DN pluginDN,
                                        Set<PluginType> pluginTypes)
   {
@@ -253,7 +263,7 @@ public abstract class DirectoryServerPlugin
    * @param  disconnectReason  The disconnect reason for the closure.
    * @param  message           A message providing additional
    *                           information about the closure, or
-   *                           <CODE>null</CODE> if there is none.
+   *                           {@code null} if there is none.
    *
    * @return  The result of the plugin processing.
    */

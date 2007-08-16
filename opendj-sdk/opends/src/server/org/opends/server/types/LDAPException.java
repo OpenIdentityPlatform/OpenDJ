@@ -34,7 +34,12 @@ import org.opends.messages.Message;
  * This class defines an exception that may be thrown if a problem
  * occurs while interacting with an LDAP protocol element.
  */
-public class LDAPException
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class LDAPException
        extends IdentifiedException
 {
   /**

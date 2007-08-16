@@ -37,6 +37,11 @@ package org.opends.server.types;
  * the quicksetup.  If this must be done, the references to this
  * class in SetupUtils must be removed.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public enum OperatingSystem
 {
   /**

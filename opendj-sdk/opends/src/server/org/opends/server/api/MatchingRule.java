@@ -48,6 +48,11 @@ import org.opends.server.types.InitializationException;
  * @param  <T>  The type of configuration handled by this matching
  *              rule.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class MatchingRule<T extends MatchingRuleCfg>
 {
   /**
@@ -116,8 +121,8 @@ public abstract class MatchingRule<T extends MatchingRuleCfg>
   /**
    * Retrieves the common name for this matching rule.
    *
-   * @return  The common name for this matching rule, or
-   *          <CODE>null</CODE> if it does not have a name.
+   * @return  The common name for this matching rule, or {@code null}
+   *          if it does not have a name.
    */
   public abstract String getName();
 
@@ -139,7 +144,7 @@ public abstract class MatchingRule<T extends MatchingRuleCfg>
    *
    * @return  The name or OID for this matching rule.
    */
-  public String getNameOrOID()
+  public final String getNameOrOID()
   {
     String name = getName();
     if ((name == null) || (name.length() == 0))
@@ -157,8 +162,8 @@ public abstract class MatchingRule<T extends MatchingRuleCfg>
   /**
    * Retrieves the description for this matching rule.
    *
-   * @return  The description for this matching rule, or
-   *          <CODE>null</CODE> if there is none.
+   * @return  The description for this matching rule, or {@code null}
+   *          if there is none.
    */
   public abstract String getDescription();
 
@@ -177,13 +182,13 @@ public abstract class MatchingRule<T extends MatchingRuleCfg>
 
   /**
    * Indicates whether this matching rule is declared "OBSOLETE".
-   * The default implementation will always return <CODE>false</CODE>.
-   * If that is not acceptable for a particular matching rule
+   * The default implementation will always return {@code false}.  If
+   * that is not acceptable for a particular matching rule
    * implementation, then it should override this method and perform
    * the appropriate processing to return the correct value.
    *
-   * @return  <CODE>true</CODE> if this matching rule is declared
-   *          "OBSOLETE", or <CODE>false</CODE> if not.
+   * @return  {@code true} if this matching rule is declared
+   *          "OBSOLETE", or {@code false} if not.
    */
   public boolean isObsolete()
   {
@@ -224,10 +229,10 @@ public abstract class MatchingRule<T extends MatchingRuleCfg>
    *                         been normalized according to this
    *                         matching rule.
    *
-   * @return  <CODE>TRUE</CODE> if the attribute value should be
-   *          considered a match for the provided assertion value,
-   *          <CODE>FALSE</CODE> if it does not match, or
-   *          <CODE>UNDEFINED</CODE> if the result is undefined.
+   * @return  {@code TRUE} if the attribute value should be considered
+   *          a match for the provided assertion value, {@code FALSE}
+   *          if it does not match, or {@code UNDEFINED} if the result
+   *          is undefined.
    */
   public abstract ConditionResult
                        valuesMatch(ByteString attributeValue,
@@ -241,7 +246,7 @@ public abstract class MatchingRule<T extends MatchingRuleCfg>
    *
    * @return  The hash code for this matching rule.
    */
-  public int hashCode()
+  public final int hashCode()
   {
     int hashCode = 0;
 
@@ -264,10 +269,10 @@ public abstract class MatchingRule<T extends MatchingRuleCfg>
    *
    * @param  o  The object for which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the provided object is equal to
-   *          this matching rule, or <CODE>false</CODE> if it is not.
+   * @return  {@code true} if the provided object is equal to this
+   *          matching rule, or {@code false} if it is not.
    */
-  public boolean equals(Object o)
+  public final boolean equals(Object o)
   {
     if (o == null)
     {
@@ -296,7 +301,7 @@ public abstract class MatchingRule<T extends MatchingRuleCfg>
    * @return  A string representation of this matching rule in the
    *          format defined in RFC 2252.
    */
-  public String toString()
+  public final String toString()
   {
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -312,7 +317,7 @@ public abstract class MatchingRule<T extends MatchingRuleCfg>
    * @param  buffer  The buffer to which the information should be
    *                 appended.
    */
-  public void toString(StringBuilder buffer)
+  public final void toString(StringBuilder buffer)
   {
     buffer.append("( ");
     buffer.append(getOID());

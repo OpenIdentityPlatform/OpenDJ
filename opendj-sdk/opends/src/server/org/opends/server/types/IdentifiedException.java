@@ -34,6 +34,11 @@ import org.opends.messages.Message;
  * exception that exposes a unique identifier for the associated
  * message.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public abstract class IdentifiedException
        extends OpenDsException
 {

@@ -39,6 +39,11 @@ import org.opends.server.types.LDIFExportConfig;
  * only be invoked for the LDIF export task and not for offline LDIF
  * export processing.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public interface ExportTaskListener
 {
   /**

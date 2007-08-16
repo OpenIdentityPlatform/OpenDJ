@@ -49,6 +49,11 @@ import static org.opends.server.util.Validator.*;
  * This class defines a DIT structure rule, which is used to indicate
  * the types of children that entries may have.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public final class DITStructureRule
        implements SchemaFileElement
 {

@@ -37,5 +37,7 @@
  * stopping and restarting the Directory Server, and adding new files into the
  * server schema.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.tasks;
 

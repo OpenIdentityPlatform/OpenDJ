@@ -46,6 +46,11 @@ import org.opends.messages.MessageBuilder;
  * extended by the operation types included in the
  * {@code org.opends.server.core} package.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public interface Operation
 {
   /**
@@ -600,9 +605,9 @@ public interface Operation
    * Indicates whether this operation needs to be synchronized to
    * other copies of the data.
    *
-   * @return  <CODE>true</CODE> if this operation don't need to be
-   *                            synchronized, or
-   *          <CODE>false</CODE> if it needs to be synchronized.
+   * @return  {@code true} if this operation should not be
+   *          synchronized, or {@code false} if it should be
+   *          synchronized.
    */
   public abstract boolean dontSynchronize();
 

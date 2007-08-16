@@ -51,6 +51,11 @@ import org.opends.server.types.operation.*;
  *
  * @param <T> the configuration for the synchronization provider.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class
        SynchronizationProvider<T extends SynchronizationProviderCfg>
 {

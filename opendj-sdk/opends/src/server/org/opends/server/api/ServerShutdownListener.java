@@ -34,6 +34,11 @@ import org.opends.messages.Message;
  * This interface defines a method that may be used to notify various
  * Directory Server components that the server is shutting down.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public interface ServerShutdownListener
 {
   /**

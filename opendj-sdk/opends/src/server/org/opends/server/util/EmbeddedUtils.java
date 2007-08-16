@@ -44,6 +44,11 @@ import static org.opends.server.util.ServerConstants.*;
  * embedded manner (i.e., running within the same JVM as another application and
  * controlled by that application).
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public final class EmbeddedUtils
 {
   /**

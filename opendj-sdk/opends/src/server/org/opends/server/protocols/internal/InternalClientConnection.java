@@ -95,7 +95,12 @@ import org.opends.server.types.SearchScope;
  * This class defines a pseudo-connection object that can be used for
  * performing internal operations.
  */
-public class InternalClientConnection
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class InternalClientConnection
        extends ClientConnection
 {
   /**
@@ -234,6 +239,7 @@ public class InternalClientConnection
       super.setAuthenticationInfo(authenticationInfo);
       super.setSizeLimit(0);
       super.setTimeLimit(0);
+      super.setIdleTimeLimit(0);
       super.setLookthroughLimit(0);
     }
     catch (DirectoryException de)
@@ -282,6 +288,7 @@ public class InternalClientConnection
     super.setAuthenticationInfo(authInfo);
     super.setSizeLimit(0);
     super.setTimeLimit(0);
+    super.setIdleTimeLimit(0);
     super.setLookthroughLimit(0);
 
     connectionID  = nextConnectionID.getAndDecrement();
@@ -386,6 +393,7 @@ public class InternalClientConnection
    * @return  The unique identifier that has been assigned to this
    *          connection.
    */
+  @Override()
   public long getConnectionID()
   {
     return connectionID;
@@ -400,6 +408,12 @@ public class InternalClientConnection
    * @return  The connection handler that accepted this client
    *          connection.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  @Override()
   public ConnectionHandler getConnectionHandler()
   {
     return InternalConnectionHandler.getInstance();
@@ -414,6 +428,7 @@ public class InternalClientConnection
    * @return  The protocol that the client is using to communicate
    *          with the Directory Server.
    */
+  @Override()
   public String getProtocol()
   {
     return "internal";
@@ -426,6 +441,7 @@ public class InternalClientConnection
    *
    * @return  A string representation of the address of the client.
    */
+  @Override()
   public String getClientAddress()
   {
     return "internal";
@@ -440,6 +456,7 @@ public class InternalClientConnection
    * @return  A string representation of the address on the server to
    *          which the client connected.
    */
+  @Override()
   public String getServerAddress()
   {
     return "internal";
@@ -456,6 +473,7 @@ public class InternalClientConnection
    *          if the client is not connected over an IP-based
    *          connection.
    */
+  @Override()
   public InetAddress getRemoteAddress()
   {
     return null;
@@ -472,6 +490,7 @@ public class InternalClientConnection
    *          connection.  It may be <CODE>null</CODE> if the client
    *          is not connected over an IP-based connection.
    */
+  @Override()
   public InetAddress getLocalAddress()
   {
     return null;
@@ -480,7 +499,14 @@ public class InternalClientConnection
 
 
   /**
-   * {@inheritDoc}
+   * Specifies the size limit that will be enforced for searches
+   * performed using this client connection.  This method does nothing
+   * because connection-level size limits will never be enforced for
+   * internal client connections.
+   *
+   * @param  sizeLimit  The size limit that will be enforced for
+   *                    searches performed using this client
+   *                    connection.
    */
   @Override()
   public void setSizeLimit(int sizeLimit)
@@ -492,7 +518,14 @@ public class InternalClientConnection
 
 
   /**
-   * {@inheritDoc}
+   * Specifies the default maximum number of entries that should
+   * be checked for matches during a search.  This method does nothing
+   * because connection-level lookthrough limits will never be
+   * enforced for internal client connections
+   *
+   * @param  lookthroughLimit  The default maximum number of
+   *                           entries that should be check for
+   *                           matches during a search.
    */
   @Override()
   public void setLookthroughLimit(int lookthroughLimit)
@@ -504,7 +537,35 @@ public class InternalClientConnection
 
 
   /**
-   * {@inheritDoc}
+   * Specifies the maximum length of time in milliseconds that this
+   * client connection will be allowed to remain idle before it should
+   * be disconnected.  This method does nothing because internal
+   * client connections will not be terminated due to an idle time
+   * limit.
+   *
+   * @param  idleTimeLimit  The maximum length of time in milliseconds
+   *                        that this client connection will be
+   *                        allowed to remain idle before it should be
+   *                        disconnected.
+   */
+  @Override()
+  public void setIdleTimeLimit(long idleTimeLimit)
+  {
+    // No implementation rqeuired.  We never want to set a nonzero
+    // idle time limit for internal client connections.
+  }
+
+
+
+  /**
+   * Specifies the time limit that will be enforced for searches
+   * performed using this client connection.  This method does nothing
+   * because connection-level tim elimits will never be enforced for
+   * internal client connections.
+   *
+   * @param  timeLimit  The time limit that will be enforced for
+   *                    searches performed using this client
+   *                    connection.
    */
   @Override()
   public void setTimeLimit(int timeLimit)
@@ -527,6 +588,7 @@ public class InternalClientConnection
    *          using a secure mechanism to communicate with the server,
    *          or <CODE>false</CODE> if not.
    */
+  @Override()
   public boolean isSecure()
   {
     // Internal connections will generally be considered secure, but
@@ -546,6 +608,7 @@ public class InternalClientConnection
    * @return  The connection security provider for this client
    *          connection.
    */
+  @Override()
   public ConnectionSecurityProvider getConnectionSecurityProvider()
   {
     return securityProvider;
@@ -561,6 +624,12 @@ public class InternalClientConnection
    *                           for communication on this client
    *                           connection.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  @Override()
   public void setConnectionSecurityProvider(ConnectionSecurityProvider
                                                  securityProvider)
   {
@@ -577,6 +646,7 @@ public class InternalClientConnection
    *          is used to protect communication with this client, or
    *          <CODE>null</CODE> if no security is in place.
    */
+  @Override()
   public String getSecurityMechanism()
   {
     return securityProvider.getSecurityMechanismName();
@@ -603,6 +673,12 @@ public class InternalClientConnection
    *          <CODE>false</CODE>, then it must have already
    *          disconnected the client.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  @Override()
   public boolean processDataRead(ByteBuffer buffer)
   {
     // This method will not do anything with the data because there is
@@ -619,6 +695,12 @@ public class InternalClientConnection
    *
    * @param  operation  The operation for which to send the response.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  @Override()
   public void sendResponse(Operation operation)
   {
     // There will not be any response sent by this method, since there
@@ -634,6 +716,7 @@ public class InternalClientConnection
    * @return  Information about the user that is currently
    *          authenticated on this connection.
    */
+  @Override()
   public AuthenticationInfo getAuthenticationInfo()
   {
     return authenticationInfo;
@@ -651,6 +734,12 @@ public class InternalClientConnection
    *                             connection.  It should not be
    *                             <CODE>null</CODE>.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  @Override()
   public void setAuthenticationInfo(AuthenticationInfo
                                          authenticationInfo)
   {
@@ -664,6 +753,12 @@ public class InternalClientConnection
    * internal client connections is set when the connection is created
    * and cannot be changed after the fact.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  @Override()
   public void setUnauthenticated()
   {
     // No implementation required.
@@ -1725,6 +1820,12 @@ public class InternalClientConnection
    *                              the entry and the search should be
    *                              terminated.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  @Override()
   public void sendSearchEntry(SearchOperation searchOperation,
                               SearchResultEntry searchEntry)
          throws DirectoryException
@@ -1752,6 +1853,12 @@ public class InternalClientConnection
    *                              the entry and the search should be
    *                              terminated.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  @Override()
   public boolean sendSearchReference(SearchOperation searchOperation,
                       SearchResultReference searchReference)
          throws DirectoryException
@@ -1773,6 +1880,12 @@ public class InternalClientConnection
    * @return  <CODE>true</CODE> if processing on the associated
    *          operation should continue, or <CODE>false</CODE> if not.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  @Override()
   protected boolean sendIntermediateResponseMessage(
                          IntermediateResponse intermediateResponse)
   {
@@ -1799,6 +1912,12 @@ public class InternalClientConnection
    *                           may be <CODE>null</CODE> if no
    *                           notification is to be sent.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  @Override()
   public void disconnect(DisconnectReason disconnectReason,
                          boolean sendNotification,
                          Message message)
@@ -1820,6 +1939,7 @@ public class InternalClientConnection
    * @return  <CODE>true</CODE> if a bind operation is in progress on
    *          this connection, or <CODE>false</CODE> if not.
    */
+  @Override()
   public boolean bindInProgress()
   {
     // For internal operations, we don't care if there are any binds
@@ -1837,6 +1957,12 @@ public class InternalClientConnection
    * @param  bindInProgress  Specifies whether a bind operation is in
    *                         progress on this client connection.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  @Override()
   public void setBindInProgress(boolean bindInProgress)
   {
     // No implementation is required.
@@ -1851,6 +1977,12 @@ public class InternalClientConnection
    * @return  The set of operations in progress for this client
    *          connection.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  @Override()
   public Collection<AbstractOperation> getOperationsInProgress()
   {
     return operationList;
@@ -1868,6 +2000,12 @@ public class InternalClientConnection
    *          or <CODE>null</CODE> if no such operation could be
    *          found.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  @Override()
   public AbstractOperation getOperationInProgress(int messageID)
   {
     // Internal operations will not be tracked.
@@ -1889,6 +2027,12 @@ public class InternalClientConnection
    *          from the set of operations in progress, or
    *          <CODE>false</CODE> if not.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  @Override()
   public boolean removeOperationInProgress(int messageID)
   {
     // No implementation is required, since internal operations will
@@ -1908,6 +2052,12 @@ public class InternalClientConnection
    * @return  A cancel result that either indicates that the cancel
    *          was successful or provides a reason that it was not.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  @Override()
   public CancelResult cancelOperation(int messageID,
                                       CancelRequest cancelRequest)
   {
@@ -1923,6 +2073,12 @@ public class InternalClientConnection
    * @param  cancelRequest  An object providing additional information
    *                        about how the cancel should be processed.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  @Override()
   public void cancelAllOperations(CancelRequest cancelRequest)
   {
     // No implementation is required since internal operations cannot
@@ -1940,6 +2096,12 @@ public class InternalClientConnection
    * @param  messageID      The message ID of the operation that
    *                        should not be canceled.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  @Override()
   public void cancelAllOperationsExcept(CancelRequest cancelRequest,
                                         int messageID)
   {
@@ -1950,8 +2112,17 @@ public class InternalClientConnection
 
 
   /**
-   * {@inheritDoc}
+   * Retrieves a one-line summary of this client connection in a form
+   * that is suitable for including in the monitor entry for the
+   * associated connection handler.  It should be in a format that is
+   * both humand readable and machine parseable (e.g., a
+   * space-delimited name-value list, with quotes around the values).
+   *
+   * @return  A one-line summary of this client connection in a form
+   *          that is suitable for including in the monitor entry for
+   *          the associated connection handler.
    */
+  @Override()
   public String getMonitorSummary()
   {
     StringBuilder buffer = new StringBuilder();
@@ -1973,6 +2144,7 @@ public class InternalClientConnection
    * @param  buffer  The buffer to which the information should be
    *                 appended.
    */
+  @Override()
   public void toString(StringBuilder buffer)
   {
     buffer.append("InternalClientConnection(connID=");

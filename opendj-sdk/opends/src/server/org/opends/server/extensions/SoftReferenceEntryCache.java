@@ -125,9 +125,9 @@ public class SoftReferenceEntryCache
     idMap = new ConcurrentHashMap<Backend,
                      ConcurrentHashMap<Long,SoftReference<CacheEntry>>>();
 
-    excludeFilters = new HashSet<SearchFilter>();
-    includeFilters = new HashSet<SearchFilter>();
-    lockTimeout    = LockManager.DEFAULT_TIMEOUT;
+    setExcludeFilters(new HashSet<SearchFilter>());
+    setIncludeFilters(new HashSet<SearchFilter>());
+    setLockTimeout(LockManager.DEFAULT_TIMEOUT);
     referenceQueue = new ReferenceQueue<CacheEntry>();
 
     Thread cleanerThread =
@@ -569,10 +569,11 @@ public class SoftReferenceEntryCache
 
     if (applyChanges && errorHandler.getIsAcceptable())
     {
-      configEntryDN  = newConfigEntryDN;
-      lockTimeout    = newLockTimeout;
-      includeFilters = newIncludeFilters;
-      excludeFilters = newExcludeFilters;
+      configEntryDN = newConfigEntryDN;
+
+      setLockTimeout(newLockTimeout);
+      setIncludeFilters(newIncludeFilters);
+      setExcludeFilters(newExcludeFilters);
     }
 
     return errorHandler.getIsAcceptable();

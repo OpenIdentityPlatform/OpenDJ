@@ -31,5 +31,7 @@
  * Contains the Directory Server Sun Java System Directory Server Enterprise
  * Edition (dseecompat) compatability access control handler implementation.
  */
- package org.opends.server.authorization.dseecompat;
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
+package org.opends.server.authorization.dseecompat;
 

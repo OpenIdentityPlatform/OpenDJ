@@ -31,5 +31,7 @@
  * Contains classes that represent specific LDAP controls and their values.
  * These classes are all subclasses of com.sun.directory.core.Control.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.controls;
 

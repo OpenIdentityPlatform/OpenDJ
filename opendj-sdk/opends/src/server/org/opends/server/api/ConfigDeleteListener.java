@@ -38,6 +38,11 @@ import org.opends.messages.MessageBuilder;
  * component should implement if it wishes to be able to receive
  * notification if entries below a configuration entry are removed.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public interface ConfigDeleteListener
 {
   /**
@@ -51,8 +56,8 @@ public interface ConfigDeleteListener
    *                             explaining why the proposed delete is
    *                             not acceptable.
    *
-   * @return  <CODE>true</CODE> if the proposed entry may be removed
-   *          from the configuration, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the proposed entry may be removed from
+   *          the configuration, or {@code false} if not.
    */
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                       MessageBuilder unacceptableReason);

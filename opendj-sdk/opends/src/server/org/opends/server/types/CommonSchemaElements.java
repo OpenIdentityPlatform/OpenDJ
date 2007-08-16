@@ -64,6 +64,11 @@ import java.util.Map;
  * associated schema file to be edited so that an element created over
  * protocol may be associated with a particular schema file.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public abstract class CommonSchemaElements {
 
   // Indicates whether this definition is declared "obsolete".

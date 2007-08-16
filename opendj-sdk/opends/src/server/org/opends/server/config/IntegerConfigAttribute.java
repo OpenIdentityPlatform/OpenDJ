@@ -55,7 +55,12 @@ import static org.opends.messages.ConfigMessages.*;
  * <CODE>long</CODE> elements, although it will be possible to interact with
  * them as integers in cases where that scalability is not required.
  */
-public class IntegerConfigAttribute
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class IntegerConfigAttribute
        extends ConfigAttribute
 {
   /**

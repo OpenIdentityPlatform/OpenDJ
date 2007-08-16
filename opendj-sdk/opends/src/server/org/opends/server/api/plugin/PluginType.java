@@ -39,6 +39,11 @@ import java.util.Set;
  * This class defines an enumeration containing the types of plugins
  * that are supported for use in the Directory Server.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public enum PluginType
 {
   /**
@@ -991,8 +996,8 @@ public enum PluginType
    * @param  lowerName  The name of the plugin type to retrieve,
    *                    formatted in all lowercase characters.
    *
-   * @return  The requested plugin type, or <CODE>null</CODE> if there
-   *          is no type for the provided name.
+   * @return  The requested plugin type, or {@code null} if there is
+   *          no type for the provided name.
    */
   public static PluginType forName(String lowerName)
   {

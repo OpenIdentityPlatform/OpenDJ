@@ -42,6 +42,11 @@ import org.opends.server.types.InitializationException;
  * data for communication with clients over a secure channel (e.g.,
  * SSL/TLS, Kerberos confidentiality, etc.).
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=true,
+     mayInvoke=true)
 public abstract class ConnectionSecurityProvider
 {
   /**
@@ -87,9 +92,9 @@ public abstract class ConnectionSecurityProvider
    * Indicates whether client connections using this connection
    * security provider should be considered secure.
    *
-   * @return  <CODE>true</CODE> if client connections using this
-   *          connection security provider should be considered
-   *          secure, or <CODE>false</CODE> if not.
+   * @return  {@code true} if client connections using this connection
+   *          security provider should be considered secure, or
+   *          {@code false} if not.
    */
   public abstract boolean isSecure();
 
@@ -171,15 +176,15 @@ public abstract class ConnectionSecurityProvider
    * negotiation in the process.  Whenever any clear-text data has
    * been obtained, then the connection security provider should make
    * that available to the client by calling the
-   * <CODE>ClientConnection.processDataRead</CODE> method.
+   * {@code ClientConnection.processDataRead} method.
    *
-   * @return  <CODE>true</CODE> if all the data in the provided buffer
-   *          was processed and the client connection can remain
-   *          established, or <CODE>false</CODE> if a decoding error
+   * @return  {@code true} if all the data in the provided buffer was
+   *          processed and the client connection can remain
+   *          established, or {@code false} if a decoding error
    *          occurred and requests from this client should no longer
    *          be processed.  Note that if this method does return
-   *          <CODE>false</CODE>, then it must have already
-   *          disconnected the client.
+   *          {@code false}, then it must have already disconnected
+   *          the client.
    *
    * @throws  DirectoryException  If a problem occurs while reading
    *                              data from the client.
@@ -193,19 +198,19 @@ public abstract class ConnectionSecurityProvider
    * Writes the data contained in the provided clear-text buffer to
    * the client, performing any necessary encoding in the process.  It
    * must be capable of dealing with input buffers that are larger
-   * than the value returned by the <CODE>getClearBufferSize</CODE>
-   * method.  When this method returns, the provided buffer should be
-   * in its original state with regard to the position and limit.
+   * than the value returned by the {@code getClearBufferSize} method.
+   * When this method returns, the provided buffer should be in its
+   * original state with regard to the position and limit.
    *
    * @param  clearData  The buffer containing the clear-text data to
    *                    write to the client.
    *
-   * @return  <CODE>true</CODE> if all the data in the provided buffer
-   *          was written to the client and the connection may remain
-   *          established, or <CODE>false</CODE> if a problem occurred
-   *          and the client connection is no longer valid.  Note that
-   *          if this method does return <CODE>false</CODE>, then it
-   *          must have already disconnected the client.
+   * @return  {@code true} if all the data in the provided buffer was
+   *          written to the client and the connection may remain
+   *          established, or {@code false} if a problem occurred and
+   *          the client connection is no longer valid.  Note that if
+   *          this method does return {@code false}, then it must have
+   *          already disconnected the client.
    */
   public abstract boolean writeData(ByteBuffer clearData);
 }

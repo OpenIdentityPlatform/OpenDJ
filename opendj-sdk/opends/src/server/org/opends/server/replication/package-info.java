@@ -25,7 +25,12 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
+
+
 /**
  * This package contains the code for the Multi-Master replication.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.replication;
+

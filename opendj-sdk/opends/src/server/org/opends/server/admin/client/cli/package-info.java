@@ -33,5 +33,7 @@
  * This package contains classes which client applications and client-side
  * driver implementations are expected to use for their command-line interfaces.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.admin.client.cli;
 

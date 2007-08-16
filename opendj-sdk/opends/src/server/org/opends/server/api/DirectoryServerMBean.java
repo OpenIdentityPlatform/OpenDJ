@@ -36,6 +36,11 @@ import javax.management.ObjectName;
  * This interface must be implemented by all Directory Server
  * components that interact with JMX in any way.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public interface DirectoryServerMBean
 {
   /**

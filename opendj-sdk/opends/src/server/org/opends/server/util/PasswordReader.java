@@ -45,7 +45,12 @@ import org.opends.server.api.DirectoryThread;
  * available and to invoke it if it is so that the code will still compile
  * cleanly on Java 5 systems.
  */
-public class PasswordReader
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
+public final class PasswordReader
        extends DirectoryThread
 {
   // Indicates whether the backspace thread should keep looping, sending
@@ -74,6 +79,11 @@ public class PasswordReader
    * maximum allowed value to reduce the chance of one or more characters being
    * displayed temporarily before they can be erased.
    */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
   public void run()
   {
     Thread currentThread   = Thread.currentThread();

@@ -55,7 +55,12 @@ import static org.opends.messages.ConfigMessages.*;
  * zero or more string values.  A user-defined set of allowed values will be
  * enforced.
  */
-public class MultiChoiceConfigAttribute
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class MultiChoiceConfigAttribute
        extends ConfigAttribute
 {
   /**

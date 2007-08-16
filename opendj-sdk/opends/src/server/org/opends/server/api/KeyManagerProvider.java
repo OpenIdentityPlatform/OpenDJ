@@ -41,13 +41,18 @@ import org.opends.server.types.InitializationException;
 
 /**
  * This class defines an API that may be used to obtain a set of
- * <CODE>javax.net.ssl.KeyManager</CODE> objects for use when
- * performing SSL communication.
+ * {@code javax.net.ssl.KeyManager} objects for use when performing
+ * SSL communication.
  *
  * @param <T>
  *          The type of key manager provider configuration handled by
  *          this key manager provider implementation.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=true)
 public abstract class KeyManagerProvider
     <T extends KeyManagerCfg>
 {
@@ -114,11 +119,11 @@ public abstract class KeyManagerProvider
 
 
   /**
-   * Retrieves a set of <CODE>KeyManager</CODE> objects that may be
-   * used for interactions requiring access to a key manager.
+   * Retrieves a set of {@code KeyManager} objects that may be used
+   * for interactions requiring access to a key manager.
    *
-   * @return  A set of <CODE>KeyManager</CODE> objects that may be
-   *          used for interactions requiring access to a key manager.
+   * @return  A set of {@code KeyManager} objects that may be used for
+   *          interactions requiring access to a key manager.
    *
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to obtain the set of key managers.

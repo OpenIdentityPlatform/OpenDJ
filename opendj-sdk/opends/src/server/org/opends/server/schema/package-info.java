@@ -37,5 +37,7 @@
  * those more generic objects are defined elsewhere in the Directory Server
  * codebase.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.schema;
 

@@ -52,12 +52,19 @@ import static org.opends.server.util.Validator.*;
  * unprocessed element, so it will not have undergone any syntax or
  * other forms of validity checking.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
 public abstract class RawAttribute
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
+
+
 
   /**
    * Creates a new raw attribute with the provided type and no values.

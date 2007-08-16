@@ -51,6 +51,11 @@ import static org.opends.server.util.StaticUtils.*;
  * This class defines a data structure for storing and interacting
  * with an attribute that may be used in the Directory Server.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
 public class Attribute
 {
   /**

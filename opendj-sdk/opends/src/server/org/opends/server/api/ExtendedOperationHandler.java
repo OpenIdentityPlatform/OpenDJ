@@ -50,22 +50,19 @@ import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
  * @param <T> The configuration class that will be provided to
  *            initialize the handler.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class
      ExtendedOperationHandler<T extends ExtendedOperationHandlerCfg>
 {
-  /**
-   * The default set of supported control OIDs for this extended
-   * operation.
-   */
-  protected Set<String> supportedControlOIDs = new HashSet<String>(0);
+  // The default set of supported control OIDs for this extended
+  private Set<String> supportedControlOIDs = new HashSet<String>(0);
 
-
-
-  /**
-   * The default set of supported feature OIDs for this extended
-   * operation.
-   */
-  protected Set<String> supportedFeatureOIDs = new HashSet<String>(0);
+  // The default set of supported feature OIDs for this extended
+  private Set<String> supportedFeatureOIDs = new HashSet<String>(0);
 
 
 
@@ -211,6 +208,8 @@ public abstract class
     return getSupportedFeatures().contains(featureOID);
   }
 
+
+
   /**
    * If the extended operation handler defines any supported controls
    * and/or features, then register them with the server.
@@ -236,6 +235,7 @@ public abstract class
       }
     }
   }
+
 
 
   /**

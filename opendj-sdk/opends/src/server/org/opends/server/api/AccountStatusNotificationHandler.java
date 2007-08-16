@@ -52,6 +52,11 @@ import org.opends.server.types.InitializationException;
  * @param  <T>  The type of configuration handled by this notification
  *              handler.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class
        AccountStatusNotificationHandler
        <T extends AccountStatusNotificationHandlerCfg>

@@ -32,7 +32,12 @@ import org.opends.server.loggers.LogCategory;
 /**
  * Logging categories for the debug log messages.
  */
-public class DebugLogCategory extends LogCategory
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
+public final class DebugLogCategory extends LogCategory
 {
   /**
    * The log category that will be used for general debug messages.

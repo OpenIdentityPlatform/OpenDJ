@@ -35,5 +35,7 @@
  * authoritative information on what classes are considered part of
  * the public API.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE)
 package org.opends.server.types;
 

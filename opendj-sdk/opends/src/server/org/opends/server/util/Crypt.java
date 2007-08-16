@@ -38,7 +38,12 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * UNIX Crypt cipher, ported from the Sun OpenSolaris project.
  * */
-public class Crypt
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class Crypt
 {
 
   /* LINTLIBRARY */

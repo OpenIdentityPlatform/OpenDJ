@@ -62,7 +62,12 @@ import java.util.Enumeration;
  * the caller should gracefully degrade and suggest that the user perform the
  * operation manually.
  */
-public class CertificateManager
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class CertificateManager
 {
   /**
    * The path to the keytool command, which will be required to perform

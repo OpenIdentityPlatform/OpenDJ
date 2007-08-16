@@ -52,6 +52,11 @@ import static org.opends.server.util.Validator.*;
  * and/or may be used in the RDN of an entry with a given structural
  * objectclass.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public final class NameForm
        implements SchemaFileElement
 {

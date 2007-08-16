@@ -25,6 +25,8 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
+
+
 /**
  * Common client-side administration classes.
  * <p>
@@ -35,7 +37,7 @@
  * applications, <code>ExampleClient</code> and
  * <code>ExampleIntrospection</code>.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.admin.client;
-
-
 

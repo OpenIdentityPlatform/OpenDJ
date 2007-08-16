@@ -58,7 +58,7 @@ public class InternalConnectionHandlerTestCase
     InternalConnectionHandler handler = InternalConnectionHandler.getInstance();
     assertNotNull(handler);
 
-    handler.initializeConnectionHandler((ConfigEntry) null);
+    handler.initializeConnectionHandler(null);
   }
 
 

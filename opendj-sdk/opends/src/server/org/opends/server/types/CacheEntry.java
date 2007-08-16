@@ -32,16 +32,18 @@ import org.opends.server.api.Backend;
 
 
 
-
 /**
  * This class defines a Directory Server cache entry, which is simply
  * used to store an entry with its associated backend and entry ID.
  */
-public class CacheEntry
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true,
+     notes="This should only be used within a backend")
+public final class CacheEntry
 {
-
-
-
   // The backend with which this cache entry is associated.
   private Backend backend;
 

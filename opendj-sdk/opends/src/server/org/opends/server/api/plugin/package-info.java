@@ -107,5 +107,7 @@
  *   </LI>
  * </UL>
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED)
 package org.opends.server.api.plugin;
 

@@ -42,5 +42,7 @@
  *   <LI>Connection Security Providers</LI>
  * </UL>
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.extensions;
 

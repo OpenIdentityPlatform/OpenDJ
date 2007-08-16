@@ -74,6 +74,11 @@ import static org.opends.server.util.ServerConstants.*;
  * to prevent the log from filling up with unimportant calls and to reduce the
  * impact that debugging may have on performance.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public final class StaticUtils
 {
   /**

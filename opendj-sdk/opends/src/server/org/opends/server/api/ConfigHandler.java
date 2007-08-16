@@ -39,6 +39,11 @@ import org.opends.server.types.InitializationException;
  * This class defines the set of methods and structures that must be
  * implemented by a Directory Server configuration handler.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=true)
 public abstract class ConfigHandler
        extends Backend
 {

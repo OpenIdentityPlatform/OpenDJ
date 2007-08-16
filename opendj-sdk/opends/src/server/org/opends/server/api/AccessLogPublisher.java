@@ -44,23 +44,14 @@ import org.opends.messages.Message;
  * @param  <T>  The type of access log publisher configuration handled
  *              by this log publisher implementation.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class AccessLogPublisher
        <T extends AccessLogPublisherCfg>
 {
-  /**
-   * Indicates if internal operations should be omited in the messages
-   * logged by this publisher.
-   */
-  protected boolean suppressInternalOperations = true;
-
-  /**
-   * Indicates if synchronization operations should be omited in the
-   * messages logged by this publisher.
-   */
-  protected boolean suppressSynchronizationOperations = false;
-
-
-
   /**
    * Initializes this access publisher provider based on the
    * information in the provided debug publisher configuration.

@@ -59,7 +59,12 @@ import org.opends.messages.MessageBuilder;
  * recipients via SMTP.  This is a wrapper around JavaMail to make this process
  * more convenient and fit better into the Directory Server framework.
  */
-public class EMailMessage
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class EMailMessage
 {
   /**
    * The tracer object for the debug logger.

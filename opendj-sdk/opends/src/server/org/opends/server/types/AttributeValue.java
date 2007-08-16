@@ -47,7 +47,12 @@ import static org.opends.server.util.Validator.*;
  * equality matching between two values can be performed with
  * byte-for-byte comparisons of the normalized values.
  */
-public class AttributeValue
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class AttributeValue
 {
   /**
    * The tracer object for the debug logger.

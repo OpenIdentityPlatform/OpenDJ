@@ -35,5 +35,7 @@
  * mechanism that the client used to authenticate, the network location of the
  * client, the manner in which the client is communicating with the server, etc.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.authorization;
 

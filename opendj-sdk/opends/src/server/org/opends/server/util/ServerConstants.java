@@ -32,7 +32,12 @@ package org.opends.server.util;
  * This class defines a set of constants that may be referenced throughout the
  * Directory Server source.
  */
-public class ServerConstants
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
+public final class ServerConstants
 {
   /**
    * The end-of-line character for this platform.

@@ -32,7 +32,12 @@ import org.opends.messages.Message;
  * This class defines an exception that may be thrown if a problem
  * occurs while attempting to iterate across the members of a group.
  */
-public class MembershipException
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class MembershipException
        extends IdentifiedException
 {
   /**
@@ -103,7 +108,7 @@ public class MembershipException
    *
    * @return  The error message for this membership exception.
    */
-  public final Message getErrorMessage()
+  public Message getErrorMessage()
   {
     return getMessageObject();
   }
@@ -118,7 +123,7 @@ public class MembershipException
    *          through the list of group members, or {@code false} if
    *          not.
    */
-  public final boolean continueIterating()
+  public boolean continueIterating()
   {
     return continueIterating;
   }

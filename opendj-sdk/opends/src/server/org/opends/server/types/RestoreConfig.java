@@ -42,11 +42,13 @@ package org.opends.server.types;
  * incremental backup or the original full backup with which the
  * incremental backups are associated).
  */
-public class RestoreConfig
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class RestoreConfig
 {
-
-
-
   // The reference to the directory containing the backup file(s) to
   // restore.
   private BackupDirectory backupDirectory;

@@ -32,6 +32,11 @@ package org.opends.server.types;
  *
  * TODO: delete me
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public enum ErrorLogSeverity
 {
 }

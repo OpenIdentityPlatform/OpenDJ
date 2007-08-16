@@ -60,7 +60,12 @@ import static org.opends.server.util.StaticUtils.*;
  * attributes that may control the configuration of various components of the
  * Directory Server.
  */
-public class ConfigEntry
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class ConfigEntry
 {
   /**
    * The tracer object for the debug logger.

@@ -42,7 +42,12 @@ import org.opends.server.api.VirtualAttributeProvider;
  * attribute whose values do not actually exist in persistent storage
  * but rather are computed or otherwise obtained dynamically.
  */
-public class VirtualAttribute
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
+public final class VirtualAttribute
        extends Attribute
 {
   // The entry with which this virtual attribute is associated.
@@ -107,7 +112,10 @@ public class VirtualAttribute
 
 
   /**
-   * {@inheritDoc}
+   * Retrieves the set of values for this attribute.  The returned set
+   * of values may be altered by the caller.
+   *
+   * @return  The set of values for this attribute.
    */
   @Override()
   public LinkedHashSet<AttributeValue> getValues()
@@ -118,7 +126,10 @@ public class VirtualAttribute
 
 
   /**
-   * {@inheritDoc}
+   * Indicates whether this attribute contains one or more values.
+   *
+   * @return  <CODE>true</CODE> if this attribute contains one or more
+   *          values, or <CODE>false</CODE> if it does not.
    */
   @Override()
   public boolean hasValue()
@@ -129,7 +140,12 @@ public class VirtualAttribute
 
 
   /**
-   * {@inheritDoc}
+   * Indicates whether this attribute contains the specified value.
+   *
+   * @param  value  The value for which to make the determination.
+   *
+   * @return  <CODE>true</CODE> if this attribute has the specified
+   *          value, or <CODE>false</CODE> if not.
    */
   @Override()
   public boolean hasValue(AttributeValue value)
@@ -140,7 +156,15 @@ public class VirtualAttribute
 
 
   /**
-   * {@inheritDoc}
+   * Indicates whether this attribute contains all the values in the
+   * collection.
+   *
+   * @param  values  The set of values for which to make the
+   *                 determination.
+   *
+   * @return  <CODE>true</CODE> if this attribute contains all the
+   *          values in the provided collection, or <CODE>false</CODE>
+   *          if it does not contain at least one of them.
    */
   @Override()
   public boolean hasAllValues(Collection<AttributeValue> values)
@@ -151,7 +175,16 @@ public class VirtualAttribute
 
 
   /**
-   * {@inheritDoc}
+   * Indicates whether this attribute contains any of the values in
+   * the collection.
+   *
+   * @param  values  The set of values for which to make the
+   *                 determination.
+   *
+   * @return  <CODE>true</CODE> if this attribute contains at least
+   *          one of the values in the provided collection, or
+   *          <CODE>false</CODE> if it does not contain any of the
+   *          values.
    */
   @Override()
   public boolean hasAnyValue(Collection<AttributeValue> values)
@@ -162,7 +195,20 @@ public class VirtualAttribute
 
 
   /**
-   * {@inheritDoc}
+   * Indicates whether this attribute has any value(s) that match the
+   * provided substring.
+   *
+   * @param  subInitial  The subInitial component to use in the
+   *                     determination.
+   * @param  subAny      The subAny components to use in the
+   *                     determination.
+   * @param  subFinal    The subFinal component to use in the
+   *                     determination.
+   *
+   * @return  <CODE>UNDEFINED</CODE> if this attribute does not have a
+   *          substring matching rule, <CODE>TRUE</CODE> if at least
+   *          one value matches the provided substring, or
+   *          <CODE>FALSE</CODE> otherwise.
    */
   @Override()
   public ConditionResult matchesSubstring(ByteString subInitial,
@@ -176,7 +222,15 @@ public class VirtualAttribute
 
 
   /**
-   * {@inheritDoc}
+   * Indicates whether this attribute has any value(s) that are
+   * greater than or equal to the provided value.
+   *
+   * @param  value  The value for which to make the determination.
+   *
+   * @return  <CODE>UNDEFINED</CODE> if this attribute does not have
+   *          an ordering matching rule, <CODE>TRUE</CODE> if at least
+   *          one value is greater than or equal to the provided
+   *          value, or <CODE>false</CODE> otherwise.
    */
   @Override()
   public ConditionResult greaterThanOrEqualTo(AttributeValue value)
@@ -187,7 +241,15 @@ public class VirtualAttribute
 
 
   /**
-   * {@inheritDoc}
+   * Indicates whether this attribute has any value(s) that are less
+   * than or equal to the provided value.
+   *
+   * @param  value  The value for which to make the determination.
+   *
+   * @return  <CODE>UNDEFINED</CODE> if this attribute does not have
+   *          an ordering matching rule, <CODE>TRUE</CODE> if at least
+   *          one value is less than or equal to the provided value,
+   *          or <CODE>false</CODE> otherwise.
    */
   @Override()
   public ConditionResult lessThanOrEqualTo(AttributeValue value)
@@ -198,7 +260,15 @@ public class VirtualAttribute
 
 
   /**
-   * {@inheritDoc}
+   * Indicates whether this attribute has any value(s) that are
+   * approximately equal to the provided value.
+   *
+   * @param  value  The value for which to make the determination.
+   *
+   * @return  <CODE>UNDEFINED</CODE> if this attribute does not have
+   *          an approximate matching rule, <CODE>TRUE</CODE> if at
+   *          least one value is approximately equal to the provided
+   *          value, or <CODE>false</CODE> otherwise.
    */
   @Override()
   public ConditionResult approximatelyEqualTo(AttributeValue value)
@@ -209,7 +279,11 @@ public class VirtualAttribute
 
 
   /**
-   * {@inheritDoc}
+   * Indicates whether this is a virtual attribute rather than a real
+   * attribute.
+   *
+   * @return  {@code true} if this is a virtual attribute, or
+   *          {@code false} if it is a real attribute.
    */
   @Override()
   public boolean isVirtual()
@@ -220,7 +294,14 @@ public class VirtualAttribute
 
 
   /**
-   * {@inheritDoc}
+   * Creates a duplicate of this attribute that can be modified
+   * without impacting this attribute.
+   *
+   * @param omitValues <CODE>true</CODE> if the values should be
+   *        omitted.
+   *
+   * @return  A duplicate of this attribute that can be modified
+   *          without impacting this attribute.
    */
   @Override()
   public Attribute duplicate(boolean omitValues)
@@ -231,7 +312,11 @@ public class VirtualAttribute
 
 
   /**
-   * {@inheritDoc}
+   * Appends a one-line string representation of this attribute to the
+   * provided buffer.
+   *
+   * @param  buffer  The buffer to which the information should be
+   *                 appended.
    */
   @Override()
   public void toString(StringBuilder buffer)

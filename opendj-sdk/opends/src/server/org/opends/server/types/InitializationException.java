@@ -34,7 +34,12 @@ import org.opends.messages.Message;
  * This class defines an exception that may be thrown if a problem
  * occurs while trying to initialize a Directory Server component.
  */
-public class InitializationException
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class InitializationException
        extends IdentifiedException
 {
   /**

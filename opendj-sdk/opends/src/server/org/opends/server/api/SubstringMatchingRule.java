@@ -42,6 +42,11 @@ import org.opends.server.types.DirectoryException;
  * implemented by a Directory Server module that implements a matching
  * rule used for substring matching.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class SubstringMatchingRule
        extends MatchingRule<SubstringMatchingRuleCfg>
 {
@@ -65,8 +70,8 @@ public abstract class SubstringMatchingRule
   /**
    * Determines whether the provided value matches the given substring
    * filter components.  Note that any of the substring filter
-   * components may be <CODE>null</CODE> but at least one of them must
-   * be non-<CODE>null</CODE>.
+   * components may be {@code null} but at least one of them must be
+   * non-{@code null}.
    *
    * @param  value           The normalized value against which to
    *                         compare the substring components.
@@ -80,9 +85,8 @@ public abstract class SubstringMatchingRule
    *                         that should appear at the end of the
    *                         target value.
    *
-   * @return  <CODE>true</CODE> if the provided value does match the
-   *          given substring components, or <CODE>false</CODE> if
-   *          not.
+   * @return  {@code true} if the provided value does match the given
+   *          substring components, or {@code false} if not.
    */
   public abstract boolean valueMatchesSubstring(
                                ByteString value,
@@ -99,9 +103,9 @@ public abstract class SubstringMatchingRule
    * <BR><BR>
    * Note that substring matching rules by default do not support
    * extensible matching, and therefore this method will always return
-   * <CODE>UNDEFINED</CODE>.  If a substring matching rule does
-   * support extensible matching operations, then it should override
-   * this method and provide an appropriate implementation.
+   * {@code UNDEFINED}.  If a substring matching rule does support
+   * extensible matching operations, then it should override this
+   * method and provide an appropriate implementation.
    *
    * @param  attributeValue  The attribute value in a form that has
    *                         been normalized according to this
@@ -110,9 +114,9 @@ public abstract class SubstringMatchingRule
    *                         been normalized according to this
    *                         matching rule.
    *
-   * @return  <CODE>true</CODE> if the attribute value should be
-   *          considered a match for the provided assertion value, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if the attribute value should be considered
+   *          a match for the provided assertion value, or
+   *          {@code false} if not.
    */
   public ConditionResult valuesMatch(ByteString attributeValue,
                                      ByteString assertionValue)

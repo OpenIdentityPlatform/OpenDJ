@@ -51,6 +51,11 @@ import org.opends.server.types.InitializationException;
  * @param  <T>  The type of configuration handled by this identity
  *              mapper.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=true)
 public abstract class IdentityMapper
        <T extends IdentityMapperCfg>
 {
@@ -125,8 +130,8 @@ public abstract class IdentityMapper
    *             user.
    *
    * @return  The user entry that was mapped to the provided
-   *          identification, or <CODE>null</CODE> if no users were
-   *          found that could be mapped to the provided ID.
+   *          identification, or {@code null} if no users were found
+   *          that could be mapped to the provided ID.
    *
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to map the given ID to a user entry,

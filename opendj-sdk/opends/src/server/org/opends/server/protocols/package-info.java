@@ -33,5 +33,7 @@
  * clients over various protocols.  Note that it is expected that each protocol
  * will be sufficiently complex so as to warrant its own sub-package.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.protocols;
 

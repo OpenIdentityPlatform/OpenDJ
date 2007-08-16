@@ -41,5 +41,7 @@
  * tasks, but a task group must be used to achieve the same result for recurring
  * tasks.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.backends.task;
 

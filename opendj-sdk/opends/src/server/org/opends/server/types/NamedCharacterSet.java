@@ -44,11 +44,13 @@ import static org.opends.server.util.StaticUtils.*;
  * associate a name with a given set of characters.  The name must
  * consist only of ASCII alphabetic characters.
  */
-public class NamedCharacterSet
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class NamedCharacterSet
 {
-
-
-
   // The characters contained in this character set.
   private char[] characters;
 

@@ -56,6 +56,11 @@ import static org.opends.server.util.Validator.*;
  * This class provides a mechanism for writing entries in LDIF form to a file or
  * an output stream.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
 public final class LDIFWriter
 {
   /**

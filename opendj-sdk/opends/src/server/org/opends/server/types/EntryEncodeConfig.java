@@ -36,7 +36,12 @@ import static org.opends.messages.CoreMessages.*;
  * This class defines a data structure that contains configuration
  * information about how an entry should be encoded.
  */
-public class EntryEncodeConfig
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class EntryEncodeConfig
 {
   /**
    * The encode mask value that can be used to indicate that the

@@ -53,5 +53,7 @@
  * command-line mode as well as a more flexible and potentially more useful GUI
  * mode.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.plugins.profiler;
 

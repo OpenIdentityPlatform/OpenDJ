@@ -55,6 +55,13 @@ import static org.opends.server.util.StaticUtils.*;
  * will need to be invoked on the object, the {@code org.opends.server.types.DN}
  * class should be used instead.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true,
+     notes="This is only intended for use if a DN will ever only be treated " +
+           "as a string and will not be transferred or processed in any way.")
 public class LazyDN
        extends DN
 {

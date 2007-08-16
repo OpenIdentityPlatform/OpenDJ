@@ -35,5 +35,7 @@
  * technical reason that it would not work for them to be placed in this
  * package.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.plugins;
 

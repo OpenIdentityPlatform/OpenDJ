@@ -53,7 +53,12 @@ import static org.opends.messages.ConfigMessages.*;
  * This class defines a string configuration attribute, which can hold zero or
  * more string values.
  */
-public class StringConfigAttribute
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class StringConfigAttribute
        extends ConfigAttribute
 {
   /**

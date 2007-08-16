@@ -69,7 +69,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 
 /**
  * This is an implementation of a Directory Server Backend which stores entries
- * locally in a Sleepycat JE database.
+ * locally in a Berkeley DB JE database.
  */
 public class BackendImpl
     extends Backend

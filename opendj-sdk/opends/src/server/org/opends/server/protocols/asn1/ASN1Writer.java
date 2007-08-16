@@ -41,7 +41,12 @@ import org.opends.server.types.DebugLogLevel;
  * This class defines a utility that can be used to write ASN.1 elements over a
  * provided socket or output stream.
  */
-public class ASN1Writer
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class ASN1Writer
 {
   /**
    * The tracer object for the debug logger.

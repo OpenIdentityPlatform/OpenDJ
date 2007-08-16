@@ -353,7 +353,7 @@ public class ConfigurableEnvironment
     // operations.
     envConfig.setConfigParam("je.env.sharedLatches", "true");
 
-    // This parameter was set to false while diagnosing a Sleepycat bug.
+    // This parameter was set to false while diagnosing a Berkeley DB JE bug.
     // Normally cleansed log files are deleted, but if this is set false
     // they are instead renamed from .jdb to .del.
     envConfig.setConfigParam("je.cleaner.expunge", "true");

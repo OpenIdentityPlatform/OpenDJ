@@ -35,7 +35,6 @@ import java.util.LinkedList;
 import org.opends.server.admin.std.server.*;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.HostPort;
@@ -46,12 +45,14 @@ import org.opends.server.types.HostPort;
  * This class defines a Directory Server connection handler that will
  * handle internal "connections".
  */
-public class InternalConnectionHandler
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=false)
+public final class InternalConnectionHandler
        extends ConnectionHandler
 {
-
-
-
   // The singleton instance of this internal connection handler.
   private static InternalConnectionHandler handlerInstance =
        new InternalConnectionHandler();
@@ -102,24 +103,28 @@ public class InternalConnectionHandler
 
 
   /**
-   * Initializes this connection handler based on the information in
-   * the provided configuration entry.
+   * Initializes this connection handler provider based on the
+   * information in the provided connection handler configuration.
    *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this
-   *                      connection handler.
+   * @param  configuration  The connection handler configuration that
+   *                        contains the information to use to
+   *                        initialize this connection handler.
    *
-   * @throws  ConfigException  If there is a problem with the
-   *                           configuration for this connection
-   *                           handler.
+   * @throws  ConfigException  If an unrecoverable problem arises in
+   *                           the process of performing the
+   *                           initialization as a result of the
+   *                           server configuration.
    *
-   * @throws  InitializationException  If a problem occurs while
-   *                                   attempting to initialize this
-   *                                   connection handler.
+   * @throws  InitializationException  If a problem occurs during
+   *                                   initialization that is not
+   *                                   related to the server
+   *                                   configuration.
    */
-  public void initializeConnectionHandler(ConfigEntry configEntry)
-         throws ConfigException, InitializationException
+  public void initializeConnectionHandler(
+                   ConnectionHandlerCfg configuration)
+      throws ConfigException, InitializationException
   {
+    // No implementation required.
   }
 
 
@@ -140,6 +145,7 @@ public class InternalConnectionHandler
    *                           connection handler should also be
    *                           closed.
    */
+  @Override()
   public void finalizeConnectionHandler(Message finalizeReason,
                                         boolean closeConnections)
   {
@@ -149,8 +155,14 @@ public class InternalConnectionHandler
 
 
   /**
-   * {@inheritDoc}
+   * Retrieves a name that may be used to refer to this connection
+   * handler.  Every connection handler instance (even handlers of the
+   * same type) must have a unique name.
+   *
+   * @return  A unique name that may be used to refer to this
+   *          connection handler.
    */
+  @Override()
   public String getConnectionHandlerName()
   {
     return "Internal Connection Handler";
@@ -159,8 +171,15 @@ public class InternalConnectionHandler
 
 
   /**
-   * {@inheritDoc}
+   * Retrieves the name of the protocol used to communicate with
+   * clients.  It should take into account any special naming that may
+   * be needed to express any security mechanisms or other constraints
+   * in place (e.g., "LDAPS" for LDAP over SSL).
+   *
+   * @return  The name of the protocol used to communicate with
+   *          clients.
    */
+  @Override()
   public String getProtocol()
   {
     return protocol;
@@ -169,8 +188,15 @@ public class InternalConnectionHandler
 
 
   /**
-   * {@inheritDoc}
+   * Retrieves information about the listener(s) that will be used to
+   * accept client connections.
+   *
+   * @return  Information about the listener(s) that will be used to
+   *          accept client connections, or an empty list if this
+   *          connection handler does not accept connections from
+   *          network clients.
    */
+  @Override()
   public Collection<HostPort> getListeners()
   {
     return listeners;
@@ -185,6 +211,7 @@ public class InternalConnectionHandler
    * @return  The set of active client connections that have been
    *          established through this connection handler.
    */
+  @Override()
   public Collection<ClientConnection> getClientConnections()
   {
     return connectionList;
@@ -196,6 +223,7 @@ public class InternalConnectionHandler
    * Operates in a loop, accepting new connections and ensuring that
    * requests on those connections are handled properly.
    */
+  @Override()
   public void run()
   {
     // No implementation is required since this connection handler
@@ -210,6 +238,7 @@ public class InternalConnectionHandler
    *
    * @return  A string representation of this connection handler.
    */
+  @Override()
   public String toString()
   {
     return "Internal Connection Handler";
@@ -224,21 +253,10 @@ public class InternalConnectionHandler
    * @param  buffer  The buffer to which the information should be
    *                 appended.
    */
+  @Override()
   public void toString(StringBuilder buffer)
   {
     buffer.append("Internal Connection Handler");
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void initializeConnectionHandler(
-      ConnectionHandlerCfg configuration)
-      throws ConfigException, InitializationException {
-    // No implementation required.
   }
 }
 

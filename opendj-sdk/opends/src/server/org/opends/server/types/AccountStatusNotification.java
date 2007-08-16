@@ -34,11 +34,13 @@ import org.opends.messages.Message;
  * This class defines a data type for storing information associated
  * with an account status notification.
  */
-public class AccountStatusNotification
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class AccountStatusNotification
 {
-
-
-
   // The notification type for this account status notification.
   private AccountStatusNotificationType notificationType;
 

@@ -54,7 +54,12 @@ import static org.opends.messages.ConfigMessages.*;
  * This class defines a DN configuration attribute, which can hold zero or more
  * DN values.
  */
-public class DNConfigAttribute
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class DNConfigAttribute
        extends ConfigAttribute
 {
   /**

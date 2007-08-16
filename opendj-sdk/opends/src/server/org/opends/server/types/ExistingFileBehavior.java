@@ -32,6 +32,11 @@ package org.opends.server.types;
  * This enumeration defines the set of possible behaviors that should
  * be taken when attempting to write to a file that already exists.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public enum ExistingFileBehavior
 {
   /**

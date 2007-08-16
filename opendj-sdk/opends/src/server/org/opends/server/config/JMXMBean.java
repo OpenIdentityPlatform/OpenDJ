@@ -85,7 +85,12 @@ import org.opends.server.types.LDAPException;
  * read-write access to the configuration, and provide notifications and alerts
  * if a significant event or severe/fatal error occurs.
  */
-public class JMXMBean
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class JMXMBean
        implements DynamicMBean, DirectoryServerMBean
 {
   /**

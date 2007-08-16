@@ -34,6 +34,11 @@ package org.opends.server.types;
  * be undefined (i.e., "maybe").  A result of undefined indicates that
  * further investigation may be required.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public enum ConditionResult
 {
   /**

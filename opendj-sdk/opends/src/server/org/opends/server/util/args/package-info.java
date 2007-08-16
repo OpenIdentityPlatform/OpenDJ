@@ -86,5 +86,7 @@
  * command has a number of sub-commands like "checkout" and "commit" and "diff",
  * each of which has its own set of options).
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.util.args;
 

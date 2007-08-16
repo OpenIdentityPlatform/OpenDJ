@@ -44,6 +44,11 @@ import org.opends.server.types.OperatingSystem;
  * This class provides a number of utility methods that may be used during the
  * graphical or command-line setup process.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public class SetupUtils
 {
   /**

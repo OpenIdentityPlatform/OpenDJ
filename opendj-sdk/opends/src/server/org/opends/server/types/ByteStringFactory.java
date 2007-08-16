@@ -37,11 +37,13 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
  * This class provides static factory methods for creating ByteString
  * objects.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public final class ByteStringFactory
 {
-
-
-
   /**
    * Creates a new <CODE>ByteString</CODE> object with no value.
    *

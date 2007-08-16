@@ -39,6 +39,11 @@ import static org.opends.messages.CoreMessages.*;
  * be used for providing clients with information about result of
  * processing an operation.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public enum ResultCode
 {
   /**

@@ -25,6 +25,8 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
+
+
 /**
  * Provides support for construction and display of tables in text based
  * applications. Applications construct tables using the {@link TableBuilder}
@@ -74,7 +76,7 @@
  * Charlie : 33
  * </pre>
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.util.table;
-
-
 

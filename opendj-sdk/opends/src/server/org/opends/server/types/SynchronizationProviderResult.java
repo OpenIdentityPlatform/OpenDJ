@@ -31,11 +31,13 @@ package org.opends.server.types;
  * This class defines a data structure that holds information about
  * the result of processing by a synchronization provider.
  */
-public class SynchronizationProviderResult
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
+public final class SynchronizationProviderResult
 {
-
-
-
   // Indicates whether processing should continue on the operation.
   private boolean continueOperationProcessing;
 

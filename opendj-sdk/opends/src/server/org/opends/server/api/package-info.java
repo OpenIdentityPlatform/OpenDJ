@@ -43,5 +43,7 @@
  * effects or that does not work properly across different Directory
  * Server versions.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE)
 package org.opends.server.api;
 

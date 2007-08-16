@@ -50,6 +50,11 @@ import org.opends.messages.Category;
  * @param  <T>  The type of error log publisher configuration handled
  *              by this log publisher implementation.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class ErrorLogPublisher
        <T extends ErrorLogPublisherCfg>
 {

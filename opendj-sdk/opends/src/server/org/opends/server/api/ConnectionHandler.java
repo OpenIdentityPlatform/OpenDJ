@@ -48,10 +48,15 @@ import org.opends.server.types.InitializationException;
  *          The type of connection handler configuration handled by
  *          this connection handler implementation.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class ConnectionHandler
-    <T extends ConnectionHandlerCfg>
-    extends DirectoryThread {
-
+       <T extends ConnectionHandlerCfg>
+       extends DirectoryThread
+{
   // The monitor associated with this connection handler.
   private ConnectionHandlerMonitor monitor;
 
@@ -81,7 +86,7 @@ public abstract class ConnectionHandler
    * that some connection handler implementations may not have any way
    * to continue processing requests from existing connections, in
    * which case they should always be closed regardless of the value
-   * of the <CODE>closeConnections</CODE> flag.
+   * of the {@code closeConnections} flag.
    *
    * @param finalizeReason
    *          The reason that this connection handler should be
@@ -212,7 +217,7 @@ public abstract class ConnectionHandler
    * @return  The monitor instance for this connection handler, or
    *          {@code null} if none has been provided.
    */
-  public ConnectionHandlerMonitor getConnectionHandlerMonitor()
+  public final ConnectionHandlerMonitor getConnectionHandlerMonitor()
   {
     return monitor;
   }
@@ -225,8 +230,8 @@ public abstract class ConnectionHandler
    * @param  monitor  The monitor instance for this connection
    *                  handler.
    */
-  public void setConnectionHandlerMonitor(
-                   ConnectionHandlerMonitor monitor)
+  public final void setConnectionHandlerMonitor(
+                         ConnectionHandlerMonitor monitor)
   {
     this.monitor = monitor;
   }

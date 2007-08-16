@@ -33,7 +33,12 @@ package org.opends.server.types;
  * the state of a completed LDIF import, including the total number of
  * entries read, skipped, and rejected.
  */
-public class LDIFImportResult
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
+public final class LDIFImportResult
 {
   // The total number of entries read during the import.
   private final long entriesRead;

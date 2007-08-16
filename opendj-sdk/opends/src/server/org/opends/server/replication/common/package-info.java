@@ -25,6 +25,8 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
+
+
 /**
  * This package contains utilities that can are used by all the packages
  * below org.opends.server.replication.
@@ -43,4 +45,7 @@
  * </li>
  * </ul>
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.replication.common;
+

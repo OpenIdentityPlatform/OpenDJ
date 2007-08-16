@@ -33,6 +33,11 @@ package org.opends.server.api;
  * components to perform any processing that they might find necessary
  * whenever a backend is initialized and/or finalized.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public interface BackendInitializationListener
 {
   /**

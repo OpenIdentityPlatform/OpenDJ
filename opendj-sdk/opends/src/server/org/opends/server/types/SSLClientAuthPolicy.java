@@ -35,6 +35,11 @@ package org.opends.server.types;
  * their own certificates, and whether or not to accept client
  * connections in which the client did not provide a certificate.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public enum SSLClientAuthPolicy
 {
   /**

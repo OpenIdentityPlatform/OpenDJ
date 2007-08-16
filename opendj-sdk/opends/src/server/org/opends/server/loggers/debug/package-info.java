@@ -39,4 +39,7 @@
  * about the class, method, line number, and threads are automatically included
  * in the debug message.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.loggers.debug;
+

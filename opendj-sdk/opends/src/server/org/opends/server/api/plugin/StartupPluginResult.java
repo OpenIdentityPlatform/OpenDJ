@@ -34,6 +34,11 @@ import org.opends.messages.MessageDescriptor;
  * the result of processing by a plugin invoked during the Directory
  * Server startup process.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
 public class StartupPluginResult
 {
   /**

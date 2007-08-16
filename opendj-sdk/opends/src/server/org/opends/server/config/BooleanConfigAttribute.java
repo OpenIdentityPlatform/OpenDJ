@@ -55,12 +55,14 @@ import static org.opends.server.util.ServerConstants.*;
  * configuration attributes will always be required and will never be
  * multivalued.
  */
-public class BooleanConfigAttribute
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class BooleanConfigAttribute
        extends ConfigAttribute
 {
-
-
-
   // The active value for this attribute.
   private boolean activeValue;
 

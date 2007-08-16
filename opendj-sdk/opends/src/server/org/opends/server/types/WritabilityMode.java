@@ -38,6 +38,11 @@ import static org.opends.server.util.StaticUtils.*;
  * backend.  The writability mode may be "enabled", "disabled", or
  * "internal-only".
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public enum WritabilityMode
 {
   /**

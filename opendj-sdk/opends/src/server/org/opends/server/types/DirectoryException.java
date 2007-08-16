@@ -39,7 +39,12 @@ import java.util.List;
  * This class defines an exception that may be thrown if a problem
  * occurs in the Directory Server.
  */
-public class DirectoryException
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class DirectoryException
        extends IdentifiedException
 {
   /**
@@ -189,7 +194,7 @@ public class DirectoryException
    *
    * @return  The result code for this directory exception.
    */
-  public final ResultCode getResultCode()
+  public ResultCode getResultCode()
   {
     return resultCode;
   }
@@ -202,7 +207,7 @@ public class DirectoryException
    * @return  The matched DN for this directory exception, or
    *          <CODE>null</CODE> if there is none.
    */
-  public final DN getMatchedDN()
+  public DN getMatchedDN()
   {
     return matchedDN;
   }
@@ -215,7 +220,7 @@ public class DirectoryException
    * @return  The set of referral URLs for this directory exception,
    *          or <CODE>null</CODE> if there are none.
    */
-  public final List<String> getReferralURLs()
+  public List<String> getReferralURLs()
   {
     return referralURLs;
   }

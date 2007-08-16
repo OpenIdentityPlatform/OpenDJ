@@ -35,11 +35,13 @@ import org.opends.server.types.DN;
  * an delete operation.  It includes a DN and a set of attributes, as well as
  * methods to decode the entry.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
 public final class DeleteChangeRecordEntry extends ChangeRecordEntry
 {
-
-
-
   /**
    * Creates a new entry with the provided information.
    *
@@ -63,6 +65,5 @@ public final class DeleteChangeRecordEntry extends ChangeRecordEntry
   {
     return ChangeOperationType.DELETE;
   }
-
 }
 

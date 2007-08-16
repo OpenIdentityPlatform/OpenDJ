@@ -41,6 +41,11 @@ import java.util.NoSuchElementException;
  * attribute values which do not have the correct options set. This is
  * achieved without having to duplicate the set of attributes.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public final class AttributeValueIterable implements
     Iterable<AttributeValue> {
 
@@ -55,9 +60,8 @@ public final class AttributeValueIterable implements
   /**
    * Create a new attribute value iterable object.
    *
-   * @param attributes
-   *          The set of attributes having the same type. Can be
-   *          <code>null</code>.
+   * @param  attributes  The set of attributes having the same type.
+   *                     Can be {@code null}.
    */
   public AttributeValueIterable(Iterable<Attribute> attributes) {
     this(attributes, null);
@@ -67,22 +71,25 @@ public final class AttributeValueIterable implements
   /**
    * Create a new attribute value iterable object.
    *
-   * @param attributes
-   *          The set of attributes having the same type. Can be
-   *          <code>null</code>.
-   * @param options
-   *          The set of options which all values must contain, or
-   *          <code>null</code> if no options are required.
+   * @param  attributes  The set of attributes having the same type.
+   *                     Can be {@code null}.
+   * @param  options     The set of options which all values must
+   *                     contain, or {@code null} if no options are
+   *                     required.
    */
   public AttributeValueIterable(Iterable<Attribute> attributes,
-      HashSet<String> options) {
+                                HashSet<String> options) {
 
     this.attributes = attributes;
     this.options = options;
   }
 
   /**
-   * {@inheritDoc}
+   * Retrieves an iterator that can be used to cursor through the set
+   * of attribute values.
+   *
+   * @return  An iterator that can be used to cursor through the set
+   *          of attribute values.
    */
   public Iterator<AttributeValue> iterator() {
 
@@ -120,7 +127,10 @@ public final class AttributeValueIterable implements
     }
 
     /**
-     * {@inheritDoc}
+     * Indicates whether there are more attribute values to return.
+     *
+     * @return  {@code true} if there are more attribute values to
+     *          return, or {@code false} if not.
      */
     public boolean hasNext() {
 
@@ -128,10 +138,16 @@ public final class AttributeValueIterable implements
     }
 
     /**
-     * {@inheritDoc}
+     * Retrieves the next attribute value in the set.
+     *
+     * @return  The next attribute value in the set.
+     *
+     * @throws  NoSuchElementException  If there are no more values to
+     *                                  return.
      */
-    public AttributeValue next() {
-
+    public AttributeValue next()
+           throws NoSuchElementException
+    {
       if (hasNext == false) {
         throw new NoSuchElementException();
       }
@@ -148,10 +164,16 @@ public final class AttributeValueIterable implements
     }
 
     /**
-     * {@inheritDoc}
+     * Removes the last attribute value retrieved from the set.  Note
+     * that this operation is not supported and will always cause an
+     * {@code UnsupportedOperationException} to be thrown.
+     *
+     * @throws  UnsupportedOperationException  If the last value
+     *                                         cannot be removed.
      */
-    public void remove() {
-
+    public void remove()
+           throws UnsupportedOperationException
+    {
       throw new UnsupportedOperationException();
     }
 
@@ -160,8 +182,8 @@ public final class AttributeValueIterable implements
      * the correct set of options until we find one that contains some
      * values.
      *
-     * @return <code>true</code> if iteration can continue,
-     *         <code>false</code> otherwise.
+     * @return  {@code true} if iteration can continue, or
+     *          {@code false} if not.
      */
     private boolean skipNonMatchingAttributes() {
 

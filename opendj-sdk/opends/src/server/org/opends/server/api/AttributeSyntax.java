@@ -47,6 +47,11 @@ import org.opends.messages.MessageBuilder;
  * @param  <T>  The type of configuration handled by this attribute
  *              syntax.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=true,
+     mayInvoke=false)
 public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
 {
   /**
@@ -145,9 +150,8 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    * for attributes with this syntax.
    *
    * @return  The default equality matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if
-   *          equality matches will not be allowed for this type by
-   *          default.
+   *          attributes with this syntax, or {@code null} if equality
+   *          matches will not be allowed for this type by default.
    */
   public abstract EqualityMatchingRule getEqualityMatchingRule();
 
@@ -158,9 +162,8 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    * for attributes with this syntax.
    *
    * @return  The default ordering matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if
-   *          ordering matches will not be allowed for this type by
-   *          default.
+   *          attributes with this syntax, or {@code null} if ordering
+   *          matches will not be allowed for this type by default.
    */
   public abstract OrderingMatchingRule getOrderingMatchingRule();
 
@@ -171,7 +174,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    * for attributes with this syntax.
    *
    * @return  The default substring matching rule that will be used
-   *          for attributes with this syntax, or <CODE>null</CODE> if
+   *          for attributes with this syntax, or {@code null} if
    *          substring matches will not be allowed for this type by
    *          default.
    */
@@ -184,7 +187,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    * for attributes with this syntax.
    *
    * @return  The default approximate matching rule that will be used
-   *          for attributes with this syntax, or <CODE>null</CODE> if
+   *          for attributes with this syntax, or {@code null} if
    *          approximate matches will not be allowed for this type by
    *          default.
    */
@@ -203,8 +206,8 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    * @param  invalidReason  The buffer to which the invalid reason
    *                        should be appended.
    *
-   * @return  <CODE>true</CODE> if the provided value is acceptable
-   *          for use with this syntax, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the provided value is acceptable for use
+   *          with this syntax, or {@code false} if not.
    */
   public abstract boolean valueIsAcceptable(ByteString value,
                                MessageBuilder invalidReason);
@@ -217,7 +220,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    *
    * @return  The hash code for this attribute syntax.
    */
-  public int hashCode()
+  public final int hashCode()
   {
     int hashCode = 0;
 
@@ -241,11 +244,10 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    *
    * @param  o  The object for which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the provided object is equal to
-   *          this attribute syntax, or <CODE>false</CODE> if it is
-   *          not.
+   * @return  {@code true} if the provided object is equal to this
+   *          attribute syntax, or {@code false} if it is not.
    */
-  public boolean equals(Object o)
+  public final boolean equals(Object o)
   {
     if (o == null)
     {
@@ -274,7 +276,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    * @return  A string representation of this attribute syntax in the
    *          format defined in RFC 2252.
    */
-  public String toString()
+  public final String toString()
   {
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -290,7 +292,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    * @param  buffer  The buffer to which the information should be
    *                 appended.
    */
-  public void toString(StringBuilder buffer)
+  public final void toString(StringBuilder buffer)
   {
     buffer.append("( ");
     buffer.append(getOID());

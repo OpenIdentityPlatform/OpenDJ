@@ -38,9 +38,13 @@ import org.opends.server.types.RDN;
  * an modifyDN operation.  It includes a DN and a set of attributes, as well as
  * methods to decode the entry.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
 public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
 {
-
   // The new RDN.
   private final RDN newRDN;
 

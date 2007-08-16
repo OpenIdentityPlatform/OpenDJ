@@ -37,7 +37,12 @@ import java.io.PrintStream;
  * This class defines a custom output stream that simply discards any
  * data written to it.
  */
-public class NullOutputStream
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class NullOutputStream
        extends OutputStream
 {
   /**

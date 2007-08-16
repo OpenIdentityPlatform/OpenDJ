@@ -45,6 +45,11 @@ import org.opends.server.loggers.debug.DebugTracer;
  * This class defines a data structure that holds information about a
  * method that may be invoked for an invokable component.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public class InvokableMethod
 {
   /**

@@ -83,6 +83,11 @@ import java.lang.annotation.Target;
           ElementType.TYPE,
           ElementType.METHOD,
           ElementType.CONSTRUCTOR })
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=false)
 public @interface PublicAPI
 {
   /**

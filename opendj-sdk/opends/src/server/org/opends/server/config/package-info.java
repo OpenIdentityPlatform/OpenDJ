@@ -44,5 +44,7 @@
  * existing entry is removed, then any configuration delete listeners associated
  * with that entry's parent will be invoked.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE)
 package org.opends.server.config;
 

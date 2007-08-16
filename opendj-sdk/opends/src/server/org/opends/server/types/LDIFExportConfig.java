@@ -51,7 +51,12 @@ import static org.opends.messages.UtilityMessages.*;
  * This class defines a data structure for holding configuration
  * information to use when performing an LDIF export.
  */
-public class LDIFExportConfig
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class LDIFExportConfig
 {
   /**
    * The tracer object for the debug logger.

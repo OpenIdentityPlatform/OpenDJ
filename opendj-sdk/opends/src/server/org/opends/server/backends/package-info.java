@@ -33,5 +33,7 @@
  * information) may reside directly in this package.  The code for more complex
  * backends comprised of multiple classes are more appropriate for sub-packages.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.backends;
 

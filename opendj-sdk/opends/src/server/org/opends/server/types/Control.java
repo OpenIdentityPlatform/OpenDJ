@@ -37,11 +37,13 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
  * This class defines a data structure that holds information about a
  * control that can be included in a request or response.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=true,
+     mayInvoke=true)
 public class Control
 {
-
-
-
   // The value for this control.
   private ASN1OctetString value;
 
@@ -80,7 +82,7 @@ public class Control
    * @param  value       The value for this control.
    */
   public Control(String oid, boolean isCritical,
-  ASN1OctetString value)
+                 ASN1OctetString value)
   {
     this.oid        = oid;
     this.isCritical = isCritical;
@@ -94,7 +96,7 @@ public class Control
    *
    * @return  The OID for this control.
    */
-  public String getOID()
+  public final String getOID()
   {
     return oid;
   }
@@ -106,7 +108,7 @@ public class Control
    *
    * @param  oid  The OID for this control.
    */
-  public void setOID(String oid)
+  public final void setOID(String oid)
   {
     this.oid = oid;
   }
@@ -120,7 +122,7 @@ public class Control
    * @return  <CODE>true</CODE> if this code should be considered
    *          critical, or <CODE>false</CODE> if not.
    */
-  public boolean isCritical()
+  public final boolean isCritical()
   {
     return isCritical;
   }
@@ -135,7 +137,7 @@ public class Control
    *                     considered critical in processing the
    *                     request.
    */
-  public void setCritical(boolean isCritical)
+  public final void setCritical(boolean isCritical)
   {
     this.isCritical = isCritical;
   }
@@ -148,7 +150,7 @@ public class Control
    * @return  The value for this control, or <CODE>null</CODE> if
    *          there is no value.
    */
-  public ASN1OctetString getValue()
+  public final ASN1OctetString getValue()
   {
     return value;
   }
@@ -161,7 +163,7 @@ public class Control
    * @return  <CODE>true</CODE> if this control has a value, or
    *          <CODE>false</CODE> if it does not.
    */
-  public boolean hasValue()
+  public final boolean hasValue()
   {
     return (value != null);
   }
@@ -173,7 +175,7 @@ public class Control
    *
    * @param  value  The value for this control.
    */
-  public void setValue(ASN1OctetString value)
+  public final void setValue(ASN1OctetString value)
   {
     this.value = value;
   }

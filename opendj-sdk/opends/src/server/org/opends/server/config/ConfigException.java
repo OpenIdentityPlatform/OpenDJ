@@ -37,7 +37,12 @@ import org.opends.server.types.IdentifiedException;
  * This class defines an exception that may be thrown during the course of
  * interactions with the Directory Server configuration.
  */
-public class ConfigException
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+     mayInstantiate=true,
+     mayExtend=false,
+     mayInvoke=true)
+public final class ConfigException
        extends IdentifiedException
 {
   /**

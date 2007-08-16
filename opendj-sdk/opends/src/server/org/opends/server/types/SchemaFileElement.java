@@ -45,6 +45,11 @@ package org.opends.server.types;
  *   <LI>{@code org.opends.server.types.MatchingRuleUse}</LI>
  * </UL>
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public interface SchemaFileElement
 {
   /**

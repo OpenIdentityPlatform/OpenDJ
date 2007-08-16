@@ -66,6 +66,10 @@ public class TextAccessLogPublisher
     extends AccessLogPublisher<FileBasedAccessLogPublisherCfg>
     implements ConfigurationChangeListener<FileBasedAccessLogPublisherCfg>
 {
+  private boolean suppressInternalOperations = true;
+
+  private boolean suppressSynchronizationOperations = false;
+
   private TextWriter writer;
 
   private FileBasedAccessLogPublisherCfg currentConfig;

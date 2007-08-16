@@ -33,5 +33,7 @@
  * as LDAPv3 requests to a directory server, and converts the LDAPv3 response
  * back to a DSMLv2 response that is sent back to the client.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.dsml.protocol;
 

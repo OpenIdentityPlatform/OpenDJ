@@ -39,7 +39,12 @@ import org.opends.server.types.SSLClientAuthPolicy;
  * configuration, including configuration attribute and objectclass names,
  * and attribute options.
  */
-public class ConfigConstants
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
+public final class ConfigConstants
 {
   /**
    * The prefix that will be applied to all custom attribute and objectclass

@@ -39,5 +39,7 @@
  * intended to be implemented by any custom code.  They should be
  * implemented only by the core Directory Server operation types.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED)
 package org.opends.server.types.operation;
 
