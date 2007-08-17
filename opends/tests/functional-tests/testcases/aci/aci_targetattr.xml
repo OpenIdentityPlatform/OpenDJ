@@ -109,13 +109,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Preamble - existing branch, user searching entry that will be non-targeted in future tests'
               </message>
@@ -209,31 +206,22 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'cn:' }
+                    'testString'         : 'cn:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephonenumber:' }
+                    'testString'         : 'telephonenumber:' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Targetattr Equals One Attribute, user searching non-targeted entry but with targeted attribute'
               </message>
@@ -254,13 +242,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Targetattr Equals One Attribute, admin deleting aci'
               </message>
@@ -370,31 +355,22 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'cn:' }
+                    'testString'         : 'cn:' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephonenumber:' }
+                    'testString'         : 'telephonenumber:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Targetattr Not Equals One Attribute, user searching non-targeted entry but with targeted attribute'
               </message>
@@ -415,13 +391,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Targetattr Not Equals One Attribute, admin deleting aci'
               </message>
@@ -531,49 +504,34 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'cn:' }
+                    'testString'         : 'cn:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'sn:' }
+                    'testString'         : 'sn:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'uid:' }
+                    'testString'         : 'uid:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephonenumber:' }
+                    'testString'         : 'telephonenumber:' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Targetattr Equals Three Attributes, user searching non-targeted entry but with targeted attributes'
               </message>
@@ -594,13 +552,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Targetattr Equals Three Attributes, admin deleting aci'
               </message>
@@ -711,49 +666,34 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'cn:' }
+                    'testString'         : 'cn:' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'sn:' }
+                    'testString'         : 'sn:' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'uid:' }
+                    'testString'         : 'uid:' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephonenumber:' }
+                    'testString'         : 'telephonenumber:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Targetattr Not Equals Three Attributes, user searching non-targeted entry but with targeted attributes'
               </message>
@@ -774,13 +714,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Targetattr Not Equals Three Attributes, admin deleting aci'
               </message>
@@ -886,22 +823,16 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'cn:' }
+                    'testString'         : 'cn:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Bad Targetattr, user searching non-targeted entry but with targeted attribute'
               </message>
@@ -922,13 +853,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Bad Targetattr, admin deleting aci'
               </message>
@@ -1229,31 +1157,22 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'cn:' }
+                    'testString'         : 'cn:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephonenumber:' }
+                    'testString'         : 'telephonenumber:' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Targetattr With Spaces, user searching non-targeted entry but with targeted attribute'
               </message>
@@ -1274,13 +1193,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Targetattr With Spaces, admin deleting aci'
               </message>
@@ -1387,13 +1303,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Targetattr Not Equals Wildcard, user searching non-targeted entry'
                 </message>
@@ -1414,13 +1327,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Targetattr Not Equals Wildcard, admin deleting aci'
                 </message>
@@ -1546,13 +1456,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Postamble - existing branch, user searching entry that will be non-targeted in future tests'
               </message>
@@ -1573,13 +1480,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                    'ACI: Targetattr: Postamble - Resetting Search Global ACI'
               </message>
