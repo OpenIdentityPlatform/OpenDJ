@@ -872,6 +872,16 @@ public abstract class MessageDescriptor {
 
   /**
    * Obtains the format string for constructing the string
+   * value of this message according to the default
+   * locale.
+   * @return format string
+   */
+  String getFormatString() {
+    return getFormatString(Locale.getDefault());
+  }
+
+  /**
+   * Obtains the format string for constructing the string
    * value of this message according to the requested
    * locale.
    * @param locale for the returned format string
