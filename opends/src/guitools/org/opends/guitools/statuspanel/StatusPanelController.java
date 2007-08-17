@@ -69,7 +69,7 @@ import static org.opends.messages.QuickSetupMessages.*;
  *
  */
 public class StatusPanelController implements ServerStatusChangeListener,
-StatusPanelButtonListener
+  StatusPanelButtonListener
 {
   private LoginDialog loginDialog;
   private StatusPanelDialog controlPanelDialog;

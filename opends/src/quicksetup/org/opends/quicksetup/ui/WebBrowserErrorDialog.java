@@ -189,7 +189,7 @@ public class WebBrowserErrorDialog extends JDialog
       // UIFactory.initialize();
       WebBrowserErrorDialog dlg =
           new WebBrowserErrorDialog(new JFrame(),
-              new WebBrowserException("http://www.yahoo.com",
+              new WebBrowserException("http://opends.org",
                       Message.raw("toto"), null));
       dlg.packAndShow();
     } catch (Exception ex)
