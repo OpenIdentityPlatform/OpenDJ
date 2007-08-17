@@ -414,7 +414,7 @@ public class PasswordPolicy
       }
 
       Message message =
-ERR_PWPOLICY_CANNOT_DETERMINE_DEPRECATED_STORAGE_SCHEMES.
+          ERR_PWPOLICY_CANNOT_DETERMINE_DEPRECATED_STORAGE_SCHEMES.
             get(String.valueOf(configEntryDN), getExceptionMessage(e));
       throw new InitializationException(message, e);
     }
@@ -789,7 +789,7 @@ ERR_PWPOLICY_CANNOT_DETERMINE_DEPRECATED_STORAGE_SCHEMES.
       }
 
       Message message =
-ERR_PWPOLICY_CANNOT_DETERMINE_PREVIOUS_LAST_LOGIN_TIME_FORMAT.
+          ERR_PWPOLICY_CANNOT_DETERMINE_PREVIOUS_LAST_LOGIN_TIME_FORMAT.
             get(String.valueOf(configEntryDN), getExceptionMessage(e));
       throw new InitializationException(message, e);
     }

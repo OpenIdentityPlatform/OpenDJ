@@ -31,9 +31,6 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.loggers.ErrorLogger;
 
-
-import org.opends.messages.MessageBuilder;
-
 /**
  * This utility class provides static methods that make parameter checking
  * easier (e.g. in constructors and setters).
@@ -154,7 +151,7 @@ public class Validator {
   public static boolean ensureNotNull(Object param)
           throws AssertionError {
     if (ENABLE_CHECKS) {
-      if (param == null) throwNull(Message.EMPTY);
+      if (param == null) throwNull("");
     }
     return true;
   }
@@ -186,8 +183,8 @@ public class Validator {
   public static boolean ensureNotNull(Object param1, Object param2)
           throws AssertionError {
     if (ENABLE_CHECKS) {
-      if (param1 == null) throwNull(Message.raw(PARAM_DESCRIPTIONS[1]));
-      if (param2 == null) throwNull(Message.raw(PARAM_DESCRIPTIONS[2]));
+      if (param1 == null) throwNull(PARAM_DESCRIPTIONS[1]);
+      if (param2 == null) throwNull(PARAM_DESCRIPTIONS[2]);
     }
     return true;
   }
@@ -221,9 +218,9 @@ public class Validator {
                                       Object param3)
           throws AssertionError {
     if (ENABLE_CHECKS) {
-      if (param1 == null) throwNull(Message.raw(PARAM_DESCRIPTIONS[1]));
-      if (param2 == null) throwNull(Message.raw(PARAM_DESCRIPTIONS[2]));
-      if (param3 == null) throwNull(Message.raw(PARAM_DESCRIPTIONS[3]));
+      if (param1 == null) throwNull(PARAM_DESCRIPTIONS[1]);
+      if (param2 == null) throwNull(PARAM_DESCRIPTIONS[2]);
+      if (param3 == null) throwNull(PARAM_DESCRIPTIONS[3]);
     }
     return true;
   }
@@ -258,10 +255,10 @@ public class Validator {
                                       Object param3, Object param4)
           throws AssertionError {
     if (ENABLE_CHECKS) {
-      if (param1 == null) throwNull(Message.raw(PARAM_DESCRIPTIONS[1]));
-      if (param2 == null) throwNull(Message.raw(PARAM_DESCRIPTIONS[2]));
-      if (param3 == null) throwNull(Message.raw(PARAM_DESCRIPTIONS[3]));
-      if (param4 == null) throwNull(Message.raw(PARAM_DESCRIPTIONS[4]));
+      if (param1 == null) throwNull(PARAM_DESCRIPTIONS[1]);
+      if (param2 == null) throwNull(PARAM_DESCRIPTIONS[2]);
+      if (param3 == null) throwNull(PARAM_DESCRIPTIONS[3]);
+      if (param4 == null) throwNull(PARAM_DESCRIPTIONS[4]);
     }
     return true;
   }
@@ -289,7 +286,7 @@ public class Validator {
           throws AssertionError {
     if (ENABLE_CHECKS) {
       if (!condition) {
-        ensureTrue(condition, Message.EMPTY);
+        ensureTrue(condition, "");
       }
     }
     return true;
@@ -317,18 +314,18 @@ public class Validator {
    *
    * @throws AssertionError if condition is false
    */
-  public static boolean ensureTrue(boolean condition, Message message)
+  public static boolean ensureTrue(boolean condition, String message)
           throws AssertionError {
     if (ENABLE_CHECKS) {
       if (!condition) {
-        MessageBuilder mb = new MessageBuilder();
+        StringBuilder mb = new StringBuilder();
         mb.append("The specified condition must be true. ");
         mb.append(message);
-        Message fullMessage = generateLineSpecificErrorMessage(mb.toMessage());
+        String fullString = generateLineSpecificErrorString(mb.toString());
 
-        logError(fullMessage);
+        logError(fullString);
 
-        throw new AssertionError(fullMessage);
+        throw new AssertionError(fullString);
       }
     }
     return true;
@@ -377,37 +374,37 @@ public class Validator {
   ////////////////////////////////////////////////////////////////////////////
 
 
-  private static Message generateLineSpecificErrorMessage(Message message) {
-    MessageBuilder mb = new MessageBuilder();
+  private static String generateLineSpecificErrorString(String message) {
+    StringBuilder mb = new StringBuilder();
     mb.append(message);
     mb.append("  The error occurred at ");
     mb.append(getOriginalCallerLineInfo());
-    return mb.toMessage();
+    return mb.toString();
   }
 
 
-  private static void throwNull(Message message)
+  private static void throwNull(String message)
           throws AssertionError {
-    MessageBuilder mb = new MessageBuilder();
+    StringBuilder mb = new StringBuilder();
     mb.append("The specified parameter must not be null. ");
     mb.append(message);
-    Message fullMessage = generateLineSpecificErrorMessage(mb.toMessage());
+    String fullString = generateLineSpecificErrorString(mb.toString());
 
-    logError(fullMessage);
+    logError(fullString);
 
-    throw new AssertionError(fullMessage);
+    throw new AssertionError(fullString);
   }
 
 
 
-  private static void logError(Message message) {
+  private static void logError(String message) {
     incrementErrorCount();
 
-    MessageBuilder mb = new MessageBuilder();
+    StringBuilder mb = new StringBuilder();
     mb.append(message);
     mb.append(ServerConstants.EOL);
     mb.append(getCallingStack());
-    Message messageWithStack = mb.toMessage();
+    String messageWithStack = mb.toString();
 
     // Log to the debug log.
     if (debugEnabled())
@@ -416,7 +413,7 @@ public class Validator {
     }
 
     // Log to the error log.
-    ErrorLogger.logError(messageWithStack);
+    ErrorLogger.logError(Message.raw(messageWithStack));
   }
 
 
