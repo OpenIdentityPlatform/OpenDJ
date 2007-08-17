@@ -1335,6 +1335,10 @@ public class StatusPanelDialog extends JFrame
       {
         setTextValue(this, (String)value);
       }
+      else if (value instanceof Message)
+      {
+        setTextValue(this, ((Message)value).toString());
+      }
       else if (value instanceof Set)
       {
         LinkedHashSet<String> baseDns = new LinkedHashSet<String>();
