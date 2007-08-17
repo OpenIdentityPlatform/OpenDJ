@@ -54,6 +54,18 @@ public class UserDataException extends OpenDsException {
   }
 
   /**
+   * Constructor for UserDataException.
+   * @param step the step in the wizard where the exception occurred.
+   * @param message the localized message describing the error.
+   * @param t the Exception that generated this exception.
+   */
+  public UserDataException(WizardStep step, Message message, Throwable t)
+  {
+    super(message, t);
+    this.step = step;
+  }
+
+  /**
    * Returns the step of the wizard in which this exception occurred.
    * @return the step of the wizard in which this exception occurred.
    */

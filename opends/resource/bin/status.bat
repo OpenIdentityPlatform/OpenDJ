@@ -29,4 +29,4 @@ setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.guitools.statuspanel.StatusCli"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=status"
-for %%i in (%~sf0) do call "%%~dPsi\..\lib\_server-script.bat" %*
+for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*

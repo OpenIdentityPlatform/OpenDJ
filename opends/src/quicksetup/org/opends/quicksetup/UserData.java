@@ -85,12 +85,15 @@ public class UserData
 
   private boolean interactive;
 
+  private boolean forceOnError;
+
   /**
    * Creates a user data object with default values.
    */
   public UserData() {
     startServer = true;
     enableWindowsService = false;
+    forceOnError = true;
 
     NewSuffixOptions defaultNewSuffixOptions = new NewSuffixOptions(
         NewSuffixOptions.Type.CREATE_BASE_ENTRY, "dc=example,dc=com");
@@ -463,6 +466,26 @@ public class UserData
    */
   public boolean isSilent() {
     return this.silent;
+  }
+
+  /**
+   * Sets whether or not we must continue when there is a non critical error.
+   * @param forceOnError where true indicates to continue uninstall if there is
+   * a non critical error.
+   */
+  public void setForceOnError(boolean forceOnError) {
+    this.forceOnError = forceOnError;
+  }
+
+  /**
+   * Indicates whether or not the user has requested to continue when a non
+   * critical error occurs.
+   *
+   * @return boolean where true indicates to continue uninstall if there is a
+   * non critical error.
+   */
+  public boolean isForceOnError() {
+    return this.forceOnError;
   }
 
   /**

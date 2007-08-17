@@ -77,8 +77,7 @@ public class UserDataCertificateException extends UserDataException
       Throwable t, String host, int port, X509Certificate[] chain,
       String authType, Type type)
   {
-    super(step, message);
-    initCause(t);
+    super(step, message, t);
     this.host = host;
     this.port = port;
     this.chain = chain;

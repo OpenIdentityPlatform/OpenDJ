@@ -75,7 +75,7 @@ import java.util.logging.Logger;
 import java.awt.event.WindowEvent;
 
 import javax.naming.Context;
-import javax.naming.directory.SearchControls;
+import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -109,7 +109,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   private MessageBuilder startProgressDetails = new MessageBuilder();
   private UninstallData conf;
   private String replicationServerHostPort;
-  private TopologyCache lastLoadedCache;
 
   /**
    * Default constructor.
@@ -568,8 +567,10 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    */
   public UserData createUserData(Launcher launcher)
           throws UserDataException {
-    return cliHelper.createUserData(launcher.getArgumentParser(),
-        launcher.getArguments(), getTrustManager());
+    return cliHelper.createUserData(
+        (UninstallerArgumentParser)launcher.getArgumentParser(),
+        launcher.getArguments());
+
   }
 
   /**
@@ -1222,6 +1223,14 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  protected ApplicationTrustManager getTrustManager()
+  {
+    return getUninstallUserData().getTrustManager();
+  }
+
+  /**
    * This methods disables this server as a Windows service.
    *
    * @throws ApplicationException if something goes wrong.
@@ -1330,8 +1339,20 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     loginDialog.setVisible(true);
     if (!loginDialog.isCancelled())
     {
+      getUninstallUserData().setAdminUID(loginDialog.getAdministratorUid());
+      getUninstallUserData().setAdminPwd(loginDialog.getAdministratorPwd());
+      getUninstallUserData().setReferencedHostName(loginDialog.getHostName());
       final InitialLdapContext ctx = loginDialog.getContext();
-
+      try
+      {
+        getUninstallUserData().setLocalServerUrl(
+            (String)ctx.getEnvironment().get(Context.PROVIDER_URL));
+      }
+      catch (NamingException ne)
+      {
+        LOG.log(Level.WARNING, "Could not find local server: "+ne, ne);
+        getUninstallUserData().setLocalServerUrl("ldap://localhost:389");
+      }
       replicationServerHostPort = loginDialog.getHostName() + ":" +
       conf.getReplicationServerPort();
 
@@ -1488,7 +1509,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     if (!stopProcessing && (exceptionMsgs.size() > 0))
     {
       Message confirmationMsg =
-        INFO_ERROR_READING_REGISTERED_SERVERS_CONFIRM.get(
+        INFO_ERROR_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
                 getStringFromCollection(exceptionMsgs, "n"));
       stopProcessing = !qs.displayConfirmation(confirmationMsg,
           INFO_CONFIRMATION_TITLE.get());
@@ -1502,8 +1523,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     if (!stopProcessing)
     {
       // Launch everything
-      lastLoadedCache = cache;
       getUninstallUserData().setUpdateRemoteReplication(true);
+      getUninstallUserData().setRemoteServers(cache.getServers());
       getUserData().setStopServer(true);
       qs.launch();
       qs.setCurrentStep(getNextWizardStep(Step.CONFIRM_UNINSTALL));
@@ -1535,7 +1556,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         getTrustManager().acceptCertificate(chain, authType, host);
         BackgroundTask worker = new BackgroundTask()
         {
-          public Object processBackgroundTask()throws TopologyCacheException
+          public Object processBackgroundTask() throws TopologyCacheException
           {
             cache.reloadTopology();
             return cache;
@@ -1590,14 +1611,16 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   }
 
   /**
-   * This method updates the replication in the remote servers.  It does not
-   * thrown any exception and works in a best effort mode.
+   * This method updates the replication in the remote servers.  It does
+   * throw ApplicationException if we are working on the force on error mode.
    * It also tries to delete the server registration entry from the remote ADS
    * servers.
+   * @throws ApplicationException if we are not working on force on error mode
+   * and there is an error.
    */
-  private void removeRemoteServerReferences()
+  private void removeRemoteServerReferences() throws ApplicationException
   {
-    Set<ServerDescriptor> servers = lastLoadedCache.getServers();
+    Set<ServerDescriptor> servers = getUninstallUserData().getRemoteServers();
     Map<ADSContext.ServerProperty, Object> serverADSProperties = null;
     for (ServerDescriptor server : servers)
     {
@@ -1631,9 +1654,12 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * we want to remove references to the server that we are trying to uninstall.
    * @param serverADSProperties the Map with the ADS properties of the server
    * that we are trying to uninstall.
+   * @throws ApplicationException if we are not working on force on error mode
+   * and there is an error.
    */
   private void removeReferences(ServerDescriptor server,
       Map<ADSContext.ServerProperty, Object> serverADSProperties)
+  throws ApplicationException
   {
     /* First check if the server must be updated based in the contents of the
      * ServerDescriptor object. */
@@ -1688,27 +1714,11 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       InitialLdapContext ctx = null;
       try
       {
-        String dn =
-          ADSContext.getAdministratorDN(loginDialog.getAdministratorUid());
-        String pwd = loginDialog.getAdministratorPwd();
+        String dn = ADSContext.getAdministratorDN(
+            getUninstallUserData().getAdminUID());
+        String pwd = getUninstallUserData().getAdminPwd();
         ctx = getRemoteConnection(server, dn, pwd, getTrustManager());
-        try
-        {
-          /*
-           * Search for the config to check that it is the directory manager.
-           */
-          SearchControls searchControls = new SearchControls();
-          searchControls.setCountLimit(1);
-          searchControls.setSearchScope(
-          SearchControls. OBJECT_SCOPE);
-          searchControls.setReturningAttributes(new String[] {"*"});
-          ctx.search("cn=config", "objectclass=*", searchControls);
-        }
-        catch (Throwable t)
-        {
-          System.out.println("FUCK: "+t);
-          t.printStackTrace();
-        }
+
         // Update replication servers and domains.  If the domain
         // is an ADS, then remove it from there.
         removeReferences(ctx, server.getHostPort(true), serverADSProperties);
@@ -1718,19 +1728,30 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       catch (ApplicationException ae)
       {
         errorOnRemoteOccurred = true;
-        Message html = getFormattedError(ae, true);
-        notifyListeners(html);
         LOG.log(Level.INFO, "Error updating replication references in: "+
             server.getHostPort(true), ae);
-      }
-      if (ctx != null)
-      {
-        try
+
+        if (getUninstallUserData().isForceOnError())
         {
-          ctx.close();
+          throw ae;
         }
-        catch (Throwable t)
+        else
         {
+          Message html = getFormattedError(ae, true);
+          notifyListeners(html);
+        }
+      }
+      finally
+      {
+        if (ctx != null)
+        {
+          try
+          {
+            ctx.close();
+          }
+          catch (Throwable t)
+          {
+          }
         }
       }
     }
@@ -1897,8 +1918,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       // Compare the port of the URL we used.
       try
       {
-        String usedUrl = (String)
-        loginDialog.getContext().getEnvironment().get(Context.PROVIDER_URL);
+        String usedUrl = getUninstallUserData().getLocalServerUrl();
         boolean isSecure = usedUrl.toLowerCase().startsWith("ldaps");
         URI uri = new URI(usedUrl);
         int port = uri.getPort();

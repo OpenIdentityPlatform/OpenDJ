@@ -27,52 +27,32 @@
 
 package org.opends.guitools.statuspanel;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.net.ssl.KeyManager;
 import javax.swing.table.TableModel;
 
-import org.opends.admin.ads.util.ApplicationKeyManager;
-import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.guitools.statuspanel.ui.DatabasesTableModel;
 import org.opends.guitools.statuspanel.ui.ListenersTableModel;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.QuickSetupLog;
 import static org.opends.quicksetup.util.Utils.*;
 
+import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode;
+import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.core.DirectoryServer;
-
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
-import org.opends.server.util.PasswordReader;
-import org.opends.server.util.SelectableCertificateKeyManager;
-import org.opends.server.util.ServerConstants;
 import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.ArgumentParser;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.FileBasedArgument;
-import org.opends.server.util.args.StringArgument;
 
 /**
  * The class used to provide some CLI interface to display status.
@@ -81,73 +61,17 @@ import org.opends.server.util.args.StringArgument;
  * in the command line.
  *
  */
-class StatusCli
+class StatusCli extends SecureConnectionCliParser
 {
-  private static String LINE_SEPARATOR = System.getProperty("line.separator");
-
   private String[] args;
 
   private boolean displayMustAuthenticateLegend;
   private boolean displayMustStartLegend;
 
   /**
-   * The 'trustAllArg' global argument.
-   */
-  private BooleanArgument trustAllArg = null;
-
-  /**
-   * The 'trustStore' global argument.
-   */
-  private StringArgument trustStorePathArg = null;
-
-  /**
-   * The 'trustStorePassword' global argument.
-   */
-  private StringArgument trustStorePasswordArg = null;
-
-  /**
-   * The 'trustStorePasswordFile' global argument.
-   */
-  private FileBasedArgument trustStorePasswordFileArg = null;
-
-  /**
-   * The 'keyStore' global argument.
-   */
-  private StringArgument keyStorePathArg = null;
-
-  /**
-   * The 'keyStorePassword' global argument.
-   */
-  private StringArgument keyStorePasswordArg = null;
-
-  /**
-   * The 'keyStorePasswordFile' global argument.
-   */
-  private FileBasedArgument keyStorePasswordFileArg = null;
-
-  /**
-   * The 'certNicknameArg' global argument.
-   */
-  private StringArgument certNicknameArg = null;
-
-  /**
    * The Logger.
    */
   static private final Logger LOG = Logger.getLogger(StatusCli.class.getName());
-
-
-  /**
-   * Return code: Uninstall successful.
-   */
-  static int SUCCESSFUL = 0;
-  /**
-   * Return code: User provided invalid data.
-   */
-  static int USER_DATA_ERROR = 1;
-  /**
-   * Return code: Bug.
-   */
-  static int BUG = 2;
 
   /**
    * The main method which is called by the status command lines.
@@ -166,19 +90,9 @@ class StatusCli
    */
   StatusCli(String[] args)
   {
-    /* Ignore the first 4 arguments */
-    if ((args != null) && (args.length >= 4))
-    {
-      this.args = new String[args.length - 4];
-      for (int i=0; i<this.args.length; i++)
-      {
-        this.args[i] = args[i+4];
-      }
-    }
-    else
-    {
-      this.args = args;
-    }
+    super(org.opends.guitools.statuspanel.StatusCli.class.getName(),
+        INFO_STATUS_CLI_USAGE_DESCRIPTION.get(), false);
+    this.args = args;
     DirectoryServer.bootstrapClient();
   }
 
@@ -190,219 +104,46 @@ class StatusCli
    */
   int run()
   {
-    int returnValue = SUCCESSFUL;
-
-    ArrayList<Message> errors = new ArrayList<Message>();
-
-    String directoryManagerPwd = null;
-    String directoryManagerPwdFile = null;
-    String directoryManagerDn = null;
-
-    ArgumentParser argParser =
-            new ArgumentParser(StatusPanelLauncher.class.getName(),
-                    INFO_STATUS_CLI_USAGE_DESCRIPTION.get(), false);
-    BooleanArgument showUsage;
-    BooleanArgument useSSLArg;
-    BooleanArgument startTLSArg;
-    StringArgument bindDN;
-    StringArgument bindPW;
-    FileBasedArgument bindPWFile;
-
-    String scriptName;
-    if (isWindows()) {
-      scriptName = Installation.WINDOWS_STATUSCLI_FILE_NAME;
-    } else {
-      scriptName = Installation.UNIX_STATUSCLI_FILE_NAME;
-    }
-    System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
     try
     {
-      useSSLArg = new BooleanArgument("useSSL", OPTION_SHORT_USE_SSL,
-          OPTION_LONG_USE_SSL, INFO_DESCRIPTION_USE_SSL.get());
-      argParser.addArgument(useSSLArg);
-
-      startTLSArg = new BooleanArgument("startTLS", OPTION_SHORT_START_TLS,
-          OPTION_LONG_START_TLS,
-          INFO_DESCRIPTION_START_TLS.get());
-      argParser.addArgument(startTLSArg);
-
-      bindDN = new StringArgument("binddn", OPTION_SHORT_BINDDN,
-          OPTION_LONG_BINDDN, false, false, true,
-          OPTION_VALUE_BINDDN, "cn=Directory Manager", null,
-          INFO_STOPDS_DESCRIPTION_BINDDN.get());
-      argParser.addArgument(bindDN);
-
-      bindPW = new StringArgument("bindpw", OPTION_SHORT_BINDPWD,
-          OPTION_LONG_BINDPWD, false, false,
-          true,
-          OPTION_VALUE_BINDPWD, null, null,
-          INFO_STOPDS_DESCRIPTION_BINDPW.get());
-      argParser.addArgument(bindPW);
-
-      bindPWFile = new FileBasedArgument("bindpwfile",
-          OPTION_SHORT_BINDPWD_FILE,
-          OPTION_LONG_BINDPWD_FILE,
-          false, false,
-          OPTION_VALUE_BINDPWD_FILE,
-          null, null,
-          INFO_STOPDS_DESCRIPTION_BINDPWFILE.get());
-      argParser.addArgument(bindPWFile);
-
-      trustAllArg = new BooleanArgument("trustAll", 'X', "trustAll",
-          INFO_DESCRIPTION_TRUSTALL.get());
-      argParser.addArgument(trustAllArg);
-
-      trustStorePathArg = new StringArgument("trustStorePath",
-          OPTION_SHORT_TRUSTSTOREPATH, OPTION_LONG_TRUSTSTOREPATH, false,
-          false, true, OPTION_VALUE_TRUSTSTOREPATH, null, null,
-          INFO_DESCRIPTION_TRUSTSTOREPATH.get());
-      argParser.addArgument(trustStorePathArg);
-
-      trustStorePasswordArg = new StringArgument("trustStorePassword", null,
-          OPTION_LONG_TRUSTSTORE_PWD, false, false, true,
-          OPTION_VALUE_TRUSTSTORE_PWD, null, null,
-          INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get());
-      argParser.addArgument(trustStorePasswordArg);
-
-      trustStorePasswordFileArg =
-        new FileBasedArgument("truststorepasswordfile",
-          OPTION_SHORT_TRUSTSTORE_PWD_FILE, OPTION_LONG_TRUSTSTORE_PWD_FILE,
-          false, false, OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
-          INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get());
-      argParser.addArgument(trustStorePasswordFileArg);
-
-      keyStorePathArg = new StringArgument("keyStorePath",
-          OPTION_SHORT_KEYSTOREPATH, OPTION_LONG_KEYSTOREPATH, false, false,
-          true, OPTION_VALUE_KEYSTOREPATH, null, null,
-          INFO_DESCRIPTION_KEYSTOREPATH.get());
-      argParser.addArgument(keyStorePathArg);
-
-      keyStorePasswordArg = new StringArgument("keyStorePassword", null,
-          OPTION_LONG_KEYSTORE_PWD, false, false, true,
-          OPTION_VALUE_KEYSTORE_PWD, null, null,
-          INFO_DESCRIPTION_KEYSTOREPASSWORD.get());
-      argParser.addArgument(keyStorePasswordArg);
-
-      keyStorePasswordFileArg = new FileBasedArgument("keystorepasswordfile",
-          OPTION_SHORT_KEYSTORE_PWD_FILE, OPTION_LONG_KEYSTORE_PWD_FILE, false,
-          false, OPTION_VALUE_KEYSTORE_PWD_FILE, null, null,
-          INFO_DESCRIPTION_KEYSTOREPASSWORD_FILE.get());
-      argParser.addArgument(keyStorePasswordFileArg);
-
-      certNicknameArg = new StringArgument("certnickname", 'N', "certNickname",
-          false, false, true, "{nickname}", null, null,
-          INFO_DESCRIPTION_CERT_NICKNAME.get());
-      argParser.addArgument(certNicknameArg);
-
-      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
-          OPTION_LONG_HELP,
-          INFO_DESCRIPTION_USAGE.get());
-      argParser.addArgument(showUsage);
-      argParser.setUsageArgument(showUsage);
+      initializeGlobalOption(System.err);
+      removeGlobalArgument(portArg);
+      removeGlobalArgument(hostNameArg);
+      removeGlobalArgument(verboseArg);
     }
     catch (ArgumentException ae)
     {
       Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       System.err.println(wrap(message));
-      return BUG;
+      return DsFrameworkCliReturnCode.ERROR_UNEXPECTED.getReturnCode();
     }
 
+    // Validate user provided data
     try
     {
-      argParser.parseArguments(args);
-      directoryManagerDn = bindDN.getValue();
-      directoryManagerPwd = bindPW.getValue();
-      directoryManagerPwdFile = bindPWFile.getValue();
+      parseArguments(args);
     }
     catch (ArgumentException ae)
     {
       Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-
       System.err.println(wrap(message));
-      System.err.println(argParser.getUsage());
-      return USER_DATA_ERROR;
+      System.err.println(getUsage());
+
+      return DsFrameworkCliReturnCode.ERROR_PARSING_ARGS.getReturnCode();
     }
 
     //  If we should just display usage or version information,
     // then print it and exit.
-    if (argParser.usageOrVersionDisplayed())
+    if (usageOrVersionDisplayed())
     {
-      return SUCCESSFUL;
+      return DsFrameworkCliReturnCode.SUCCESSFUL_NOP.getReturnCode();
     }
+    int v = validateGlobalOption(System.err);
 
-    if ((directoryManagerPwdFile != null) && (directoryManagerPwd != null))
+    if (v != DsFrameworkCliReturnCode.SUCCESSFUL_NOP.getReturnCode())
     {
-      errors.add(wrap(INFO_CLI_STATUS_PWD_AND_PWD_FILE_PROVIDED.get()));
-    }
-    else
-    {
-      if (directoryManagerPwd != null && directoryManagerPwd.equals("-"))
-      {
-        // read the password from stdin.
-        try
-        {
-          System.out.print(INFO_CLI_STATUS_LDAPAUTH_PASSWORD_PROMPT.get(
-                  directoryManagerDn));
-          char[] pwChars = PasswordReader.readPassword();
-          directoryManagerPwd = new String(pwChars);
-        } catch(Exception ex)
-        {
-          errors.add(Message.raw(ex.getMessage()));
-        }
-      }
-      if (directoryManagerPwdFile != null)
-      {
-        directoryManagerPwd = readPwdFromFile(directoryManagerPwdFile);
-        if (directoryManagerPwd == null)
-        {
-          errors.add(wrap(INFO_CLI_STATUS_ERROR_READING_PWD_FILE.get(
-                  directoryManagerPwdFile)));
-        }
-      }
-    }
-
-    // Couldn't have at the same time trustAll and
-    // trustStore related arg
-    if (trustAllArg.isPresent() && trustStorePathArg.isPresent())
-    {
-      errors.add(ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(),
-          trustStorePathArg.getLongIdentifier()));
-    }
-    if (trustAllArg.isPresent() && trustStorePasswordArg.isPresent())
-    {
-      errors.add(ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(),
-          trustStorePasswordArg.getLongIdentifier()));
-    }
-    if (trustAllArg.isPresent() && trustStorePasswordFileArg.isPresent())
-    {
-      errors.add(ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(),
-          trustStorePasswordFileArg.getLongIdentifier()));
-    }
-
-    // Couldn't have at the same time trustStorePasswordArg and
-    // trustStorePasswordFileArg
-    if (trustStorePasswordArg.isPresent()
-        && trustStorePasswordFileArg.isPresent())
-    {
-      errors.add(ERR_TOOL_CONFLICTING_ARGS.get(trustStorePasswordArg
-          .getLongIdentifier(), trustStorePasswordFileArg.getLongIdentifier()));
-    }
-
-    // Couldn't have at the same time startTLSArg and
-    // useSSLArg
-    if (startTLSArg.isPresent()
-        && useSSLArg.isPresent())
-    {
-      errors.add(ERR_TOOL_CONFLICTING_ARGS.get(startTLSArg.getLongIdentifier(),
-          useSSLArg.getLongIdentifier()));
-    }
-    if (errors.size() > 0)
-    {
-      System.err.println(getMessageFromCollection(errors,
-          LINE_SEPARATOR+LINE_SEPARATOR).toString());
-      System.err.println();
-      System.err.println(argParser.getUsage());
-      returnValue = USER_DATA_ERROR;
+      System.err.println(getUsage());
+      return v;
     }
     else
     {
@@ -414,13 +155,13 @@ class StatusCli
       ConfigFromFile offLineConf = new ConfigFromFile();
       offLineConf.readConfiguration();
 
-      ServerStatusDescriptor desc = createServerStatusDescriptor(
-      directoryManagerDn, directoryManagerPwd);
-
       try
       {
         if (isServerRunning)
         {
+          String directoryManagerDn = getBindDN();
+          String directoryManagerPwd = getBindPassword(directoryManagerDn,
+              System.out, System.err);
           if (directoryManagerDn == null)
           {
             directoryManagerDn = "";
@@ -429,6 +170,8 @@ class StatusCli
           {
             directoryManagerPwd = "";
           }
+          ServerStatusDescriptor desc = createServerStatusDescriptor(
+              directoryManagerDn, directoryManagerPwd);
           ConfigFromLDAP onLineConf = new ConfigFromLDAP();
           ConnectionProtocolPolicy policy;
           if (startTLSArg.isPresent())
@@ -446,15 +189,16 @@ class StatusCli
           onLineConf.setConnectionInfo(offLineConf, policy, directoryManagerDn,
               directoryManagerPwd, getTrustManager());
           onLineConf.readConfiguration();
-          // TO COMPLETE: check the certificates
           updateDescriptorWithOnLineInfo(desc, onLineConf);
+          writeStatus(desc);
         }
         else
         {
+          ServerStatusDescriptor desc = createServerStatusDescriptor(null,
+              null);
           updateDescriptorWithOffLineInfo(desc, offLineConf);
+          writeStatus(desc);
         }
-
-        writeStatus(desc);
       }
       catch (ConfigException ce)
       {
@@ -462,39 +206,7 @@ class StatusCli
       }
     }
 
-    return returnValue;
-  }
-
-  /**
-   * Returns the password stored in a file.  Returns <CODE>null</CODE> if no
-   * password is found.
-   * @param path the path of the file containing the password.
-   * @return the password stored in a file.  Returns <CODE>null</CODE> if no
-   * password is found.
-   */
-  private String readPwdFromFile(String path)
-  {
-    String pwd = null;
-    BufferedReader reader = null;
-    try
-    {
-      reader = new BufferedReader(new FileReader(path));
-      pwd = reader.readLine();
-    }
-    catch (Exception e)
-    {
-    }
-    finally
-    {
-      try
-      {
-        if (reader != null)
-        {
-          reader.close();
-        }
-      } catch (Exception e) {}
-    }
-    return pwd;
+    return DsFrameworkCliReturnCode.SUCCESSFUL_NOP.getReturnCode();
   }
 
   private ServerStatusDescriptor createServerStatusDescriptor(String dn,
@@ -1204,165 +916,6 @@ class StatusCli
     }
     return centered;
   }
-
-  /**
-   * Handle TrustStore.
-   *
-   * @return The trustStore manager to be used for the command.
-   */
- public ApplicationTrustManager getTrustManager()
- {
-   ApplicationTrustManager truststoreManager = null ;
-   KeyStore truststore = null ;
-   if (trustAllArg.isPresent())
-   {
-     // Running a null TrustManager  will force createLdapsContext and
-     // createStartTLSContext to use a bindTrustManager.
-     return null ;
-   }
-   else
-   if (trustStorePathArg.isPresent())
-   {
-     try
-     {
-       FileInputStream fos = new FileInputStream(trustStorePathArg.getValue());
-       String trustStorePasswordStringValue = null;
-       char[] trustStorePasswordValue = null;
-       if (trustStorePasswordArg.isPresent())
-       {
-         trustStorePasswordStringValue = trustStorePasswordArg.getValue();
-       }
-       else if (trustStorePasswordFileArg.isPresent())
-       {
-         trustStorePasswordStringValue = trustStorePasswordFileArg.getValue();
-       }
-
-       if (trustStorePasswordStringValue !=  null)
-       {
-         trustStorePasswordStringValue = System
-             .getProperty("javax.net.ssl.trustStorePassword");
-       }
-
-
-       if (trustStorePasswordStringValue !=  null)
-       {
-         trustStorePasswordValue = trustStorePasswordStringValue.toCharArray();
-       }
-
-       truststore = KeyStore.getInstance(KeyStore.getDefaultType());
-       truststore.load(fos, trustStorePasswordValue);
-       fos.close();
-     }
-     catch (KeyStoreException e)
-     {
-       // Nothing to do: if this occurs we will systematically refuse the
-       // certificates.  Maybe we should avoid this and be strict, but we are
-       // in a best effor mode.
-       LOG.log(Level.WARNING, "Error with the truststore", e);
-     }
-     catch (NoSuchAlgorithmException e)
-     {
-       // Nothing to do: if this occurs we will systematically refuse the
-       // certificates.  Maybe we should avoid this and be strict, but we are
-       // in a best effor mode.
-       LOG.log(Level.WARNING, "Error with the truststore", e);
-     }
-     catch (CertificateException e)
-     {
-       // Nothing to do: if this occurs we will systematically refuse the
-       // certificates.  Maybe we should avoid this and be strict, but we are
-       // in a best effor mode.
-       LOG.log(Level.WARNING, "Error with the truststore", e);
-     }
-     catch (IOException e)
-     {
-       // Nothing to do: if this occurs we will systematically refuse the
-       // certificates.  Maybe we should avoid this and be strict, but we are
-       // in a best effor mode.
-       LOG.log(Level.WARNING, "Error with the truststore", e);
-     }
-   }
-   truststoreManager = new ApplicationTrustManager(truststore);
-   return truststoreManager;
- }
-
- /**
-  * Handle KeyStore.
-  *
-  * @return The keyStore manager to be used for the command.
-  */
- public KeyManager getKeyManager()
- {
-   KeyStore keyStore = null;
-   String keyStorePasswordValue = null;
-   if (keyStorePathArg.isPresent())
-   {
-     try
-     {
-       FileInputStream fos = new FileInputStream(keyStorePathArg.getValue());
-       if (keyStorePasswordArg.isPresent())
-       {
-         keyStorePasswordValue = keyStorePasswordArg.getValue();
-       }
-       else if (keyStorePasswordFileArg.isPresent())
-       {
-         keyStorePasswordValue = keyStorePasswordFileArg.getValue();
-       }
-       keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-       keyStore.load(fos, keyStorePasswordValue.toCharArray());
-     }
-     catch (KeyStoreException e)
-     {
-       // Nothing to do: if this occurs we will systematically refuse
-       // the
-       // certificates. Maybe we should avoid this and be strict, but
-       // we are
-       // in a best effor mode.
-       LOG.log(Level.WARNING, "Error with the keystore", e);
-     }
-     catch (NoSuchAlgorithmException e)
-     {
-       // Nothing to do: if this occurs we will systematically refuse
-       // the
-       // certificates. Maybe we should avoid this and be strict, but
-       // we are
-       // in a best effor mode.
-       LOG.log(Level.WARNING, "Error with the keystore", e);
-     }
-     catch (CertificateException e)
-     {
-       // Nothing to do: if this occurs we will systematically refuse
-       // the
-       // certificates. Maybe we should avoid this and be strict, but
-       // we are
-       // in a best effor mode.
-       LOG.log(Level.WARNING, "Error with the keystore", e);
-     }
-     catch (IOException e)
-     {
-       // Nothing to do: if this occurs we will systematically refuse
-       // the
-       // certificates. Maybe we should avoid this and be strict, but
-       // we are
-       // in a best effor mode.
-       LOG.log(Level.WARNING, "Error with the keystore", e);
-     }
-     ApplicationKeyManager akm = new ApplicationKeyManager(keyStore,
-         keyStorePasswordValue.toCharArray());
-     if (certNicknameArg.isPresent())
-     {
-       return new SelectableCertificateKeyManager(akm, certNicknameArg
-           .getValue());
-     }
-     else
-     {
-       return akm;
-     }
-   }
-   else
-   {
-     return null;
-   }
- }
 }
+
 

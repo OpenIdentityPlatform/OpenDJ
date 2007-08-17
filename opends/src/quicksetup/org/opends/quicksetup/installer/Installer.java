@@ -4021,12 +4021,13 @@ public abstract class Installer extends GuiApplication {
           if (lastLogMsg == null)
           {
             errorMsg = INFO_ERROR_DURING_INITIALIZATION_NO_LOG.get(
-                    sourceServerDisplay, state);
+                    sourceServerDisplay, state, sourceServerDisplay);
           }
           else
           {
             errorMsg = INFO_ERROR_DURING_INITIALIZATION_LOG.get(
-                    sourceServerDisplay, lastLogMsg, state);
+                    sourceServerDisplay, lastLogMsg, state,
+                    sourceServerDisplay);
           }
 
           if (helper.isCompletedWithErrors(state))

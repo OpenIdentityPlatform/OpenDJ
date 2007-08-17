@@ -149,6 +149,17 @@ public class Installation {
   public static final String WINDOWS_UNINSTALL_FILE_NAME = "uninstall.bat";
 
   /**
+   * The UNIX uninstall script file name.
+   */
+  public static final String UNIX_UNINSTALL_GUI_FILE_NAME = "uninstall-gui";
+
+  /**
+   * The Windows uninstall batch file name.
+   */
+  public static final String WINDOWS_UNINSTALL_GUI_FILE_NAME =
+    "uninstall-gui.bat";
+
+  /**
    * The UNIX upgrade script file name.
    */
   public static final String UNIX_UPGRADE_FILE_NAME = "upgrade";

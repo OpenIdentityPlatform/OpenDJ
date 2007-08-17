@@ -558,8 +558,7 @@ StatusPanelButtonListener
         getFormattedProgressWithLineBreak(INFO_PROGRESS_STARTING.get()));
 
     ArrayList<String> argList = new ArrayList<String>();
-    Installation installation =
-            new Installation(Utils.getInstallPathFromClasspath());
+    Installation installation = Installation.getLocal();
     argList.add(Utils.getPath(installation.getServerStartCommandFile()));
 
     String[] args = new String[argList.size()];
@@ -678,8 +677,7 @@ StatusPanelButtonListener
         getFormattedProgressWithLineBreak(INFO_PROGRESS_STOPPING.get()));
 
     ArrayList<String> argList = new ArrayList<String>();
-    Installation installation =
-            new Installation(Utils.getInstallPathFromClasspath());
+    Installation installation = Installation.getLocal();
     argList.add(Utils.getPath(installation.getServerStopCommandFile()));
     String[] args = new String[argList.size()];
     argList.toArray(args);

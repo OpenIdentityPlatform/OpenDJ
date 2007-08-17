@@ -27,6 +27,8 @@
 
 package org.opends.guitools.uninstaller;
 
+import org.opends.admin.ads.ServerDescriptor;
+import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.quicksetup.UserData;
 
 import java.util.Set;
@@ -46,6 +48,14 @@ public class UninstallUserData extends UserData {
   private boolean removeLDIFs;
   private boolean removeConfigurationAndSchema;
   private boolean updateRemoteReplication;
+  private ApplicationTrustManager trustManager =
+    new ApplicationTrustManager(null);
+  private String adminUID;
+  private String adminPwd;
+  private String referencedHostName;
+  private String localServerUrl;
+  private HashSet<ServerDescriptor> remoteServers =
+    new HashSet<ServerDescriptor>();
 
   /**
    * Sets the database directories located outside the installation which must
@@ -227,5 +237,109 @@ public class UninstallUserData extends UserData {
   public boolean getUpdateRemoteReplication()
   {
     return updateRemoteReplication;
+  }
+
+  /**
+   * Returns the trust manager that can be used to establish secure connections.
+   * @return the trust manager that can be used to establish secure connections.
+   */
+  public ApplicationTrustManager getTrustManager() {
+    return trustManager;
+  }
+
+  /**
+   * Sets the trust manager that can be used to establish secure connections.
+   * @param trustManager the trust manager that can be used to establish secure
+   * connections.
+   */
+  public void setTrustManager(ApplicationTrustManager trustManager) {
+    this.trustManager = trustManager;
+  }
+
+  /**
+   * Returns the administrator password provided by the user.
+   * @return the administrator password provided by the user.
+   */
+  public String getAdminPwd() {
+    return adminPwd;
+  }
+
+  /**
+   * Sets the administrator password provided by the user.
+   * @param adminPwd the administrator password provided by the user.
+   */
+  public void setAdminPwd(String adminPwd) {
+    this.adminPwd = adminPwd;
+  }
+
+  /**
+   * Returns the administrator UID provided by the user.
+   * @return the administrator UID provided by the user.
+   */
+  public String getAdminUID() {
+    return adminUID;
+  }
+
+  /**
+   * Sets the administrator UID provided by the user.
+   * @param adminUID the administrator UID provided by the user.
+   */
+  public void setAdminUID(String adminUID) {
+    this.adminUID = adminUID;
+  }
+
+  /**
+   * Returns the referenced host name provided by the user.
+   * @return the referenced host name provided by the user.
+   */
+  public String getReferencedHostName() {
+    return referencedHostName;
+  }
+
+  /**
+   * Sets the referenced host name provided by the user.
+   * @param referencedHostName the referenced host name provided by the user.
+   */
+  public void setReferencedHostName(String referencedHostName) {
+    this.referencedHostName = referencedHostName;
+  }
+
+  /**
+   * Returns the LDAP URL that we used to connect to the local server.
+   * @return the LDAP URL that we used to connect to the local server.
+   */
+  public String getLocalServerUrl() {
+    return localServerUrl;
+  }
+
+  /**
+   * Sets the LDAP URL that we used to connect to the local server.
+   * @param localServerUrl the LDAP URL that we used to connect to the local
+   * server.
+   */
+  public void setLocalServerUrl(String localServerUrl) {
+    this.localServerUrl = localServerUrl;
+  }
+
+  /**
+   * Returns a Set containing the ServerDescriptors discovered in the
+   * TopologyCache.
+   * @return a Set containing the ServerDescriptors discovered in the
+   * TopologyCache.
+   */
+  public Set<ServerDescriptor> getRemoteServers()
+  {
+    return new HashSet<ServerDescriptor>(remoteServers);
+  }
+
+  /**
+   * Sets the ServerDescriptors discovered in the TopologyCache.
+   * @param remoteServers the Set containing the ServerDescriptors discovered in
+   * the TopologyCache.
+   */
+  public void setRemoteServers(Set<ServerDescriptor> remoteServers)
+  {
+    this.remoteServers.clear();
+    this.remoteServers.addAll(remoteServers);
   }
 }

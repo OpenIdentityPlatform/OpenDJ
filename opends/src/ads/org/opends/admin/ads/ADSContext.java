@@ -191,6 +191,9 @@ public class ADSContext
     }
   };
 
+  /** Default global admin UID. */
+  public static final String GLOBAL_ADMIN_UID = "admin";
+
   private static HashMap<String, ServerProperty> nameToServerProperty = null;
 
   /**
@@ -1219,7 +1222,7 @@ public class ADSContext
     oc.add("top");
     oc.add("person");
     attrs.put(oc);
-    attrs.put("sn", "admin");
+    attrs.put("sn", GLOBAL_ADMIN_UID);
     if (adminProperties.containsKey(AdministratorProperty.DESCRIPTION))
     {
       attrs.put("description", adminProperties

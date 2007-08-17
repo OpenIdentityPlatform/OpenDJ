@@ -40,9 +40,10 @@ import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.ui.GuiApplication;
+import org.opends.quicksetup.util.Utils;
 
 import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.quicksetup.util.Utils.*;
+
 
 import java.io.PrintStream;
 import java.io.ByteArrayOutputStream;
@@ -683,25 +684,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    */
   protected String getStringRepresentation(TopologyCacheException e)
   {
-    MessageBuilder buf = new MessageBuilder();
-
-    String ldapUrl = e.getLdapUrl();
-    if (ldapUrl != null)
-    {
-      String hostName = ldapUrl.substring(ldapUrl.indexOf("://") + 3);
-      buf.append(INFO_SERVER_ERROR.get(hostName));
-      buf.append(" ");
-    }
-    if (e.getCause() instanceof NamingException)
-    {
-      buf.append(getThrowableMsg(INFO_BUG_MSG.get(), e.getCause()));
-    }
-    else
-    {
-      // This is unexpected.
-      buf.append(getThrowableMsg(INFO_BUG_MSG.get(), e.getCause()));
-    }
-    return buf.toString();
+    return Utils.getStringRepresentation(e);
   }
 
   /**

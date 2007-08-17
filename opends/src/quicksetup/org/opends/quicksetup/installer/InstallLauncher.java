@@ -291,8 +291,7 @@ public class InstallLauncher extends Launcher {
     newArgList.add("--configClass");
     newArgList.add("org.opends.server.extensions.ConfigFileHandler");
     newArgList.add("--configFile");
-    Installation installation =
-            new Installation(Utils.getInstallPathFromClasspath());
+    Installation installation = Installation.getLocal();
     newArgList.add(Utils.getPath(installation.getCurrentConfigurationFile()));
 
     String[] newArgs = new String[newArgList.size()];

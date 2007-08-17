@@ -381,13 +381,13 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       public Object processBackgroundTask() throws UserDataException {
         try
         {
-          String rootDirectory;
+          Installation installation;
           if (isWebStart()) {
-            rootDirectory = application.getUserData().getServerLocation();
+            installation =
+              new Installation(application.getUserData().getServerLocation());
           } else {
-            rootDirectory = getInstallPathFromClasspath();
+            installation = Installation.getLocal();
           }
-          Installation installation = new Installation(rootDirectory);
           String cmd = getPath(installation.getStatusPanelCommandFile());
           ProcessBuilder pb = new ProcessBuilder(cmd);
           Map<String, String> env = pb.environment();

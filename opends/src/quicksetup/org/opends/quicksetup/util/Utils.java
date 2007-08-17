@@ -48,6 +48,7 @@ import javax.naming.ldap.LdapName;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.TrustManager;
 
+import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.webstart.JnlpProperties;
@@ -662,6 +663,35 @@ public class Utils
       mb.append("  ").append(tag.get(detail));
     }
     return mb.toMessage();
+  }
+
+  /**
+   * Gets a localized representation of the provide TopologyCacheException.
+   * @param te the exception.
+   * @return a localized representation of the provide TopologyCacheException.
+   */
+  public static String getStringRepresentation(TopologyCacheException te)
+  {
+    MessageBuilder buf = new MessageBuilder();
+
+    String ldapUrl = te.getLdapUrl();
+    if (ldapUrl != null)
+    {
+      String hostName = ldapUrl.substring(ldapUrl.indexOf("://") + 3);
+      buf.append(INFO_SERVER_ERROR.get(hostName));
+      buf.append(" ");
+    }
+    if (te.getCause() instanceof NamingException)
+    {
+      buf.append(getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(),
+          te.getCause()));
+    }
+    else
+    {
+      // This is unexpected.
+      buf.append(getThrowableMsg(INFO_BUG_MSG.get(), te.getCause()));
+    }
+    return buf.toString();
   }
 
   /**

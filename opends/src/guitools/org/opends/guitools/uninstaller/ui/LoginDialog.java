@@ -552,7 +552,8 @@ public class LoginDialog extends JDialog
           else
           {
             // This is a bug
-            throwable.printStackTrace();
+            LOG.log(Level.SEVERE, "Unexpected throwable: "+throwable,
+                throwable);
             displayError(
                 Utils.getThrowableMsg(INFO_BUG_MSG.get(), throwable),
                 INFO_ERROR_TITLE.get());

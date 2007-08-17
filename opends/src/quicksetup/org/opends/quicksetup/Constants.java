@@ -27,6 +27,8 @@
 
 package org.opends.quicksetup;
 
+import org.opends.admin.ads.ADSContext;
+
 /**
  * Defines common constants.
  */
@@ -73,7 +75,7 @@ public class Constants {
   public static final String DIRECTORY_MANAGER_DN = "cn=Directory Manager";
 
   /** Default global admin UID. */
-  public static final String GLOBAL_ADMIN_UID = "admin";
+  public static final String GLOBAL_ADMIN_UID = ADSContext.GLOBAL_ADMIN_UID;
   /** These HTML tags cause a line break in formatted text. */
   public static final String[] BREAKING_TAGS = {
           HTML_LINE_BREAK,
