@@ -50,8 +50,8 @@ import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.ServerSideSortResponseControl;
 import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.controls.VLVResponseControl;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.Base64;
+import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.PasswordReader;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -1588,7 +1588,7 @@ public class LDAPSearch
       if (initializeServer)
       {
         // Bootstrap and initialize directory data structures.
-        DirectoryServer.bootstrapClient();
+        EmbeddedUtils.initializeForClientUse();
       }
 
       // Connect to the specified host with the supplied userDN and password.

@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -67,6 +66,7 @@ import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
 import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.util.ChangeRecordEntry;
+import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ModifyChangeRecordEntry;
@@ -1128,7 +1128,7 @@ public class LDAPModify
       if (initializeServer)
       {
         // Bootstrap and initialize directory data structures.
-        DirectoryServer.bootstrapClient();
+        EmbeddedUtils.initializeForClientUse();
       }
 
       // Connect to the specified host with the supplied userDN and password.

@@ -37,7 +37,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.controls.PasswordPolicyWarningType;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
@@ -49,6 +48,7 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.types.DN;
 import org.opends.server.types.NullOutputStream;
+import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -535,7 +535,7 @@ public class LDAPPasswordModify
     // Perform a basic Directory Server bootstrap if appropriate.
     if (initializeServer)
     {
-      DirectoryServer.bootstrapClient();
+      EmbeddedUtils.initializeForClientUse();
     }
 
 
