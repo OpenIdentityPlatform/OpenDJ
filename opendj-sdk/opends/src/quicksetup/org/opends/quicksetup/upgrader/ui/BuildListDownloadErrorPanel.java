@@ -89,7 +89,7 @@ class BuildListDownloadErrorPanel extends JPanel {
     Message html =
             INFO_UPGRADE_CHOOSE_VERSION_BUILD_LIST_ERROR.get(baseContext,
                     reason.getLocalizedMessage(),
-                    proxyString);
+                    proxyString, baseContext);
 
     /* This helps with debugger the HTML rendering
     StringBuffer content = new StringBuffer();

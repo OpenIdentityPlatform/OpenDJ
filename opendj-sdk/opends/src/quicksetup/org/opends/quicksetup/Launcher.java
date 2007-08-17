@@ -262,7 +262,7 @@ public abstract class Launcher {
   /**
    * Prints the version statement to standard output terminal.
    */
-  private void printVersion()
+  protected void printVersion()
   {
     System.out.print(PRINTABLE_VERSION_STRING);
   }

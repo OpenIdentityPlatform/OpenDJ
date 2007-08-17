@@ -113,8 +113,7 @@ public class ConfigFromFile
     LDIFReader reader = null;
     try
     {
-      Installation installation =
-              new Installation(Utils.getInstallPathFromClasspath());
+      Installation installation = Installation.getLocal();
       LDIFImportConfig c = new LDIFImportConfig(
           Utils.getPath(installation.getCurrentConfigurationFile()));
       reader = new LDIFReader(c);

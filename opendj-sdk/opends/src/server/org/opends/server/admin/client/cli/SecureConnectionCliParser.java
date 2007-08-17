@@ -175,8 +175,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
     Logger.getLogger(SecureConnectionCliParser.class.getName());
 
   /**
-   * Creates a new instance of this subcommand argument parser with no
-   * arguments.
+   * Creates a new instance of this argument parser with no arguments.
    *
    * @param mainClassName
    *          The fully-qualified name of the Java class that should
@@ -292,6 +291,32 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
         return null;
       }
     }
+  }
+
+  /**
+   * Get the password which has to be used for the command without prompting
+   * the user.  If no password was specified, return null.
+   *
+   * @return The password stored into the specified file on by the
+   *         command line argument, or null it if not specified.
+   */
+  public String getBindPassword()
+  {
+    String pwd;
+    if (bindPasswordArg.isPresent())
+    {
+      pwd = bindPasswordArg.getValue();
+    }
+    else
+    if (bindPasswordFileArg.isPresent())
+    {
+      pwd = bindPasswordFileArg.getValue();
+    }
+    else
+    {
+      pwd = null;
+    }
+    return pwd;
   }
 
   /**
@@ -435,10 +460,11 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
   /**
    * Indication if provided global options are validate.
    *
-   * @param err the stream to be used to print error message.
+   * @param buf the MessageBuilder to write the error messages.
    * @return return code.
    */
-  public int validateGlobalOption(PrintStream err) {
+  public int validateGlobalOption(MessageBuilder buf)
+  {
     ArrayList<Message> errors = new ArrayList<Message>();
     // Couldn't have at the same time bindPassword and bindPasswordFile
     if (bindPasswordArg.isPresent() && bindPasswordFileArg.isPresent()) {
@@ -491,7 +517,6 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
 
     if (errors.size() > 0)
     {
-      MessageBuilder buf = new MessageBuilder();
       for (Message error : errors)
       {
         if (buf.length() > 0)
@@ -500,11 +525,26 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
         }
         buf.append(error);
       }
-      err.println(wrapText(buf.toString(), MAX_LINE_WIDTH));
       return CONFLICTING_ARGS.getReturnCode();
     }
 
     return SUCCESSFUL_NOP.getReturnCode();
+  }
+  /**
+   * Indication if provided global options are validate.
+   *
+   * @param err the stream to be used to print error message.
+   * @return return code.
+   */
+  public int validateGlobalOption(PrintStream err)
+  {
+    MessageBuilder buf = new MessageBuilder();
+    int returnValue = validateGlobalOption(buf);
+    if (buf.length() > 0)
+    {
+      err.println(wrapText(buf.toString(), MAX_LINE_WIDTH));
+    }
+    return returnValue;
   }
 
   /**

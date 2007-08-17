@@ -258,12 +258,16 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     Message text;
     if (ce.getType() == UserDataCertificateException.Type.NOT_TRUSTED)
     {
-      text = INFO_CERTIFICATE_NOT_TRUSTED_TEXT.get(ce.getHost(),
-          String.valueOf(ce.getPort()));
+      text = INFO_CERTIFICATE_NOT_TRUSTED_TEXT.get(
+          ce.getHost(), String.valueOf(ce.getPort()),
+          ce.getHost(), String.valueOf(ce.getPort()));
     }
     else
     {
       text = INFO_CERTIFICATE_NAME_MISMATCH_TEXT.get(
+              ce.getHost(), String.valueOf(ce.getPort()),
+              ce.getHost(),
+              ce.getHost(), String.valueOf(ce.getPort()),
               ce.getHost(), String.valueOf(ce.getPort()));
     }
     JPanel p = UIFactory.makeJPanel();
@@ -292,7 +296,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
               mb.toString(), UIFactory.INSTRUCTIONS_FONT);
       MessageBuilder mb2 = new MessageBuilder();
       mb2.append(text);
-      mb2.append(INFO_CERTIFICATE_SHOW_DETAILS_TEXT.get());
+      mb2.append(INFO_CERTIFICATE_HIDE_DETAILS_TEXT.get());
       explanationWithHideDetails = UIFactory.applyFontToHtml(
               mb2.toString(), UIFactory.INSTRUCTIONS_FONT);
 
@@ -530,6 +534,36 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     return c;
   }
 
+  /**
+   * Returns the string representation for the date from which the certificate
+   * is valid.
+   * @param cert the certificate object.
+   * @return the string representation for the date from which the certificate
+   * is valid.
+   */
+  public static String getValidFrom(X509Certificate cert)
+  {
+    String s;
+    Date date = cert.getNotBefore();
+    DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT,
+    DateFormat.SHORT);
+    String value = df.format(date);
+    boolean isNotValidYet = false;
+    long t1 = System.currentTimeMillis();
+    long t2 = date.getTime();
+    isNotValidYet = t1 < t2;
+
+    if (isNotValidYet)
+    {
+     s = INFO_CERTIFICATE_NOT_VALID_YET.get(value).toString();
+    }
+    else
+    {
+      s = value;
+    }
+    return s;
+  }
+
   private JComponent createExpiresOnComponent(X509Certificate cert)
   {
     JComponent c;
@@ -556,6 +590,36 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     return c;
   }
 
+  /**
+   * Returns the string representation for the date from which the certificate
+   * is expired.
+   * @param cert the certificate object.
+   * @return the string representation for the date from which the certificate
+   * is expired.
+   */
+  public static String getExpiresOn(X509Certificate cert)
+  {
+    String s;
+    Date date = cert.getNotAfter();
+    DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT,
+    DateFormat.SHORT);
+    String value = df.format(date);
+    boolean isExpired = false;
+    long t1 = System.currentTimeMillis();
+    long t2 = date.getTime();
+    isExpired = t1 > t2;
+
+    if (isExpired)
+    {
+     s = INFO_CERTIFICATE_EXPIRED.get(value).toString();
+    }
+    else
+    {
+      s = value;
+    }
+    return s;
+  }
+
   private JComponent createTypeComponent(X509Certificate cert)
   {
     Message type = Message.raw(cert.getType());
@@ -568,7 +632,15 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     return makeValueLabel(serialNumber);
   }
 
-  private JComponent createSignatureComponent(X509Certificate cert)
+
+  /**
+   * Returns the string representation using hexadecimal addresses of the
+   * signature of a given certificate.
+   * @param cert the certificate object.
+   * @return the string representation using hexadecimal addresses of the
+   * signature of a given certificate.
+   */
+  public static Message getSignature(X509Certificate cert)
   {
     byte[] sig = cert.getSignature();
     MessageBuilder sb = new MessageBuilder();
@@ -580,7 +652,12 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
       }
       sb.append(Integer.toHexString(((int) sig[i]) & 0xFF));
     }
-    return UIFactory.makeTextPane(sb.toMessage(),
+    return sb.toMessage();
+  }
+
+  private JComponent createSignatureComponent(X509Certificate cert)
+  {
+    return UIFactory.makeTextPane(getSignature(cert),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
   }
 

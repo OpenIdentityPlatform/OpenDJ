@@ -336,8 +336,7 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
         Boolean isServerRunning = Boolean.TRUE;
         try
         {
-          String installPath = getInstallPathFromClasspath();
-          Installation installation = new Installation(installPath);
+          Installation installation = Installation.getLocal();
           int port = installation.getCurrentConfiguration().getPort();
           String ldapUrl = "ldap://localhost:"+port;
           InitialLdapContext ctx =

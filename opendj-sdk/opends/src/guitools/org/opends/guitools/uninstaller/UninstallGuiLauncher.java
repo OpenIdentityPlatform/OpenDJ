@@ -22,25 +22,28 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.uninstaller;
 
-import static org.opends.messages.AdminToolMessages.*;
-import org.opends.messages.Message;
-import org.opends.messages.ToolMessages;
+import static org.opends.messages.ToolMessages.INFO_DESCRIPTION_SHOWUSAGE;
+import static org.opends.server.tools.ToolConstants.OPTION_LONG_HELP;
+import static org.opends.server.tools.ToolConstants.OPTION_SHORT_HELP;
 
 import java.io.File;
 import java.util.logging.Logger;
-import org.opends.quicksetup.CliApplication;
-import org.opends.quicksetup.Launcher;
+
+import org.opends.quicksetup.ApplicationReturnCode;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.util.Utils;
+import org.opends.messages.AdminToolMessages;
+import org.opends.messages.ToolMessages;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
+import org.opends.server.util.args.BooleanArgument;
 
 /**
  * This class is called by the uninstall command lines to launch the uninstall
@@ -48,16 +51,16 @@ import org.opends.server.util.args.ArgumentParser;
  * environment and determines whether the graphical or the command line
  * based uninstall much be launched.
  */
-public class UninstallLauncher extends Launcher {
+public class UninstallGuiLauncher extends UninstallLauncher {
 
   /** Prefix for log files. */
-  static public final String LOG_FILE_PREFIX = "opends-uninstall-";
+  static public final String LOG_FILE_PREFIX = "opends-uninstall-cli-";
 
   /** Suffix for log files. */
   static public final String LOG_FILE_SUFFIX = ".log";
 
   static private final Logger LOG =
-          Logger.getLogger(UninstallLauncher.class.getName());
+          Logger.getLogger(UninstallGuiLauncher.class.getName());
 
   /**
    * The main method which is called by the uninstall command lines.
@@ -76,28 +79,26 @@ public class UninstallLauncher extends Launcher {
       System.err.println("Unable to initialize log");
       t.printStackTrace();
     }
-    new UninstallLauncher(args).launch();
+    new UninstallGuiLauncher(args).launch();
   }
 
-  private UninstallerArgumentParser argParser;
+  private ArgumentParser argParser;
 
   /**
    * Creates a launcher.
    *
    * @param args the arguments passed by the command lines.
    */
-  public UninstallLauncher(String[] args) {
+  public UninstallGuiLauncher(String[] args) {
     super(args);
 
     String scriptName;
     if (Utils.isWindows()) {
-      scriptName = Installation.WINDOWS_UNINSTALL_FILE_NAME;
+      scriptName = Installation.WINDOWS_UNINSTALL_GUI_FILE_NAME;
     } else {
-      scriptName = Installation.UNIX_UNINSTALL_FILE_NAME;
+      scriptName = Installation.UNIX_UNINSTALL_GUI_FILE_NAME;
     }
     System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
-
-    initializeParser();
   }
 
   /**
@@ -105,17 +106,22 @@ public class UninstallLauncher extends Launcher {
    */
   protected void initializeParser()
   {
-    argParser = new UninstallerArgumentParser(getClass().getName(),
-        INFO_UNINSTALL_LAUNCHER_USAGE_DESCRIPTION.get(), false);
+    argParser = new ArgumentParser(getClass().getName(),
+        AdminToolMessages.INFO_UNINSTALL_LAUNCHER_USAGE_DESCRIPTION.get(),
+        false);
     try
     {
-      argParser.initializeGlobalOption(System.err);
+      BooleanArgument showUsageArg = new BooleanArgument("showUsage",
+          OPTION_SHORT_HELP,
+          OPTION_LONG_HELP, INFO_DESCRIPTION_SHOWUSAGE.get());
+      argParser.addArgument(showUsageArg);
+      argParser.setUsageArgument(showUsageArg);
+      argParser.parseArguments(args);
     }
     catch (ArgumentException ae)
     {
-      Message message =
-        ToolMessages.ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-      System.err.println(org.opends.server.util.StaticUtils.wrapText(message,
+      System.err.println(org.opends.server.util.StaticUtils.wrapText(
+          ToolMessages.ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()),
           Utils.getCommandLineMaxLineWidth()));
     }
   }
@@ -123,23 +129,45 @@ public class UninstallLauncher extends Launcher {
   /**
    * {@inheritDoc}
    */
-  protected boolean isCli() {
-    return true;
+  public void launch() {
+    if (shouldPrintVersion())
+    {
+      if (!argParser.usageOrVersionDisplayed())
+      {
+        printVersion();
+      }
+      System.exit(ApplicationReturnCode.ReturnCode.PRINT_VERSION
+          .getReturnCode());
+    }
+    else if (shouldPrintUsage()) {
+      if (!argParser.usageOrVersionDisplayed())
+      {
+        printUsage(false);
+      }
+      System.exit(ApplicationReturnCode.ReturnCode.SUCCESSFUL.getReturnCode());
+    } else {
+      willLaunchGui();
+      int exitCode = launchGui(args);
+      if (exitCode != 0) {
+        File logFile = QuickSetupLog.getLogFile();
+        if (logFile != null)
+        {
+          guiLaunchFailed(logFile.toString());
+        }
+        else
+        {
+          guiLaunchFailed(null);
+        }
+        System.exit(exitCode);
+      }
+    }
   }
 
   /**
    * {@inheritDoc}
    */
-  protected void guiLaunchFailed(String logFilePath) {
-    if (logFilePath != null)
-    {
-      System.err.println(INFO_UNINSTALL_LAUNCHER_GUI_LAUNCHED_FAILED_DETAILS
-              .get(logFilePath));
-    }
-    else
-    {
-      System.err.println(INFO_UNINSTALL_LAUNCHER_GUI_LAUNCHED_FAILED.get());
-    }
+  protected boolean isCli() {
+    return false;
   }
 
   /**
@@ -148,28 +176,4 @@ public class UninstallLauncher extends Launcher {
   public ArgumentParser getArgumentParser() {
     return this.argParser;
   }
-
-  /**
-   * {@inheritDoc}
-   */
-  protected void willLaunchGui() {
-    System.out.println(INFO_UNINSTALL_LAUNCHER_LAUNCHING_GUI.get());
-    System.setProperty("org.opends.quicksetup.Application.class",
-            org.opends.guitools.uninstaller.Uninstaller.class.getName());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  protected CliApplication createCliApplication() {
-    return new Uninstaller();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  protected Message getFrameTitle() {
-    return INFO_FRAME_UNINSTALL_TITLE.get();
-  }
-
 }

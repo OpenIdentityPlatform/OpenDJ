@@ -1028,8 +1028,7 @@ public class ArgumentParser
       }
     }
     buffer.append(EOL);
-
-    buffer.append("             where {options} include:");
+    buffer.append(INFO_SUBCMDPARSER_WHERE_OPTIONS_INCLUDE.get());
     buffer.append(EOL);
 
     // --version is a builtin option

@@ -63,7 +63,7 @@ import org.opends.server.core.DirectoryServer;
  * it is allowed to re-use subcommand-specific options for different purposes
  * between different subcommands.
  */
-public class SubCommandArgumentParser
+public class SubCommandArgumentParser extends ArgumentParser
 {
   // The argument that will be used to trigger the display of usage information.
   private Argument usageArgument;
@@ -138,6 +138,7 @@ public class SubCommandArgumentParser
   public SubCommandArgumentParser(String mainClassName, Message toolDescription,
                                   boolean longArgumentsCaseSensitive)
   {
+    super(mainClassName, toolDescription, longArgumentsCaseSensitive);
     this.mainClassName              = mainClassName;
     this.toolDescription            = toolDescription;
     this.longArgumentsCaseSensitive = longArgumentsCaseSensitive;
@@ -1496,7 +1497,7 @@ public class SubCommandArgumentParser
    * @return  A string containing usage information based on the defined
    *          arguments.
    */
-  public Message getUsage()
+  public String getUsage()
   {
     MessageBuilder buffer = new MessageBuilder();
 
@@ -1513,7 +1514,7 @@ public class SubCommandArgumentParser
       getSubCommandUsage(buffer, subCommand);
     }
 
-    return buffer.toMessage();
+    return buffer.toMessage().toString();
   }
 
 
@@ -1607,9 +1608,10 @@ public class SubCommandArgumentParser
   }
 
 
-
-  // Get default usage.
-  private void getUsage(OutputStream outputStream)
+  /**
+   * {@inheritDoc}
+   */
+  public void getUsage(OutputStream outputStream)
       throws IOException {
     outputStream.write(getBytes(String.valueOf(getUsage())));
   }
@@ -1636,20 +1638,29 @@ public class SubCommandArgumentParser
     buffer.append("  ");
     buffer.append(scriptName);
 
-    buffer.append(" {subcommand} {options}");
-
-    buffer.append(EOL);
-    buffer.append(EOL);
-
-    if (c.isEmpty())
+    if (subCommands.isEmpty())
     {
-      buffer.append(INFO_SUBCMDPARSER_SUBCMD_HELP_HEADING.get());
+      buffer.append(" "+INFO_SUBCMDPARSER_OPTIONS.get());
     }
     else
     {
-      buffer.append(INFO_SUBCMDPARSER_SUBCMD_HEADING.get());
+      buffer.append(" "+INFO_SUBCMDPARSER_SUBCMD_AND_OPTIONS.get());
     }
-    buffer.append(EOL);
+
+    if (!subCommands.isEmpty())
+    {
+      buffer.append(EOL);
+      buffer.append(EOL);
+      if (c.isEmpty())
+      {
+        buffer.append(INFO_SUBCMDPARSER_SUBCMD_HELP_HEADING.get());
+      }
+      else
+      {
+        buffer.append(INFO_SUBCMDPARSER_SUBCMD_HEADING.get());
+      }
+      buffer.append(EOL);
+    }
 
     if (c.isEmpty()) {
       // Display usage arguments (except the default one).
@@ -1691,8 +1702,16 @@ public class SubCommandArgumentParser
     buffer.append(EOL);
 
     if (showGlobalOptions) {
-      buffer.append(INFO_SUBCMDPARSER_GLOBAL_HEADING.get());
-      buffer.append(EOL);
+      if (subCommands.isEmpty())
+      {
+        buffer.append(INFO_SUBCMDPARSER_WHERE_OPTIONS_INCLUDE.get());
+        buffer.append(EOL);
+      }
+      else
+      {
+        buffer.append(INFO_SUBCMDPARSER_GLOBAL_HEADING.get());
+        buffer.append(EOL);
+      }
 
       // --version is a builtin option
       boolean dashVAccepted = true;

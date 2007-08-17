@@ -46,6 +46,7 @@ import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.quicksetup.util.Utils;
 
 import org.opends.messages.Message;
+import org.opends.messages.QuickSetupMessages;
 import static org.opends.messages.AdminToolMessages.*;
 
 /**
@@ -209,7 +210,16 @@ public class ConfigFromLDAP
       {
         detail = ne.toString();
       }
-      errorMessage = INFO_ERROR_READING_CONFIG_LDAP.get(detail);
+      if (Utils.isCertificateException(ne))
+      {
+        errorMessage =
+          QuickSetupMessages.INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE.get(
+              detail);
+      }
+      else
+      {
+        errorMessage = INFO_ERROR_READING_CONFIG_LDAP.get(detail);
+      }
     }
     catch (Throwable t)
     {
