@@ -72,7 +72,7 @@ if "%~1" == "" goto callLaunch
 goto callJava
 
 :callLaunch
-"%DIR_HOME%\lib\winlauncher.exe" launch "%JAVA_BIN%" %JAVA_ARGS% org.opends.guitools.uninstaller.UninstallLauncher
+"%DIR_HOME%\lib\winlauncher.exe" launch "%JAVA_BIN%" %JAVA_ARGS% org.opends.guitools.uninstaller.UninstallGuiLauncher
 goto end
 
 :callJava
