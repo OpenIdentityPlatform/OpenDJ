@@ -45,7 +45,7 @@ import java.lang.reflect.Field;
  * MessageDescriptorRegistry Tester.
  *
  */
-public class MessageDescriptorRegistryTest
+public class MessageDescriptorRegistryTest extends MessagesTestCase
 {
 
   @DataProvider(name = "message descriptors")
