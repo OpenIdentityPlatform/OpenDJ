@@ -134,9 +134,10 @@ public enum Category {
   QUICKSETUP(0x01000000),
 
   /**
-   * The category used for messages associated with the status panel.
+   * The category used for messages associated with the tool like the
+   * offline installer and unintaller.
    */
-  STATUS_PANEL(0x01100000),
+  ADMIN_TOOL(0x01100000),
 
   /**
    * The category that will be used for messages associated with

@@ -707,6 +707,10 @@
       <fileset dir="${msg.prop.dir}"/>
     </copy>
 
+    <!-- copy the message descriptor registry file -->
+    <copy todir="${classes.dir}/org/opends/messages"
+          file="${msg.javagen.dir}/org/opends/messages/descriptors.reg" />
+
     <!-- Generate the OpenDS.jar file -->
     <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
          basedir="${classes.dir}"
@@ -800,6 +804,10 @@
     <copy todir="${msg.package.dir}">
       <fileset dir="${msg.prop.dir}"/>
     </copy>
+
+    <!-- copy the message descriptor registry file -->
+    <copy todir="${classes.dir}/org/opends/messages"
+          file="${msg.javagen.dir}/org/opends/messages/descriptors.reg" />
 
     <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
          basedir="${classes.dir}" 
