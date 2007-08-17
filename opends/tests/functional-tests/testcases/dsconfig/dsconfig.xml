@@ -45,7 +45,10 @@
             file="'%s/testcases/dsconfig/dsconfig_list.xml' % (TESTS_DIR)"/>
           <call function="'dsconfig_list'" />
   
-         
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/dsconfig/dsconfig_get.xml' % (TESTS_DIR)"/>
+          <call function="'dsconfig_get'" />
+  
         </sequence>
      
       </block>

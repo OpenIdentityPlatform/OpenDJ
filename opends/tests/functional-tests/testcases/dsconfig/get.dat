@@ -1,0 +1,49 @@
+get-account-status-notification-handler-prop:handler-name:Error Log Handler:account-status-notification-type:notification-handler-class:
+get-attribute-syntax-prop:syntax-name:Absolute Subtree Specification:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Attribute Type Description:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Authentication Password:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Binary:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Bit String:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Boolean:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Certificate:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Certificate List:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Certificate Pair:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Country String:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Delivery Method:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Directory String:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Distinguished Name:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:DIT Content Rule Description:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:DIT Structure Rule Description:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Enhanced Guide:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Facsimile Telephone Number:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Fax:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Generalized Time:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Guide:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:IA5 String:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Integer:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:JPEG:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:LDAP Syntax Description:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Matching Rule Description:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Matching Rule Use Description:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Name and Optional UID:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Name Form Description:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Numeric String:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Object Class Description:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Object Identifier:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Octet String:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Other Mailbox:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Postal Address:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Presentation Address:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Printable String:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Protocol Information:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Relative Subtree Specification:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Substring Assertion:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Subtree Specification:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Sun-defined Access Control Information:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Supported Algorithm:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Telephone Number:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Teletex Terminal Identifier:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:Telex Number:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:User Password:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:UTC Time:enabled:syntax-class:
+get-attribute-syntax-prop:syntax-name:UUID:enabled:syntax-class:
