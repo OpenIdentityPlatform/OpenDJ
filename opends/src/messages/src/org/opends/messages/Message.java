@@ -30,7 +30,7 @@ package org.opends.messages;
 import java.util.Locale;
 import java.util.Formatter;
 import java.util.Formattable;
-import java.util.UnknownFormatConversionException;
+import java.util.IllegalFormatException;
 
 /**
  * Renders sensitive textural strings.  In most cases message are intended
@@ -57,6 +57,11 @@ public class Message implements CharSequence, Formattable, Comparable {
    * category of <code>Categore.USER_DEFINED</code> and a severity
    * of <code>Severity.INFORMATION</code>
    *
+   * Note that the types for <code>args</code> must be consistent with any
+   * argument specifiers appearing in <code>formatString</code> according
+   * to the rules of java.util.Formatter.  A mismatch in type information
+   * will cause this message to render without argument substitution.
+   *
    * Before using this method you should be sure that the message you
    * are creating is locale sensitive.  If so you should instead create
    * a formal message.
@@ -79,6 +84,11 @@ public class Message implements CharSequence, Formattable, Comparable {
    * Creates an uninternationalized message that will render itself
    * the same way regardless of the locale requested in
    * <code>toString(Locale)</code>.
+   *
+   * Note that the types for <code>args</code> must be consistent with any
+   * argument specifiers appearing in <code>formatString</code> according
+   * to the rules of java.util.Formatter.  A mismatch in type information
+   * will cause this message to render without argument substitution.
    *
    * Before using this method you should be sure that the message you
    * are creating is locale sensitive.  If so you should instead create
@@ -108,6 +118,12 @@ public class Message implements CharSequence, Formattable, Comparable {
   /**
    * Creates an uninternationalized message from the string representation
    * of an object.
+   *
+   * Note that the types for <code>args</code> must be consistent with any
+   * argument specifiers appearing in <code>formatString</code> according
+   * to the rules of java.util.Formatter.  A mismatch in type information
+   * will cause this message to render without argument substitution.
+   *
    * @param object from which the message will be created
    * @param arguments for message
    * @return a message object that will render the same in all locales;
@@ -147,8 +163,8 @@ public class Message implements CharSequence, Formattable, Comparable {
   }
 
   /**
-   * Gets the string representation of this message
-   * appropriate for <code>locale</code>.
+   * Gets the string representation of this message appropriate for
+   * <code>locale</code>.
    * @param locale for which the string representation
    *        will be returned
    * @return String representation of this message
@@ -159,8 +175,11 @@ public class Message implements CharSequence, Formattable, Comparable {
     if (needsFormatting(fmt)) {
       try {
         s = new Formatter(locale).format(locale, fmt, args).toString();
-      } catch (UnknownFormatConversionException e) {
-        s = fmt; // This shouldn't happen but just in case...
+      } catch (IllegalFormatException e) {
+        // This should not happend with any of our internal messages.
+        // However, this may happen for raw messages that have a
+        // mismatch between argument specifier type and argument type.
+        s = fmt;
       }
     } else {
       s = fmt;
