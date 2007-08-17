@@ -2342,7 +2342,7 @@ public abstract class Installer extends GuiApplication {
     adminProperties.put(ADSContext.AdministratorProperty.PASSWORD,
         getUserData().getGlobalAdministratorPassword());
     adminProperties.put(ADSContext.AdministratorProperty.DESCRIPTION,
-        INFO_GLOBAL_ADMINISTRATOR_DESCRIPTION.get());
+        INFO_GLOBAL_ADMINISTRATOR_DESCRIPTION.get().toString());
     return adminProperties;
   }
 
