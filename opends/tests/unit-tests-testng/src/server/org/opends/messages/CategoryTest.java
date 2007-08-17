@@ -34,7 +34,7 @@ import org.testng.annotations.*;
  * Category Tester.
  *
  */
-public class CategoryTest
+public class CategoryTest extends MessagesTestCase
 {
 
     @DataProvider(name = "messageDescriptors")

@@ -1093,7 +1093,7 @@
     </condition>
 
     <!-- do not run tests dependent upon creation of the .zip file -->
-    <condition property="test.packages" value="org.opends.server.*">
+    <condition property="test.packages" value="org.opends.server.*,org.opends.messages.*">
       <and>
         <not>
           <or>
@@ -1109,7 +1109,7 @@
     </condition>
  
     <!-- run tests dependent upon creation of the .zip file -->
-    <condition property="test.packages" value="org.opends.server.*,org.opends.quicksetup.*">
+    <condition property="test.packages" value="org.opends.server.*,org.opends.messages.*,org.opends.quicksetup.*">
       <and>
         <not>
           <or>

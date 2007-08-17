@@ -42,7 +42,7 @@ import java.io.FileOutputStream;
 /**
  * Message Tester.
  */
-public class MessageTest extends DirectoryServerTestCase {
+public class MessageTest extends MessagesTestCase {
 
   /** Locale for accessing a pseudo localized test messages file. */
   private static final Locale TEST_LOCALE = Locale.CHINA;
