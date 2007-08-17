@@ -288,7 +288,7 @@ public class PackageInfoTestCase
    *
    * @param  sourceDirectory  The directory for which to make the determination.
    */
-  @Test(enabled=false, dataProvider="adsSourceDirectories")
+  @Test(dataProvider="adsSourceDirectories")
   public void testADSPackageInfoExists(File sourceDirectory)
          throws Exception
   {
@@ -348,7 +348,7 @@ public class PackageInfoTestCase
    *
    * @param  sourceDirectory  The directory for which to make the determination.
    */
-  @Test(enabled=false, dataProvider="guiToolsSourceDirectories")
+  @Test(dataProvider="guiToolsSourceDirectories")
   public void testGUIToolsPackageInfoExists(File sourceDirectory)
          throws Exception
   {
