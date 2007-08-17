@@ -196,15 +196,15 @@ implements SortableTableModel, Comparator<ListenerDescriptor>
       switch (desc.getState())
       {
       case ENABLED:
-        v = INFO_ENABLED_LABEL.get();
+        v = INFO_ENABLED_LABEL.get().toString();
         break;
 
       case DISABLED:
-        v = INFO_DISABLED_LABEL.get();
+        v = INFO_DISABLED_LABEL.get().toString();
         break;
 
       case UNKNOWN:
-        v = INFO_UNKNOWN_LABEL.get();
+        v = INFO_UNKNOWN_LABEL.get().toString();
         break;
 
         default:
