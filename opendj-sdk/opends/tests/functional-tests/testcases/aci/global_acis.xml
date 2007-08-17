@@ -98,22 +98,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'sn' }
+                      'testString'         : 'sn' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'userpassword' }
+                      'testString'         : 'userpassword' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'checktestString'">
                     { 'returnString'       : returnString ,
                       'expectedString'     : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
@@ -162,13 +156,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'creatorsName' }
+                      'testString'         : 'creatorsName' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'checktestString'">
                     { 'returnString'       : returnString ,
                       'expectedString'     : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
@@ -233,58 +224,40 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'creatorsName:' }
+                      'testString'         : 'creatorsName:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'createTimestamp:' }
+                      'testString'         : 'createTimestamp:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryDN:' }
+                      'testString'         : 'entryDN:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'modifiersName:' }
+                      'testString'         : 'modifiersName:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'modifyTimestamp' }
+                      'testString'         : 'modifyTimestamp' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'subschemaSubentry:' }
+                      'testString'         : 'subschemaSubentry:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'checktestString'">
                     { 'returnString'       : returnString ,
                       'expectedString'     : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
@@ -334,13 +307,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'matchingRules:' }
+                      'testString'         : 'matchingRules:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'checktestString'">
                     { 'returnString'       : returnString ,
                       'expectedString'     : 'dn: cn=schema' }
@@ -390,58 +360,40 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeTypes:' }
+                      'testString'         : 'attributeTypes:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dITStructureRules:' }
+                      'testString'         : 'dITStructureRules:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'ldapSyntaxes:' }
+                      'testString'         : 'ldapSyntaxes:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'matchingRules:' }
+                      'testString'         : 'matchingRules:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'nameForms:' }
+                      'testString'         : 'nameForms:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'objectClasses:' }
+                      'testString'         : 'objectClasses:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'checktestString'">
                     { 'returnString'       : returnString ,
                       'expectedString'     : 'dn: cn=schema' }
@@ -491,13 +443,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'vendorName:' }
+                      'testString'         : 'vendorName:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'checktestString'">
                     { 'returnString'       : returnString ,
                       'expectedString'     : 'dn: ' }
@@ -547,76 +496,52 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'namingContexts:' }
+                      'testString'         : 'namingContexts:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'supportedAuthPasswordSchemes:' }
+                      'testString'         : 'supportedAuthPasswordSchemes:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'supportedControl:' }
+                      'testString'         : 'supportedControl:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'supportedExtension:' }
+                      'testString'         : 'supportedExtension:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'supportedFeatures:' }
+                      'testString'         : 'supportedFeatures:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'supportedSASLMechanisms:' }
+                      'testString'         : 'supportedSASLMechanisms:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'vendorName:' }
+                      'testString'         : 'vendorName:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'vendorVersion:' }
+                      'testString'         : 'vendorVersion:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'checktestString'">
                     { 'returnString'       : returnString ,
                       'expectedString'     : 'dn: ' }
@@ -701,22 +626,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'sn' }
+                      'testString'         : 'sn' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid' }
+                      'testString'         : 'uid' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'checktestString'">
                     { 'returnString'       : returnString ,
                       'expectedString'     : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
@@ -765,22 +684,16 @@
    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'sn' }
+                      'testString'         : 'sn' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid' }
+                      'testString'         : 'uid' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'checktestString'">
                     { 'returnString'       : returnString ,
                       'expectedString'     : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }

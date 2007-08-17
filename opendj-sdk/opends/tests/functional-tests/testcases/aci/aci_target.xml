@@ -112,13 +112,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Preamble - existing branch, user searching entry that will be non-targeted in future tests'
                 </message>
@@ -212,13 +209,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN, user searching non-targeted entry'
                 </message>
@@ -239,13 +233,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN, admin deleting aci'
                 </message>
@@ -354,13 +345,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=new aci branch,o=More Branches,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=new aci branch,o=More Branches,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN - new branch, user searching non-targeted entry'
                 </message>
@@ -380,13 +368,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=new non-aci branch,o=More Branches,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=new non-aci branch,o=More Branches,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN - new branch, admin deleting aci'
                 </message>
@@ -422,13 +407,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=new aci branch,o=More Branches,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=new aci branch,o=More Branches,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN - new branch, postamble admin deleting new entries'
                 </message>
@@ -516,13 +498,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with trailing wildcard, user searching non-targeted entry'
                 </message>
@@ -543,13 +522,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with trailing wildcard, admin deleting aci'
                 </message>
@@ -658,13 +634,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with leading wildcard, user searching non-targeted entry'
                 </message>
@@ -685,13 +658,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with leading wildcard, admin deleting aci'
                 </message>
@@ -800,13 +770,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with internal wildcard, user searching non-targeted entry'
                 </message>
@@ -827,13 +794,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with internal wildcard, admin deleting aci'
                 </message>
@@ -942,13 +906,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with multiple wildcards, user searching non-targeted entry'
                 </message>
@@ -969,13 +930,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with multiple wildcards, admin deleting aci'
                 </message>
@@ -1218,13 +1176,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Target: Target Equals DN Below Entry, user searching non-targeted entry'
               </message>
@@ -1245,13 +1200,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Target: Target Equals DN Below Entry, admin deleting aci'
               </message>
@@ -1711,22 +1663,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid: scarter' }
+                      'testString'         : 'uid: scarter' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <script>
                     curr_aci2="(targetattr=\"*\")(version 3.0; acl \"add_aci15\"; deny (search,read) userdn=\"ldap:///all\";)"
                 </script>
@@ -1770,13 +1716,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target enable and disable ACIs, disable ACIs' 
                 </message>
@@ -1816,22 +1759,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid: scarter' }
+                      'testString'         : 'uid: scarter' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target enable and disable ACIs, enable ACIs' 
                 </message>
@@ -1871,13 +1808,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: enable and disable ACIs, admin deleting aci'
                 </message>
@@ -1986,13 +1920,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target enable and disable global ACIs, disable ACIs' 
                 </message>
@@ -2032,22 +1963,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid: scarter' }
+                      'testString'         : 'uid: scarter' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target enable and disable global ACIs, enable ACIs' 
                 </message>
@@ -2160,13 +2085,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-   
                 <message>
                    'ACI: Target: Target Equals DN with userdn equals all, user searching targeted entry as anonymous user'
                 </message>
@@ -2185,13 +2107,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-   
                 <message>
                    'ACI: Target: Target Equals DN with userdn equals all, admin deleting aci'
                 </message>
@@ -2300,13 +2219,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-   
                 <message>
                    'ACI: Target: Target Equals DN with userdn equals anyone, user searching targeted entry as anonymous user'
                 </message>
@@ -2325,13 +2241,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-   
                 <message>
                    'ACI: Target: Target Equals DN with userdn equals anyone, admin deleting aci'
                 </message>
@@ -2440,13 +2353,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-   
                 <message>
                    'ACI: Target: Target Equals DN with userdn not equals all, user searching targeted entry as anonymous user'
                 </message>
@@ -2465,13 +2375,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-   
                 <message>
                    'ACI: Target: Target Equals DN with userdn not equals all, admin deleting aci'
                 </message>
@@ -2580,13 +2487,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-   
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self, user searching targeted entry as self'
                 </message>
@@ -2607,13 +2511,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-   
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self, admin deleting aci'
                 </message>
@@ -2722,13 +2623,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-   
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self with wildcard, user searching targeted entry as self'
                 </message>
@@ -2749,13 +2647,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-   
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self with wildcard, admin deleting aci'
                 </message>
@@ -2864,13 +2759,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-   
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self with wildcard and filter, user searching targeted entry as self'
                 </message>
@@ -2891,13 +2783,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-   
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self with wildcard and filter, admin deleting aci'
                 </message>
@@ -3006,13 +2895,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-   
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self with wildcard and filter, deny, user searching targeted entry as self'
                 </message>
@@ -3033,13 +2919,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-   
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self with wildcard and filter, deny, admin deleting aci'
                 </message>
@@ -3144,13 +3027,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-   
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self with wildcard and filter, allow and deny, user searching targeted entry as self'
                 </message>
@@ -3171,13 +3051,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-   
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self with wildcard and filter, allow and deny, admin deleting aci'
                 </message>
@@ -3431,7 +3308,20 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'creatorsName:' }
+                      'testString'         : 'creatorsName:' ,
+                      'expectedResult'     : '0' }
+                </call>
+                
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'createTimestamp:' ,
+                      'expectedResult'     : '0' }
+                </call>
+                
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'entryDN:' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
                 <if expr="returnCode != '0'">
@@ -3440,58 +3330,28 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'createTimestamp:' }
+                      'testString'         : 'modifiersName:' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryDN:' }
+                      'testString'         : 'modifyTimestamp' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'modifiersName:' }
+                      'testString'         : 'subschemaSubentry:' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'modifyTimestamp' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
-                <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'subschemaSubentry:' }
-                </call>
-                
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
-                <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
-                </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: search for operational attributes, user searching targeted entry'
                 </message>
@@ -3512,31 +3372,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'creatorsName:' }
+                      'testString'         : 'creatorsName:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'modifiersName:' }
+                      'testString'         : 'modifiersName:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: search for operational attributes, user searching targeted entry'
                 </message>
@@ -3557,67 +3408,46 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'creatorsName:' }
+                      'testString'         : 'creatorsName:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'createTimestamp:' }
+                      'testString'         : 'createTimestamp:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryDN:' }
+                      'testString'         : 'entryDN:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'modifiersName:' }
+                      'testString'         : 'modifiersName:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'modifyTimestamp' }
+                      'testString'         : 'modifyTimestamp' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'subschemaSubentry:' }
+                      'testString'         : 'subschemaSubentry:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: search for operational attributes, admin modifying entry'
                 </message>
@@ -3720,22 +3550,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=acarter' }
+                      'testString'         : 'dn: uid=acarter' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with comma, user searching non-targeted entry'
                 </message>
@@ -3756,22 +3580,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=acarter' }
+                      'testString'         : 'dn: uid=acarter' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with comma, admin deleting aci'
                 </message>
@@ -3880,13 +3698,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN, default targetattr, user searching non-targeted entry'
                 </message>
@@ -3907,13 +3722,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN, default targetattr, admin deleting aci'
                 </message>
@@ -3999,13 +3811,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Target: Postamble - existing branch, user searching entry that was non-targeted in past tests'
               </message>
@@ -4026,13 +3835,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                    'ACI: Target: Resetting Search Global ACI'
               </message>

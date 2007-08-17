@@ -109,13 +109,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetfilter: Preamble - user searching entry that will be non-targeted in future tests'
                 </message>
@@ -210,40 +207,28 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'roomnumber:' }
+                      'testString'         : 'roomnumber:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'telephonenumber:' }
+                      'testString'         : 'telephonenumber:' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetfilter: Targetfilter Equals One Statement, user searching non-targeted entry'
                 </message>
@@ -264,13 +249,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetfilter: Targetfilter Equals One Statement, user searching non-targeted entry outside of the scope of the aci'
                 </message>
@@ -291,13 +273,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetfilter: Targetfilter Equals One Statement, admin deleting aci'
                 </message>
@@ -409,40 +388,28 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'roomnumber:' }
+                      'testString'         : 'roomnumber:' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'telephonenumber:' }
+                      'testString'         : 'telephonenumber:' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetfilter: Targetfilter Equals One Statement, user searching non-targeted entry'
                 </message>
@@ -463,13 +430,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetfilter: Targetfilter Equals One Statement 2, user searching non-targeted entry outside of the scope of the aci'
                 </message>
@@ -490,13 +454,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetfilter: Targetfilter Equals One Statement 2, admin deleting aci'
                 </message>
@@ -605,40 +566,28 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'roomnumber:' }
+                      'testString'         : 'roomnumber:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'telephonenumber:' }
+                      'testString'         : 'telephonenumber:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetfilter: Targetfilter Equals One Statement 3, user searching non-targeted entry outside of the scope of the aci'
                 </message>
@@ -658,13 +607,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetfilter: Targetfilter Equals One Statement 3, admin deleting aci'
                 </message>
@@ -774,13 +720,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Not Equals One Statement, user searching non-targeted entry in ACI branch'
               </message>
@@ -801,40 +744,28 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'roomnumber:' }
+                    'testString'         : 'roomnumber:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'cn:' }
+                    'testString'         : 'cn:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephonenumber:' }
+                    'testString'         : 'telephonenumber:' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Not Equals One Statement, user searching non-targeted entry outside of the scope of the aci'
               </message>
@@ -855,13 +786,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Not Equals One Statement, admin deleting aci'
               </message>
@@ -972,40 +900,28 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'roomnumber:' }
+                    'testString'         : 'roomnumber:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'cn:' }
+                    'testString'         : 'cn:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephonenumber:' }
+                    'testString'         : 'telephonenumber:' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With or, one true, user searching non-targeted entry'
               </message>
@@ -1026,13 +942,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With or, one true, user searching non-targeted entry outside of the scope of the aci'
               </message>
@@ -1053,13 +966,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With or, one true, admin deleting aci'
               </message>
@@ -1170,13 +1080,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Not Equals Three Statements With or, one true, user searching non-targeted entry'
               </message>
@@ -1197,40 +1104,28 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'roomnumber:' }
+                    'testString'         : 'roomnumber:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'cn:' }
+                    'testString'         : 'cn:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephonenumber:' }
+                    'testString'         : 'telephonenumber:' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Not Equals Three Statements With or, one true, user searching non-targeted entry outside of the scope of the aci'
               </message>
@@ -1251,13 +1146,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Not Equals Three Statements With or, one true, admin deleting aci'
               </message>
@@ -1366,13 +1258,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With or, none true, user searching non-targeted entry outside of the scope of the aci'
               </message>
@@ -1393,13 +1282,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With or, none true, admin deleting aci'
               </message>
@@ -1509,13 +1395,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With and, one true, user searching non-targeted entry outside of the scope of the aci'
               </message>
@@ -1536,13 +1419,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With and, one true, admin deleting aci'
               </message>
@@ -1653,40 +1533,28 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'roomnumber:' }
+                    'testString'         : 'roomnumber:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'cn:' }
+                    'testString'         : 'cn:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephonenumber:' }
+                    'testString'         : 'telephonenumber:' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With and, all true, user searching non-targeted entry'
               </message>
@@ -1707,13 +1575,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With and, all true, user searching non-targeted entry outside of the scope of the aci'
               </message>
@@ -1734,13 +1599,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With and, all true, admin deleting aci'
               </message>
@@ -1851,13 +1713,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Not Equals Three Statements With and, all true, user searching non-targeted entry'
               </message>
@@ -1878,40 +1737,28 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'roomnumber:' }
+                    'testString'         : 'roomnumber:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'cn:' }
+                    'testString'         : 'cn:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephonenumber:' }
+                    'testString'         : 'telephonenumber:' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Not Equals Three Statements With and, all true, user searching non-targeted entry outside of the scope of the aci'
               </message>
@@ -1932,13 +1779,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Not Equals Three Statements With and, all true, admin deleting aci'
               </message>
@@ -2049,40 +1893,28 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'roomnumber:' }
+                    'testString'         : 'roomnumber:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'cn:' }
+                    'testString'         : 'cn:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephonenumber:' }
+                    'testString'         : 'telephonenumber:' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard and or, one true, user searching non-targeted entry'
               </message>
@@ -2103,13 +1935,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard and or, one true, user searching non-targeted entry outside of the scope of the aci'
               </message>
@@ -2130,13 +1959,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard and or, one true, admin deleting aci'
               </message>
@@ -2247,40 +2073,28 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'roomnumber:' }
+                    'testString'         : 'roomnumber:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'cn:' }
+                    'testString'         : 'cn:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephonenumber:' }
+                    'testString'         : 'telephonenumber:' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Two Wildcards and or, one true, user searching non-targeted entry'
               </message>
@@ -2301,13 +2115,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Two Wildcards and or, one true, user searching non-targeted entry outside of the scope of the aci'
               </message>
@@ -2328,13 +2139,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Two Wildcards and or, one true, admin deleting aci'
               </message>
@@ -2445,40 +2253,28 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'roomnumber:' }
+                    'testString'         : 'roomnumber:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'cn:' }
+                    'testString'         : 'cn:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephonenumber:' }
+                    'testString'         : 'telephonenumber:' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard With and, all true, user searching non-targeted entry'
               </message>
@@ -2499,13 +2295,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard With and, all true, user searching non-targeted entry outside of the scope of the aci'
               </message>
@@ -2526,13 +2319,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard With and, all true, admin deleting aci'
               </message>
@@ -2643,40 +2433,28 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'roomnumber:' }
+                    'testString'         : 'roomnumber:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'cn:' }
+                    'testString'         : 'cn:' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephonenumber:' }
+                    'testString'         : 'telephonenumber:' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Three Wildcards With and, all true, user searching non-targeted entry'
               </message>
@@ -2697,13 +2475,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Three Wildcards With and, all true, user searching non-targeted entry outside of the scope of the aci'
               </message>
@@ -2724,13 +2499,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Three Wildcards With and, all true, admin deleting aci'
               </message>
@@ -2838,13 +2610,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter With Extra Spaces, admin deleting aci'
               </message>
@@ -3195,13 +2964,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Postamble - user searching entry that was non-targeted'
               </message>
@@ -3222,13 +2988,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                    'expectedResult'     : '0' }
               </call>
               
-              <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                    'ACI: Targetfilter: Postamble - Resetting Search Global ACI'
               </message>
