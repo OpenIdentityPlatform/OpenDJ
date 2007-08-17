@@ -681,7 +681,7 @@ public class SecurityOptionsDialog extends JDialog
             ArrayList<Message> errorMsgs = new ArrayList<Message>();
             for (Object o: ar)
             {
-              errorMsgs.add(Message.raw((String)o));
+              errorMsgs.add((Message)o);
             }
             displayError(Utils.getMessageFromCollection(errorMsgs, "\n"),
                 INFO_ERROR_TITLE.get());
