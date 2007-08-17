@@ -29,7 +29,6 @@ package org.opends.quicksetup;
 
 import org.opends.messages.Message;
 import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.messages.AdminToolMessages.*;
 
 /**
  * This enumeration just represents the different steps that we can have in
