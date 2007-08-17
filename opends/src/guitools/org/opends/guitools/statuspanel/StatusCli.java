@@ -817,6 +817,10 @@ class StatusCli extends SecureConnectionCliParser
           {
             value = Message.raw((String)v);
           }
+          else if (v instanceof Message)
+          {
+            value = (Message)v;
+          }
           else if (v instanceof Integer)
           {
             int nEntries = ((Integer)v).intValue();
