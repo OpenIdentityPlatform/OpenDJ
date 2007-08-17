@@ -290,7 +290,7 @@ public class UIFactory
    * Specifies the invalid field color.
    */
   public static final Color FIELD_INVALID_COLOR =
-          getColor(INFO_FIELD_VALID_COLOR.get());
+          getColor(INFO_FIELD_INVALID_COLOR.get());
 
   /**
    * Specifies the read only text color.

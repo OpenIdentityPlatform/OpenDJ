@@ -498,6 +498,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     lServerLocation = UIFactory.makeJLabel(desc);
     tfServerLocationParent = UIFactory.makeJTextComponent(desc, "");
     lServerLocation.setLabelFor(tfServerLocationParent);
+    hmLabels.put(FieldName.SERVER_LOCATION, lServerLocation);
 
     desc =
         new LabelFieldDescriptor(INFO_SERVER_LOCATION_LABEL.get(),
