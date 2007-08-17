@@ -347,6 +347,9 @@ public class DirectoryServer
   // Indicates whether the server has been bootstrapped.
   private boolean isBootstrapped;
 
+  // Indicates whether the server has been bootstrapped for client use.
+  private boolean isClientBootstrapped;
+
   // Indicates whether the server is currently online.
   private boolean isRunning;
 
@@ -723,6 +726,7 @@ public class DirectoryServer
   {
     environmentConfig        = config;
     isBootstrapped           = false;
+    isClientBootstrapped     = false;
     isRunning                = false;
     shuttingDown             = false;
     lockdownMode             = false;
@@ -825,94 +829,103 @@ public class DirectoryServer
    */
   public static void bootstrapClient()
   {
-    // Set default values for variables that may be needed during schema
-    // processing.
-    directoryServer.syntaxEnforcementPolicy = AcceptRejectWarn.REJECT;
+    synchronized (directoryServer)
+    {
+      if (directoryServer.isClientBootstrapped)
+      {
+        return;
+      }
 
 
-    // Create the server schema and initialize and register a minimal set of
-    // matching rules and attribute syntaxes.
-    directoryServer.schema = new Schema();
-    directoryServer.bootstrapMatchingRules();
-    directoryServer.bootstrapAttributeSyntaxes();
+      // Set default values for variables that may be needed during schema
+      // processing.
+      directoryServer.syntaxEnforcementPolicy = AcceptRejectWarn.REJECT;
 
 
-    // Perform any additional initialization that might be necessary before
-    // loading the configuration.
-    directoryServer.alertHandlers = new CopyOnWriteArrayList<AlertHandler>();
-    directoryServer.passwordStorageSchemes =
-         new ConcurrentHashMap<String,PasswordStorageScheme>();
-    directoryServer.passwordGenerators =
-         new ConcurrentHashMap<DN,PasswordGenerator>();
-    directoryServer.authPasswordStorageSchemes =
-         new ConcurrentHashMap<String,PasswordStorageScheme>();
-    directoryServer.passwordValidators =
-         new ConcurrentHashMap<DN,
-              PasswordValidator<? extends PasswordValidatorCfg>>();
-    directoryServer.accountStatusNotificationHandlers =
-         new ConcurrentHashMap<DN,AccountStatusNotificationHandler>();
-    directoryServer.rootDNs = new CopyOnWriteArraySet<DN>();
-    directoryServer.alternateRootBindDNs = new ConcurrentHashMap<DN,DN>();
-    directoryServer.keyManagerProviders =
-         new ConcurrentHashMap<DN,KeyManagerProvider>();
-    directoryServer.trustManagerProviders =
-         new ConcurrentHashMap<DN,TrustManagerProvider>();
-    directoryServer.rotationPolicies =
-         new ConcurrentHashMap<DN, RotationPolicy>();
-    directoryServer.retentionPolicies =
-         new ConcurrentHashMap<DN, RetentionPolicy>();
-    directoryServer.certificateMappers =
-         new ConcurrentHashMap<DN,CertificateMapper>();
-    directoryServer.passwordPolicies =
-         new ConcurrentHashMap<DN,PasswordPolicyConfig>();
-    directoryServer.defaultPasswordPolicyDN = null;
-    directoryServer.defaultPasswordPolicyConfig = null;
-    directoryServer.monitorProviders =
-         new ConcurrentHashMap<String,
-                               MonitorProvider<? extends MonitorProviderCfg>>();
-    directoryServer.backends = new TreeMap<String,Backend>();
-    directoryServer.offlineBackendsStateIDs =
-         new ConcurrentHashMap<String,Long>();
-    directoryServer.backendInitializationListeners =
-         new CopyOnWriteArraySet<BackendInitializationListener>();
-    directoryServer.baseDNs = new TreeMap<DN,Backend>();
-    directoryServer.publicNamingContexts = new TreeMap<DN,Backend>();
-    directoryServer.privateNamingContexts = new TreeMap<DN,Backend>();
-    directoryServer.changeNotificationListeners =
-         new CopyOnWriteArrayList<ChangeNotificationListener>();
-    directoryServer.persistentSearches =
-         new CopyOnWriteArrayList<PersistentSearch>();
-    directoryServer.shutdownListeners =
-         new CopyOnWriteArrayList<ServerShutdownListener>();
-    directoryServer.synchronizationProviders =
-         new CopyOnWriteArrayList<SynchronizationProvider
-                                 <SynchronizationProviderCfg>>();
-    directoryServer.supportedControls = new TreeSet<String>();
-    directoryServer.supportedFeatures = new TreeSet<String>();
-    directoryServer.virtualAttributes =
-         new CopyOnWriteArrayList<VirtualAttributeRule>();
-    directoryServer.connectionHandlers =
-         new CopyOnWriteArrayList<ConnectionHandler>();
-    directoryServer.identityMappers =
-         new ConcurrentHashMap<DN,IdentityMapper>();
-    directoryServer.extendedOperationHandlers =
-         new ConcurrentHashMap<String,ExtendedOperationHandler>();
-    directoryServer.saslMechanismHandlers =
-         new ConcurrentHashMap<String,SASLMechanismHandler>();
-    directoryServer.authenticatedUsers = new AuthenticatedUsers();
-    directoryServer.offlineSchemaChanges = new LinkedList<Modification>();
-    directoryServer.backupTaskListeners =
-         new CopyOnWriteArrayList<BackupTaskListener>();
-    directoryServer.restoreTaskListeners =
-         new CopyOnWriteArrayList<RestoreTaskListener>();
-    directoryServer.exportTaskListeners =
-         new CopyOnWriteArrayList<ExportTaskListener>();
-    directoryServer.importTaskListeners =
-         new CopyOnWriteArrayList<ImportTaskListener>();
-    directoryServer.allowedTasks = new LinkedHashSet<String>(0);
-    directoryServer.disabledPrivileges = new LinkedHashSet<Privilege>(0);
-    directoryServer.returnBindErrorMessages = false;
-    directoryServer.idleTimeLimit = 0L;
+      // Create the server schema and initialize and register a minimal set of
+      // matching rules and attribute syntaxes.
+      directoryServer.schema = new Schema();
+      directoryServer.bootstrapMatchingRules();
+      directoryServer.bootstrapAttributeSyntaxes();
+
+
+      // Perform any additional initialization that might be necessary before
+      // loading the configuration.
+      directoryServer.alertHandlers = new CopyOnWriteArrayList<AlertHandler>();
+      directoryServer.passwordStorageSchemes =
+           new ConcurrentHashMap<String,PasswordStorageScheme>();
+      directoryServer.passwordGenerators =
+           new ConcurrentHashMap<DN,PasswordGenerator>();
+      directoryServer.authPasswordStorageSchemes =
+           new ConcurrentHashMap<String,PasswordStorageScheme>();
+      directoryServer.passwordValidators =
+           new ConcurrentHashMap<DN,
+                PasswordValidator<? extends PasswordValidatorCfg>>();
+      directoryServer.accountStatusNotificationHandlers =
+           new ConcurrentHashMap<DN,AccountStatusNotificationHandler>();
+      directoryServer.rootDNs = new CopyOnWriteArraySet<DN>();
+      directoryServer.alternateRootBindDNs = new ConcurrentHashMap<DN,DN>();
+      directoryServer.keyManagerProviders =
+           new ConcurrentHashMap<DN,KeyManagerProvider>();
+      directoryServer.trustManagerProviders =
+           new ConcurrentHashMap<DN,TrustManagerProvider>();
+      directoryServer.rotationPolicies =
+           new ConcurrentHashMap<DN, RotationPolicy>();
+      directoryServer.retentionPolicies =
+           new ConcurrentHashMap<DN, RetentionPolicy>();
+      directoryServer.certificateMappers =
+           new ConcurrentHashMap<DN,CertificateMapper>();
+      directoryServer.passwordPolicies =
+           new ConcurrentHashMap<DN,PasswordPolicyConfig>();
+      directoryServer.defaultPasswordPolicyDN = null;
+      directoryServer.defaultPasswordPolicyConfig = null;
+      directoryServer.monitorProviders =
+           new ConcurrentHashMap<String,
+                    MonitorProvider<? extends MonitorProviderCfg>>();
+      directoryServer.backends = new TreeMap<String,Backend>();
+      directoryServer.offlineBackendsStateIDs =
+           new ConcurrentHashMap<String,Long>();
+      directoryServer.backendInitializationListeners =
+           new CopyOnWriteArraySet<BackendInitializationListener>();
+      directoryServer.baseDNs = new TreeMap<DN,Backend>();
+      directoryServer.publicNamingContexts = new TreeMap<DN,Backend>();
+      directoryServer.privateNamingContexts = new TreeMap<DN,Backend>();
+      directoryServer.changeNotificationListeners =
+           new CopyOnWriteArrayList<ChangeNotificationListener>();
+      directoryServer.persistentSearches =
+           new CopyOnWriteArrayList<PersistentSearch>();
+      directoryServer.shutdownListeners =
+           new CopyOnWriteArrayList<ServerShutdownListener>();
+      directoryServer.synchronizationProviders =
+           new CopyOnWriteArrayList<SynchronizationProvider
+                                   <SynchronizationProviderCfg>>();
+      directoryServer.supportedControls = new TreeSet<String>();
+      directoryServer.supportedFeatures = new TreeSet<String>();
+      directoryServer.virtualAttributes =
+           new CopyOnWriteArrayList<VirtualAttributeRule>();
+      directoryServer.connectionHandlers =
+           new CopyOnWriteArrayList<ConnectionHandler>();
+      directoryServer.identityMappers =
+           new ConcurrentHashMap<DN,IdentityMapper>();
+      directoryServer.extendedOperationHandlers =
+           new ConcurrentHashMap<String,ExtendedOperationHandler>();
+      directoryServer.saslMechanismHandlers =
+           new ConcurrentHashMap<String,SASLMechanismHandler>();
+      directoryServer.authenticatedUsers = new AuthenticatedUsers();
+      directoryServer.offlineSchemaChanges = new LinkedList<Modification>();
+      directoryServer.backupTaskListeners =
+           new CopyOnWriteArrayList<BackupTaskListener>();
+      directoryServer.restoreTaskListeners =
+           new CopyOnWriteArrayList<RestoreTaskListener>();
+      directoryServer.exportTaskListeners =
+           new CopyOnWriteArrayList<ExportTaskListener>();
+      directoryServer.importTaskListeners =
+           new CopyOnWriteArrayList<ImportTaskListener>();
+      directoryServer.allowedTasks = new LinkedHashSet<String>(0);
+      directoryServer.disabledPrivileges = new LinkedHashSet<Privilege>(0);
+      directoryServer.returnBindErrorMessages = false;
+      directoryServer.idleTimeLimit = 0L;
+    }
   }
 
 

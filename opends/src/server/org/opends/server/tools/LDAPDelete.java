@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
@@ -49,6 +48,7 @@ import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.LDAPException;
+import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.PasswordReader;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -730,7 +730,7 @@ public class LDAPDelete
       if (initializeServer)
       {
         // Bootstrap and initialize directory data structures.
-        DirectoryServer.bootstrapClient();
+        EmbeddedUtils.initializeForClientUse();
       }
 
       // Connect to the specified host with the supplied userDN and password.

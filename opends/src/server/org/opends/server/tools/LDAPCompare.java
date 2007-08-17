@@ -47,11 +47,11 @@ import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ProtocolOp;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.LDAPException;
 import org.opends.server.util.Base64;
+import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.PasswordReader;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -852,7 +852,7 @@ public class LDAPCompare
       if (initializeServer)
       {
         // Bootstrap and initialize directory data structures.
-        DirectoryServer.bootstrapClient();
+        EmbeddedUtils.initializeForClientUse();
       }
 
       // Connect to the specified host with the supplied userDN and password.

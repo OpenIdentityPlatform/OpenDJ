@@ -51,11 +51,11 @@ import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.Tag;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.tools.ClientException;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
+import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
@@ -210,8 +210,7 @@ public final class DSConfig extends ConsoleApplication {
    */
   public void initializeClientEnvironment() throws InitializationException {
     if (environmentInitialized == false) {
-      // TODO: do we need to do this?
-      DirectoryServer.bootstrapClient();
+      EmbeddedUtils.initializeForClientUse();
 
       // Bootstrap definition classes.
       ClassLoaderProvider.getInstance().enable();

@@ -119,5 +119,20 @@ public final class EmbeddedUtils
   {
     DirectoryServer.restart(className, reason, config);
   }
+
+
+
+  /**
+   * Sets up a number of internal server data structures to ensure that they are
+   * properly initialized for use.  This is necessary if server libraries are
+   * going to be used without the server running (e.g., to facilitate use in an
+   * LDAP client API, for DN processing, etc.).  This will have no effect if the
+   * server has already been initialized for client use.
+   */
+  public static void initializeForClientUse()
+  {
+    DirectoryServer directoryServer = DirectoryServer.getInstance();
+    directoryServer.bootstrapClient();
+  }
 }
 
