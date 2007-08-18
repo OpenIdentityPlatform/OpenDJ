@@ -32,6 +32,7 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import static org.testng.Assert.*;
 
+import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
@@ -152,8 +153,9 @@ public class MessageTest extends MessagesTestCase {
   private void createDummyLocalizedCoreMessagesFile() throws IOException {
     Properties corePseudoI18nMsgs = new Properties();
     ResourceBundle coreDefaultMsgs = ResourceBundle.getBundle("messages/core");
-    for (Object key : coreDefaultMsgs.keySet()) {
-      corePseudoI18nMsgs.put(key, TEST_MSG);
+    Enumeration<String> keyEnum = coreDefaultMsgs.getKeys();
+    while (keyEnum.hasMoreElements()) {
+      corePseudoI18nMsgs.put(keyEnum.nextElement(), TEST_MSG);
     }
     File buildRoot = new File(System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT));
     File corePseudoI18nMsgsFile = new File(buildRoot,
