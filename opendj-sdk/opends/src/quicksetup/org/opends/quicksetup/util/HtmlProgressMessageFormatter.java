@@ -393,7 +393,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
           lastTextStr.substring(0, index) + newUrlText
               + lastTextStr.substring(index + urlText.length());
     }
-    return Message.raw(lastText);
+    return Message.raw(lastTextStr);
   }
 
   /**
