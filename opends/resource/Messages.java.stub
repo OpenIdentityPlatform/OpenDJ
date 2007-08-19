@@ -41,6 +41,53 @@ public class ${CLASS_NAME} {
   /** Base property for resource bundle containing messages */
   static private final String BASE = "${BASE}";
 
+  static private ClassLoader webstartClassLoader;
+
   ${MESSAGES}
 
+ /**
+  * Returns the Class Loader to be used to get the ResourceBundle,
+  * it returns <CODE>null</CODE> if the default ClassLoader is to be
+  * used.
+  * @return the Class Loader to be used to get the ResourceBundle,
+  * it returns <CODE>null</CODE> if the default ClassLoader is to be
+  * used.
+  */
+  private static ClassLoader getClassLoader()
+  {
+    ClassLoader cl;
+    if (${USE_MESSAGE_JAR_IF_WEBSTART})
+    {
+      if (org.opends.server.util.SetupUtils.isWebStart())
+      {
+        if (webstartClassLoader == null)
+        {
+          try
+          {
+            Class c = Class.forName("${PACKAGE}.${CLASS_NAME}");
+
+            java.net.URL[] urls = new java.net.URL[] {
+                c.getProtectionDomain().getCodeSource().getLocation()
+            };
+            webstartClassLoader = new java.net.URLClassLoader(urls);
+          }
+          catch (ClassNotFoundException cnfe)
+          {
+            // This cannot happen as we are looking for this class so it is
+            // already found.
+          }
+        }
+        cl = webstartClassLoader;
+      }
+      else
+      {
+        cl = null;
+      }
+    }
+    else
+    {
+      cl = null;
+    }
+    return cl;
+  }
 }

@@ -57,7 +57,7 @@ public abstract class MessageDescriptor {
   public static final String DESCRIPTOR_CLASS_BASE_NAME = "Arg";
 
   /**
-   * Subclass for creating messages with no arguements.
+   * Subclass for creating messages with no arguments.
    */
   static public class Arg0 extends MessageDescriptor {
 
@@ -75,10 +75,11 @@ public abstract class MessageDescriptor {
      * @param category of created messages
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg0(String rbBase, String key, Category category,
-              Severity severity, int ordinal) {
-      super(rbBase, key, category, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, category, severity, ordinal, classLoader);
       message = new Message(this);
     }
 
@@ -89,10 +90,11 @@ public abstract class MessageDescriptor {
      * @param mask to apply to the USER_DEFINED category
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg0(String rbBase, String key, int mask,
-              Severity severity, int ordinal) {
-      super(rbBase, key, mask, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, mask, severity, ordinal, classLoader);
       message = new Message(this);
     }
 
@@ -107,7 +109,7 @@ public abstract class MessageDescriptor {
   }
 
   /**
-   * Subclass for creating messages with one arguement.
+   * Subclass for creating messages with one argument.
    */
   static public class Arg1<T1> extends MessageDescriptor {
 
@@ -118,10 +120,11 @@ public abstract class MessageDescriptor {
      * @param category of created messages
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg1(String rbBase, String key, Category category,
-              Severity severity, int ordinal) {
-      super(rbBase, key, category, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, category, severity, ordinal, classLoader);
     }
 
     /**
@@ -131,10 +134,11 @@ public abstract class MessageDescriptor {
      * @param mask to apply to the USER_DEFINED category
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg1(String rbBase, String key, int mask,
-              Severity severity, int ordinal) {
-      super(rbBase, key, mask, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, mask, severity, ordinal, classLoader);
     }
 
     /**
@@ -151,7 +155,7 @@ public abstract class MessageDescriptor {
   }
 
   /**
-   * Subclass for creating messages with two arguements.
+   * Subclass for creating messages with two arguments.
    */
   static public class Arg2<T1, T2> extends MessageDescriptor {
 
@@ -162,10 +166,11 @@ public abstract class MessageDescriptor {
      * @param category of created messages
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg2(String rbBase, String key, Category category,
-              Severity severity, int ordinal) {
-      super(rbBase, key, category, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, category, severity, ordinal, classLoader);
     }
 
     /**
@@ -175,10 +180,11 @@ public abstract class MessageDescriptor {
      * @param mask to apply to the USER_DEFINED category
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg2(String rbBase, String key, int mask,
-              Severity severity, int ordinal) {
-      super(rbBase, key, mask, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, mask, severity, ordinal, classLoader);
     }
 
     /**
@@ -196,7 +202,7 @@ public abstract class MessageDescriptor {
   }
 
   /**
-   * Subclass for creating messages with three arguements.
+   * Subclass for creating messages with three arguments.
    */
   static public class Arg3<T1, T2, T3> extends MessageDescriptor {
 
@@ -207,10 +213,11 @@ public abstract class MessageDescriptor {
      * @param category of created messages
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg3(String rbBase, String key, Category category,
-              Severity severity, int ordinal) {
-      super(rbBase, key, category, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, category, severity, ordinal, classLoader);
     }
 
     /**
@@ -220,10 +227,11 @@ public abstract class MessageDescriptor {
      * @param mask to apply to the USER_DEFINED category
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg3(String rbBase, String key, int mask,
-              Severity severity, int ordinal) {
-      super(rbBase, key, mask, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, mask, severity, ordinal, classLoader);
     }
 
     /**
@@ -242,7 +250,7 @@ public abstract class MessageDescriptor {
   }
 
   /**
-   * Subclass for creating messages with four arguements.
+   * Subclass for creating messages with four arguments.
    */
   static public class Arg4<T1, T2, T3, T4> extends MessageDescriptor {
 
@@ -253,10 +261,11 @@ public abstract class MessageDescriptor {
      * @param category of created messages
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg4(String rbBase, String key, Category category,
-              Severity severity, int ordinal) {
-      super(rbBase, key, category, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, category, severity, ordinal, classLoader);
     }
 
     /**
@@ -266,10 +275,11 @@ public abstract class MessageDescriptor {
      * @param mask to apply to the USER_DEFINED category
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg4(String rbBase, String key, int mask,
-              Severity severity, int ordinal) {
-      super(rbBase, key, mask, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, mask, severity, ordinal, classLoader);
     }
 
     /**
@@ -289,7 +299,7 @@ public abstract class MessageDescriptor {
   }
 
   /**
-   * Subclass for creating messages with five arguements.
+   * Subclass for creating messages with five arguments.
    */
   static public class Arg5<T1, T2, T3, T4, T5> extends MessageDescriptor {
 
@@ -300,10 +310,11 @@ public abstract class MessageDescriptor {
      * @param category of created messages
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg5(String rbBase, String key, Category category,
-              Severity severity, int ordinal) {
-      super(rbBase, key, category, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, category, severity, ordinal, classLoader);
     }
 
     /**
@@ -313,10 +324,11 @@ public abstract class MessageDescriptor {
      * @param mask to apply to the USER_DEFINED category
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg5(String rbBase, String key, int mask,
-              Severity severity, int ordinal) {
-      super(rbBase, key, mask, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, mask, severity, ordinal, classLoader);
     }
 
     /**
@@ -337,7 +349,7 @@ public abstract class MessageDescriptor {
   }
 
   /**
-   * Subclass for creating messages with six arguements.
+   * Subclass for creating messages with six arguments.
    */
   static public class Arg6<T1, T2, T3, T4, T5, T6> extends MessageDescriptor {
 
@@ -348,10 +360,11 @@ public abstract class MessageDescriptor {
      * @param category of created messages
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg6(String rbBase, String key, Category category,
-              Severity severity, int ordinal) {
-      super(rbBase, key, category, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, category, severity, ordinal, classLoader);
     }
 
     /**
@@ -361,10 +374,11 @@ public abstract class MessageDescriptor {
      * @param mask to apply to the USER_DEFINED category
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg6(String rbBase, String key, int mask,
-              Severity severity, int ordinal) {
-      super(rbBase, key, mask, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, mask, severity, ordinal, classLoader);
     }
 
     /**
@@ -386,7 +400,7 @@ public abstract class MessageDescriptor {
   }
 
   /**
-   * Subclass for creating messages with seven arguements.
+   * Subclass for creating messages with seven arguments.
    */
   static public class Arg7<T1, T2, T3, T4, T5, T6, T7>
           extends MessageDescriptor
@@ -399,10 +413,11 @@ public abstract class MessageDescriptor {
      * @param category of created messages
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg7(String rbBase, String key, Category category,
-              Severity severity, int ordinal) {
-      super(rbBase, key, category, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, category, severity, ordinal, classLoader);
     }
 
     /**
@@ -412,10 +427,11 @@ public abstract class MessageDescriptor {
      * @param mask to apply to the USER_DEFINED category
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg7(String rbBase, String key, int mask,
-              Severity severity, int ordinal) {
-      super(rbBase, key, mask, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, mask, severity, ordinal, classLoader);
     }
 
     /**
@@ -438,7 +454,7 @@ public abstract class MessageDescriptor {
   }
 
   /**
-   * Subclass for creating messages with eight arguements.
+   * Subclass for creating messages with eight arguments.
    */
   static public class Arg8<T1, T2, T3, T4, T5, T6, T7, T8>
           extends MessageDescriptor
@@ -451,10 +467,11 @@ public abstract class MessageDescriptor {
      * @param category of created messages
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg8(String rbBase, String key, Category category,
-              Severity severity, int ordinal) {
-      super(rbBase, key, category, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, category, severity, ordinal, classLoader);
     }
 
     /**
@@ -464,10 +481,11 @@ public abstract class MessageDescriptor {
      * @param mask to apply to the USER_DEFINED category
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg8(String rbBase, String key, int mask,
-              Severity severity, int ordinal) {
-      super(rbBase, key, mask, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, mask, severity, ordinal, classLoader);
     }
 
     /**
@@ -492,7 +510,7 @@ public abstract class MessageDescriptor {
   }
 
   /**
-   * Subclass for creating messages with nine arguements.
+   * Subclass for creating messages with nine arguments.
    */
   static public class Arg9<T1, T2, T3, T4, T5, T6, T7, T8, T9>
           extends MessageDescriptor {
@@ -504,10 +522,11 @@ public abstract class MessageDescriptor {
      * @param category of created messages
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg9(String rbBase, String key, Category category,
-              Severity severity, int ordinal) {
-      super(rbBase, key, category, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, category, severity, ordinal, classLoader);
     }
 
     /**
@@ -517,10 +536,11 @@ public abstract class MessageDescriptor {
      * @param mask to apply to the USER_DEFINED category
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg9(String rbBase, String key, int mask,
-              Severity severity, int ordinal) {
-      super(rbBase, key, mask, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, mask, severity, ordinal, classLoader);
     }
 
     /**
@@ -558,10 +578,11 @@ public abstract class MessageDescriptor {
      * @param category of created messages
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg10(String rbBase, String key, Category category,
-               Severity severity, int ordinal) {
-      super(rbBase, key, category, severity, ordinal);
+               Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, category, severity, ordinal, classLoader);
     }
 
     /**
@@ -571,10 +592,11 @@ public abstract class MessageDescriptor {
      * @param mask to apply to the USER_DEFINED category
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg10(String rbBase, String key, int mask,
-              Severity severity, int ordinal) {
-      super(rbBase, key, mask, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, mask, severity, ordinal, classLoader);
     }
 
     /**
@@ -601,7 +623,7 @@ public abstract class MessageDescriptor {
   }
 
   /**
-   * Subclass for creating messages with eleven arguements.
+   * Subclass for creating messages with eleven arguments.
    */
   static public class Arg11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>
           extends MessageDescriptor
@@ -614,10 +636,11 @@ public abstract class MessageDescriptor {
      * @param category of created messages
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg11(String rbBase, String key, Category category,
-               Severity severity, int ordinal) {
-      super(rbBase, key, category, severity, ordinal);
+               Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, category, severity, ordinal, classLoader);
     }
 
     /**
@@ -627,10 +650,11 @@ public abstract class MessageDescriptor {
      * @param mask to apply to the USER_DEFINED category
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public Arg11(String rbBase, String key, int mask,
-              Severity severity, int ordinal) {
-      super(rbBase, key, mask, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, mask, severity, ordinal, classLoader);
     }
 
     /**
@@ -658,7 +682,7 @@ public abstract class MessageDescriptor {
   }
 
   /**
-   * Subclass for creating messages with an any number of arguements.
+   * Subclass for creating messages with an any number of arguments.
    * In general this class should be used when a message needs to be
    * defined with more arguments that can be handled with the current
    * number of subclasses
@@ -672,10 +696,11 @@ public abstract class MessageDescriptor {
      * @param category of created messages
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public ArgN(String rbBase, String key, Category category,
-               Severity severity, int ordinal) {
-      super(rbBase, key, category, severity, ordinal);
+               Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, category, severity, ordinal, classLoader);
     }
 
     /**
@@ -685,10 +710,11 @@ public abstract class MessageDescriptor {
      * @param mask to apply to the USER_DEFINED category
      * @param severity of created messages
      * @param ordinal of created messages
+     * @param classLoader the class loader to be used to get the ResourceBundle
      */
     public ArgN(String rbBase, String key, int mask,
-              Severity severity, int ordinal) {
-      super(rbBase, key, mask, severity, ordinal);
+              Severity severity, int ordinal, ClassLoader classLoader) {
+      super(rbBase, key, mask, severity, ordinal, classLoader);
     }
 
     /**
@@ -730,7 +756,7 @@ public abstract class MessageDescriptor {
      */
     Raw(CharSequence formatString, Category category,
                                 Severity severity) {
-      super(null, null, category, severity, null);
+      super(null, null, category, severity, null, null);
       this.formatString = formatString != null ? formatString.toString() : "";
     }
 
@@ -742,7 +768,7 @@ public abstract class MessageDescriptor {
      * @param severity for created messages
      */
     Raw(CharSequence formatString, int mask, Severity severity) {
-      super(null, null, mask, severity, null);
+      super(null, null, mask, severity, null, null);
       this.formatString = formatString != null ? formatString.toString() : "";
     }
 
@@ -799,6 +825,12 @@ public abstract class MessageDescriptor {
    * raw messages.
    */
   protected Integer ordinal;
+
+  /**
+   * The class loader to be used to retrieve the ResourceBundle.  If null
+   * the default class loader will be used.
+   */
+  protected ClassLoader classLoader;
 
   /**
    * Obtains the category of this descriptor.  Gauranteed not to be null.
@@ -894,7 +926,14 @@ public abstract class MessageDescriptor {
 
   private ResourceBundle getBundle(Locale locale) {
     if (locale == null) locale = Locale.getDefault();
-    return ResourceBundle.getBundle(this.rbBase, locale);
+    if (classLoader == null)
+    {
+      return ResourceBundle.getBundle(this.rbBase, locale);
+    }
+    else
+    {
+      return ResourceBundle.getBundle(this.rbBase, locale, classLoader);
+    }
   }
 
   /**
@@ -904,9 +943,11 @@ public abstract class MessageDescriptor {
    * @param category of any created message
    * @param severity of any created message
    * @param ordinal of any created message
+   * @param classLoader the class loader to be used to get the ResourceBundle
    */
   private MessageDescriptor(String rbBase, String key, Category category,
-                     Severity severity, Integer ordinal) {
+                     Severity severity, Integer ordinal,
+                     ClassLoader classLoader) {
     if (category == null) {
       throw new NullPointerException("Null Category value for message " +
               "descriptor with key " + key);
@@ -920,6 +961,7 @@ public abstract class MessageDescriptor {
     this.category = category;
     this.severity = severity;
     this.ordinal = ordinal;
+    this.classLoader = classLoader;
   }
 
   /**
@@ -931,10 +973,12 @@ public abstract class MessageDescriptor {
    * @param mask custom mask
    * @param severity of any created message
    * @param ordinal of any created message
+   * @param classLoader the class loader to be used to get the ResourceBundle
    */
   private MessageDescriptor(String rbBase, String key, int mask,
-                     Severity severity, Integer ordinal) {
-    this(rbBase, key, Category.USER_DEFINED, severity, ordinal);
+                     Severity severity, Integer ordinal,
+                     ClassLoader classLoader) {
+    this(rbBase, key, Category.USER_DEFINED, severity, ordinal, classLoader);
     this.mask = mask;
   }
 

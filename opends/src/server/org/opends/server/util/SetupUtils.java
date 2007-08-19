@@ -52,6 +52,27 @@ import org.opends.server.types.OperatingSystem;
 public class SetupUtils
 {
   /**
+   * Java property used to known if we are using web start or not.
+   */
+  public static final String IS_WEBSTART = "org.opends.quicksetup.iswebstart";
+
+  /**
+   * Java property used to know which are the jar files that must be downloaded
+   * lazily.  The current code in WebStartDownloader that uses this property
+   * assumes that the URL are separated with an space.
+   */
+  public static final String LAZY_JAR_URLS =
+      "org.opends.quicksetup.lazyjarurls";
+
+  /**
+   * Java property used to know which is the name of the zip file that must
+   * be unzipped and whose contents must be extracted during the Web Start
+   * based setup.
+   */
+  public static final String ZIP_FILE_NAME =
+      "org.opends.quicksetup.zipfilename";
+
+  /**
    * Creates a MakeLDIF template file using the provided information.
    *
    * @param  baseDN      The base DN for the data in the template file.
@@ -372,6 +393,17 @@ public class SetupUtils
   public static int getDefaultJMXPort()
   {
     return 1689;
+  }
+
+  /**
+   * Indicates whether we are in a web start installation or not.
+   *
+   * @return <CODE>true</CODE> if we are in a web start installation and
+   *         <CODE>false</CODE> if not.
+   */
+  public static boolean isWebStart()
+  {
+    return "true".equals(System.getProperty(IS_WEBSTART));
   }
 }
 
