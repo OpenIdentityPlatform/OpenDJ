@@ -45,14 +45,14 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 /**
- * An abstract class that all JMX unit test should extend. 
+ * An abstract class that all JMX unit test should extend.
  */
 @Test(groups = { "precommit", "jmx" })
 public abstract class JmxTestCase extends DirectoryServerTestCase
 {
   /**
    * Set up the environment for performing the tests in this suite.
-   * 
+   *
    * @throws Exception
    *           If the environment could not be set up.
    */
@@ -61,6 +61,8 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
   {
     // Make sure that the server is up and running.
     TestCaseUtils.startServer();
+    TestCaseUtils.initializeTestBackend(true);
+
     synchronized (this)
     {
       this.wait(500);
@@ -74,7 +76,7 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
 
   /**
    * Get a reference to the JMX connection handler.
-   * 
+   *
    * @throws an
    *           Exception is something went wrong.
    */
@@ -114,7 +116,7 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
 
   /**
    * Enable JMX with the port chosen in TestCaseUtils.
-   * 
+   *
    * @throws Exception
    *           if the handler cannot be enabled.
    */
