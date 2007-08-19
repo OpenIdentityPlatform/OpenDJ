@@ -51,7 +51,6 @@ import javax.net.ssl.TrustManager;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.*;
-import org.opends.quicksetup.webstart.JnlpProperties;
 
 import org.opends.server.util.SetupUtils;
 import org.opends.messages.MessageBuilder;
@@ -802,7 +801,7 @@ public class Utils
    */
   public static boolean isWebStart()
   {
-    return "true".equals(System.getProperty(JnlpProperties.IS_WEBSTART));
+    return SetupUtils.isWebStart();
   }
 
   /**

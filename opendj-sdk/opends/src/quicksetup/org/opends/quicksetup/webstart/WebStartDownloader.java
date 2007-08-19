@@ -40,6 +40,8 @@ import javax.jnlp.UnavailableServiceException;
 
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.ApplicationReturnCode;
+import org.opends.server.util.SetupUtils;
+
 import static org.opends.quicksetup.util.Utils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -53,8 +55,7 @@ import static org.opends.messages.QuickSetupMessages.*;
  * not finished the WebStartInstaller will be on the
  * ProgressStep.DOWNLOADING step.
  */
-public class WebStartDownloader implements DownloadServiceListener,
-        JnlpProperties {
+public class WebStartDownloader implements DownloadServiceListener {
 
 
 
@@ -65,7 +66,7 @@ public class WebStartDownloader implements DownloadServiceListener,
   static public String getZipFileName()
   {
     // Passed as a java option in the JNLP file
-    return System.getProperty(ZIP_FILE_NAME);
+    return System.getProperty(SetupUtils.ZIP_FILE_NAME);
   }
 
   private ApplicationException ex;
@@ -237,8 +238,8 @@ public class WebStartDownloader implements DownloadServiceListener,
    * <CODE>true</CODE> the files will be re-downloaded even if they already
    * are on cache.
    * @param forceDownload used to ignore the case and force download.
-   * @throws MalformedURLException if there is an error with the URL that we
-   * get from the JnlpProperties.
+   * @throws MalformedURLException if there is an error with the URLs that we
+   * get from the property SetupUtils.LAZY_JAR_URLS
    * @throws IOException if a network problem occurs.
    */
   private void startDownload(boolean forceDownload)
@@ -415,7 +416,7 @@ public class WebStartDownloader implements DownloadServiceListener,
    */
   private String[] getJarUrls()
   {
-    String jars = System.getProperty(LAZY_JAR_URLS);
+    String jars = System.getProperty(SetupUtils.LAZY_JAR_URLS);
     return jars.split(" ");
   }
 

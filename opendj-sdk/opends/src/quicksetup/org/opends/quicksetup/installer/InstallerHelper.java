@@ -41,7 +41,6 @@ import javax.naming.ldap.InitialLdapContext;
 
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.ApplicationReturnCode;
-import org.opends.quicksetup.webstart.JnlpProperties;
 import static org.opends.quicksetup.util.Utils.*;
 import org.opends.server.admin.DefaultBehaviorException;
 import org.opends.server.admin.ManagedObjectNotFoundException;
@@ -78,7 +77,7 @@ import org.opends.server.util.StaticUtils;
  * classes the required jar files are already loaded. However these jar files
  * are not necessarily loaded when we create this class.
  */
-public class InstallerHelper implements JnlpProperties {
+public class InstallerHelper {
   private static final Logger LOG = Logger.getLogger(
       InstallerHelper.class.getName());
 

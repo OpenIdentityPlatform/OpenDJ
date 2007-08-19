@@ -77,6 +77,13 @@ public class GenerateMessageFile extends Task {
    */
   static private final String GLOBAL_ORDINAL = "global.ordinal";
 
+  /**
+   * When true and if the Java Web Start property is set use the class loader of
+   * the jar where the MessageDescriptor is contained to retrieve the
+   * ResourceBundle.
+   */
+  static private final String GLOBAL_USE_MESSAGE_JAR_IF_WEBSTART =
+    "global.use.message.jar.if.webstart";
 
   static private final Set<String> DIRECTIVE_PROPERTIES = new HashSet<String>();
   static {
@@ -84,6 +91,7 @@ public class GenerateMessageFile extends Task {
     DIRECTIVE_PROPERTIES.add(GLOBAL_CATEGORY_MASK);
     DIRECTIVE_PROPERTIES.add(GLOBAL_SEVERITY);
     DIRECTIVE_PROPERTIES.add(GLOBAL_ORDINAL);
+    DIRECTIVE_PROPERTIES.add(GLOBAL_USE_MESSAGE_JAR_IF_WEBSTART);
   }
 
   static private final String SPECIFIER_REGEX =
@@ -319,7 +327,9 @@ public class GenerateMessageFile extends Task {
             sb.append(",");
           }
         }
+        sb.append(", ");
       }
+      sb.append("getClassLoader()");
       sb.append(");");
       return sb.toString();
     }
@@ -430,7 +440,7 @@ public class GenerateMessageFile extends Task {
   @Override
   public void execute() throws BuildException {
     BufferedReader stubReader = null;
-    PrintWriter destWriter = null;    
+    PrintWriter destWriter = null;
     try {
 
       // Decide whether to generate messages based on modification
@@ -459,11 +469,10 @@ public class GenerateMessageFile extends Task {
       destWriter = new PrintWriter(new FileOutputStream(dest));
 
       String stubLine;
+      Properties properties = new Properties();
+      properties.load(new FileInputStream(source));
       while (null != (stubLine = stubReader.readLine())) {
         if (stubLine.contains("${MESSAGES}")) {
-          Properties properties = new Properties();
-          properties.load(new FileInputStream(source));
-
           Integer globalOrdinal = null;
           String go = properties.getProperty(GLOBAL_ORDINAL);
           if (go != null) {
@@ -510,7 +519,7 @@ public class GenerateMessageFile extends Task {
             } catch (IllegalArgumentException iae) {
               throw new BuildException(
                       "ERROR: invalid property key " + propKey +
-                      ": " + iae.getMessage() + 
+                      ": " + iae.getMessage() +
                       KEY_FORM_MSG);
             }
           }
@@ -601,6 +610,22 @@ public class GenerateMessageFile extends Task {
                   dest.getName().substring(0, dest.getName().length() -
                           ".java".length()));
           stubLine = stubLine.replace("${BASE}", getBase());
+
+          String useMessageJarIfWebstart =
+            properties.getProperty(GLOBAL_USE_MESSAGE_JAR_IF_WEBSTART);
+          if ((useMessageJarIfWebstart != null) &&
+              ("true".equalsIgnoreCase(useMessageJarIfWebstart) ||
+              "on".equalsIgnoreCase(useMessageJarIfWebstart) ||
+              "true".equalsIgnoreCase(useMessageJarIfWebstart)))
+          {
+            useMessageJarIfWebstart = "true";
+          }
+          else
+          {
+            useMessageJarIfWebstart = "false";
+          }
+          stubLine = stubLine.replace("${USE_MESSAGE_JAR_IF_WEBSTART}",
+              useMessageJarIfWebstart);
           destWriter.println(stubLine);
         }
       }

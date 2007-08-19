@@ -40,13 +40,13 @@ import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.ApplicationReturnCode;
 import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.Installation;
-import org.opends.quicksetup.webstart.JnlpProperties;
 import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.installer.InstallProgressStep;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.ZipExtractor;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.FileManager;
+import org.opends.server.util.SetupUtils;
 
 import org.opends.messages.Message;
 import static org.opends.messages.QuickSetupMessages.*;
@@ -77,7 +77,7 @@ import static org.opends.messages.QuickSetupMessages.*;
  * This class is supposed to be fully independent of the graphical layout.
  *
  */
-public class WebStartInstaller extends Installer implements JnlpProperties {
+public class WebStartInstaller extends Installer {
   private HashMap<InstallProgressStep, Integer> hmRatio =
       new HashMap<InstallProgressStep, Integer>();
 
@@ -518,7 +518,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
   private String getZipFileName()
   {
     // Passed as a java option in the JNLP file
-    return System.getProperty(ZIP_FILE_NAME);
+    return System.getProperty(SetupUtils.ZIP_FILE_NAME);
   }
 
   /**
