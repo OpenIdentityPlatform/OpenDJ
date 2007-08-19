@@ -562,9 +562,10 @@ public class FIFOEntryCache
         return;
       }
 
+      Backend backend = entry.getBackend();
 
       // Try to remove the entry from the ID list as well.
-      Map<Long,CacheEntry> map = idMap.get(entry.getBackend());
+      Map<Long,CacheEntry> map = idMap.get(backend);
       if (map == null)
       {
         // This should't happen, but the entry isn't cached in the ID map so
@@ -573,6 +574,12 @@ public class FIFOEntryCache
       }
 
       map.remove(entry.getEntryID());
+
+      // If this backend becomes empty now remove it from the idMap map.
+      if (map.isEmpty())
+      {
+        idMap.remove(backend);
+      }
     }
     catch (Exception e)
     {
@@ -851,6 +858,59 @@ public class FIFOEntryCache
     {
       cacheLock.unlock();
     }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String toVerboseString()
+  {
+    String verboseString = new String();
+
+    Map<DN,CacheEntry> dnMapCopy;
+    Map<Backend,HashMap<Long,CacheEntry>> idMapCopy;
+
+    // Grab cache lock to prevent any modifications
+    // to the cache maps until a snapshot is taken.
+    cacheLock.lock();
+    try {
+      // Examining the real maps will hold the lock and can cause map
+      // modifications in case of any access order maps, make copies
+      // instead.
+      dnMapCopy = new LinkedHashMap<DN,CacheEntry>(dnMap);
+      idMapCopy = new HashMap<Backend,HashMap<Long,CacheEntry>>(idMap);
+    } finally {
+      cacheLock.unlock();
+    }
+
+    // Check dnMap first.
+    for(DN dn : dnMapCopy.keySet()) {
+      verboseString = verboseString + dn.toString() + ":" +
+        (dnMapCopy.get(dn) != null ?
+          Long.toString(dnMapCopy.get(dn).getEntryID()) : null) +
+        ":" + (dnMapCopy.get(dn) != null ?
+          dnMapCopy.get(dn).getBackend().getBackendID() : null) +
+        "\n";
+    }
+
+    // See if there is anything on idMap that isnt reflected on
+    // dnMap in case maps went out of sync.
+    for (Backend backend : idMapCopy.keySet()) {
+      for (Long id : idMapCopy.get(backend).keySet()) {
+        if ((idMapCopy.get(backend).get(id) == null) ||
+            !dnMapCopy.containsKey(
+              idMapCopy.get(backend).get(id).getDN())) {
+          verboseString = verboseString +
+            (idMapCopy.get(backend).get(id) != null ?
+              idMapCopy.get(backend).get(id).getDN().toString() : null) +
+            ":" + id.toString() + ":" + backend.getBackendID() + "\n";
+        }
+      }
+    }
+
+    return (verboseString.length() > 0 ? verboseString : null);
   }
 
 

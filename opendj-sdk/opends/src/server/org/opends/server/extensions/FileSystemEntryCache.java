@@ -662,7 +662,8 @@ public class FileSystemEntryCache
     Entry entry = null;
     cacheReadLock.lock();
     try {
-      if (dnMap.containsKey(entryDN)) {
+      // Use get to generate entry access.
+      if (dnMap.get(entryDN) != null) {
         entry = getEntryFromDB(entryDN);
       }
     } finally {
@@ -1012,6 +1013,64 @@ public class FileSystemEntryCache
         }
       }
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String toVerboseString()
+  {
+    String verboseString = new String();
+
+    Map<DN,Long> dnMapCopy;
+    Map<Backend,Map<Long,DN>> backendMapCopy;
+
+    // Grab write lock to prevent any modifications
+    // to the cache maps until a snapshot is taken.
+    cacheWriteLock.lock();
+    try {
+      // Examining the real maps will hold the lock
+      // and can cause map modifications in case of
+      // any access order maps, make copies instead.
+      dnMapCopy = new LinkedHashMap<DN,Long>(dnMap);
+      backendMapCopy =
+        new LinkedHashMap<Backend,Map<Long,DN>>
+          (backendMap);
+    } finally {
+      cacheWriteLock.unlock();
+    }
+
+    // Check dnMap first.
+    for (DN dn : dnMapCopy.keySet()) {
+      Backend backend = null;
+      Iterator<Backend> backendIterator = backendMapCopy.keySet().iterator();
+      while (backendIterator.hasNext()) {
+        backend = backendIterator.next();
+        Map<Long, DN> map = backendMapCopy.get(backend);
+        if ((map.get(dnMapCopy.get(dn)) != null) &&
+            (map.get(dnMapCopy.get(dn)).equals(dn))) {
+          break;
+        }
+      }
+    }
+
+    // See if there is anything on backendMap that isnt reflected on dnMap
+    // in case maps went out of sync.
+    Backend backend = null;
+    Iterator<Backend> backendIterator = backendMapCopy.keySet().iterator();
+    while (backendIterator.hasNext()) {
+      backend = backendIterator.next();
+      Map<Long, DN> map = backendMapCopy.get(backend);
+      for (Long id : map.keySet()) {
+        if (!dnMapCopy.containsKey(map.get(id)) || map.get(id) == null) {
+          verboseString = verboseString + (map.get(id) != null ?
+            map.get(id) : null) + ":" + id.toString() + ":" +
+          backend.getBackendID() + "\n";
+        }
+      }
+    }
+
+    return (verboseString.length() > 0 ? verboseString : null);
   }
 
   /**
