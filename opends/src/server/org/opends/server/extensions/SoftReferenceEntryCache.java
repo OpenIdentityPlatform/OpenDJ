@@ -282,6 +282,7 @@ public class SoftReferenceEntryCache
     {
       map = new ConcurrentHashMap<Long,SoftReference<CacheEntry>>();
       map.put(entryID, ref);
+      idMap.put(backend, map);
     }
     else
     {
@@ -361,6 +362,12 @@ public class SoftReferenceEntryCache
           {
             ref.clear();
           }
+          // If this backend becomes empty now remove
+          // it from the idMap map.
+          if (map.isEmpty())
+          {
+            idMap.remove(backend);
+          }
         }
       }
     }
@@ -434,6 +441,28 @@ public class SoftReferenceEntryCache
     // This function should automatically be taken care of by the nature of the
     // soft references used in this cache.
     // FIXME -- Do we need to do anything at all here?
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String toVerboseString()
+  {
+    String verboseString = new String();
+
+    // There're no locks in this cache to keep dnMap and idMap in
+    // sync. Examine dnMap only since its more likely to be up to
+    // date than idMap. Dont bother with copies either since this
+    // is SoftReference based implementation.
+    for(SoftReference<CacheEntry> ce : dnMap.values()) {
+      verboseString = verboseString + ce.get().getDN().toString() +
+        ":" + Long.toString(ce.get().getEntryID()) + ":" +
+        ce.get().getBackend().getBackendID() + "\n";
+    }
+
+    return (verboseString.length() > 0 ? verboseString : null);
   }
 
 
@@ -611,14 +640,20 @@ public class SoftReferenceEntryCache
             {
               ref.clear();
 
+              Backend backend = freedEntry.getBackend();
               ConcurrentHashMap<Long,SoftReference<CacheEntry>> map =
-                   idMap.get(freedEntry.getBackend());
+                   idMap.get(backend);
               if (map != null)
               {
                 ref = map.remove(freedEntry.getEntryID());
                 if (ref != null)
                 {
                   ref.clear();
+                }
+                // If this backend becomes empty now remove
+                // it from the idMap map.
+                if (map.isEmpty()) {
+                  idMap.remove(backend);
                 }
               }
             }
