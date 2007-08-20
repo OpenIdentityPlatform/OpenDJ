@@ -526,19 +526,6 @@ public abstract class EntryCache
 
 
   /**
-   * Return a verbose string representation of the current cache maps.
-   * This is useful primary for debugging and diagnostic purposes such
-   * as in the entry cache unit tests.
-   * @return String verbose string representation of the current cache
-   *                maps in the following format: dn:id:backend
-   *                one cache entry map representation per line
-   *                or <CODE>null</CODE> if all maps are empty.
-   */
-  public abstract String toVerboseString();
-
-
-
-  /**
    * Retrieves the maximum length of time in milliseconds to wait for
    * a lock before giving up.
    *

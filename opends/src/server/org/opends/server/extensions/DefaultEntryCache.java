@@ -210,17 +210,6 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
-  public String toVerboseString()
-  {
-    // This implementation does not store entries.
-    return null;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public boolean isConfigurationChangeAcceptable(
       EntryCacheCfg configuration,
       List<Message> unacceptableReasons

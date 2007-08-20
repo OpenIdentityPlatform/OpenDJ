@@ -53,6 +53,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.SearchFilter;
+import org.opends.server.util.ServerConstants;
 
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -448,28 +449,6 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
-  public String toVerboseString()
-  {
-    String verboseString = new String();
-
-    // There're no locks in this cache to keep dnMap and idMap in
-    // sync. Examine dnMap only since its more likely to be up to
-    // date than idMap. Dont bother with copies either since this
-    // is SoftReference based implementation.
-    for(SoftReference<CacheEntry> ce : dnMap.values()) {
-      verboseString = verboseString + ce.get().getDN().toString() +
-        ":" + Long.toString(ce.get().getEntryID()) + ":" +
-        ce.get().getBackend().getBackendID() + "\n";
-    }
-
-    return (verboseString.length() > 0 ? verboseString : null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   @Override()
   public boolean isConfigurationAcceptable(EntryCacheCfg configuration,
                                            List<Message> unacceptableReasons)
@@ -668,6 +647,40 @@ public class SoftReferenceEntryCache
         }
       }
     }
+  }
+
+
+
+  /**
+   * Return a verbose string representation of the current cache maps.
+   * This is useful primary for debugging and diagnostic purposes such
+   * as in the entry cache unit tests.
+   * @return String verbose string representation of the current cache
+   *                maps in the following format: dn:id:backend
+   *                one cache entry map representation per line
+   *                or <CODE>null</CODE> if all maps are empty.
+   */
+  private String toVerboseString()
+  {
+    String verboseString = new String();
+    StringBuilder sb = new StringBuilder();
+
+    // There're no locks in this cache to keep dnMap and idMap in
+    // sync. Examine dnMap only since its more likely to be up to
+    // date than idMap. Dont bother with copies either since this
+    // is SoftReference based implementation.
+    for(SoftReference<CacheEntry> ce : dnMap.values()) {
+      sb.append(ce.get().getDN().toString());
+      sb.append(":");
+      sb.append(Long.toString(ce.get().getEntryID()));
+      sb.append(":");
+      sb.append(ce.get().getBackend().getBackendID());
+      sb.append(ServerConstants.EOL);
+    }
+
+    verboseString = sb.toString();
+
+    return (verboseString.length() > 0 ? verboseString : null);
   }
 }
 
