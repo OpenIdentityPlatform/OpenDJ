@@ -33,7 +33,7 @@
 
       <sequence>
 
-        <testcase name="'Security: Pwd Validator: Similarity Based: Preamble'">
+        <testcase name="getTestCaseName('Similarity Based: Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -70,7 +70,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: Similarity Based: new password with 1 letter change, valid'">
+        <testcase name="getTestCaseName('Similarity Based: new password with 1 letter change, valid')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -108,7 +108,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Similarity Based: Enable requires-current-password'">
+        <testcase name="getTestCaseName('Similarity Based: Enable requires-current-password')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -131,7 +131,7 @@
           </sequence>
         </testcase>
 
-        <testcase name="'Security: Pwd Validator: Similarity Based: new password with 1 letter change, invalid'">
+        <testcase name="getTestCaseName('Similarity Based: new password with 1 letter change, invalid')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -171,7 +171,7 @@
           </sequence>
         </testcase>
       
-        <testcase name="'Security: Pwd Validator: Similarity Based: new password with 1 letter change, invalid 2'">
+        <testcase name="getTestCaseName('Similarity Based: new password with 1 letter change, invalid 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -210,7 +210,7 @@
           </sequence>
         </testcase>
       
-        <testcase name="'Security: Pwd Validator: Similarity Based: new password with 2 letter change, invalid'">
+        <testcase name="getTestCaseName('Similarity Based: new password with 2 letter change, invalid')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -249,7 +249,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Similarity Based: new password with 3 letter change, valid'">
+        <testcase name="getTestCaseName('Similarity Based: new password with 3 letter change, valid')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -286,7 +286,7 @@
           </sequence>
         </testcase>
         
-        <testcase name="'Security: Pwd Validator: Similarity Based: Postamble'">
+        <testcase name="getTestCaseName('Similarity Based: Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
