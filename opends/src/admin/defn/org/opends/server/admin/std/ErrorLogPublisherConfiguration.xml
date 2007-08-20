@@ -57,6 +57,15 @@
             Messages of all severity levels will be logged.
           </adm:synopsis>
         </adm:value>
+        <adm:value name="none">
+          <adm:synopsis>
+            No messages of any severity will be logged by default.
+            This value is intended to be used in conjunction with
+            the override-severity property to define an error
+            logger that will publish no error message beside the errors
+            of a given category.
+          </adm:synopsis>
+        </adm:value>
         <adm:value name="fatal-error">
           <adm:synopsis>
             The error log severity that will be used for messages that

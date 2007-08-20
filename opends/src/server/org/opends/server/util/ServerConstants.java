@@ -903,6 +903,13 @@ public final class ServerConstants
    */
   public static final String LOG_SEVERITY_ALL = "all";
 
+  /**
+   * The English name for the basic none log severity used to log
+   * no error message beside some specific category.
+   */
+  public static final String LOG_SEVERITY_NONE = "none";
+
+
 
 
   /**

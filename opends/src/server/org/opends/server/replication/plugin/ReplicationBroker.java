@@ -330,10 +330,11 @@ public class ReplicationBroker implements InternalSearchListener
                    * An error happened trying to search for the updates
                    * This server will start acepting again new updates but
                    * some inconsistencies will stay between servers.
-                   * TODO : REPAIR : log an error for the repair tool
+                   * Log an error for the repair tool
                    * that will need to resynchronize the servers.
                    */
-                  Message message = NOTE_CANNOT_RECOVER_CHANGES.get();
+                  Message message = ERR_CANNOT_RECOVER_CHANGES.get(
+                      baseDn.toNormalizedString());
                   logError(message);
                 }
                 else

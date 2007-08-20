@@ -80,9 +80,7 @@ public abstract class FakeOperation
    *
    * @param mod A modification that must be adde to the list of modifications
    *            included in this fake operation.
-   * @throws Exception when the addition of this type of modification
-   *         is not valid for this FakeOperation.
    */
-  abstract public void addModification(Modification mod) throws Exception;
+  abstract public void addModification(Modification mod);
 
 }

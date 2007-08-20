@@ -224,9 +224,10 @@ public class PersistentServerState extends ServerState
     op.run();
 
     ResultCode result = op.getResultCode();
-    if (result != ResultCode.SUCCESS)
+    if ((result != ResultCode.SUCCESS) &&
+        ((result != ResultCode.NO_SUCH_OBJECT)))
     {
-      Message message = ERR_ERROR_UPDATING_RUV.get(
+      Message message = DEBUG_ERROR_UPDATING_RUV.get(
               op.getResultCode().getResultCodeName().toString(),
               op.toString(),
               op.getErrorMessage().toString(),

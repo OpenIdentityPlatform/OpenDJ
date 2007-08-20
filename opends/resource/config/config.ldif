@@ -601,6 +601,23 @@ ds-cfg-rotation-policy-dn: cn=7 Days Time Limit Rotation Policy,cn=Log Rotation 
 ds-cfg-rotation-policy-dn: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
 ds-cfg-retention-policy-dn: cn=File Count Retention Policy,cn=Log Retention Policies,cn=config
 
+dn: cn=Replication Repair Logger,cn=Loggers,cn=config
+objectClass: top
+objectClass: ds-cfg-logger
+objectClass: ds-cfg-error-logger
+objectClass: ds-cfg-file-based-error-logger
+cn: File-Based Error Logger
+ds-cfg-logger-class: org.opends.server.loggers.TextErrorLogPublisher
+ds-cfg-logger-enabled: true
+ds-cfg-log-file: logs/replication
+ds-cfg-log-file-mode: 640
+ds-cfg-default-severity: none
+ds-cfg-override-severity: SYNC=INFO,MILD_ERROR,MILD_WARNING,NOTICE
+ds-cfg-asynchronous-writes: false
+ds-cfg-rotation-policy-dn: cn=7 Days Time Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-rotation-policy-dn: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-retention-policy-dn: cn=File Count Retention Policy,cn=Log Retention Policies,cn=config
+
 dn: cn=File-Based Debug Logger,cn=Loggers,cn=config
 objectClass: top
 objectClass: ds-cfg-logger
@@ -1921,3 +1938,15 @@ ds-cfg-work-queue-class: org.opends.server.extensions.TraditionalWorkQueue
 ds-cfg-num-worker-threads: 24
 ds-cfg-max-work-queue-capacity: 0
 
+dn: cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-synchronization-provider
+objectClass: ds-cfg-multimaster-synchronization-provider
+cn: Multimaster Synchronization
+ds-cfg-synchronization-provider-enabled: true
+ds-cfg-synchronization-provider-class: org.opends.server.replication.plugin.MultimasterReplication
+
+dn: cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-branch
+cn: domains

@@ -1272,8 +1272,9 @@ public class ReplicationDomain extends DirectoryThread
       {
         // Continue with the next change but the servers could now become
         // inconsistent.
-        // TODO : REPAIR : Should let the repair tool know about this
-        Message message = ERR_LOOP_REPLAYING_OPERATION.get(op.toString());
+        // Let the repair tool know about this.
+        Message message = ERR_LOOP_REPLAYING_OPERATION.get(op.toString(),
+            op.getErrorMessage().toString());
         logError(message);
         numUnresolvedNamingConflicts.incrementAndGet();
 
@@ -1306,7 +1307,7 @@ public class ReplicationDomain extends DirectoryThread
          * An Exception happened during the replay process.
          * Continue with the next change but the servers will now start
          * to be inconsistent.
-         * TODO : REPAIR : Should let the repair tool know about this
+         * Let the repair tool know about this.
          */
         Message message = ERR_EXCEPTION_REPLAYING_OPERATION.get(
             stackTraceToSingleLineString(e), op.toString());
@@ -1473,7 +1474,11 @@ public class ReplicationDomain extends DirectoryThread
     else
     {
       // The other type of errors can not be caused by naming conflicts.
-      // TODO log a message for the repair tool.
+      // Log a message for the repair tool.
+      Message message = ERR_ERROR_REPLAYING_OPERATION.get(
+          op.toString(), ctx.getChangeNumber().toString(),
+          result.toString(), op.getErrorMessage().toString());
+      logError(message);
       return true;
     }
   }
@@ -1538,7 +1543,11 @@ public class ReplicationDomain extends DirectoryThread
    else
    {
      // The other type of errors can not be caused by naming conflicts.
-     // TODO log a message for the repair tool.
+     // Log a message for the repair tool.
+     Message message = ERR_ERROR_REPLAYING_OPERATION.get(
+         op.toString(), ctx.getChangeNumber().toString(),
+         result.toString(), op.getErrorMessage().toString());
+     logError(message);
      return true;
    }
  }
@@ -1651,7 +1660,11 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   else
   {
     // The other type of errors can not be caused by naming conflicts.
-    // TODO log a message for the repair tool.
+    // Log a message for the repair tool.
+    Message message = ERR_ERROR_REPLAYING_OPERATION.get(
+        op.toString(), ctx.getChangeNumber().toString(),
+        result.toString(), op.getErrorMessage().toString());
+    logError(message);
     return true;
   }
 }
@@ -1745,7 +1758,11 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     else
     {
       // The other type of errors can not be caused by naming conflicts.
-      // TODO log a message for the repair tool.
+      // log a message for the repair tool.
+      Message message = ERR_ERROR_REPLAYING_OPERATION.get(
+          op.toString(), ctx.getChangeNumber().toString(),
+          result.toString(), op.getErrorMessage().toString());
+      logError(message);
       return true;
     }
   }
@@ -1793,6 +1810,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
       else
       {
+        // log error and information for the REPAIR tool.
         MessageBuilder mb = new MessageBuilder();
         mb.append(ERR_CANNOT_RENAME_CONFLICT_ENTRY.get());
         mb.append(String.valueOf(entryDN));
@@ -1801,10 +1819,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         mb.append(" ");
         mb.append(String.valueOf(op.getResultCode()));
         logError(mb.toMessage());
-        // TODO : log error and information for the REPAIR tool.
       }
     } catch (DirectoryException e)
     {
+      // log errror and information for the REPAIR tool.
       MessageBuilder mb = new MessageBuilder();
       mb.append(ERR_EXCEPTION_RENAME_CONFLICT_ENTRY.get());
       mb.append(String.valueOf(entryDN));
@@ -1813,7 +1831,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       mb.append(" ");
       mb.append(e.getLocalizedMessage());
       logError(mb.toMessage());
-      // TODO log errror and information for the REPAIR tool.
     }
   }
 
@@ -1836,6 +1853,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
     if (newOp.getResultCode() != ResultCode.SUCCESS)
     {
+      // log information for the repair tool.
       MessageBuilder mb = new MessageBuilder();
       mb.append(ERR_CANNOT_RENAME_CONFLICT_ENTRY.get());
       mb.append(String.valueOf(dn));
@@ -1844,9 +1862,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       mb.append(" ");
       mb.append(String.valueOf(newOp.getResultCode()));
       logError(mb.toMessage());
-      /*
-       * TODO : REPAIR should log information for the repair tool.
-       */
     }
   }
 
@@ -1876,15 +1891,13 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     ModifyOperation newOp = conn.processModify(currentDN, mods);
     if (newOp.getResultCode() != ResultCode.SUCCESS)
     {
+      // Log information for the repair tool.
       MessageBuilder mb = new MessageBuilder();
       mb.append(ERR_CANNOT_ADD_CONFLICT_ATTRIBUTE.get());
       mb.append(String.valueOf(op));
       mb.append(" ");
       mb.append(String.valueOf(newOp.getResultCode()));
       logError(mb.toMessage());
-      /*
-       * TODO : REPAIR should log information for the repair tool.
-       */
     }
   }
 

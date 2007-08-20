@@ -4702,6 +4702,47 @@ addProcessing:
           }
         }
 
+        // If the attribute type is marked "NO-USER-MODIFICATION" then fail
+        // unless this is an internal operation or is related to
+        // synchronization in some way.
+        // This must be done before running the password policy code
+        // and any other code that may add attributes marked as
+        // "NO-USER-MODIFICATION"
+        //
+        // Note that doing this checks at this time
+        // of the processing does not make it possible for pre-parse plugins
+        // to add NO-USER-MODIFICATION attributes to the entry.
+        for (AttributeType at : userAttributes.keySet())
+        {
+          if (at.isNoUserModification())
+          {
+            if (! (localOp.isInternalOperation() ||
+              localOp.isSynchronizationOperation()))
+            {
+              localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+              localOp.appendErrorMessage(ERR_ADD_ATTR_IS_NO_USER_MOD.get(
+                  String.valueOf(entryDN), at.getNameOrOID()));
+
+              break addProcessing;
+            }
+          }
+        }
+
+        for (AttributeType at : operationalAttributes.keySet())
+        {
+          if (at.isNoUserModification())
+          {
+            if (! (localOp.isInternalOperation() ||
+              localOp.isSynchronizationOperation()))
+            {
+              localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+              localOp.appendErrorMessage(ERR_ADD_ATTR_IS_NO_USER_MOD.get(
+                  String.valueOf(entryDN), at.getNameOrOID()));
+
+              break addProcessing;
+            }
+          }
+        }
 
         // Check to see if the entry already exists.  We do this before
         // checking whether the parent exists to ensure a referral entry

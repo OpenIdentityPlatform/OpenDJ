@@ -9,20 +9,6 @@
 # cn=Replication Server, cn=Multimaster Synchronization, cn=Synchronization Providers, cn=config
 # entry.
 
-
-dn: cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
-objectClass: top
-objectClass: ds-cfg-synchronization-provider
-objectClass: ds-cfg-multimaster-synchronization-provider
-cn: Multimaster Synchronization
-ds-cfg-synchronization-provider-enabled: true
-ds-cfg-synchronization-provider-class: org.opends.server.replication.plugin.MultimasterReplication
-
-dn: cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
-objectClass: top
-objectClass: ds-cfg-branch
-cn: domains
-
 dn: cn=example,cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-replication-domain-config
