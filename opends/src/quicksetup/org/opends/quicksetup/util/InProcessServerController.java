@@ -309,6 +309,12 @@ public class InProcessServerController {
       // more than once since it leave the server corrupted.  Restart
       // is the correct choice in this case.
       if (!serverHasBeenStarted) {
+
+        // Set the root of the directory server so that the server
+        // code will be able to derive its filesystem paths etc.
+        DirectoryServer.getEnvironmentConfig().setServerRoot(
+                installation.getRootDirectory());
+
         DirectoryServer directoryServer = DirectoryServer.getInstance();
 
         // Bootstrap and start the Directory Server.
