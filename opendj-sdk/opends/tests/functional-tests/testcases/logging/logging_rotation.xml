@@ -215,12 +215,12 @@
 		   <if expr="int(newlogSize) &lt;  4100 and int(newlogSize) > 4000" >
              <sequence>
                <message>'SUCCESS. The rotation based on size limit is successfull.  The file "%s" (size = %s) ' % (newlogName,newlogSize)</message>
-               <call function="'testIsPASS'"/>		 				 
+               <call function="'testPassed'"/>		 				 
 			 </sequence>
 	       <else>		   
   		     <sequence>
 		       <message>'ERROR in the rotation. The file "%s" (size = %s) does not match the rotation size ' % (newlogName,newlogSize)</message>
-               <call function="'testIsFAIL'"/>		 
+               <call function="'testFailed'"/>		 
 		     </sequence>
 		 </else>
 		 </if>			 
@@ -228,7 +228,7 @@
 	 <else>
 		 <sequence>
 		 <message>'ERROR. The rotation process didn t work.'</message>
-         <call function="'testIsFAIL'"/>		 
+         <call function="'testFailed'"/>		 
 		 </sequence>	 
      </else>  
      </if>		 
