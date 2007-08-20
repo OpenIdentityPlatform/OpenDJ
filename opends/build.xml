@@ -641,7 +641,7 @@
    ! it will not re-package.  It will also not do a complete initialization, so
    ! DynamicConstants.java won't be regenerated.
    ! -->
-  <target name="rebuild"
+  <target name="rebuild" depends="generatemessages"
        description="Rebuild the server without destroying config or data.">
     <!-- Set the amount of memory to use for the build -->
     <condition property="MEM" value="192M">
