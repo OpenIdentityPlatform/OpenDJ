@@ -57,6 +57,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
+import org.opends.server.util.ServerConstants;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ExtensionMessages.*;
@@ -865,59 +866,6 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
-  public String toVerboseString()
-  {
-    String verboseString = new String();
-
-    Map<DN,CacheEntry> dnMapCopy;
-    Map<Backend,HashMap<Long,CacheEntry>> idMapCopy;
-
-    // Grab cache lock to prevent any modifications
-    // to the cache maps until a snapshot is taken.
-    cacheLock.lock();
-    try {
-      // Examining the real maps will hold the lock and can cause map
-      // modifications in case of any access order maps, make copies
-      // instead.
-      dnMapCopy = new LinkedHashMap<DN,CacheEntry>(dnMap);
-      idMapCopy = new HashMap<Backend,HashMap<Long,CacheEntry>>(idMap);
-    } finally {
-      cacheLock.unlock();
-    }
-
-    // Check dnMap first.
-    for(DN dn : dnMapCopy.keySet()) {
-      verboseString = verboseString + dn.toString() + ":" +
-        (dnMapCopy.get(dn) != null ?
-          Long.toString(dnMapCopy.get(dn).getEntryID()) : null) +
-        ":" + (dnMapCopy.get(dn) != null ?
-          dnMapCopy.get(dn).getBackend().getBackendID() : null) +
-        "\n";
-    }
-
-    // See if there is anything on idMap that isnt reflected on
-    // dnMap in case maps went out of sync.
-    for (Backend backend : idMapCopy.keySet()) {
-      for (Long id : idMapCopy.get(backend).keySet()) {
-        if ((idMapCopy.get(backend).get(id) == null) ||
-            !dnMapCopy.containsKey(
-              idMapCopy.get(backend).get(id).getDN())) {
-          verboseString = verboseString +
-            (idMapCopy.get(backend).get(id) != null ?
-              idMapCopy.get(backend).get(id).getDN().toString() : null) +
-            ":" + id.toString() + ":" + backend.getBackendID() + "\n";
-        }
-      }
-    }
-
-    return (verboseString.length() > 0 ? verboseString : null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   @Override()
   public boolean isConfigurationAcceptable(EntryCacheCfg configuration,
                                            List<Message> unacceptableReasons)
@@ -1142,6 +1090,73 @@ public class FIFOEntryCache
     }
 
     return errorHandler.getIsAcceptable();
+  }
+
+
+
+  /**
+   * Return a verbose string representation of the current cache maps.
+   * This is useful primary for debugging and diagnostic purposes such
+   * as in the entry cache unit tests.
+   * @return String verbose string representation of the current cache
+   *                maps in the following format: dn:id:backend
+   *                one cache entry map representation per line
+   *                or <CODE>null</CODE> if all maps are empty.
+   */
+  private String toVerboseString()
+  {
+    String verboseString = new String();
+    StringBuilder sb = new StringBuilder();
+
+    Map<DN,CacheEntry> dnMapCopy;
+    Map<Backend,HashMap<Long,CacheEntry>> idMapCopy;
+
+    // Grab cache lock to prevent any modifications
+    // to the cache maps until a snapshot is taken.
+    cacheLock.lock();
+    try {
+      // Examining the real maps will hold the lock and can cause map
+      // modifications in case of any access order maps, make copies
+      // instead.
+      dnMapCopy = new LinkedHashMap<DN,CacheEntry>(dnMap);
+      idMapCopy = new HashMap<Backend,HashMap<Long,CacheEntry>>(idMap);
+    } finally {
+      cacheLock.unlock();
+    }
+
+    // Check dnMap first.
+    for (DN dn : dnMapCopy.keySet()) {
+      sb.append(dn.toString());
+      sb.append(":");
+      sb.append((dnMapCopy.get(dn) != null ?
+          Long.toString(dnMapCopy.get(dn).getEntryID()) : null));
+      sb.append(":");
+      sb.append((dnMapCopy.get(dn) != null ?
+          dnMapCopy.get(dn).getBackend().getBackendID() : null));
+      sb.append(ServerConstants.EOL);
+    }
+
+    // See if there is anything on idMap that isnt reflected on
+    // dnMap in case maps went out of sync.
+    for (Backend backend : idMapCopy.keySet()) {
+      for (Long id : idMapCopy.get(backend).keySet()) {
+        if ((idMapCopy.get(backend).get(id) == null) ||
+            !dnMapCopy.containsKey(
+              idMapCopy.get(backend).get(id).getDN())) {
+          sb.append((idMapCopy.get(backend).get(id) != null ?
+              idMapCopy.get(backend).get(id).getDN().toString() : null));
+          sb.append(":");
+          sb.append(id.toString());
+          sb.append(":");
+          sb.append(backend.getBackendID());
+          sb.append(ServerConstants.EOL);
+        }
+      }
+    }
+
+    verboseString = sb.toString();
+
+    return (verboseString.length() > 0 ? verboseString : null);
   }
 
 }

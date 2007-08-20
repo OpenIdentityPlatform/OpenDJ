@@ -74,6 +74,7 @@ import org.opends.server.types.FilePermission;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.util.ServerConstants;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.config.ConfigConstants.*;
@@ -1022,64 +1023,6 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
-  public String toVerboseString()
-  {
-    String verboseString = new String();
-
-    Map<DN,Long> dnMapCopy;
-    Map<Backend,Map<Long,DN>> backendMapCopy;
-
-    // Grab write lock to prevent any modifications
-    // to the cache maps until a snapshot is taken.
-    cacheWriteLock.lock();
-    try {
-      // Examining the real maps will hold the lock
-      // and can cause map modifications in case of
-      // any access order maps, make copies instead.
-      dnMapCopy = new LinkedHashMap<DN,Long>(dnMap);
-      backendMapCopy =
-        new LinkedHashMap<Backend,Map<Long,DN>>
-          (backendMap);
-    } finally {
-      cacheWriteLock.unlock();
-    }
-
-    // Check dnMap first.
-    for (DN dn : dnMapCopy.keySet()) {
-      Backend backend = null;
-      Iterator<Backend> backendIterator = backendMapCopy.keySet().iterator();
-      while (backendIterator.hasNext()) {
-        backend = backendIterator.next();
-        Map<Long, DN> map = backendMapCopy.get(backend);
-        if ((map.get(dnMapCopy.get(dn)) != null) &&
-            (map.get(dnMapCopy.get(dn)).equals(dn))) {
-          break;
-        }
-      }
-    }
-
-    // See if there is anything on backendMap that isnt reflected on dnMap
-    // in case maps went out of sync.
-    Backend backend = null;
-    Iterator<Backend> backendIterator = backendMapCopy.keySet().iterator();
-    while (backendIterator.hasNext()) {
-      backend = backendIterator.next();
-      Map<Long, DN> map = backendMapCopy.get(backend);
-      for (Long id : map.keySet()) {
-        if (!dnMapCopy.containsKey(map.get(id)) || map.get(id) == null) {
-          verboseString = verboseString + (map.get(id) != null ?
-            map.get(id) : null) + ":" + id.toString() + ":" +
-          backend.getBackendID() + "\n";
-        }
-      }
-    }
-
-    return (verboseString.length() > 0 ? verboseString : null);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   @Override()
   public boolean isConfigurationAcceptable(EntryCacheCfg configuration,
                                            List<Message> unacceptableReasons)
@@ -1551,6 +1494,86 @@ public class FileSystemEntryCache
     } else {
       throw new Exception();
     }
+  }
+
+  /**
+   * Return a verbose string representation of the current cache maps.
+   * This is useful primary for debugging and diagnostic purposes such
+   * as in the entry cache unit tests.
+   * @return String verbose string representation of the current cache
+   *                maps in the following format: dn:id:backend
+   *                one cache entry map representation per line
+   *                or <CODE>null</CODE> if all maps are empty.
+   */
+  private String toVerboseString()
+  {
+    String verboseString = new String();
+    StringBuilder sb = new StringBuilder();
+
+    Map<DN,Long> dnMapCopy;
+    Map<Backend,Map<Long,DN>> backendMapCopy;
+
+    // Grab write lock to prevent any modifications
+    // to the cache maps until a snapshot is taken.
+    cacheWriteLock.lock();
+    try {
+      // Examining the real maps will hold the lock
+      // and can cause map modifications in case of
+      // any access order maps, make copies instead.
+      dnMapCopy = new LinkedHashMap<DN,Long>(dnMap);
+      backendMapCopy =
+        new LinkedHashMap<Backend,Map<Long,DN>>
+          (backendMap);
+    } finally {
+      cacheWriteLock.unlock();
+    }
+
+    // Check dnMap first.
+    for (DN dn : dnMapCopy.keySet()) {
+      sb.append(dn.toString());
+      sb.append(":");
+      sb.append((dnMapCopy.get(dn) != null ?
+          dnMapCopy.get(dn).toString() : null));
+      sb.append(":");
+      Backend backend = null;
+      String backendID = null;
+      Iterator<Backend> backendIterator = backendMapCopy.keySet().iterator();
+      while (backendIterator.hasNext()) {
+        backend = backendIterator.next();
+        Map<Long, DN> map = backendMapCopy.get(backend);
+        if ((map != null) &&
+            (map.get(dnMapCopy.get(dn)) != null) &&
+            (map.get(dnMapCopy.get(dn)).equals(dn))) {
+          backendID = backend.getBackendID();
+          break;
+        }
+      }
+      sb.append(backendID);
+      sb.append(ServerConstants.EOL);
+    }
+
+    // See if there is anything on backendMap that isnt reflected on dnMap
+    // in case maps went out of sync.
+    Backend backend = null;
+    Iterator<Backend> backendIterator = backendMapCopy.keySet().iterator();
+    while (backendIterator.hasNext()) {
+      backend = backendIterator.next();
+      Map<Long, DN> map = backendMapCopy.get(backend);
+      for (Long id : map.keySet()) {
+        if (!dnMapCopy.containsKey(map.get(id)) || map.get(id) == null) {
+          sb.append((map.get(id) != null ? map.get(id) : null));
+          sb.append(":");
+          sb.append(id.toString());
+          sb.append(":");
+          sb.append(backend.getBackendID());
+          sb.append(ServerConstants.EOL);
+        }
+      }
+    }
+
+    verboseString = sb.toString();
+
+    return (verboseString.length() > 0 ? verboseString : null);
   }
 
  /**
