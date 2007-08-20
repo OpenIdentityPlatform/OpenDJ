@@ -139,6 +139,37 @@
     </sequence>
   </function>
 
+	
+<!-- testisPASS  -->
+<!-- Set the test status to PASS -->	 
+	
+ <function name="testIsPASS">
+    <function-prolog>
+      This function set the status of the tests: PASS
+    </function-prolog>
+
+    <sequence>
+	   <message>'Set test status to PASS'</message>
+       <tcstatus result="'pass'"/>				  
+    </sequence>
+ </function>
+		
+
+<!-- testisFAIL -->
+<!-- Set the test status to  FAIL -->	 
+	
+ <function name="testIsFAIL">
+    <function-prolog>
+      This function set the status of the tests: FAIL
+    </function-prolog>
+
+    <sequence>
+	   <message>'Set test status to FAIL'</message>
+       <tcstatus result="'fail'"/>				  
+    </sequence>
+  </function>
+		
+<!-- checktestString -->	
   <function name="checktestString">
     <function-prolog>
       This function checks the return string against an expected return substring for a testcase
@@ -417,7 +448,6 @@
           <script>
             ldapRC=RC
           </script>
-
           <call function="'Sleep'">
             { 'sleepForMilliSeconds'  : noOfMilliSeconds }
           </call>
