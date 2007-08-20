@@ -157,7 +157,7 @@ public final class InternalLDAPSocket
       catch (Exception e)
       {
         // This should never happen.
-        throw new IOException(e.getMessage(), e);
+        throw new IOException(e.getMessage());
       }
     }
 
