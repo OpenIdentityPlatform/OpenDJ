@@ -250,7 +250,20 @@
         'optionsString'           : '--remove rotation-policy-dn:"cn=my size Limit Rotation Policy,cn=Log Rotation Policies,cn=config"',
         'expectedRC'             : 0 } 
     </call>
-	        
+
+
+    <message>'-- delete a new size limit rotation policy --'</message>   
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'delete-log-rotation-policy' ,
+        'objectType'              : 'policy-name' ,
+        'objectName'             : 'my size Limit Rotation Policy',
+        'expectedRC'             : 0 } 
+    </call>	
+	   	   	        
     <call function="'testCase_Postamble'"/>
   </sequence>
  </testcase>
