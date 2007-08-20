@@ -2524,9 +2524,6 @@
         if dsInstancePswd:
           STAFCmdParamsList.append('-w %s' % dsInstancePswd)                  
           
-        if dsAssertionFilter:
-          STAFCmdParamsList.append('--assertionFilter "%s' % dsAssertionFilter)
-          
         if dsCurrentPassword:
           STAFCmdParamsList.append('-c %s' % dsCurrentPassword)       
                    
