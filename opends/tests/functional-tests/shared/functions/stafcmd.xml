@@ -617,4 +617,61 @@
 
   </function>
         
+
+<!-- List a folder -->
+  <function name="listFolder">
+    <function-prolog>
+        This function  lists a folder
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="foldername" type="required">
+        <function-arg-description>
+          Name of folder to be list
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+	  </function-arg-def>
+      <function-arg-def name="filename" type="required">
+        <function-arg-description>
+          Name of file to be list
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>		  
+      </function-arg-def>      
+    </function-map-args>
+
+    <sequence>
+      <stafcmd name="'STAF Command: list Folder Attributes'">
+        <location>'%s' % location</location>
+        <service>'fs'</service>
+        <request>' LIST DIRECTORY %s NAME %s LONG ' % (foldername,filename)</request>
+      </stafcmd>
+      <if expr="RC != 0">
+        <sequence>
+          <message log="1">
+            'Folder does not exist.'
+          </message>
+          <return>0</return>
+        </sequence>
+      </if>
+
+      <script>
+        cmdRC=RC
+        cmdResult=STAFResult
+      </script>
+
+      <call function="'checkRC'">
+          { 'returncode' : cmdRC ,
+            'result'     : cmdResult }
+      </call>
+
+      <return>cmdRC</return>
+      </sequence>
+    </function>	
+	
 </stax>
