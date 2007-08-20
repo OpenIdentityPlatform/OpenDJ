@@ -37,6 +37,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.util.ServerConstants;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
@@ -137,7 +138,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testContainsEntry()
          throws Exception
@@ -150,7 +151,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testGetEntry1()
          throws Exception
@@ -163,7 +164,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testGetEntry2()
          throws Exception
@@ -176,7 +177,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testGetEntry3()
          throws Exception
@@ -189,7 +190,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testGetEntryID()
          throws Exception
@@ -202,7 +203,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testPutEntry()
          throws Exception
@@ -215,7 +216,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testPutEntryIfAbsent()
          throws Exception
@@ -228,7 +229,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testRemoveEntry()
          throws Exception
@@ -241,7 +242,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testClear()
          throws Exception
@@ -254,7 +255,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testClearBackend()
          throws Exception
@@ -267,7 +268,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testClearSubtree()
          throws Exception
@@ -280,14 +281,14 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testHandleLowMemory()
          throws Exception
   {
-    assertNull(super.cache.toVerboseString(),
-      "Expected empty cache.  " + "Cache contents:\n" +
-      super.cache.toVerboseString());
+    assertNull(super.toVerboseString(),
+      "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
+      super.toVerboseString());
 
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
 
@@ -303,7 +304,8 @@ public class FIFOEntryCacheTestCase
       assertFalse(super.cache.containsEntry(
         super.testEntriesList.get(i).getDN()), "Not expected to find " +
         super.testEntriesList.get(i).getDN().toString() + " in the " +
-        "cache.  Cache contents:\n" + super.cache.toVerboseString());
+        "cache.  Cache contents:" + ServerConstants.EOL +
+        super.toVerboseString());
     }
 
     // Clear the cache so that other tests can start from scratch.
@@ -315,7 +317,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false, groups="slow",
+  @Test(groups="slow",
         threadPoolSize = 10,
         invocationCount = 10,
         timeOut = 60000)
@@ -331,13 +333,13 @@ public class FIFOEntryCacheTestCase
   /**
    * Tests cache rotation on specific number of entries.
    */
-  @Test(enabled=false)
+  @Test()
   public void testCacheRotation()
          throws Exception
   {
-    assertNull(super.cache.toVerboseString(),
-      "Expected empty cache.  " + "Cache contents:\n" +
-      super.cache.toVerboseString());
+    assertNull(super.toVerboseString(),
+      "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
+      super.toVerboseString());
 
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
 
@@ -350,7 +352,8 @@ public class FIFOEntryCacheTestCase
       assertFalse(super.cache.containsEntry(
         super.testEntriesList.get(i).getDN()), "Not expected to find " +
         super.testEntriesList.get(i).getDN().toString() + " in the " +
-        "cache.  Cache contents:\n" + super.cache.toVerboseString());
+        "cache.  Cache contents:" + ServerConstants.EOL +
+        super.toVerboseString());
     }
 
     // Make sure remaining NUMTESTENTRIES are still in the cache.
@@ -361,7 +364,8 @@ public class FIFOEntryCacheTestCase
       assertTrue(super.cache.containsEntry(
         super.testEntriesList.get(i).getDN()), "Expected to find " +
         super.testEntriesList.get(i).getDN().toString() + " in the " +
-        "cache.  Cache contents:\n" + super.cache.toVerboseString());
+        "cache.  Cache contents:" + ServerConstants.EOL +
+        super.toVerboseString());
     }
 
     // Clear the cache so that other tests can start from scratch.
