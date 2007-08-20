@@ -140,10 +140,10 @@
   </function>
 
 	
-<!-- testisPASS  -->
+<!-- testPassed  -->
 <!-- Set the test status to PASS -->	 
 	
- <function name="testIsPASS">
+ <function name="testPassed">
     <function-prolog>
       This function set the status of the tests: PASS
     </function-prolog>
@@ -155,10 +155,10 @@
  </function>
 		
 
-<!-- testisFAIL -->
+<!-- testFailed -->
 <!-- Set the test status to  FAIL -->	 
 	
- <function name="testIsFAIL">
+ <function name="testFailed">
     <function-prolog>
       This function set the status of the tests: FAIL
     </function-prolog>
