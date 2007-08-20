@@ -294,7 +294,7 @@ public class DependencyTest extends ReplicationTestCase
    * To increase the risks of failures a loop of add/del/add is done.
    */
   @SuppressWarnings("unchecked")
-  @Test(enabled=false, groups="slow")
+  @Test(groups="slow")
   public void addDelAddDependencyTest() throws Exception
   {
     ReplicationServer replServer = null;
@@ -335,8 +335,6 @@ public class DependencyTest extends ReplicationTestCase
                                false);
 
       // send a sequence of add/del/add operations
-
-      String addDn = BASEDN_STRING;
       ChangeNumberGenerator gen = new ChangeNumberGenerator(brokerId, 0L);
 
       int sequence;
@@ -346,10 +344,10 @@ public class DependencyTest extends ReplicationTestCase
         entry.removeAttribute(uidType);
         entry.addAttribute(new Attribute("entryuuid", stringUID(sequence+1)),
                            new LinkedList<AttributeValue>());
-        addDn = "dc=dependency" + sequence + "," + addDn;
+        String addDn = "dc=dependency" + sequence + "," + BASEDN_STRING;
         AddMsg addMsg =
           new AddMsg(gen.newChangeNumber(), addDn, stringUID(sequence+1),
-                     stringUID(sequence == 1 ? sequence : sequence +1000),
+                     stringUID(1),
                      entry.getObjectClassAttribute(),
                      entry.getAttributes(), null );
         broker.publish(addMsg);
@@ -361,11 +359,11 @@ public class DependencyTest extends ReplicationTestCase
 
         // add again the entry with a new entryuuid.
         entry.removeAttribute(uidType);
-        entry.addAttribute(new Attribute("entryuuid", stringUID(sequence+1001)),
+        entry.addAttribute(new Attribute("entryuuid", stringUID(sequence+1025)),
                            new LinkedList<AttributeValue>());
         addMsg =
-          new AddMsg(gen.newChangeNumber(), addDn, stringUID(sequence+1001),
-                     stringUID(sequence == 1 ? sequence : sequence +1000),
+          new AddMsg(gen.newChangeNumber(), addDn, stringUID(sequence+1025),
+                     stringUID(1),
                      entry.getObjectClassAttribute(),
                      entry.getAttributes(), null );
         broker.publish(addMsg);
@@ -381,14 +379,13 @@ public class DependencyTest extends ReplicationTestCase
 
       // check that all entries have been deleted and added
       // again by checking that they do have the correct entryuuid
-      addDn = BASEDN_STRING;
       for (sequence = 1; sequence<=AddSequenceLength; sequence ++)
       {
-        addDn = "dc=dependency" + sequence + "," + addDn;
+        String addDn = "dc=dependency" + sequence + "," + BASEDN_STRING;
 
         boolean found =
           checkEntryHasAttribute(DN.decode(addDn), "entryuuid",
-                                 stringUID(sequence+1001),
+                                 stringUID(sequence+1025),
                                  30000, true);
         if (!found)
         {
@@ -396,14 +393,13 @@ public class DependencyTest extends ReplicationTestCase
         }
       }
 
-      DN deleteDN = DN.decode(addDn);
-      while (sequence-->1)
+      for (sequence = 1; sequence<=AddSequenceLength; sequence ++)
       {
-        DeleteMsg delMsg = new DeleteMsg(deleteDN.toString(),
+        String deleteDN = "dc=dependency" + sequence + "," + BASEDN_STRING;
+        DeleteMsg delMsg = new DeleteMsg(deleteDN,
                                          gen.newChangeNumber(),
-                                         stringUID(sequence + 1001));
+                                         stringUID(sequence + 1025));
         broker.publish(delMsg);
-        deleteDN = deleteDN.getParent();
       }
 
       // check that the database was cleaned successfully
@@ -411,7 +407,6 @@ public class DependencyTest extends ReplicationTestCase
       Entry baseEntry = getEntry(node1, 30000, false);
       assertNull(baseEntry,
         "The entry were not removed succesfully after test completion.");
-
     }
     finally
     {
@@ -522,7 +517,7 @@ public class DependencyTest extends ReplicationTestCase
         addDn = "dc=new_dep" + sequence + "," + BASEDN_STRING;
         DeleteMsg delMsg = new DeleteMsg(addDn.toString(),
                                          gen.newChangeNumber(),
-                                         stringUID(sequence + 1001));
+                                         stringUID(sequence + 1));
         broker.publish(delMsg);
       }
     }
