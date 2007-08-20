@@ -71,11 +71,11 @@
         <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_validator/security_history_based.xml' % (TESTS_DIR)"/>
         <call function="'history_based'" />
-        <!--
+        
         <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_validator/security_similarity_based.xml' % (TESTS_DIR)"/>
         <call function="'similarity_based'" />
-        -->
+        
         <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_validator/security_dictionary.xml' % (TESTS_DIR)"/>
         <call function="'dictionary'" />
