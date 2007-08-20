@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="similarity_based"/>
+
+  <function name="similarity_based">
+
+      <sequence>
+
+        <testcase name="'Security: Pwd Validator: Similarity Based: Preamble'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Similarity Based: Preamble - Admin enabling validator'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'password-validator-dn' ,
+                    'attributeValue'         : 'cn=Similarity-Based Password Validator,cn=Password Validators,cn=config' }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Similarity Based: Preamble - Admin modifying password history count'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'password-history-count' ,
+                    'attributeValue'         : '0' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <testcase name="'Security: Pwd Validator: Similarity Based: new password with 1 letter change, valid'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Similarity Based: user modifying password'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'bribery' ,
+                    'DNToModify'             : 'uid=kvaughan, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'brobery' ,
+                    'changetype'             : 'replace'  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Similarity Based: user binding with new password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'brobery' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+        <testcase name="'Security: Pwd Validator: Similarity Based: Enable requires-current-password'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Similarity Based: Admin enabling requires-current-password'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'password-change-requires-current-password' ,
+                    'attributeValue'         : 'true' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <testcase name="'Security: Pwd Validator: Similarity Based: new password with 1 letter change, invalid'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Similarity Based: user modifying password'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'brobery' ,
+                    'DNToModify'             : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'probery' ,
+                    'changetype'             : 'replace' , 
+                    'expectedRC'             : 53  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Similarity Based: user binding with invalid password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'probery' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base', 
+                'expectedRC'       : 49 }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+      
+        <testcase name="'Security: Pwd Validator: Similarity Based: new password with 1 letter change, invalid 2'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Similarity Based: user modifying password'
+            </message>
+
+            <call function="'ldapPasswordModifyWithScript'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'brobery' ,
+                    'dsAuthzID'              : 'dn:uid=kvaughan, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'dsCurrentPassword'      : 'brobery' ,
+                    'dsNewPassword'          : 'probery' , 
+                    'expectedRC'             : 49 }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Similarity Based: user binding with invalid password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'probery' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' , 
+                'expectedRC'       : 49 }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+      
+        <testcase name="'Security: Pwd Validator: Similarity Based: new password with 2 letter change, invalid'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Similarity Based: user modifying password'
+            </message>
+
+            <call function="'ldapPasswordModifyWithScript'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'brobery' ,
+                    'dsAuthzID'              : 'dn:uid=kvaughan, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'dsCurrentPassword'      : 'brobery' ,
+                    'dsNewPassword'          : 'phobery' , 
+                    'expectedRC'             : 49 }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Similarity Based: user binding with invalid password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'phobery' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base', 
+                'expectedRC'       : 49 }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+        <testcase name="'Security: Pwd Validator: Similarity Based: new password with 3 letter change, valid'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Pwd Validator: Similarity Based: user modifying password'
+            </message>
+
+            <call function="'ldapPasswordModifyWithScript'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'brobery' ,
+                    'dsAuthzID'              : 'dn:uid=kvaughan, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'dsCurrentPassword'      : 'brobery' ,
+                    'dsNewPassword'          : 'phibery'  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Similarity Based: user binding with new password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'phibery' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+        <testcase name="'Security: Pwd Validator: Similarity Based: Postamble'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Validator: Similarity Based: Postamble Step 1. Admin disabling password validator'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'password-validator-dn' ,
+                    'attributeValue'         : 'cn=Similarity-Based Password Validator,cn=Password Validators,cn=config' ,
+                    'modifyType'             : 'remove' }
+            </call>
+            
+            <!--- User Change Password -->
+            <message>
+               'Security: Pwd Validator: Similarity Based: Postamble Step 2. User Changing Password'
+            </message>
+
+            <call function="'ldapPasswordModifyWithScript'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'phibery' ,
+                    'dsAuthzID'              : 'dn:uid=kvaughan, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'dsCurrentPassword'      : 'phibery' ,
+                    'dsNewPassword'          : 'phibary'  }
+            </call>
+            
+            <message>
+               'Security: Pwd Validator: Similarity Based: Postamble Step 3. User Searching With Password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'phibary' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+     </sequence>
+
+  </function>
+
+</stax>
