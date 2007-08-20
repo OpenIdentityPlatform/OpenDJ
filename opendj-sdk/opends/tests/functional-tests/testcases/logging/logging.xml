@@ -43,11 +43,6 @@
           </script>
 
           <call function="'testSuite_Preamble'"/>
-
-
-	      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-           file="'%s/testcases/logging/logging_lib.xml' % (TESTS_DIR)" />
-
 			 			 
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/logging/logging_setup.xml' % (TESTS_DIR)"/>
