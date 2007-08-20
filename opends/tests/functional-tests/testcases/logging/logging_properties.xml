@@ -59,7 +59,7 @@
 	<message>'------  create logger publisher --' </message>
 	   
 	   <!-- DESACTRIVATED : bug 2107]-->
-	   <call function="'testIsFAIL'"/>		
+	   <call function="'testFailed'"/>		
 	   <script>
 		   bug=2107
   	   </script>
