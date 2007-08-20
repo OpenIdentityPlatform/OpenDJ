@@ -233,7 +233,7 @@
             
 
 
-          <!--- Test Case information
+          <!-- Test Case information
           #@TestMarker          Replication Schema Replication Tests
           #@TestName            Replication: Schema Replication: Delete objectclass
           #@TestID                  Delete objectclass
@@ -242,7 +242,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          	     
+          -->             	     
           <testcase name="getTestCaseName('Delete objectclass')">
             <sequence>            
               <call function="'testCase_Preamble'"/>
@@ -254,7 +254,7 @@
                 newObjectclass = '( testobjectclass-oid NAME \'testobjectclass-0\'  SUP person MAY ( street $  c ) X-ORIGIN \'user defined\' )'
               </script>
                 
-              <!-- Modify schema  in "master" server
+              <!-- Modify schema  in "master" server -->
               <call function="'modifyAnAttribute'">
                 { 'dsPath' : masterPath,
                   'dsInstanceHost'   : masterHost ,
@@ -267,7 +267,7 @@
                   'changetype' : 'delete' }
               </call>
 
-              <!-- Try to add entry to servers; should be rejected with error 65 (objectclass violation)
+              <!-- Try to add entry to servers; should be rejected with error 65 (objectclass violation) -->
               <iterate var="server" in="_topologyServerList">
                 <call function="'addEntry'">
                   { 'location'       : clientHost,
@@ -281,20 +281,19 @@
                 </call>                             
               </iterate> 
                        
-              <!-- Verify the synchronization of the schema among the servers in the topology
+              <!-- Verify the synchronization of the schema among the servers in the topology -->
               <call function="'verifySchemas'">
                 [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
               </call> 
                 
-              <!-- Verify the synchronization of the trees among the servers in the topology
+              <!-- Verify the synchronization of the trees among the servers in the topology -->
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
                                 
               <call function="'testCase_Postamble'"/>
             </sequence>
-          </testcase>         
--->                                                            
+          </testcase>                                                                     
  
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/replication_cleanup.xml' % (TESTS_DIR)"/>

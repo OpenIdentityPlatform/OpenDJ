@@ -90,7 +90,8 @@
               <!-- Import data into "master" server -->              
               <call function="'ImportLdifWithScript'">
                 { 'location'     : masterHost,
-                  'dsPath'       : masterPath,             
+                  'dsPath'       : masterPath,
+                  'dsBackEnd'    : 'userRoot',             
                   'dsLdifFile'   : '%s/replication/Example.ldif' % masterDataDir }
               </call>
 
