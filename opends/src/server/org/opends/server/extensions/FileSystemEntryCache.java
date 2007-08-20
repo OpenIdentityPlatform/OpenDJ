@@ -733,7 +733,9 @@ public class FileSystemEntryCache
       }
       return;
     } finally {
-      cacheWriteLock.unlock();
+      if (cacheLock.isWriteLockedByCurrentThread()) {
+        cacheWriteLock.unlock();
+      }
     }
   }
 
@@ -766,7 +768,9 @@ public class FileSystemEntryCache
       // We can't rule out the possibility of a conflict, so return false.
       return false;
     } finally {
-      cacheWriteLock.unlock();
+      if (cacheLock.isWriteLockedByCurrentThread()) {
+        cacheWriteLock.unlock();
+      }
     }
   }
 
