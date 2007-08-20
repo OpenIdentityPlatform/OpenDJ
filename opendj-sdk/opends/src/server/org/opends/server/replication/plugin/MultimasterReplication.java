@@ -45,6 +45,7 @@ import org.opends.server.core.DirectoryServer;
 
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -67,6 +68,8 @@ import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.messages.Message;
 
+import static org.opends.server.replication.plugin.
+              ReplicationRepairRequestControl.*;
 
 /**
  * This class is used to load the Replication code inside the JVM
@@ -91,20 +94,51 @@ public class MultimasterReplication
   /**
    * Finds the domain for a given DN.
    *
-   * @param dn   The DN for which the domain must be returned.
-   * @param op   An optional operation for which the check is done.
-   *             Can be null is the request has no associated operation.
-   * @return     The domain for this DN.
+   * @param dn         The DN for which the domain must be returned.
+   * @param pluginOp   An optional operation for which the check is done.
+   *                   Can be null is the request has no associated operation.
+   * @return           The domain for this DN.
    */
-  public static ReplicationDomain findDomain(DN dn, PluginOperation op)
+  public static ReplicationDomain findDomain(DN dn, PluginOperation pluginOp)
   {
     /*
      * Don't run the special replication code on Operation that are
      * specifically marked as don't synchronize.
      */
-    if ((op != null) && (op instanceof Operation) &&
-        (((Operation) op).dontSynchronize()))
-      return null;
+    if ((pluginOp != null) && (pluginOp instanceof Operation))
+    {
+        Operation op = ((Operation) pluginOp);
+
+        if (op.dontSynchronize())
+          return null;
+
+        /*
+         * Check if the provided operation is a repair operation and set
+         * the synchronization flags if necessary.
+         * The repair operations are tagged as synchronization operations
+         * so that the core server let the operation modify the entryuuid
+         * and ds-sync-hist attributes.
+         * They are also tagged as dontSynchronize so that the replication
+         * code running later do not generate ChnageNumber, solve conflicts
+         * and forward the operation to the replication server.
+         */
+        for (Control c : op.getRequestControls())
+        {
+          if (c.getOID().equals(OID_REPLICATION_REPAIR_CONTROL))
+          {
+            op.setSynchronizationOperation(true);
+            op.setDontSynchronize(true);
+            // remove this control from the list of controls since
+            // it has now been processed and the local backend will
+            // fail if it finds a control that it does not know about and
+            // that is marked as critical.
+            List<Control> controls = op.getRequestControls();
+            controls.remove(c);
+            return null;
+          }
+        }
+    }
+
 
     ReplicationDomain domain = null;
     DN temp = dn;
@@ -188,6 +222,9 @@ public class MultimasterReplication
     DirectoryServer.registerRestoreTaskListener(this);
     DirectoryServer.registerExportTaskListener(this);
     DirectoryServer.registerImportTaskListener(this);
+
+    DirectoryServer.registerSupportedControl(
+        ReplicationRepairRequestControl.OID_REPLICATION_REPAIR_CONTROL);
   }
 
   /**

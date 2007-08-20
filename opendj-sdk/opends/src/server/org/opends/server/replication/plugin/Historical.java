@@ -374,8 +374,11 @@ public class Historical
              * This attribute is unknown from the schema
              * Just skip it, the modification will be processed but no
              * historical information is going to be kept.
-             * TODO : REPAIR tool should deal with this, add some logging.
+             * Log information for the repair tool.
              */
+            Message message = ERR_UNKNOWN_ATTRIBUTE_IN_HISTORICAL.get(
+                entry.getDN().toNormalizedString(), histVal.getAttrString());
+            logError(message);
             continue;
           }
 
@@ -453,19 +456,7 @@ public class Historical
 
           if (fakeOperation != null)
           {
-            try
-            {
-              fakeOperation.addModification(mod);
-            } catch (Exception e)
-            {
-              /*
-               *  TODO : REPAIR : This Exception shows that there are some
-               *  inconsistency in the historical information.
-               *  This method can't fix the problem.
-               *  This should be logged and somehow the repair
-               *  service should get called to fix the problem.
-               */
-            }
+            fakeOperation.addModification(mod);
           }
           else
           {

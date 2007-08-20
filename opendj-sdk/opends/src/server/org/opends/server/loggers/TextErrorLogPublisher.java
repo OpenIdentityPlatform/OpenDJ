@@ -194,6 +194,10 @@ public class TextErrorLogPublisher
           defaultSeverities.add(Severity.SEVERE_ERROR);
           defaultSeverities.add(Severity.SEVERE_WARNING);
         }
+        else if (defSev.toString().equalsIgnoreCase(LOG_SEVERITY_NONE))
+        {
+          // don't add any severity
+        }
         else
         {
           Severity errorSeverity =
@@ -423,6 +427,10 @@ public class TextErrorLogPublisher
           defaultSeverities.add(Severity.NOTICE);
           defaultSeverities.add(Severity.SEVERE_ERROR);
           defaultSeverities.add(Severity.SEVERE_WARNING);
+        }
+        else if (defSev.toString().equalsIgnoreCase(LOG_SEVERITY_NONE))
+        {
+          // don't add any severity
         }
         else
         {

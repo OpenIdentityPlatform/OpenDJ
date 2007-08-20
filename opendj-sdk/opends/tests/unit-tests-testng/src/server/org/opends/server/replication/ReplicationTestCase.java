@@ -322,33 +322,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void configureReplication() throws Exception
   {
-    // Add the Multimaster replication plugin
-    String synchroPluginLdif = "dn: " + synchroPluginStringDN + "\n"
-         + "objectClass: top\n"
-         + "objectClass: ds-cfg-synchronization-provider\n"
-         + "objectClass: ds-cfg-multimaster-synchronization-provider\n"
-         + "ds-cfg-synchronization-provider-enabled: true\n"
-         + "ds-cfg-synchronization-provider-class: " +
-         "org.opends.server.replication.plugin.MultimasterReplication\n";
-    Entry synchroPluginEntry = TestCaseUtils.entryFromLdifString(synchroPluginLdif);
-    DirectoryServer.getConfigHandler().addEntry(synchroPluginEntry, null);
-    configEntryList.add(synchroPluginEntry.getDN());
-    assertNotNull(DirectoryServer.getConfigEntry(DN
-        .decode(synchroPluginStringDN)),
-        "Unable to add the Multimaster replication plugin");
-
-    // domains container entry.
-    String domainsLdif = "dn: "
-      + "cn=domains," + synchroPluginStringDN + "\n"
-      + "objectClass: top\n"
-      + "objectClass: ds-cfg-branch\n";
-    Entry domainsEntry = TestCaseUtils.entryFromLdifString(domainsLdif);
-    DirectoryServer.getConfigHandler().addEntry(domainsEntry, null);
-    configEntryList.add(domainsEntry.getDN());
-    assertNotNull(DirectoryServer.getConfigEntry(
-      DN.decode(synchroPluginStringDN)),
-      "Unable to add the Multimaster replication plugin");
-
     if (replServerEntry != null)
     {
       // Add the replication server
