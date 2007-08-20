@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  
+<defaultcall function="logging_rotation"/>
+<function name="logging_rotation" scope="local">      
+
+<sequence>
+                               
+       
+       <!---
+	#@TestMarker            size limit  rotation 
+	#@TestName              size limit  rotation 
+	#@TestIssue               Check the size limit rotation policy
+	#@TestPreamble         none
+	#@TestStep                Create a new size limit rotation policy
+    #@TestStep                Configure the Size Limit rotation policy with a Max size to 4kb
+    #@TestStep                Execute ldapsearch request until the log are rotate
+	#@TestPostamble       none
+	#@TestResult             the logs size must match the rotation size            
+      -->
+		  
+    
+  <testcase name="'logging : Rotation  policy : size limit  '">
+
+   <sequence>
+    <call function="'testCase_Preamble'"/>
+	<message>
+        '----  Check the size limit rotation -----'
+    </message>				    
+	   
+    <message>'-- create a new size limit rotation policy --'</message>   
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'create-log-rotation-policy' ,
+        'objectType'              : 'policy-name' ,
+        'objectName'             : 'my size Limit Rotation Policy',
+        'optionsString'           : '--type size-limit --set file-size-limit:4kb',
+        'expectedRC'             : 0 } 
+    </call>	
+	   
+	<message>'------  Add this rotation policy to the Access log publisher --' </message>
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'set-log-publisher-prop' ,		
+        'objectType'              : 'publisher-name' ,
+        'objectName'             :  'File-Based Access Logger',
+        'optionsString'           : '--add rotation-policy-dn:"cn=my size Limit Rotation Policy,cn=Log Rotation Policies,cn=config"',
+        'expectedRC'             : 0 } 
+    </call>
+
+  <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'set-log-publisher-prop' ,		
+        'objectType'              : 'publisher-name' ,
+        'objectName'             :  'File-Based Access Logger',
+        'optionsString'           : '--add  auto-flush:true --set append:true --set asynchronous:false --set buffer-size:64kb',
+        'expectedRC'             : 0 } 
+    </call>	   
+
+    <call function="'dsconfigGet'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'objectName'             : 'log-publisher' ,
+        'propertyType'           : 'publisher' ,
+        'propertyName'           : 'File-Based Access Logger',
+        'attributeName'          : 'rotation-policy-dn'
+	  }
+    </call>	   
+	
+
+	 <call function="'Sleep'">
+            { 'sleepForMilliSeconds'  : 20000 }
+	 </call>
+	   
+	 <!--  Starting loop -->  	   
+	 <script>  
+          listName=[]
+          listSize=[]
+	 </script>		 
+	 <script>
+		 cpt=0
+		 nbLog=0
+     </script>  
+	 <!--  Execute ldapsearch until we detect a log rotation -->  
+	 <!--   Stop when the first rotation is done -->
+	   
+	 <loop from="1" to="50" until="RC != 0">
+		 <sequence>
+         <message>'###########################'</message>			 
+		 <message>'                  LOOP %s :' % cpt </message>
+		 <message>'###########################'</message>
+ 	     <message>'--- Execute a Search request ---'</message>  
+
+          <call function="'ldapSearchWithScript'">
+		{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+		  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,
+		  'dsInstanceDn'   :  DIRECTORY_INSTANCE_DN,
+          'dsInstancePswd'   :  	 DIRECTORY_INSTANCE_PSWD,
+		  'dsFilter'		: 'objectclass=*',
+          'dsScope'                 : 'base',
+          'expectedRC'           :  0 }		
+          </call>    
+
+
+        <call function="'dsconfigGet'">
+        { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'objectName'             : 'log-publisher' ,
+        'propertyType'           : 'publisher' ,
+        'propertyName'           : 'File-Based Access Logger',
+        'attributeName'          : 'rotation-policy-dn'
+	    }
+         </call> 			 
+			 				 
+	     <message>'--- Check log files ---'</message>  
+         <call function="'listFolder'">
+          { 'location' : '%s' % (DIRECTORY_INSTANCE_HOST),
+           'foldername' : '%s/%s/logs' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME),
+           'filename' : 'access'
+           }
+		</call>	  
+	   
+	    <if expr="len(cmdResult) > 0">
+    	  <sequence>				   			 
+          <iterate var="result" in="cmdResult">
+		   <sequence>
+			   <script>
+				   logname=result["name"]
+				   logsize=result["size"]
+				   found=0
+			   </script>
+			   <message>'the log file status for file  "%s" is %s ' % (logname,logsize)</message>
+			   <script>
+				   for currentLog in listName:
+				       if currentLog == logname:
+				          found=1
+				          currentIndex=listName.index(currentLog)
+				          currentSize=listSize[currentIndex]
+				          if currentSize != logsize:
+				              listSize[currentIndex]=logsize
+
+				  if found == 0:
+				     if nbLog != 0:
+				        RC=1
+				        newlogName=logname
+				        newlogSize=logsize
+				     listName.append(logname)
+				     listSize.append(logsize)
+			   </script>
+		   </sequence>     
+		  </iterate>	   
+		  <!--  set nbLog  when we find a log file -->	  
+          <script>
+			  nbLog=1
+		  </script> 
+          <message>'The new log file status is : %s : %s' % (listName,listSize)</message>			 
+          </sequence>			  
+		 </if>
+		 <script>
+			 cpt=cpt+1
+		 </script>	 
+		 </sequence>	 
+     </loop>  
+	  
+	   
+     <!-- ############################### -->
+	 <!-- Check log file size                                                -->
+	 <!-- all the log file size must be around 4kb                  -->
+    <!-- ############################### -->
+	   
+	 <if expr="RC == 1">
+	   <sequence>
+   	     <message>'A log rotation has been done. The new rotation file is "%s" (size = %s) ' % (newlogName,newlogSize)</message>		 	   	    	
+		   
+		   <if expr="int(newlogSize) &lt;  4100 and int(newlogSize) > 4000" >
+             <sequence>
+               <message>'SUCCESS. The rotation based on size limit is successfull.  The file "%s" (size = %s) ' % (newlogName,newlogSize)</message>
+               <call function="'testIsPASS'"/>		 				 
+			 </sequence>
+	       <else>		   
+  		     <sequence>
+		       <message>'ERROR in the rotation. The file "%s" (size = %s) does not match the rotation size ' % (newlogName,newlogSize)</message>
+               <call function="'testIsFAIL'"/>		 
+		     </sequence>
+		 </else>
+		 </if>			 
+	   </sequence>	 
+	 <else>
+		 <sequence>
+		 <message>'ERROR. The rotation process didn t work.'</message>
+         <call function="'testIsFAIL'"/>		 
+		 </sequence>	 
+     </else>  
+     </if>		 
+
+	   
+	<!-- ############################### -->
+    <!--   clean rotation policy -->	   
+	<!-- ############################### -->   
+	   
+	<message>'------  remove this rotation policy to the Access log publisher --' </message>
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'set-log-publisher-prop' ,		
+        'objectType'              : 'publisher-name' ,
+        'objectName'             :  'File-Based Access Logger',
+        'optionsString'           : '--remove rotation-policy-dn:"cn=my size Limit Rotation Policy,cn=Log Rotation Policies,cn=config"',
+        'expectedRC'             : 0 } 
+    </call>
+	        
+    <call function="'testCase_Postamble'"/>
+  </sequence>
+ </testcase>
+	 	  
+</sequence>
+</function>
+
+</stax>
+	
