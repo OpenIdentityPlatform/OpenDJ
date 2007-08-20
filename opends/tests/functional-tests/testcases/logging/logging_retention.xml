@@ -191,7 +191,61 @@
 	         <call function="'testIsPASS'"/>
 	      </sequence>
       </if>			 
+
+	  <!-- cleanup --> 
+   <message>'------  remove this rotation policy to the Access log publisher --' </message>
+    <call function="'dsconfig'">
+	{ 'dsInstanceHost'	: DIRECTORY_INSTANCE_HOST,
+	'dsInstancePort'	 : DIRECTORY_INSTANCE_PORT ,
+	'dsInstanceDn'		 : DIRECTORY_INSTANCE_DN ,
+	'dsInstancePswd'	: DIRECTORY_INSTANCE_PSWD ,
+	'subcommand'		: 'set-log-publisher-prop' ,
+	'objectType'		  : 'publisher-name' ,
+	'objectName'		 :  'File-Based Access Logger',
+	'optionsString'		  : '--remove rotation-policy-dn:"cn=my size Limit Rotation Policy,cn=Log Rotation Policies,cn=config"',
+	'expectedRC'		 : 0 }
+    </call>
 	   
+
+    <message>'------  remove this retention policy to the Access log publisher --' </message>
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'set-log-publisher-prop' ,		
+        'objectType'              : 'publisher-name' ,
+        'objectName'             :  'File-Based Access Logger',
+        'optionsString'           : '--remove retention-policy-dn:"cn=my file count retention policy,cn=Log Retention Policies,cn=config"',
+        'expectedRC'             : 0 } 
+    </call>
+
+
+    <message>'-- delete a new  file count  retention policy --'</message>   
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'delete-log-retention-policy' ,
+        'objectType'              : 'policy-name' ,
+        'objectName'             : 'my file count retention policy',
+        'expectedRC'             : 0 } 
+    </call>		   	  
+
+
+    <message>'-- delete a new size limit rotation policy --'</message>   
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'delete-log-rotation-policy' ,
+        'objectType'              : 'policy-name' ,
+        'objectName'             : 'my size Limit Rotation Policy',
+        'expectedRC'             : 0 } 
+    </call>		   	    
+	   	   	   	   
     <call function="'testCase_Postamble'"/>
   </sequence>
  </testcase>
