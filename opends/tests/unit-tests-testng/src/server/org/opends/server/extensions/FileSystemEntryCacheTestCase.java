@@ -262,7 +262,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test(enabled=false)
   @Override
   public void testContainsEntry()
          throws Exception
@@ -275,7 +275,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test(enabled=false)
   @Override
   public void testGetEntry1()
          throws Exception
@@ -288,7 +288,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test(enabled=false)
   @Override
   public void testGetEntry2()
          throws Exception
@@ -301,7 +301,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test(enabled=false)
   @Override
   public void testGetEntry3()
          throws Exception
@@ -314,7 +314,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test(enabled=false)
   @Override
   public void testGetEntryID()
          throws Exception
@@ -327,7 +327,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test(enabled=false)
   @Override
   public void testPutEntry()
          throws Exception
@@ -340,7 +340,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test(enabled=false)
   @Override
   public void testPutEntryIfAbsent()
          throws Exception
@@ -353,7 +353,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test(enabled=false)
   @Override
   public void testRemoveEntry()
          throws Exception
@@ -366,7 +366,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test(enabled=false)
   @Override
   public void testClear()
          throws Exception
@@ -379,7 +379,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test(enabled=false)
   @Override
   public void testClearBackend()
          throws Exception
@@ -392,7 +392,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test(enabled=false)
   @Override
   public void testClearSubtree()
          throws Exception
@@ -405,7 +405,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test(enabled=false)
   @Override
   public void testHandleLowMemory()
          throws Exception
@@ -418,7 +418,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(groups="slow",
+  @Test(enabled=false,groups="slow",
         threadPoolSize = 10,
         invocationCount = 10,
         // In case of disk based FS.
@@ -459,7 +459,7 @@ public class FileSystemEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(groups = { "slow", "testLRUCacheConcurrency" },
+  @Test(enabled=false, groups = { "slow", "testLRUCacheConcurrency" },
         threadPoolSize = 10,
         invocationCount = 10,
         // In case of disk based FS.
@@ -475,7 +475,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * Tests FIFO cache rotation on specific number of entries.
    */
-  @Test(groups = "slow")
+  @Test(enabled=false, groups = "slow")
   public void testCacheRotationFIFO()
          throws Exception
   {
@@ -517,7 +517,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * Tests LRU cache rotation on specific number of entries.
    */
-  @Test(groups = "slow")
+  @Test(enabled=false, groups = "slow")
   @SuppressWarnings("unchecked")
   public void testCacheRotationLRU()
          throws Exception
@@ -575,7 +575,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * Tests cache persistence with consistent backend.
    */
-  @Test(groups = "slow")
+  @Test(enabled=false, groups = "slow")
   @SuppressWarnings("unchecked")
   public void testCachePersistence()
          throws Exception
@@ -627,7 +627,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * Tests cache persistence with inconsistent backend.
    */
-  @Test(groups = "slow")
+  @Test(enabled=false, groups = "slow")
   @SuppressWarnings("unchecked")
   public void testCachePersistenceInconsistent()
          throws Exception
