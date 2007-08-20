@@ -51,6 +51,8 @@ public class MessageTest extends MessagesTestCase {
   /** Message to appear in pseudo localized test messages file. */
   private static final String TEST_MSG = "XXX";
 
+  private static final String EOL = System.getProperty("line.separator");
+
   @BeforeClass
   public void setUp() throws IOException {
     createDummyLocalizedCoreMessagesFile();
@@ -60,10 +62,10 @@ public class MessageTest extends MessagesTestCase {
   public Object[][] rawData() {
     return new Object[][]{
             {"Hello %s", "Hello World", new Object[]{"World"}},
-            {"Hel%nlo %s", "Hel\nlo World", new Object[]{"World"}},
+            {"Hel%nlo %s", "Hel" + EOL + "lo World", new Object[]{"World"}},
             {"Hel%%lo %s", "Hel%lo World", new Object[]{"World"}},
             {"Hel%%lo", "Hel%lo", new Object[]{}},
-            {"Hel%nlo", "Hel\nlo", new Object[]{}},
+            {"Hel%nlo", "Hel" + EOL + "lo", new Object[]{}},
             {"Hel%Dlo", "Hel%Dlo", new Object[]{}},
             {"Hel%Dlo", "Hel%Dlo", new Object[]{ "abc"}},
 
@@ -83,8 +85,12 @@ public class MessageTest extends MessagesTestCase {
   @Test(dataProvider = "rawData")
   public void testRaw(String fmt, String result, Object... args) {
     Message message = Message.raw(fmt, args);
-    assertTrue(message.toString().equals(result));
-    assertTrue(message.toString(TEST_LOCALE).equals(result));
+
+    String mStr = message.toString();
+    assertTrue(mStr.equals(result));
+
+    String mStrL = message.toString(TEST_LOCALE);
+    assertTrue(mStrL.equals(result));
   }
 
   @Test(dataProvider = "rawData1")
