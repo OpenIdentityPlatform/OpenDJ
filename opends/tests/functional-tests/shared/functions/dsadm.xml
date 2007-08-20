@@ -138,7 +138,8 @@
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
       <call function="'runCommand'">
-        { 'name'      : 'Setup DS Script',
+        { 'location'  : location,
+          'name'      : 'Setup DS Script',
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
           'path'      : dsPath
@@ -316,7 +317,8 @@
       </message>
             
       <call function="'runCommand'">
-        { 'name'      : 'Setup DS Script',
+        { 'location'  : location,
+          'name'      : 'Setup DS Script',
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams
         }
@@ -412,7 +414,8 @@
       </message>
       
       <call function="'runCommand'">
-        { 'command'   : STAFCmd,
+        { 'location'  : location,
+          'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
           'location'  : location
         }
@@ -651,7 +654,8 @@
       </message>
             
       <call function="'runCommand'">
-        { 'name'      : 'Stop DS Script',
+        { 'location'  : location,
+          'name'      : 'Stop DS Script',
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams
         }
@@ -847,7 +851,8 @@
         '%s/import-ldif%s -l %s -n %s %s' % (dsBinPath,fileExt,ldifFile,backEnd,extraParams)
       </message>
       <call function="'runCommand'">
-        { 'name'      : 'Offline Import',
+        { 'location'  : location,
+          'name'      : 'Offline Import',
           'command'   : '%s/import-ldif%s' % (dsBinPath,fileExt),
           'arguments' : '-l %s -n %s %s' % (ldifFile,backEnd,extraParams)
         }
@@ -1087,7 +1092,8 @@
       </message>
             
       <call function="'runCommand'">
-        { 'name'      : 'Offline Import Script',
+        { 'location'  : location,
+          'name'      : 'Offline Import Script',
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams
         }
@@ -1575,7 +1581,8 @@
         '%s/export-ldif%s -l %s -n %s %s' % (dsBinPath,fileExt,ldifFile,backEnd,extraParams)
       </message>
       <call function="'runCommand'">
-        { 'name'      : 'Ldif Export',
+        { 'location'  : location,
+          'name'      : 'Ldif Export',
           'command'   : '%s/export-ldif%s' % (dsBinPath,fileExt),
           'arguments' : '-l %s -n %s %s' % (ldifFile,backEnd,extraParams)
         }
