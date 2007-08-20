@@ -333,6 +333,20 @@
                 'extraParams'      : '-s base' }
             </call>
 
+            <message>
+               'Security: Pwd Validator: Similarity Based: Postamble Step 4. Admin enabling requires-current-password'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'password-change-requires-current-password' ,
+                    'attributeValue'         : 'false' }
+            </call>
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
