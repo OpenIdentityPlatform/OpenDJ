@@ -183,12 +183,12 @@
 	 <if expr="cpt != 2">
 		 <sequence>
 		 <message>'ERROR.  The writer are not flushed after every log records'</message>		 
-         <call function="'testIsFAIL'"/>		 
+         <call function="'testFailed'"/>		 
 		 </sequence>
 	 <else>
 		  <sequence>
 		  <message>'SUCCESS. The writer are flushed after every log records' </message>
-          <call function="'testIsPASS'"/>		 
+          <call function="'testPassed'"/>		 
           </sequence>			  
 	 </else>	 
 	 </if>
@@ -285,11 +285,11 @@
 
 	 <if expr="error == 0">
 		 <sequence>
-	       <call function="'testIsPASS'"/>		  
+	       <call function="'testPassed'"/>		  
          </sequence>
      <else>
          <sequence>		 
-         <call function="'testIsFAIL'"/>			 		 
+         <call function="'testFailed'"/>			 		 
          </sequence>		 			 
      </else>		 
 	 </if>   		

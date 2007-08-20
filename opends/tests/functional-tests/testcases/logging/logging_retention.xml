@@ -175,7 +175,7 @@
 					  error=1
                   </script>                    
                   <message>'Error, the number of logs files exceed the retention policy'</message>
-	              <call function="'testIsFAIL'"/>
+	              <call function="'testFailed'"/>
 		        </sequence>
              </if>
 
@@ -188,7 +188,7 @@
 	  <if expr="error == 0" >
 		  <sequence>
              <message>'SUCCESS:  the retention policy has been checked'</message>
-	         <call function="'testIsPASS'"/>
+	         <call function="'testPassed'"/>
 	      </sequence>
       </if>			 
 
