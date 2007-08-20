@@ -90,7 +90,8 @@
               <!-- Import data into "master" server -->              
               <call function="'ImportLdifWithScript'">
                 { 'location'     : masterHost,
-                  'dsPath'       : masterPath,             
+                  'dsPath'       : masterPath,
+                  'dsBackEnd'    : 'userRoot',             
                   'dsLdifFile'   : '%s/replication/Example.ldif' % masterDataDir }
               </call>
 
@@ -127,7 +128,8 @@
 
                   <call function="'ImportLdifWithScript'">
                     { 'location'  : consumer.getHostname(),
-                      'dsPath'  :  '%s/%s' % (consumer.getDir(), OPENDSNAME),  
+                      'dsPath'  :  '%s/%s' % (consumer.getDir(), OPENDSNAME),
+                      'dsBackEnd'    : 'userRoot',  
                       'dsLdifFile'   :  '%s/%s/replication/master_export.ldif' % (consumer.getDir(),relativeDataDir) }
                   </call>                                             
                 </sequence>                  
