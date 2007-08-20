@@ -102,6 +102,12 @@
       -->
 
       <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/testcases/logging/logging.xml' % (TESTS_DIR)" />
+      <!--
+      <call function="'main_logging'" />
+      -->
+
+      <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/sample/sample.xml' % TESTS_DIR" />
       <script>
         # this function return a well-formatted testcase name
