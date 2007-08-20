@@ -46,10 +46,77 @@
 			        											
    
           <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/global_acis.xml' % (TESTS_DIR)"/>
+          <call function="'global_acis'" />
+  
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_target.xml' % (TESTS_DIR)"/>
+          <call function="'aci_target'" />
+  
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_targetattr.xml' % (TESTS_DIR)"/>
+          <call function="'aci_targetattr'" />
+  
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_targetfilter.xml' % (TESTS_DIR)"/>
+          <call function="'aci_targetfilter'" />
+  
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_targattrfilter.xml' % (TESTS_DIR)"/>
           <call function="'aci_targattrfilter'" />
   
-          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_targetscope.xml' % (TESTS_DIR)"/>
+          <call function="'aci_targetscope'" />
+  
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_delete_entry.xml' % (TESTS_DIR)"/>
+          <call function="'aci_delete_entry'" />
+  
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_add_entry.xml' % (TESTS_DIR)"/>
+          <call function="'aci_add_entry'" />
+  
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_modify_entry.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_entry'" />
+  
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_modify_filter_tests.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests'" />
+  
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_compare_tests.xml' % (TESTS_DIR)"/>
+          <call function="'aci_compare_tests'" />
+  
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/multiple_aci_tests.xml' % (TESTS_DIR)"/>
+          <call function="'multiple_aci_tests'" />
+  
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_modify_rdn.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_rdn'" />
+  
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_rdn_wildcards.xml' % (TESTS_DIR)"/>
+          <call function="'aci_rdn_wildcards'" />
+  
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_bindtypes.xml' % (TESTS_DIR)"/>
+          <call function="'aci_bindtypes'" />
+  
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_proxy_auth.xml' % (TESTS_DIR)"/>
+          <call function="'aci_proxy_auth'" />
+  
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_effective_rights.xml' % (TESTS_DIR)"/>
+          <call function="'aci_effective_rights'" />
+  
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_import.xml' % (TESTS_DIR)"/>
+          <call function="'aci_import'" />
+  
 											
           <call function="'testGroup_Postamble'"/>
         
