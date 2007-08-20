@@ -160,13 +160,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'true' }
+                      'testString'         : 'true' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                  'ACI: Compare: Compare Attr - userdn equals all, user comparing attribute in non-targeted branch'
                 </message>
@@ -284,13 +281,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'true' }
+                      'testString'         : 'true' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                  'ACI: Compare: Compare Attr - userdn not equals a dn, user comparing attribute in non-targeted branch'
                 </message>
@@ -549,13 +543,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'true' }
+                      'testString'         : 'true' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                  'ACI: Compare: Compare Attr - userdn not equals a branch dn, user comparing attribute in targeted branch'
                 </message>
@@ -575,14 +566,11 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'true' }
+                      'testString'         : 'true' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
-               <message>
+                <message>
                  'ACI: Compare: Compare Attr - userdn not equals a branch dn, user comparing attribute in non-targeted branch'
                 </message>
   
@@ -699,13 +687,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'true' }
+                      'testString'         : 'true' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                  'ACI: Compare: Compare Attr - userdn equals two dns, user comparing attribute in targeted branch'
                 </message>
@@ -725,13 +710,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'true' }
+                      'testString'         : 'true' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                  'ACI: Compare: Compare Attr - userdn equals two dns, user comparing attribute in non-targeted branch'
                 </message>
@@ -1084,13 +1066,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'true' }
+                      'testString'         : 'true' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                  'ACI: Compare: Compare Attr - targetattr with one attribute, user comparing prohibited attribute in targeted branch'
                 </message>
@@ -1223,13 +1202,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'true' }
+                      'testString'         : 'true' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                  'ACI: Compare: Compare Attr - targetfilter with one statement, user comparing prohibited attribute in targeted branch'
                 </message>
@@ -1362,13 +1338,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'true' }
+                      'testString'         : 'true' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                  'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, user comparing prohibited attribute in targeted branch'
                 </message>
@@ -1388,13 +1361,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'false' }
+                      'testString'         : 'false' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                  'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, user comparing attribute in non-targeted branch'
                 </message>
@@ -1512,13 +1482,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'true' }
+                      'testString'         : 'true' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                  'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, returns false, user comparing prohibited attribute in targeted branch'
                 </message>
@@ -1538,13 +1505,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'false' }
+                      'testString'         : 'false' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                  'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, returns false, user comparing attribute in non-targeted branch'
                 </message>
@@ -1754,13 +1718,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'true' }
+                      'testString'         : 'true' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'true'"/>
-                </if>
-    
                 <message>
                    'ACI: Compare: Compare Attr - Multi ACIs 2, overall allow, admin deleting aci'
                 </message>

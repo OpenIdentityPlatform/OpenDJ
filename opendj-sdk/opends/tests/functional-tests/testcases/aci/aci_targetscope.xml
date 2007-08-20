@@ -178,40 +178,28 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetscope: base, user searching in first child level'
                 </message>
@@ -233,22 +221,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetscope: base, user searching in second child level'
                 </message>
@@ -270,13 +252,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetscope: base, admin deleting aci'
                 </message>
@@ -386,40 +365,28 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetscope: onelevel, user searching in first child level'
                 </message>
@@ -441,31 +408,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetscope: onelevel, user searching in second child level'
                 </message>
@@ -487,13 +445,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetscope: onelevel, admin deleting aci'
                 </message>
@@ -603,40 +558,28 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetscope: subtree, user searching in first child level'
                 </message>
@@ -658,31 +601,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetscope: subtree, user searching in second child level'
                 </message>
@@ -704,22 +638,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetscope: subtree, admin deleting aci'
                 </message>
@@ -829,40 +757,28 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetscope: subordinate, user searching in first child level'
                 </message>
@@ -884,31 +800,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetscope: subordinate, user searching in second child level'
                 </message>
@@ -930,22 +837,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetscope: subordinate, admin deleting aci'
                 </message>

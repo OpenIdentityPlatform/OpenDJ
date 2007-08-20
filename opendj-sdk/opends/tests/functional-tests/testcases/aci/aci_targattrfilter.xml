@@ -111,13 +111,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=gfarmer,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=gfarmer,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targattrfilter: Preamble - user searching entry that will be non-targeted in future tests'
                 </message>
@@ -1644,13 +1641,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=gfarmer,ou=People,ou=aci branch,o=ACI Tests' }
+                      'testString'         : 'dn: uid=gfarmer,ou=People,ou=aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targattrfilter: Postamble - user searching entry that will be non-targeted in future tests'
                 </message>
@@ -1671,13 +1665,10 @@
     
                 <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=gfarmer,ou=People,ou=non-aci branch,o=ACI Tests' }
+                    'testString'         : 'dn: uid=gfarmer,ou=People,ou=non-aci branch,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
               
-                <if expr="returnCode != '0'">
-                  <tcstatus result="'fail'"/>
-                </if>
-  
                 <message>
                    'ACI: Targattrfilter: Resetting Search Global ACI'
                 </message>
