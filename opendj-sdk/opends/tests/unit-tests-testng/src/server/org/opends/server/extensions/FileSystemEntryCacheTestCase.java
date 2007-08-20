@@ -39,6 +39,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.util.ServerConstants;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
@@ -105,9 +106,9 @@ public class FileSystemEntryCacheTestCase
     super.cache.initializeEntryCache(configuration);
 
     // Make sure the cache is empty.
-    assertNull(super.cache.toVerboseString(),
-      "Expected empty cache.  " + "Cache contents:\n" +
-      super.cache.toVerboseString());
+    assertNull(super.toVerboseString(),
+      "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
+      super.toVerboseString());
   }
 
 
@@ -150,9 +151,9 @@ public class FileSystemEntryCacheTestCase
     super.cache.initializeEntryCache(configuration);
 
     // Make sure the cache is empty.
-    assertNull(super.cache.toVerboseString(),
-      "Expected empty cache.  " + "Cache contents:\n" +
-      super.cache.toVerboseString());
+    assertNull(super.toVerboseString(),
+      "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
+      super.toVerboseString());
   }
 
 
@@ -262,7 +263,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testContainsEntry()
          throws Exception
@@ -275,7 +276,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testGetEntry1()
          throws Exception
@@ -288,7 +289,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testGetEntry2()
          throws Exception
@@ -301,7 +302,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testGetEntry3()
          throws Exception
@@ -314,7 +315,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testGetEntryID()
          throws Exception
@@ -327,7 +328,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testPutEntry()
          throws Exception
@@ -340,7 +341,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testPutEntryIfAbsent()
          throws Exception
@@ -353,7 +354,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testRemoveEntry()
          throws Exception
@@ -366,7 +367,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testClear()
          throws Exception
@@ -379,7 +380,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testClearBackend()
          throws Exception
@@ -392,7 +393,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testClearSubtree()
          throws Exception
@@ -405,7 +406,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false)
+  @Test()
   @Override
   public void testHandleLowMemory()
          throws Exception
@@ -418,7 +419,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test(enabled=false,groups="slow",
+  @Test(groups="slow",
         threadPoolSize = 10,
         invocationCount = 10,
         // In case of disk based FS.
@@ -459,7 +460,7 @@ public class FileSystemEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(enabled=false, groups = { "slow", "testLRUCacheConcurrency" },
+  @Test(groups = { "slow", "testLRUCacheConcurrency" },
         threadPoolSize = 10,
         invocationCount = 10,
         // In case of disk based FS.
@@ -475,13 +476,13 @@ public class FileSystemEntryCacheTestCase
   /**
    * Tests FIFO cache rotation on specific number of entries.
    */
-  @Test(enabled=false, groups = "slow")
+  @Test(groups = "slow")
   public void testCacheRotationFIFO()
          throws Exception
   {
-    assertNull(super.cache.toVerboseString(),
-      "Expected empty cache.  " + "Cache contents:\n" +
-      super.cache.toVerboseString());
+    assertNull(super.toVerboseString(),
+      "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
+      super.toVerboseString());
 
     // Put some test entries in the cache.
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
@@ -494,7 +495,8 @@ public class FileSystemEntryCacheTestCase
       assertFalse(super.cache.containsEntry(
         super.testEntriesList.get(i).getDN()), "Not expected to find " +
         super.testEntriesList.get(i).getDN().toString() + " in the " +
-        "cache.  Cache contents:\n" + super.cache.toVerboseString());
+        "cache.  Cache contents:" + ServerConstants.EOL +
+        super.toVerboseString());
     }
 
     // Make sure remaining NUMTESTENTRIES are still in the cache.
@@ -505,7 +507,8 @@ public class FileSystemEntryCacheTestCase
       assertTrue(super.cache.containsEntry(
         super.testEntriesList.get(i).getDN()), "Expected to find " +
         super.testEntriesList.get(i).getDN().toString() + " in the " +
-        "cache.  Cache contents:\n" + super.cache.toVerboseString());
+        "cache.  Cache contents:" + ServerConstants.EOL +
+        super.toVerboseString());
     }
 
     // Clear the cache so that other tests can start from scratch.
@@ -517,7 +520,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * Tests LRU cache rotation on specific number of entries.
    */
-  @Test(enabled=false, groups = "slow")
+  @Test(groups = "slow")
   @SuppressWarnings("unchecked")
   public void testCacheRotationLRU()
          throws Exception
@@ -542,7 +545,8 @@ public class FileSystemEntryCacheTestCase
           super.testEntriesList.get(i).getDN()),
           "Expected to find " +
           super.testEntriesList.get(i).getDN().toString() + " in the " +
-          "cache.  Cache contents:\n" + super.cache.toVerboseString());
+          "cache.  Cache contents:" + ServerConstants.EOL +
+          super.toVerboseString());
     }
 
     // Plus the last cache entry added.
@@ -550,7 +554,8 @@ public class FileSystemEntryCacheTestCase
       super.testEntriesList.get(super.NUMTESTENTRIES - 1).getDN()),
       "Expected to find " +
       super.testEntriesList.get(super.NUMTESTENTRIES - 1).getDN().toString() +
-      " in the cache.  Cache contents:\n" + super.cache.toVerboseString());
+      " in the cache.  Cache contents:" + ServerConstants.EOL +
+      super.toVerboseString());
 
     // And remaining NUMTESTENTRIES - 1 are now rotated.
     for(int i = (super.MAXENTRIES - 1);
@@ -560,7 +565,8 @@ public class FileSystemEntryCacheTestCase
           super.testEntriesList.get(i).getDN()),
           "Not expected to find " +
           super.testEntriesList.get(i).getDN().toString() + " in the " +
-          "cache.  Cache contents:\n" + super.cache.toVerboseString());
+          "cache.  Cache contents:" + ServerConstants.EOL +
+          super.toVerboseString());
     }
 
     // Clear the cache so that other tests can start from scratch.
@@ -575,7 +581,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * Tests cache persistence with consistent backend.
    */
-  @Test(enabled=false, groups = "slow")
+  @Test(groups = "slow")
   @SuppressWarnings("unchecked")
   public void testCachePersistence()
          throws Exception
@@ -608,7 +614,8 @@ public class FileSystemEntryCacheTestCase
           super.testEntriesList.get(i).getDN()),
           "Expected to find " +
           super.testEntriesList.get(i).getDN().toString() + " in the " +
-          "cache.  Cache contents:\n" + super.cache.toVerboseString());
+          "cache.  Cache contents:" + ServerConstants.EOL +
+          super.toVerboseString());
     }
 
     // Clear the cache so that other tests can start from scratch.
@@ -627,7 +634,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * Tests cache persistence with inconsistent backend.
    */
-  @Test(enabled=false, groups = "slow")
+  @Test(groups = "slow")
   @SuppressWarnings("unchecked")
   public void testCachePersistenceInconsistent()
          throws Exception
@@ -673,7 +680,8 @@ public class FileSystemEntryCacheTestCase
           super.testEntriesList.get(i).getDN()),
           "Not expected to find " +
           super.testEntriesList.get(i).getDN().toString() + " in the " +
-          "cache.  Cache contents:\n" + super.cache.toVerboseString());
+          "cache.  Cache contents:" + ServerConstants.EOL +
+          super.toVerboseString());
     }
 
     // Clear the cache so that other tests can start from scratch.
