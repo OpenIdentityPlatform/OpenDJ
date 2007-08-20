@@ -50,15 +50,15 @@
           <call function="'main_totalupdate'" />
 
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/replication/binarycopy/replication_binarycopy.xml' % (TESTS_DIR)"/>
+            file="'%s/testcases/replication/binarycopy/binarycopy.xml' % (TESTS_DIR)"/>
           <call function="'replication_binarycopy'" />          
 
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/replication/ldifimport/replication_ldifimport.xml' % (TESTS_DIR)"/>
+            file="'%s/testcases/replication/ldifimport/ldifimport.xml' % (TESTS_DIR)"/>
           <call function="'replication_ldifimport'" />          
                         
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/replication/resynchronization/replication_resynchronization.xml' % (TESTS_DIR)"/>
+            file="'%s/testcases/replication/resynchronization/resynchronization.xml' % (TESTS_DIR)"/>
           <call function="'replication_resynchronization'" />          
             
           <import machine="STAF_LOCAL_HOSTNAME"
@@ -66,7 +66,7 @@
           <call function="'replication_basic'" />          
 								          
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/replication/schema/replication_schema.xml' % (TESTS_DIR)"/>
+            file="'%s/testcases/replication/schema/schema.xml' % (TESTS_DIR)"/>
           <call function="'replication_schema'" />          
             
           <call function="'testGroup_Postamble'"/>
