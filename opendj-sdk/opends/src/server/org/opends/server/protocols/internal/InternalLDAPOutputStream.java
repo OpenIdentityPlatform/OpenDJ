@@ -432,7 +432,7 @@ public final class InternalLDAPOutputStream
     }
     catch (Exception e)
     {
-      throw new IOException(e.getMessage(), e);
+      throw new IOException(e.getMessage());
     }
 
     switch (message.getProtocolOpType())

@@ -295,7 +295,7 @@ public final class InternalLDAPInputStream
     }
     catch (Exception e)
     {
-      throw new IOException(e.getMessage(), e);
+      throw new IOException(e.getMessage());
     }
   }
 
@@ -408,7 +408,7 @@ public final class InternalLDAPInputStream
     }
     catch (Exception e)
     {
-      throw new IOException(e.getMessage(), e);
+      throw new IOException(e.getMessage());
     }
   }
 
