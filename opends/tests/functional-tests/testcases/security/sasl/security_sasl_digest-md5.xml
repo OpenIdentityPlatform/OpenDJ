@@ -728,42 +728,6 @@
             Place test-specific test information here.
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
-            #@TestName                  uid (dn:) Bind With Realm and digest-uri
-            #@TestIssue                 345
-            #@TestPurpose               Test bind using a user DN whose authorization ID could be mapped to a single DN. Realm and digest-uri specified.
-            #@TestPreamble              none
-            #@TestStep                  User bind with authid=dn:[DN] format 
-                                        and the realm is specified.
-            #@TestPostamble             none
-            #@TestResult                Success if OpenDS returns 0.
-        -->
-      <!--
-        <testcase name="getTestCaseName('DIGEST-MD5 - User (dn:) Bind With Realm and digest-uri')">
-          <sequence>
-            <call function="'testCase_Preamble'"/>
-            <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With Realm and digest-uri'
-            </message>
-
-           <call function="'AnonSearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -o "realm=o=SASL Realm Tests,dc=example,dc=com -o "digest-uri=ldap:/auseng013.central.sun.com" " -w frogleg' }
-            </call>
-
-            <call function="'testCase_Postamble'"/>
-            
-          </sequence>
-        </testcase>
-      -->
-
-        <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
-       <!---
-            Place test-specific test information here.
-            The tag, TestMarker, must be the same as the tag, TestSuiteName.
-            #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  Dupe uid (u:) Bind With Undefined Realm
             #@TestIssue                 345
             #@TestPurpose               Test bind using an authorization ID that could be mapped to multiple DNs. Undefined realm specified.
