@@ -53,7 +53,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="getTestCaseName('Preamble')">
+        <testcase name="getTestCaseName('Multiple Schemes - Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -91,7 +91,7 @@
             #@TestResult                Success if the string, "SSHA", 
                                         is part of the return string.
         -->
-        <testcase name="getTestCaseName('Check Pwd Schemes - SSHA')">
+        <testcase name="getTestCaseName('Multiple Schemes - Check Pwd Schemes - SSHA')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -137,7 +137,7 @@
             #@TestResult                Success if the string, "BASE64", 
                                         is part of the return string.
         -->
-        <testcase name="getTestCaseName('Check Pwd Schemes - BASE64')">
+        <testcase name="getTestCaseName('Multiple Schemes - Check Pwd Schemes - BASE64')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -188,7 +188,7 @@
                                         and the user password is stored in both
                                         SSHA and BASE64 schemes.
         -->
-        <testcase name="getTestCaseName('Pwd Change')">
+        <testcase name="getTestCaseName('Multiple Schemes - Pwd Change')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -268,7 +268,7 @@
                                         and the user password is stored in both
                                         SSHA and BASE64 schemes.
         -->
-        <testcase name="getTestCaseName('Check for Second Scheme On Pwd Change')">
+        <testcase name="getTestCaseName('Multiple Schemes - Check for Second Scheme On Pwd Change')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -312,7 +312,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 53
         -->
-        <testcase name="getTestCaseName('Improper Pwd Add')">
+        <testcase name="getTestCaseName('Multiple Schemes - Improper Pwd Add')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -348,7 +348,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="getTestCaseName('Postamble')">
+        <testcase name="getTestCaseName('Multiple Schemes - Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
