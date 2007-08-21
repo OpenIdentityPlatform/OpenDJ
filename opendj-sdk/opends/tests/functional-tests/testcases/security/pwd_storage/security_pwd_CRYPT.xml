@@ -45,7 +45,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                CRYPT Tests
             #@TestName                  CRYPT Preamble
-            #@TestIssue                 313
+            #@TestIssue                 311
             #@TestPurpose               Change password storage scheme to CRYPT.
             #@TestPreamble              none
             #@TestStep                  Client calls ldapmodify 
@@ -81,7 +81,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                CRYPT Tests
             #@TestName                  CRYPT Test 1
-            #@TestIssue                 313
+            #@TestIssue                 311
             #@TestPurpose               Test CRYPT password storage scheme.
             #@TestPreamble              none
             #@TestStep                  Admin changes a user's password to convert 
@@ -159,7 +159,7 @@
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                CRYPT Tests
             #@TestName                  CRYPT Postamble
-            #@TestIssue                 313
+            #@TestIssue                 311
             #@TestPurpose               Reset password storage scheme to the default, SCRYPT.
             #@TestPreamble              none
             #@TestStep                  Client calls ldapmodify 
