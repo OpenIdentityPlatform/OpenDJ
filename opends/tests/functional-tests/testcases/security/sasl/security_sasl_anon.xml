@@ -52,7 +52,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
           -->
-        <testcase name="getTestCaseName('Preamble')">
+        <testcase name="getTestCaseName('ANONYMOUS - Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -96,7 +96,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
           -->
-        <testcase name="getTestCaseName('Anonymous Bind With ANON SASL Mech')">
+        <testcase name="getTestCaseName('ANONYMOUS - Anonymous Bind With ANON SASL Mech')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -131,7 +131,7 @@
             #@TestResult                Success if OpenDS returns 0
                                         for step 1 and returns 7 for step 2.
           -->
-        <testcase name="getTestCaseName('Postamble')">
+        <testcase name="getTestCaseName('ANONYMOUS - Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
