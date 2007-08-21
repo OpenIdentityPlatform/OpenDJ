@@ -381,7 +381,7 @@ public class LoginDialog extends JDialog
             else
             {
               throw new ConfigException(
-                      INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
+                  ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
             }
             break;
           case USE_LDAPS:
@@ -395,7 +395,7 @@ public class LoginDialog extends JDialog
             else
             {
               throw new ConfigException(
-                      INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
+                  ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
             }
             break;
           case USE_LDAP:
@@ -408,7 +408,7 @@ public class LoginDialog extends JDialog
             else
             {
               throw new ConfigException(
-                      INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
+                  ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
             }
             break;
           case USE_MOST_SECURE_AVAILABLE:
@@ -435,7 +435,7 @@ public class LoginDialog extends JDialog
             else
             {
               throw new ConfigException(
-                      INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
+                  ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
             }
             break;
           case USE_LESS_SECURE_AVAILABLE:
@@ -455,7 +455,7 @@ public class LoginDialog extends JDialog
             else
             {
               throw new ConfigException(
-                      INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
+                  ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
             }
             break;
             default:
@@ -624,7 +624,7 @@ public class LoginDialog extends JDialog
             if (possibleCauses.size() > 0)
             {
               displayError(
-                  INFO_CANNOT_CONNECT_TO_LOGIN_WITH_CAUSE.get(
+                  ERR_CANNOT_CONNECT_TO_LOGIN_WITH_CAUSE.get(
                           Utils.getMessageFromCollection(possibleCauses, "\n")),
                   INFO_ERROR_TITLE.get());
             }
@@ -632,7 +632,7 @@ public class LoginDialog extends JDialog
             {
               // Generic message
               displayError(
-                  INFO_CANNOT_CONNECT_WITH_ADS_CREDENTIALS_WITHOUT_CAUSE.get(),
+                  ERR_CANNOT_CONNECT_WITH_ADS_CREDENTIALS_WITHOUT_CAUSE.get(),
                   INFO_ERROR_TITLE.get());
             }
           }

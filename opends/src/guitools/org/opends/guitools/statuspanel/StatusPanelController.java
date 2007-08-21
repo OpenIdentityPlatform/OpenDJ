@@ -619,7 +619,7 @@ public class StatusPanelController implements ServerStatusChangeListener,
         if (!running)
         {
           updateProgress(getFormattedError(INFO_SUMMARY_START_ERROR.get()),
-                getFormattedError(INFO_ERROR_STARTING_SERVER_GENERIC.get(),
+                getFormattedError(ERR_STARTING_SERVER_GENERIC.get(),
                     true));
         }
         else
@@ -993,19 +993,6 @@ public class StatusPanelController implements ServerStatusChangeListener,
   private Message getTaskSeparator()
   {
     return formatter.getTaskSeparator();
-  }
-
-  /**
-   * Returns the formatted representation of a progress message for a given
-   * text.
-   * @param text the source text from which we want to get the formatted
-   * representation
-   * @return the formatted representation of a progress message for the given
-   * text.
-   */
-  private Message getFormattedProgress(Message text)
-  {
-    return formatter.getFormattedProgress(text);
   }
 
   /**

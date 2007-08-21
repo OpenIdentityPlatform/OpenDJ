@@ -128,13 +128,13 @@ public class ConfigFromFile
     {
       LOG.log(Level.SEVERE, "Error reading config file: "+ioe, ioe);
       errorMessage = Utils.getThrowableMsg(
-          INFO_ERROR_READING_CONFIG_FILE.get(), ioe);
+          ERR_READING_CONFIG_FILE.get(), ioe);
     }
     catch (LDIFException le)
     {
       LOG.log(Level.SEVERE, "Error reading config file: "+le, le);
       errorMessage = Utils.getThrowableMsg(
-          INFO_ERROR_READING_CONFIG_FILE.get(), le);
+          ERR_READING_CONFIG_FILE.get(), le);
     }
     catch (Throwable t)
     {
@@ -142,7 +142,7 @@ public class ConfigFromFile
       // Bug
       t.printStackTrace();
       errorMessage = Utils.getThrowableMsg(
-          INFO_ERROR_READING_CONFIG_FILE.get(), t);
+          ERR_READING_CONFIG_FILE.get(), t);
     }
     finally
     {

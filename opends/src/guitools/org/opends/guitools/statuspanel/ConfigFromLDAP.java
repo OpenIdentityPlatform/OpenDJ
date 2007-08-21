@@ -218,14 +218,14 @@ public class ConfigFromLDAP
       }
       else
       {
-        errorMessage = INFO_ERROR_READING_CONFIG_LDAP.get(detail);
+        errorMessage = ERR_READING_CONFIG_LDAP.get(detail);
       }
     }
     catch (Throwable t)
     {
       // Bug
       t.printStackTrace();
-      errorMessage = INFO_ERROR_READING_CONFIG_LDAP.get(t.toString());
+      errorMessage = ERR_READING_CONFIG_LDAP.get(t.toString());
     }
   }
 
@@ -337,7 +337,7 @@ public class ConfigFromLDAP
         }
         else
         {
-          throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
+          throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
         }
         break;
       case USE_LDAPS:
@@ -348,7 +348,7 @@ public class ConfigFromLDAP
         }
         else
         {
-          throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
+          throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
         }
         break;
       case USE_LDAP:
@@ -359,7 +359,7 @@ public class ConfigFromLDAP
         }
         else
         {
-          throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
+          throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
         }
         break;
       case USE_MOST_SECURE_AVAILABLE:
@@ -381,7 +381,7 @@ public class ConfigFromLDAP
         }
         else
         {
-          throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
+          throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
         }
         break;
       case USE_LESS_SECURE_AVAILABLE:
@@ -397,7 +397,7 @@ public class ConfigFromLDAP
         }
         else
         {
-          throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
+          throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
         }
         break;
         default:
@@ -1020,7 +1020,7 @@ public class ConfigFromLDAP
       }
       else
       {
-        throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
+        throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
       break;
     case USE_LDAPS:
@@ -1030,7 +1030,7 @@ public class ConfigFromLDAP
       }
       else
       {
-        throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
+        throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
       break;
     case USE_LDAP:
@@ -1040,7 +1040,7 @@ public class ConfigFromLDAP
       }
       else
       {
-        throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
+        throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
       break;
     case USE_MOST_SECURE_AVAILABLE:
@@ -1058,7 +1058,7 @@ public class ConfigFromLDAP
       }
       else
       {
-        throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
+        throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
       break;
     case USE_LESS_SECURE_AVAILABLE:
@@ -1072,7 +1072,7 @@ public class ConfigFromLDAP
       }
       else
       {
-        throw new ConfigException(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
+        throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
       break;
       default:

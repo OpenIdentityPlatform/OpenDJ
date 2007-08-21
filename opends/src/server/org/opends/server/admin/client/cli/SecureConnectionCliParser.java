@@ -46,6 +46,8 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -57,6 +59,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.PasswordReader;
 import org.opends.server.util.SelectableCertificateKeyManager;
+import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.FileBasedArgument;
@@ -158,6 +161,18 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    */
   protected BooleanArgument startTLSArg = null;
 
+  /** Short form of the option for specifying a noninteractive session. */
+  static public final Character INTERACTIVE_OPTION_SHORT = 'i';
+
+  /** Long form of the option for specifying a noninteractive session. */
+  static public final String SILENT_OPTION_LONG = "silent";
+
+  /** Long form of the option for specifying a noninteractive session. */
+  static public final String INTERACTIVE_OPTION_LONG = "interactive";
+
+  /** Short form of the option for specifying a noninteractive session. */
+  static public final Character SILENT_OPTION_SHORT = 's';
+
   /**
    * The tracer object for the debug logger.
    */
@@ -212,7 +227,6 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
     }
   }
 
-
   /**
    * Get the password which has to be used for the command.
    *
@@ -224,14 +238,20 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    * @param err
    *          The error stream to used if we have to prompt to the
    *          user.
+   * @param clearArg
+   *          The password StringArgument argument.
+   * @param fileArg
+   *          The password FileBased argument.
    * @return The password stored into the specified file on by the
    *         command line argument, or prompts it if not specified.
    */
-  public String getBindPassword(String dn, OutputStream out, OutputStream err)
+  protected String getBindPassword(String dn,
+      OutputStream out, OutputStream err, StringArgument clearArg,
+      FileBasedArgument fileArg)
   {
-    if (bindPasswordArg.isPresent())
+    if (clearArg.isPresent())
     {
-      String bindPasswordValue = bindPasswordArg.getValue();
+      String bindPasswordValue = clearArg.getValue();
       if(bindPasswordValue != null && bindPasswordValue.equals("-"))
       {
         // read the password from the stdin.
@@ -260,9 +280,9 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
       return bindPasswordValue;
     }
     else
-    if (bindPasswordFileArg.isPresent())
+    if (fileArg.isPresent())
     {
-      return bindPasswordFileArg.getValue();
+      return fileArg.getValue();
     }
     else
     {
@@ -291,6 +311,57 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
         return null;
       }
     }
+
+  }
+
+  /**
+   * Get the password which has to be used for the command.
+   *
+   * @param dn
+   *          The user DN for which to password could be asked.
+   * @param out
+   *          The input stream to used if we have to prompt to the
+   *          user.
+   * @param err
+   *          The error stream to used if we have to prompt to the
+   *          user.
+   * @return The password stored into the specified file on by the
+   *         command line argument, or prompts it if not specified.
+   */
+  public String getBindPassword(String dn, OutputStream out, OutputStream err)
+  {
+    return getBindPassword(dn, out, err, bindPasswordArg, bindPasswordFileArg);
+  }
+
+  /**
+   * Get the password which has to be used for the command without prompting
+   * the user.  If no password was specified, return null.
+   *
+   * @param clearArg
+   *          The password StringArgument argument.
+   * @param fileArg
+   *          The password FileBased argument.
+   * @return The password stored into the specified file on by the
+   *         command line argument, or null it if not specified.
+   */
+  public String getBindPassword(StringArgument clearArg,
+      FileBasedArgument fileArg)
+  {
+    String pwd;
+    if (clearArg.isPresent())
+    {
+      pwd = clearArg.getValue();
+    }
+    else
+    if (fileArg.isPresent())
+    {
+      pwd = fileArg.getValue();
+    }
+    else
+    {
+      pwd = null;
+    }
+    return pwd;
   }
 
   /**
@@ -302,21 +373,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    */
   public String getBindPassword()
   {
-    String pwd;
-    if (bindPasswordArg.isPresent())
-    {
-      pwd = bindPasswordArg.getValue();
-    }
-    else
-    if (bindPasswordFileArg.isPresent())
-    {
-      pwd = bindPasswordFileArg.getValue();
-    }
-    else
-    {
-      pwd = null;
-    }
-    return pwd;
+    return getBindPassword(bindPasswordArg, bindPasswordFileArg);
   }
 
   /**
@@ -327,98 +384,118 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    * @throws ArgumentException
    *           If there is a problem with any of the parameters used
    *           to create this argument.
+   * @return a ArrayList with the options created.
    */
-  protected void initializeGlobalOption(OutputStream outStream)
+  protected LinkedHashSet<Argument> createGlobalArguments(
+      OutputStream outStream)
   throws ArgumentException
   {
+    LinkedHashSet<Argument> set = new LinkedHashSet<Argument>();
     showUsageArg = new BooleanArgument("showUsage", OPTION_SHORT_HELP,
         OPTION_LONG_HELP, INFO_DESCRIPTION_SHOWUSAGE.get());
-    addGlobalArgument(showUsageArg);
     setUsageArgument(showUsageArg, outStream);
+    set.add(showUsageArg);
 
     useSSLArg = new BooleanArgument("useSSL", OPTION_SHORT_USE_SSL,
         OPTION_LONG_USE_SSL, INFO_DESCRIPTION_USE_SSL.get());
-    addGlobalArgument(useSSLArg);
+    set.add(useSSLArg);
 
     startTLSArg = new BooleanArgument("startTLS", OPTION_SHORT_START_TLS,
         OPTION_LONG_START_TLS,
         INFO_DESCRIPTION_START_TLS.get());
-    addGlobalArgument(startTLSArg);
+    set.add(startTLSArg);
 
     hostNameArg = new StringArgument("host", OPTION_SHORT_HOST,
         OPTION_LONG_HOST, false, false, true, OPTION_VALUE_HOST, "localhost",
         null, INFO_DESCRIPTION_HOST.get());
-    addGlobalArgument(hostNameArg);
+    set.add(hostNameArg);
 
     portArg = new IntegerArgument("port", OPTION_SHORT_PORT, OPTION_LONG_PORT,
         false, false, true, OPTION_VALUE_PORT, 389, null,
         INFO_DESCRIPTION_PORT.get());
-    addGlobalArgument(portArg);
+    set.add(portArg);
 
     bindDnArg = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
         OPTION_LONG_BINDDN, false, false, true, OPTION_VALUE_BINDDN,
         "cn=Directory Manager", null, INFO_DESCRIPTION_BINDDN.get());
-    addGlobalArgument(bindDnArg);
+    set.add(bindDnArg);
 
     bindPasswordArg = new StringArgument("bindPassword",
         OPTION_SHORT_BINDPWD, OPTION_LONG_BINDPWD, false, false, true,
         OPTION_VALUE_BINDPWD, null, null, INFO_DESCRIPTION_BINDPASSWORD.get());
-    addGlobalArgument(bindPasswordArg);
+    set.add(bindPasswordArg);
 
     bindPasswordFileArg = new FileBasedArgument("bindPasswordFile",
         OPTION_SHORT_BINDPWD_FILE, OPTION_LONG_BINDPWD_FILE, false, false,
         OPTION_VALUE_BINDPWD_FILE, null, null,
         INFO_DESCRIPTION_BINDPASSWORDFILE.get());
-    addGlobalArgument(bindPasswordFileArg);
+    set.add(bindPasswordFileArg);
 
     trustAllArg = new BooleanArgument("trustAll", 'X', "trustAll",
         INFO_DESCRIPTION_TRUSTALL.get());
-    addGlobalArgument(trustAllArg);
+    set.add(trustAllArg);
 
     trustStorePathArg = new StringArgument("trustStorePath",
         OPTION_SHORT_TRUSTSTOREPATH, OPTION_LONG_TRUSTSTOREPATH, false,
         false, true, OPTION_VALUE_TRUSTSTOREPATH, null, null,
         INFO_DESCRIPTION_TRUSTSTOREPATH.get());
-    addGlobalArgument(trustStorePathArg);
+    set.add(trustStorePathArg);
 
     trustStorePasswordArg = new StringArgument("trustStorePassword", null,
         OPTION_LONG_TRUSTSTORE_PWD, false, false, true,
         OPTION_VALUE_TRUSTSTORE_PWD, null, null,
         INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get());
-    addGlobalArgument(trustStorePasswordArg);
+    set.add(trustStorePasswordArg);
 
     trustStorePasswordFileArg = new FileBasedArgument("truststorepasswordfile",
         OPTION_SHORT_TRUSTSTORE_PWD_FILE, OPTION_LONG_TRUSTSTORE_PWD_FILE,
         false, false, OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
         INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get());
-    addGlobalArgument(trustStorePasswordFileArg);
+    set.add(trustStorePasswordFileArg);
 
     keyStorePathArg = new StringArgument("keyStorePath",
         OPTION_SHORT_KEYSTOREPATH, OPTION_LONG_KEYSTOREPATH, false, false,
         true, OPTION_VALUE_KEYSTOREPATH, null, null,
         INFO_DESCRIPTION_KEYSTOREPATH.get());
-    addGlobalArgument(keyStorePathArg);
+    set.add(keyStorePathArg);
 
     keyStorePasswordArg = new StringArgument("keyStorePassword", null,
         OPTION_LONG_KEYSTORE_PWD, false, false, true,
         OPTION_VALUE_KEYSTORE_PWD, null, null,
         INFO_DESCRIPTION_KEYSTOREPASSWORD.get());
-    addGlobalArgument(keyStorePasswordArg);
+    set.add(keyStorePasswordArg);
 
     keyStorePasswordFileArg = new FileBasedArgument("keystorepasswordfile",
         OPTION_SHORT_KEYSTORE_PWD_FILE, OPTION_LONG_KEYSTORE_PWD_FILE, false,
         false, OPTION_VALUE_KEYSTORE_PWD_FILE, null, null,
         INFO_DESCRIPTION_KEYSTOREPASSWORD_FILE.get());
-    addGlobalArgument(keyStorePasswordFileArg);
+    set.add(keyStorePasswordFileArg);
 
     certNicknameArg = new StringArgument("certnickname", 'N', "certNickname",
         false, false, true, "{nickname}", null, null,
         INFO_DESCRIPTION_CERT_NICKNAME.get());
-    addGlobalArgument(certNicknameArg);
+    set.add(certNicknameArg);
 
     verboseArg = new BooleanArgument("verbose", 'v', "verbose",
         INFO_DESCRIPTION_VERBOSE.get());
-    addGlobalArgument(verboseArg);
+    set.add(verboseArg);
+
+    return set;
+  }
+
+  /**
+   * Initialize the global options with the provided set of arguments.
+   * @param args the arguments to use to initialize the global options.
+   * @throws ArgumentException if there is a conflict with the provided
+   * arguments.
+   */
+  protected void initializeGlobalArguments(Collection<Argument> args)
+  throws ArgumentException
+  {
+    for (Argument arg : args)
+    {
+      addGlobalArgument(arg);
+    }
   }
 
   /**
@@ -463,7 +540,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    * @param buf the MessageBuilder to write the error messages.
    * @return return code.
    */
-  public int validateGlobalOption(MessageBuilder buf)
+  public int validateGlobalOptions(MessageBuilder buf)
   {
     ArrayList<Message> errors = new ArrayList<Message>();
     // Couldn't have at the same time bindPassword and bindPasswordFile
@@ -536,10 +613,10 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    * @param err the stream to be used to print error message.
    * @return return code.
    */
-  public int validateGlobalOption(PrintStream err)
+  public int validateGlobalOptions(PrintStream err)
   {
     MessageBuilder buf = new MessageBuilder();
-    int returnValue = validateGlobalOption(buf);
+    int returnValue = validateGlobalOptions(buf);
     if (buf.length() > 0)
     {
       err.println(wrapText(buf.toString(), MAX_LINE_WIDTH));

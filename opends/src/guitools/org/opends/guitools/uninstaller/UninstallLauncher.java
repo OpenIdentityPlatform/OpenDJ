@@ -109,7 +109,7 @@ public class UninstallLauncher extends Launcher {
         INFO_UNINSTALL_LAUNCHER_USAGE_DESCRIPTION.get(), false);
     try
     {
-      argParser.initializeGlobalOption(System.err);
+      argParser.initializeGlobalArguments(System.err);
     }
     catch (ArgumentException ae)
     {
@@ -133,12 +133,12 @@ public class UninstallLauncher extends Launcher {
   protected void guiLaunchFailed(String logFilePath) {
     if (logFilePath != null)
     {
-      System.err.println(INFO_UNINSTALL_LAUNCHER_GUI_LAUNCHED_FAILED_DETAILS
+      System.err.println(ERR_UNINSTALL_LAUNCHER_GUI_LAUNCHED_FAILED_DETAILS
               .get(logFilePath));
     }
     else
     {
-      System.err.println(INFO_UNINSTALL_LAUNCHER_GUI_LAUNCHED_FAILED.get());
+      System.err.println(ERR_UNINSTALL_LAUNCHER_GUI_LAUNCHED_FAILED.get());
     }
   }
 

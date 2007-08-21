@@ -32,14 +32,16 @@ import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-import org.opends.quicksetup.CliApplicationHelper;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.UserData;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.tools.ToolConstants;
+import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
@@ -96,92 +98,107 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    *           If there is a problem with any of the parameters used
    *           to create this argument.
    */
-  public void initializeGlobalOption(OutputStream outStream)
+  public void initializeGlobalArguments(OutputStream outStream)
   throws ArgumentException
   {
+    LinkedHashSet<Argument> args = new LinkedHashSet<Argument>();
     removeAll = new BooleanArgument(
         "remove-all",
         'a',
         "remove-all",
         INFO_UNINSTALLDS_DESCRIPTION_REMOVE_ALL.get()
         );
-    addGlobalArgument(removeAll);
+    args.add(removeAll);
     removeServerLibraries = new BooleanArgument(
         "server-libraries",
         'l',
         "server-libraries",
         INFO_UNINSTALLDS_DESCRIPTION_REMOVE_SERVER_LIBRARIES.get()
         );
-    addGlobalArgument(removeServerLibraries);
+    args.add(removeServerLibraries);
     removeDatabases = new BooleanArgument(
         "databases",
         'd',
         "databases",
         INFO_UNINSTALLDS_DESCRIPTION_REMOVE_DATABASES.get()
         );
-    addGlobalArgument(removeDatabases);
+    args.add(removeDatabases);
     removeLogFiles = new BooleanArgument(
         "log-files",
         'L',
         "log-files",
         INFO_UNINSTALLDS_DESCRIPTION_REMOVE_LOG_FILES.get()
         );
-    addGlobalArgument(removeLogFiles);
+    args.add(removeLogFiles);
     removeConfigurationFiles = new BooleanArgument(
         "configuration-files",
         'c',
         "configuration-files",
         INFO_UNINSTALLDS_DESCRIPTION_REMOVE_CONFIGURATION_FILES.get()
         );
-    addGlobalArgument(removeConfigurationFiles);
+    args.add(removeConfigurationFiles);
     removeBackupFiles = new BooleanArgument(
         "backup-files",
         'b',
         "backup-files",
         INFO_UNINSTALLDS_DESCRIPTION_REMOVE_BACKUP_FILES.get()
         );
-    addGlobalArgument(removeBackupFiles);
+    args.add(removeBackupFiles);
     removeLDIFFiles = new BooleanArgument(
         "ldif-files",
         'e',
         "ldif-files",
         INFO_UNINSTALLDS_DESCRIPTION_REMOVE_LDIF_FILES.get()
         );
-    addGlobalArgument(removeLDIFFiles);
+    args.add(removeLDIFFiles);
     interactive = new BooleanArgument(
-        CliApplicationHelper.INTERACTIVE_OPTION_LONG,
-        CliApplicationHelper.INTERACTIVE_OPTION_SHORT,
-        CliApplicationHelper.INTERACTIVE_OPTION_LONG,
+        INTERACTIVE_OPTION_LONG,
+        INTERACTIVE_OPTION_SHORT,
+        INTERACTIVE_OPTION_LONG,
         INFO_DESCRIPTION_INTERACTIVE.get());
-    addGlobalArgument(interactive);
+    args.add(interactive);
     forceOnError = new BooleanArgument(
         "forceOnError",
         'f',
         "forceOnError",
         INFO_UNINSTALLDS_DESCRIPTION_FORCE.get());
-    addGlobalArgument(forceOnError);
+    args.add(forceOnError);
     silent = new BooleanArgument(
-        CliApplicationHelper.SILENT_OPTION_LONG,
-        CliApplicationHelper.SILENT_OPTION_SHORT,
-        CliApplicationHelper.SILENT_OPTION_LONG,
+        SecureConnectionCliParser.SILENT_OPTION_LONG,
+        SecureConnectionCliParser.SILENT_OPTION_SHORT,
+        SecureConnectionCliParser.SILENT_OPTION_LONG,
         INFO_UNINSTALLDS_DESCRIPTION_SILENT.get());
-    addGlobalArgument(silent);
+    args.add(silent);
+
     adminUidArg = new StringArgument("adminUID", 'I',
         "adminUID", false, false, true, "adminUID",
-        Constants.GLOBAL_ADMIN_UID, null, INFO_DESCRIPTION_ADMINUID.get());
-    addGlobalArgument(adminUidArg);
-    super.initializeGlobalOption(outStream);
-    removeGlobalArgument(bindDnArg);
-    removeGlobalArgument(hostNameArg);
-    removeGlobalArgument(portArg);
-    removeGlobalArgument(verboseArg);
+        Constants.GLOBAL_ADMIN_UID, null, INFO_DESCRIPTION_ADMIN_UID.get());
+
+    ArrayList<Argument> defaultArgs =
+      new ArrayList<Argument>(createGlobalArguments(System.err));
+    int index = defaultArgs.indexOf(bindDnArg);
+    if (index != -1)
+    {
+      defaultArgs.add(index, adminUidArg);
+      defaultArgs.remove(bindDnArg);
+    }
+    else
+    {
+      defaultArgs.add(adminUidArg);
+    }
+    defaultArgs.remove(hostNameArg);
+    defaultArgs.remove(portArg);
+    defaultArgs.remove(verboseArg);
     UserData uData = new UserData();
     referencedHostNameArg = new StringArgument("referencedHostName",
         ToolConstants.OPTION_SHORT_HOST,
         "referencedHostName", false, false, true,
         ToolConstants.OPTION_VALUE_HOST,
         uData.getHostName(), null, INFO_DESCRIPTION_REFERENCED_HOST.get());
-    addGlobalArgument(referencedHostNameArg);
+    defaultArgs.add(referencedHostNameArg);
+
+    args.addAll(defaultArgs);
+    initializeGlobalArguments(args);
   }
 
   /**
@@ -350,7 +367,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    * @param buf the MessageBuilder to write the error messages.
    * @return return code.
    */
-  public int validateGlobalOption(MessageBuilder buf)
+  public int validateGlobalOptions(MessageBuilder buf)
   {
     int returnValue;
     if (interactive.isPresent() && forceOnError.isPresent())

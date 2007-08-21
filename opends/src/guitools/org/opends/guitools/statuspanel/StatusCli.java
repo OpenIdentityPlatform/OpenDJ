@@ -28,6 +28,7 @@
 package org.opends.guitools.statuspanel;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -52,6 +53,7 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
+import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 
 /**
@@ -106,10 +108,12 @@ class StatusCli extends SecureConnectionCliParser
   {
     try
     {
-      initializeGlobalOption(System.err);
-      removeGlobalArgument(portArg);
-      removeGlobalArgument(hostNameArg);
-      removeGlobalArgument(verboseArg);
+      ArrayList<Argument> defaultArgs =
+        new ArrayList<Argument>(createGlobalArguments(System.err));
+      defaultArgs.remove(portArg);
+      defaultArgs.remove(hostNameArg);
+      defaultArgs.remove(verboseArg);
+      initializeGlobalArguments(defaultArgs);
     }
     catch (ArgumentException ae)
     {
@@ -138,7 +142,7 @@ class StatusCli extends SecureConnectionCliParser
     {
       return DsFrameworkCliReturnCode.SUCCESSFUL_NOP.getReturnCode();
     }
-    int v = validateGlobalOption(System.err);
+    int v = validateGlobalOptions(System.err);
 
     if (v != DsFrameworkCliReturnCode.SUCCESSFUL_NOP.getReturnCode())
     {
