@@ -301,6 +301,25 @@ ds-cfg-plugin-enabled: true
 ds-cfg-plugin-type: preOperationAdd
 ds-cfg-plugin-type: preOperationModify
 
+dn: cn=UID Unique Attribute ,cn=Plugins,cn=config
+changeType: modify
+replace: ds-cfg-plugin-enabled
+ds-cfg-plugin-enabled: true
+-
+replace: ds-cfg-unique-attribute-type
+
+dn: cn=Test Unique Attribute,cn=Plugins,cn=config
+changeType: add
+objectClass: top
+objectClass: ds-cfg-plugin
+objectClass: ds-cfg-unique-attribute-plugin
+cn: Test Unique Attribute
+ds-cfg-plugin-class: org.opends.server.plugins.UniqueAttributePlugin
+ds-cfg-plugin-enabled: true
+ds-cfg-plugin-type: preOperationAdd
+ds-cfg-plugin-type: preOperationModify
+ds-cfg-plugin-type: preOperationModifyDN
+
 dn: cn=JKS,cn=Key Manager Providers,cn=config
 changetype: modify
 replace: ds-cfg-key-manager-provider-enabled
