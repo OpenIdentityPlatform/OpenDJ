@@ -34,7 +34,7 @@
         <sequence>
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='backends'						  
+              CurrentTestPath['group']='backends'              
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
           <call function="'testSuite_Preamble'"/>
@@ -50,7 +50,7 @@
           -->
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/backends/backend_setup.xml' % (TESTS_DIR)"/>
-          <call function="'backend_setup'" />			
+          <call function="'backend_setup'" />      
           <!--- Test Case information
             #@TestMarker          Backend Import Tasks Tests
             #@TestName            Import Tasks: LDIF Default

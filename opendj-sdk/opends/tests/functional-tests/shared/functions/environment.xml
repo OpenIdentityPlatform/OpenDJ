@@ -26,14 +26,14 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-	
+  
   <function name="importSharedLibraries">
     <function-prolog>
-		This function imports the shared function xml libraries.
-	</function-prolog>   	  
-	  
-	<sequence>
-		
+    This function imports the shared function xml libraries.
+  </function-prolog>       
+    
+  <sequence>
+    
       <!--- Import all the shared xml libraries -->
       <import machine="STAF_LOCAL_HOSTNAME"
         file="'%s/baselib.xml' % (TESTS_FUNCTIONS_DIR)" />
@@ -58,7 +58,7 @@
 
       <import machine="STAF_LOCAL_HOSTNAME"
         file="'%s/security.xml' % (TESTS_FUNCTIONS_DIR)" />
-		
+    
       <import machine="STAF_LOCAL_HOSTNAME"
         file="'%s/topology.xml' % (TESTS_FUNCTIONS_DIR)" />
         
@@ -67,22 +67,22 @@
 
       <import machine="STAF_LOCAL_HOSTNAME"
         file="'%s/tools.xml' % (TESTS_FUNCTIONS_DIR)" />
-				
-	</sequence>  
-	    
+        
+  </sequence>  
+      
   </function>
 
-	
-	
-	
+  
+  
+  
   <function name="importPythonLibraries">
     <function-prolog>
-		This function imports the Python libraries and objects, 
-		both starndard and local shared ones.
-	</function-prolog>	  
-	 
+    This function imports the Python libraries and objects, 
+    both starndard and local shared ones.
+  </function-prolog>    
+   
     <sequence>
-		
+    
       <!-- Load in any standard python libraries -->
       <script>
         import re
@@ -102,22 +102,22 @@
         from security import *
         from replication import *
       </script>     
-												
-		
-	</sequence>
-  </function>	
-	
-	
-	
-		
+                        
+    
+  </sequence>
+  </function>  
+  
+  
+  
+    
 
   <function name="initialiseGlobalVariables">
     <function-prolog>
-		This function initialises a set of global variables.
-	</function-prolog>
-	  
+    This function initialises a set of global variables.
+  </function-prolog>
+    
     <sequence>
-		
+    
       <!-- Resolve any OS related variables -->           
       <call function="'setOSvariables'">
         { 'hostname' : STAF_REMOTE_HOSTNAME }
@@ -146,7 +146,7 @@
         CurrentTestPath={}
         DSInfoServersDict={}
         True = 1
-        False = 0		 
+        False = 0     
 
         DSCONFIG = 'dsconfig'          
         NO_CHECK = 'noCheck'  
@@ -155,9 +155,9 @@
         MultimasterSync = 'Multimaster Synchronization'
         MultimasterType = 'multimaster' 
       </script>
-					
-			
-	</sequence> 	  
+          
+      
+  </sequence>     
   </function>
 
   <function name="GetDirectoryServerInformation">
@@ -334,41 +334,41 @@
                                             
     </sequence>
         
-  </function>	
-	
+  </function>  
+  
   <function name="loadEnvironment">
     <function-prolog>
       This function loads the environment (libraries, functions, variables)
-	  needed by the tests.
-	</function-prolog>
-	  
+    needed by the tests.
+  </function-prolog>
+    
     <sequence>
 
-	  <message>
-	    'Load environment for test suite execution.'  
-	  </message>		
+    <message>
+      'Load environment for test suite execution.'  
+    </message>    
 
-	  <call function="'importSharedLibraries'"/>
-		
-	  <call function="'importPythonLibraries'"/>
-		
-	  <call function="'initialiseGlobalVariables'"/>
-		
+    <call function="'importSharedLibraries'"/>
+    
+    <call function="'importPythonLibraries'"/>
+    
+    <call function="'initialiseGlobalVariables'"/>
+    
       <call function="'GetDirectoryServerInformation'"/>
 
       <call function="'SetLogsDir'"/>
-            						
+                        
       <call function="'checkRC'">
         { 'returncode' : RC ,
           'result'     : STAXResult }
       </call>
         
-		
-	</sequence>	
-	  
-  </function>	
-	
+    
+  </sequence>  
+    
+  </function>  
+  
 
 
-		
+    
 </stax>

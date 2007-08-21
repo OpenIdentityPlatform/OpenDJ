@@ -48,7 +48,7 @@
           -->
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/backends/backend_setup.xml' % (TESTS_DIR)"/>
-          <call function="'backend_setup'"> { 'loadBackend' : True } </call>	  
+          <call function="'backend_setup'"> { 'loadBackend' : True } </call>    
           
           <!--- Test Case information
             #@TestMarker          Backend Restore Tasks Tests

@@ -96,7 +96,7 @@
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base',
-                'expectedRC'       : 19 }							
+                'expectedRC'       : 19 }              
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -262,7 +262,7 @@
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base',
-                'expectedRC'       : 49 }							
+                'expectedRC'       : 49 }              
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -300,7 +300,7 @@
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                 'attrToBeCompared'    : 'pager:+1 999 555-1212',
                 'entryToBeCompared'   : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'expectedRC'          : 16 }								
+                'expectedRC'          : 16 }                
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -358,7 +358,7 @@
                 'dsInstancePswd'      : 'pizza' ,
                 'attrToBeCompared'    : 'l:Sunnyvale',
                 'entryToBeCompared'   : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'expectedRC'          : 49 }								
+                'expectedRC'          : 49 }                
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -381,7 +381,7 @@
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base',
-                'expectedRC'       : 19 }								
+                'expectedRC'       : 19 }                
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -419,7 +419,7 @@
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' ,
-                'expectedRC'       : 49 }								
+                'expectedRC'       : 49 }                
             </call>
 
             <message>
@@ -608,7 +608,7 @@
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base',
-                'expectedRC'       : 49 }									
+                'expectedRC'       : 49 }                  
             </call>
 
             <call function="'testCase_Postamble'"/>

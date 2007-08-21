@@ -40,7 +40,7 @@
   
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='backends'						  
+              CurrentTestPath['group']='backends'              
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
                       
@@ -60,8 +60,8 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/backends/backend_setup.xml' % (TESTS_DIR)"/>
           <call function="'backend_setup'"> { 'startDS' : False } </call>
-				
-						     
+        
+                 
           <!--- Test Case information
           #@TestMarker          Backend Import Tests
           #@TestName            Backend: Import: LDIF Default
@@ -1295,13 +1295,13 @@
     
           <!-- Need to know what the error codes are -->
 
-			
+      
 
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/backends/backend_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'backend_cleanup'"> { 'stopDS' : False } </call>			  	
-			
-						    
+          <call function="'backend_cleanup'"> { 'stopDS' : False } </call>          
+      
+                
           <call function="'testSuite_Postamble'"/>
   
         </sequence>

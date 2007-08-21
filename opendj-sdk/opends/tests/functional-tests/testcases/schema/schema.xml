@@ -42,8 +42,8 @@
           </script>
           
           <call function="'testGroup_Preamble'"/>
-			
-			
+      
+      
 
           <!-- Call the test suites -->
           <import machine="STAF_LOCAL_HOSTNAME"
@@ -54,8 +54,8 @@
             file="'%s/testcases/schema/schema_dynamic.xml' % TESTS_DIR" />
           <call function="'schema-dynamic'" />
 
-					
-						              
+          
+                          
           <call function="'testGroup_Postamble'"/>
 
         </sequence>

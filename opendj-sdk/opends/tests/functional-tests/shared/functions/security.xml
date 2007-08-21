@@ -26,9 +26,9 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-	<!-- **************************************************** -->
-	<!--                       generate a certificate         -->
-	<!-- **************************************************** -->
+  <!-- **************************************************** -->
+  <!--                       generate a certificate         -->
+  <!-- **************************************************** -->
   <function name="genCertificate">
     <function-prolog>
       This function generates a server certificate
@@ -49,7 +49,7 @@
           Alias certificate
         </function-arg-description>
       </function-arg-def>
-      <function-arg-def name="dname" type="optional" default="'cn=server,O=Sun Microsystems,C=US'">	 
+      <function-arg-def name="dname" type="optional" default="'cn=server,O=Sun Microsystems,C=US'">   
         <function-arg-description>
           Certificate subject
         </function-arg-description>
@@ -80,7 +80,7 @@
       <script>
         if dsPath:
           dsConfigPath='%s/config' % (dsPath)
-          dsBinPath='%s/%s' % (dsPath,fileFolder) 	 
+          dsBinPath='%s/%s' % (dsPath,fileFolder)    
       </script>
       <call function="'runCommand'">
         { 'name'      : 'Generate a Certificate',
@@ -134,17 +134,17 @@
       </function-arg-def>
       <function-arg-def name="storepass" type="optional" default="'servercert'">
         <function-arg-description>
-	        Password to protect the contents of the key store
+          Password to protect the contents of the key store
         </function-arg-description>
       </function-arg-def>
       <function-arg-def name="keypass" type="optional" default="'servercert'">
         <function-arg-description>
-	        Password to protect the private key on the key store: keypass
+          Password to protect the private key on the key store: keypass
         </function-arg-description>     
       </function-arg-def>
       <function-arg-def name="storetype" type="optional" default="'JKS'">
         <function-arg-description>
-	        The storetype. can be JKS or PKCS12
+          The storetype. can be JKS or PKCS12
         </function-arg-description>
       </function-arg-def>
     </function-map-args>
@@ -155,7 +155,7 @@
           dsConfigPath='%s/config' % (dsPath)
           dsBinPath='%s/%s' % (dsPath,fileFolder)
       </script>
-			
+      
       <call function="'runCommand'" >
         { 'name'      : 'Generate a Self-Signed Server Certificate',
           'location'  : location,
@@ -180,7 +180,7 @@
   
   <!-- **************************************************** -->
   <!--                       Export  a certificate                                 -->
-  <!-- **************************************************** -->	
+  <!-- **************************************************** -->  
   <function name="ExportCertificate">
     <function-prolog>
       This function exports a certificate
@@ -257,7 +257,7 @@
         { 'returncode' : STAXCode ,
           'result'     : STAXReason }
       </call>
-      <return>STAXReason</return>	
+      <return>STAXReason</return>  
     </sequence>
   </function>
   
@@ -303,7 +303,7 @@
       <function-arg-def name="inputfile" type="required">
         <function-arg-description>
           Certificate to import
-        </function-arg-description>	
+        </function-arg-description>  
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -314,7 +314,7 @@
           dsConfigPath='%s/config' % (dsPath)
           dsBinPath='%s/%s' % (dsPath,fileFolder)
       </script>
-		  
+      
       <call function="'runCommand'">
         { 'name'        : 'Import a Certificate',
           'location'    : location,
@@ -332,14 +332,14 @@
           'result'     : STAXReason 
         }
       </call>
-      <return>STAXReason</return>	
+      <return>STAXReason</return>  
     </sequence>
   </function>
   
   
   <!-- **************************************************** -->
   <!--                      get MD5 and SHA1 values         -->
-  <!-- **************************************************** -->	
+  <!-- **************************************************** -->  
   <function name="getFingerprint">
     <function-prolog>
       This function returns the fingerprint MD5 or SHA1
@@ -349,15 +349,15 @@
         <function-arg-description>
           Location of target host
         </function-arg-description>
-      </function-arg-def>	
+      </function-arg-def>  
       <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
-      </function-arg-def>	 		
+      </function-arg-def>       
       <function-arg-def name="certAlias" type="optional" default="'server-cert'">
         <function-arg-description>
-	        Alias certificate
+          Alias certificate
         </function-arg-description>
       </function-arg-def>
       <function-arg-def name="keystore" type="optional" default="'keystore'">
@@ -405,9 +405,9 @@
   </function>
   
   
-  <!-- ################################################## -->	
+  <!-- ################################################## -->  
   <!--  configure SSL  -->
-  <!-- ################################################## -->		
+  <!-- ################################################## -->    
   <function name="configureSSL">
     <function-prolog>
       This function makes the configuration changes for SSL
@@ -457,13 +457,13 @@
       <function-arg-def name="keystoreType" type="optional" default="'JKS'">
         <function-arg-description>
           Keystore type : JKS or PKCS12
-  	    </function-arg-description>
+        </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="keystorePin" type="optional" default="'servercert'">
         <function-arg-description>
           Keystore pin
-  	    </function-arg-description>
+        </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="extraParams" type="optional">
@@ -525,7 +525,7 @@
         option3='--set key-manager-provider-dn:"cn=%s,cn=Key Manager Providers,cn=config"' % (keystoreType)
         option4='--set listen-port:%s' % DIRECTORY_INSTANCE_SSL_PORT
         option5='--set enabled:true' 
-        optionsString='%s %s %s %s %s' % (option1,option2,option3,option4,option5) 	  
+        optionsString='%s %s %s %s %s' % (option1,option2,option3,option4,option5)     
       </script>
       
       <call function="'dsconfig'">
@@ -546,9 +546,9 @@
   </function>
   
   
-  <!-- ################################################## -->	
+  <!-- ################################################## -->  
   <!--  configureTLS -->
-  <!-- ################################################## -->		
+  <!-- ################################################## -->    
   <function name="configureTLS">
     <function-prolog>
       This function makes the configuration changes for startTLS
@@ -591,9 +591,9 @@
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="keystorePin" type="optional" default="'servercert'">
-	      <function-arg-description>
+        <function-arg-description>
           Keystore pin
-  	    </function-arg-description>
+        </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="certAlias" type="optional" default="'server-cert'">
@@ -604,7 +604,7 @@
       <function-arg-def name="keystoreType" type="optional" default="'JKS'">
         <function-arg-description>
           Keystore type : JKS or PKCS12
-  	    </function-arg-description>
+        </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="extraParams" type="optional">
@@ -640,7 +640,7 @@
          'Configure Trust Manager Provider'
       </message>
 
-				
+        
       <call function="'dsconfig'">
         { 'location'       : location,
           'dsPath'         : dsPath,
@@ -666,7 +666,7 @@
         option2='--set trust-manager-provider-dn:"cn=Blind Trust,cn=Trust Manager Providers,cn=config" '
         option3='--set key-manager-provider-dn:"cn=%s,cn=Key Manager Providers,cn=config"' % (keystoreType)
         option4='--set allow-start-tls:true' 
-        optionsString='%s %s %s %s' % (option1,option2,option3,option4) 	 
+        optionsString='%s %s %s %s' % (option1,option2,option3,option4)    
       </script>
       
       <call function="'dsconfig'">
@@ -687,9 +687,9 @@
   </function>
   
   
-  <!-- ################################################## -->	
+  <!-- ################################################## -->  
   <!--  configure SSL  and TLS -->
-  <!-- ################################################## -->		
+  <!-- ################################################## -->    
   <function name="configureSSL_TLS">
     <function-prolog>
       This function makes the configuration changes for SSL and TLS
@@ -734,7 +734,7 @@
       <function-arg-def name="keystoreType" type="optional" default="'JKS'">
         <function-arg-description>
           Keystore type : JKS or PKCS12
-  	    </function-arg-description>
+        </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="certAlias" type="optional" default="'server-cert'">
@@ -743,9 +743,9 @@
         </function-arg-description>
       </function-arg-def>
       <function-arg-def name="keystorePin" type="optional" default="'servercert'">
-	      <function-arg-description>
+        <function-arg-description>
           Keystore pin
-  	    </function-arg-description>
+        </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="extraParams" type="optional">
@@ -809,7 +809,7 @@
         option4='--set listen-port:%s' % DIRECTORY_INSTANCE_SSL_PORT
         option5='--set enabled:true'
         optionsString='%s %s %s %s %s' % (option1,option2,option3,option4,option5)
-      </script>	
+      </script>  
       
       <call function="'dsconfig'">
         { 'location'       : location,
@@ -836,9 +836,9 @@
         option2='--set trust-manager-provider-dn:"cn=Blind Trust,cn=Trust Manager Providers,cn=config" '
         option3='--set key-manager-provider-dn:"cn=%s,cn=Key Manager Providers,cn=config"' % (keystoreType)
         option4='--set allow-start-tls:true' 
-        optionsString='%s %s %s %s' % (option1,option2,option3,option4) 	 
+        optionsString='%s %s %s %s' % (option1,option2,option3,option4)    
       </script>
-			
+      
       <call function="'dsconfig'">
         { 'location'       : location,
           'dsPath'         : dsPath,
@@ -855,11 +855,11 @@
       </call>
     </sequence>
   </function>
-	
-	
-  <!-- ################################################## -->	
+  
+  
+  <!-- ################################################## -->  
   <!-- Unconfigure SSL -->
-  <!-- ################################################## -->	
+  <!-- ################################################## -->  
   <function name="unconfigureSSL">
     <function-prolog>
       This function reverses the configuration changes for SSL
@@ -902,9 +902,9 @@
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="keystoreType" type="optional" default="'JKS'">
-	      <function-arg-description>
+        <function-arg-description>
           Keystore type : JKS or PKCS12
-  	    </function-arg-description>
+        </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="extraParams" type="optional">
@@ -974,11 +974,11 @@
       </call>
     </sequence>
   </function>
-	
   
-  <!-- ################################################## -->	
+  
+  <!-- ################################################## -->  
   <!--  unconfigureTLS -->
-  <!-- ################################################## -->		
+  <!-- ################################################## -->    
   <function name="unconfigureTLS">
     <function-prolog>
       This function reverses the configuration changes for startTLS
@@ -1023,7 +1023,7 @@
       <function-arg-def name="keystoreType" type="optional" default="'JKS'">
         <function-arg-description>
           Keystore type : JKS or PKCS12
-  	    </function-arg-description>
+        </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="extraParams" type="optional">
@@ -1072,7 +1072,7 @@
           'expectedRC'     : 0 
         }
       </call>
-  		
+      
       <!--- Disable Key Manager Provider -->
       <message>
         'Disabling Key Manager Provider'
@@ -1096,9 +1096,9 @@
   </function>
   
   
-  <!-- ################################################## -->	
+  <!-- ################################################## -->  
   <!-- Unconfigure SSL and TLS -->
-  <!-- ################################################## -->	
+  <!-- ################################################## -->  
   <function name="unconfigureSSL_TLS">
     <function-prolog>
       This function reverses the configuration changes for SSL and TLS
@@ -1143,7 +1143,7 @@
       <function-arg-def name="keystoreType" type="optional" default="'JKS'">
         <function-arg-description>
           Keystore type : JKS or PKCS12
-  	    </function-arg-description>
+        </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="extraParams" type="optional">
@@ -1212,7 +1212,7 @@
           'expectedRC'     : 0
         }
       </call>
-  		
+      
       <!--- Disable Key Manager Provider -->
       <message>
         'Disabling Key Manager Provider'

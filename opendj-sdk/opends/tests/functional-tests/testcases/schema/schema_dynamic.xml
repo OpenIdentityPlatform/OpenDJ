@@ -40,7 +40,7 @@
   
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='schema'								  
+              CurrentTestPath['group']='schema'                  
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
       
@@ -62,7 +62,7 @@
             file="'%s/testcases/schema/schema_setup.xml' % (TESTS_DIR)"/>
           <call function="'schema_setup'"/>
 
-												  
+                          
          <!--- Test case: Update Schema via a file -->
          <!---
               Place test-specific test information here.
@@ -358,7 +358,7 @@
             file="'%s/testcases/schema/schema_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'schema_cleanup'"/>
 
-												        
+                                
         <call function="'testSuite_Postamble'"/>
       
         </sequence>

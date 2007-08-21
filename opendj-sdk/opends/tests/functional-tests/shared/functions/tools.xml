@@ -494,7 +494,7 @@
           <script>
             if STAXResult != 0 :
               failedServers.append('%s:%s' % (server.getHostname(), server.getPort()))
-          </script>	                                                                                                                                               	                      			            
+          </script>                                                                                                                                                                                           
         </sequence>
       </iterate>
       <if expr="len(failedServers) > 0">
@@ -579,7 +579,7 @@
       </paralleliterate>
       
       <if expr="startDS">
-        <!-- Stop the servers in the list -->	
+        <!-- Stop the servers in the list -->  
         <call function="'stopServers'">
           [serverList]
         </call>
@@ -602,14 +602,14 @@
     </function-list-args>
       
     <sequence>
-      <!-- Start the servers in the list -->		
+      <!-- Start the servers in the list -->    
       <paralleliterate var="server" in="serverList">
         <sequence>
           <message>
             'Start DS on host  %s to run on port %s' % (server.getHostname(),server.getPort())
           </message>
           
-          <!--- Start DS -->				         
+          <!--- Start DS -->                 
           <call function="'StartDsWithScript'">
             { 'location' : server.getHostname(),
               'dsPath'   : '%s/%s' % (server.getDir(),OPENDSNAME)
@@ -648,7 +648,7 @@
     </function-list-args>
     
     <sequence>
-      <!-- Stop the servers in the list -->		
+      <!-- Stop the servers in the list -->    
       <paralleliterate var="server" in="serverList">
         <sequence>
           <message>

@@ -56,7 +56,7 @@
           Directory server JMX port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
-      </function-arg-def>		
+      </function-arg-def>    
       <function-arg-def name="dsBaseDN" type="optional">
         <function-arg-description>
           Base DN (only single base DN supported).
@@ -105,14 +105,14 @@
         if dsPath:
           STAFCmd='%s/setup%s' % (dsPath,fileExt)
           STAFCmdParamsList.append('--cli')
-          STAFCmdParamsList.append('-s')	  
+          STAFCmdParamsList.append('-s')    
                   
         if dsPort:
           STAFCmdParamsList.append('-p %s' % dsPort)
         
         if dsJmxPort:
           STAFCmdParamsList.append('-x %s' % dsJmxPort)
-        		  
+              
         if dsBaseDN:
           STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
 
@@ -689,48 +689,48 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-		
+    
       <function-arg-def name="dsHost"  type="optional" default="'%s' % DIRECTORY_INSTANCE_HOST">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-		
+    
       <function-arg-def name="dsPort" type="optional" default="'%s' % DIRECTORY_INSTANCE_PORT">
         <function-arg-description>
           Directory server port number
         </function-arg-description> 
         <function-arg-property name="type" value="port"/>
-      </function-arg-def>		  
-		
+      </function-arg-def>      
+    
       <function-arg-def name="dsBindDN" type="optional" default="'%s' % DIRECTORY_INSTANCE_DN">
         <function-arg-description>
           Bind DN
         </function-arg-description>
         <function-arg-property name="type" value="DN"/>
       </function-arg-def>
-		
+    
       <function-arg-def name="dsBindPwd" type="optional" default="'%s' % DIRECTORY_INSTANCE_PSWD">  
         <function-arg-description>
           Bind password
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-		
+    
       <function-arg-def name="dsBindPwdFile" type="optional">
         <function-arg-description>
           Bind password file
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
        </function-arg-def>
-				  
+          
       <function-arg-def name="extraParams" type="optional" default="''">
         <function-arg-description>
           Optional extra parameters for specific test cases
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
-      </function-arg-def>   		   
+      </function-arg-def>          
     </function-map-args>
     
   
@@ -792,12 +792,12 @@
               'noOfLoops'        : 5 ,
               'noOfMilliSeconds' : 2000 }
        </call>
-          <!--		
+          <!--    
       <call function="'checkRC'">
         { 'returncode' : RC ,
           'result'     : STAXResult }
       </call>
-			  -->
+        -->
    
     </sequence>
   </function>
@@ -2501,7 +2501,7 @@
           <call function="'isAlive'">
             { 'noOfLoops'        : 5 ,
               'noOfMilliSeconds' : 2000 }
-          </call>			
+          </call>      
         </sequence>
       </if>
                       

@@ -167,7 +167,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA256_user1.ldif' % logsRemoteDataDir,
-                'expectedRC'         : 65 }				
+                'expectedRC'         : 65 }        
             </call>
 
 
@@ -183,7 +183,7 @@
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base',
-                'expectedRC'         : 49 } 	
+                'expectedRC'         : 49 }   
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -219,7 +219,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA256_user2.ldif' % logsRemoteDataDir,
-                'expectedRC'         : 21 }				
+                'expectedRC'         : 21 }        
             </call>
 
 
@@ -235,7 +235,7 @@
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base',
-               'expectedRC'         : 49 }				
+               'expectedRC'         : 49 }        
             </call>
 
             <call function="'testCase_Postamble'"/>

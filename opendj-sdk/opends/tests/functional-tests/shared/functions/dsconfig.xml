@@ -103,42 +103,42 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="propertyType" type="required">
         <function-arg-description>
           Property type to modify, e.g. validator
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="propertyName" type="required">
         <function-arg-description>
           Property to modify, e.g. enabled
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="attributeName" type="required">
         <function-arg-description>
           Attribute to modify, e.g. minimum-password-length
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="attributeValue" type="optional" default="'none'">
         <function-arg-description>
           New attribute value
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="modifyType" type="optional" default="'set'">
         <function-arg-description>
           The modify type. Default value is set.
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
@@ -252,21 +252,21 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="propertyType" type="required">
         <function-arg-description>
           Property type to get, e.g. backend. it's used to make the  property type: --backend-name
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="propertyName" type="required">
         <function-arg-description>
           Property to get, e.g. userroot
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="attributeName" type="required">
         <function-arg-description>
           Attribute to get, e.g. minimum-password-length
@@ -334,7 +334,7 @@
         STAXCode=RC
         STAXReason=STAXResult[0][1]
       </script>
-	    <if expr="expectedAttributeValue == 'none'">
+      <if expr="expectedAttributeValue == 'none'">
         <call function="'checktestRC'">
           { 'returncode' : STAXCode,
             'result'     : STAXReason,
@@ -343,8 +343,8 @@
         </call>
         <else>
           <call function="'checktestString'">
-            { 'expectedString'	: expectedAttributeValue,
-              'returnString'	  :  STAXReason
+            { 'expectedString'  : expectedAttributeValue,
+              'returnString'    :  STAXReason
             }
           </call>
         </else>
@@ -358,7 +358,7 @@
   
   <!-- generic wrapper on dsconfig -->
   <!-- can be used to list, get or set a list of attribues -->
-	
+  
   <function name="dsconfig">
     <function-prolog>
       This function lists, get or set a list of attributes using dsconfig
@@ -416,28 +416,28 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="objectType" type="optional">
         <function-arg-description>
           Object type to modify, e.g. backend-name
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="objectName" type="optional">
         <function-arg-description>
           object name  to modify, e.g. userroot
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="optionsString" type="optional">
         <function-arg-description>
           String containing  the dsconfig options.  e.g. --set enabled:true --set key-store-pin:servercert
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-					
+          
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
@@ -459,7 +459,7 @@
         STAFCmdParamsList=[]
         STAFCmdParamsList.append(subcommand)
         if objectType:
-          STAFCmdParamsList.append('--%s "%s" ' % (objectType,objectName))		  
+          STAFCmdParamsList.append('--%s "%s" ' % (objectType,objectName))      
         if optionsString:
           STAFCmdParamsList.append(' %s' % optionsString)
       </script>
@@ -488,8 +488,8 @@
         STAXReason
       </return>
     </sequence>
-  </function>	
-	
+  </function>  
+  
   <!-- Modify password policy using dsconfig -->
   <function name="modifyPwdPolicy">
     <function-prolog>
@@ -529,7 +529,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
-		
+    
       <function-arg-def name="dsInstanceDn" type="required">
         <function-arg-description>
           Bind DN
@@ -550,28 +550,28 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="attributeName" type="required">
         <function-arg-description>
           Attribute to modify, e.g. minimum-password-length
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="attributeValue" type="optional" default="'none'">
         <function-arg-description>
           New attribute value
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="modifyType" type="optional" default="'set'">
         <function-arg-description>
           The modify type. Default value is set.
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
@@ -669,28 +669,28 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="attributeName" type="required">
         <function-arg-description>
           Attribute to modify, e.g. match-attribute
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="attributeValue" type="optional" default="'none'">
         <function-arg-description>
           New attribute value
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="modifyType" type="optional" default="'set'">
         <function-arg-description>
           The modify type. Default value is set.
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
@@ -764,7 +764,7 @@
       <function-arg-def name="dsInstancePort" type="required">
         <function-arg-description>
           Directory server port number
-        </function-arg-description>		  
+        </function-arg-description>      
         <function-arg-property name="type" value="integer" />
       </function-arg-def>
       
@@ -788,14 +788,14 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="attributeValue" type="required">
         <function-arg-description>
           New attribute value
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
@@ -807,7 +807,7 @@
       <!-- Local variables -->
       <script>
         mylocation=location
-        STAFCmdParams=''	
+        STAFCmdParams=''  
         STAFCmd=''
         
         if dsPath:
@@ -884,7 +884,7 @@
       <function-arg-def name="dsInstancePort" type="required">
         <function-arg-description>
           Directory server port number
-        </function-arg-description>		  
+        </function-arg-description>      
         <function-arg-property name="type" value="integer" />
       </function-arg-def>
       
@@ -908,28 +908,28 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="attributeName" type="required">
         <function-arg-description>
           Attribute to modify, e.g. match-attribute
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="attributeValue" type="required">
         <function-arg-description>
           New attribute value
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="modifyType" type="optional" default="'set'">
         <function-arg-description>
           The modify type. Default value is set.
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
@@ -1027,14 +1027,14 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="opType" type="optional" default="set">
         <function-arg-description>
           Operation type, one of set, add, and remove
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
@@ -1147,28 +1147,28 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="propertyName" type="required">
         <function-arg-description>
           Property to modify, e.g. realm
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="propertyValue" type="required">
         <function-arg-description>
           New property value
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="modifyType" type="optional" default="'set'">
         <function-arg-description>
           The modify type. Default value is set.
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
@@ -1219,7 +1219,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
-		
+    
       <function-arg-def name="dsPath" 
                         type="optional" 
                         default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
@@ -1228,7 +1228,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="filepath" />
       </function-arg-def>
-		
+    
       <function-arg-def name="host" 
                         type="optional" 
                         default="STAF_REMOTE_HOSTNAME">
@@ -1237,16 +1237,16 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>      
-		
+    
       <function-arg-def name="port" 
                         type="optional" 
                         default="DIRECTORY_INSTANCE_PORT">
         <function-arg-description>
           Directory server port number
-        </function-arg-description>		  
+        </function-arg-description>      
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
-		
+    
       <function-arg-def name="rootDN" 
                         type="optional" 
                         default="DIRECTORY_INSTANCE_DN">
@@ -1255,7 +1255,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="DN" />
       </function-arg-def> 
-		
+    
       <function-arg-def name="rootPwd" 
                         type="optional" 
                         default="DIRECTORY_INSTANCE_PSWD">
@@ -1272,14 +1272,14 @@
           The Back-end ID on to which to add an index
         </function-arg-description>
       </function-arg-def>
-					
+          
       <function-arg-def name="indexAttribute" type="required">
         <function-arg-description>
           ldap attribute on to which to add indexing
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="indexTypes" type="required">
         <function-arg-description>
           type of index to add
@@ -1300,7 +1300,7 @@
     <sequence>
       <!-- Local variables -->
       <script>
-        dsconfigParams=''	
+        dsconfigParams=''  
         dsconfigCmd=''
         dsBinPath='%s/%s' % (dsPath,fileFolder)
         dsconfigCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
@@ -1335,7 +1335,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
-		
+    
       <function-arg-def name="dsPath" 
                         type="optional" 
                         default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
@@ -1344,7 +1344,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="filepath" />
       </function-arg-def>
-		
+    
       <function-arg-def name="host" 
                         type="optional" 
                         default="STAF_REMOTE_HOSTNAME">
@@ -1353,16 +1353,16 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>      
-		
+    
       <function-arg-def name="port" 
                         type="optional" 
                         default="DIRECTORY_INSTANCE_PORT">
         <function-arg-description>
           Directory server port number
-        </function-arg-description>		  
+        </function-arg-description>      
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
-		
+    
       <function-arg-def name="rootDN" 
                         type="optional" 
                         default="DIRECTORY_INSTANCE_DN">
@@ -1371,7 +1371,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="DN" />
       </function-arg-def> 
-		
+    
       <function-arg-def name="rootPwd" 
                         type="optional" 
                         default="DIRECTORY_INSTANCE_PSWD">
@@ -1388,14 +1388,14 @@
           The Back-end ID on to which to add an index
         </function-arg-description>
       </function-arg-def>
-					
+          
       <function-arg-def name="indexAttribute" type="required">
         <function-arg-description>
           ldap attribute on to which add indexing
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="operation">
         <function-arg-description>
           This parameters defines the operation to be performed.
@@ -1428,7 +1428,7 @@
     <sequence>
       <!-- Local variables -->
       <script>
-        dsconfigParams=''	
+        dsconfigParams=''  
         dsconfigCmd=''
         dsBinPath='%s/%s' % (dsPath,fileFolder)
         dsconfigCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
@@ -1465,7 +1465,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
-		
+    
       <function-arg-def name="dsPath" 
                         type="optional" 
                         default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
@@ -1474,7 +1474,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="filepath" />
       </function-arg-def>
-		
+    
       <function-arg-def name="host" 
                         type="optional" 
                         default="STAF_REMOTE_HOSTNAME">
@@ -1483,16 +1483,16 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>      
-		
+    
       <function-arg-def name="port" 
                         type="optional" 
                         default="DIRECTORY_INSTANCE_PORT">
         <function-arg-description>
           Directory server port number
-        </function-arg-description>		  
+        </function-arg-description>      
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
-		
+    
       <function-arg-def name="rootDN" 
                         type="optional" 
                         default="DIRECTORY_INSTANCE_DN">
@@ -1501,7 +1501,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="DN" />
       </function-arg-def> 
-		
+    
       <function-arg-def name="rootPwd" 
                         type="optional" 
                         default="DIRECTORY_INSTANCE_PSWD">
@@ -1529,7 +1529,7 @@
     <sequence>
       <!-- Local variables -->
       <script>
-        dsconfigParams=''	
+        dsconfigParams=''  
         dsconfigCmd=''
         dsBinPath='%s/%s' % (dsPath,fileFolder)
         dsconfigCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
@@ -1612,7 +1612,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="providerType"
                         type="optional"
                         default="MultimasterType">
@@ -1621,10 +1621,10 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
-	      Expected return code value. Default value is 0
+        Expected return code value. Default value is 0
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
@@ -1736,7 +1736,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-			
+      
       <function-arg-def name="replicationPort" type="required">
         <function-arg-description>
           Replication port number
@@ -1757,10 +1757,10 @@
         </function-arg-description>
         <function-arg-property name="type" value="list" />
       </function-arg-def>
-			
+      
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
-	      Expected return code value. Default value is 0
+        Expected return code value. Default value is 0
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
@@ -1904,10 +1904,10 @@
         </function-arg-description>
         <function-arg-property name="type" value="list" />
       </function-arg-def>
-			
+      
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
-	      Expected return code value. Default value is 0
+        Expected return code value. Default value is 0
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
@@ -1916,7 +1916,7 @@
       <!-- Local variables -->
       <script>
         mylocation=location
-        STAFCmdParams=''	
+        STAFCmdParams=''  
         STAFCmd=''
         
         if dsPath:

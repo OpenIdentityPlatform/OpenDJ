@@ -105,7 +105,7 @@
         <function-arg-property name="type" value="integer"/>
       </function-arg-def>
     </function-map-args>  
-    <sequence>		
+    <sequence>    
       <if expr="expected == NO_CHECK">
         <return/>
       </if>        
@@ -113,9 +113,9 @@
         <sequence>
           <if expr="STAXCurrentTestcase != None">
             <sequence>
-              <tcstatus result="'pass'"/>				  
+              <tcstatus result="'pass'"/>          
             </sequence>
-          </if>  			
+          </if>        
           <message log="1">
             'SUCCESS: RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
           </message>
@@ -127,9 +127,9 @@
         <sequence>
           <if expr="STAXCurrentTestcase != None">
             <sequence>
-              <tcstatus result="'fail'"/>				  
+              <tcstatus result="'fail'"/>          
             </sequence>
-          </if>  			           
+          </if>                   
           <message log="1" level="'Error'">
             'ERROR : RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
           </message>
@@ -139,37 +139,37 @@
     </sequence>
   </function>
 
-	
+  
 <!-- testPassed  -->
-<!-- Set the test status to PASS -->	 
-	
+<!-- Set the test status to PASS -->   
+  
  <function name="testPassed">
     <function-prolog>
       This function set the status of the tests: PASS
     </function-prolog>
 
     <sequence>
-	   <message>'Set test status to PASS'</message>
-       <tcstatus result="'pass'"/>				  
+     <message>'Set test status to PASS'</message>
+       <tcstatus result="'pass'"/>          
     </sequence>
  </function>
-		
+    
 
 <!-- testFailed -->
-<!-- Set the test status to  FAIL -->	 
-	
+<!-- Set the test status to  FAIL -->   
+  
  <function name="testFailed">
     <function-prolog>
       This function set the status of the tests: FAIL
     </function-prolog>
 
     <sequence>
-	   <message>'Set test status to FAIL'</message>
-       <tcstatus result="'fail'"/>				  
+     <message>'Set test status to FAIL'</message>
+       <tcstatus result="'fail'"/>          
     </sequence>
   </function>
-		
-<!-- checktestString -->	
+    
+<!-- checktestString -->  
   <function name="checktestString">
     <function-prolog>
       This function checks the return string against an expected return substring for a testcase
@@ -197,7 +197,7 @@
 
       <if expr='re.search(searchre, returnString) != None'>
         <sequence>
-          <tcstatus result="'pass'"/>			
+          <tcstatus result="'pass'"/>      
           <message log="1">
             'SUCCESS :  Found substring, %s, in the return string' % (expectedString)
           </message>
@@ -1002,7 +1002,7 @@
     </sequence>
 
   </function>
-	
+  
   
    
   <function name="CheckMatches">

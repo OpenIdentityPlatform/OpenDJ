@@ -636,12 +636,12 @@
           Name of folder to be list
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
-	  </function-arg-def>
+    </function-arg-def>
       <function-arg-def name="filename" type="required">
         <function-arg-description>
           Name of file to be list
         </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>		  
+        <function-arg-property name="type" value="filepath"/>      
       </function-arg-def>      
     </function-map-args>
 
@@ -672,6 +672,6 @@
 
       <return>cmdRC</return>
       </sequence>
-    </function>	
-	
+    </function>  
+  
 </stax>

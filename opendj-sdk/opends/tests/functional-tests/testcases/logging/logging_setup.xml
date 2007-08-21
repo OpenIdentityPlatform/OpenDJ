@@ -38,32 +38,32 @@
         <sequence>
 
 
-		  <block name="'Block Create DS Topology'">
-		  <!-- Create the topology necessary to the test group/suite -->
-		    <sequence>
-								
+      <block name="'Block Create DS Topology'">
+      <!-- Create the topology necessary to the test group/suite -->
+        <sequence>
+                
               <message>
                  'Create DS topology as described in config.py'
               </message>
-				  
-			  <call function="'createTopology'">
-			    { 'initialiseInstance' : True }
-			  </call>
-				    				
-			  <call function="'checkRC'">
+          
+        <call function="'createTopology'">
+          { 'initialiseInstance' : True }
+        </call>
+                    
+        <call function="'checkRC'">
                   { 'returncode' : RC ,
                     'result'     : STAXResult }
               </call>
 
             </sequence>      
-          <!--- End Block Create DS Topology -->	
-          </block>				  				  
+          <!--- End Block Create DS Topology -->  
+          </block>                    
 
 
-		  <block name="'Block DS Process Active'">	  	
+      <block name="'Block DS Process Active'">      
           <!--- Start DS -->
-		    <sequence>
-				
+        <sequence>
+        
               <message>
                  'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
               </message>
@@ -82,13 +82,13 @@
               <call function="'isAlive'">
                 { 'noOfLoops'        : 5 ,
                   'noOfMilliSeconds' : 2000 }
-              </call>			
-				
+              </call>      
+        
             </sequence>
           <!--- End Block DS Process Active -->
-          </block>			  			
-						
-			        
+          </block>              
+            
+              
         </sequence>        
       </block>
             

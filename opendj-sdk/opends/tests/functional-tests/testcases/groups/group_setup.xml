@@ -38,42 +38,42 @@
         </function-arg-description>
         <function-arg-property name="type" value="boolean"/>
       </function-arg-def>  
-	  	<function-arg-def name="loadBackend" type="optional" default="True">
-	    	<function-arg-description>
-				  Specifies whether the backend should be loaded with some data.
-				</function-arg-description>
-				<function-arg-property name="type" value="boolean"/>
-		  </function-arg-def>					  
-		</function-map-args>
-  	  
-  	  
+      <function-arg-def name="loadBackend" type="optional" default="True">
+        <function-arg-description>
+          Specifies whether the backend should be loaded with some data.
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>            
+    </function-map-args>
+      
+      
     <sequence>
   
       <block name="'setup'">
         <sequence>
 
           <block name="'Block Create DS Topology'">
-      		<!-- Create the topology necessary to the test group/suite -->
-        		<sequence>
+          <!-- Create the topology necessary to the test group/suite -->
+            <sequence>
               <message>
                  '------ Create DS topology as described in config.py'
               </message>
-			        <call function="'createTopology'">
-      				    { 'initialiseInstance' : False }
-        			</call>
-			        <call function="'checkRC'">
+              <call function="'createTopology'">
+                  { 'initialiseInstance' : False }
+              </call>
+              <call function="'checkRC'">
                   { 'returncode' : RC ,
                     'result'     : STAXResult }
               </call>
               
             </sequence>      
-          <!--- End Block Create DS Topology -->	
-          </block>				  				  
+          <!--- End Block Create DS Topology -->  
+          </block>                    
 
           <if expr="loadBackend == True">
             <block name="'Block DS Load Data'">
-      			<!-- Load the data needed by the test suite -->
-			        <sequence>		
+            <!-- Load the data needed by the test suite -->
+              <sequence>    
                 <message>
                   '------ Load LDIF : groups.ldif'
                 </message>
@@ -83,22 +83,22 @@
                 <call function="'checkRC'">
                   { 'returncode' : RC ,
                     'result'     : STAXResult }
-                </call>	
+                </call>  
               </sequence>      
-  	        <!--- End Block DS Load Data -->								  	   
-    			  </block> 
-      		</if>
+            <!--- End Block DS Load Data -->                       
+            </block> 
+          </if>
           
-		      <if expr="startDS == True">
-      			<block name="'Block DS Process Active'">	  	
-     		    <!--- Start DS -->
-        			<sequence>
+          <if expr="startDS == True">
+            <block name="'Block DS Process Active'">      
+             <!--- Start DS -->
+              <sequence>
                 <message>
                    '------ Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
                 </message>
                 <!--- Start DS -->
                 <call function="'StartDsWithScript'">
-                		{ 'location'  : STAF_REMOTE_HOSTNAME }
+                    { 'location'  : STAF_REMOTE_HOSTNAME }
                 </call>
                 <call function="'checkRC'">
                     { 'returncode' : RC ,
@@ -106,16 +106,16 @@
                 </call>
                 <!--- Check that DS started -->
                 <call function="'isAlive'">
-	                  { 'noOfLoops'        : 5 ,
-  	                  'noOfMilliSeconds' : 2000 }
-                </call>			
-	            </sequence>
-  	        <!--- End Block DS Process Active -->
-    	      </block>			  			
-		      </if>
-    		</sequence>
+                    { 'noOfLoops'        : 5 ,
+                      'noOfMilliSeconds' : 2000 }
+                </call>      
+              </sequence>
+            <!--- End Block DS Process Active -->
+            </block>              
+          </if>
+        </sequence>
       </block>
     </sequence>
-	</function>
+  </function>
 
 </stax>

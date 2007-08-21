@@ -54,7 +54,7 @@
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'dsBaseDN'       : 'cn=version,cn=monitor',
                   'dsFilter'       : '|' ,
-                  'extraParams'	   : ''
+                  'extraParams'     : ''
                 }
               </call>
               <call function="'checktestRC'">
@@ -194,7 +194,7 @@
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'dsBaseDN'       : 'ou=People,o=core tests,dc=example,dc=com',
                   'dsFilter'       : 'objectclass=*',
-                  'extraParams'	   : ''
+                  'extraParams'     : ''
                 }
               </call>
               <call function="'checktestRC'">

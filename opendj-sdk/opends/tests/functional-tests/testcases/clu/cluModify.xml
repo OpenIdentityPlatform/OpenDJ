@@ -40,7 +40,7 @@
   
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='clu'						  
+              CurrentTestPath['group']='clu'              
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
       
@@ -61,8 +61,8 @@
             file="'%s/testcases/clu/clu_setup.xml' % (TESTS_DIR)"/>
           <call function="'clu_setup'"> 
             { 'startDS' : True,
-			  'loadBackend' : True } 
-          </call>	  
+        'loadBackend' : True } 
+          </call>    
           
          
           <!--- Test Case information
@@ -142,7 +142,7 @@
           
                   </sequence>
           
-                 </testcase>                 							
+                 </testcase>                               
          
           <!--- Test Case information
             #@TestMarker          Clu Ldap Modify Tests
@@ -849,7 +849,7 @@
             file="'%s/testcases/clu/clu_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'clu_cleanup'"> { 'stopDS' : True } </call>
 
-												    
+                            
         </sequence>
     
       </block>

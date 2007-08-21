@@ -84,9 +84,9 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
-				'keystoreType'     : 'PKCS12' }			   
-            </call>			  
-			  
+        'keystoreType'     : 'PKCS12' }         
+            </call>        
+        
         
             <!--- Remove PKCS12 Keystore -->
             <message>

@@ -94,7 +94,7 @@
               'dsBaseDN'         : 'dc=example,dc=com' ,
               'dsFilter'         : 'objectclass=*'  ,
               'extraParams'      : '-s base',
-              'expectedRC'       : 49  }	
+              'expectedRC'       : 49  }  
           </call>
 
           <call function="'testCase_Postamble'"/>
@@ -138,7 +138,7 @@
               'dsInstancePswd'   : 'inflict' ,
               'dsBaseDN'         : 'dc=example,dc=com' ,
               'dsFilter'         : 'objectclass=*'  ,
-              'extraParams'      : '-s base' }			  
+              'extraParams'      : '-s base' }        
           </call>
 
           <call function="'testCase_Postamble'"/>
@@ -175,7 +175,7 @@
               'dsInstancePswd'   : 'inflict' ,
               'dsBaseDN'         : 'dc=example,dc=com' ,
               'dsFilter'         : 'objectclass=*'  ,
-              'extraParams'      : '-s base'  }	
+              'extraParams'      : '-s base'  }  
           </call>
           
           <call function="'testCase_Postamble'"/>

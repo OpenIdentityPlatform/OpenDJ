@@ -33,21 +33,21 @@
 
     <sequence>
 
-      <!--- Setup the client for the Basic test suite -->			
+      <!--- Setup the client for the Basic test suite -->      
       <message>
         'Replication: Basic: Setup. Get client ready for Basic tests.'
-      </message>	  			
-	
+      </message>          
+  
       <script>
         synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()
         entryDn = 'uid=scarter,%s' % synchroSuffix
         grandchildEntryDn = 'uid=scarter,ou=People,o=replication tests,%s' % synchroSuffix
         mod_type = 'replace'
         attr_type = 'roomnumber'
-        attr_value = '1111'			  
+        attr_value = '1111'        
       </script>
 
-      <script>			
+      <script>      
         filename = 'replication_add_root_suffix.ldif'
         filePath = '%s/%s' % (logsTestDataDir,filename)
         write_replication_add_root_suffix_ldif_file(filePath, synchroSuffix)
@@ -61,12 +61,12 @@
         { 'srcfile'    : filePath,
           'destfile'   : '%s/%s' % (clientDataDir,filename),
           'remotehost' : client.getHostname() }
-      </call>		  
+      </call>      
 
       <script>
         filename = 'replication_add_single.ldif'
         filePath = '%s/%s' % (logsTestDataDir,filename)
-        write_replication_add_single_ldif_file(filePath, synchroSuffix)			  		   
+        write_replication_add_single_ldif_file(filePath, synchroSuffix)               
       </script>
 
       <!-- Copy the replication_add_single ldif to client host -->
@@ -78,11 +78,11 @@
           'destfile'   : '%s/%s' % (clientDataDir,filename),
           'remotehost' : client.getHostname() }
       </call>
-      		  			
+                  
       <script>
         filename = 'replication_add_multiple.ldif'
         filePath = '%s/%s' % (logsTestDataDir,filename)
-        write_replication_add_multiple_ldif_file(filePath, synchroSuffix)			  		   
+        write_replication_add_multiple_ldif_file(filePath, synchroSuffix)               
       </script>
 
       <!-- Copy the replication_add_multiple ldif to client host -->
@@ -93,8 +93,8 @@
         { 'srcfile'    : filePath,
           'destfile'   : '%s/%s' % (clientDataDir,filename),
           'remotehost' : client.getHostname() }
-      </call>		  			
-			
+      </call>            
+      
       <script>
         filename = 'replication_mod.ldif'
         filePath = '%s/%s' % (logsTestDataDir,filename)
@@ -109,14 +109,14 @@
         { 'srcfile'    : filePath,
           'destfile'   : '%s/%s' % (clientDataDir,filename),
           'remotehost' : client.getHostname() }
-      </call>					
-	        
-              			
+      </call>          
+          
+                    
       <call function="'checkRC'">
         { 'returncode' : RC ,
           'result'     : STAXResult }
       </call>
-              			  			      
+                                  
     </sequence>
 
   </function>

@@ -83,8 +83,8 @@
         <function-arg-description>
           Expected return code value. Default value is 0
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>		  
-        </function-arg-def>		
+        <function-arg-property name="type" value="integer"/>      
+        </function-arg-def>    
     </function-map-args>
     <sequence>
       <!-- Local variables -->
@@ -354,8 +354,8 @@
         <function-arg-description>
           Expected return code value. Default value is 0
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>		  
-        </function-arg-def>		
+        <function-arg-property name="type" value="integer"/>      
+        </function-arg-def>    
     </function-map-args>
     
     <sequence>
@@ -556,8 +556,8 @@
         <function-arg-description>
           Expected return code value. Default value is 0
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>		  
-        </function-arg-def>		
+        <function-arg-property name="type" value="integer"/>      
+        </function-arg-def>    
     </function-map-args>
     <sequence>
     
@@ -921,8 +921,8 @@
         <function-arg-description>
           Expected return code value. Default value is 0
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>		  
-        </function-arg-def>		
+        <function-arg-property name="type" value="integer"/>      
+        </function-arg-def>    
     </function-map-args>
     
     <sequence>
@@ -1193,8 +1193,8 @@
         <function-arg-description>
           Expected return code value. Default value is 0. Wildcard 'noCheck' to not check the RC
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>		  
-        </function-arg-def>		
+        <function-arg-property name="type" value="integer"/>      
+        </function-arg-def>    
     </function-map-args>
     <sequence>
     
@@ -1403,8 +1403,8 @@
         <function-arg-description>
           Expected return code value. Default value is 0
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>		  
-        </function-arg-def>		
+        <function-arg-property name="type" value="integer"/>      
+        </function-arg-def>    
     </function-map-args>
     <sequence>
       <call function="'runCommand'" >
@@ -1620,8 +1620,8 @@
         <function-arg-description>
           Expected return code value. Default value is 0
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>		  
-      </function-arg-def>		
+        <function-arg-property name="type" value="integer"/>      
+      </function-arg-def>    
     </function-map-args>
     
     <sequence>
@@ -1807,8 +1807,8 @@
         <function-arg-description>
           Expected return code value. Default value is 0
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>		  
-      </function-arg-def>		
+        <function-arg-property name="type" value="integer"/>      
+      </function-arg-def>    
     </function-map-args>
     
     <sequence>
@@ -2066,8 +2066,8 @@
         <function-arg-description>
           Expected return code value. Default value is 0
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>		  
-      </function-arg-def>		
+        <function-arg-property name="type" value="integer"/>      
+      </function-arg-def>    
     </function-map-args>
     
     <sequence>
@@ -2258,8 +2258,8 @@
         <function-arg-description>
           Expected return code value. Default value is 0
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>		  
-      </function-arg-def>		
+        <function-arg-property name="type" value="integer"/>      
+      </function-arg-def>    
     </function-map-args>
     <sequence>
     
@@ -2494,8 +2494,8 @@
         <function-arg-description>
           Expected return code value. Default value is 0
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>		  
-      </function-arg-def>		
+        <function-arg-property name="type" value="integer"/>      
+      </function-arg-def>    
     </function-map-args>
     
     <sequence>
@@ -2604,7 +2604,7 @@
   </function>
   
   
-	<!-- Modify an attribute -->
+  <!-- Modify an attribute -->
   <function name="modifyAnAttribute">
     <function-prolog>
       This function modifies an entry in the Directory Server
@@ -2616,57 +2616,57 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-		
+    
       <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
       </function-arg-def>
-		
+    
       <function-arg-def name="dsInstanceHost" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
-		<function-arg-property name="type" value="hostname"/>
+    <function-arg-property name="type" value="hostname"/>
       </function-arg-def>      
-		
+    
       <function-arg-def name="dsInstancePort" type="required">
         <function-arg-description>
           Directory server port number
-        </function-arg-description>		  
+        </function-arg-description>      
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
-		
+    
       <function-arg-def name="dsInstanceDn" type="required">
         <function-arg-description>
           Bind DN
         </function-arg-description>
         <function-arg-property name="type" value="DN"/>
       </function-arg-def> 
-		
+    
       <function-arg-def name="dsInstancePswd" type="required">
         <function-arg-description>
           Bind password
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>          
-		
-	   <function-arg-def name="DNToModify" type="required">
+    
+     <function-arg-def name="DNToModify" type="required">
         <function-arg-description>
           DN to modify
         </function-arg-description>
         <function-arg-property name="type" value="DN"/>
       </function-arg-def>
-			
+      
       <function-arg-def name="attributeName" type="optional">
         <function-arg-description>
           Attribute to modify
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-		
-	   <function-arg-def name="newAttributeValue" type="optional">
+    
+     <function-arg-def name="newAttributeValue" type="optional">
         <function-arg-description>
           New Attribute Value
         </function-arg-description>
@@ -2679,21 +2679,21 @@
        </function-arg-description>
        <function-arg-property name="type" value="string"/>       
      </function-arg-def>
-		
+    
     <function-arg-def name="changetype" type="required">
         <function-arg-description>
           Type of modification, can be delete, add, replace
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
     </function-arg-def>
-	 
+   
     <function-arg-def name="expectedRC" type="optional" default="0">
       <function-arg-description>
-			  Expected return code value. Default value is 0
+        Expected return code value. Default value is 0
       </function-arg-description>
       <function-arg-property name="type" value="string"/>
-    </function-arg-def>			
-	
+    </function-arg-def>      
+  
     </function-map-args>
     <sequence>
     
@@ -2701,14 +2701,14 @@
       <script>
         mylocation=location
       
-		
+    
       <!-- Build the Command -->
       
         STAFCmdParamsList=[]
-        STAFCmdParams=''	
-        STAFCmd=''			  	
-		</script>
-		  
+        STAFCmdParams=''  
+        STAFCmd=''          
+    </script>
+      
      <!-- Set common ldap arguments -->      
       <call function="'_ldapCommonArgs'"/>
 
@@ -2720,11 +2720,11 @@
                STAFCmdParamsList.append('-l "%s"' % anAttributeToModify)   
           </script>
       </iterate>   
-      </if>	  
+      </if>    
       <script>
         if newAttributeValue:
             newAttributeValue=newAttributeValue.replace('"','QUOT')
-      </script>				
+      </script>        
       <script>
  
         if DNToModify:
@@ -2734,7 +2734,7 @@
           STAFCmdParamsList.append('-a "%s"' % attributeName)
 
         if newAttributeValue:
-          STAFCmdParamsList.append('-v "%s"' % newAttributeValue)		  
+          STAFCmdParamsList.append('-v "%s"' % newAttributeValue)      
 
         if changetype:
           STAFCmdParamsList.append('-t "%s"' % changetype)
@@ -2768,8 +2768,8 @@
     
   </function>
   
-	
-	<!-- Add a New entry-->
+  
+  <!-- Add a New entry-->
   <function name="addAnEntry">
     <function-prolog>
       This function modifies an entry in the Directory Server
@@ -2796,7 +2796,7 @@
       <function-arg-def name="dsInstancePort" type="required">
          <function-arg-description>
           Directory server port number
-        </function-arg-description>		  
+        </function-arg-description>      
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
       <function-arg-def name="dsInstanceDn" type="required">
@@ -2811,7 +2811,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-	    <function-arg-def name="DNToAdd" type="required">
+      <function-arg-def name="DNToAdd" type="required">
         <function-arg-description>
           DN to add
         </function-arg-description>
@@ -2878,7 +2878,7 @@
   </function>
   
   
-	<!-- Modify an attribute -->
+  <!-- Modify an attribute -->
   <function name="modifyDn">
     <function-prolog>
       This function rename the rdn
@@ -2920,7 +2920,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-	    <function-arg-def name="DNToModify" type="required">
+      <function-arg-def name="DNToModify" type="required">
         <function-arg-description>
           DN to modify
         </function-arg-description>
@@ -2932,7 +2932,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-	    <function-arg-def name="deleteOldRDN" type="optional">
+      <function-arg-def name="deleteOldRDN" type="optional">
         <function-arg-description>
           1 : delete old rdn, 0 do not delete old rdn, default value is 1
         </function-arg-description>
@@ -2955,7 +2955,7 @@
         STAFCmdParams=''
         STAFCmd=''
       </script>
-		  
+      
       <!-- Set common ldap arguments -->      
       <call function="'_ldapCommonArgs'" />
       <script>
@@ -2966,7 +2966,7 @@
           STAFCmdParamsList.append('-e "%s"' % newRDN)
         
         if deleteOldRDN:
-          STAFCmdParamsList.append('-f "%s"' % deleteOldRDN)		  		  		  		  
+          STAFCmdParamsList.append('-f "%s"' % deleteOldRDN)                        
         
         STAFCmdParams=' '.join(STAFCmdParamsList)
         

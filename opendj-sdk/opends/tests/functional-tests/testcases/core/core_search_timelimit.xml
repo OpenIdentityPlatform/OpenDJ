@@ -75,7 +75,7 @@
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'dsBaseDN'       : 'o=core tests,dc=example,dc=com',
                   'dsFilter'       : 'objectclass=*',
-                  'extraParams'	   : '-l 1',
+                  'extraParams'     : '-l 1',
                   'expectedRC'     : 3
                 }
               </call>
@@ -97,7 +97,7 @@
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'dsBaseDN'       : 'o=core tests,dc=example,dc=com',
                   'dsFilter'       : 'objectclass=*',
-                  'extraParams'	   : '-l 500'
+                  'extraParams'     : '-l 500'
                 }
               </call>
               <call function="'checktestRC'">

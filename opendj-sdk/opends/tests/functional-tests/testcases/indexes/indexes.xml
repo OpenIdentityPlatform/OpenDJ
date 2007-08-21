@@ -465,7 +465,7 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD                            ,
                   'dsBaseDN'         : 'ou=People,dc=example,%s' % DIRECTORY_INSTANCE_SFX ,
                   'dsFilter'         : '%s' % test.getFilter()                            ,
-                  'attributes'	     : 'debugsearchindex'                                 ,
+                  'attributes'       : 'debugsearchindex'                                 ,
                   'expectedRC'       : 'noCheck'                                          }
               </call>
               <script>

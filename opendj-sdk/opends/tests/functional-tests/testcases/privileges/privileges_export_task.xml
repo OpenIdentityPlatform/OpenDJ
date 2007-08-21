@@ -39,7 +39,7 @@
   
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='privileges'			  			  
+              CurrentTestPath['group']='privileges'                
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
       
@@ -58,7 +58,7 @@
             file="'%s/testcases/privileges/privileges_setup.xml' % (TESTS_DIR)"/>
           <call function="'privileges_setup'" />
 
-												    
+                            
             <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
@@ -229,8 +229,8 @@
     
             </sequence>
           </testcase>
-    	
-	  <!---
+      
+    <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                Privileges Export Tasks Tests
@@ -343,7 +343,7 @@
     
             </sequence>
           </testcase>
-    	
+      
           <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
@@ -469,12 +469,12 @@
     
             </sequence>
           </testcase>
-    	
+      
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/privileges/privileges_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'privileges_cleanup'" />
 
-						  
+              
           <call function="'testSuite_Postamble'"/>
             
         </sequence>

@@ -63,7 +63,7 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/basic/replication_basic_setup.xml' % (TESTS_DIR)"/>
           <call function="'replication_basic_setup'" />
-                    			    
+                              
           <!--- Test Case information
           #@TestMarker          Replication Basic Tests
           #@TestName            Replication: Basic: Add Entry
@@ -73,7 +73,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->									
+          -->                  
           <testcase name="getTestCaseName('Add Entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -92,7 +92,7 @@
                   'entryToBeAdded' : '%s/replication_add_root_suffix.ldif' % clientDataDir }
               </call>
 
-              <!-- Check modify worked on "master" server -->                    			    
+              <!-- Check modify worked on "master" server -->                              
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
@@ -105,7 +105,7 @@
               </call>
 
                 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>              
@@ -114,7 +114,7 @@
             </sequence>
           </testcase>
     
-    	
+      
     
           <!--- Test Case information
           #@TestMarker          Replication Basic Tests
@@ -125,7 +125,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->											
+          -->                      
           <testcase name="getTestCaseName('Modify Entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -154,7 +154,7 @@
                   'dsFilename' : '%s/replication_mod.ldif' % clientDataDir }
               </call>
 
-              <!-- Check modify worked on "master" server -->                    			    
+              <!-- Check modify worked on "master" server -->                              
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
@@ -177,7 +177,7 @@
               </call>                       
 
                 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>                                                 
@@ -185,7 +185,7 @@
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
-    				
+            
     
           <!--- Test Case information
           #@TestMarker          Replication Basic Tests
@@ -196,7 +196,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->											
+          -->                      
           <testcase name="getTestCaseName('Delete Entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -216,7 +216,7 @@
                   'dsBaseDN'         : entryDn }
               </call>
 
-              <!-- Check modify worked on "master" server -->                    			    
+              <!-- Check modify worked on "master" server -->                              
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
@@ -230,7 +230,7 @@
               </call>                      
 
                 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>                                 
@@ -239,7 +239,7 @@
             </sequence>
           </testcase>
 
-			
+      
           <!--- Test Case information
           #@TestMarker          Replication Basic Tests
           #@TestName            Replication: Basic: Add Multiple Entries
@@ -249,7 +249,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->									
+          -->                  
           <testcase name="getTestCaseName('Add Multiple Entries')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -279,7 +279,7 @@
                   'entryToBeAdded' : '%s/replication/Example.ldif' % clientDataDir }
               </call>             
    
-              <!-- Check modify worked on "master" server -->                    			    
+              <!-- Check modify worked on "master" server -->                              
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
@@ -292,7 +292,7 @@
               </call>
 
                 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>
@@ -314,7 +314,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->											
+          -->                      
           <testcase name="getTestCaseName('Modify Entry - add single attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -326,16 +326,16 @@
               <call function="'modifyAnAttribute'">
                 { 'dsPath' : masterPath,
                   'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'	  : master.getPort(),
-                  'dsInstanceDn'	: master.getRootDn(),
-                  'dsInstancePswd'	  : master.getRootPwd(),
-                  'DNToModify'	  : 'uid=tmorris, ou=People,%s' % synchroSuffix,
+                  'dsInstancePort'    : master.getPort(),
+                  'dsInstanceDn'  : master.getRootDn(),
+                  'dsInstancePswd'    : master.getRootPwd(),
+                  'DNToModify'    : 'uid=tmorris, ou=People,%s' % synchroSuffix,
                   'attributeName' : 'description',
                   'newAttributeValue' : ' ',
                   'changetype' : 'add' }
-              </call>   		
+              </call>       
 
-              <!-- Check modify worked on "master" server -->                    			    
+              <!-- Check modify worked on "master" server -->                              
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
@@ -358,7 +358,7 @@
               </call>                       
 
                 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
@@ -366,7 +366,7 @@
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
-                                                                	
+                                                                  
 
             
 
@@ -380,7 +380,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->											
+          -->                      
           <testcase name="getTestCaseName('Modify Entry - add single value')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -392,10 +392,10 @@
               <call function="'modifyAnAttribute'">
                 { 'dsPath' : masterPath,
                   'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'	  : master.getPort(),
-                  'dsInstanceDn'	: master.getRootDn(),
-                  'dsInstancePswd'	  : master.getRootPwd(),
-                  'DNToModify'	  : 'uid=tmorris, ou=People,%s' % synchroSuffix,
+                  'dsInstancePort'    : master.getPort(),
+                  'dsInstanceDn'  : master.getRootDn(),
+                  'dsInstancePswd'    : master.getRootPwd(),
+                  'DNToModify'    : 'uid=tmorris, ou=People,%s' % synchroSuffix,
                   'attributeName' : 'departmentnumber',
                   'newAttributeValue' : '5203214400',
                   'changetype' : 'add' }
@@ -424,7 +424,7 @@
               </call>                       
 
                                 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
@@ -444,7 +444,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->											
+          -->                      
           <testcase name="getTestCaseName('Modify Entry - delete single attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -471,7 +471,7 @@
                 { 'srcfile'    : filePath,
                   'destfile'   : '%s/%s' % (clientDataDir,filename),
                   'remotehost' : client.getHostname() }
-              </call>		                
+              </call>                    
 
               <!-- Modify "master" server -->                                
               <call function="'ldapModifyWithScript'">
@@ -484,7 +484,7 @@
                   'dsFilename' : '%s/%s' % (clientDataDir, filename) }
               </call>        
                                 
-              <!-- Check modify worked on "master" server -->	    
+              <!-- Check modify worked on "master" server -->      
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
@@ -508,7 +508,7 @@
               </call>                       
 
 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
@@ -528,7 +528,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->											
+          -->                      
           <testcase name="getTestCaseName('Modify Entry - delete single value')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -540,10 +540,10 @@
               <call function="'modifyAnAttribute'">
                 { 'dsPath' : masterPath,
                   'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'	  : master.getPort(),
-                  'dsInstanceDn'	: master.getRootDn(),
-                  'dsInstancePswd'	  : master.getRootPwd(),
-                  'DNToModify'	  : 'uid=jwalker, ou=People,%s' % synchroSuffix,
+                  'dsInstancePort'    : master.getPort(),
+                  'dsInstanceDn'  : master.getRootDn(),
+                  'dsInstancePswd'    : master.getRootPwd(),
+                  'DNToModify'    : 'uid=jwalker, ou=People,%s' % synchroSuffix,
                   'attributeName' : 'roomNumber',
                   'newAttributeValue' : '3915',
                   'changetype' : 'delete' }
@@ -573,7 +573,7 @@
               </call>       
                 
                     
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
@@ -594,7 +594,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->											
+          -->                      
           <testcase name="getTestCaseName('Modify Entry - add multiple values')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -645,7 +645,7 @@
               </call>                       
     
                 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
@@ -666,7 +666,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->											
+          -->                      
           <testcase name="getTestCaseName('Modify Entry - delete multiple values')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -685,15 +685,15 @@
               <call function="'modifyAnAttribute'">
                 { 'dsPath' : masterPath,
                   'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'	  : master.getPort(),
-                  'dsInstanceDn'	: master.getRootDn(),
-                  'dsInstancePswd'	  : master.getRootPwd(),
-                  'DNToModify'	  : 'uid=jwallace, ou=People,%s' % synchroSuffix,
+                  'dsInstancePort'    : master.getPort(),
+                  'dsInstanceDn'  : master.getRootDn(),
+                  'dsInstancePswd'    : master.getRootPwd(),
+                  'DNToModify'    : 'uid=jwallace, ou=People,%s' % synchroSuffix,
                   'listAttributes' : valuesToDelete,
                   'changetype' : 'delete' }
               </call>
 
-              <!-- Check modify worked on "master" server -->		    
+              <!-- Check modify worked on "master" server -->        
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
@@ -717,7 +717,7 @@
               </call>                 
 
 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
@@ -740,7 +740,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->											
+          -->                      
           <testcase name="getTestCaseName('Modify Entry - replace multiple values')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -759,15 +759,15 @@
               <call function="'modifyAnAttribute'">
                 { 'dsPath' : masterPath,
                   'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'	  : master.getPort(),
-                  'dsInstanceDn'	: master.getRootDn(),
-                  'dsInstancePswd'	  : master.getRootPwd(),
-                  'DNToModify'	  : 'uid=jwallace, ou=People,%s' % synchroSuffix,
+                  'dsInstancePort'    : master.getPort(),
+                  'dsInstanceDn'  : master.getRootDn(),
+                  'dsInstancePswd'    : master.getRootPwd(),
+                  'DNToModify'    : 'uid=jwallace, ou=People,%s' % synchroSuffix,
                   'listAttributes' : valuesToReplace,
                   'changetype' : 'replace' }
               </call>
 
-              <!-- Check modify worked on "master" server -->		    
+              <!-- Check modify worked on "master" server -->        
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
@@ -791,7 +791,7 @@
               </call>                 
 
 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
@@ -813,7 +813,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->											
+          -->                      
           <testcase name="getTestCaseName('Modify Entry - add single value to multiple valued attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -831,15 +831,15 @@
               <call function="'modifyAnAttribute'">
                 { 'dsPath' : masterPath,
                   'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'	  : master.getPort(),
-                  'dsInstanceDn'	: master.getRootDn(),
-                  'dsInstancePswd'	  : master.getRootPwd(),
-                  'DNToModify'	  : 'uid=jwallace, ou=People,%s' % synchroSuffix,
+                  'dsInstancePort'    : master.getPort(),
+                  'dsInstanceDn'  : master.getRootDn(),
+                  'dsInstancePswd'    : master.getRootPwd(),
+                  'DNToModify'    : 'uid=jwallace, ou=People,%s' % synchroSuffix,
                   'listAttributes' : valuesToAdd,
                   'changetype' : 'add' }
               </call>
 
-              <!-- Check modify worked on "master" server -->		    
+              <!-- Check modify worked on "master" server -->        
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
@@ -863,7 +863,7 @@
               </call>                 
 
 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
@@ -885,7 +885,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->											
+          -->                      
           <testcase name="getTestCaseName('Modify Entry - delete single value from multiple valued attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -903,15 +903,15 @@
               <call function="'modifyAnAttribute'">
                 { 'dsPath' : masterPath,
                   'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'	  : master.getPort(),
-                  'dsInstanceDn'	: master.getRootDn(),
-                  'dsInstancePswd'	  : master.getRootPwd(),
-                  'DNToModify'	  : 'uid=jwallace, ou=People,%s' % synchroSuffix,
+                  'dsInstancePort'    : master.getPort(),
+                  'dsInstanceDn'  : master.getRootDn(),
+                  'dsInstancePswd'    : master.getRootPwd(),
+                  'DNToModify'    : 'uid=jwallace, ou=People,%s' % synchroSuffix,
                   'listAttributes' : valuesToDelete,
                   'changetype' : 'delete' }
               </call>
 
-              <!-- Check modify worked on "master" server -->		    
+              <!-- Check modify worked on "master" server -->        
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
@@ -935,7 +935,7 @@
               </call>                 
 
 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
@@ -956,7 +956,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->											
+          -->                      
           <testcase name="getTestCaseName('Modify Entry - replace case sensitive attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -984,15 +984,15 @@
               <call function="'modifyAnAttribute'">
                 { 'dsPath' : masterPath,
                   'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'	  : master.getPort(),
-                  'dsInstanceDn'	: master.getRootDn(),
-                  'dsInstancePswd'	  : master.getRootPwd(),
-                  'DNToModify'	  : 'uid=tfitter, ou=People,%s' % synchroSuffix,
+                  'dsInstancePort'    : master.getPort(),
+                  'dsInstanceDn'  : master.getRootDn(),
+                  'dsInstancePswd'    : master.getRootPwd(),
+                  'DNToModify'    : 'uid=tfitter, ou=People,%s' % synchroSuffix,
                   'listAttributes' : valuesToReplace,
                   'changetype' : 'replace' }
               </call>
 
-              <!-- Check modify worked on "master" server -->		    
+              <!-- Check modify worked on "master" server -->        
               <call function="'ldapSearchWithScript'">
                 { 'location'         : clientHost,
                   'dsPath'           : clientPath,
@@ -1016,7 +1016,7 @@
               </call>                 
 
 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
@@ -1037,7 +1037,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->											
+          -->                      
           <testcase name="getTestCaseName('Modify Entry - add binary attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -1063,7 +1063,7 @@
                 { 'srcfile'    : filePath,
                   'destfile'   : '%s/%s' % (clientDataDir,filename),
                   'remotehost' : client.getHostname() }
-              </call>		                
+              </call>                    
 
               <!-- Modify "master" server -->                                
               <call function="'ldapModifyWithScript'">
@@ -1075,7 +1075,7 @@
                   'dsInstancePswd'    : master.getRootPwd() ,
                   'dsFilename' : '%s/%s' % (clientDataDir, filename) }
               </call>                            
-				
+        
 
               <!-- Check modify worked on "master" server -->
               <call function="'ldapSearchWithScript'">
@@ -1101,14 +1101,14 @@
               </call>    
             
 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>               
-                                                             			  			
+                                                                           
               <call function="'testCase_Postamble'"/>
             </sequence>
-          </testcase>		
+          </testcase>    
                                                             
 
 
@@ -1122,7 +1122,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->											
+          -->                      
           <testcase name="getTestCaseName('Modify Entry - replace binary attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -1148,7 +1148,7 @@
                 { 'srcfile'    : filePath,
                   'destfile'   : '%s/%s' % (clientDataDir,filename),
                   'remotehost' : client.getHostname() }
-              </call>		                
+              </call>                    
 
               <!-- Modify "master" server -->                                
               <call function="'ldapModifyWithScript'">
@@ -1160,7 +1160,7 @@
                   'dsInstancePswd'    : master.getRootPwd() ,
                   'dsFilename' : '%s/%s' % (clientDataDir, filename) }
               </call>                            
-				
+        
 
               <!-- Check modify worked on "master" server -->
               <call function="'ldapSearchWithScript'">
@@ -1186,14 +1186,14 @@
               </call>    
             
 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>               
-                                                             			  			
+                                                                           
               <call function="'testCase_Postamble'"/>
             </sequence>
-          </testcase>	
+          </testcase>  
 
 
 
@@ -1207,7 +1207,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->											
+          -->                      
           <testcase name="getTestCaseName('Modify Entry - delete binary attribute')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -1234,7 +1234,7 @@
                 { 'srcfile'    : filePath,
                   'destfile'   : '%s/%s' % (clientDataDir,filename),
                   'remotehost' : client.getHostname() }
-              </call>		                
+              </call>                    
 
               <!-- Modify "master" server -->                                
               <call function="'ldapModifyWithScript'">
@@ -1271,14 +1271,14 @@
               </call>    
             
 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>               
-                                                             			  			
+                                                                           
               <call function="'testCase_Postamble'"/>
             </sequence>
-          </testcase>	
+          </testcase>  
 
 
                                                                                                                         
@@ -1292,7 +1292,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->									
+          -->                  
           <testcase name="getTestCaseName('Rename Entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -1318,7 +1318,7 @@
                 { 'srcfile'    : filePath,
                   'destfile'   : '%s/%s' % (clientDataDir,filename),
                   'remotehost' : client.getHostname() }
-              </call>		                
+              </call>                    
 
               <!-- Modify "master" server -->                                
               <call function="'ldapModifyWithScript'">
@@ -1330,7 +1330,7 @@
                   'dsInstancePswd'    : master.getRootPwd() ,
                   'dsFilename' : '%s/%s' % (clientDataDir, filename) }
               </call>                            
-				
+        
 
               <!-- Check modify worked on "master" server -->                
               <!-- check that "uid=kvaughan, ou=People, ${DIRECTORY_BASE}" does NOT exist anymore -->
@@ -1359,15 +1359,15 @@
               </call>
             
 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>               
-                                                             			  			
+                                                                           
               <call function="'testCase_Postamble'"/>
             </sequence>
-          </testcase>			
-			    			
+          </testcase>      
+                
 
 
                 
@@ -1381,7 +1381,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->									
+          -->                  
           <testcase name="getTestCaseName('Rename Entry (preserving old rdn)')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -1407,7 +1407,7 @@
                 { 'srcfile'    : filePath,
                   'destfile'   : '%s/%s' % (clientDataDir,filename),
                   'remotehost' : client.getHostname() }
-              </call>		                
+              </call>                    
 
               <!-- Modify "master" server -->                                
               <call function="'ldapModifyWithScript'">
@@ -1419,7 +1419,7 @@
                   'dsInstancePswd'    : master.getRootPwd() ,
                   'dsFilename' : '%s/%s' % (clientDataDir, filename) }
               </call>                            
-				
+        
 
               <!-- Check modify worked on "master" server -->                
               <!-- check that "uid=jwallace, ou=People, ${DIRECTORY_BASE}" does NOT exist anymore -->
@@ -1458,14 +1458,14 @@
               </call>       
                             
 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>               
-                                                             			  			
+                                                                           
               <call function="'testCase_Postamble'"/>
             </sequence>
-          </testcase>			            
+          </testcase>                  
 
 
 
@@ -1480,14 +1480,14 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->									
+          -->                  
           <testcase name="getTestCaseName('Rename Subtree')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
                  'Replication: Basic: Rename Subtree. Check that a subtree rename (moddn) operation is well propagated by replication.'
               </message>
-				
+        
               <script>
                 filename = 'replication_moddn.ldif'
                 filePath = '%s/%s' % (logsTestDataDir,filename)
@@ -1506,7 +1506,7 @@
                 { 'srcfile'    : filePath,
                   'destfile'   : '%s/%s' % (clientDataDir,filename),
                   'remotehost' : client.getHostname() }
-              </call>		                
+              </call>                    
 
               <!-- Modify "master" server -->                                
               <call function="'ldapModifyWithScript'">
@@ -1518,7 +1518,7 @@
                   'dsInstancePswd'    : master.getRootPwd() ,
                   'dsFilename' : '%s/%s' % (clientDataDir, filename) }
               </call>                            
-				
+        
 
               <!-- Check modify worked on "master" server -->                
               <!-- check that "uid=gfarmer, ou=People, ${DIRECTORY_BASE}" does NOT exist anymore -->
@@ -1547,21 +1547,21 @@
               </call>
             
 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>               
 
-                                                               			  			
+                                                                             
               <call function="'testCase_Postamble'"/>
             </sequence>
-          </testcase>									
+          </testcase>                  
 
-			
-			
+      
+      
 
-												
-			    			
+                        
+                
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/replication_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'replication_cleanup'" />

@@ -61,14 +61,14 @@
        <sequence>
           <call function="'testCase_Preamble'"/>
 
-		   	<!-- Load in the local shared python objects from libraries -->
+         <!-- Load in the local shared python objects from libraries -->
            <call function="'loadVariables'">
-	       </call>
+         </call>
             <!--- Unconfigure  SSL  and TLS -->
 
            <message>
                '----  Configure SSL  and TLS----'
-           </message>	  
+           </message>    
 
            <call function="'unconfigureSSL_TLS'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
@@ -76,18 +76,18 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD  }
            </call>
-		 	
-			  
-			  <!-- remove client certificates keystore -->
+       
+        
+        <!-- remove client certificates keystore -->
             <message>
                 'Delete folder %s' % (CERT_TMP)
             </message>  
-			
+      
             <call function="'deleteFolder'">
             { 'location' : DIRECTORY_INSTANCE_HOST, 
-		      'foldername' : CERT_TMP }
-            </call>	
-			  
+          'foldername' : CERT_TMP }
+            </call>  
+        
             <!--- Remove JKS Keystore -->
             <message>
                'Security: client_auth:  Removing JKS Keystore'
@@ -108,37 +108,37 @@
                'Security: client_auth: Postamble. Searching with Unsecure Connection'
             </message>
 
-            <call function="'SearchObject'">				
+            <call function="'SearchObject'">        
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'        :  DIRECTORY_INSTANCE_SFX ,
-				'dsScope'           :  'base',
+        'dsScope'           :  'base',
                 'dsFilter'             : 'objectclass=*' ,
-                'expectedRC'           :  0 }				
+                'expectedRC'           :  0 }        
             </call>
 
             <call function="'DeleteEntry'">
                    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                       'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                       'dsInstanceDn'	   : DIRECTORY_INSTANCE_DN ,
+                       'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                       'dsBaseDN'	   : USER_1_DN,
-                       'expectedRC'           :  0 }				
+                       'dsBaseDN'     : USER_1_DN,
+                       'expectedRC'           :  0 }        
              </call>
-	  
-			  			  
+    
+                
             <call function="'DeleteEntry'">
                    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                       'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                       'dsInstanceDn'	   : DIRECTORY_INSTANCE_DN ,
+                       'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                       'dsBaseDN'	   : USER_2_DN,
-                       'expectedRC'           :  0 }				
+                       'dsBaseDN'     : USER_2_DN,
+                       'expectedRC'           :  0 }        
              </call>
          
-			  	
+          
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>

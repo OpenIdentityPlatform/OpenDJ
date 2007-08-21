@@ -61,8 +61,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD }
-            </call>				
-						
+            </call>        
+            
             <!--- Remove JKS Keystore -->
             <message>
                'Security: TLS: Postamble Step 3. Removing JKS Keystore'

@@ -39,7 +39,7 @@
   
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='security'								  							  			  
+              CurrentTestPath['group']='security'                                          
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
         
@@ -49,7 +49,7 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
           <call function="'security_setup'"/>
-												          
+                                  
 
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/auth_pwd_syntax/security_setup_auth_pwd_syntax.xml' % (TESTS_DIR)"/>
@@ -89,7 +89,7 @@
           <call function="'security_cleanup'"/>
 
 
-												
+                        
           <call function="'testSuite_Postamble'"/>
         
         </sequence>

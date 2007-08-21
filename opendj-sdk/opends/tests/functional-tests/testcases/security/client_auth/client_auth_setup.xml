@@ -59,10 +59,10 @@
               'keystore'        : 'keystore',
               'storepass'       : SERVER_STOREPASS,
               'keypass'         : SERVER_KEYPASS,
-              'storetype'  	   : 'JKS' 
+              'storetype'       : 'JKS' 
             }
           </call>  
-		  
+      
           <!-- Self-Sign Server Cert    -->
           <message>
                    '---- Self-Signing Server Certicate  ---- '
@@ -73,7 +73,7 @@
               'storepass'       : SERVER_STOREPASS,
               'keypass'         : SERVER_KEYPASS,
                'keystore'        : 'keystore',
-               'storetype'  	   : 'JKS' 
+               'storetype'       : 'JKS' 
             }
           </call>
    
@@ -84,17 +84,17 @@
           <call function="'createFolder'">
               { 'location' : DIRECTORY_INSTANCE_HOST, 
                  'foldername' : CERT_TMP }
-          </call>		
+          </call>    
           <call function="'checktestRC'">
              { 'returncode' : RC ,
              'result'     : STAXResult }
-          </call>			
+          </call>      
             
           <message>
                    '---- Generating client Certicate : %s ---- ' % (USER_1_CERT)
           </message>
             
-          <!-- create a client certificate  : USER_1_CERT -->           		 
+          <!-- create a client certificate  : USER_1_CERT -->                
           <call function="'genCertificate'">
            { 'certAlias' : USER_1_CERT,  
              'dname'     : USER_1_DN,
@@ -144,7 +144,7 @@
           <call function="'testCase_Postamble'" />
        </sequence>
       </testcase>
-		  
+      
       
       <!--- Test Case : export client and server certificates -->
       <!---
@@ -154,11 +154,11 @@
             #@TestPurpose             Export  and import client and server certificates
             #@TestPreamble           none
             #@TestStep                  Export client and server certificates
-		    #@TestStep                  Import the certificates in the server and clients Database
+        #@TestStep                  Import the certificates in the server and clients Database
             #@TestPostamble          none
             #@TestResult                Success if OpenDS returns 0 for all operations
         -->
-		  
+      
       <testcase name="getTestCaseName(' setup. Export and Import certificates')">
         <sequence>
           <call function="'testCase_Preamble'" />
@@ -167,14 +167,14 @@
           <call function="'loadVariables'" />
                   
           <!-- Export the server Cert -->
-          <message>'----  Export the  Server Certicate ----'</message>	  
+          <message>'----  Export the  Server Certicate ----'</message>    
           <call function="'ExportCertificate'">
             { 'certAlias'  : 'server-cert' ,
               'outputfile' : SERVER_CERT_FILE,
               'storepass'  : SERVER_STOREPASS,
               'storetype'  : 'JKS' 
             }
-          </call>	
+          </call>  
 
           <!-- export client certificate : USER_1_CERT -->
           <message> '----  Export the  client certificate : : %s ---- ' % (USER_1_CERT)</message>
@@ -225,9 +225,9 @@
               'storetype'  : 'JKS' 
             }
           </call>
-	  			
+          
           <!-- Import the server Certificate under the client database -->
-          <message>'----  Import the  Server Certificate under the client keystore----'</message>	  
+          <message>'----  Import the  Server Certificate under the client keystore----'</message>    
           <call function="'ImportCertificate'">
             { 'certAlias' : 'server-cert',
               'inputfile' : SERVER_CERT_FILE,
@@ -246,8 +246,8 @@
               'storetype' : 'JKS'
             }
           </call>
-			    
-          <message> '----  Import the  client Certificates %s under the server keystore----' % (USER_2_CERT)</message> 	  
+          
+          <message> '----  Import the  client Certificates %s under the server keystore----' % (USER_2_CERT)</message>     
           <call function="'ImportCertificate'">
             { 'certAlias' : USER_2_CERT,
               'inputfile' : USER_2_CERT_FILE,
@@ -300,7 +300,7 @@
               'dsBaseDN'       : DIRECTORY_INSTANCE_SFX,
               'dsScope'        : 'base',
               'dsFilter'       : 'objectclass=*' ,
-              'dsUseSSL'  	   : ' ',
+              'dsUseSSL'       : ' ',
               'dsTrustAll'     : ' ',
               'expectedRC'     :  0 
             }
@@ -345,7 +345,7 @@
           
           <!-- Create users entries--> 
           <!-- Create USER_1_DN -->       
-          <message> '----  Create User entry : %s----' % USER_1_DN</message>	  
+          <message> '----  Create User entry : %s----' % USER_1_DN</message>    
           <script>
             listAttr = []
             listAttr.append('objectclass:top')
@@ -363,9 +363,9 @@
           <call function="'addAnEntry'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
               'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'	 : DIRECTORY_INSTANCE_DN ,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
-              'DNToAdd'	       : USER_1_DN,
+              'DNToAdd'         : USER_1_DN,
               'listAttributes' : listAttr,
               'expectedRC'     :  0
             }
@@ -410,9 +410,9 @@
           <call function="'modifyEntry'">
             { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
               'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'	    : DIRECTORY_INSTANCE_DN,
+              'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
-              'entryToBeModified'	: remoteUser1LdifFile,
+              'entryToBeModified'  : remoteUser1LdifFile,
               'expectedRC'        :  0
             }
           </call>
@@ -427,9 +427,9 @@
             listAttr.append('objectclass:organizationalperson')
             listAttr.append('objectclass:inetorgperson')
             listAttr.append('objectclass:person')
-            listAttr.append('objectclass:ds-certificate-user') 			 
+            listAttr.append('objectclass:ds-certificate-user')        
             listAttr.append('objectclass:strongAuthenticationUser')
-            listAttr.append('userCertificate;binary:  bad_certificate')			 
+            listAttr.append('userCertificate;binary:  bad_certificate')       
             listAttr.append('givenname:%s' % USER_2_CERT)
             listAttr.append('sn:%s' % USER_2_CERT)
             listAttr.append('cn:%s' % USER_2_CERT)
@@ -437,9 +437,9 @@
           <call function="'addAnEntry'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'	 : DIRECTORY_INSTANCE_DN,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'DNToAdd'	       : USER_2_DN,
+              'DNToAdd'         : USER_2_DN,
               'listAttributes' : listAttr,
               'expectedRC'     :  0
             }
@@ -455,7 +455,7 @@
                 ret_str+=line.strip()
           </script>
           
-          <!-- Modify the user Entry to store the certificates -->	  
+          <!-- Modify the user Entry to store the certificates -->    
           <script>
             listAttr = []
             listAttr.append('dn: %s' % USER_2_DN)
@@ -485,9 +485,9 @@
           <call function="'modifyEntry'">
             { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
               'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'	    : DIRECTORY_INSTANCE_DN,
+              'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
-              'entryToBeModified'	: '%s' % remoteUser2LdifFile,
+              'entryToBeModified'  : '%s' % remoteUser2LdifFile,
               'expectedRC'        :  0 
             }
           </call>

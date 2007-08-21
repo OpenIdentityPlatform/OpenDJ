@@ -38,12 +38,12 @@
          <sequence>
   
           <script>
-			CurrentTestPath['group']='logging'
+      CurrentTestPath['group']='logging'
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
 
           <call function="'testSuite_Preamble'"/>
-			 			 
+              
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/logging/logging_setup.xml' % (TESTS_DIR)"/>
           <call function="'logging_setup'"/>         
@@ -51,23 +51,23 @@
           <import machine="'%s' % STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/logging/logging_rotation.xml' % (TESTS_DIR)"/>
           <call function="'logging_rotation'" />
-		
+    
           <import machine="'%s' % STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/logging/logging_properties.xml' % (TESTS_DIR)"/>
           <call function="'logging_properties'" />
 
           <import machine="'%s' % STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/logging/logging_writer.xml' % (TESTS_DIR)"/>
-          <call function="'logging_writer'" />						
-	
+          <call function="'logging_writer'" />            
+  
           <import machine="'%s' % STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/logging/logging_retention.xml' % (TESTS_DIR)"/>
           <call function="'logging_retention'" />
-			 		
+           
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/logging/logging_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'logging_cleanup'"/>         			 
-		 		
+          <call function="'logging_cleanup'"/>                
+         
           <call function="'testSuite_Postamble'"/>
 
         </sequence>
