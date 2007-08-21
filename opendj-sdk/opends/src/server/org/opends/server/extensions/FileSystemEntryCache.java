@@ -860,14 +860,20 @@ public class FileSystemEntryCache
     Map<Long,DN> backendEntriesMap = backendMap.get(backend);
 
     try {
+      if (backendEntriesMap == null) {
+        // No entries were in the cache for this backend,
+        // so we can return without doing anything.
+        return;
+      }
       int entriesExamined = 0;
-      Set<Long> entriesSet = backendEntriesMap.keySet();
-      Iterator<Long> backendEntriesIterator = entriesSet.iterator();
+      Iterator<Long> backendEntriesIterator =
+        backendEntriesMap.keySet().iterator();
       while (backendEntriesIterator.hasNext()) {
-        long entryID = backendEntriesIterator.next();
+        Long entryID = backendEntriesIterator.next();
         DN entryDN = backendEntriesMap.get(entryID);
         entryCacheDB.delete(null,
             new DatabaseEntry(entryDN.toNormalizedString().getBytes("UTF-8")));
+        backendEntriesIterator.remove();
         dnMap.remove(entryDN);
 
         // This can take a while, so we'll periodically release and re-acquire
@@ -881,12 +887,13 @@ public class FileSystemEntryCache
         }
       }
 
+      // This backend is empty now, remove it from the backend map.
+      backendMap.remove(backend);
     } catch (Exception e) {
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     } finally {
-      backendMap.remove(backend);
       cacheWriteLock.unlock();
     }
   }
@@ -978,6 +985,12 @@ public class FileSystemEntryCache
         Thread.currentThread().yield();
         cacheWriteLock.lock();
       }
+    }
+
+    // If this backend becomes empty now
+    // remove it from the backend map.
+    if (map.isEmpty()) {
+      backendMap.remove(backend);
     }
 
     // See if the backend has any subordinate backends.  If so, then process
