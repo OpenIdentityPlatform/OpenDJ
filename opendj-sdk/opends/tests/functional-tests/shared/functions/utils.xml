@@ -1283,11 +1283,12 @@
     <sequence>
       <script>
         import random
-        random.seed()
-        _id = '%s#%d' % (strftime('%Y-%m-%d %H:%M:%S',localtime()),random.randint(0,9))
+        import java.util.Date
+        random.seed(java.util.Date().getTime())
+        _id = '%s#%d' % (strftime('%Y-%m-%d %H:%M:%S',localtime()),random.randint(0,999))
       </script>
       <message>
-        '%s: Running command:\n %s %s\nenv: %s\nworkdir: %s' % (_id,command,arguments,env,path)
+        '%s: Running command:\n %s %s\nlocation: %s\nenv: %s\nworkdir: %s' % (_id,command,arguments,location,env,path)
       </message>
       
       <block name="'%s:Wrapper for %s' % (_id,re.compile('\..*$').sub('',os.path.basename(command)))">
