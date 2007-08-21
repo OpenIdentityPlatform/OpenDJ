@@ -53,7 +53,7 @@
             #@TestResult                Success if OpenDS returns 0 
                                         for all ldap operations.
         -->
-        <testcase name="getTestCaseName('Preamble')">
+        <testcase name="getTestCaseName('PLAIN - Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -100,7 +100,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
         -->
-        <testcase name="getTestCaseName('User (u:) Binding')">
+        <testcase name="getTestCaseName('PLAIN - User (u:) Binding')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -134,7 +134,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
         -->
-        <testcase name="getTestCaseName('User Binding')">
+        <testcase name="getTestCaseName('PLAIN - User Binding')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -167,7 +167,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
         -->
-        <testcase name="getTestCaseName('User (dn:) Binding')">
+        <testcase name="getTestCaseName('PLAIN - User (dn:) Binding')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -200,7 +200,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 49.
         -->
-        <testcase name="getTestCaseName('User With Duplicate uid (u:) Binding')">
+        <testcase name="getTestCaseName('PLAIN - User With Duplicate uid (u:) Binding')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -234,7 +234,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
         -->
-        <testcase name="getTestCaseName('User With Duplicate uid (dn:) Binding')">
+        <testcase name="getTestCaseName('PLAIN - User With Duplicate uid (dn:) Binding')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -267,7 +267,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 49.
         -->
-        <testcase name="getTestCaseName('User With Duplicate uid Binding')">
+        <testcase name="getTestCaseName('PLAIN - User With Duplicate uid Binding')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -301,7 +301,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 1.
         -->
-        <testcase name="getTestCaseName('Create Realm')">
+        <testcase name="getTestCaseName('PLAIN - Create Realm')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -346,7 +346,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0.
         -->
-        <testcase name="getTestCaseName('User (u:) Binding With Realm')">
+        <testcase name="getTestCaseName('PLAIN - User (u:) Binding With Realm')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -384,7 +384,7 @@
             #@TestResult                Success if OpenDS returns 0 
                                         for all ldap operations.
         -->
-        <testcase name="getTestCaseName('Postamble')">
+        <testcase name="getTestCaseName('PLAIN - Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
