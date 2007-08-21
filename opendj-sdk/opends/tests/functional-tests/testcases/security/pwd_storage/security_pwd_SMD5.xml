@@ -53,7 +53,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="getTestCaseName('Preamble')">
+        <testcase name="getTestCaseName('SMD5 - Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -93,7 +93,7 @@
             #@TestResult                Success if OpenDS returns 0 for the ldap
                                         operations and the password has the {SMD5} prefix.
         -->
-        <testcase name="getTestCaseName('Pwd Change')">
+        <testcase name="getTestCaseName('SMD5 - Pwd Change')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -167,7 +167,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
          -->
-        <testcase name="getTestCaseName('Postamble')">
+        <testcase name="getTestCaseName('SMD5 - Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

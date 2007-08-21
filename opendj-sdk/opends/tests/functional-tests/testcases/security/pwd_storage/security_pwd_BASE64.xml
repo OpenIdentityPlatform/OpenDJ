@@ -53,7 +53,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="getTestCaseName('Preamble')">
+        <testcase name="getTestCaseName('BASE64 - Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -93,7 +93,7 @@
             #@TestResult                Success if OpenDS returns 0 for the ldap
                                         operations and the password has the {BASE64} prefix.
         -->
-        <testcase name="getTestCaseName('Pwd Change')">
+        <testcase name="getTestCaseName('BASE64 - Pwd Change')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -154,7 +154,7 @@
         </testcase>
 
         <!--- Test case: Admin Reset To SSHA Storage Scheme -->
-        <testcase name="getTestCaseName('Postamble')">
+        <testcase name="getTestCaseName('BASE64 - Postamble')">
         <!---
             Place test-specific test information here.
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
