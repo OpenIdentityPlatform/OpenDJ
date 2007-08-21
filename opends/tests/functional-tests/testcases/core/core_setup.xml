@@ -46,10 +46,10 @@
                 }
               </call>
             </sequence>
-            <!--- End Block Create DS Topology -->	
+            <!--- End Block Create DS Topology -->  
           </block>
           
-          <block name="'Block DS Process Active'">	  	
+          <block name="'Block DS Process Active'">      
             <!--- Start DS -->
             <sequence>
               <message>
@@ -75,7 +75,7 @@
           </block>
           
           <block name="'Block DS Load Data'">
-            <!-- Load the data needed by the test suite -->			
+            <!-- Load the data needed by the test suite -->      
             <sequence>
               <message>
                 'Add entries that are required for the Core Tests'

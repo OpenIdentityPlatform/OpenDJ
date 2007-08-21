@@ -49,7 +49,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'o=Account Activation Tests,dc=example,dc=com' ,
                 'extraParams'      : '-x',
-                'expectedRC'      : 0 }				
+                'expectedRC'      : 0 }        
             </call>
 
 

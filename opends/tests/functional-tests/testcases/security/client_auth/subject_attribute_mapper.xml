@@ -34,47 +34,47 @@
                                
        <!--- Test Case : setup -->
        <!---
-	#@TestMarker              Setup Tests
-	#@TestName                Set the SASL EXTERNAL mechanism to Subject attribute  to User Attribute
-	#@TestIssue                   
-	#@TestPurpose            Set the SASL EXTERNAL mechanism to Subject attribute to User Attribute
-	#@TestPreamble           none
-	#@TestStep                  Map attributes from the certificate subject to attributes in user entries
-	#@TestPostamble          none
-	#@TestResult                Success if OpenDS returns 0 for all operations
+  #@TestMarker              Setup Tests
+  #@TestName                Set the SASL EXTERNAL mechanism to Subject attribute  to User Attribute
+  #@TestIssue                   
+  #@TestPurpose            Set the SASL EXTERNAL mechanism to Subject attribute to User Attribute
+  #@TestPreamble           none
+  #@TestStep                  Map attributes from the certificate subject to attributes in user entries
+  #@TestPostamble          none
+  #@TestResult                Success if OpenDS returns 0 for all operations
       -->
-		  
+      
     
   <testcase name="getTestCaseName(' setup - subject_attribute_mapper')">
 
-	  <sequence>
+    <sequence>
       <call function="'testCase_Preamble'"/>
 
       <message>
              '----  Configure the SASL EXTERNAL mechanism with Subject Attribute to User Attribute mapper -----'
-      </message>			
-		
+      </message>      
+    
       <call function="'modifyAnAttribute'">
           { 'dsInstanceHost'       :  DIRECTORY_INSTANCE_HOST ,
              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
-             'dsInstanceDn'	        : DIRECTORY_INSTANCE_DN ,
+             'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-             'DNToModify'	        :  'cn=EXTERNAL,cn=SASL Mechanisms,cn=config',
+             'DNToModify'          :  'cn=EXTERNAL,cn=SASL Mechanisms,cn=config',
              'attributeName'        : 'ds-cfg-certificate-mapper-dn',
              'newAttributeValue'  : 'cn=Subject Attribute to User Attribute,cn=Certificate Mappers,cn=config',
              'changetype' : 'replace',
-             'expectedRC'           :  0 }			  
+             'expectedRC'           :  0 }        
       </call>
    
-		            
+                
      <message>
              '----  Configure the Subject Attribute to User Attribute mapper -----'
-      </message>	
+      </message>  
      <script>
              listAttr = []  
              listAttr.append('cn=ds-cfg-certificate-subject-attribute-mapping:cn:cn')
-             listAttr.append('cn=ds-cfg-certificate-subject-attribute-mapping:e:mail')		 
-      </script>  		  		 
+             listAttr.append('cn=ds-cfg-certificate-subject-attribute-mapping:e:mail')     
+      </script>             
 
       <call function="'testCase_Postamble'"/>
     </sequence>
@@ -82,16 +82,16 @@
   
   
 <!---
-	#@TestMarker             Subject Attributes mapping to user attribute 
-	#@TestName               Use only one attribute mapping
-	#@TestIssue                   
-	#@TestPurpose            Map attributes from the certificate subject to attributes in user entries
+  #@TestMarker             Subject Attributes mapping to user attribute 
+  #@TestName               Use only one attribute mapping
+  #@TestIssue                   
+  #@TestPurpose            Map attributes from the certificate subject to attributes in user entries
     #@TestStep                  the subject certificate is defined with the format : uid=client-cert-1,SUFFIX
-	#@TestStep                  The mapping will be done on the attribute uid from the cerficate subject      
+  #@TestStep                  The mapping will be done on the attribute uid from the cerficate subject      
     #@TestStep                  and the attribute 'description' of the user's entry
-	#@TestPreamble          none
-	#@TestPostamble         none
-	#@TestResult               Success if OpenDS returns 0 for all operations
+  #@TestPreamble          none
+  #@TestPostamble         none
+  #@TestResult               Success if OpenDS returns 0 for all operations
       -->
     
   <testcase name="getTestCaseName('subject attribute mapping')">
@@ -99,71 +99,71 @@
 
     <call function="'testCase_Preamble'"/>
 
-	<!-- Load in the local shared python objects from libraries -->
+  <!-- Load in the local shared python objects from libraries -->
       <call function="'loadVariables'">
-	 </call>
-				 
+   </call>
+         
     <message>
              '----  Configure the Subject Attribute to User Attribute mapper -----'
-      </message>			 
-      <message>'---- Add a new mapping rule from attribute "uid"  from certificate subject and attribute "description" of the user entry'</message>	
+      </message>       
+      <message>'---- Add a new mapping rule from attribute "uid"  from certificate subject and attribute "description" of the user entry'</message>  
       <call function="'modifyAnAttribute'">
           { 'dsInstanceHost'       :  DIRECTORY_INSTANCE_HOST ,
              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
-             'dsInstanceDn'	        : DIRECTORY_INSTANCE_DN ,
+             'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-             'DNToModify'	        :  'cn=Subject Attribute to User Attribute,cn=Certificate Mappers,cn=config',
+             'DNToModify'          :  'cn=Subject Attribute to User Attribute,cn=Certificate Mappers,cn=config',
              'attributeName'        : 'ds-cfg-certificate-subject-attribute-mapping',
              'newAttributeValue'  : 'uid:description',
              'changetype' : 'replace',
-             'expectedRC'           :  0 }			  
+             'expectedRC'           :  0 }        
       </call>
-		   
-				  
+       
+          
     <message>'----- Configure the attribute description  for user %s ---' % USER_1_DN</message>
     <message>'----- the attribute description will map with the attribute "uid" of the certificate subject'</message>
      
      <call function="'modifyAnAttribute'">
     { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
-    'dsInstanceDn'	        : DIRECTORY_INSTANCE_DN ,
+    'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
     'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-    'DNToModify'	        : USER_1_DN,
+    'DNToModify'          : USER_1_DN,
     'attributeName'         : 'description',
     'newAttributeValue'    : USER_1_CERT,
     'changetype'              : 'add',
-    'expectedRC'           :  0 }			 
+    'expectedRC'           :  0 }       
     </call>      
 
-	
+  
      <message>'----- Configure the attribute description  for user %s ---' % USER_2_DN</message>
      <message>'----- the attribute description contains invalid value'</message>
-	 <message>'----- it will not map with the attribute "uid" of the certificate subject'</message>
+   <message>'----- it will not map with the attribute "uid" of the certificate subject'</message>
  
  
      <call function="'modifyAnAttribute'">
     { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
     'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
-    'dsInstanceDn'	       : DIRECTORY_INSTANCE_DN ,
+    'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
     'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
-    'DNToModify'	      : USER_2_DN,
+    'DNToModify'        : USER_2_DN,
     'attributeName'       : 'description',
     'newAttributeValue'  : 'bad-certificate',
     'changetype'            : 'add',
-    'expectedRC'           :  0 }			 
+    'expectedRC'           :  0 }       
     </call>               
         
-		
+    
     <!--  Check mapping is working -->         
  
-   <message>'--- Check SSL communication with SASL EXTERNAL authentication'</message>		
-		
-   <!-- bound as USER_1_DN -->				
+   <message>'--- Check SSL communication with SASL EXTERNAL authentication'</message>    
+    
+   <!-- bound as USER_1_DN -->        
      <call function="'ldapSearchWithScript'">
-		{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-		  'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-		  'dsFilter'		: 'objectclass=*'	,
+    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+      'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+      'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseSSL'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -172,9 +172,9 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-         'expectedRC'           :  0 }			 
+         'expectedRC'           :  0 }       
      </call>    
-		
+    
      <script>
            STAXCode = RC
            ldapSearchResult = STAXResult[0][1]
@@ -184,14 +184,14 @@
                 'mainString'    : ldapSearchResult ,
                 'nbExpected'    : 1
              }
-    </call>			           
+    </call>                 
 
-   <!-- No mapping expected -->		
+   <!-- No mapping expected -->    
      <call function="'ldapSearchWithScript'">
-		{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-		  'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-		  'dsFilter'		: 'objectclass=*'	,
+    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+      'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+      'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseSSL'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -200,19 +200,19 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-		  'expectedRC'               : 49 }
+      'expectedRC'               : 49 }
      </call>    
-		
-		
+    
+    
 
-   <message>'--- Check StartTLS communication with SASL EXTERNAL authentication'</message>		
-		
-   <!-- bound as USER_1_DN -->				
+   <message>'--- Check StartTLS communication with SASL EXTERNAL authentication'</message>    
+    
+   <!-- bound as USER_1_DN -->        
      <call function="'ldapSearchWithScript'">
-		{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-		  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-		  'dsFilter'		: 'objectclass=*'	,
+    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+      'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+      'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseStartTLS'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -221,9 +221,9 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-          'expectedRC'           :  0 }			 
+          'expectedRC'           :  0 }       
      </call>    
-		
+    
      <script>
            STAXCode = RC
            ldapSearchResult = STAXResult[0][1]
@@ -233,14 +233,14 @@
                 'mainString'    : ldapSearchResult ,
                 'nbExpected'    : 1
              }
-    </call>			           
+    </call>                 
 
-   <!-- No mapping expected -->		
+   <!-- No mapping expected -->    
      <call function="'ldapSearchWithScript'">
-		{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-		  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-		  'dsFilter'		: 'objectclass=*'	,
+    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+      'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+      'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseStartTLS'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -249,11 +249,11 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-		  'expectedRC'               : 49 }
+      'expectedRC'               : 49 }
      </call>    
-		
+    
 
-							
+              
     <call function="'testCase_Postamble'"/>      
     </sequence>
   </testcase>

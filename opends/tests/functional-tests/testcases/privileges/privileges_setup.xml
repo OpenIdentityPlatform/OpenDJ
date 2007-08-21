@@ -40,34 +40,34 @@
           <script>
             CurrentTestPath['group']='privileges'
           </script>
-						  
-				  
-	  <block name="'Block Create DS Topology'">
+              
+          
+    <block name="'Block Create DS Topology'">
             <!-- Create the topology necessary to the test group/suite -->
             <sequence>
-								
+                
               <message>
                  'Create DS topology as described in config.py'
               </message>
-				  
-	      <call function="'createTopology'">
-			    { 'initialiseInstance' : True }
+          
+        <call function="'createTopology'">
+          { 'initialiseInstance' : True }
               </call>
-				    				
+                    
               <call function="'checkRC'">
                   { 'returncode' : RC ,
                     'result'     : STAXResult }
               </call>
       
             </sequence>      
-          <!--- End Block Create DS Topology -->	
-          </block>				  				  
+          <!--- End Block Create DS Topology -->  
+          </block>                    
 
 
-	  <block name="'Block DS Process Active'">	  	
+    <block name="'Block DS Process Active'">      
           <!--- Start DS -->
               <sequence>
-				
+        
               <message>
                  'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
               </message>
@@ -86,16 +86,16 @@
               <call function="'isAlive'">
                 { 'noOfLoops'        : 5 ,
                   'noOfMilliSeconds' : 2000 }
-              </call>			
-				
+              </call>      
+        
             </sequence>
           <!--- End Block DS Process Active -->
-          </block>			  			
-						
+          </block>              
+            
           <block name="'Block DS Load Data'">
-              <!-- Load the data needed by the test suite -->			
+              <!-- Load the data needed by the test suite -->      
               <sequence>
-														  				  
+                                        
               <message>
                 'Privileges: Privileges Setup: Adding Initial Entries'
               </message>
@@ -114,10 +114,10 @@
               </call>
     
             </sequence>      
-          <!--- End Block DS Load Data -->	
-          </block>		
-							
-			        
+          <!--- End Block DS Load Data -->  
+          </block>    
+              
+              
         </sequence>        
       </block>
             

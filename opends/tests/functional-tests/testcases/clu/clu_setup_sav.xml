@@ -37,49 +37,49 @@
         </function-arg-description>
         <function-arg-property name="type" value="boolean"/>
       </function-arg-def>  
-	  <function-arg-def name="loadBackend" type="optional" default="False">
-	    <function-arg-description>
-		  Specifies whether the backend should be loaded with some data.
-		</function-arg-description>
-		<function-arg-property name="type" value="boolean"/>
-	  </function-arg-def>					  
-	</function-map-args>
+    <function-arg-def name="loadBackend" type="optional" default="False">
+      <function-arg-description>
+      Specifies whether the backend should be loaded with some data.
+    </function-arg-description>
+    <function-arg-property name="type" value="boolean"/>
+    </function-arg-def>            
+  </function-map-args>
 
     <sequence>
 
       <block name="'setup'">
       
         <sequence>
-						  
-				  
-		  <block name="'Block Create DS Topology'">
-		  <!-- Create the topology necessary to the test group/suite -->
-		    <sequence>
-								
+              
+          
+      <block name="'Block Create DS Topology'">
+      <!-- Create the topology necessary to the test group/suite -->
+        <sequence>
+                
               <message>
                  'Create DS topology as described in config.py'
               </message>
-				  
-			  <call function="'createTopology'">
-			    { 'initialiseInstance' : True }
-			  </call>
-				    				
-			  <call function="'checkRC'">
+          
+        <call function="'createTopology'">
+          { 'initialiseInstance' : True }
+        </call>
+                    
+        <call function="'checkRC'">
                   { 'returncode' : RC ,
                     'result'     : STAXResult }
               </call>
       
             </sequence>      
-          <!--- End Block Create DS Topology -->	
-          </block>				  				  
+          <!--- End Block Create DS Topology -->  
+          </block>                    
 
 
 
           <if expr="loadBackend == True">
-		  <block name="'Block DS Load Data'">
-		  <!-- Load the data needed by the test suite -->
-		    <sequence>		
-					  
+      <block name="'Block DS Load Data'">
+      <!-- Load the data needed by the test suite -->
+        <sequence>    
+            
               <message>
                 'Clu: Clu Setup for cluSearch, cluModify, cluDelete, and cluCompare Tests'
               </message>
@@ -91,19 +91,19 @@
               <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
-              </call>	
+              </call>  
 
             </sequence>      
-          <!--- End Block DS Load Data -->								  	   
-		  </block> 
-		  </if>
-			
-									
-		  <if expr="startDS == True">
-		  <block name="'Block DS Process Active'">	  	
+          <!--- End Block DS Load Data -->                       
+      </block> 
+      </if>
+      
+                  
+      <if expr="startDS == True">
+      <block name="'Block DS Process Active'">      
           <!--- Start DS -->
-		    <sequence>
-				
+        <sequence>
+        
               <message>
                  'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
               </message>
@@ -122,16 +122,16 @@
               <call function="'isAlive'">
                 { 'noOfLoops'        : 5 ,
                   'noOfMilliSeconds' : 2000 }
-              </call>			
-				
+              </call>      
+        
             </sequence>
             
           <!--- End Block DS Process Active -->
-          </block>			  			
-		  </if>
-						
-				  				  
-			        
+          </block>              
+      </if>
+            
+                    
+              
         </sequence>        
       </block>
             

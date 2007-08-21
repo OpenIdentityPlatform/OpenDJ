@@ -34,54 +34,54 @@
                                
        <!--- Test Case : setup -->
        <!---
-	#@TestMarker              Setup Tests
-	#@TestName                Set the SASL EXTERNAL mechanism to Subject Equal DN 
-	#@TestIssue                   
-	#@TestPurpose            Set the SASL EXTERNAL mechanism to Subject EqualN
-	#@TestPreamble           none
-	#@TestStep                  Set the SASL EXTERNAL mechanism to Subject Equal DN 
-	#@TestPostamble          none
-	#@TestResult                Success if OpenDS returns 0 for all operations
+  #@TestMarker              Setup Tests
+  #@TestName                Set the SASL EXTERNAL mechanism to Subject Equal DN 
+  #@TestIssue                   
+  #@TestPurpose            Set the SASL EXTERNAL mechanism to Subject EqualN
+  #@TestPreamble           none
+  #@TestStep                  Set the SASL EXTERNAL mechanism to Subject Equal DN 
+  #@TestPostamble          none
+  #@TestResult                Success if OpenDS returns 0 for all operations
       -->
-		  
+      
     
   <testcase name="getTestCaseName(' setup - equal_dn_mapper')">
 
-	  <sequence>
+    <sequence>
       <call function="'testCase_Preamble'"/>
 
       <message>
              '----  Configure the SASL EXTERNAL mechanism -----'
-      </message>			
-		
+      </message>      
+    
       <call function="'modifyAnAttribute'">
           { 'dsInstanceHost'       :  DIRECTORY_INSTANCE_HOST ,
              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
-             'dsInstanceDn'	        : DIRECTORY_INSTANCE_DN ,
+             'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-             'DNToModify'	        :  'cn=EXTERNAL,cn=SASL Mechanisms,cn=config',
+             'DNToModify'          :  'cn=EXTERNAL,cn=SASL Mechanisms,cn=config',
              'attributeName'        : 'ds-cfg-certificate-mapper-dn',
              'newAttributeValue'  : 'cn=Subject Equals DN,cn=Certificate Mappers,cn=config',
              'changetype' : 'replace',
-             'expectedRC'           :  0 }		  
+             'expectedRC'           :  0 }      
       </call>
    
-		             
+                 
       <call function="'testCase_Postamble'"/>
     </sequence>
   </testcase>
   
   
 <!---
-	#@TestMarker             Equal DN mapping
-	#@TestName               Mapping on DN
-	#@TestIssue                   
-	#@TestPurpose           Use the Equal DN certificate mapper
+  #@TestMarker             Equal DN mapping
+  #@TestName               Mapping on DN
+  #@TestIssue                   
+  #@TestPurpose           Use the Equal DN certificate mapper
    #@TestPurpose            The mapping will be done on entry DN
    #@TestStep                  Two users entries are used to validate this mapper
-	#@TestPreamble          none
-	#@TestPostamble         none
-	#@TestResult               Success if OpenDS returns 0 for all operations
+  #@TestPreamble          none
+  #@TestPostamble         none
+  #@TestResult               Success if OpenDS returns 0 for all operations
       -->
     
   <testcase name="getTestCaseName('Equal DN mapping ')">
@@ -89,19 +89,19 @@
 
     <call function="'testCase_Preamble'"/>
    
-	<!-- Load in the local shared python objects from libraries -->
+  <!-- Load in the local shared python objects from libraries -->
       <call function="'loadVariables'">
-	 </call>
-				
+   </call>
+        
     <!--  Check mapping is working -->         
     <message>'--- Check SSL communication with SASL EXTERNAL authentication'</message>
-		
-    <!-- bound as USER_1_DN -->		
+    
+    <!-- bound as USER_1_DN -->    
      <call function="'ldapSearchWithScript'">
-		{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-		  'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-		  'dsFilter'		: 'objectclass=*'	,
+    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+      'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+      'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseSSL'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -110,9 +110,9 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-          'expectedRC'           :  0 }		  		 
+          'expectedRC'           :  0 }           
      </call>    
-		
+    
      <script>
          STAXCode = RC
          ldapSearchResult = STAXResult[0][1]
@@ -122,14 +122,14 @@
                 'mainString'    : ldapSearchResult ,
                 'nbExpected'    : 1
              }
-    </call>			           
+    </call>                 
 
     <!-- bound as USER_2_DN -->
      <call function="'ldapSearchWithScript'">
-		{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-		  'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-		  'dsFilter'		: 'objectclass=*'	,
+    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+      'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+      'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseSSL'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -138,9 +138,9 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-          'expectedRC'           :  0 }		  		 
+          'expectedRC'           :  0 }           
      </call>    
-		
+    
      <script>
          STAXCode = RC
          ldapSearchResult = STAXResult[0][1]
@@ -150,15 +150,15 @@
                 'mainString'    : ldapSearchResult ,
                 'nbExpected'    : 1
              }
-    </call>			           		           
+    </call>                                
 
-    <!-- bound as USER_1_DN -->		
-   <message>'--- Check StartTLS communication with SASL EXTERNAL authentication'</message>		
+    <!-- bound as USER_1_DN -->    
+   <message>'--- Check StartTLS communication with SASL EXTERNAL authentication'</message>    
      <call function="'ldapSearchWithScript'">
-		{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-		  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-		  'dsFilter'		: 'objectclass=*'	,
+    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+      'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+      'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseStartTLS'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -167,7 +167,7 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-          'expectedRC'           :  0 }		  		 
+          'expectedRC'           :  0 }           
      </call>    
 
      <script>
@@ -179,14 +179,14 @@
                 'mainString'    : ldapSearchResult ,
                 'nbExpected'    : 1
              }
-    </call>				
-	           
+    </call>        
+             
      <!-- bound as USER_2_DN -->
      <call function="'ldapSearchWithScript'">
-		{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-		  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-		  'dsFilter'		: 'objectclass=*'	,
+    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+      'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+      'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseStartTLS'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -195,7 +195,7 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-          'expectedRC'           :  0 }		       
+          'expectedRC'           :  0 }           
      </call>    
      <script>
            STAXCode = RC
@@ -206,8 +206,8 @@
                 'mainString'    : ldapSearchResult ,
                 'nbExpected'    : 1
              }
-    </call>	
-		
+    </call>  
+    
     <call function="'testCase_Postamble'"/>      
     </sequence>
   </testcase>

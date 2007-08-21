@@ -42,23 +42,23 @@
           </script>
       
           <call function="'testGroup_Preamble'"/>
-				                
+                        
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/clu/cluSearch.xml' % (TESTS_DIR)"/>
           <call function="'main_cluSearch'" />
-			                
+                      
        <!--   <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/clu/cluModify.xml' % (TESTS_DIR)"/>
           <call function="'main_cluModify'" /> -->
-								                
+                                
           <!-- <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/clu/cluCompare.xml' % (TESTS_DIR)"/>
           <call function="'main_cluCompare'" />
-          			                
+                                
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/clu/cluDelete.xml' % (TESTS_DIR)"/>
           <call function="'main_cluDelete'" /> -->
-			          
+                
           <call function="'testGroup_Postamble'"/>
         
         </sequence>

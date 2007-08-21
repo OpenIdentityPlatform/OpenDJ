@@ -59,7 +59,7 @@
  
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='groups'						  
+              CurrentTestPath['group']='groups'              
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
                       
@@ -184,7 +184,7 @@
                 'dsBaseDN'         : newStaticGroupDn ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'dsAttributes'     : 'uniquemember',
-                'expectedRC'  		 : 32 }
+                'expectedRC'       : 32 }
               </call>
               <call function="'CheckIsMemberOf'">
                 { 'baseDn'      : user11Dn ,

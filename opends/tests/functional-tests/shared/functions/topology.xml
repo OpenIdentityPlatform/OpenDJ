@@ -35,7 +35,7 @@
         <function-arg-description>
           Topology Description file
         </function-arg-description>
-        <function-arg-property name="type" value="filePath"/>			
+        <function-arg-property name="type" value="filePath"/>      
       </function-arg-def>
       <function-arg-def name="initialiseInstance" type="optional" default="False">
         <function-arg-description>
@@ -50,7 +50,7 @@
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
     </function-map-args>
-	  
+    
     <sequence>
       <script>
         if not sharedDataFolder and CurrentTestPath.has_key('group'):
@@ -61,21 +61,21 @@
         { 'groupDataDir' : sharedDataFolder }
       </call>
 
-      <if expr="topologyDescFile == None">	
+      <if expr="topologyDescFile == None">  
         <!-- SINGLE instance deployment: read parameters from config.py (done by default) -->
         <sequence>
           <message>
             'SINGLE instance deployment: read parameters from config.py'
           </message>
           <call function="'createInstance'" />
-	        <if expr="RC == 0 and initialiseInstance == True">
-	          <sequence>
+          <if expr="RC == 0 and initialiseInstance == True">
+            <sequence>
               <!-- Load the server with default data -->
               <import machine="STAF_LOCAL_HOSTNAME"
                 file="'%s/testcases/quickstart/quickstart.xml' % (TESTS_DIR)" />
               <call function="'main_quickstart'"/>
             </sequence>
-	        </if>
+          </if>
         </sequence>
         <else>
           <!-- MULTIPLE instance deployment: read parameters from topologyDescFile -->
@@ -112,7 +112,7 @@
                      !  (i.e. server is a changelog server and/or has synchronized suffixes) 
                 -->
                 <if expr="server.requiresSynchronization()">
-                  <sequence>					
+                  <sequence>          
                     <message>
                       'Instance requires REPLICATION configuration.'
                     </message>
@@ -129,13 +129,13 @@
     </sequence>
   </function>
   
-	
-	
+  
+  
   <function name="prepareInstanceCreation">
     <function-prolog>
       This function prepares locally the necessary 
       files to create an instance: data zip file and OpenDS zip file.
-    </function-prolog>	  
+    </function-prolog>    
     <function-map-args>     
       <function-arg-def name="groupDataDir" type="optional" default="''">
         <function-arg-description>
@@ -143,7 +143,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>     
       </function-arg-def>
-    </function-map-args>	 
+    </function-map-args>   
     <sequence>
       <!-- ON LOCAL HOST: get data ready to copy to remote host -->
       <script>
@@ -254,9 +254,9 @@
       </if>
     </sequence>
   </function>
-	
-	
-	
+  
+  
+  
   <function name="createInstance">
     <function-prolog>
       This function creates an instance on a given host.
@@ -267,54 +267,54 @@
     <function-map-args>
       <function-arg-def name="dsHost" type="optional" default="DIRECTORY_INSTANCE_HOST">
         <function-arg-description>
-        Hostname where the instance is to be created			
-      </function-arg-description>	
+        Hostname where the instance is to be created      
+      </function-arg-description>  
           <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
       <function-arg-def name="dsDir" type="optional" default="DIRECTORY_INSTANCE_DIR">
         <function-arg-description>
-        Directory where OpenDS will be installed			
+        Directory where OpenDS will be installed      
       </function-arg-description>
           <function-arg-property name="type" value="filepath"/>
         </function-arg-def>
       <function-arg-def name="dsPort" type="optional" default="DIRECTORY_INSTANCE_PORT">
         <function-arg-description>
-        Directory Server port number			
+        Directory Server port number      
       </function-arg-description>
           <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
       <function-arg-def name="dsSslPort" type="optional" default="DIRECTORY_INSTANCE_SSL_PORT">
         <function-arg-description>
-        Directory Server SSL port number			
+        Directory Server SSL port number      
       </function-arg-description>
           <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
       <function-arg-def name="dsJmxPort" type="optional" default="None">
         <function-arg-description>
-        Directory Server JMX port number			
+        Directory Server JMX port number      
       </function-arg-description>
           <function-arg-property name="type" value="Port number"/>
-      </function-arg-def>		
+      </function-arg-def>    
       <function-arg-def name="dsBindDN" type="optional" default="DIRECTORY_INSTANCE_DN">
         <function-arg-description>
-        Directory Manager DN			
+        Directory Manager DN      
       </function-arg-description>
           <function-arg-property name="type" value="DN"/>
       </function-arg-def>
       <function-arg-def name="dsBindPwd" type="optional" default="DIRECTORY_INSTANCE_PSWD">
         <function-arg-description>
-        Directory Server SSL port number			
+        Directory Server SSL port number      
       </function-arg-description>
           <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="dsBaseDN" type="optional" default="DIRECTORY_INSTANCE_SFX">
         <function-arg-description>
-        Directory Server base suffix dn			
+        Directory Server base suffix dn      
       </function-arg-description>
           <function-arg-property name="type" value="DN"/>
       </function-arg-def>
     </function-map-args>
-	  
+    
     <sequence>
       <message>
         'Create instance in host %s at directory %s' % (dsHost,dsDir)
@@ -458,16 +458,16 @@
     <function-prolog>
       This function configures replication in a given server.
     </function-prolog>
-	  
+    
     <function-list-args>
       <function-arg-def name="syncserverMap" type="required">
         <function-arg-description>
-          Map containing a Server class instance representing the server to configure.			
+          Map containing a Server class instance representing the server to configure.      
         </function-arg-description>
         <function-arg-property name="type" value="map"/>
       </function-arg-def>
     </function-list-args>
-	  
+    
     <sequence>
       <script>
         syncserver = syncserverMap['instance']
@@ -500,7 +500,7 @@
         syncserverPath = '%s/%s' % (syncserver.getDir(),OPENDSNAME)
       </script>
       
-      <!--- Start DS -->				         
+      <!--- Start DS -->                 
       <call function="'StartDsWithScript'">
         { 'location' : syncserver.getHostname(),
            'dsPath'  : syncserverPath
@@ -516,7 +516,7 @@
       <message>
         'Add replication configuration entries in %s' % remoteFilePath
       </message>
-						
+            
       <call function="'addEntry'">
         { 'location'       : syncserver.getHostname(),
           'dsPath'         : syncserverPath,
@@ -534,7 +534,7 @@
         }
       </call>
       
-      <!--- Stop DS -->					      
+      <!--- Stop DS -->                
       <call function="'StopDsWithScript'">
         { 'location'  : syncserver.getHostname(),
           'dsHost'    : syncserver.getHostname(),
@@ -558,18 +558,18 @@
     <function-prolog>
       This function configures replication in a given server.
     </function-prolog>
-	  
+    
     <function-list-args>
       <function-arg-def name="syncserver" type="required">
         <function-arg-description>
-          Server class instance representing the server to configure.			
+          Server class instance representing the server to configure.      
         </function-arg-description>
         <function-arg-property name="type" value="Server"/>
       </function-arg-def>
     </function-list-args>
-	  
+    
     <sequence>
-      <!--- Configure replication using dsconfig -->		        
+      <!--- Configure replication using dsconfig -->            
       <message>
         'Configure replication on server on host %s at directory %s' % (syncserver.getHostname(),syncserver.getDir())  
       </message>
@@ -578,7 +578,7 @@
         syncserverPath = '%s/%s' % (syncserver.getDir(),OPENDSNAME)
       </script>
       
-      <!--- Start DS -->				         
+      <!--- Start DS -->                 
       <call function="'StartDsWithScript'">
         { 'location' : syncserver.getHostname(),
            'dsPath'  : syncserverPath
@@ -645,7 +645,7 @@
         </sequence>
       </iterate>
       
-      <!--- Stop DS -->					      
+      <!--- Stop DS -->                
       <call function="'StopDsWithScript'">
         { 'location'  : syncserver.getHostname(),
           'dsHost'    : syncserver.getHostname(),
@@ -659,7 +659,7 @@
   </function>
   
   
-	
+  
   <function name="readTopology">
     <function-prolog>
       This function reads the topology from a given file.
@@ -670,12 +670,12 @@
     <function-map-args>
       <function-arg-def name="file" type="required">
         <function-arg-description>
-          File containing the topology description.	
+          File containing the topology description.  
         </function-arg-description>
         <function-arg-property name="type" value="filePath"/>
       </function-arg-def>
     </function-map-args>
-	  
+    
     <sequence>
       <message>
         'Parse file %s for topology parameters' % file
@@ -683,7 +683,7 @@
       
       <script>
         _topologyServerList = []
-		  		  
+            
         f = open(file, 'r')
         
         hostname = None
@@ -736,7 +736,7 @@
                 prt = item[item.find(':') + 1:]
                 changelogServer.addChangelogServer(srv, prt)
               server.addChangelogServer(changelogServer)
-		    
+        
             for suffix in suffixList:
               synchroSuffix = SynchronizedSuffix(suffix, serverId)
               for item in changelogList:
@@ -785,9 +785,9 @@
       </script>
     </sequence>
   </function>
-	
-	
-	
+  
+  
+  
   <function name="removeInstance">
     <function-prolog>
       This function removes an instance on a given host.
@@ -796,13 +796,13 @@
     <function-map-args>
       <function-arg-def name="dsHost" type="optional" default="DIRECTORY_INSTANCE_HOST">
         <function-arg-description>
-          Hostname where the instance is to be created			
-        </function-arg-description>	
+          Hostname where the instance is to be created      
+        </function-arg-description>  
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
       <function-arg-def name="dsDir" type="optional" default="DIRECTORY_INSTANCE_DIR">
         <function-arg-description>
-          Directory where OpenDS will be installed			
+          Directory where OpenDS will be installed      
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
       </function-arg-def>
@@ -860,24 +860,24 @@
       </if>
     </sequence>
   </function>
-	
   
-	
+  
+  
   <function name="removeTopology">
     <function-prolog>
       This function removes the topology created for the Test Group/Suite.
-    </function-prolog>   	  
+    </function-prolog>       
     <function-map-args>
       <function-arg-def name="multipleInstanceTopology" type="optional" default="False">
         <function-arg-description>
           Tells whether it is a single (i.e. parameters read from config.py) or
           a multiple-instance topology (i.e. parameters read from topology desc file).
         </function-arg-description>
-        <function-arg-property name="type" value="boolean"/>			
-      </function-arg-def>	
+        <function-arg-property name="type" value="boolean"/>      
+      </function-arg-def>  
     </function-map-args>
     <sequence>
-      <if expr="multipleInstanceTopology == False">	
+      <if expr="multipleInstanceTopology == False">  
         <!-- SINGLE instance deployment: parameters read from config.py (done by default) -->
         <call function="'removeInstance'" />
         <else>

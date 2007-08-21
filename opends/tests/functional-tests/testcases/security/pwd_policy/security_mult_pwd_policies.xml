@@ -174,13 +174,13 @@
             </iterate>
 
             <call function="'SearchObject'">
-		{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-		  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-		  'dsInstanceDn'     : 'uid=tclow,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-		  'dsInstancePswd'   : 'cardreader' ,
-		  'dsBaseDN'         : 'dc=example,dc=com' ,
-		  'dsFilter'         : 'objectclass=*'	,
-		  'extraParams'	     : '-s base' }
+    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+      'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+      'dsInstanceDn'     : 'uid=tclow,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+      'dsInstancePswd'   : 'cardreader' ,
+      'dsBaseDN'         : 'dc=example,dc=com' ,
+      'dsFilter'         : 'objectclass=*'  ,
+      'extraParams'       : '-s base' }
             </call>
 
             <call function="'testCase_Postamble'"/>

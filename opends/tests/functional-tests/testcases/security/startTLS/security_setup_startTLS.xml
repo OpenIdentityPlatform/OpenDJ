@@ -48,7 +48,7 @@
                'keystore'        : 'keystore',
                'storepass'       : 'servercert',
                'keypass'         : 'servercert',
-               'storetype'  	   : 'JKS' }
+               'storetype'       : 'JKS' }
            </call>  
 
             <!--- Self-Sign Server Cert -->
@@ -62,8 +62,8 @@
               'storepass'       : 'servercert',
               'keypass'         : 'servercert',
               'keystore'        : 'keystore',
-              'storetype'  	   : 'JKS' }
-            </call>			  
+              'storetype'       : 'JKS' }
+            </call>        
    
 
             <!--- Configure JKS Keystore -->
@@ -91,7 +91,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*' ,
-                'extraParams'  	   : '-q -X -s base' }
+                'extraParams'       : '-q -X -s base' }
             </call>
 
             <call function="'testCase_Postamble'"/>

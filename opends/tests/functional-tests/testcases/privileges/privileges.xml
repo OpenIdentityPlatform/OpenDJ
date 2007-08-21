@@ -43,7 +43,7 @@
           </script>
       
           <call function="'testGroup_Preamble'"/>
-			        											
+                                    
    
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/privileges/privileges_users.xml' % (TESTS_DIR)"/>
@@ -73,7 +73,7 @@
             file="'%s/testcases/privileges/privileges_restore_task.xml' % (TESTS_DIR)"/>
           <call function="'privileges_restore_task'" />
   
-         											
+                               
           <call function="'testGroup_Postamble'"/>
         
         </sequence>

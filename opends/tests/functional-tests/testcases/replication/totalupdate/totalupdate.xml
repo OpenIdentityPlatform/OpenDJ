@@ -44,7 +44,7 @@
           </script>
 
           <call function="'testSuite_Preamble'"/>
-                    						                
+                                                
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/replication_setup.xml' % (TESTS_DIR)"/>
           <call function="'replication_setup'" />
@@ -159,9 +159,9 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/replication_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'replication_cleanup'" />
-								          
+                          
           <call function="'testSuite_Postamble'"/>
-			 		   		
+                  
         </sequence>
 
       </block>

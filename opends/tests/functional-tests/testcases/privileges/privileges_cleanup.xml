@@ -37,10 +37,10 @@
       
         <sequence>
 
-			
-          <block name="'Block DS Process Stop'">				
+      
+          <block name="'Block DS Process Stop'">        
           <!--- Stop DS -->
-		    <sequence>
+        <sequence>
               <message>
                  'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
               </message>
@@ -58,30 +58,30 @@
                     'result'     : STAXResult }
               </call>
 
-		    </sequence>			  
+        </sequence>        
           <!--- End Block DS Process Stop -->
           </block>
 
-	  <block name="'Block Remove DS Topology'">
+    <block name="'Block Remove DS Topology'">
               <!-- Remove  the topology created for the test suite -->
               <sequence>
-				
+        
                 <message>
                  'Remove DS topology created for the Test Suite'
-                </message>				  
+                </message>          
 
                 <call function="'removeTopology'"/>
-				
+        
                 <call function="'checkRC'">
                   { 'returncode' : RC ,
                     'result'     : STAXResult }
                 </call>
-			
-              </sequence>			  
+      
+              </sequence>        
              <!-- End Block Remove DS Topology-->  
-            </block>	  														  
-			        
-			
+            </block>                                  
+              
+      
         </sequence>        
       </block>
             

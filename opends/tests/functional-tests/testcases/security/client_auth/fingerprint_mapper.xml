@@ -34,17 +34,17 @@
                                
        <!--- Test Case : setup -->
        <!---
-	#@TestMarker              Setup Tests
-	#@TestName                Set the SASL EXTERNAL mechanism to fingerprint certificate mapper
-	#@TestIssue                   
-	#@TestPurpose            Set the SASL EXTERNAL mechanism to fingerprint certificate mapper
-	#@TestPreamble           none
-	#@TestStep                  Set the SASL EXTERNAL mechanism to fingerprint certificate mapper
-	#@TestStep                  keep the default ds-cfg-certificate-subject-attribute-type which is ds-certificate-subject-dn
-	#@TestPostamble          none
-	#@TestResult                Success if OpenDS returns 0 for all operations
+  #@TestMarker              Setup Tests
+  #@TestName                Set the SASL EXTERNAL mechanism to fingerprint certificate mapper
+  #@TestIssue                   
+  #@TestPurpose            Set the SASL EXTERNAL mechanism to fingerprint certificate mapper
+  #@TestPreamble           none
+  #@TestStep                  Set the SASL EXTERNAL mechanism to fingerprint certificate mapper
+  #@TestStep                  keep the default ds-cfg-certificate-subject-attribute-type which is ds-certificate-subject-dn
+  #@TestPostamble          none
+  #@TestResult                Success if OpenDS returns 0 for all operations
       -->
-		  
+      
     
   <testcase name="getTestCaseName(' setup - fingerprint_mapper')">
 
@@ -53,18 +53,18 @@
 
     <message>
              '----  Configure the SASL EXTERNAL mechanism -----'
-    </message>			
-		
+    </message>      
+    
     <call function="'modifyAnAttribute'">
           { 'dsInstanceHost'       :  DIRECTORY_INSTANCE_HOST ,
              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
-             'dsInstanceDn'	        : DIRECTORY_INSTANCE_DN ,
+             'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-             'DNToModify'	        :  'cn=EXTERNAL,cn=SASL Mechanisms,cn=config',
+             'DNToModify'          :  'cn=EXTERNAL,cn=SASL Mechanisms,cn=config',
              'attributeName'        : 'ds-cfg-certificate-mapper-dn',
              'newAttributeValue'  : 'cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config',
              'changetype' : 'replace',
-             'expectedRC'           :  0 }		
+             'expectedRC'           :  0 }    
     </call>
  
     <call function="'testCase_Postamble'"/>
@@ -94,23 +94,23 @@
     <call function="'testCase_Preamble'"/>
  
 
-	<!-- Load in the local shared python objects from libraries -->
+  <!-- Load in the local shared python objects from libraries -->
       <call function="'loadVariables'">
-	 </call>
-				  
+   </call>
+          
  
-      <!-- get the fingerprint for USER_1_CERT -->           		 
+      <!-- get the fingerprint for USER_1_CERT -->                
       <call function="'getFingerprint'">
            { 'certAlias'        : '%s' % USER_1_CERT,  
             'storepass'       : CLIENT_STOREPASS,
             'keystore'        : CLIENT_KEYSTORE }
       </call> 
-	
+  
       <script>
             STAXCode = RC
             certificateResult = STAXResult[0][1]
       </script>
-	  <script>
+    <script>
             string_len=len(certificateResult)
             index_MD5=certificateResult.find("MD5:") 
             index_SHA1=certificateResult.find("SHA1:")
@@ -118,22 +118,22 @@
             SHA1_fingerprint_cert1=certificateResult[index_SHA1+5:string_len].strip()
       </script>
     
-	 <message>'MD5 fingerprint for %s is  : %s ' %  (USER_1_CERT,MD5_fingerprint_cert1)</message>			
-	 <message>'SHA1 fingerprint for %s  is  : %s ' %  (USER_1_CERT,SHA1_fingerprint_cert1)</message>			
+   <message>'MD5 fingerprint for %s is  : %s ' %  (USER_1_CERT,MD5_fingerprint_cert1)</message>      
+   <message>'SHA1 fingerprint for %s  is  : %s ' %  (USER_1_CERT,SHA1_fingerprint_cert1)</message>      
   
 
-      <!-- get the fingerprint for USER_2_CERT -->           		 
+      <!-- get the fingerprint for USER_2_CERT -->                
       <call function="'getFingerprint'">
            { 'certAlias'        : '%s' % USER_2_CERT,  
             'storepass'       : CLIENT_STOREPASS,
             'keystore'        : CLIENT_KEYSTORE }
       </call> 
-	
+  
       <script>
             STAXCode = RC
             certificateResult = STAXResult[0][1]
       </script>
-	  <script>
+    <script>
             string_len=len(certificateResult)
             index_MD5=certificateResult.find("MD5:") 
             index_SHA1=certificateResult.find("SHA1:")
@@ -141,73 +141,73 @@
             SHA1_fingerprint_cert2=certificateResult[index_SHA1+5:string_len].strip()
       </script>
   
-	 <message>'MD5 fingerprint for %s is  : %s ' %  (USER_2_CERT,MD5_fingerprint_cert2)</message>			
-	 <message>'SHA1 fingerprint for %s is  : %s ' %  (USER_2_CERT,SHA1_fingerprint_cert2)</message>					
+   <message>'MD5 fingerprint for %s is  : %s ' %  (USER_2_CERT,MD5_fingerprint_cert2)</message>      
+   <message>'SHA1 fingerprint for %s is  : %s ' %  (USER_2_CERT,SHA1_fingerprint_cert2)</message>          
 
-	<!-- 	Configure the mapper to map MD5 -->				
+  <!--   Configure the mapper to map MD5 -->        
      <script>
             listAttr = []   
             listAttr.append('ds-cfg-certificate-fingerprint-attribute-type:ds-certificate-fingerprint')
             listAttr.append('ds-cfg-certificate-fingerprint-algorithm:MD5')
      </script>    
 
-    <message>'----- Configure the mapper to map MD5 fingerprint '</message>     	
-		
+    <message>'----- Configure the mapper to map MD5 fingerprint '</message>       
+    
      <call function="'modifyAnAttribute'">
     { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
-    'dsInstanceDn'	        : DIRECTORY_INSTANCE_DN ,
+    'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
     'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-    'DNToModify'	        : 'cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config',
+    'DNToModify'          : 'cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config',
     'listAttributes' : listAttr,
     'changetype'              : 'replace',
-    'expectedRC'           :  0 }			 
+    'expectedRC'           :  0 }       
     </call>          
    
    <!-- configure the user entries -->
    <message>'----- Configure the attribute ds-certificate-fingerprint  for user %s ---' % USER_1_DN</message>
    <message>'----- ds-certificate-fingerprint is the MD5 fingerprint  of the certificate %s ' % USER_1_CERT</message>
-			
+      
 
      <call function="'modifyAnAttribute'">
     { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
     'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
-    'dsInstanceDn'	       : DIRECTORY_INSTANCE_DN ,
+    'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
     'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
-    'DNToModify'	      : USER_1_DN,
+    'DNToModify'        : USER_1_DN,
     'attributeName'       : 'ds-certificate-fingerprint',
     'newAttributeValue'  : MD5_fingerprint_cert1,
     'changetype'            : 'add',
-    'expectedRC'           :  0 }			 
+    'expectedRC'           :  0 }       
     </call>               
 
 
    <message> '----- Configure the attribute ds-certificate-fingerprint  for user %s ---' % USER_2_DN</message>
    <message>'------ ds-certificate-fingerprint is the SHA1 fingerprint  of the certificate %s ' % USER_2_CERT</message>
- 		  
+       
      <call function="'modifyAnAttribute'">
     { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
     'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
-    'dsInstanceDn'	       : DIRECTORY_INSTANCE_DN ,
+    'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
     'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
-    'DNToModify'	      : USER_2_DN,
+    'DNToModify'        : USER_2_DN,
     'attributeName'       : 'ds-certificate-fingerprint',
     'newAttributeValue'  : SHA1_fingerprint_cert2,
     'changetype'            : 'add',
-    'expectedRC'           :  0 }			 
+    'expectedRC'           :  0 }       
     </call>            
-		
+    
     <!--  Check mapping is working -->         
     <message>'--- Check SSL communication with SASL EXTERNAL authentication'</message>
-		
-    <!-- bound as USER_1_DN -->			
-		
-		
+    
+    <!-- bound as USER_1_DN -->      
+    
+    
      <call function="'ldapSearchWithScript'">
-	{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-	  'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,		 
-      'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-	  'dsFilter'		: 'objectclass=*'	,
+  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+    'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,     
+      'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+    'dsFilter'    : 'objectclass=*'  ,
       'dsKeyStorePassword'   :  CLIENT_STOREPASS,
        'dsUseSSL'             :  ' ',
        'dsUseSASLExternal'   :  ' ',
@@ -216,9 +216,9 @@
        'dsKeyStorePath'        : CLIENT_KEYSTORE,
        'dsReportAuthzID'   : ' ',
        'dsScope'                 : 'base',
-       'expectedRC'           :  0 }			 
+       'expectedRC'           :  0 }       
      </call>    
-		
+    
      <script>
       STAXCode = RC
       ldapSearchResult = STAXResult[0][1]
@@ -228,15 +228,15 @@
                 'mainString'    : ldapSearchResult ,
                 'nbExpected'    : 1
              }
-    </call>			        	          
-		 
+    </call>                          
+     
     <!-- No bound expected -->
-		
+    
      <call function="'ldapSearchWithScript'">
-	{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-	  'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-	  'dsFilter'		: 'objectclass=*'	,
+  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+    'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+    'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseSSL'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -245,20 +245,20 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-		  'expectedRC'               : 49 }
+      'expectedRC'               : 49 }
      </call>    
-		    
-		
-    <message>'--- Check StartTLS communication with SASL EXTERNAL authentication'</message>		
-		
-    <!-- bound as USER_1_DN -->		
-		
-		
+        
+    
+    <message>'--- Check StartTLS communication with SASL EXTERNAL authentication'</message>    
+    
+    <!-- bound as USER_1_DN -->    
+    
+    
     <call function="'ldapSearchWithScript'">
-	{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-	  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-	  'dsFilter'		: 'objectclass=*'	,
+  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+    'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseStartTLS'            :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -267,9 +267,9 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-          'expectedRC'           :  0 }			
+          'expectedRC'           :  0 }      
      </call>    
-		
+    
      <script>
           STAXCode = RC
           ldapSearchResult = STAXResult[0][1]
@@ -279,14 +279,14 @@
                 'mainString'    : ldapSearchResult ,
                 'nbExpected'    : 1
              }
-    </call>			        	           
+    </call>                           
 
 
      <call function="'ldapSearchWithScript'">
-	{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-	  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-	      'dsFilter'		: 'objectclass=*'	,
+  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+        'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseStartTLS'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -295,39 +295,39 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-	      'expectedRC'               : 49 }
+        'expectedRC'               : 49 }
      </call>    
-		
-   <!-- 		Configure the mapper to map SHA1  fingerprint   -->
-   <message>'----- Configure the mapper to map SHA1 fingerprint '</message>     	
-     	<script>
+    
+   <!--     Configure the mapper to map SHA1  fingerprint   -->
+   <message>'----- Configure the mapper to map SHA1 fingerprint '</message>       
+       <script>
             listAttr = []   
             listAttr.append('ds-cfg-certificate-fingerprint-attribute-type:ds-certificate-fingerprint')
             listAttr.append('ds-cfg-certificate-fingerprint-algorithm:SHA1')
       </script>      
-				
+        
  
      <call function="'modifyAnAttribute'">
     { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
-    'dsInstanceDn'	        : DIRECTORY_INSTANCE_DN ,
+    'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
     'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-    'DNToModify'	        : 'cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config',
+    'DNToModify'          : 'cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config',
     'listAttributes' : listAttr,
     'changetype'              : 'replace',
-    'expectedRC'           :  0 }			 
-    </call>          		
-		
-		
+    'expectedRC'           :  0 }       
+    </call>              
+    
+    
 <!--  Check mapping is working -->         
     <message>'--- Check SSL communication with SASL EXTERNAL authentication'</message>
-		
-    <!-- bound as USER_2_DN -->			
+    
+    <!-- bound as USER_2_DN -->      
      <call function="'ldapSearchWithScript'">
-	{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-	  'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,		 
-      'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-	  'dsFilter'		: 'objectclass=*'	,
+  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+    'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,     
+      'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+    'dsFilter'    : 'objectclass=*'  ,
       'dsKeyStorePassword'   :  CLIENT_STOREPASS,
        'dsUseSSL'             :  ' ',
        'dsUseSASLExternal'   :  ' ',
@@ -336,9 +336,9 @@
        'dsKeyStorePath'        : CLIENT_KEYSTORE,
        'dsReportAuthzID'   : ' ',
        'dsScope'                 : 'base',
-       'expectedRC'           :  0 }	
+       'expectedRC'           :  0 }  
      </call>    
-		
+    
      <script>
       STAXCode = RC
       ldapSearchResult = STAXResult[0][1]
@@ -348,14 +348,14 @@
                 'mainString'    : ldapSearchResult ,
                 'nbExpected'    : 1
              }
-    </call>			        	          
-		 
+    </call>                          
+     
     <!-- No bound expected -->
      <call function="'ldapSearchWithScript'">
-	{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-	  'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-	  'dsFilter'		: 'objectclass=*'	,
+  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+    'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+    'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseSSL'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -364,18 +364,18 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-		  'expectedRC'               : 49 }
+      'expectedRC'               : 49 }
      </call>    
-		        
-		
-    <message>'--- Check StartTLS communication with SASL EXTERNAL authentication'</message>		
-		
-    <!-- bound as USER_2__DN -->		
+            
+    
+    <message>'--- Check StartTLS communication with SASL EXTERNAL authentication'</message>    
+    
+    <!-- bound as USER_2__DN -->    
     <call function="'ldapSearchWithScript'">
-	{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-	  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-	  'dsFilter'		: 'objectclass=*'	,
+  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+    'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseStartTLS'            :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -384,9 +384,9 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-          'expectedRC'           :  0 }			
+          'expectedRC'           :  0 }      
      </call>    
-		
+    
      <script>
           STAXCode = RC
           ldapSearchResult = STAXResult[0][1]
@@ -396,14 +396,14 @@
                 'mainString'    : ldapSearchResult ,
                 'nbExpected'    : 1
              }
-    </call>			        	           
+    </call>                           
 
 
      <call function="'ldapSearchWithScript'">
-	{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-	  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-	  'dsFilter'		: 'objectclass=*'	,
+  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+    'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseStartTLS'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -412,38 +412,38 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-	      'expectedRC'               : 49 }
+        'expectedRC'               : 49 }
      </call>    
-					
+          
      <!--  Restore initial users configuration -->   
 
-		
+    
      <call function="'modifyAnAttribute'">
     { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
     'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
-    'dsInstanceDn'	       : DIRECTORY_INSTANCE_DN ,
+    'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
     'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
-    'DNToModify'	      : USER_1_DN,
+    'DNToModify'        : USER_1_DN,
     'attributeName'       : 'ds-certificate-fingerprint',
     'newAttributeValue'  : MD5_fingerprint_cert1,
     'changetype'            : 'delete',
-    'expectedRC'           :  0 }			 
+    'expectedRC'           :  0 }       
     </call>               
   
      <call function="'modifyAnAttribute'">
     { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
     'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
-    'dsInstanceDn'	       : DIRECTORY_INSTANCE_DN ,
+    'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
     'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
-    'DNToModify'	      : USER_2_DN,
+    'DNToModify'        : USER_2_DN,
     'attributeName'       : 'ds-certificate-fingerprint',
     'newAttributeValue'  : SHA1_fingerprint_cert2,
     'changetype'            : 'delete',
-    'expectedRC'           :  0 }			 
+    'expectedRC'           :  0 }       
     </call>            
-				
-		
-					
+        
+    
+          
     <call function="'testCase_Postamble'"/>      
     </sequence>
   </testcase>
@@ -472,23 +472,23 @@
     <call function="'testCase_Preamble'"/>
  
 
-	<!-- Load in the local shared python objects from libraries -->
+  <!-- Load in the local shared python objects from libraries -->
       <call function="'loadVariables'">
-	 </call>
-				  
+   </call>
+          
  
-      <!-- get the fingerprint for USER_1_CERT -->           		 
+      <!-- get the fingerprint for USER_1_CERT -->                
       <call function="'getFingerprint'">
            { 'certAlias'        : '%s' % USER_1_CERT,  
             'storepass'       : CLIENT_STOREPASS,
             'keystore'        : CLIENT_KEYSTORE }
       </call> 
-	
+  
       <script>
             STAXCode = RC
             certificateResult = STAXResult[0][1]
       </script>
-	  <script>
+    <script>
             string_len=len(certificateResult)
             index_MD5=certificateResult.find("MD5:") 
             index_SHA1=certificateResult.find("SHA1:")
@@ -497,23 +497,23 @@
       </script>
 
  
-	 <message>'MD5 fingerprint for %s is  : %s ' %  (USER_1_CERT,MD5_fingerprint_cert1)</message>			
-	 <message>'SHA1 fingerprint for %s is  : %s ' %  (USER_1_CERT,SHA1_fingerprint_cert1)</message>					
-	
+   <message>'MD5 fingerprint for %s is  : %s ' %  (USER_1_CERT,MD5_fingerprint_cert1)</message>      
+   <message>'SHA1 fingerprint for %s is  : %s ' %  (USER_1_CERT,SHA1_fingerprint_cert1)</message>          
+  
   
 
-      <!-- get the fingerprint for USER_2_CERT -->           		 
+      <!-- get the fingerprint for USER_2_CERT -->                
       <call function="'getFingerprint'">
            { 'certAlias'        : '%s' % USER_2_CERT,  
             'storepass'       : CLIENT_STOREPASS,
             'keystore'        : CLIENT_KEYSTORE }
       </call> 
-	
+  
       <script>
             STAXCode = RC
             certificateResult = STAXResult[0][1]
       </script>
-	  <script>
+    <script>
             string_len=len(certificateResult)
             index_MD5=certificateResult.find("MD5:") 
             index_SHA1=certificateResult.find("SHA1:")
@@ -522,76 +522,76 @@
       </script>
 
  
-	 <message>'MD5 fingerprint for %s is  : %s ' %  (USER_2_CERT,MD5_fingerprint_cert2)</message>			
-	 <message>'SHA1 fingerprint for %s is  : %s ' %  (USER_2_CERT,SHA1_fingerprint_cert2)</message>					
+   <message>'MD5 fingerprint for %s is  : %s ' %  (USER_2_CERT,MD5_fingerprint_cert2)</message>      
+   <message>'SHA1 fingerprint for %s is  : %s ' %  (USER_2_CERT,SHA1_fingerprint_cert2)</message>          
 
-		
-	<!-- 	Configure the mapper to map MD5 -->
-    <message>'----- Configure the mapper to map MD5 fingerprint on the attribute description'</message>     	
+    
+  <!--   Configure the mapper to map MD5 -->
+    <message>'----- Configure the mapper to map MD5 fingerprint on the attribute description'</message>       
 
-	<!-- 	Configure the mapper to map MD5 -->				
+  <!--   Configure the mapper to map MD5 -->        
      <script>
             listAttr = []   
             listAttr.append('ds-cfg-certificate-fingerprint-attribute-type:description')
             listAttr.append('ds-cfg-certificate-fingerprint-algorithm:MD5')
      </script>    
 
-						
+            
      <call function="'modifyAnAttribute'">
     { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
-    'dsInstanceDn'	        : DIRECTORY_INSTANCE_DN ,
+    'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
     'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-    'DNToModify'	        : 'cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config',
+    'DNToModify'          : 'cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config',
     'listAttributes' : listAttr,
     'changetype'              : 'replace',
-    'expectedRC'           :  0 }			 
+    'expectedRC'           :  0 }       
     </call>          
    
    <!-- configure the user entries -->
    <message>'----- Configure the attribute description  for user %s ---' % USER_1_DN</message>
    <message>'----- description is the MD5 fingerprint  of the certificate %s ' % USER_1_CERT</message>
-			
+      
 
      <call function="'modifyAnAttribute'">
     { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
     'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
-    'dsInstanceDn'	       : DIRECTORY_INSTANCE_DN ,
+    'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
     'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
-    'DNToModify'	      : USER_1_DN,
+    'DNToModify'        : USER_1_DN,
     'attributeName'       : 'description',
     'newAttributeValue'  : MD5_fingerprint_cert1,
     'changetype'            : 'add',
-    'expectedRC'           :  0 }			 
+    'expectedRC'           :  0 }       
     </call>               
 
 
    <message> '----- Configure the attribute description  for user %s ---' % USER_2_DN</message>
    <message>'------ description is the SHA1 fingerprint  of the certificate %s ' % USER_2_CERT</message>
- 		  
+       
      <call function="'modifyAnAttribute'">
     { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
     'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
-    'dsInstanceDn'	       : DIRECTORY_INSTANCE_DN ,
+    'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
     'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
-    'DNToModify'	      : USER_2_DN,
+    'DNToModify'        : USER_2_DN,
     'attributeName'       : 'description',
     'newAttributeValue'  : SHA1_fingerprint_cert2,
     'changetype'            : 'add' ,
-    'expectedRC'           :  0 }			 
+    'expectedRC'           :  0 }       
     </call>            
-		
+    
     <!--  Check mapping is working -->         
     <message>'--- Check SSL communication with SASL EXTERNAL authentication'</message>
-		
-    <!-- bound as USER_1_DN -->			
-		
-		
+    
+    <!-- bound as USER_1_DN -->      
+    
+    
      <call function="'ldapSearchWithScript'">
-	{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-	  'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,		 
-      'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-	  'dsFilter'		: 'objectclass=*'	,
+  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+    'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,     
+      'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+    'dsFilter'    : 'objectclass=*'  ,
       'dsKeyStorePassword'   :  CLIENT_STOREPASS,
        'dsUseSSL'             :  ' ',
        'dsUseSASLExternal'   :  ' ',
@@ -600,9 +600,9 @@
        'dsKeyStorePath'        : CLIENT_KEYSTORE,
        'dsReportAuthzID'   : ' ',
        'dsScope'                 : 'base',
-       'expectedRC'           :  0 }			 
+       'expectedRC'           :  0 }       
      </call>    
-		
+    
      <script>
       STAXCode = RC
       ldapSearchResult = STAXResult[0][1]
@@ -612,15 +612,15 @@
                 'mainString'    : ldapSearchResult ,
                 'nbExpected'    : 1
              }
-    </call>			        	          
-		 
+    </call>                          
+     
     <!-- No bound expected -->
-		
+    
      <call function="'ldapSearchWithScript'">
-	{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-	  'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-	  'dsFilter'		: 'objectclass=*'	,
+  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+    'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+    'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseSSL'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -629,20 +629,20 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-		  'expectedRC'               : 49 }
+      'expectedRC'               : 49 }
      </call>    
-		    
-		
-    <message>'--- Check StartTLS communication with SASL EXTERNAL authentication'</message>		
-		
-    <!-- bound as USER_1_DN -->		
-		
-		
+        
+    
+    <message>'--- Check StartTLS communication with SASL EXTERNAL authentication'</message>    
+    
+    <!-- bound as USER_1_DN -->    
+    
+    
     <call function="'ldapSearchWithScript'">
-	{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-	  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-	  'dsFilter'		: 'objectclass=*'	,
+  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+    'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseStartTLS'            :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -651,9 +651,9 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-          'expectedRC'           :  0 }			
+          'expectedRC'           :  0 }      
      </call>    
-		
+    
      <script>
           STAXCode = RC
           ldapSearchResult = STAXResult[0][1]
@@ -663,14 +663,14 @@
                 'mainString'    : ldapSearchResult ,
                 'nbExpected'    : 1
              }
-    </call>			        	           
+    </call>                           
 
 
      <call function="'ldapSearchWithScript'">
-	{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-	  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-	  'dsFilter'		: 'objectclass=*'	,
+  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+    'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseStartTLS'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -679,39 +679,39 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-	      'expectedRC'               : 49 }
+        'expectedRC'               : 49 }
      </call>    
-		
-   <!-- 		Configure the mapper to map SHA1  fingerprint   -->
-   <message>'----- Configure the mapper to map SHA1 fingerprint  on the attributes description'</message>     	
-     	<script>
+    
+   <!--     Configure the mapper to map SHA1  fingerprint   -->
+   <message>'----- Configure the mapper to map SHA1 fingerprint  on the attributes description'</message>       
+       <script>
             listAttr = []   
             listAttr.append('ds-cfg-certificate-fingerprint-attribute-type:description')
             listAttr.append('ds-cfg-certificate-fingerprint-algorithm:SHA1')
       </script>      
-				
+        
  
      <call function="'modifyAnAttribute'">
     { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
-    'dsInstanceDn'	        : DIRECTORY_INSTANCE_DN ,
+    'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
     'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-    'DNToModify'	        : 'cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config',
+    'DNToModify'          : 'cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config',
     'listAttributes' : listAttr,
     'changetype'              : 'replace',
-    'expectedRC'           :  0 }			 
-    </call>          		
-		
-		
+    'expectedRC'           :  0 }       
+    </call>              
+    
+    
 <!--  Check mapping is working -->         
     <message>'--- Check SSL communication with SASL EXTERNAL authentication'</message>
-		
-    <!-- bound as USER_2_DN -->			
+    
+    <!-- bound as USER_2_DN -->      
      <call function="'ldapSearchWithScript'">
-	{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-	  'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,		 
-      'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-	  'dsFilter'		: 'objectclass=*'	,
+  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+    'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,     
+      'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+    'dsFilter'    : 'objectclass=*'  ,
       'dsKeyStorePassword'   :  CLIENT_STOREPASS,
        'dsUseSSL'             :  ' ',
        'dsUseSASLExternal'   :  ' ',
@@ -720,9 +720,9 @@
        'dsKeyStorePath'        : CLIENT_KEYSTORE,
        'dsReportAuthzID'   : ' ',
        'dsScope'                 : 'base',
-       'expectedRC'           :  0 }			 
+       'expectedRC'           :  0 }       
      </call>    
-		
+    
      <script>
       STAXCode = RC
       ldapSearchResult = STAXResult[0][1]
@@ -732,14 +732,14 @@
                 'mainString'    : ldapSearchResult ,
                 'nbExpected'    : 1
              }
-    </call>			        	          
-		 
+    </call>                          
+     
     <!-- No bound expected -->
      <call function="'ldapSearchWithScript'">
-	{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-	  'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-	  'dsFilter'		: 'objectclass=*'	,
+  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+    'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+    'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseSSL'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -748,18 +748,18 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-		  'expectedRC'               : 49 }
+      'expectedRC'               : 49 }
      </call>    
-		        
-		
-    <message>'--- Check StartTLS communication with SASL EXTERNAL authentication'</message>		
-		
-    <!-- bound as USER_2__DN -->		
+            
+    
+    <message>'--- Check StartTLS communication with SASL EXTERNAL authentication'</message>    
+    
+    <!-- bound as USER_2__DN -->    
     <call function="'ldapSearchWithScript'">
-	{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-	  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-	  'dsFilter'		: 'objectclass=*'	,
+  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+    'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseStartTLS'            :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -768,9 +768,9 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-          'expectedRC'           :  0 }			
+          'expectedRC'           :  0 }      
      </call>    
-		
+    
      <script>
           STAXCode = RC
           ldapSearchResult = STAXResult[0][1]
@@ -780,14 +780,14 @@
                 'mainString'    : ldapSearchResult ,
                 'nbExpected'    : 1
              }
-    </call>			        	           
+    </call>                           
 
 
      <call function="'ldapSearchWithScript'">
-	{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-	  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,		 
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-	  'dsFilter'		: 'objectclass=*'	,
+  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,     
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,     
+    'dsFilter'    : 'objectclass=*'  ,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseStartTLS'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -798,41 +798,41 @@
           'dsScope'                 : 'base',
           'expectedRC'               : 49 }
      </call>    
-					
+          
      <!--  Restore initial users configuration -->   
 
-		
+    
      <call function="'modifyAnAttribute'">
     { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
     'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
-    'dsInstanceDn'	       : DIRECTORY_INSTANCE_DN ,
+    'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
     'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
-    'DNToModify'	      : USER_1_DN,
+    'DNToModify'        : USER_1_DN,
     'attributeName'       : 'description',
     'newAttributeValue'  : MD5_fingerprint_cert1,
     'changetype'            : 'delete',
-    'expectedRC'           :  0 }			 
+    'expectedRC'           :  0 }       
     </call>               
   
      <call function="'modifyAnAttribute'">
     { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
     'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
-    'dsInstanceDn'	       : DIRECTORY_INSTANCE_DN ,
+    'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
     'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
-    'DNToModify'	      : USER_2_DN,
+    'DNToModify'        : USER_2_DN,
     'attributeName'       : 'description',
     'newAttributeValue'  : SHA1_fingerprint_cert2,
     'changetype'            : 'delete',
-    'expectedRC'           :  0 }			 
+    'expectedRC'           :  0 }       
     </call>            
-				
-					
+        
+          
     <call function="'testCase_Postamble'"/>      
     </sequence>
   </testcase>
-	
+  
 </sequence>
 </function>
 
 </stax>
-	
+  

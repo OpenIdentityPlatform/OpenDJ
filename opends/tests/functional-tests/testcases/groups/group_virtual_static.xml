@@ -55,7 +55,7 @@
 
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='groups'						  
+              CurrentTestPath['group']='groups'              
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
                       
@@ -377,8 +377,8 @@
                 'dsInstanceDn'      : applicationDn ,
                 'dsInstancePswd'    : applicationPswd ,
                 'DNToModify'        : user2AddDn ,
-                'newRDN'     				: user2AddRenamed, 
-                'deleteOldRDN' 			: 1 }
+                'newRDN'             : user2AddRenamed, 
+                'deleteOldRDN'       : 1 }
               </call>
 -->  
               <!-- ******************** -->

@@ -27,9 +27,9 @@
 
 <project name="opends-staf-installer" basedir="." default="usage">
   <description>
-		Installer ant file for the staf platform
-		This allows tests that need a running instance of staf to easily
-		get one and hides all the complexity under the hood
+    Installer ant file for the staf platform
+    This allows tests that need a running instance of staf to easily
+    get one and hides all the complexity under the hood
   </description>
   <dirname file="${basedir}/.." property="project.home"/>
   
@@ -86,9 +86,9 @@
   
 <!-- Usage section - top     -->
   <!-- Default target => how to use this file -->
-	<target name="usage"
+  <target name="usage"
           description="Gives a message that helps using this file">
-		<echo>Installer usage:
+    <echo>Installer usage:
  main targets=
    usage      : print this message
    status     : report if the staf is installed and running
@@ -105,9 +105,9 @@
    start      : start the staf unless it is already running
    stop       : stop the staf if it is already running
    uninstall  : uninstall the staf if it is installed</echo>
-	</target>
+  </target>
 <!-- Usage section - bottom  -->
-	
+  
 <!-- Downloader section - top    -->
   <target name="download-do-prepare-check-proxy" unless="proxy.disabled">
     <echo>Checking for proxy [${proxy.host}:${proxy.port}] as user [${proxy.user}].</echo>
@@ -224,7 +224,7 @@
         dest="${staf.install.dir}/services"/>
   </target>
 
-	<target name="install-staf-jar" 
+  <target name="install-staf-jar" 
           description="deploy the staf bits"
           if="staf.archive.is.jar">
     <echo message="Installing staf, please wait, it'll take some time..."    />
@@ -237,7 +237,7 @@
       <available file="${staf.install.dir}/bin/STAF.cfg"/>
     </condition>
   </target>
-	
+  
   <target name="install-staf-tar" if="staf.archive.is.tar">
     <delete dir="${bits.download.dir}/staf"/>
     <gunzip
@@ -860,7 +860,7 @@ email.server.pwd=${email.server.pwd.input}
 <!-- Uninstallation section - top    -->
   <target name="uninstall-do-jar"
           description="Uninstall the staf"
-					if="staf.install.is.jar">
+          if="staf.install.is.jar">
     <echo message="Uninstalling staf, please wait..."                        />
     <java jar="${staf.install.dir}/_uninst/uninstall.jar" fork="true">
       <arg value="-silent" />
@@ -895,21 +895,21 @@ email.server.pwd=${email.server.pwd.input}
     name="uninstall-dont" 
     depends="uninstall-dont-running,uninstall-dont-not-installed" />
   
-	<target name="uninstall" depends="status-do,uninstall-do,uninstall-dont">
-	</target>
+  <target name="uninstall" depends="status-do,uninstall-do,uninstall-dont">
+  </target>
 <!-- Uninstallation section - bottom -->
-	
+  
 <!-- Start section - top       -->
   <target name="start-do" 
           description="start the staf"
           if="staf.installed"
           unless="staf.running" >
-		<echo message="Starting staf daemon ... on ${os.myname}" />
-		<condition property="staf.spawn">
-			<not>
-				<isset property="staf.spawn"/>
-			</not>
-		</condition>
+    <echo message="Starting staf daemon ... on ${os.myname}" />
+    <condition property="staf.spawn">
+      <not>
+        <isset property="staf.spawn"/>
+      </not>
+    </condition>
     <echo message="Starting STAF..."/>
     <exec
       dir="${staf.bin.dir}"
@@ -932,20 +932,20 @@ email.server.pwd=${email.server.pwd.input}
   <target name="start-dont" if="staf.running">
     <echo>Staf is already running.</echo>
   </target>
-	<target name="start" depends="status-do">
-		<antcall target="start-do"/>
+  <target name="start" depends="status-do">
+    <antcall target="start-do"/>
     <antcall target="start-dont"/>
-	</target>
-	<target name="start-nodetach">
-		<property name="staf.spawn" value="false"/>
-		<antcall target="start"/>
-	</target>
+  </target>
+  <target name="start-nodetach">
+    <property name="staf.spawn" value="false"/>
+    <antcall target="start"/>
+  </target>
 
 <!-- Start section - bottom    -->
   
 <!-- Stop section - top     -->
-	<target name="stop-do" if="staf.running">
-		<echo>Stopping staf...</echo>
+  <target name="stop-do" if="staf.running">
+    <echo>Stopping staf...</echo>
     <exec
       executable="${staf.executable}" 
       >
@@ -968,11 +968,11 @@ email.server.pwd=${email.server.pwd.input}
     <echo>Staf is not running.</echo>
   </target>
   <target name="stop" depends="status-do">
-		<antcall target="stop-do"/>
+    <antcall target="stop-do"/>
     <antcall target="stop-dont"/>
-	</target>
+  </target>
 <!-- Stop section - bottom  -->
-	
+  
 <!-- Status section - top    -->
   <!-- Bits status section - top -->
     <target name="status-archive-downloaded?" if="bits.all.downloaded.before">
@@ -996,7 +996,7 @@ email.server.pwd=${email.server.pwd.input}
       <antcall target="status-archive-not-downloaded?" />
     </target>
   <!-- Installation status section - bottom -->
-		
+    
   <!-- Running status section - top -->
     <target name="status-staf-running?" if="staf.running">
       <echo>staf is listening on port [${staf.port.default}]</echo>
@@ -1098,18 +1098,18 @@ email.server.pwd=${email.server.pwd.input}
 <!-- Status section - bottom -->
 
 <!-- Macros section - top -->
-	<target name="bootstrap">
+  <target name="bootstrap">
     <antcall target="download"  />
-		<antcall target="install"   />
-		<antcall target="start"     />
-	</target>
-	
-	<target name="wipeout">
-		<antcall target="stop"/>
+    <antcall target="install"   />
+    <antcall target="start"     />
+  </target>
+  
+  <target name="wipeout">
+    <antcall target="stop"/>
     <echo>Allow a minute for STAF to bring all the JVMs down</echo>
     <sleep seconds="60"/>
-		<antcall target="uninstall"/>
-	</target>
+    <antcall target="uninstall"/>
+  </target>
 
   <target name="restart">
     <antcall target="stop"  inheritAll="false" />

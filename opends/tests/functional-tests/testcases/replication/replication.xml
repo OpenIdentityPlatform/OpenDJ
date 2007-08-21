@@ -36,7 +36,7 @@
       <block name="'replication'">
 
         <sequence>
-      			
+            
           <script>
             CurrentTestPath={}
             envAlreadyLoaded='true'
@@ -64,13 +64,13 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/basic/replication_basic.xml' % (TESTS_DIR)"/>
           <call function="'replication_basic'" />          
-								          
+                          
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/schema/schema.xml' % (TESTS_DIR)"/>
           <call function="'replication_schema'" />          
             
           <call function="'testGroup_Postamble'"/>
-			 		   		
+                  
         </sequence>
 
       </block>

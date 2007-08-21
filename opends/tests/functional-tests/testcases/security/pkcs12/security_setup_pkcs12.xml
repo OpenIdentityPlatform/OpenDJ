@@ -75,7 +75,7 @@
                'keystore'        : 'keystore',
                'storepass'       : 'servercert',
                'keypass'         : 'servercert',
-               'storetype'  	 : 'PKCS12' }
+               'storetype'     : 'PKCS12' }
             </call>
 
             <!--- Self-Sign Server Cert -->
@@ -88,8 +88,8 @@
               'storepass'        : 'servercert',
               'keypass'          : 'servercert',
               'keystore'         : 'keystore',
-              'storetype'  	 : 'PKCS12' }
-            </call>			
+              'storetype'     : 'PKCS12' }
+            </call>      
 
             <!--- Configure PKCS12 Keystore -->
             <message>
@@ -101,7 +101,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
-				'keystoreType'     : 'PKCS12' }
+        'keystoreType'     : 'PKCS12' }
             </call>
 
 
@@ -117,7 +117,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*' ,
-                'extraParams'  	   : '-Z -X' }
+                'extraParams'       : '-Z -X' }
             </call>
 
             <call function="'testCase_Postamble'"/>

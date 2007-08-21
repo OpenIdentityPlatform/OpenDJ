@@ -65,7 +65,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeModified'   : '%s/security/auth_pwd_syntax/admin_mod_def_policy.ldif' % logsRemoteDataDir,
-                'expectedRC'      : 0 }				
+                'expectedRC'      : 0 }        
             </call>
 
             
@@ -106,7 +106,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_def_users.ldif' % logsRemoteDataDir,
-                'expectedRC'      : 0 }				
+                'expectedRC'      : 0 }        
             </call>
 
 
@@ -122,7 +122,7 @@
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base',
-                'expectedRC'      : 0 }				
+                'expectedRC'      : 0 }        
             </call>
 
             <message>
@@ -137,7 +137,7 @@
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base',
-                'expectedRC'      : 49 }		
+                'expectedRC'      : 49 }    
             </call>
 
             
@@ -174,7 +174,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeModified'   : '%s/security/auth_pwd_syntax/admin_mod_def_policy2.ldif' % logsRemoteDataDir,
-                'expectedRC'      : 0 }				
+                'expectedRC'      : 0 }        
             </call>
 
 
@@ -190,7 +190,7 @@
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base', 
-                'expectedRC'      : 49 }		
+                'expectedRC'      : 49 }    
             </call>
 
             <message>
@@ -205,7 +205,7 @@
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base',
-                'expectedRC'      : 0 }				
+                'expectedRC'      : 0 }        
             </call>
 
             <call function="'testCase_Postamble'"/>

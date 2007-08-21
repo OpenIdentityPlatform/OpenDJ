@@ -209,7 +209,7 @@
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir,
-                'expectedRC'       : 53 }				
+                'expectedRC'       : 53 }        
             </call>
 
             <call function="'testCase_Postamble'"/>

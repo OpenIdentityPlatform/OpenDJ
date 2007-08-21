@@ -55,7 +55,7 @@
           #@TestHTMLLink        http://opends.dev.java.net/
           -->
             
-                                            						                
+                                                                        
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/replication_setup.xml' % (TESTS_DIR)"/>
           <call function="'replication_setup'" />
@@ -71,7 +71,7 @@
                 'Create domain name for schema on server %s/%s' % (server.getDir(), OPENDSNAME)
               </message>
     
-        	  <call function="'createMultimasterDomain'">
+            <call function="'createMultimasterDomain'">
                 { 'location' : server.getHostname(),
                   'dsPath' :  '%s/%s' % (server.getDir(), OPENDSNAME),
                   'dsInstanceHost'  : server.getHostname(),
@@ -96,7 +96,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->					     
+          -->               
           <testcase name="getTestCaseName('Add objectclass')">
             <sequence>            
               <call function="'testCase_Preamble'"/>
@@ -123,10 +123,10 @@
               <call function="'modifyAnAttribute'">
                 { 'dsPath' : masterPath,
                   'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'	  : master.getPort(),
-                  'dsInstanceDn'	: master.getRootDn(),
-                  'dsInstancePswd'	  : master.getRootPwd(),
-                  'DNToModify'	  : 'cn=schema',
+                  'dsInstancePort'    : master.getPort(),
+                  'dsInstanceDn'  : master.getRootDn(),
+                  'dsInstancePswd'    : master.getRootPwd(),
+                  'DNToModify'    : 'cn=schema',
                   'attributeName' : 'objectClasses',
                   'newAttributeValue' : newObjectclass, 
                   'changetype' : 'add' }
@@ -143,12 +143,12 @@
                   'entryToBeAdded' : '%s/replication/testuser-0.ldif' % clientDataDir }
               </call>           
                        
-              <!-- Verify the synchronization of the schema among the servers in the topology -->      		
+              <!-- Verify the synchronization of the schema among the servers in the topology -->          
               <call function="'verifySchemas'">
                 [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
               </call> 
                 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
@@ -169,7 +169,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->					     
+          -->               
           <testcase name="getTestCaseName('Add attributetype')">
             <sequence>            
               <call function="'testCase_Preamble'"/>
@@ -186,10 +186,10 @@
               <call function="'modifyAnAttribute'">
                 { 'dsPath' : masterPath,
                   'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'	  : master.getPort(),
-                  'dsInstanceDn'	: master.getRootDn(),
-                  'dsInstancePswd'	  : master.getRootPwd(),
-                  'DNToModify'	  : 'cn=schema',
+                  'dsInstancePort'    : master.getPort(),
+                  'dsInstanceDn'  : master.getRootDn(),
+                  'dsInstancePswd'    : master.getRootPwd(),
+                  'DNToModify'    : 'cn=schema',
                   'attributeName' : 'attributeTypes',
                   'newAttributeValue' : newAttributetype, 
                   'changetype' : 'add' }
@@ -197,10 +197,10 @@
               <call function="'modifyAnAttribute'">
                 { 'dsPath' : masterPath,
                   'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'	  : master.getPort(),
-                  'dsInstanceDn'	: master.getRootDn(),
-                  'dsInstancePswd'	  : master.getRootPwd(),
-                  'DNToModify'	  : 'cn=schema',
+                  'dsInstancePort'    : master.getPort(),
+                  'dsInstanceDn'  : master.getRootDn(),
+                  'dsInstancePswd'    : master.getRootPwd(),
+                  'DNToModify'    : 'cn=schema',
                   'attributeName' : 'objectClasses',
                   'newAttributeValue' : newObjectclass, 
                   'changetype' : 'add' }
@@ -217,12 +217,12 @@
                   'entryToBeAdded' : '%s/replication/testuser-1.ldif' % clientDataDir }
               </call>           
                        
-              <!-- Verify the synchronization of the schema among the servers in the topology -->      		
+              <!-- Verify the synchronization of the schema among the servers in the topology -->          
               <call function="'verifySchemas'">
                 [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
               </call> 
                 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->      		
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
@@ -242,7 +242,7 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->             	     
+          -->                    
           <testcase name="getTestCaseName('Delete objectclass')">
             <sequence>            
               <call function="'testCase_Preamble'"/>
@@ -258,10 +258,10 @@
               <call function="'modifyAnAttribute'">
                 { 'dsPath' : masterPath,
                   'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'	  : master.getPort(),
-                  'dsInstanceDn'	: master.getRootDn(),
-                  'dsInstancePswd'	  : master.getRootPwd(),
-                  'DNToModify'	  : 'cn=schema',
+                  'dsInstancePort'    : master.getPort(),
+                  'dsInstanceDn'  : master.getRootDn(),
+                  'dsInstancePswd'    : master.getRootPwd(),
+                  'DNToModify'    : 'cn=schema',
                   'attributeName' : 'objectClasses',
                   'newAttributeValue' : newObjectclass, 
                   'changetype' : 'delete' }
@@ -298,9 +298,9 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/replication_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'replication_cleanup'" />
-								          
+                          
           <call function="'testSuite_Postamble'"/>
-			 		   		
+                  
         </sequence>
 
       </block>

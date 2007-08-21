@@ -39,7 +39,7 @@
   
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='aci'			  			  
+              CurrentTestPath['group']='aci'                
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
       
@@ -56,7 +56,7 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_setup.xml' % (TESTS_DIR)"/>
           <call function="'aci_setup'" />
-									    
+                      
           <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
@@ -528,8 +528,8 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'aci_cleanup'" />
-			
-			 
+      
+       
         </sequence>
       
       </block>

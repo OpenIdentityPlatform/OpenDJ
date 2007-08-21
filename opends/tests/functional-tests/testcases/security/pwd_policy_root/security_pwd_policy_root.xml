@@ -39,7 +39,7 @@
   
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='security'								  							  			  
+              CurrentTestPath['group']='security'                                          
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
       
@@ -62,7 +62,7 @@
             file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'security_cleanup'"/>
 
-												    
+                            
           <call function="'testSuite_Postamble'"/>
     
         </sequence>

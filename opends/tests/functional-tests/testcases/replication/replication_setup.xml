@@ -37,24 +37,24 @@
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
       </function-arg-def>
-    </function-map-args>		
-	  
+    </function-map-args>    
+    
     <sequence>
 
       <block name="'replication-setup'">
 
         <sequence>
-			
+      
           <message>
              'Create DS topology as described in %s' % topologyFile
           </message>
-			  
-		  <call function="'createTopology'">
-		    { 'topologyDescFile' : topologyFile,
+        
+      <call function="'createTopology'">
+        { 'topologyDescFile' : topologyFile,
               'sharedDataFolder' : 'replication' }
-		  </call>  
-			
-		  <call function="'checkRC'">
+      </call>  
+      
+      <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
           </call>
@@ -77,11 +77,11 @@
             consumerList = _topologyServerList[1:]              
           </script>        
                           
-          <!-- Start the servers in the topology -->			  
+          <!-- Start the servers in the topology -->        
           <call function="'startServers'">
             [_topologyServerList]
           </call>            
-            			 		   		
+                              
         </sequence>
 
       </block>

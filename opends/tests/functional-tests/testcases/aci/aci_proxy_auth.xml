@@ -39,7 +39,7 @@
   
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='aci'			  			  
+              CurrentTestPath['group']='aci'                
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
           
