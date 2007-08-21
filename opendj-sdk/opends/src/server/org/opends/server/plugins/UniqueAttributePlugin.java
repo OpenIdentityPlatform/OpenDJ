@@ -108,17 +108,6 @@ public class UniqueAttributePlugin
   /**
    * {@inheritDoc}
    */
-//  @Override()
-  public boolean
-  isConfigurationAcceptable(UniqueAttributePluginCfg configuration,
-                            List<Message> unacceptableReasons) {
-    return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
   public boolean isConfigurationChangeAcceptable(
           UniqueAttributePluginCfg configuration,
           List<Message> unacceptableReasons) {
