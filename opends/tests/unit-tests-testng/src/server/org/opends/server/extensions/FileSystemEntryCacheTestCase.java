@@ -34,6 +34,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.testng.annotations.BeforeClass;
 import org.opends.server.admin.std.meta.*;
+import org.opends.server.admin.std.server.FileSystemEntryCacheCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
@@ -59,6 +60,13 @@ public class FileSystemEntryCacheTestCase
    * Configuration entry for this cache.
    */
   private static Entry cacheConfigEntry;
+
+
+
+  /**
+   * Temporary folder to setup dummy JE backend environment in.
+   */
+  private static File jeBackendTempDir;
 
 
 
@@ -121,8 +129,8 @@ public class FileSystemEntryCacheTestCase
           throws Exception
   {
     // Make sure JE directory exist.
-    File tempDir = TestCaseUtils.createTemporaryDirectory("db-cachetest");
-    String jeDir = tempDir.getAbsolutePath();
+    jeBackendTempDir = TestCaseUtils.createTemporaryDirectory("db-cachetest");
+    String jeDir = jeBackendTempDir.getAbsolutePath();
 
     // Create dummy JE backend for this test.
     TestCaseUtils.dsconfig("create-backend", "--backend-name", "cacheTest",
@@ -164,10 +172,9 @@ public class FileSystemEntryCacheTestCase
   private void persistentCacheTeardown()
           throws Exception
   {
-    File tempDir = TestCaseUtils.createTemporaryDirectory("db-cachetest");
-
+    // Dummy JE backend cleanup.
     TestCaseUtils.dsconfig("delete-backend", "--backend-name", "cacheTest");
-    TestCaseUtils.deleteDirectory(tempDir);
+    TestCaseUtils.deleteDirectory(jeBackendTempDir);
 
     // Configure this cache back to defaults.
     restoreCacheDefaults();
@@ -256,6 +263,11 @@ public class FileSystemEntryCacheTestCase
          throws Exception
   {
     super.cache.finalizeEntryCache();
+
+    // Remove default FS cache JE environment.
+    FileSystemEntryCacheCfg config =
+      (FileSystemEntryCacheCfg) super.configuration;
+    TestCaseUtils.deleteDirectory(new File(config.getCacheDirectory()));
   }
 
 
