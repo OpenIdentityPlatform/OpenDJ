@@ -647,17 +647,17 @@
             xml += '        &lt;stop&gt;%s&lt;/stop&gt;\n'         % self.stop
             xml += '        &lt;result&gt;%s&lt;/result&gt;\n'     % self.result
             xml += '        &lt;duration&gt;%d&lt;/duration&gt;\n' % self.duration
-            xml += '        &lt;log&gt;\n'
+            xml += '        &lt;log&gt;\n&lt;![CDATA['
             xml += '%s' % self.log
-            xml += '        &lt;/log&gt;\n'
+            xml += '        ]]&gt;&lt;/log&gt;\n'
             xml += '      &lt;/test&gt;\n'
             return xml
             
           def appendLog(self, log):
-            log=log.replace('&lt;','')
-            log=log.replace('&gt;','')
-            log=log.replace('&amp;','&amp;amp;')
-            self.log +='          %s\n' % log
+            #log=log.replace('&lt;','')
+            #log=log.replace('&gt;','')
+            #log=log.replace('&amp;','&amp;amp;')
+            self.log +='%s\n' % log
             
           def getName(self):
             return self.name
