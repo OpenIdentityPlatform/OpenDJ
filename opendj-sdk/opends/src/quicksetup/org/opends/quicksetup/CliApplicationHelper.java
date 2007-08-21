@@ -36,6 +36,7 @@ import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
@@ -63,18 +64,6 @@ public class CliApplicationHelper {
 
   /** Format string used for deriving the console prompt. */
   static public final String PROMPT_FORMAT = "%s%n[%s]:";
-
-  /** Short form of the option for specifying a noninteractive session. */
-  static public final Character SILENT_OPTION_SHORT = 's';
-
-  /** Long form of the option for specifying a noninteractive session. */
-  static public final String SILENT_OPTION_LONG = "silent";
-
-  /** Short form of the option for specifying a noninteractive session. */
-  static public final Character INTERACTIVE_OPTION_SHORT = 'i';
-
-  /** Long form of the option for specifying a noninteractive session. */
-  static public final String INTERACTIVE_OPTION_LONG = "interactive";
 
   private BooleanArgument interactiveArg = null;
 
@@ -368,15 +357,15 @@ public class CliApplicationHelper {
     try {
       interactiveArg =
            new BooleanArgument("noninteractive session",
-                   INTERACTIVE_OPTION_SHORT,
-                   INTERACTIVE_OPTION_LONG,
+                   SecureConnectionCliParser.INTERACTIVE_OPTION_SHORT,
+                   SecureConnectionCliParser.INTERACTIVE_OPTION_LONG,
                    null);
       argParser.addArgument(interactiveArg);
 
       silentArg =
            new BooleanArgument("silent session",
-                   SILENT_OPTION_SHORT,
-                   SILENT_OPTION_LONG,
+                   SecureConnectionCliParser.SILENT_OPTION_SHORT,
+                   SecureConnectionCliParser.SILENT_OPTION_LONG,
                    null);
       argParser.addArgument(silentArg);
 

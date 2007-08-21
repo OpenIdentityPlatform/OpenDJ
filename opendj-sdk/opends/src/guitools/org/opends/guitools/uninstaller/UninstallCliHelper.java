@@ -122,7 +122,7 @@ class UninstallCliHelper extends CliApplicationHelper {
     /* Step 2: check that the provided parameters are compatible.
      */
     MessageBuilder buf = new MessageBuilder();
-    int v = args.validateGlobalOption(buf);
+    int v = args.validateGlobalOptions(buf);
     if (v != DsFrameworkCliReturnCode.SUCCESSFUL_NOP.getReturnCode())
     {
       throw new UserDataException(null, buf.toMessage());
@@ -179,7 +179,7 @@ class UninstallCliHelper extends CliApplicationHelper {
       if (!isInteractive)
       {
         throw new UserDataException(null,
-            INFO_CLI_UNINSTALL_NOTHING_TO_BE_UNINSTALLED_NON_INTERACTIVE.get());
+            ERR_CLI_UNINSTALL_NOTHING_TO_BE_UNINSTALLED_NON_INTERACTIVE.get());
       }
       else
       {
@@ -366,7 +366,7 @@ class UninstallCliHelper extends CliApplicationHelper {
         {
           somethingSelected = false;
           printLineBreak();
-          printErrorMessage(INFO_CLI_UNINSTALL_NOTHING_TO_BE_UNINSTALLED.get());
+          printErrorMessage(ERR_CLI_UNINSTALL_NOTHING_TO_BE_UNINSTALLED.get());
         }
         else
         {
@@ -664,7 +664,7 @@ class UninstallCliHelper extends CliApplicationHelper {
 
           LOG.log(Level.WARNING,
               "Error retrieving a valid LDAP URL in conf file");
-          printErrorMessage(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
+          printErrorMessage(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
         }
         if (usedUrl != null)
         {
@@ -889,7 +889,7 @@ class UninstallCliHelper extends CliApplicationHelper {
       {
         LOG.log(Level.WARNING,
             "Error retrieving a valid LDAP URL in conf file");
-        printErrorMessage(INFO_COULD_NOT_FIND_VALID_LDAPURL.get());
+        printErrorMessage(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
       ADSContext adsContext = new ADSContext(ctx);
       TopologyCache cache = new TopologyCache(adsContext,
@@ -1029,7 +1029,7 @@ class UninstallCliHelper extends CliApplicationHelper {
       if (!stopProcessing && (exceptionMsgs.size() > 0))
       {
         returnValue = confirm(
-            INFO_ERROR_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
+            ERR_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
                 Utils.getStringFromCollection(exceptionMsgs,
                   Constants.LINE_SEPARATOR)));
       }

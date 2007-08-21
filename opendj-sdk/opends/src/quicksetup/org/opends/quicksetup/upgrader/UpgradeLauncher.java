@@ -33,13 +33,13 @@ import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 
-import org.opends.quicksetup.CliApplicationHelper;
 import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.QuickSetupLog;
 
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -191,15 +191,15 @@ public class UpgradeLauncher extends Launcher {
               null, null, INFO_UPGRADE_DESCRIPTION_FILE.get());
       argParser.addArgument(file);
       interactive = new BooleanArgument(
-          CliApplicationHelper.INTERACTIVE_OPTION_LONG,
-          CliApplicationHelper.INTERACTIVE_OPTION_SHORT,
-          CliApplicationHelper.INTERACTIVE_OPTION_LONG,
+          SecureConnectionCliParser.INTERACTIVE_OPTION_LONG,
+          SecureConnectionCliParser.INTERACTIVE_OPTION_SHORT,
+          SecureConnectionCliParser.INTERACTIVE_OPTION_LONG,
           INFO_UPGRADE_DESCRIPTION_INTERACTIVE.get());
       argParser.addArgument(interactive);
       silent = new BooleanArgument(
-          CliApplicationHelper.SILENT_OPTION_LONG,
-          CliApplicationHelper.SILENT_OPTION_SHORT,
-          CliApplicationHelper.SILENT_OPTION_LONG,
+          SecureConnectionCliParser.SILENT_OPTION_LONG,
+          SecureConnectionCliParser.SILENT_OPTION_SHORT,
+          SecureConnectionCliParser.SILENT_OPTION_LONG,
           INFO_UPGRADE_DESCRIPTION_SILENT.get());
       argParser.addArgument(silent);
       showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,

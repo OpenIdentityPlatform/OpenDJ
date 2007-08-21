@@ -1509,7 +1509,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     if (!stopProcessing && (exceptionMsgs.size() > 0))
     {
       Message confirmationMsg =
-        INFO_ERROR_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
+        ERR_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
                 getStringFromCollection(exceptionMsgs, "n"));
       stopProcessing = !qs.displayConfirmation(confirmationMsg,
           INFO_CONFIRMATION_TITLE.get());

@@ -211,7 +211,7 @@ public class DsFrameworkCliMain
     }
 
     // Validate args
-    int ret = argParser.validateGlobalOption(err);
+    int ret = argParser.validateGlobalOptions(err);
     if (ret != SUCCESSFUL_NOP.getReturnCode())
     {
       return ret;

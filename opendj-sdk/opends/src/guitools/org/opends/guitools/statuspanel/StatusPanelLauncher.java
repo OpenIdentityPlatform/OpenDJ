@@ -127,14 +127,14 @@ public class StatusPanelLauncher
         if (logFileName != null)
         {
           System.err.println(StaticUtils.wrapText(
-                  INFO_STATUS_PANEL_LAUNCHER_GUI_LAUNCH_FAILED_DETAILS.get(
+                  ERR_STATUS_PANEL_LAUNCHER_GUI_LAUNCH_FAILED_DETAILS.get(
                           logFileName),
                   Utils.getCommandLineMaxLineWidth()));
         }
         else
         {
           System.err.println(StaticUtils.wrapText(
-                  INFO_STATUS_PANEL_LAUNCHER_GUI_LAUNCH_FAILED.get(),
+                  ERR_STATUS_PANEL_LAUNCHER_GUI_LAUNCH_FAILED.get(),
                   Utils.getCommandLineMaxLineWidth()));
         }
         System.exit(exitCode);

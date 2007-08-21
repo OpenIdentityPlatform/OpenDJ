@@ -114,7 +114,7 @@ public class DsFrameworkCliParser extends SecureConnectionCliParser
       throws ArgumentException
   {
     // Global parameters
-    initializeGlobalOption(outStream);
+    initializeGlobalArguments(createGlobalArguments(outStream));
 
     // ads  Group cli
     cliGroup.add(new DsFrameworkCliAds());

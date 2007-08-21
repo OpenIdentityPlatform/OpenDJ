@@ -410,7 +410,7 @@ public class LoginDialog extends JDialog
           else
           {
             throw new ApplicationException(ReturnCode.APPLICATION_ERROR,
-                INFO_COULD_NOT_FIND_VALID_LDAPURL.get(), null);
+                ERR_COULD_NOT_FIND_VALID_LDAPURL.get(), null);
           }
         } catch (NamingException ne)
         {
@@ -532,7 +532,7 @@ public class LoginDialog extends JDialog
             {
               // Message with causes
               displayError(
-                  INFO_CANNOT_CONNECT_TO_LOGIN_WITH_CAUSE.get(
+                  ERR_CANNOT_CONNECT_TO_LOGIN_WITH_CAUSE.get(
                           Utils.getMessageFromCollection(possibleCauses, "\n")),
                   INFO_ERROR_TITLE.get());
             }
@@ -540,7 +540,7 @@ public class LoginDialog extends JDialog
             {
               // Generic message
               displayError(
-                  INFO_CANNOT_CONNECT_TO_LOGIN_WITHOUT_CAUSE.get(),
+                  ERR_CANNOT_CONNECT_TO_LOGIN_WITHOUT_CAUSE.get(),
                   INFO_ERROR_TITLE.get());
             }
           }
