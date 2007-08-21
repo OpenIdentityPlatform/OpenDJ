@@ -1375,6 +1375,18 @@ ds-cfg-enable-profiling-on-startup: false
 ds-cfg-profile-directory: logs
 ds-cfg-profile-sample-interval: 10 milliseconds
 
+dn: cn=UID Unique Attribute ,cn=Plugins,cn=config
+objectClass: top
+objectClass: ds-cfg-plugin
+objectClass: ds-cfg-unique-attribute-plugin
+cn: UID Unique Attribute
+ds-cfg-plugin-class: org.opends.server.plugins.UniqueAttributePlugin
+ds-cfg-plugin-enabled: false
+ds-cfg-plugin-type: preOperationAdd
+ds-cfg-plugin-type: preOperationModify
+ds-cfg-plugin-type: preOperationModifyDN
+ds-cfg-unique-attribute-type: uid
+
 dn: cn=Root DNs,cn=config
 objectClass: top
 objectClass: ds-cfg-root-dn-base

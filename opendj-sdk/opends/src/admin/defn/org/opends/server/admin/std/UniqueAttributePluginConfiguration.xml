@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+
+<adm:managed-object
+        name="unique-attribute-plugin"
+        plural-name="unique-attribute-plugins"
+        package="org.opends.server.admin.std"
+        extends="plugin"
+        xmlns:adm="http://www.opends.org/admin"
+        xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The <adm:user-friendly-name />
+    is used enforce constraints on the value of an attribute within a portion
+    of the directory.
+  </adm:synopsis>
+
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.120</ldap:oid>
+      <ldap:name>ds-cfg-unique-attribute-plugin</ldap:name>
+      <ldap:superior>ds-cfg-plugin</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+
+  <adm:property-override name="plugin-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.plugins.UniqueAttributePlugin
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+
+    <adm:property name="unique-attribute-type" mandatory="false"
+                multi-valued="true">
+    <adm:synopsis>
+      Specifies the attribute type to check for value uniqueness.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the attribute type to check for value uniqueness. The
+      values for each ds-cfg-unique-attribute-type attribute must be unique
+      within each base DN specified in the configuration's
+      ds-cfg-unique-attribute-base-dn attribute or within all of the server's
+      public naming contexts if no base DNs were specified in the configuration.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The plugin will bypass unique attribute checking.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.467</ldap:oid>
+        <ldap:name>ds-cfg-unique-attribute-type</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="unique-attribute-base-dn" mandatory="false"
+                 multi-valued="true">
+    <adm:synopsis>
+      Specifies a base DN that the attribute must be unique within.
+    </adm:synopsis>
+    <adm:description>
+      Specifies a base DN that the attribute must be unique within.
+    </adm:description>
+        <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The plugin will use the server's public naming contexts in the
+          searches.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+        <adm:dn />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.468</ldap:oid>
+        <ldap:name>ds-cfg-unique-attribute-base-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+</adm:managed-object>
+

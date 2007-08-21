@@ -1567,6 +1567,12 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.469 NAME 'ds-cfg-match-pattern'
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.470 NAME 'ds-cfg-replace-pattern'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.467
+  NAME 'ds-cfg-unique-attribute-type' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.468
+  NAME 'ds-cfg-unique-attribute-base-dn' SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -2201,4 +2207,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.121
   STRUCTURAL MUST ( ds-cfg-match-attribute $ ds-cfg-match-pattern )
   MAY ( ds-cfg-match-base-dn $ ds-cfg-replace-pattern )
   X-ORIGIN 'OpenDS Directory Server' )
-
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.120
+  NAME 'ds-cfg-unique-attribute-plugin' SUP ds-cfg-plugin
+  STRUCTURAL
+  MAY ( ds-cfg-unique-attribute-type $ ds-cfg-unique-attribute-base-dn )
+  X-ORIGIN 'OpenDS Directory Server' )
