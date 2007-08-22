@@ -56,6 +56,10 @@
             file="'%s/testcases/security/pwd_policy_root/security_root_user_tests.xml' % (TESTS_DIR)"/>
           <call function="'root_user_tests'" />
 
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/security/pwd_policy_root/security_root_auth.xml' % (TESTS_DIR)"/>
+          <call function="'security_root_auth'" />
+
 
 
           <import machine="STAF_LOCAL_HOSTNAME"
