@@ -80,8 +80,8 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   private String serverURL;
 
   private ServerSocket listenSocket;
-  private Thread myListenThread;
-  private Thread myConnectThread;
+  private Thread listenThread;
+  private Thread connectThread;
 
   /* The list of replication servers configured by the administrator */
   private Collection<String> replicationServers;
@@ -102,6 +102,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   private long trimAge; // the time (in sec) after which the  changes must
   private int replicationPort;
                         // de deleted from the persistent storage.
+  private boolean stopListen = false;
 
   /**
    * Creates a new Replication server using the provided configuration entry.
@@ -164,7 +165,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   void runListen()
   {
     Socket newSocket = null;
-    while (shutdown == false)
+    while ((shutdown == false) && (stopListen  == false))
     {
       // Wait on the replicationServer port.
       // Read incoming messages and create LDAP or ReplicationServer listener
@@ -181,8 +182,11 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
         handler.start(null, serverId, serverURL, rcvWindow, this);
       } catch (IOException e)
       {
-        // ignore
-        // TODO add some logging to allow problem debugging
+        // The socket has probably been closed as part of the
+        // shutdown or changing the port number process.
+        // just log debug information and loop.
+        Message message = DEBUG_REPLICATION_PORT_IOEXCEPTION.get();
+        logError(message);
       }
     }
   }
@@ -318,12 +322,12 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
       /*
        * create working threads
        */
-      myListenThread =
+      listenThread =
         new ReplicationServerListenThread("Replication Server Listener", this);
-      myListenThread.start();
-      myConnectThread =
+      listenThread.start();
+      connectThread =
         new ReplicationServerConnectThread("Replication Server Connect", this);
-      myConnectThread.start();
+      connectThread.start();
 
     } catch (DatabaseException e)
     {
@@ -374,9 +378,9 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     shutdown = true;
 
     // shutdown the connect thread
-    if (myConnectThread != null)
+    if (connectThread != null)
     {
-      myConnectThread.interrupt();
+      connectThread.interrupt();
     }
 
     // shutdown the listener thread
@@ -469,7 +473,61 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   public ConfigChangeResult applyConfigurationChange(
       ReplicationServerCfg configuration)
   {
-    // TODO : implement this
+    // Changing those properties don't need specific code.
+    // They will be applied for next connections.
+    replicationServers = configuration.getReplicationServer();
+    if (replicationServers == null)
+      replicationServers = new ArrayList<String>();
+    queueSize = configuration.getQueueSize();
+    trimAge = configuration.getReplicationPurgeDelay();
+    rcvWindow = configuration.getWindowSize();
+
+    // changing the listen port requires to stop the listen thread
+    // and restart it.
+    int newPort = configuration.getReplicationPort();
+    if (newPort != replicationPort)
+    {
+      stopListen = true;
+      try
+      {
+        listenSocket.close();
+        listenThread.join();
+        stopListen = false;
+
+        replicationPort = newPort;
+        String localhostname = InetAddress.getLocalHost().getHostName();
+        String localAdddress = InetAddress.getLocalHost().getHostAddress();
+        serverURL = localhostname + ":" + String.valueOf(replicationPort);
+        localURL = localAdddress + ":" + String.valueOf(replicationPort);
+        listenSocket = new ServerSocket();
+        listenSocket.setReceiveBufferSize(1000000);
+        listenSocket.bind(new InetSocketAddress(replicationPort));
+
+        listenThread =
+          new ReplicationServerListenThread(
+              "Replication Server Listener", this);
+        listenThread.start();
+      }
+      catch (IOException e)
+      {
+        Message message = ERR_COULD_NOT_CLOSE_THE_SOCKET.get(e.toString());
+        logError(message);
+        new ConfigChangeResult(ResultCode.OPERATIONS_ERROR, false);
+      }
+      catch (InterruptedException e)
+      {
+        Message message = ERR_COULD_NOT_STOP_LISTEN_THREAD.get(e.toString());
+        logError(message);
+        new ConfigChangeResult(ResultCode.OPERATIONS_ERROR, false);
+      }
+    }
+
+    if ((configuration.getReplicationDbDirectory() != null) &&
+        (dbDirname != configuration.getReplicationDbDirectory()))
+    {
+      return new ConfigChangeResult(ResultCode.SUCCESS, true);
+    }
+
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 
