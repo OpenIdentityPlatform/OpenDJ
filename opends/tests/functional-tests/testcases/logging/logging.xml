@@ -38,7 +38,7 @@
          <sequence>
   
           <script>
-      CurrentTestPath['group']='logging'
+            CurrentTestPath['group']='logging'
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
 
