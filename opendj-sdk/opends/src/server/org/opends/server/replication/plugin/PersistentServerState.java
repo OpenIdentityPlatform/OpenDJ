@@ -51,10 +51,12 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 
@@ -118,18 +120,54 @@ public class PersistentServerState extends ServerState
    */
   public void loadState()
   {
+    SearchResultEntry stateEntry = null;
+
+    // try to load the state from the base entry.
+    stateEntry = searchBaseEntry();
+
+    if (stateEntry == null)
+    {
+      // The base entry does not exist yet
+      // in the database or was deleted. Try to read the ServerState
+      // from the configuration instead.
+      stateEntry = searchConfigEntry();
+    }
+
+    if (stateEntry != null)
+    {
+      updateStateFromEntry(stateEntry);
+    }
+
     /*
-     * Read the serverState from the database,
-     * If not there create empty entry
+     * TODO : The ServerState is saved to the database periodically,
+     * therefore in case of crash it is possible that is does not contain
+     * the latest changes that have been processed and saved to the
+     * database.
+     * In order to make sure that we don't loose them, search all the entries
+     * that have been updated after this entry.
+     * This is done by using the HistoricalCsnOrderingMatchingRule
+     * and an ordering index for historical attribute
      */
+
+  }
+
+  /**
+   * Run a search operation to find the base entry
+   * of the replication domain for which this ServerState was created.
+   *
+   * @return Thebasen Entry or null if no entry was found;
+   */
+  private SearchResultEntry searchBaseEntry()
+  {
     LDAPFilter filter;
+
     try
     {
       filter = LDAPFilter.decode("objectclass=*");
     } catch (LDAPException e)
     {
       // can not happen
-      return;
+      return null;
     }
 
     /*
@@ -149,45 +187,90 @@ public class PersistentServerState extends ServerState
           get(search.getResultCode().getResultCodeName(), search.toString(),
               search.getErrorMessage(), baseDn.toString());
       logError(message);
+      return null;
     }
 
-    SearchResultEntry resultEntry = null;
+    SearchResultEntry stateEntry = null;
     if (search.getResultCode() == ResultCode.SUCCESS)
     {
       /*
        * Read the serverState from the REPLICATION_STATE attribute
        */
       LinkedList<SearchResultEntry> result = search.getSearchEntries();
-      resultEntry = result.getFirst();
-      if (resultEntry != null)
+      if (!result.isEmpty())
       {
-        AttributeType synchronizationStateType =
-          DirectoryServer.getAttributeType(REPLICATION_STATE);
-        List<Attribute> attrs =
-          resultEntry.getAttribute(synchronizationStateType);
-        if (attrs != null)
+        stateEntry = result.getFirst();
+      }
+    }
+    return stateEntry;
+  }
+
+  /**
+   * Run a search operation to find the entry with the configuration
+   * of the replication domain for which this ServerState was created.
+   *
+   * @return The configuration Entry or null if no entry was found;
+   */
+  private SearchResultEntry searchConfigEntry()
+  {
+    try
+    {
+      SearchFilter filter =
+        SearchFilter.createFilterFromString(
+            "(&(objectclass=ds-cfg-replication-domain-config)"
+            +"(ds-cfg-replication-dn="+baseDn+"))");
+
+      LinkedHashSet<String> attributes = new LinkedHashSet<String>(1);
+      attributes.add(REPLICATION_STATE);
+      InternalSearchOperation op =
+          conn.processSearch(DN.decode("cn=config"),
+          SearchScope.SUBORDINATE_SUBTREE,
+          DereferencePolicy.NEVER_DEREF_ALIASES,
+          1, 0, false, filter, attributes);
+
+      if (op.getResultCode() == ResultCode.SUCCESS)
+      {
+        /*
+         * Read the serverState from the REPLICATION_STATE attribute
+         */
+        LinkedList<SearchResultEntry> resultEntries =
+          op.getSearchEntries();
+        if (!resultEntries.isEmpty())
         {
-          Attribute attr = attrs.get(0);
-          LinkedHashSet<AttributeValue> values = attr.getValues();
-          for (AttributeValue value : values)
-          {
-            ChangeNumber changeNumber =
-              new ChangeNumber(value.getStringValue());
-            update(changeNumber);
-          }
+          SearchResultEntry resultEntry = resultEntries.getFirst();
+          return resultEntry;
         }
       }
+      return null;
+    } catch (DirectoryException e)
+    {
+      // can not happen
+      return null;
+    }
+  }
 
-      /*
-       * TODO : The ServerState is saved to the database periodically,
-       * therefore in case of crash it is possible that is does not contain
-       * the latest changes that have been processed and saved to the
-       * database.
-       * In order to make sure that we don't loose them, search all the entries
-       * that have been updated after this entry.
-       * This is done by using the HistoricalCsnOrderingMatchingRule
-       * and an ordering index for historical attribute
-       */
+  /**
+   * Update this ServerState from the provided entry.
+   *
+   * @param resultEntry The entry that should be used to update this
+   *                    ServerState.
+   */
+  private void updateStateFromEntry(SearchResultEntry resultEntry)
+  {
+    AttributeType synchronizationStateType =
+      DirectoryServer.getAttributeType(REPLICATION_STATE);
+    List<Attribute> attrs =
+      resultEntry.getAttribute(synchronizationStateType);
+    if (attrs != null)
+    {
+      Attribute attr = attrs.get(0);
+      LinkedHashSet<AttributeValue> values = attr.getValues();
+      for (AttributeValue value : values)
+      {
+        ChangeNumber changeNumber =
+          new ChangeNumber(value.getStringValue());
+        update(changeNumber);
+      }
     }
   }
 
@@ -202,6 +285,32 @@ public class PersistentServerState extends ServerState
     /*
      * Generate a modify operation on the Server State baseD Entry.
      */
+    ResultCode result = runUpdateStateEntry(baseDn);
+
+    if (result == ResultCode.NO_SUCH_OBJECT)
+    {
+      // The base entry does not exist yet in the database or
+      // has been deleted, save the state to the config entry instead.
+      SearchResultEntry configEntry = searchConfigEntry();
+      if (configEntry != null)
+      {
+        DN configDN = configEntry.getDN();
+        result = runUpdateStateEntry(configDN);
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Run a modify operation to update the entry whose DN is given as
+   * a parameter with the serverState information.
+   *
+   * @param serverStateEntryDN The DN of the entry to be updated.
+   *
+   * @return A ResultCode indicating if the operation was successful.
+   */
+  private ResultCode runUpdateStateEntry(DN serverStateEntryDN)
+  {
     ArrayList<ASN1OctetString> values = this.toASN1ArrayList();
 
     if (values.size() == 0)
@@ -216,16 +325,14 @@ public class PersistentServerState extends ServerState
     ModifyOperationBasis op =
       new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
           InternalClientConnection.nextMessageID(),
-          new ArrayList<Control>(0), asn1BaseDn,
+          new ArrayList<Control>(0),
+          new ASN1OctetString(serverStateEntryDN.toString()),
           mods);
     op.setInternalOperation(true);
     op.setSynchronizationOperation(true);
     op.setDontSynchronize(true);
     op.run();
-
-    ResultCode result = op.getResultCode();
-    if ((result != ResultCode.SUCCESS) &&
-        ((result != ResultCode.NO_SUCH_OBJECT)))
+    if (op.getResultCode() != ResultCode.SUCCESS)
     {
       Message message = DEBUG_ERROR_UPDATING_RUV.get(
               op.getResultCode().getResultCodeName().toString(),
@@ -234,6 +341,6 @@ public class PersistentServerState extends ServerState
               baseDn.toString());
       logError(message);
     }
-    return result;
+    return op.getResultCode();
   }
 }
