@@ -39,7 +39,7 @@
   
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='aci'                
+              CurrentTestPath['group']='aci'			  			  
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
       
@@ -58,7 +58,7 @@
             file="'%s/testcases/aci/aci_setup.xml' % (TESTS_DIR)"/>
           <call function="'aci_setup'" />
 
-                            
+												    
           <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
@@ -118,13 +118,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=amiller,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                    'testString'         : 'dn: uid=amiller,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: RDN Wildcards: Preamble - user searching targeted entry, level two'
               </message>
@@ -146,13 +143,10 @@
   
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'dn: uid=bmiller,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                    'testString'         : 'dn: uid=bmiller,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                    'expectedResult'     : '1' }
               </call>
               
-              <if expr="returnCode != '1'">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: RDN Wildcards: Preamble - user searching targeted entry, level three'
               </message>
@@ -244,13 +238,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with whole-type wildcard, single entry, admin deleting aci'
                 </message>
@@ -360,31 +351,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=bmiller,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=bmiller,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=amiller,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=amiller,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with whole-type wildcard, several entries, admin deleting aci'
                 </message>
@@ -494,31 +476,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=bmiller,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=bmiller,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=amiller,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=amiller,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with whole-type wildcard, several entries, shorthand, admin deleting aci'
                 </message>
@@ -627,13 +600,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, admin deleting aci'
                 </message>
@@ -742,13 +712,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, two level allow, admin deleting aci'
                 </message>
@@ -857,13 +824,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard, single entry, two level deny, admin deleting aci'
                 </message>
@@ -972,13 +936,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, two level deny, admin deleting aci'
                 </message>
@@ -1087,13 +1048,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard, single entry, three level deny, admin deleting aci'
                 </message>
@@ -1202,13 +1160,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, three level deny, admin deleting aci'
                 </message>
@@ -1317,31 +1272,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=bmiller,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=bmiller,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=amiller,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=amiller,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with whole-type and multiple-whole-rdn wildcard, several entries, shorthand, admin deleting aci'
                 </message>
@@ -1450,13 +1396,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with several multiple-whole-rdn wildcards, three level deny, admin deleting aci'
                 </message>
@@ -1565,13 +1508,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with several multiple-whole-rdn wildcards with bad branch, admin deleting aci'
                 </message>
@@ -1680,13 +1620,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard syntax, multiple spaces, admin deleting aci'
                 </message>
@@ -1956,13 +1893,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with usrdn syntax, wildcard notation for uid, user searching targeted entry'
                 </message>
@@ -1984,13 +1918,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with usrdn syntax, wildcard notation for uid, admin deleting aci'
                 </message>
@@ -2081,7 +2012,7 @@
             file="'%s/testcases/aci/aci_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'aci_cleanup'" />
 
-                        
+												
           <call function="'testSuite_Postamble'"/>
             
         </sequence>
