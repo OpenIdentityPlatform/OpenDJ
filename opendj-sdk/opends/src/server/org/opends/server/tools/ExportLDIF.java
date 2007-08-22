@@ -25,9 +25,6 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
-import org.opends.messages.Message;
-
-
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -39,6 +36,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
+import static org.opends.server.config.ConfigConstants.*;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -53,35 +51,42 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.SearchFilter;
+import org.opends.server.types.RawAttribute;
 import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
+import org.opends.server.util.args.LDAPConnectionArgumentParser;
 
+import org.opends.messages.Message;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
+import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.admin.std.server.BackendCfg;
+import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.tasks.ExportTask;
 
 
 /**
  * This program provides a utility that may be used to export the contents of a
- * Directory Server backend to an LDIF file.  This will be a process that is
- * intended to run separate from Directory Server and not internally within the
- * server process (e.g., via the tasks interface).
+ * Directory Server backend to an LDIF file.  Depending on the arguments given,
+ * this program will either perform the export directly as a process that
+ * runs separate from Directory Server; or by scheduling a task to perform the
+ * action within the Directory Server via the tasks interface.
  */
-public class ExportLDIF
-{
+public class ExportLDIF extends TaskTool {
+
   private static ErrorLogPublisher errorLogPublisher = null;
+
   /**
    * The main method for ExportLDIF tool.
    *
    * @param  args  The command-line arguments provided to this program.
    */
-
   public static void main(String[] args)
   {
     int retCode = mainExportLDIF(args, true, System.out, System.err);
@@ -126,6 +131,32 @@ public class ExportLDIF
                                    OutputStream outStream,
                                    OutputStream errStream)
   {
+    ExportLDIF tool = new ExportLDIF();
+    return tool.process(args, initializeServer, outStream, errStream);
+  }
+
+  // Define the command-line arguments that may be used with this program.
+  private BooleanArgument appendToLDIF            = null;
+  private BooleanArgument compressLDIF            = null;
+  private BooleanArgument displayUsage            = null;
+  private BooleanArgument encryptLDIF             = null;
+  private BooleanArgument excludeOperationalAttrs = null;
+  private BooleanArgument signHash                = null;
+  private IntegerArgument wrapColumn              = null;
+  private StringArgument  backendID               = null;
+  private StringArgument  configClass             = null;
+  private StringArgument  configFile              = null;
+  private StringArgument  excludeAttributeStrings = null;
+  private StringArgument  excludeBranchStrings    = null;
+  private StringArgument  excludeFilterStrings    = null;
+  private StringArgument  includeAttributeStrings = null;
+  private StringArgument  includeBranchStrings    = null;
+  private StringArgument  includeFilterStrings    = null;
+  private StringArgument  ldifFile                = null;
+
+  private int process(String[] args, boolean initializeServer,
+                      OutputStream outStream, OutputStream errStream) {
+
     PrintStream out;
     if (outStream == null)
     {
@@ -146,31 +177,11 @@ public class ExportLDIF
       err = new PrintStream(errStream);
     }
 
-    // Define the command-line arguments that may be used with this program.
-    BooleanArgument appendToLDIF            = null;
-    BooleanArgument compressLDIF            = null;
-    BooleanArgument displayUsage            = null;
-    BooleanArgument encryptLDIF             = null;
-    BooleanArgument excludeOperationalAttrs = null;
-    BooleanArgument signHash                = null;
-    IntegerArgument wrapColumn              = null;
-    StringArgument  backendID               = null;
-    StringArgument  configClass             = null;
-    StringArgument  configFile              = null;
-    StringArgument  excludeAttributeStrings = null;
-    StringArgument  excludeBranchStrings    = null;
-    StringArgument  excludeFilterStrings    = null;
-    StringArgument  includeAttributeStrings = null;
-    StringArgument  includeBranchStrings    = null;
-    StringArgument  includeFilterStrings    = null;
-    StringArgument  ldifFile                = null;
-
-
     // Create the command-line argument parser for use with this program.
     Message toolDescription = INFO_LDIFEXPORT_TOOL_DESCRIPTION.get();
-    ArgumentParser argParser =
-         new ArgumentParser("org.opends.server.tools.ExportLDIF",
-                            toolDescription, false);
+    LDAPConnectionArgumentParser argParser =
+         new LDAPConnectionArgumentParser("org.opends.server.tools.ExportLDIF",
+                                          toolDescription, false);
 
 
     // Initialize all the command-line argument types and register them with the
@@ -267,7 +278,7 @@ public class ExportLDIF
 
 
       wrapColumn =
-           new IntegerArgument("wrapcolumn", 'w', "wrapColumn", false, false,
+           new IntegerArgument("wrapcolumn", null, "wrapColumn", false, false,
                                true, "{wrapColumn}", 0, null, true, 0, false, 0,
                                INFO_LDIFEXPORT_DESCRIPTION_WRAP_COLUMN.get());
       argParser.addArgument(wrapColumn);
@@ -330,6 +341,147 @@ public class ExportLDIF
       return 0;
     }
 
+    return process(argParser, initializeServer, out, err);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void addTaskAttributes(List<RawAttribute> attributes)
+  {
+    //
+    // Required attributes
+    //
+    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>(1);
+    values.add(new ASN1OctetString(ldifFile.getValue()));
+    attributes.add(new LDAPAttribute(ATTR_TASK_EXPORT_LDIF_FILE, values));
+
+    values = new ArrayList<ASN1OctetString>(1);
+    values.add(new ASN1OctetString(backendID.getValue()));
+    attributes.add(new LDAPAttribute(ATTR_TASK_EXPORT_BACKEND_ID, values));
+
+    //
+    // Optional attributes
+    //
+    if (appendToLDIF.getValue() != null &&
+            !appendToLDIF.getValue().equals(appendToLDIF.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(appendToLDIF.getValue()));
+      attributes.add(
+              new LDAPAttribute(ATTR_TASK_EXPORT_APPEND_TO_LDIF, values));
+    }
+
+    if (compressLDIF.getValue() != null &&
+            !compressLDIF.getValue().equals(compressLDIF.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(compressLDIF.getValue()));
+      attributes.add(new LDAPAttribute(ATTR_TASK_EXPORT_COMPRESS_LDIF, values));
+    }
+
+    if (encryptLDIF.getValue() != null &&
+            !encryptLDIF.getValue().equals(encryptLDIF.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(encryptLDIF.getValue()));
+      attributes.add(new LDAPAttribute(ATTR_TASK_EXPORT_ENCRYPT_LDIF, values));
+    }
+
+    if (signHash.getValue() != null &&
+            !signHash.getValue().equals(signHash.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(signHash.getValue()));
+      attributes.add(
+              new LDAPAttribute(ATTR_TASK_EXPORT_SIGN_HASH, values));
+    }
+
+    List<String> includeAttributes = includeAttributeStrings.getValues();
+    if (includeAttributes != null && includeAttributes.size() > 0) {
+      values = new ArrayList<ASN1OctetString>(includeAttributes.size());
+      for (String includeAttribute : includeAttributes) {
+        values.add(new ASN1OctetString(includeAttribute));
+      }
+      attributes.add(
+              new LDAPAttribute(ATTR_TASK_EXPORT_INCLUDE_ATTRIBUTE, values));
+    }
+
+    List<String> excludeAttributes = excludeAttributeStrings.getValues();
+    if (excludeAttributes != null && excludeAttributes.size() > 0) {
+      values = new ArrayList<ASN1OctetString>(excludeAttributes.size());
+      for (String excludeAttribute : excludeAttributes) {
+        values.add(new ASN1OctetString(excludeAttribute));
+      }
+      attributes.add(
+              new LDAPAttribute(ATTR_TASK_EXPORT_EXCLUDE_ATTRIBUTE, values));
+    }
+
+    List<String> includeFilters = includeFilterStrings.getValues();
+    if (includeFilters != null && includeFilters.size() > 0) {
+      values = new ArrayList<ASN1OctetString>(includeFilters.size());
+      for (String includeFilter : includeFilters) {
+        values.add(new ASN1OctetString(includeFilter));
+      }
+      attributes.add(
+              new LDAPAttribute(ATTR_TASK_EXPORT_INCLUDE_FILTER, values));
+    }
+
+    List<String> excludeFilters = excludeFilterStrings.getValues();
+    if (excludeFilters != null && excludeFilters.size() > 0) {
+      values = new ArrayList<ASN1OctetString>(excludeFilters.size());
+      for (String excludeFilter : excludeFilters) {
+        values.add(new ASN1OctetString(excludeFilter));
+      }
+      attributes.add(
+              new LDAPAttribute(ATTR_TASK_EXPORT_EXCLUDE_FILTER, values));
+    }
+
+    List<String> includeBranches = includeBranchStrings.getValues();
+    if (includeBranches != null && includeBranches.size() > 0) {
+      values = new ArrayList<ASN1OctetString>(includeBranches.size());
+      for (String includeBranche : includeBranches) {
+        values.add(new ASN1OctetString(includeBranche));
+      }
+      attributes.add(
+              new LDAPAttribute(ATTR_TASK_EXPORT_INCLUDE_BRANCH, values));
+    }
+
+    List<String> excludeBranches = excludeBranchStrings.getValues();
+    if (excludeBranches != null && excludeBranches.size() > 0) {
+      values = new ArrayList<ASN1OctetString>(excludeBranches.size());
+      for (String excludeBranche : excludeBranches) {
+        values.add(new ASN1OctetString(excludeBranche));
+      }
+      attributes.add(
+              new LDAPAttribute(ATTR_TASK_EXPORT_EXCLUDE_BRANCH, values));
+    }
+
+    if (wrapColumn.getValue() != null &&
+            !wrapColumn.getValue().equals(wrapColumn.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(wrapColumn.getValue()));
+      attributes.add(
+              new LDAPAttribute(ATTR_TASK_EXPORT_WRAP_COLUMN, values));
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getTaskObjectclass() {
+    return "ds-task-export";
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Class getTaskClass() {
+    return ExportTask.class;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected int processLocal(boolean initializeServer,
+                           PrintStream out,
+                           PrintStream err) {
 
     // Perform the initial bootstrap of the Directory Server and process the
     // configuration.
