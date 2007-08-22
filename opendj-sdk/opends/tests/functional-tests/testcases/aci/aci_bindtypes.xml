@@ -39,7 +39,7 @@
   
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='aci'              
+              CurrentTestPath['group']='aci'						  
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
       
@@ -58,7 +58,7 @@
             file="'%s/testcases/aci/aci_setup.xml' % (TESTS_DIR)"/>
           <call function="'aci_setup'" />
 
-                            
+												    
           <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
@@ -133,13 +133,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: Preamble - Adding Static Groups For Bind Type Tests'
                 </message>
@@ -192,22 +189,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=cuser,ou=People,o=ACI Tests' }
+                      'testString'         : 'dn: uid=cuser,ou=People,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'isMemberOf: cn=Marketing' }
+                      'testString'         : 'isMemberOf: cn=Marketing' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: Preamble - admin searching one entry for isMemberOf of dynamic group'
                 </message>
@@ -228,13 +219,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=luser,ou=People,o=ACI Tests' }
+                      'testString'         : 'dn: uid=luser,ou=People,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'checktestString'">
                     { 'returnString'       : returnString ,
                       'expectedString'     : 'isMemberOf: cn=Development' }
@@ -310,22 +298,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one static group, user searching in non-targeted branch with group member'
                 </message>
@@ -346,13 +328,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one static group, user searching with non-group member'
                 </message>
@@ -373,13 +352,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one static group, user searching with different group member'
                 </message>
@@ -400,13 +376,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one static group, admin deleting aci'
                 </message>
@@ -515,22 +488,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals two static groups, user searching in non-targeted branch with group member'
                 </message>
@@ -551,13 +518,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals two static groups, user searching with non-group member'
                 </message>
@@ -578,13 +542,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals two static groups, user searching with different group member'
                 </message>
@@ -605,22 +566,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals two static groups, admin deleting aci'
                 </message>
@@ -729,22 +684,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals one static group, user searching in non-targeted branch with different group member'
                 </message>
@@ -765,13 +714,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals one static group, user searching with non-group member'
                 </message>
@@ -792,22 +738,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals one static group, user searching with group member'
                 </message>
@@ -828,13 +768,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals one static group, admin deleting aci'
                 </message>
@@ -943,13 +880,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals two static groups, user searching in non-targeted branch with group member'
                 </message>
@@ -970,13 +904,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals two static groups, user searching with non-group member'
                 </message>
@@ -997,22 +928,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals two static groups, user searching with different group member'
                 </message>
@@ -1033,13 +958,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals two static groups, admin deleting aci'
                 </message>
@@ -1148,22 +1070,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one dynamic group, user searching in non-targeted branch with group member'
                 </message>
@@ -1184,13 +1100,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one dynamic group, user searching with non-group member'
                 </message>
@@ -1211,13 +1124,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one dynamic group, user searching with different group member'
                 </message>
@@ -1238,13 +1148,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one dynamic group, admin deleting aci'
                 </message>
@@ -1353,22 +1260,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals two dynamic groups, user searching in non-targeted branch with group member'
                 </message>
@@ -1389,13 +1290,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals two dynamic groups, user searching with non-group member'
                 </message>
@@ -1416,13 +1314,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals two dynamic groups, user searching with different group member'
                 </message>
@@ -1443,22 +1338,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals two dynamic groups, admin deleting aci'
                 </message>
@@ -1567,22 +1456,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals one dynamic group, user searching in non-targeted branch with different group member'
                 </message>
@@ -1603,13 +1486,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals one dynamic group, user searching with non-group member'
                 </message>
@@ -1630,22 +1510,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals one dynamic group, user searching with group member'
                 </message>
@@ -1666,13 +1540,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals one dynamic group, admin deleting aci'
                 </message>
@@ -1781,13 +1652,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals two dynamic groups, user searching in non-targeted branch with group member'
                 </message>
@@ -1808,13 +1676,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals two dynamic groups, user searching with non-group member'
                 </message>
@@ -1835,22 +1700,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals two dynamic groups, user searching with different group member'
                 </message>
@@ -1871,13 +1730,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals two dynamic groups, admin deleting aci'
                 </message>
@@ -1986,13 +1842,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'ACI: Bind Types: groupdn equals one static group with wildcard, user searching in non-targeted branch'
                 </message>
@@ -2013,13 +1866,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one static group with wildcard, user searching with non-group member'
                 </message>
@@ -2040,13 +1890,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one static group with wildcard, user searching with different-group member'
                 </message>
@@ -2067,13 +1914,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one static group with wildcard, admin deleting aci'
                 </message>
@@ -2182,22 +2026,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one static and one dynamic group, user searching in non-targeted branch with group member'
                 </message>
@@ -2218,13 +2056,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one static and one dynamic group, user searching with non-group member'
                 </message>
@@ -2245,13 +2080,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one static and one dynamic group, user searching with different group member'
                 </message>
@@ -2272,22 +2104,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one static and one dynamic group, admin deleting aci'
                 </message>
@@ -2434,22 +2260,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite add member, user searching in non-targeted branch with new group member'
                 </message>
@@ -2470,13 +2290,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite add member, admin deleting selfwrite aci'
                 </message>
@@ -2654,22 +2471,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite delete member, admin deleting aci'
                 </message>
@@ -2829,22 +2640,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite replace member, admin deleting aci'
                 </message>
@@ -3004,22 +2809,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite add description, admin deleting aci'
                 </message>
@@ -3130,31 +2929,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'l:' }
+                      'testString'         : 'l:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr equals one attr, user searching targeted entry with selected attributes'
                 </message>
@@ -3175,31 +2965,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'l:' }
+                      'testString'         : 'l:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr equals one attr, user searching targeted entry with selected attributes without matching attribute'
                 </message>
@@ -3220,22 +3001,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr equals one attr, user searching in non-targeted branch'
                 </message>
@@ -3256,13 +3031,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr equals one attr, user searching entry with non-matching attribute'
                 </message>
@@ -3283,13 +3055,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=kvaughan,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=kvaughan,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr equals one attr, admin deleting aci'
                 </message>
@@ -3400,31 +3169,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'l:' }
+                      'testString'         : 'l:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr not equals one attr, user searching entry with selected attributes with no matching attribute value'
                 </message>
@@ -3445,31 +3205,21 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
                       'testString'         : 'l:' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr not equals one attr, user searching entry with selected attributes without matching attribute with no matching attribute value'
                 </message>
@@ -3490,22 +3240,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr not equals one attr, user searching in non-targeted branch with no matching attribute value'
                 </message>
@@ -3526,14 +3270,11 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
- 
-               <message>
+                <message>
                    'ACI: Bind Types: userattr not equals one attr, user searching entry with matching attribute'
                 </message>
     
@@ -3553,16 +3294,8 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=kvaughan,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
-                </call>
-                
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
-                <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'dn: uid=kvaughan,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
                 <message>
@@ -3585,13 +3318,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=kvaughan,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=kvaughan,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-        
                 <message>
                    'ACI: Bind Types: userattr not equals one attr, admin deleting aci'
                 </message>
@@ -3699,31 +3429,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=gfarmer,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=gfarmer,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'manager:' }
+                      'testString'         : 'manager:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr equals one attr with bindtype, user searching in non-targeted branch'
                 </message>
@@ -3744,13 +3465,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=gfarmer,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=gfarmer,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr equals one attr with bindtype, user searching entry with non-matching manager'
                 </message>
@@ -3771,13 +3489,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=kvaughan,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=kvaughan,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr equals one attr with bindtype, admin deleting aci'
                 </message>
@@ -3886,32 +3601,23 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=kwinters,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=kwinters,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'manager:' }
+                      'testString'         : 'manager:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
-               <message>
+                <message>
                    'ACI: Bind Types: userattr equals one attr with groupdn, user searching in non-targeted branch with group member'
                 </message>
     
@@ -3931,13 +3637,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=kwinters,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=kwinters,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr equals one attr with groupdn, static group, user searching with non-group member'
                 </message>
@@ -3958,13 +3661,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=kwinters,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=kwinters,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr equals one attr with groupdn, user searching with different group member'
                 </message>
@@ -3985,13 +3685,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=kwinters,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=kwinters,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr equals one attr with groupdn, admin deleting aci'
                 </message>
@@ -4104,32 +3801,23 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=kwinters,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=kwinters,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'manager:' }
+                      'testString'         : 'manager:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
-               <message>
+                <message>
                    'ACI: Bind Types: userattr equals one attr with groupdn, url expression, user searching with non-group member'
                 </message>
     
@@ -4149,13 +3837,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-      
                 <message>
                    'ACI: Bind Types: userattr equals one attr with groupdn, url expression,, admin deleting aci'
                 </message>
@@ -4171,10 +3856,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <if expr="RC != 0">
                     <tcstatus result="'fail'"/>
                 </if>
@@ -4271,49 +3952,34 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'manager:' }
+                      'testString'         : 'manager:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, deny children, user searching in first child level'
                 </message>
@@ -4335,22 +4001,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, deny children, user searching in second child level'
                 </message>
@@ -4372,13 +4032,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, deny children, admin deleting aci'
                 </message>
@@ -4489,49 +4146,34 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'manager:' }
+                      'testString'         : 'manager:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, allow one child level, user searching in first child level'
                 </message>
@@ -4553,22 +4195,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-
-               <call function="'searchStringForSubstring'">
+                <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, allow one child level, user searching in second child level'
                 </message>
@@ -4590,13 +4226,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, allow one child level, admin deleting aci'
                 </message>
@@ -4706,49 +4339,34 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'manager:' }
+                      'testString'         : 'manager:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, allow two child levels, user searching in first child level'
                 </message>
@@ -4770,22 +4388,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, allow two child levels, user searching in second child level'
                 </message>
@@ -4807,13 +4419,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, allow two child levels, admin deleting aci'
                 </message>
@@ -4923,31 +4532,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=gfarmer,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=gfarmer,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'cn:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'manager:' }
+                      'testString'         : 'manager:' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr equals one operational attr with bindtype, user searching in non-targeted branch'
                 </message>
@@ -4968,12 +4568,9 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=gfarmer,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=gfarmer,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
-                
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'ACI: Bind Types: userattr equals one operational attr with bindtype, admin deleting aci'
@@ -5327,31 +4924,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userdn with filter, user searching in non-targeted branch with group member'
                 </message>
@@ -5372,14 +4960,11 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' }
+                      'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
-               <message>
+                <message>
                    'ACI: Bind Types: userdn with filter, admin deleting aci'
                 </message>
     
@@ -5463,13 +5048,10 @@
     
             <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=People' }
+                      'testString'         : 'dn: uid=dmiller,ou=People' ,
+                      'expectedResult'     : '0' }
             </call>
                 
-            <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-            </if>
-            
             <message>
                'ACI: Bind Types: authmethod equals none, adding authmethod ACI'
             </message>
@@ -5511,13 +5093,10 @@
     
             <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=dmiller,ou=People' }
+                      'testString'         : 'dn: uid=dmiller,ou=People' ,
+                      'expectedResult'     : '1' }
             </call>
                 
-            <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-            </if>
-            
             <message>
                'ACI: Bind Types: authmethod equals none, deleting authmethod ACI'
             </message>
@@ -5623,7 +5202,7 @@
             file="'%s/testcases/aci/aci_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'aci_cleanup'" />
 
-                        
+												
           <call function="'testSuite_Postamble'"/>
             
         </sequence>
