@@ -89,7 +89,7 @@
     </adm:requires-admin-action>
     <adm:syntax>
       <adm:enumeration>
-        <adm:value name="base-level">
+        <adm:value name="base-object">
           <adm:synopsis>
             Search the base object only.
           </adm:synopsis>
