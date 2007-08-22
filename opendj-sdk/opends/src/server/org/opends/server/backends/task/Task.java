@@ -876,7 +876,7 @@ public abstract class Task
       buffer.append("\" msgCount=");
       buffer.append(logMessageCounter++);
       buffer.append(" msgID=");
-      buffer.append(message.getDescriptor().getOrdinal());
+      buffer.append(message.getDescriptor().getId());
       buffer.append(" message=\"");
       buffer.append(message.toString());
       buffer.append("\"");
