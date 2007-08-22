@@ -51,6 +51,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
+import org.opends.server.extensions.DummyAlertHandler;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -80,6 +81,7 @@ import org.opends.server.types.OperationType;
 import org.opends.server.types.RDN;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
+import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -653,6 +655,7 @@ public class UpdateOperationTest extends ReplicationTestCase
         DN.decode("cn=something,ou=People,dc=example,dc=com"), mods,
         user1entryUUID);
     updateMonitorCount(baseDn, resolvedMonitorAttr);
+    int AlertCount = DummyAlertHandler.getAlertCount();
     broker.publish(modMsg);
 
     // check that the modify has been applied as if the entry had been renamed.
@@ -661,6 +664,11 @@ public class UpdateOperationTest extends ReplicationTestCase
     if (found == false)
      fail("The modification has not been correctly replayed.");
     assertEquals(getMonitorDelta(), 1);
+    
+    // check that there was no administrative alert generated
+    // because the conflict has been automatically resolved.
+    assertEquals(DummyAlertHandler.getAlertCount(), AlertCount,
+        "An alert was incorrectly generated when resolving conflicts");
 
     /*
      * Test that the conflict resolution code is able to detect
@@ -691,14 +699,22 @@ public class UpdateOperationTest extends ReplicationTestCase
     modMsg = new ModifyMsg(gen.newChangeNumber(),
         DN.decode(user1dn), mods, "10000000-9abc-def0-1234-1234567890ab");
     updateMonitorCount(baseDn, resolvedMonitorAttr);
+    AlertCount = DummyAlertHandler.getAlertCount();
     broker.publish(modMsg);
 
     // check that the modify has not been applied
+    TimeThread.sleep(2000);
     found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
                            "telephonenumber", "02 01 03 05", 10000, false);
     if (found == true)
      fail("The modification has been replayed while it should not.");
     assertEquals(getMonitorDelta(), 1);
+    
+    // Check that there was no administrative alert generated
+    // because the conflict has been automatically resolved.
+    assertEquals(DummyAlertHandler.getAlertCount(), AlertCount,
+        "An alert was incorrectly generated when resolving conflicts");
+
 
 
     /*
@@ -714,6 +730,7 @@ public class UpdateOperationTest extends ReplicationTestCase
       new DeleteMsg("cn=anotherdn,ou=People,dc=example,dc=com",
           gen.newChangeNumber(), user1entryUUID);
     updateMonitorCount(baseDn, resolvedMonitorAttr);
+    AlertCount = DummyAlertHandler.getAlertCount();
     broker.publish(delMsg);
 
     // check that the delete operation has been applied
@@ -722,6 +739,10 @@ public class UpdateOperationTest extends ReplicationTestCase
     assertNull(resultEntry,
         "The DELETE replication message was not replayed");
     assertEquals(getMonitorDelta(), 1);
+    // Check that there was no administrative alert generated
+    // because the conflict has been automatically resolved.
+    assertEquals(DummyAlertHandler.getAlertCount(), AlertCount,
+        "An alert was incorrectly generated when resolving conflicts");
 
     /*
      * Test that two adds with the same DN but a different unique ID result
@@ -749,6 +770,7 @@ public class UpdateOperationTest extends ReplicationTestCase
         personWithSecondUniqueID.getObjectClassAttribute(),
         personWithSecondUniqueID.getAttributes(), new ArrayList<Attribute>());
     updateMonitorCount(baseDn, unresolvedMonitorAttr);
+    AlertCount = DummyAlertHandler.getAlertCount();
     broker.publish(addMsg);
 
     //  Check that the entry has been renamed and created in the local DS.
@@ -759,6 +781,11 @@ public class UpdateOperationTest extends ReplicationTestCase
         "The ADD replication message was not applied");
     assertEquals(getMonitorDelta(), 1);
     assertConflictAttribute(resultEntry);
+    // Check that there was an administrative alert generated
+    // because the conflict has not been automatically resolved.
+    assertEquals(DummyAlertHandler.getAlertCount(), AlertCount+1,
+        "An alert was not generated when resolving conflicts");
+
 
     //  delete the entries to clean the database.
     delMsg =
@@ -788,6 +815,7 @@ public class UpdateOperationTest extends ReplicationTestCase
         personWithUUIDEntry.getObjectClassAttribute(),
         personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
     updateMonitorCount(baseDn, resolvedMonitorAttr);
+    AlertCount = DummyAlertHandler.getAlertCount();
     broker.publish(addMsg);
 
     //  Check that the entry has been renamed and created in the local DS.
@@ -796,6 +824,11 @@ public class UpdateOperationTest extends ReplicationTestCase
     assertNotNull(resultEntry,
         "The ADD replication message was not applied");
     assertEquals(getMonitorDelta(), 1);
+    // Check that there was no administrative alert generated
+    // because the conflict has been automatically resolved.
+    assertEquals(DummyAlertHandler.getAlertCount(), AlertCount,
+        "An alert was incorrectly generated when resolving conflicts");
+
 
     /*
      * Check that when replaying delete the naming conflict code
@@ -810,6 +843,7 @@ public class UpdateOperationTest extends ReplicationTestCase
       new DeleteMsg("uid=new person,ou=People,dc=example,dc=com",
           gen.newChangeNumber(), "11111111-9abc-def0-1234-1234567890ab");
     updateMonitorCount(baseDn, resolvedMonitorAttr);
+    AlertCount = DummyAlertHandler.getAlertCount();
     broker.publish(delMsg);
     resultEntry = getEntry(
           DN.decode("uid=new person,ou=People,dc=example,dc=com"), 10000, true);
@@ -818,6 +852,11 @@ public class UpdateOperationTest extends ReplicationTestCase
     assertNotNull(resultEntry,
         "The DELETE replication message was replayed when it should not");
     assertEquals(getMonitorDelta(), 1);
+    
+    // Check that there was no administrative alert generated
+    // because the conflict has been automatically resolved.
+    assertEquals(DummyAlertHandler.getAlertCount(), AlertCount,
+        "An alert was incorrectly generated when resolving conflicts");
 
 
     /*
@@ -835,6 +874,7 @@ public class UpdateOperationTest extends ReplicationTestCase
         "uid=wrong, ou=people,dc=example,dc=com",
         "uid=newrdn");
     updateMonitorCount(baseDn, resolvedMonitorAttr);
+    AlertCount = DummyAlertHandler.getAlertCount();
     broker.publish(modDnMsg);
 
     resultEntry = getEntry(
@@ -844,6 +884,12 @@ public class UpdateOperationTest extends ReplicationTestCase
     assertNotNull(resultEntry,
       "The modify dn was not or badly replayed");
     assertEquals(getMonitorDelta(), 1);
+    
+    // Check that there was no administrative alert generated
+    // because the conflict has been automatically resolved.
+    assertEquals(DummyAlertHandler.getAlertCount(), AlertCount,
+        "An alert was incorrectly generated when resolving conflicts");
+
 
     /*
      * same test but by giving a bad entry DN
@@ -853,6 +899,7 @@ public class UpdateOperationTest extends ReplicationTestCase
         "uid=wrong,ou=People,dc=example,dc=com", gen.newChangeNumber(),
         user1entryUUID, baseUUID, false, null, "uid=reallynewrdn");
     updateMonitorCount(baseDn, resolvedMonitorAttr);
+    AlertCount = DummyAlertHandler.getAlertCount();
     broker.publish(modDnMsg);
 
     resultEntry = getEntry(
@@ -862,6 +909,12 @@ public class UpdateOperationTest extends ReplicationTestCase
     assertNotNull(resultEntry,
       "The modify dn was not or badly replayed");
     assertEquals(getMonitorDelta(), 1);
+    
+    // Check that there was no administrative alert generated
+    // because the conflict has been automatically resolved.
+    assertEquals(DummyAlertHandler.getAlertCount(), AlertCount,
+        "An alert was incorrectly generated when resolving conflicts");
+
 
     /*
      * Check that conflicting entries are renamed when a
@@ -888,6 +941,7 @@ public class UpdateOperationTest extends ReplicationTestCase
                                user1entrysecondUUID, baseUUID, false,
                                baseDn.toString(), "uid=reallynewrdn");
     updateMonitorCount(baseDn, unresolvedMonitorAttr);
+    AlertCount = DummyAlertHandler.getAlertCount();
     broker.publish(modDnMsg);
 
    // check that the second entry has been renamed
@@ -897,6 +951,12 @@ public class UpdateOperationTest extends ReplicationTestCase
     assertNotNull(resultEntry, "The modifyDN was not or incorrectly replayed");
     assertEquals(getMonitorDelta(), 1);
     assertConflictAttribute(resultEntry);
+    
+    // Check that there was no administrative alert generated
+    // because the conflict has been automatically resolved.
+    assertEquals(DummyAlertHandler.getAlertCount(), AlertCount+1,
+        "An alert was not generated when resolving conflicts");
+
 
     // delete the entries to clean the database
     delMsg =
@@ -1003,6 +1063,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
     // - publish msg
     updateMonitorCount(baseDn, resolvedMonitorAttr);
+    AlertCount = DummyAlertHandler.getAlertCount();
     broker.publish(addMsg);
 
     // - check that the Dn has been changed to baseDn2
@@ -1017,6 +1078,12 @@ public class UpdateOperationTest extends ReplicationTestCase
         "The ADD replication message was NOT applied under ou=baseDn2,"+baseDn);
     entryList.add(resultEntry.getDN());
     assertEquals(getMonitorDelta(), 1);
+    
+    // Check that there was no administrative alert generated
+    // because the conflict has been automatically resolved.
+    assertEquals(DummyAlertHandler.getAlertCount(), AlertCount,
+        "An alert was incorrectly generated when resolving conflicts");
+
     
     //
     // Check that when a delete is conflicting with Add of some entries
@@ -1037,6 +1104,7 @@ public class UpdateOperationTest extends ReplicationTestCase
         "entryUUID = " + domain3uid + "+dc=domain3,ou=people,dc=example,dc=com");
  
     updateMonitorCount(baseDn, unresolvedMonitorAttr);
+    AlertCount = DummyAlertHandler.getAlertCount();
     
     // delete domain1
     delMsg = new DeleteMsg(domain1dn, gen.newChangeNumber(), domain1uid);
@@ -1060,6 +1128,12 @@ public class UpdateOperationTest extends ReplicationTestCase
     
     // check that unresolved conflict count has been incremented
     assertEquals(getMonitorDelta(), 1);
+    
+    // Check that an administrative alert was generated
+    // because the conflict has not been automatically resolved.
+    assertEquals(DummyAlertHandler.getAlertCount(), AlertCount+2,
+        "An alert was incorrectly generated when resolving conflicts");
+
     
     // delete the resulting entries for the next test
     delEntry(conflictDomain2dn);
@@ -1097,12 +1171,19 @@ public class UpdateOperationTest extends ReplicationTestCase
         "uid=wrong, ou=people,dc=example,dc=com",
         "uid=newrdn");
     updateMonitorCount(baseDn, resolvedMonitorAttr);
+    AlertCount = DummyAlertHandler.getAlertCount();
     broker.publish(modDnMsg);
     // unfortunately it is difficult to check that the operation
     // did not do anything.
     // The only thing we can check is that resolved naminf conflict counter
     // has correctly been incremented.
     assertEquals(getMonitorDelta(), 1);
+    
+    // Check that there was no administrative alert generated
+    // because the conflict has been automatically resolved.
+    assertEquals(DummyAlertHandler.getAlertCount(), AlertCount,
+        "An alert was incorrectly generated when resolving conflicts");
+
     
     broker.stop();
   }

@@ -2634,5 +2634,24 @@ public final class ServerConstants
    * the SMTP server.
    */
   public static final String SMTP_PROPERTY_PORT = "mail.smtp.port";
+
+
+  /**
+   * The description for the alert type that will be used for the alert
+   * notification generated if the multimaster replication detects
+   * a conflict that cannot be solved automatically.
+   */
+  public static final String ALERT_DESCRIPTION_REPLICATION_UNRESOLVED_CONFLICT =
+          "This alert type will be used to notify administrators if the  " +
+          "multimaster replication cannot resolve automatically a conflict.";
+
+
+  /**
+   * The alert type string that will be used for the alert notification
+   * generated if the multimaster replication detects
+   * a conflict that cannot be solved automatically.
+   */
+  public static final String ALERT_TYPE_REPLICATION_UNRESOLVED_CONFLICT =
+          "org.opends.server.replication.UnresolvedConflict";
 }
 

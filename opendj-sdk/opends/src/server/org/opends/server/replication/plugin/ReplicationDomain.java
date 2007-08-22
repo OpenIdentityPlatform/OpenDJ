@@ -38,11 +38,13 @@ import static org.opends.server.replication.plugin.Historical.ENTRYUIDNAME;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.util.StaticUtils.createEntry;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -56,6 +58,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.MultimasterDomainCfgDefn.*;
 import org.opends.server.admin.std.server.MultimasterDomainCfg;
 import org.opends.server.admin.std.server.BackendCfg;
+import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.SynchronizationProvider;
@@ -135,8 +138,15 @@ import org.opends.server.workflowelement.localbackend.*;
  *  handle protocol messages from the replicationServer.
  */
 public class ReplicationDomain extends DirectoryThread
-       implements ConfigurationChangeListener<MultimasterDomainCfg>
+       implements ConfigurationChangeListener<MultimasterDomainCfg>,
+                  AlertGenerator
 {
+  /**
+   * The fully-qualified name of this class.
+   */
+  private static final String CLASS_NAME =
+       "org.opends.server.replication.plugin.ReplicationDomain";
+
   /**
    * The attribute used to mark conflicting entries.
    * The value of this attribute should be the dn that this entry was
@@ -236,6 +246,11 @@ public class ReplicationDomain extends DirectoryThread
    * may be added in the futur.
    */
   private IsolationPolicy isolationpolicy;
+
+  /**
+   * The DN of the configuration entry of this domain.
+   */
+  private DN configDn;
 
   /**
    * This class contain the context related to an import or export
@@ -339,6 +354,7 @@ public class ReplicationDomain extends DirectoryThread
     window  = configuration.getWindowSize();
     heartbeatInterval = configuration.getHeartbeatInterval();
     isolationpolicy = configuration.getIsolationPolicy();
+    configDn = configuration.dn();
 
     /*
      * Modify conflicts are solved for all suffixes but the schema suffix
@@ -405,6 +421,9 @@ public class ReplicationDomain extends DirectoryThread
 
     // listen for changes on the configuration
     configuration.addChangeListener(this);
+
+    // register as an AltertGenerator
+    DirectoryServer.registerAlertGenerator(this);
   }
 
 
@@ -1160,6 +1179,8 @@ public class ReplicationDomain extends DirectoryThread
 
     DirectoryServer.deregisterMonitorProvider(monitor.getMonitorInstanceName());
 
+    DirectoryServer.deregisterAlertGenerator(this);
+
     // stop the ReplicationBroker
     broker.stop();
 
@@ -1899,10 +1920,16 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       mb.append(String.valueOf(newOp.getResultCode()));
       logError(mb.toMessage());
     }
+
+    // Generate an alert to let the administratot know that some
+    // conflict could not be solved.
+    Message alertMessage = NOTE_UNRESOLVED_CONFLICT.get(conflictDN.toString());
+    DirectoryServer.sendAlertNotification(this,
+        ALERT_TYPE_REPLICATION_UNRESOLVED_CONFLICT, alertMessage);
   }
 
   /**
-   * Add the conflict object class to an entry that could
+   * Add the conflict attribute to an entry that could
    * not be added because it is conflicting with another entry.
    *
    * @param msg            The conflicting Add Operation.
@@ -1912,6 +1939,13 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   private void addConflict(AddMsg msg) throws ASN1Exception
   {
+    // Generate an alert to let the administratot know that some
+    // conflict could not be solved.
+    Message alertMessage = NOTE_UNRESOLVED_CONFLICT.get(msg.getDn());
+    DirectoryServer.sendAlertNotification(this,
+        ALERT_TYPE_REPLICATION_UNRESOLVED_CONFLICT, alertMessage);
+
+    // Add the conflict attribute
     msg.addAttribute(DS_SYNC_CONFLICT, msg.getDn());
   }
 
@@ -2915,5 +2949,34 @@ private boolean solveNamingConflict(ModifyDNOperation op,
          MultimasterDomainCfg configuration, List<Message> unacceptableReasons)
   {
     return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public LinkedHashMap<String, String> getAlerts()
+  {
+    LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
+
+    alerts.put(ALERT_TYPE_REPLICATION_UNRESOLVED_CONFLICT,
+               ALERT_DESCRIPTION_REPLICATION_UNRESOLVED_CONFLICT);
+    return alerts;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getClassName()
+  {
+    return CLASS_NAME;
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public DN getComponentEntryDN()
+  {
+    return configDn;
   }
 }
