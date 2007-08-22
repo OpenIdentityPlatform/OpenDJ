@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="security_root_auth"/>
+
+  <function name="security_root_auth">
+
+    <sequence>
+
+      <block name="'security-root-auth'">
+      
+        <sequence>
+  
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='security'                
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+      
+          <call function="'testSuite_Preamble'"/>
+          
+          <!---
+                Place suite-specific test information here.
+                #@TestSuiteName             Root Authentication Tests
+                #@TestSuitePurpose          Test the basic authentication for new root users.
+                #@TestSuiteGroup            Basic Root Authentication Tests
+                #@TestScript                security_root_auth.xml
+          -->
+
+
+             <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Root Authentication Tests
+                #@TestName                  Root Auth - Preamble
+                #@TestIssue                 420
+                #@TestPurpose               Configure for Root Auth tests
+                #@TestPreamble              none
+                #@TestStep                  Admin change pwd storage to CLEAR
+                #@TestStep                  Admin add new root user.
+                #@TestStep                  Admin change Exact Match identity mapper match attribute.
+                #@TestStep                  Admin change Exact Match identity mapper match base dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0,for all steps.
+            -->
+            <testcase name="getTestCaseName('Root Auth - Preamble')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                <message>
+                  'Security: Pwd Policy Root: Root Auth, Preamble Step 1 - Admin Changing Pwd Storage to CLEAR'
+                </message>
+
+                <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Root Password Policy' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'CLEAR' }
+                </call>
+            
+                <message>
+                   'Security: Pwd Policy Root: Root Auth, Preamble Step 2 - Admin adding new root user'
+                </message>
+    
+                <call function="'addEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD  ,
+                    'entryToBeAdded'      : '%s/security/pwd_policy_root/add_new_root_user.ldif' % logsRemoteDataDir }
+                </call>
+            
+                <message>
+                   'Security: Pwd Policy Root: Root Auth, Preamble Step 3 - Admin changing authid attribute to givenName'
+                </message>
+    
+                <call function="'modifyIdentityMapper'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'mapperName'             : 'Exact Match' ,
+                    'attributeName'          : 'match-attribute' ,
+                    'attributeValue'         : 'givenName' }
+                </call>
+            
+                <message>
+                   'Security: Pwd Policy Root: Root Auth, Preamble Step 4 - Admin changing authid dn to root users'
+                </message>
+    
+                <call function="'modifyIdentityMapper'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'mapperName'             : 'Exact Match' ,
+                    'attributeName'          : 'match-base-dn' ,
+                    'attributeValue'         : 'cn=Root DNs,cn=config' }
+                </call>
+            
+                <call function="'testCase_Postamble'"/>
+            
+            </sequence>
+          </testcase>
+
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Root Authentication Tests
+                #@TestName                  Root Auth - New Root User (dn:) DIGEST-MD5 Bind
+                #@TestIssue                 420
+                #@TestPurpose               DIGEST-MD5 Bind
+                #@TestPreamble              none
+                #@TestStep                  New root user binds using DIGEST-MD5
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0.
+            -->
+            <testcase name="getTestCaseName('Root Auth - New Root User (dn:) DIGEST-MD5 Bind')">
+    
+            <sequence>
+    
+             <call function="'testCase_Preamble'"/>
+    
+             <message>
+               'Security: Pwd Policy Root: Root Auth, Root User (dn:) DIGEST-MD5 Binding'
+             </message>
+
+             <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:cn=Zroot Manager,cn=Root DNs,cn=config" -w froglegs' }
+              </call>
+
+            <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+          </testcase>
+       
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Root Authentication Tests
+                #@TestName                  Root Auth - New Root User (dn:) DIGEST-MD5 Bind, short form
+                #@TestIssue                 420
+                #@TestPurpose               DIGEST-MD5 Bind, short form
+                #@TestPreamble              none
+                #@TestStep                  New root user binds using DIGEST-MD5, short form
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0.
+            -->
+            <testcase name="getTestCaseName('Root Auth - New Root User (dn:) DIGEST-MD5 Bind, short form')">
+    
+            <sequence>
+    
+             <call function="'testCase_Preamble'"/>
+    
+             <message>
+               'Security: Pwd Policy Root: Root Auth, Root User (dn:) DIGEST-MD5 Binding, short form'
+             </message>
+
+             <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:cn=Zroot" -w froglegs' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+          </testcase>
+         
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Root Authentication Tests
+                #@TestName                  Root Auth - New Root User (dn:) DIGEST-MD5 Bind, u: form
+                #@TestIssue                 420
+                #@TestPurpose               DIGEST-MD5 Bind, u: form
+                #@TestPreamble              none
+                #@TestStep                  New root user binds using DIGEST-MD5, u: form
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0.
+            -->
+            <testcase name="getTestCaseName('Root Auth - New Root User (u:) DIGEST-MD5 Bind')">
+    
+            <sequence>
+    
+             <call function="'testCase_Preamble'"/>
+    
+             <message>
+               'Security: Pwd Policy Root: Root Auth, Root User (u:) DIGEST-MD5 Binding'
+             </message>
+
+             <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=u:Zroot" -w froglegs' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+          </testcase>
+         
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Root Authentication Tests
+                #@TestName                  Root Auth - New Root User (dn:) CRAM-MD5 Bind
+                #@TestIssue                 420
+                #@TestPurpose               CRAM-MD5 Bind
+                #@TestPreamble              none
+                #@TestStep                  New root user binds using CRAM-MD5
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0.
+            -->
+            <testcase name="getTestCaseName('Root Auth - New Root User (dn:) CRAM-MD5 Bind')">
+    
+            <sequence>
+    
+             <call function="'testCase_Preamble'"/>
+    
+             <message>
+               'Security: Pwd Policy Root: Root Auth, Root User (dn:) CRAM-MD5 Binding'
+             </message>
+
+             <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=CRAM-MD5 -o "authid=dn:cn=Zroot Manager,cn=Root DNs,cn=config" -w froglegs' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+          </testcase>
+       
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Root Authentication Tests
+                #@TestName                  Root Auth - New Root User (dn:) CRAM-MD5 Bind, short form
+                #@TestIssue                 420
+                #@TestPurpose               CRAM-MD5 Bind, short form
+                #@TestPreamble              none
+                #@TestStep                  New root user binds using CRAM-MD5, short form
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0.
+            -->
+            <testcase name="getTestCaseName('Root Auth - New Root User (dn:) CRAM-MD5 Bind, short form')">
+    
+            <sequence>
+    
+             <call function="'testCase_Preamble'"/>
+    
+             <message>
+               'Security: Pwd Policy Root: Root Auth, Root User (dn:) CRAM-MD5 Binding, short form'
+             </message>
+
+             <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=CRAM-MD5 -o "authid=dn:cn=Zroot" -w froglegs' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+          </testcase>
+         
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Root Authentication Tests
+                #@TestName                  Root Auth - New Root User (dn:) CRAM-MD5 Bind, u: form
+                #@TestIssue                 420
+                #@TestPurpose               CRAM-MD5 Bind, u: form
+                #@TestPreamble              none
+                #@TestStep                  New root user binds using CRAM-MD5, u: form
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0.
+            -->
+            <testcase name="getTestCaseName('Root Auth - New Root User (u:) CRAM-MD5 Bind')">
+    
+            <sequence>
+    
+             <call function="'testCase_Preamble'"/>
+    
+             <message>
+               'Security: Pwd Policy Root: Root Auth, Root User (u:) CRAM-MD5 Binding'
+             </message>
+
+             <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=CRAM-MD5 -o "authid=u:Zroot" -w froglegs' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+          </testcase>
+         
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Root Authentication Tests
+                #@TestName                  Root Auth - New Root User (dn:) PLAIN Bind
+                #@TestIssue                 420
+                #@TestPurpose               PLAIN Bind
+                #@TestPreamble              none
+                #@TestStep                  New root user binds using PLAIN
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0.
+            -->
+            <testcase name="getTestCaseName('Root Auth - New Root User (dn:) PLAIN Bind')">
+    
+            <sequence>
+    
+             <call function="'testCase_Preamble'"/>
+    
+             <message>
+               'Security: Pwd Policy Root: Root Auth, Root User (dn:) PLAIN Binding'
+             </message>
+
+             <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=PLAIN -o "authid=dn:cn=Zroot Manager,cn=Root DNs,cn=config" -w froglegs' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+          </testcase>
+       
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Root Authentication Tests
+                #@TestName                  Root Auth - New Root User (dn:) PLAIN Bind, short form
+                #@TestIssue                 420
+                #@TestPurpose               PLAIN Bind, short form
+                #@TestPreamble              none
+                #@TestStep                  New root user binds using PLAIN, short form
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0.
+            -->
+            <testcase name="getTestCaseName('Root Auth - New Root User (dn:) PLAIN Bind, short form')">
+    
+            <sequence>
+    
+             <call function="'testCase_Preamble'"/>
+    
+             <message>
+               'Security: Pwd Policy Root: Root Auth, Root User (dn:) PLAIN Binding, short form'
+             </message>
+
+             <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=PLAIN -o "authid=dn:cn=Zroot" -w froglegs' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+          </testcase>
+         
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Root Authentication Tests
+                #@TestName                  Root Auth - New Root User (dn:) PLAIN Bind, u: form
+                #@TestIssue                 420
+                #@TestPurpose               PLAIN Bind, u: form
+                #@TestPreamble              none
+                #@TestStep                  New root user binds using PLAIN, u: form
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0.
+            -->
+            <testcase name="getTestCaseName('Root Auth - New Root User (u:) PLAIN Bind')">
+    
+            <sequence>
+    
+             <call function="'testCase_Preamble'"/>
+    
+             <message>
+               'Security: Pwd Policy Root: Root Auth, Root User (u:) PLAIN Binding'
+             </message>
+
+             <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=PLAIN -o "authid=u:Zroot" -w froglegs' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+          </testcase>
+         
+          <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Root Authentication Tests
+            #@TestName                  Root Auth - Postamble
+            #@TestIssue                 420
+            #@TestPurpose               Reset configuration.
+            #@TestPreamble              none
+            #@TestStep                  Admin change password storage scheme to SSHA.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 
+                                        for all ldap operations.
+        -->
+        <testcase name="getTestCaseName('Root Auth - Postamble')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Pwd Policy Root: Root Auth, Postamble - Admin Changing Pwd Storage to SSHA'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'SSHA' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <call function="'testSuite_Postamble'"/>
+            
+        </sequence>
+       
+      </block>
+       
+    </sequence>
+      
+  </function>
+
+</stax>
