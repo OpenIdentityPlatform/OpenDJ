@@ -108,11 +108,11 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_effective_rights.xml' % (TESTS_DIR)"/>
           <call function="'aci_effective_rights'" />
-          
+          <!--
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_import.xml' % (TESTS_DIR)"/>
           <call function="'aci_import'" />
-          
+          -->
           <call function="'testGroup_Postamble'"/>
         </sequence>
       </block>
