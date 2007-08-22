@@ -41,6 +41,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
+import static org.opends.server.config.ConfigConstants.*;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -58,19 +59,23 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.SearchFilter;
+import org.opends.server.types.RawAttribute;
 import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
+import org.opends.server.util.args.LDAPConnectionArgumentParser;
 
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.ToolMessages.*;
 import org.opends.messages.Message;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
+import org.opends.server.tools.tasks.TaskTool;
+import org.opends.server.tasks.ImportTask;
+import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.ldap.LDAPAttribute;
 
 
 /**
@@ -79,8 +84,7 @@ import static org.opends.server.tools.ToolConstants.*;
  * intended to run separate from Directory Server and not internally within the
  * server process (e.g., via the tasks interface).
  */
-public class ImportLDIF
-{
+public class ImportLDIF extends TaskTool {
   /**
    * The buffer size that should be used when reading data from LDIF.
    */
@@ -138,6 +142,39 @@ public class ImportLDIF
                                    OutputStream outStream,
                                    OutputStream errStream)
   {
+    ImportLDIF tool = new ImportLDIF();
+    return tool.process(args, initializeServer, outStream, errStream);
+  }
+
+  // Define the command-line arguments that may be used with this program.
+  private BooleanArgument append                  = null;
+  private BooleanArgument countRejects            = null;
+  private BooleanArgument displayUsage            = null;
+  private BooleanArgument isCompressed            = null;
+  private BooleanArgument isEncrypted             = null;
+  private BooleanArgument overwrite               = null;
+  private BooleanArgument quietMode               = null;
+  private BooleanArgument replaceExisting         = null;
+  private BooleanArgument skipSchemaValidation    = null;
+  private BooleanArgument clearBackend            = null;
+  private IntegerArgument randomSeed              = null;
+  private StringArgument  backendID               = null;
+  private StringArgument  configClass             = null;
+  private StringArgument  configFile              = null;
+  private StringArgument  excludeAttributeStrings = null;
+  private StringArgument  excludeBranchStrings    = null;
+  private StringArgument  excludeFilterStrings    = null;
+  private StringArgument  includeAttributeStrings = null;
+  private StringArgument  includeBranchStrings    = null;
+  private StringArgument  includeFilterStrings    = null;
+  private StringArgument  ldifFiles               = null;
+  private StringArgument  rejectFile              = null;
+  private StringArgument  skipFile                = null;
+  private StringArgument  templateFile            = null;
+
+  private int process(String[] args, boolean initializeServer,
+                      OutputStream outStream, OutputStream errStream) {
+
     PrintStream out;
     if (outStream == null)
     {
@@ -160,38 +197,12 @@ public class ImportLDIF
 
     // FIXME -- Need to add a mechanism for verifying the file signature.
 
-    // Define the command-line arguments that may be used with this program.
-    BooleanArgument append                  = null;
-    BooleanArgument countRejects            = null;
-    BooleanArgument displayUsage            = null;
-    BooleanArgument isCompressed            = null;
-    BooleanArgument isEncrypted             = null;
-    BooleanArgument overwrite               = null;
-    BooleanArgument quietMode               = null;
-    BooleanArgument replaceExisting         = null;
-    BooleanArgument skipSchemaValidation    = null;
-    BooleanArgument clearBackend            = null;
-    IntegerArgument randomSeed              = null;
-    StringArgument  backendID               = null;
-    StringArgument  configClass             = null;
-    StringArgument  configFile              = null;
-    StringArgument  excludeAttributeStrings = null;
-    StringArgument  excludeBranchStrings    = null;
-    StringArgument  excludeFilterStrings    = null;
-    StringArgument  includeAttributeStrings = null;
-    StringArgument  includeBranchStrings    = null;
-    StringArgument  includeFilterStrings    = null;
-    StringArgument  ldifFiles               = null;
-    StringArgument  rejectFile              = null;
-    StringArgument  skipFile                = null;
-    StringArgument  templateFile            = null;
-
 
     // Create the command-line argument parser for use with this program.
     Message toolDescription = INFO_LDIFIMPORT_TOOL_DESCRIPTION.get();
-    ArgumentParser argParser =
-         new ArgumentParser("org.opends.server.tools.ImportLDIF",
-                            toolDescription, false);
+    LDAPConnectionArgumentParser argParser =
+         new LDAPConnectionArgumentParser("org.opends.server.tools.ImportLDIF",
+                                          toolDescription, false);
 
 
     // Initialize all the command-line argument types and register them with the
@@ -309,7 +320,7 @@ public class ImportLDIF
 
 
       skipFile =
-           new StringArgument("skipfile", 'K', "skipFile", false, false,
+           new StringArgument("skipfile", null, "skipFile", false, false,
                               true, "{skipFile}", null, null,
                               INFO_LDIFIMPORT_DESCRIPTION_SKIP_FILE.get());
       argParser.addArgument(skipFile);
@@ -354,7 +365,7 @@ public class ImportLDIF
       argParser.addArgument(isEncrypted);
 
 
-      quietMode = new BooleanArgument("quietmode", 'q', "quiet",
+      quietMode = new BooleanArgument("quietmode", null, "quiet",
                                       INFO_LDIFIMPORT_DESCRIPTION_QUIET.get());
       argParser.addArgument(quietMode);
 
@@ -429,6 +440,191 @@ public class ImportLDIF
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
+
+    return process(argParser, initializeServer, out, err);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void addTaskAttributes(List<RawAttribute> attributes)
+  {
+    //
+    // Required attributes
+    //
+    ArrayList<ASN1OctetString> values;
+    List<String> fileList = ldifFiles.getValues();
+    if (fileList != null && fileList.size() > 0) {
+      values = new ArrayList<ASN1OctetString>(fileList.size());
+      for (String file : fileList) {
+        values.add(new ASN1OctetString(file));
+      }
+      attributes.add(new LDAPAttribute(ATTR_IMPORT_LDIF_FILE, values));
+    }
+
+    //
+    // Optional attributes
+    //
+    if (append.getValue() != null &&
+            !append.getValue().equals(append.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(append.getValue()));
+      attributes.add(new LDAPAttribute(ATTR_IMPORT_APPEND, values));
+    }
+
+    if (replaceExisting.getValue() != null &&
+            !replaceExisting.getValue().equals(
+                    replaceExisting.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(replaceExisting.getValue()));
+      attributes.add(new LDAPAttribute(ATTR_IMPORT_REPLACE_EXISTING, values));
+    }
+
+    if (backendID.getValue() != null &&
+            !backendID.getValue().equals(
+                    backendID.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(backendID.getValue()));
+      attributes.add(new LDAPAttribute(ATTR_IMPORT_BACKEND_ID, values));
+    }
+
+    List<String> includeAttributes = includeAttributeStrings.getValues();
+    if (includeAttributes != null && includeAttributes.size() > 0) {
+      values = new ArrayList<ASN1OctetString>(includeAttributes.size());
+      for (String includeAttribute : includeAttributes) {
+        values.add(new ASN1OctetString(includeAttribute));
+      }
+      attributes.add(new LDAPAttribute(ATTR_IMPORT_INCLUDE_ATTRIBUTE, values));
+    }
+
+    List<String> excludeAttributes = excludeAttributeStrings.getValues();
+    if (excludeAttributes != null && excludeAttributes.size() > 0) {
+      values = new ArrayList<ASN1OctetString>(excludeAttributes.size());
+      for (String excludeAttribute : excludeAttributes) {
+        values.add(new ASN1OctetString(excludeAttribute));
+      }
+      attributes.add(new LDAPAttribute(ATTR_IMPORT_EXCLUDE_ATTRIBUTE, values));
+    }
+
+    List<String> includeFilters = includeFilterStrings.getValues();
+    if (includeFilters != null && includeFilters.size() > 0) {
+      values = new ArrayList<ASN1OctetString>(includeFilters.size());
+      for (String includeFilter : includeFilters) {
+        values.add(new ASN1OctetString(includeFilter));
+      }
+      attributes.add(new LDAPAttribute(ATTR_IMPORT_INCLUDE_FILTER, values));
+    }
+
+    List<String> excludeFilters = excludeFilterStrings.getValues();
+    if (excludeFilters != null && excludeFilters.size() > 0) {
+      values = new ArrayList<ASN1OctetString>(excludeFilters.size());
+      for (String excludeFilter : excludeFilters) {
+        values.add(new ASN1OctetString(excludeFilter));
+      }
+      attributes.add(new LDAPAttribute(ATTR_IMPORT_EXCLUDE_FILTER, values));
+    }
+
+    List<String> includeBranches = includeBranchStrings.getValues();
+    if (includeBranches != null && includeBranches.size() > 0) {
+      values = new ArrayList<ASN1OctetString>(includeBranches.size());
+      for (String includeBranche : includeBranches) {
+        values.add(new ASN1OctetString(includeBranche));
+      }
+      attributes.add(new LDAPAttribute(ATTR_IMPORT_INCLUDE_BRANCH, values));
+    }
+
+    List<String> excludeBranches = excludeBranchStrings.getValues();
+    if (excludeBranches != null && excludeBranches.size() > 0) {
+      values = new ArrayList<ASN1OctetString>(excludeBranches.size());
+      for (String excludeBranch : excludeBranches) {
+        values.add(new ASN1OctetString(excludeBranch));
+      }
+      attributes.add(new LDAPAttribute(ATTR_IMPORT_EXCLUDE_BRANCH, values));
+    }
+
+    if (rejectFile.getValue() != null &&
+            !rejectFile.getValue().equals(
+                    rejectFile.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(rejectFile.getValue()));
+      attributes.add(new LDAPAttribute(ATTR_IMPORT_REJECT_FILE, values));
+    }
+
+    if (skipFile.getValue() != null &&
+            !skipFile.getValue().equals(
+                    skipFile.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(skipFile.getValue()));
+      attributes.add(new LDAPAttribute(ATTR_IMPORT_SKIP_FILE, values));
+    }
+
+    if (overwrite.getValue() != null &&
+            !overwrite.getValue().equals(
+                    overwrite.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(overwrite.getValue()));
+      attributes.add(new LDAPAttribute(ATTR_IMPORT_OVERWRITE, values));
+    }
+
+    if (skipSchemaValidation.getValue() != null &&
+            !skipSchemaValidation.getValue().equals(
+                    skipSchemaValidation.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(skipSchemaValidation.getValue()));
+      attributes.add(
+              new LDAPAttribute(ATTR_IMPORT_SKIP_SCHEMA_VALIDATION, values));
+    }
+
+    if (isCompressed.getValue() != null &&
+            !isCompressed.getValue().equals(
+                    isCompressed.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(isCompressed.getValue()));
+      attributes.add(
+              new LDAPAttribute(ATTR_IMPORT_IS_COMPRESSED, values));
+    }
+
+    if (isEncrypted.getValue() != null &&
+            !isEncrypted.getValue().equals(
+                    isEncrypted.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(isEncrypted.getValue()));
+      attributes.add(
+              new LDAPAttribute(ATTR_IMPORT_IS_ENCRYPTED, values));
+    }
+
+    if (clearBackend.getValue() != null &&
+            !clearBackend.getValue().equals(
+                    clearBackend.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(clearBackend.getValue()));
+      attributes.add(
+              new LDAPAttribute(ATTR_IMPORT_CLEAR_BACKEND, values));
+    }
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getTaskObjectclass() {
+    return "ds-task-import";
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Class getTaskClass() {
+    return ImportTask.class;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected int processLocal(boolean initializeServer,
+                           PrintStream out,
+                           PrintStream err) {
+
 
     // Perform the initial bootstrap of the Directory Server and process the
     // configuration.
