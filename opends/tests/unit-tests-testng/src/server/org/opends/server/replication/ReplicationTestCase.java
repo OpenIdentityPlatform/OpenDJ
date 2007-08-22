@@ -490,7 +490,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     monitorAttr = attr;
     try
     {
-      Thread.sleep(2000);
       lastCount = getMonitorAttrValue(baseDn, attr);
     }
     catch (Exception ex)
@@ -507,7 +506,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected long getMonitorDelta() {
     long delta = 0;
     try {
-      Thread.sleep(2000);
       long currentCount = getMonitorAttrValue(monitorDn, monitorAttr);
       delta = (currentCount - lastCount);
       lastCount = currentCount;

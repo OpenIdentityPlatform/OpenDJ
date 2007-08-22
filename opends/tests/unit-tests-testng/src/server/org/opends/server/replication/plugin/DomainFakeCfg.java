@@ -35,6 +35,7 @@ import org.opends.server.admin.std.client.MultimasterDomainCfgClient;
 import org.opends.server.admin.std.meta.MultimasterDomainCfgDefn.IsolationPolicy;
 import org.opends.server.admin.std.server.MultimasterDomainCfg;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 
 /**
  * This class implement a configuration object for the MultimasterDomain
@@ -161,7 +162,13 @@ public class DomainFakeCfg implements MultimasterDomainCfg
    */
   public DN dn()
   {
-    return null;
+    try
+    {
+      return DN.decode("cn=domain, cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config");
+    } catch (DirectoryException e)
+    {
+      return null;
+    }
   }
 
   /**
