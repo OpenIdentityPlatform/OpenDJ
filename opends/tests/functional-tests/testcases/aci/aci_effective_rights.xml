@@ -169,31 +169,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;uid: search:0,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;uid: search:0,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;cn: search:0,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;cn: search:0,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;roomnumber: search:0,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;roomnumber: search:0,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'checktestString'">
                     { 'returnString'       : returnString ,
                       'expectedString'     : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' }
@@ -268,31 +259,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' }
+                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;uid: search:0,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;uid: search:0,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;roomnumber: search:0,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;roomnumber: search:0,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - read, user searching non-targeted entry'
                 </message>
@@ -314,13 +296,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - read, admin deleting aci'
                 </message>
@@ -432,31 +411,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' }
+                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;uid: search:1,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;uid: search:1,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;roomnumber: search:1,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;roomnumber: search:1,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - search, user searching non-targeted entry'
                 </message>
@@ -478,13 +448,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - search, admin deleting aci'
                 </message>
@@ -598,31 +565,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' }
+                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - search-read as doc example, user searching targeted entry'
                 </message>
@@ -644,22 +602,16 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' }
+                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - search-read with -J option, user searching targeted entry'
                 </message>
@@ -681,13 +633,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' }
+                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - search-read, user searching non-targeted entry'
                 </message>
@@ -709,13 +658,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - search-read, admin deleting aci'
                 </message>
@@ -826,31 +772,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' }
+                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - search-read, separate ACIs, user searching non-targeted entry'
                 </message>
@@ -872,13 +809,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - search-read, separate ACIs, admin deleting aci'
                 </message>
@@ -989,31 +923,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' }
+                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:1,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:1,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:1,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:1,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - compare, user searching non-targeted entry'
                 </message>
@@ -1035,13 +960,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - compare, admin deleting aci'
                 </message>
@@ -1152,36 +1074,28 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel: add:1,delete:0,read:1,write:0,proxy:0' }
+                      'testString'         : 'entryLevel: add:1,delete:0,read:1,write:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - add, user searching non-targeted entry'
                 </message>
@@ -1203,13 +1117,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - add, admin deleting aci'
                 </message>
@@ -1320,36 +1231,28 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel: add:0,delete:1,read:1,write:0,proxy:0' }
+                      'testString'         : 'entryLevel: add:0,delete:1,read:1,write:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - delete, user searching non-targeted entry'
                 </message>
@@ -1371,13 +1274,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - delete, admin deleting aci'
                 </message>
@@ -1488,36 +1388,28 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:1,proxy:0' }
+                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:1,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:1,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:1,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:1,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:1,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - write, user searching non-targeted entry'
                 </message>
@@ -1539,13 +1431,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - write, admin deleting aci'
                 </message>
@@ -1656,36 +1545,28 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:1' }
+                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:1' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:1' }
+                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:1' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:1' }
+                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:1' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - proxy, user searching non-targeted entry'
                 </message>
@@ -1707,13 +1588,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - proxy, admin deleting aci'
                 </message>
@@ -1824,36 +1702,28 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' }
+                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-        
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:1,selfwrite_delete:1,proxy:0' }
+                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:1,selfwrite_delete:1,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:0,selfwrite_add:1,selfwrite_delete:1,proxy:0' }
+                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:0,selfwrite_add:1,selfwrite_delete:1,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - selfwrite, user searching non-targeted entry'
                 </message>
@@ -1875,13 +1745,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - selfwrite, admin deleting aci'
                 </message>
@@ -1994,36 +1861,28 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel: add:1,delete:1,read:1,write:1,proxy:0' }
+                      'testString'         : 'entryLevel: add:1,delete:1,read:1,write:1,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:1,write:1,selfwrite_add:1,selfwrite_delete:1,proxy:0' }
+                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:1,write:1,selfwrite_add:1,selfwrite_delete:1,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:1,write:1,selfwrite_add:1,selfwrite_delete:1,proxy:0' }
+                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:1,write:1,selfwrite_add:1,selfwrite_delete:1,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - all, user searching non-targeted entry'
                 </message>
@@ -2045,13 +1904,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - all, admin deleting aci'
                 </message>
@@ -2162,31 +2018,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' }
+                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - export, user searching non-targeted entry'
                 </message>
@@ -2208,13 +2055,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - export, admin deleting aci'
                 </message>
@@ -2325,31 +2169,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' }
+                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - import, user searching non-targeted entry'
                 </message>
@@ -2371,13 +2206,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - import, admin deleting aci'
                 </message>
@@ -2489,31 +2321,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' }
+                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;uid: search:0,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;uid: search:0,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: targetattr with search,read, user searching non-targeted entry'
                 </message>
@@ -2535,13 +2358,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: targetattr with search,read, admin deleting aci'
                 </message>
@@ -2653,31 +2473,22 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' }
+                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;roomnumber: search:0,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                      'testString'         : 'attributeLevel;roomnumber: search:0,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: targetattr with not equal and search,read, user searching non-targeted entry'
                 </message>
@@ -2699,13 +2510,10 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: targetattr with not equal and search,read, admin deleting aci'
                 </message>
@@ -2817,7 +2625,8 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel;read: acl_summary' }
+                      'testString'         : 'entryLevel;read: acl_summary' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
                 <if expr="returnCode != '1'">
@@ -2826,7 +2635,8 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel;read: acl_summary' }
+                      'testString'         : 'entryLevel;read: acl_summary' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
                 <if expr="returnCode != '1'">
@@ -2835,7 +2645,8 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel;add: acl_summary' }
+                      'testString'         : 'entryLevel;add: acl_summary' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
                 <if expr="returnCode != '1'">
@@ -2844,7 +2655,8 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel;delete: acl_summary' }
+                      'testString'         : 'entryLevel;delete: acl_summary' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
                 <if expr="returnCode != '1'">
@@ -2853,7 +2665,8 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel;write: acl_summary' }
+                      'testString'         : 'entryLevel;write: acl_summary',
+                      'expectedResult'     : '1'  }
                 </call>
                 
                 <if expr="returnCode != '1'">
@@ -2862,7 +2675,8 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel;proxy: acl_summary' }
+                      'testString'         : 'entryLevel;proxy: acl_summary' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
                 <if expr="returnCode != '1'">
@@ -2871,7 +2685,8 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;compare;uid: acl_summary' }
+                      'testString'         : 'attributeLevel;compare;uid: acl_summary' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
                 <if expr="returnCode != '1'">
@@ -2880,7 +2695,8 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;read;uid: acl_summary' }
+                      'testString'         : 'attributeLevel;read;uid: acl_summary' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
                 <if expr="returnCode != '1'">
@@ -2889,7 +2705,8 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;search;uid: acl_summary' }
+                      'testString'         : 'attributeLevel;search;uid: acl_summary' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
                 <if expr="returnCode != '1'">
@@ -2898,7 +2715,8 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;write;uid: acl_summary' }
+                      'testString'         : 'attributeLevel;write;uid: acl_summary' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
                 <if expr="returnCode != '1'">
@@ -2907,7 +2725,8 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;proxy;uid: acl_summary' }
+                      'testString'         : 'attributeLevel;proxy;uid: acl_summary' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
                 <if expr="returnCode != '1'">
@@ -2916,7 +2735,8 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;selfwrite_add;uid: acl_summary' }
+                      'testString'         : 'attributeLevel;selfwrite_add;uid: acl_summary' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
                 <if expr="returnCode != '1'">
@@ -2925,7 +2745,8 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;selfwrite_delete;uid: acl_summary' }
+                      'testString'         : 'attributeLevel;selfwrite_delete;uid: acl_summary' ,
+                      'expectedResult'     : '1' }
                 </call>
                 
                 <if expr="returnCode != '1'">
@@ -2953,7 +2774,8 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
                 </call>
                 
                 <if expr="returnCode != '0'">
