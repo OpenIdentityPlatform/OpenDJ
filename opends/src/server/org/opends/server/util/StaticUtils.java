@@ -25,16 +25,17 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
-import org.opends.messages.Message;
 
-
+import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
@@ -46,24 +47,20 @@ import java.util.Map;
 import java.util.RandomAccess;
 import java.util.StringTokenizer;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import org.opends.messages.MessageDescriptor;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IdentifiedException;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RDN;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
-import static org.opends.messages.UtilityMessages.*;
-
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.MessageDescriptor;
-import static org.opends.server.util.ServerConstants.*;
 
 
 
@@ -1374,7 +1371,7 @@ public final class StaticUtils
    * @return <CODE>true</CODE> if the two array lists are equal, or
    *         <CODE>false</CODE> if they are not.
    */
-  public static boolean listsAreEqual(List list1, List list2)
+  public static boolean listsAreEqual(List<?> list1, List<?> list2)
   {
     if (list1 == null)
     {
@@ -3695,8 +3692,10 @@ public final class StaticUtils
    */
   public static String wrapText(Message message, int width)
   {
-    return wrapText(Message.toString(message), width);
+    return wrapText(Message.toString(message), width, 0);
   }
+
+
 
   /**
    * Inserts line breaks into the provided buffer to wrap text at no more than
@@ -3710,8 +3709,67 @@ public final class StaticUtils
    *
    * @return  The wrapped text.
    */
-  public static String wrapText(String text, int width)
+  public static String wrapText(String text, int width) {
+    return wrapText(text, width, 0);
+  }
+
+
+
+  /**
+   * Inserts line breaks into the provided buffer to wrap text at no
+   * more than the specified column width. Wrapping will only be done
+   * at space boundaries and if there are no spaces within the
+   * specified width, then wrapping will be performed at the first
+   * space after the specified column. In addition each line will be
+   * indented by the specified amount.
+   *
+   * @param message
+   *          The message to be wrapped.
+   * @param width
+   *          The maximum number of characters to allow on a line if
+   *          there is a suitable breaking point (including any
+   *          indentation).
+   * @param indent
+   *          The number of columns to indent each line.
+   * @return The wrapped text.
+   */
+  public static String wrapText(Message message, int width, int indent)
   {
+    return wrapText(Message.toString(message), width, indent);
+  }
+
+
+
+  /**
+   * Inserts line breaks into the provided buffer to wrap text at no
+   * more than the specified column width. Wrapping will only be done
+   * at space boundaries and if there are no spaces within the
+   * specified width, then wrapping will be performed at the first
+   * space after the specified column. In addition each line will be
+   * indented by the specified amount.
+   *
+   * @param text
+   *          The text to be wrapped.
+   * @param width
+   *          The maximum number of characters to allow on a line if
+   *          there is a suitable breaking point (including any
+   *          indentation).
+   * @param indent
+   *          The number of columns to indent each line.
+   * @return The wrapped text.
+   */
+  public static String wrapText(String text, int width, int indent)
+  {
+    Validator.ensureTrue(indent >= 0 && indent < width);
+
+    // Calculate the real width and indentation padding.
+    width -= indent;
+    StringBuilder pb = new StringBuilder();
+    for (int i = 0; i < indent; i++) {
+      pb.append(' ');
+    }
+    String padding = pb.toString();
+
     StringBuilder   buffer        = new StringBuilder();
     StringTokenizer lineTokenizer = new StringTokenizer(text, "\r\n", true);
     while (lineTokenizer.hasMoreTokens())
@@ -3725,6 +3783,7 @@ public final class StaticUtils
       else if (line.length() < width)
       {
         // The line fits in the specified width, so append it as-is.
+        buffer.append(padding);
         buffer.append(line);
       }
       else
@@ -3752,10 +3811,12 @@ public final class StaticUtils
             // make do.
             if (lineBuffer.length() > 0)
             {
+              buffer.append(padding);
               buffer.append(lineBuffer);
               buffer.append(EOL);
               lineBuffer = new StringBuilder();
             }
+            buffer.append(padding);
             buffer.append(word);
 
             if (wordTokenizer.hasMoreTokens())
@@ -3793,6 +3854,7 @@ public final class StaticUtils
             {
               // It doesn't fit on the line, so end the current line and start
               // a new one.
+              buffer.append(padding);
               buffer.append(lineBuffer);
               buffer.append(EOL);
 
@@ -3809,6 +3871,7 @@ public final class StaticUtils
 
         // If there's anything left in the line buffer, then add it to the
         // final buffer.
+        buffer.append(padding);
         buffer.append(lineBuffer);
       }
     }
