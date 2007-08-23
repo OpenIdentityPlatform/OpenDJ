@@ -343,6 +343,12 @@ public class MultifileTextWriter
   public void setInterval(long interval)
   {
     this.interval = interval;
+
+    // Wake up the thread if its sleeping on the old interval
+    if(rotaterThread.getState() == Thread.State.TIMED_WAITING)
+    {
+      rotaterThread.interrupt();
+    }
   }
 
   /**
