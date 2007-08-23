@@ -73,11 +73,6 @@ public class JebFormat
   public static final byte TAG_DIRECTORY_SERVER_ENTRY = 0x61;
 
   /**
-   * The configuration to use when encoding entries in the database.
-   */
-  private static EntryEncodeConfig encodeConfig = new EntryEncodeConfig();
-
-  /**
    * Decode a DatabaseEntry.  The encoded bytes may be compressed and/or
    * encrypted.
    *
@@ -249,7 +244,8 @@ public class JebFormat
   static public byte[] entryToDatabase(Entry entry, DataConfig dataConfig)
          throws DirectoryException
   {
-    byte[] uncompressedBytes = encodeDirectoryServerEntry(entry);
+    byte[] uncompressedBytes = encodeDirectoryServerEntry(entry,
+                                             dataConfig.getEntryEncodeConfig());
     return encodeDatabaseEntry(uncompressedBytes, dataConfig);
   }
 
@@ -265,19 +261,21 @@ public class JebFormat
   static public byte[] entryToDatabase(Entry entry)
          throws DirectoryException
   {
-    return entryToDatabase(entry, new DataConfig());
+    return entryToDatabase(entry, new DataConfig(false, false));
   }
 
   /**
    * Encode a ASN1 DirectoryServerEntry.
    *
    * @param entry The entry to encode.
+   * @encodeConfig The configuration to use when encoding the entry.
    * @return A byte array containing the encoded DirectoryServerEntry.
    *
    * @throws  DirectoryException  If a problem occurs while attempting to encode
    *                              the entry.
    */
-  static private byte[] encodeDirectoryServerEntry(Entry entry)
+  static private byte[] encodeDirectoryServerEntry(Entry entry,
+                                                 EntryEncodeConfig encodeConfig)
          throws DirectoryException
   {
     return entry.encode(encodeConfig);

@@ -145,6 +145,41 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="backend-compact-encoding"
+                mandatory="false"
+                multi-valued="false">
+    <adm:synopsis>
+      Indicates whether the backend should use a compact form when encoding
+      entries by compressing the attribute descriptions and object class sets.
+    </adm:synopsis>
+    <adm:description>
+      Note that this property applies only to the entries themselves
+      and does not impact the index data.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:other>
+        <adm:synopsis>
+          Changes to this setting will only take effect for writes that occur
+          after the change is made.  It will not be retroactively applied to
+          existing data.
+        </adm:synopsis>
+      </adm:other>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.471</ldap:oid>
+        <ldap:name>ds-cfg-backend-compact-encoding</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
   <adm:property name="backend-entries-compressed"
     mandatory="false"
     multi-valued="false">

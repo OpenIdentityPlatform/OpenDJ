@@ -481,8 +481,9 @@ public class EntryContainer
   {
     try
     {
-      DataConfig entryDataConfig = new DataConfig();
-      entryDataConfig.setCompressed(config.isBackendEntriesCompressed());
+      DataConfig entryDataConfig =
+          new DataConfig(config.isBackendEntriesCompressed(),
+                         config.isBackendCompactEncoding());
 
       id2entry = new ID2Entry(databasePrefix + "_" + ID2ENTRY_DATABASE_NAME,
                               entryDataConfig, env, this);
@@ -4241,8 +4242,9 @@ public class EntryContainer
       }
     }
 
-    DataConfig entryDataConfig = new DataConfig();
-    entryDataConfig.setCompressed(cfg.isBackendEntriesCompressed());
+    DataConfig entryDataConfig =
+        new DataConfig(cfg.isBackendEntriesCompressed(),
+                       cfg.isBackendCompactEncoding());
     id2entry.setDataConfig(entryDataConfig);
 
     this.config = cfg;
