@@ -67,7 +67,7 @@ public class CliApplicationHelper {
 
   private BooleanArgument interactiveArg = null;
 
-  private BooleanArgument silentArg = null;
+  private BooleanArgument quietArg = null;
 
   /**
    * Interactively prompts (on standard output) the user to provide a string
@@ -254,24 +254,24 @@ public class CliApplicationHelper {
   }
 
   /**
-   * Returns <CODE>true</CODE> if this is a silent uninstall and
+   * Returns <CODE>true</CODE> if this is a quiet uninstall and
    * <CODE>false</CODE> otherwise.
    * @param args the arguments passed in the command line.
-   * @return <CODE>true</CODE> if this is a silent uninstall and
+   * @return <CODE>true</CODE> if this is a quiet uninstall and
    * <CODE>false</CODE> otherwise.
    */
-  protected boolean isSilent(String[] args)
+  protected boolean isQuiet(String[] args)
   {
-    boolean isSilent = false;
-    for (int i=0; i<args.length && !isSilent; i++)
+    boolean isQuiet = false;
+    for (int i=0; i<args.length && !isQuiet; i++)
     {
-      if (args[i].equalsIgnoreCase("--silentUninstall") ||
-          args[i].equalsIgnoreCase("-s"))
+      if (args[i].equalsIgnoreCase("--quiet") ||
+          args[i].equalsIgnoreCase("-Q"))
       {
-        isSilent = true;
+        isQuiet = true;
       }
     }
-    return isSilent;
+    return isQuiet;
   }
 
   /**
@@ -310,15 +310,15 @@ public class CliApplicationHelper {
   }
 
   /**
-   * Returns <CODE>true</CODE> if this is a silent session and
+   * Returns <CODE>true</CODE> if this is a quiet session and
    * <CODE>false</CODE> otherwise.  This method relies on the a previous
    * call to createArgumentParser having been made and the parser
    * having been used to parse the arguments.
-   * @return <CODE>true</CODE> if this is a silent uninstall and
+   * @return <CODE>true</CODE> if this is a quiet uninstall and
    * <CODE>false</CODE> otherwise.
    */
-  protected boolean isSilent() {
-    return silentArg != null && silentArg.isPresent();
+  protected boolean isQuiet() {
+    return quietArg != null && quietArg.isPresent();
   }
 
   /**
@@ -362,12 +362,12 @@ public class CliApplicationHelper {
                    null);
       argParser.addArgument(interactiveArg);
 
-      silentArg =
+      quietArg =
            new BooleanArgument("silent session",
-                   SecureConnectionCliParser.SILENT_OPTION_SHORT,
-                   SecureConnectionCliParser.SILENT_OPTION_LONG,
+                   SecureConnectionCliParser.QUIET_OPTION_SHORT,
+                   SecureConnectionCliParser.QUIET_OPTION_LONG,
                    null);
-      argParser.addArgument(silentArg);
+      argParser.addArgument(quietArg);
 
     } catch (ArgumentException e) {
       LOG.log(Level.INFO, "error", e);

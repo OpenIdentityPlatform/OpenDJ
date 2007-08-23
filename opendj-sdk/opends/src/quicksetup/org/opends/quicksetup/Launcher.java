@@ -357,7 +357,7 @@ public abstract class Launcher {
   private void preExit(CliApplication cliApp) {
     if (cliApp != null) {
       UserData ud = cliApp.getUserData();
-      if (ud != null && !ud.isSilent()) {
+      if (ud != null && !ud.isQuiet()) {
 
         // Add an extra space systematically
         System.out.println();

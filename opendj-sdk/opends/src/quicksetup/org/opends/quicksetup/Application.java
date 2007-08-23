@@ -596,13 +596,13 @@ public abstract class Application implements ProgressNotifier, Runnable {
   /**
    * Makes available a <code>UserInteraction</code> class that can be used
    * by the application to interact with the user.  If the user has requested
-   * a silent session this method returns null.
+   * a quiet session this method returns null.
    * @return UserInteraction object
    */
   public UserInteraction userInteraction() {
     // Note:  overridden in GuiApplication
     UserInteraction ui = null;
-    if (!getUserData().isSilent()) {
+    if (!getUserData().isQuiet()) {
       ui = new CliUserInteraction();
     }
     return ui;

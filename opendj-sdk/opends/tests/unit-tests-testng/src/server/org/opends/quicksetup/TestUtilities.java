@@ -96,7 +96,7 @@ public class TestUtilities {
       args.add(new File(root, "setup.bat").getPath());
     }
     args.add("--cli");
-    args.add("-s");
+    args.add("-Q");
     args.add("-p");
     args.add(Integer.toString(ldapPort));
     args.add("-x");

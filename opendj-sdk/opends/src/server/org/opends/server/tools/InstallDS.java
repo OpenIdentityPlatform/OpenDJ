@@ -178,7 +178,7 @@ public class InstallDS
     BooleanArgument   cliMode;
     BooleanArgument   testOnly;
     BooleanArgument   showUsage;
-    BooleanArgument   silentInstall;
+    BooleanArgument   quietInstall;
     BooleanArgument   skipPortCheck;
     BooleanArgument   enableWindowsService;
     FileBasedArgument rootPWFile;
@@ -231,10 +231,11 @@ public class InstallDS
               INFO_INSTALLDS_DESCRIPTION_CLI.get());
       argParser.addArgument(cliMode);
 
-      silentInstall = new BooleanArgument(
-              "silent", 's', "silentInstall",
+      quietInstall = new BooleanArgument(
+              "quiet", OPTION_SHORT_QUIET,
+              OPTION_LONG_QUIET,
               INFO_INSTALLDS_DESCRIPTION_SILENT.get());
-      argParser.addArgument(silentInstall);
+      argParser.addArgument(quietInstall);
 
       baseDN = new StringArgument(
               "basedn", OPTION_SHORT_BASEDN,
@@ -432,8 +433,8 @@ public class InstallDS
     String configClassName = configClass.getValue();
 
 
-    // If this isn't a silent install, then print the version string.
-    if (! silentInstall.isPresent())
+    // If this isn't a quiet install, then print the version string.
+    if (! quietInstall.isPresent())
     {
       System.out.println(versionString);
       System.out.println();
@@ -491,7 +492,7 @@ public class InstallDS
 
     // Determine the LDAP port number.
     int ldapPortNumber;
-    if (silentInstall.isPresent() || ldapPort.isPresent())
+    if (quietInstall.isPresent() || ldapPort.isPresent())
     {
       try
       {
@@ -564,7 +565,7 @@ public class InstallDS
 
 //  Determine the JMX port number.
     int jmxPortNumber;
-    if (silentInstall.isPresent() || jmxPort.isPresent())
+    if (quietInstall.isPresent() || jmxPort.isPresent())
     {
       try
       {
@@ -660,7 +661,7 @@ public class InstallDS
         }
       }
     }
-    else if (silentInstall.isPresent())
+    else if (quietInstall.isPresent())
     {
       rootDNs = new LinkedList<DN>();
       try
@@ -703,7 +704,7 @@ public class InstallDS
     {
       rootPassword = rootPWFile.getValue();
     }
-    else if (silentInstall.isPresent())
+    else if (quietInstall.isPresent())
     {
       Message message = ERR_INSTALLDS_NO_ROOT_PASSWORD.get(
               rootPWString.getLongIdentifier(),
@@ -743,7 +744,7 @@ public class InstallDS
         }
       }
     }
-    else if (silentInstall.isPresent())
+    else if (quietInstall.isPresent())
     {
       try
       {
@@ -795,7 +796,7 @@ public class InstallDS
         return 1;
       }
     }
-    else if (silentInstall.isPresent())
+    else if (quietInstall.isPresent())
     {
       populateType = POPULATE_TYPE_LEAVE_EMPTY;
     }
@@ -859,7 +860,7 @@ public class InstallDS
     // If we are in Windows ask if the server must run as a windows service.
     if (SetupUtils.isWindows())
     {
-      if (silentInstall.isPresent())
+      if (quietInstall.isPresent())
       {
         enableService = enableWindowsService.isPresent();
       }
@@ -907,7 +908,7 @@ public class InstallDS
     String[] configureDSArguments = new String[argList.size()];
     argList.toArray(configureDSArguments);
 
-    if (! silentInstall.isPresent())
+    if (! quietInstall.isPresent())
     {
       System.out.println();
 
@@ -926,7 +927,7 @@ public class InstallDS
     if (populateType == POPULATE_TYPE_BASE_ONLY)
     {
       // Create a temporary LDIF file that will hold the entry to add.
-      if (! silentInstall.isPresent())
+      if (! quietInstall.isPresent())
       {
         Message message = INFO_INSTALLDS_STATUS_CREATING_BASE_LDIF.get();
         System.out.println(wrapText(message, MAX_LINE_WIDTH));
@@ -988,7 +989,7 @@ public class InstallDS
 
     if ((ldifFiles != null) && (! ldifFiles.isEmpty()))
     {
-      if (! silentInstall.isPresent())
+      if (! quietInstall.isPresent())
       {
         Message message = INFO_INSTALLDS_STATUS_IMPORTING_LDIF.get();
         System.out.println(wrapText(message, MAX_LINE_WIDTH));
@@ -1082,7 +1083,7 @@ public class InstallDS
     }
 
     // If we've gotten here, then everything seems to have gone smoothly.
-    if (! silentInstall.isPresent())
+    if (! quietInstall.isPresent())
     {
       Message message = INFO_INSTALLDS_STATUS_SUCCESS.get();
       System.out.println(wrapText(message, MAX_LINE_WIDTH));

@@ -645,5 +645,15 @@ public class ToolConstants
    * Value for the server root option long form.
    */
   public static final String OPTION_LONG_SERVER_ROOT = "serverRoot";
+
+  /**
+   * Value for the quiet option short form
+   */
+  public static final Character OPTION_SHORT_QUIET = 'Q';
+
+  /**
+   * Value for the quiet option long form
+   */
+  public static final String OPTION_LONG_QUIET = "quiet";
 }
 

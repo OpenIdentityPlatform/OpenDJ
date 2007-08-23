@@ -41,8 +41,7 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.ServerConstants;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.OPTION_SHORT_HELP;
-import static org.opends.server.tools.ToolConstants.OPTION_LONG_HELP;
+import static org.opends.server.tools.ToolConstants.*;
 
 import java.io.File;
 
@@ -86,7 +85,7 @@ public class ReversionLauncher extends Launcher {
   private BooleanArgument showUsage;
   private FileBasedArgument dir;
   private BooleanArgument mostRecent;
-  private BooleanArgument silent;
+  private BooleanArgument quiet;
   private BooleanArgument interactive;
 
   /**
@@ -191,9 +190,11 @@ public class ReversionLauncher extends Launcher {
           INFO_REVERT_DESCRIPTION_INTERACTIVE.get());
       argParser.addArgument(interactive);
 
-      silent = new BooleanArgument("silent", 's', "silent",
-          INFO_REVERT_DESCRIPTION_SILENT.get());
-      argParser.addArgument(silent);
+      quiet = new BooleanArgument("quiet",
+              OPTION_SHORT_QUIET,
+              OPTION_LONG_QUIET,
+              INFO_REVERT_DESCRIPTION_SILENT.get());
+      argParser.addArgument(quiet);
 
       showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
         OPTION_LONG_HELP,

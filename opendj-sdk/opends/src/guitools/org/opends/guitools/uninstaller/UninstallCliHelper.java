@@ -97,7 +97,7 @@ class UninstallCliHelper extends CliApplicationHelper {
     UninstallUserData userData = new UninstallUserData();
 
     boolean isInteractive;
-    boolean isSilent;
+    boolean isQuiet;
     boolean isCancelled = false;
 
     /* Step 1: analyze the arguments.
@@ -113,9 +113,9 @@ class UninstallCliHelper extends CliApplicationHelper {
 
     isInteractive = args.isInteractive();
 
-    isSilent = args.isSilent();
+    isQuiet = args.isQuiet();
 
-    userData.setSilent(isSilent);
+    userData.setQuiet(isQuiet);
     userData.setForceOnError(args.isForceOnError());
     userData.setTrustManager(args.getTrustManager());
 
@@ -388,7 +388,7 @@ class UninstallCliHelper extends CliApplicationHelper {
    * @return <CODE>true</CODE> if the user wants to continue with uninstall and
    * <CODE>false</CODE> otherwise.
    * @throws UserDataException if there is a problem with the data
-   * provided by the user (in the particular case where we are on silent
+   * provided by the user (in the particular case where we are on quiet
    * uninstall and some data is missing or not valid).
    */
   private boolean checkServerState(UninstallUserData userData,
@@ -450,7 +450,7 @@ class UninstallCliHelper extends CliApplicationHelper {
         {
           if (confirmToUpdateRemoteAndStart())
           {
-            boolean startWorked = startServer(userData.isSilent());
+            boolean startWorked = startServer(userData.isQuiet());
             // Ask for authentication if needed, etc.
             if (startWorked)
             {
@@ -489,7 +489,7 @@ class UninstallCliHelper extends CliApplicationHelper {
         }
         else
         {
-          boolean startWorked = startServer(userData.isSilent());
+          boolean startWorked = startServer(userData.isQuiet());
           // Ask for authentication if needed, etc.
           if (startWorked)
           {

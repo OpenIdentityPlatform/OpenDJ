@@ -62,7 +62,7 @@ public class UpgraderCliHelper extends CliApplicationHelper {
     ArgumentParser ap = createArgumentParser();
     try {
       ap.parseArguments(args);
-      uud.setSilent(isSilent());
+      uud.setQuiet(isQuiet());
       uud.setInteractive(isInteractive());
 
       // There is no need to check/validate the file argument

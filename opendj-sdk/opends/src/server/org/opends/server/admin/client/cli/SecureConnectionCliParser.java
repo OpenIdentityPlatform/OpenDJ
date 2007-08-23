@@ -165,13 +165,13 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
   static public final Character INTERACTIVE_OPTION_SHORT = 'i';
 
   /** Long form of the option for specifying a noninteractive session. */
-  static public final String SILENT_OPTION_LONG = "silent";
+  static public final String QUIET_OPTION_LONG = "quiet";
 
   /** Long form of the option for specifying a noninteractive session. */
   static public final String INTERACTIVE_OPTION_LONG = "interactive";
 
   /** Short form of the option for specifying a noninteractive session. */
-  static public final Character SILENT_OPTION_SHORT = 's';
+  static public final Character QUIET_OPTION_SHORT = 'Q';
 
   /**
    * The tracer object for the debug logger.
