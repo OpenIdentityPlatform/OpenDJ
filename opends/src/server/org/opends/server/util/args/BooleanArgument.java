@@ -35,10 +35,10 @@ import org.opends.messages.MessageBuilder;
 
 /**
  * This class defines an argument type that will be used to represent Boolean
- * values.  These arguments will never take values and will never be required.
- * If the argument is provided, then it will be considered true, and if not then
- * it will be considered false.  As such, the default value will always be
- * "false".
+ * values.  These arguments will never take values from the command line but
+ * and will never be required.  If the argument is provided, then it will be
+ * considered true, and if not then it will be considered false.  As such,
+ * the default value will always be "false".
  */
 public class BooleanArgument
        extends Argument
@@ -64,7 +64,7 @@ public class BooleanArgument
          throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, false, false, false, null,
-          null, null, description);
+          String.valueOf(false), null, description);
   }
 
 
@@ -90,5 +90,26 @@ public class BooleanArgument
 
     return false;
   }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  final public void addValue(String valueString) {
+    if (valueString != null) {
+      clearValues();
+      super.addValue(valueString);
+      super.setPresent(Boolean.valueOf(valueString));
+    }
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  final public void setPresent(boolean isPresent) {
+    addValue(String.valueOf(isPresent));
+  }
+
 }
 

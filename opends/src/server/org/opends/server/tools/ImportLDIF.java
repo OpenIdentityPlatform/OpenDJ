@@ -365,7 +365,7 @@ public class ImportLDIF extends TaskTool {
       argParser.addArgument(isEncrypted);
 
 
-      quietMode = new BooleanArgument("quietmode", null, "quiet",
+      quietMode = new BooleanArgument("quietmode", 'Q', "quiet",
                                       INFO_LDIFIMPORT_DESCRIPTION_QUIET.get());
       argParser.addArgument(quietMode);
 
@@ -439,6 +439,11 @@ public class ImportLDIF extends TaskTool {
               backendID.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
+    }
+
+    // Don't write non-error messages to console if quite
+    if (quietMode.isPresent()) {
+      out = new PrintStream(NullOutputStream.instance());
     }
 
     return process(argParser, initializeServer, out, err);

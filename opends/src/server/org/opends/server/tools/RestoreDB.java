@@ -41,6 +41,7 @@ import java.util.List;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.config.ConfigException;
+import static org.opends.server.config.ConfigConstants.*;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -55,17 +56,22 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.RestoreConfig;
+import org.opends.server.types.RawAttribute;
 import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
+import org.opends.server.util.args.LDAPConnectionArgumentParser;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
+import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.admin.std.server.BackendCfg;
+import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.tasks.RestoreTask;
 
 
 /**
@@ -74,8 +80,8 @@ import org.opends.server.admin.std.server.BackendCfg;
  * be a process that is intended to run separate from Directory Server and not
  * internally within the server process (e.g., via the tasks interface).
  */
-public class RestoreDB
-{
+public class RestoreDB extends TaskTool {
+
   private static ErrorLogPublisher errorLogPublisher = null;
   /**
    * The main method for RestoreDB tool.
@@ -127,6 +133,24 @@ public class RestoreDB
                                   OutputStream outStream,
                                   OutputStream errStream)
   {
+    RestoreDB tool = new RestoreDB();
+    return tool.process(args, initializeServer, outStream, errStream);
+  }
+
+
+  // Define the command-line arguments that may be used with this program.
+  private BooleanArgument displayUsage      = null;
+  private BooleanArgument listBackups       = null;
+  private BooleanArgument verifyOnly        = null;
+  private StringArgument  backupIDString    = null;
+  private StringArgument  configClass       = null;
+  private StringArgument  configFile        = null;
+  private StringArgument  backupDirectory   = null;
+
+
+  private int process(String[] args, boolean initializeServer,
+                      OutputStream outStream, OutputStream errStream)
+  {
     PrintStream out;
     if (outStream == null)
     {
@@ -147,21 +171,11 @@ public class RestoreDB
       err = new PrintStream(errStream);
     }
 
-    // Define the command-line arguments that may be used with this program.
-    BooleanArgument displayUsage      = null;
-    BooleanArgument listBackups          = null;
-    BooleanArgument verifyOnly        = null;
-    StringArgument  backupIDString    = null;
-    StringArgument  configClass       = null;
-    StringArgument  configFile        = null;
-    StringArgument  backupDirectory   = null;
-
-
     // Create the command-line argument parser for use with this program.
     Message toolDescription = INFO_RESTOREDB_TOOL_DESCRIPTION.get();
-    ArgumentParser argParser =
-         new ArgumentParser("org.opends.server.tools.RestoreDB",
-                            toolDescription, false);
+    LDAPConnectionArgumentParser argParser =
+         new LDAPConnectionArgumentParser("org.opends.server.tools.RestoreDB",
+                                          toolDescription, false);
 
 
     // Initialize all the command-line argument types and register them with the
@@ -249,6 +263,75 @@ public class RestoreDB
     {
       return 0;
     }
+
+
+    if (listBackups.isPresent() && argParser.isLdapOperation()) {
+      Message message = ERR_LDAP_CONN_INCOMPATIBLE_ARGS.get(
+              listBackups.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
+    return process(argParser, initializeServer, out, err);
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void addTaskAttributes(List<RawAttribute> attributes)
+  {
+    ArrayList<ASN1OctetString> values;
+
+    if (backupDirectory.getValue() != null &&
+            !backupDirectory.getValue().equals(
+                    backupDirectory.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(backupDirectory.getValue()));
+      attributes.add(
+              new LDAPAttribute(ATTR_BACKUP_DIRECTORY_PATH, values));
+    }
+
+    if (backupIDString.getValue() != null &&
+            !backupIDString.getValue().equals(
+                    backupIDString.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(backupIDString.getValue()));
+      attributes.add(
+              new LDAPAttribute(ATTR_BACKUP_ID, values));
+    }
+
+    if (verifyOnly.getValue() != null &&
+            !verifyOnly.getValue().equals(
+                    verifyOnly.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(verifyOnly.getValue()));
+      attributes.add(
+              new LDAPAttribute(ATTR_TASK_RESTORE_VERIFY_ONLY, values));
+    }
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getTaskObjectclass() {
+    return "ds-task-restore";
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Class getTaskClass() {
+    return RestoreTask.class;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected int processLocal(boolean initializeServer,
+                           PrintStream out,
+                           PrintStream err) {
 
 
     // Perform the initial bootstrap of the Directory Server and process the

@@ -53,8 +53,8 @@ public abstract class TaskTool implements TaskScheduleInformation {
    * @param argParser used to parse user arguments
    * @param initializeServer indicates whether or not to initialize the
    *        directory server in the case of a local action
-   * @param out stream to write messages
-   * @param err stream to write messages
+   * @param out stream to write messages; may be null
+   * @param err stream to write messages; may be null
    * @return int indicating the result of this action
    */
   protected int process(LDAPConnectionArgumentParser argParser,
@@ -69,11 +69,11 @@ public abstract class TaskTool implements TaskScheduleInformation {
         ret = tc.schedule(this, out, err);
       } catch (LDAPConnectionException e) {
         Message message = ERR_LDAP_CONN_CANNOT_CONNECT.get(e.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
       } catch (ArgumentException e) {
         Message message = e.getMessageObject();
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
       }
     }
@@ -90,8 +90,8 @@ public abstract class TaskTool implements TaskScheduleInformation {
    *
    * @param initializeServer indicates whether or not to initialize the
    *        directory server in the case of a local action
-   * @param out stream to write messages
-   * @param err stream to write messages
+   * @param out stream to write messages; may be null
+   * @param err stream to write messages; may be null
    * @return int indicating the result of this action
    */
   abstract protected int processLocal(boolean initializeServer,
