@@ -25,14 +25,16 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
-import org.opends.messages.Message;
 
 
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
@@ -45,13 +47,21 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.util.args.ArgumentException;
+import org.opends.server.util.args.ArgumentParser;
+import org.opends.server.util.args.BooleanArgument;
+import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.UtilityMessages.*;
-import org.opends.messages.MessageBuilder;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 
 
 /**
@@ -73,7 +83,7 @@ public final class EMailMessage
 
 
   // The addresses of the recipients to whom this message should be sent.
-  private ArrayList<String> recipients;
+  private List<String> recipients;
 
   // The set of attachments to include in this message.
   private LinkedList<MimeBodyPart> attachments;
@@ -121,7 +131,7 @@ public final class EMailMessage
    * @param  recipients  The addresses of the recipients for the message.
    * @param  subject     The subject to use for the message.
    */
-  public EMailMessage(String sender, ArrayList<String> recipients,
+  public EMailMessage(String sender, List<String> recipients,
                       String subject)
   {
     this.sender     = sender;
@@ -165,7 +175,7 @@ public final class EMailMessage
    *
    * @return  The set of recipients for this message.
    */
-  public ArrayList<String> getRecipients()
+  public List<String> getRecipients()
   {
     return recipients;
   }
@@ -327,6 +337,7 @@ public final class EMailMessage
 
     FileDataSource dataSource = new FileDataSource(attachmentFile);
     attachment.setDataHandler(new DataHandler(dataSource));
+    attachment.setFileName(attachmentFile.getName());
 
     attachments.add(attachment);
   }
@@ -346,9 +357,29 @@ public final class EMailMessage
   public void send()
          throws MessagingException
   {
+    send(DirectoryServer.getMailServerPropertySets());
+  }
+
+
+
+  /**
+   * Attempts to send this message to the intended recipient(s).  If multiple
+   * servers are specified and the first is unavailable, then the other
+   * server(s) will be tried before returning a failure to the caller.
+   *
+   * @param  mailServerPropertySets  A list of property sets providing
+   *                                 information about the mail servers to use
+   *                                 when sending the message.
+   *
+   * @throws  MessagingException  If a problem occurred while attempting to send
+   *                              the message.
+   */
+  public void send(List<Properties> mailServerPropertySets)
+         throws MessagingException
+  {
     // Get information about the available mail servers that we can use.
     MessagingException sendException = null;
-    for (Properties props : DirectoryServer.getMailServerPropertySets())
+    for (Properties props : mailServerPropertySets)
     {
       // Get a session and use it to create a new message.
       Session session = Session.getInstance(props);
@@ -423,6 +454,8 @@ public final class EMailMessage
         {
           multiPart.addBodyPart(attachment);
         }
+
+        message.setContent(multiPart);
       }
 
 
@@ -467,6 +500,171 @@ public final class EMailMessage
     else
     {
       throw sendException;
+    }
+  }
+
+
+
+  /**
+   * Provide a command-line mechanism for sending an e-mail message via SMTP.
+   *
+   * @param  args  The command-line arguments provided to this program.
+   */
+  public static void main(String[] args)
+  {
+    Message description = INFO_EMAIL_TOOL_DESCRIPTION.get();
+    ArgumentParser argParser = new ArgumentParser(EMailMessage.class.getName(),
+                                                  description, false);
+
+    BooleanArgument showUsage  = null;
+    StringArgument  attachFile = null;
+    StringArgument  bodyFile   = null;
+    StringArgument  host       = null;
+    StringArgument  from       = null;
+    StringArgument  subject    = null;
+    StringArgument  to         = null;
+
+    try
+    {
+      host = new StringArgument("host", 'h', "host", true, true, true,
+                                "{host}", "127.0.0.1", null,
+                                INFO_EMAIL_HOST_DESCRIPTION.get());
+      argParser.addArgument(host);
+
+
+      from = new StringArgument("from", 'f', "from", true, false, true,
+                                "{address}", null, null,
+                                INFO_EMAIL_FROM_DESCRIPTION.get());
+      argParser.addArgument(from);
+
+
+      to = new StringArgument("to", 't', "to", true, true, true, "{address}",
+                              null, null, INFO_EMAIL_TO_DESCRIPTION.get());
+      argParser.addArgument(to);
+
+
+      subject = new StringArgument("subject", 's', "subject", true, false, true,
+                                   "{subject}", null, null,
+                                   INFO_EMAIL_SUBJECT_DESCRIPTION.get());
+      argParser.addArgument(subject);
+
+
+      bodyFile = new StringArgument("bodyfile", 'b', "body", true, true, true,
+                                    "{path}", null, null,
+                                    INFO_EMAIL_BODY_DESCRIPTION.get());
+      argParser.addArgument(bodyFile);
+
+
+      attachFile = new StringArgument("attachfile", 'a', "attach", false, true,
+                                      true, "{path}", null, null,
+                                      INFO_EMAIL_ATTACH_DESCRIPTION.get());
+      argParser.addArgument(attachFile);
+
+
+      showUsage = new BooleanArgument("help", 'H', "help",
+                                      INFO_EMAIL_HELP_DESCRIPTION.get());
+      argParser.addArgument(showUsage);
+      argParser.setUsageArgument(showUsage);
+    }
+    catch (ArgumentException ae)
+    {
+      System.err.println(
+           ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()).toString());
+      System.exit(1);
+    }
+
+    try
+    {
+      argParser.parseArguments(args);
+    }
+    catch (ArgumentException ae)
+    {
+      System.err.println(ERR_CANNOT_PARSE_ARGS.get(ae.getMessage()).toString());
+      System.exit(1);
+    }
+
+    if (showUsage.isPresent())
+    {
+      return;
+    }
+
+    LinkedList<Properties> mailServerProperties = new LinkedList<Properties>();
+    for (String s : host.getValues())
+    {
+      Properties p = new Properties();
+      p.setProperty(SMTP_PROPERTY_HOST, s);
+      mailServerProperties.add(p);
+    }
+
+    EMailMessage message = new EMailMessage(from.getValue(), to.getValues(),
+                                            subject.getValue());
+
+    for (String s : bodyFile.getValues())
+    {
+      try
+      {
+        File f = new File(s);
+        if (! f.exists())
+        {
+          System.err.println(ERR_EMAIL_NO_SUCH_BODY_FILE.get(s));
+          System.exit(1);
+        }
+
+        BufferedReader reader = new BufferedReader(new FileReader(f));
+        while (true)
+        {
+          String line = reader.readLine();
+          if (line == null)
+          {
+            break;
+          }
+
+          message.appendToBody(line);
+          message.appendToBody("\r\n"); // SMTP says we should use CRLF.
+        }
+
+        reader.close();
+      }
+      catch (Exception e)
+      {
+        System.err.println(ERR_EMAIL_CANNOT_PROCESS_BODY_FILE.get(s,
+                                getExceptionMessage(e)));
+        System.exit(1);
+      }
+    }
+
+    if (attachFile.isPresent())
+    {
+      for (String s : attachFile.getValues())
+      {
+        File f = new File(s);
+        if (! f.exists())
+        {
+          System.err.println(ERR_EMAIL_NO_SUCH_ATTACHMENT_FILE.get(s));
+          System.exit(1);
+        }
+
+        try
+        {
+          message.addAttachment(f);
+        }
+        catch (Exception e)
+        {
+          System.err.println(ERR_EMAIL_CANNOT_ATTACH_FILE.get(s,
+                                  getExceptionMessage(e)));
+        }
+      }
+    }
+
+    try
+    {
+      message.send(mailServerProperties);
+    }
+    catch (Exception e)
+    {
+      System.err.println(ERR_EMAIL_CANNOT_SEND_MESSAGE.get(
+                              getExceptionMessage(e)));
+      System.exit(1);
     }
   }
 }
