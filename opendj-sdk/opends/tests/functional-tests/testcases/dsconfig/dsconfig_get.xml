@@ -131,6 +131,67 @@
           </sequence>
         </iterate>
        
+        <script>
+            componentList2 = []
+         
+            f = open('%s/testcases/dsconfig/get2.dat' % (TESTS_DIR),'r')
+            for line in f.readlines():
+                if line.startswith('#'):
+                    continue
+                else: 
+                    lineSingle = line.split(':')
+                    componentList2.append(lineSingle)
+          
+            componentNumber=0
+            testNumber=0
+        </script>
+        <iterate var="dummyIndex" in="componentList2">
+          <sequence>
+            <script>
+                thisTestname = componentList2[componentNumber][0]
+            </script>
+            <testcase name="getTestCaseName(thisTestname)" >
+              <sequence>
+                <message>
+                    'Getting component %s, %s, %s' % (componentList2[componentNumber][0], componentList2[componentNumber][1], componentList2[componentNumber][2])
+                </message>
+                
+                <call function="'dsconfig'">
+                  {   'location'       :  location ,
+                      'dsPath'         :  dsPath ,
+                      'dsInstanceHost' :  dsInstanceHost ,
+                      'dsInstancePort' :  dsInstancePort ,
+                      'dsInstanceDn'   :  dsInstanceDn ,
+                      'dsInstancePswd' :  dsInstancePswd ,
+                      'subcommand'     :  '%s' % componentList2[componentNumber][0] ,
+                      'expectedRC'     : 0 
+                  }
+                </call>
+                
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : componentList2[componentNumber][1]  ,
+                      'expectedResult'     : '1' }
+                </call>
+                
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : componentList2[componentNumber][2] }
+                </call>
+               
+                
+              </sequence>
+            </testcase>
+            <script>
+                    componentNumber=componentNumber+1
+            </script>
+          </sequence>
+        </iterate>
+       
         <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/dsconfig/dsconfig_cleanup.xml' % (TESTS_DIR)"/>
         <call function="'dsconfig_cleanup'" />
