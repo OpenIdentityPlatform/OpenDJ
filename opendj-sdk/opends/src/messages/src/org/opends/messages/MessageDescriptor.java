@@ -29,6 +29,8 @@ package org.opends.messages;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Base class for all Message descriptor classes.
@@ -68,6 +70,8 @@ public abstract class MessageDescriptor {
      */
     private Message message;
 
+    private boolean requiresFormat;
+
     /**
      * Creates a parameterized instance.
      * @param rbBase base of the backing resource bundle
@@ -81,6 +85,7 @@ public abstract class MessageDescriptor {
               Severity severity, int ordinal, ClassLoader classLoader) {
       super(rbBase, key, category, severity, ordinal, classLoader);
       message = new Message(this);
+      requiresFormat = containsArgumentLiterals(getFormatString());
     }
 
     /**
@@ -96,6 +101,7 @@ public abstract class MessageDescriptor {
               Severity severity, int ordinal, ClassLoader classLoader) {
       super(rbBase, key, mask, severity, ordinal, classLoader);
       message = new Message(this);
+      requiresFormat = containsArgumentLiterals(getFormatString());
     }
 
     /**
@@ -106,6 +112,12 @@ public abstract class MessageDescriptor {
       return message;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    boolean requiresFormatter() {
+      return requiresFormat;
+    }
   }
 
   /**
@@ -150,6 +162,13 @@ public abstract class MessageDescriptor {
      */
     public Message get(T1 a1) {
       return new Message(this, a1);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    boolean requiresFormatter() {
+      return true;
     }
 
   }
@@ -197,6 +216,13 @@ public abstract class MessageDescriptor {
      */
     public Message get(T1 a1, T2 a2) {
       return new Message(this, a1, a2);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    boolean requiresFormatter() {
+      return true;
     }
 
   }
@@ -247,6 +273,13 @@ public abstract class MessageDescriptor {
       return new Message(this, a1, a2, a3);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    boolean requiresFormatter() {
+      return true;
+    }
+
   }
 
   /**
@@ -294,6 +327,13 @@ public abstract class MessageDescriptor {
      */
     public Message get(T1 a1, T2 a2, T3 a3, T4 a4) {
       return new Message(this, a1, a2, a3, a4);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    boolean requiresFormatter() {
+      return true;
     }
 
   }
@@ -346,6 +386,13 @@ public abstract class MessageDescriptor {
       return new Message(this, a1, a2, a3, a4, a5);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    boolean requiresFormatter() {
+      return true;
+    }
+
   }
 
   /**
@@ -395,6 +442,13 @@ public abstract class MessageDescriptor {
      */
     public Message get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6) {
       return new Message(this, a1, a2, a3, a4, a5, a6);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    boolean requiresFormatter() {
+      return true;
     }
 
   }
@@ -449,6 +503,13 @@ public abstract class MessageDescriptor {
      */
     public Message get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6, T7 a7) {
       return new Message(this, a1, a2, a3, a4, a5, a6, a7);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    boolean requiresFormatter() {
+      return true;
     }
 
   }
@@ -507,6 +568,13 @@ public abstract class MessageDescriptor {
       return new Message(this, a1, a2, a3, a4, a5, a6, a7, a8);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    boolean requiresFormatter() {
+      return true;
+    }
+
   }
 
   /**
@@ -561,6 +629,13 @@ public abstract class MessageDescriptor {
     public Message get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6,
                           T7 a7, T8 a8, T9 a9) {
       return new Message(this, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    boolean requiresFormatter() {
+      return true;
     }
 
   }
@@ -618,6 +693,13 @@ public abstract class MessageDescriptor {
     public Message get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6,
                           T7 a7, T8 a8, T9 a9, T10 a10) {
       return new Message(this, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    boolean requiresFormatter() {
+      return true;
     }
 
   }
@@ -679,6 +761,13 @@ public abstract class MessageDescriptor {
       return new Message(this, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    boolean requiresFormatter() {
+      return true;
+    }
+
   }
 
   /**
@@ -728,6 +817,13 @@ public abstract class MessageDescriptor {
       return new Message(this, args);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    boolean requiresFormatter() {
+      return true;
+    }
+
   }
 
   /**
@@ -739,6 +835,8 @@ public abstract class MessageDescriptor {
   static class Raw extends MessageDescriptor {
 
     private String formatString;
+
+    private boolean requiresFormatter;
 
     /**
      * Creates a parameterized instance.
@@ -758,6 +856,7 @@ public abstract class MessageDescriptor {
                                 Severity severity) {
       super(null, null, category, severity, null, null);
       this.formatString = formatString != null ? formatString.toString() : "";
+      this.requiresFormatter = formatString.toString().matches(".*%.*");
     }
 
     /**
@@ -792,6 +891,13 @@ public abstract class MessageDescriptor {
     @Override
     String getFormatString(Locale locale) {
       return this.formatString;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    boolean requiresFormatter() {
+      return this.requiresFormatter;
     }
 
   }
@@ -831,6 +937,9 @@ public abstract class MessageDescriptor {
    * the default class loader will be used.
    */
   protected ClassLoader classLoader;
+
+
+  private Map<Locale,String> formatStrMap = new HashMap<Locale,String>();
 
   /**
    * Obtains the category of this descriptor.  Gauranteed not to be null.
@@ -903,6 +1012,14 @@ public abstract class MessageDescriptor {
   }
 
   /**
+   * Indicates whether or not this descriptor format string should
+   * be processed by Formatter during string rendering.
+   * @return boolean where true means Formatter should be used; false otherwise
+   * @see java.util.Formatter
+   */
+  abstract boolean requiresFormatter();
+
+  /**
    * Obtains the format string for constructing the string
    * value of this message according to the default
    * locale.
@@ -920,8 +1037,26 @@ public abstract class MessageDescriptor {
    * @return format string
    */
   String getFormatString(Locale locale) {
-    ResourceBundle bundle = getBundle(locale);
-    return bundle.getString(this.key);
+    String fmtStr = formatStrMap.get(locale);
+    if (fmtStr == null) {
+      ResourceBundle bundle = getBundle(locale);
+      fmtStr = bundle.getString(this.key);
+      formatStrMap.put(locale, fmtStr);
+    }
+    return fmtStr;
+  }
+
+  /**
+   * Indicates whether or not formatting should be applied
+   * to the given format string.  Note that a format string
+   * might have literal specifiers (%% or %n for example) that
+   * require formatting but are not replaced by arguments.
+   * @param s candiate for formatting
+   * @return boolean where true indicates that the format
+   *         string requires formatting
+   */
+  protected boolean containsArgumentLiterals(String s) {
+    return s.matches(".*%[n|%].*"); // match Formatter literals
   }
 
   private ResourceBundle getBundle(Locale locale) {
@@ -981,6 +1116,5 @@ public abstract class MessageDescriptor {
     this(rbBase, key, Category.USER_DEFINED, severity, ordinal, classLoader);
     this.mask = mask;
   }
-
 
 }

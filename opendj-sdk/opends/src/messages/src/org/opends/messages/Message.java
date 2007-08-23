@@ -172,7 +172,7 @@ public class Message implements CharSequence, Formattable, Comparable {
   public String toString(Locale locale) {
     String s;
     String fmt = descriptor.getFormatString(locale);
-    if (needsFormatting(fmt)) {
+    if (descriptor.requiresFormatter()) {
       try {
         s = new Formatter(locale).format(locale, fmt, args).toString();
       } catch (IllegalFormatException e) {
@@ -369,21 +369,6 @@ public class Message implements CharSequence, Formattable, Comparable {
     int result;
     result = 31 * toString().hashCode();
     return result;
-  }
-
-  /**
-   * Indicates whether or not formatting should be applied
-   * to the given format string.  Note that a format string
-   * might have literal specifiers (%% or %n for example) that
-   * require formatting but are not replaced by arguments.
-   * @param s candiate for formatting
-   * @return boolean where true indicates that the format
-   *         string requires formatting
-   */
-  protected boolean needsFormatting(String s) {
-    return s != null &&
-            ((args != null && args.length > 0)
-                   || s.matches(".*%[n|%].*")); // match Formatter literals
   }
 
 }
