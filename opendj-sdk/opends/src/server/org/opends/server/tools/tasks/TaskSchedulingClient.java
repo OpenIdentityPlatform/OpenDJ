@@ -29,6 +29,7 @@ package org.opends.server.tools.tasks;
 
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.RawAttribute;
+import org.opends.server.types.ResultCode;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -82,8 +83,8 @@ public class TaskSchedulingClient {
    * Schedule a task for execution by writing an entry to the task backend.
    *
    * @param information to be scheduled
-   * @param out stream for writing error messages
-   * @param err stream for writing error messages
+   * @param out stream for writing error messages; may be null
+   * @param err stream for writing error messages; may be null
    * @return int representing an LDAP return code
    */
   public synchronized int schedule(TaskScheduleInformation information,
@@ -136,26 +137,26 @@ public class TaskSchedulingClient {
       if (responseMessage == null)
       {
         Message message = ERR_TASK_CLIENT_UNEXPECTED_CONNECTION_CLOSURE.get();
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
       }
     }
     catch (IOException ioe)
     {
       Message message = ERR_TASK_CLIENT_IO_ERROR.get(String.valueOf(ioe));
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
     }
     catch (ASN1Exception ae)
     {
       Message message = ERR_TASK_CLIENT_DECODE_ERROR.get(ae.getMessage());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_DECODING_ERROR;
     }
     catch (LDAPException le)
     {
       Message message = ERR_TASK_CLIENT_DECODE_ERROR.get(le.getMessage());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_DECODING_ERROR;
     }
 
@@ -176,7 +177,7 @@ public class TaskSchedulingClient {
           Message message = extendedResponse.getErrorMessage();
           if (message != null)
           {
-            err.println(wrapText(message, MAX_LINE_WIDTH));
+            if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
           }
 
           return extendedResponse.getResultCode();
@@ -185,18 +186,20 @@ public class TaskSchedulingClient {
 
       Message message = ERR_TASK_CLIENT_INVALID_RESPONSE_TYPE.get(
               responseMessage.getProtocolOpName());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
     }
 
     AddResponseProtocolOp addResponse =
          responseMessage.getAddResponseProtocolOp();
     Message errorMessage = addResponse.getErrorMessage();
-    if (errorMessage != null)
+    if (errorMessage != null && err != null)
     {
       err.println(wrapText(errorMessage, MAX_LINE_WIDTH));
     }
-    else
+
+    if (addResponse.getResultCode() == ResultCode.SUCCESS.getIntValue() &&
+          out != null)
     {
       out.println(wrapText(INFO_TASK_CLIENT_TASK_SCHEDULED.get(taskID),
                            MAX_LINE_WIDTH));

@@ -43,6 +43,7 @@ import java.util.TimeZone;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.config.ConfigException;
+import static org.opends.server.config.ConfigConstants.*;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -56,16 +57,21 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
+import org.opends.server.types.RawAttribute;
 import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
+import org.opends.server.util.args.LDAPConnectionArgumentParser;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
+import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.admin.std.server.BackendCfg;
+import org.opends.server.tasks.BackupTask;
+import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.ldap.LDAPAttribute;
 
 
 /**
@@ -76,7 +82,7 @@ import org.opends.server.admin.std.server.BackendCfg;
  * a process that is intended to run separate from Directory Server and not
  * internally within the server process (e.g., via the tasks interface).
  */
-public class BackUpDB
+public class BackUpDB extends TaskTool
 {
   private static ErrorLogPublisher errorLogPublisher = null;
   /**
@@ -127,6 +133,29 @@ public class BackUpDB
   public static int mainBackUpDB(String[] args, boolean initializeServer,
                                  OutputStream outStream, OutputStream errStream)
   {
+    BackUpDB tool = new BackUpDB();
+    return tool.process(args, initializeServer, outStream, errStream);
+  }
+
+  // Define the command-line arguments that may be used with this program.
+  private BooleanArgument backUpAll         = null;
+  private BooleanArgument compress          = null;
+  private BooleanArgument displayUsage      = null;
+  private BooleanArgument encrypt           = null;
+  private BooleanArgument hash              = null;
+  private BooleanArgument incremental       = null;
+  private BooleanArgument signHash          = null;
+  private StringArgument  backendID         = null;
+  private StringArgument  backupIDString    = null;
+  private StringArgument  configClass       = null;
+  private StringArgument  configFile        = null;
+  private StringArgument  backupDirectory   = null;
+  private StringArgument  incrementalBaseID = null;
+
+  private int process(String[] args, boolean initializeServer,
+                      OutputStream outStream, OutputStream errStream)
+  {
+
     PrintStream out;
     if (outStream == null)
     {
@@ -147,81 +176,70 @@ public class BackUpDB
       err = new PrintStream(errStream);
     }
 
-    // Define the command-line arguments that may be used with this program.
-    BooleanArgument backUpAll         = null;
-    BooleanArgument compress          = null;
-    BooleanArgument displayUsage      = null;
-    BooleanArgument encrypt           = null;
-    BooleanArgument hash              = null;
-    BooleanArgument incremental       = null;
-    BooleanArgument signHash          = null;
-    StringArgument  backendID         = null;
-    StringArgument  backupIDString    = null;
-    StringArgument  configClass       = null;
-    StringArgument  configFile        = null;
-    StringArgument  backupDirectory   = null;
-    StringArgument  incrementalBaseID = null;
-
-
     // Create the command-line argument parser for use with this program.
     Message toolDescription = INFO_BACKUPDB_TOOL_DESCRIPTION.get();
-    ArgumentParser argParser =
-         new ArgumentParser("org.opends.server.tools.BackUpDB", toolDescription,
-                            false);
-
+    LDAPConnectionArgumentParser argParser =
+         new LDAPConnectionArgumentParser("org.opends.server.tools.BackUpDB",
+                                          toolDescription,
+                                          false);
 
     // Initialize all the command-line argument types and register them with the
     // parser.
     try
     {
       configClass =
-           new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
-                              OPTION_LONG_CONFIG_CLASS, true, false,
-                              true, OPTION_VALUE_CONFIG_CLASS,
-                              ConfigFileHandler.class.getName(), null,
-                              INFO_DESCRIPTION_CONFIG_CLASS.get());
+           new StringArgument(
+                   "configclass", OPTION_SHORT_CONFIG_CLASS,
+                   OPTION_LONG_CONFIG_CLASS, true, false,
+                   true, OPTION_VALUE_CONFIG_CLASS,
+                   ConfigFileHandler.class.getName(), null,
+                   INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
 
       configFile =
-           new StringArgument("configfile", 'f', "configFile", true, false,
-                              true, "{configFile}", null, null,
-                              INFO_DESCRIPTION_CONFIG_FILE.get());
+           new StringArgument(
+                   "configfile", 'f', "configFile", true, false,
+                   true, "{configFile}", null, null,
+                   INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
 
       backendID =
-           new StringArgument("backendid", 'n', "backendID", false, true, true,
-                              "{backendID}", null, null,
-                              INFO_BACKUPDB_DESCRIPTION_BACKEND_ID.get());
+           new StringArgument(
+                   "backendid", 'n', "backendID", false, true, true,
+                   "{backendID}", null, null,
+                   INFO_BACKUPDB_DESCRIPTION_BACKEND_ID.get());
       argParser.addArgument(backendID);
 
 
       backUpAll = new BooleanArgument(
-              "backupall", 'a', "backUpAll",
-              INFO_BACKUPDB_DESCRIPTION_BACKUP_ALL.get());
+                  "backupall", 'a', "backUpAll",
+                  INFO_BACKUPDB_DESCRIPTION_BACKUP_ALL.get());
       argParser.addArgument(backUpAll);
 
 
       backupIDString =
-           new StringArgument("backupid", 'I', "backupID", false, false, true,
-                              "{backupID}", null, null,
-                              INFO_BACKUPDB_DESCRIPTION_BACKUP_ID.get());
+           new StringArgument(
+                   "backupid", 'I', "backupID", false, false, true,
+                   "{backupID}", null, null,
+                   INFO_BACKUPDB_DESCRIPTION_BACKUP_ID.get());
       argParser.addArgument(backupIDString);
 
 
       backupDirectory =
-           new StringArgument("backupdirectory", 'd', "backupDirectory", true,
-                              false, true, "{backupDir}", null, null,
-                              INFO_BACKUPDB_DESCRIPTION_BACKUP_DIR.get());
+           new StringArgument(
+                   "backupdirectory", 'd', "backupDirectory", true,
+                   false, true, "{backupDir}", null, null,
+                   INFO_BACKUPDB_DESCRIPTION_BACKUP_DIR.get());
       argParser.addArgument(backupDirectory);
 
 
       incremental = new BooleanArgument(
-              "incremental", 'i', "incremental",
-              INFO_BACKUPDB_DESCRIPTION_INCREMENTAL.get());
+                  "incremental", 'i', "incremental",
+                  INFO_BACKUPDB_DESCRIPTION_INCREMENTAL.get());
       argParser.addArgument(incremental);
 
 
@@ -233,32 +251,37 @@ public class BackUpDB
       argParser.addArgument(incrementalBaseID);
 
 
-      compress = new BooleanArgument("compress", OPTION_SHORT_COMPRESS,
-                                     OPTION_LONG_COMPRESS,
-                                     INFO_BACKUPDB_DESCRIPTION_COMPRESS.get());
+      compress = new BooleanArgument(
+                  "compress", OPTION_SHORT_COMPRESS,
+                  OPTION_LONG_COMPRESS,
+                  INFO_BACKUPDB_DESCRIPTION_COMPRESS.get());
       argParser.addArgument(compress);
 
 
-      encrypt = new BooleanArgument("encrypt", 'y', "encrypt",
-                                    INFO_BACKUPDB_DESCRIPTION_ENCRYPT.get());
+      encrypt = new BooleanArgument(
+                  "encrypt", 'y', "encrypt",
+                  INFO_BACKUPDB_DESCRIPTION_ENCRYPT.get());
       argParser.addArgument(encrypt);
 
 
-      hash = new BooleanArgument("hash", 'h', "hash",
-                                 INFO_BACKUPDB_DESCRIPTION_HASH.get());
+      hash = new BooleanArgument(
+                  "hash", 'A', "hash",
+                  INFO_BACKUPDB_DESCRIPTION_HASH.get());
       argParser.addArgument(hash);
 
 
       signHash =
-           new BooleanArgument("signhash", 's', "signHash",
-                               INFO_BACKUPDB_DESCRIPTION_SIGN_HASH.get());
+           new BooleanArgument(
+                   "signhash", 's', "signHash",
+                   INFO_BACKUPDB_DESCRIPTION_SIGN_HASH.get());
       argParser.addArgument(signHash);
 
 
       displayUsage =
-           new BooleanArgument("help", OPTION_SHORT_HELP,
-                               OPTION_LONG_HELP,
-                               INFO_DESCRIPTION_USAGE.get());
+           new BooleanArgument(
+                   "help", OPTION_SHORT_HELP,
+                   OPTION_LONG_HELP,
+                   INFO_DESCRIPTION_USAGE.get());
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
     }
@@ -316,24 +339,8 @@ public class BackUpDB
       return 1;
     }
 
-
-    // If no backup ID was provided, then create one with the current timestamp.
-    String backupID;
-    if (backupIDString.isPresent())
-    {
-      backupID = backupIDString.getValue();
-    }
-    else
-    {
-      SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
-      dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-      backupID = dateFormat.format(new Date());
-    }
-
-
     // If the incremental base ID was specified, then make sure it is an
     // incremental backup.
-    String incrementalBase;
     if (incrementalBaseID.isPresent())
     {
       if (! incremental.isPresent())
@@ -345,14 +352,7 @@ public class BackUpDB
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
-
-      incrementalBase = incrementalBaseID.getValue();
     }
-    else
-    {
-      incrementalBase = null;
-    }
-
 
     // If the signHash option was provided, then make sure that the hash option
     // was given.
@@ -365,6 +365,128 @@ public class BackUpDB
       return 1;
     }
 
+    return process(argParser, initializeServer, out, err);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void addTaskAttributes(List<RawAttribute> attributes)
+  {
+    ArrayList<ASN1OctetString> values;
+    if (backUpAll.getValue() != null &&
+            !backUpAll.getValue().equals(
+                    backUpAll.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(backUpAll.getValue()));
+      attributes.add(
+              new LDAPAttribute(ATTR_TASK_BACKUP_ALL, values));
+    }
+
+    if (compress.getValue() != null &&
+            !compress.getValue().equals(
+                    compress.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(compress.getValue()));
+      attributes.add(
+              new LDAPAttribute(ATTR_TASK_BACKUP_COMPRESS, values));
+    }
+
+    if (encrypt.getValue() != null &&
+            !encrypt.getValue().equals(
+                    encrypt.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(encrypt.getValue()));
+      attributes.add(
+              new LDAPAttribute(ATTR_TASK_BACKUP_ENCRYPT, values));
+    }
+
+    if (hash.getValue() != null &&
+            !hash.getValue().equals(
+                    hash.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(hash.getValue()));
+      attributes.add(
+              new LDAPAttribute(ATTR_TASK_BACKUP_HASH, values));
+    }
+
+    if (incremental.getValue() != null &&
+            !incremental.getValue().equals(
+                    incremental.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(incremental.getValue()));
+      attributes.add(
+              new LDAPAttribute(ATTR_TASK_BACKUP_INCREMENTAL, values));
+    }
+
+    if (signHash.getValue() != null &&
+            !signHash.getValue().equals(
+                    signHash.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(signHash.getValue()));
+      attributes.add(
+              new LDAPAttribute(ATTR_TASK_BACKUP_SIGN_HASH, values));
+    }
+
+    List<String> backendIDs = backendID.getValues();
+    if (backendIDs != null && backendIDs.size() > 0) {
+      values = new ArrayList<ASN1OctetString>(backendIDs.size());
+      for (String s : backendIDs) {
+        values.add(new ASN1OctetString(s));
+      }
+      attributes.add(
+              new LDAPAttribute(ATTR_TASK_BACKUP_BACKEND_ID, values));
+    }
+
+    if (backupIDString.getValue() != null &&
+            !backupIDString.getValue().equals(
+                    backupIDString.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(backupIDString.getValue()));
+      attributes.add(
+              new LDAPAttribute(ATTR_BACKUP_ID, values));
+    }
+
+    if (backupDirectory.getValue() != null &&
+            !backupDirectory.getValue().equals(
+                    backupDirectory.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(backupDirectory.getValue()));
+      attributes.add(
+              new LDAPAttribute(ATTR_BACKUP_DIRECTORY_PATH, values));
+    }
+
+    if (incrementalBaseID.getValue() != null &&
+            !incrementalBaseID.getValue().equals(
+                    incrementalBaseID.getDefaultValue())) {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(incrementalBaseID.getValue()));
+      attributes.add(
+              new LDAPAttribute(ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID, values));
+    }
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getTaskObjectclass() {
+    return "ds-task-backup";
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Class getTaskClass() {
+    return BackupTask.class;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected int processLocal(boolean initializeServer,
+                           PrintStream out,
+                           PrintStream err) {
 
     // Make sure that the backup directory exists.  If not, then create it.
     File backupDirFile = new File(backupDirectory.getValue());
@@ -384,6 +506,30 @@ public class BackUpDB
       }
     }
 
+    // If no backup ID was provided, then create one with the current timestamp.
+    String backupID;
+    if (backupIDString.isPresent())
+    {
+      backupID = backupIDString.getValue();
+    }
+    else
+    {
+      SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
+      dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+      backupID = dateFormat.format(new Date());
+    }
+
+    // If the incremental base ID was specified, then make sure it is an
+    // incremental backup.
+    String incrementalBase;
+    if (incrementalBaseID.isPresent())
+    {
+      incrementalBase = incrementalBaseID.getValue();
+    }
+    else
+    {
+      incrementalBase = null;
+    }
 
     // Perform the initial bootstrap of the Directory Server and process the
     // configuration.
