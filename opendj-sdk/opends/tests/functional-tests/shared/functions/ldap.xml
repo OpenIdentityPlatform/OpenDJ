@@ -146,7 +146,7 @@
       This function performs an ldapmodify using the script
     </function-prolog>  
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -623,7 +623,7 @@
       This function performs an ldapsearch using the script
     </function-prolog>  
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -1436,7 +1436,7 @@
       This function performs an ldapdelete using the script
     </function-prolog>  
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -1876,7 +1876,7 @@
       This function performs an ldapcompare using the script
     </function-prolog>  
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -2346,7 +2346,7 @@
       This function performs an ldappasswordmodify using the script
     </function-prolog>  
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -2748,8 +2748,8 @@
           'command'   : 'java',
           'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
           'location'  : location,
-          'path'      : TESTS_JAVA_DIR,
-          'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s' % TESTS_JAVA_DIR]
+          'path'      : '%s/../%s' % (dsPath,relativeJavaDir),
+          'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s/../%s' % (dsPath,relativeJavaDir)]
         }
       </call>
       <script>
@@ -2858,8 +2858,8 @@
           'command'   : 'java',
           'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
           'location'  : location,
-          'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s' % TESTS_JAVA_DIR],
-          'path'      : TESTS_JAVA_DIR
+          'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s/../%s' % (dsPath,relativeJavaDir)],
+          'path'      : '%s/../%s' % (dsPath,relativeJavaDir)
         }
       </call>
       <script>
@@ -2977,8 +2977,8 @@
           'command'   : 'java',
           'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
           'location'  : location,
-          'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s' % TESTS_JAVA_DIR],
-          'path'      : TESTS_JAVA_DIR
+          'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s/../%s' % (dsPath,relativeJavaDir)],
+          'path'      : '%s/../%s' % (dsPath,relativeJavaDir)
         }
       </call>
       <script>

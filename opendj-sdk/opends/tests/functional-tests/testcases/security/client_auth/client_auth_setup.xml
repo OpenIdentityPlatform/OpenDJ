@@ -370,16 +370,28 @@
               'expectedRC'     :  0
             }
           </call>
-          
+
+          <call function="'getFile'">
+            { 'location'    : STAF_REMOTE_HOSTNAME,
+              'filename'    : USER_1_CERT_FILE_RFC
+            }
+          </call>
+
+          <message>
+            'Certificate contents:\n %s' % cmdResult
+          </message>
+                              
           <!-- Extract BEGIN CERTIFICATE and END CERTIFICATE -->
           <script>
-            cert_file = open(USER_1_CERT_FILE_RFC,"r")
+            certList=STAXResult[1].split('\n')
             ret_str = ""
-            for line in cert_file.readlines():
+            for line in certList:
               index_cert = line.find("CERTIFICATE")
               if index_cert == -1:
                 ret_str+=line.strip()
-              
+          </script>
+                          
+          <script>                        
             listAttr = []
             listAttr.append('dn: %s' % USER_1_DN)
             listAttr.append('changetype: modify')
@@ -444,12 +456,22 @@
               'expectedRC'     :  0
             }
           </call>
-          
+
+          <call function="'getFile'">
+            { 'location'    : STAF_REMOTE_HOSTNAME,
+              'filename'    : USER_2_CERT_FILE_RFC
+            }
+          </call>
+
+          <message>
+            'Certificate contents:\n %s' % cmdResult
+          </message>
+                              
           <!-- Extract BEGIN CERTIFICATE and END CERTIFICATE -->
           <script>
-            cert_file = open(USER_2_CERT_FILE_RFC,"r")
+            certList=STAXResult[1].split('\n')
             ret_str = ""
-            for line in cert_file.readlines():
+            for line in certList:
               index_cert = line.find("CERTIFICATE")
               if index_cert == -1:
                 ret_str+=line.strip()
