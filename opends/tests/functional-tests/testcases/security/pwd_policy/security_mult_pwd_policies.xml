@@ -41,14 +41,18 @@
                'Security: Mult Pwd Policies: Preamble - Add Sales Password Policy'
             </message>
 
-            <call function="'addEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/pwd_policy/sales_pwd_policy.ldif' % logsRemoteDataDir }
-            </call>
-
+            <call function="'dsconfig'">
+            { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'           : 'create-password-policy' ,    
+              'objectType'           : 'policy-name' ,
+              'objectName'           : 'Sales Password Policy',
+              'optionsString'        : '--set default-password-storage-scheme:SSHA --set password-attribute:userPassword',
+              'expectedRC'           : 0 } 
+            </call>          
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -196,14 +200,17 @@
                'Security: Mult Pwd Policies: Admin Deleting Sales Lockout Count'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/rm_sales_pwd_policy.ldif' % logsRemoteDataDir }
-            </call>
-
+            <call function="'dsconfig'">
+            { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'           : 'delete-password-policy' ,    
+              'objectType'           : 'policy-name' ,
+              'objectName'           : 'Sales Password Policy',
+              'expectedRC'           : 0 } 
+            </call>          
+            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
