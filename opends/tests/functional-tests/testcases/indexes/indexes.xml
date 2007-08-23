@@ -132,7 +132,7 @@
               { 'functionName'      : 'StopDsWithScript'               ,
                 'functionException' : 'CLI.stop-ds'                    ,
                 'functionFailureTC' : 'Indexes - Modify' ,
-                'functionArguments' : { 'location'  : STAF_LOCAL_HOSTNAME   ,
+                'functionArguments' : { 'location'  : STAF_REMOTE_HOSTNAME   ,
                                         'dsHost'    : DIRECTORY_INSTANCE_HOST,
                                         'dsPort'    : DIRECTORY_INSTANCE_PORT,
                                         'dsBindDN'  : DIRECTORY_INSTANCE_DN  ,
@@ -151,7 +151,7 @@
               { 'functionName'      : 'StartDsWithScript',
                 'functionException' : 'CLI.start-ds'     ,
                 'functionFailureTC' : 'Indexes - Modify' ,
-                'functionArguments' : { 'location' : STAF_LOCAL_HOSTNAME }
+                'functionArguments' : { 'location' : STAF_REMOTE_HOSTNAME }
               }
             </call>
             <call function="'loopThroughFilters'">
@@ -206,7 +206,7 @@
               { 'functionName'      : 'StopDsWithScript' ,
                 'functionException' : 'CLI.stop-ds'      ,
                 'functionFailureTC' : '%s: %s: %s' % (CurrentTestPath['group'], CurrentTestPath['suite'], STAXCurrentBlock ) ,
-                'functionArguments' : { 'location'  : STAF_LOCAL_HOSTNAME    ,
+                'functionArguments' : { 'location'  : STAF_REMOTE_HOSTNAME    ,
                                         'dsHost'    : DIRECTORY_INSTANCE_HOST,
                                         'dsPort'    : DIRECTORY_INSTANCE_PORT,
                                         'dsBindDN'  : DIRECTORY_INSTANCE_DN  ,
@@ -227,7 +227,7 @@
               { 'functionName'      : 'StartDsWithScript',
                 'functionException' : 'CLI.start-ds'     ,
                 'functionFailureTC' : '%s: %s:  ' ,
-                'functionArguments' : { 'location' : STAF_LOCAL_HOSTNAME }
+                'functionArguments' : { 'location' : STAF_REMOTE_HOSTNAME }
               }
             </call>
             <call function="'loopThroughFilters'">
