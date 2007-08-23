@@ -676,6 +676,18 @@
       This wraps the rebuild-index tool to make it easy to use from STAX
     </function-prolog>
     <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>          
       <function-arg-def name="baseDN" type="required">
         <function-arg-description>
           Specify a back-end supporting indexing and triggers a rebuild of all 
@@ -693,13 +705,14 @@
     
     <sequence>
       <script>
+        dsBinPath='%s/%s' % (dsPath,fileFolder)        
         _cmd='%s/rebuild-index%s' % (dsBinPath,fileExt)
         _args=' -b %s -i %s' % ( baseDN, ' -i '.join(attributes) )
       </script>
       <call function="'runCommand'">
         { 'name'      : 'rebuild index',
           'location'  : location,
-          'command'   : cmd,
+          'command'   : _cmd,
           'arguments' : _args
         }
       </call>
