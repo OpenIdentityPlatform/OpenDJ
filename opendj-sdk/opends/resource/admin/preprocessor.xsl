@@ -1061,14 +1061,31 @@
     </xsl:choose>
   </xsl:variable>
   <xsl:variable name="this-ufn">
-    <xsl:call-template name="name-to-ufn">
-      <xsl:with-param name="value" select="$this-name" />
-    </xsl:call-template>
+    <xsl:choose>
+      <xsl:when test="/adm:managed-object/adm:user-friendly-name">
+        <xsl:value-of
+          select="normalize-space(/adm:managed-object/adm:user-friendly-name)" />
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="name-to-ufn">
+          <xsl:with-param name="value" select="$this-name" />
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:variable>
   <xsl:variable name="this-ufpn">
-    <xsl:call-template name="name-to-ufn">
-      <xsl:with-param name="value" select="$this-plural-name" />
-    </xsl:call-template>
+    <xsl:choose>
+      <xsl:when
+        test="/adm:managed-object/adm:user-friendly-plural-name">
+        <xsl:value-of
+          select="normalize-space(/adm:managed-object/adm:user-friendly-plural-name)" />
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="name-to-ufn">
+          <xsl:with-param name="value" select="$this-plural-name" />
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:variable>
   <xsl:variable name="_this">
     <xsl:call-template name="pre-process-managed-object" />
