@@ -2211,8 +2211,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       {
         ieContext.exception = new DirectoryException(ResultCode.OTHER,
             Message.raw("received an unexpected message type"), e);
+        return null;
       }
-      return null;
     }
   }
 
