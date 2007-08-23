@@ -217,12 +217,21 @@ public final class LockManager
           // and either return it or return null.
           readLock.unlock();
           readLock = existingLock.readLock();
-          if (readLock.tryLock())
+
+          try
           {
-            return readLock;
+            if (readLock.tryLock(0, TimeUnit.SECONDS))
+            {
+              return readLock;
+            }
+            else
+            {
+              return null;
+            }
           }
-          else
+          catch(InterruptedException ie)
           {
+            // This should never happen. Just return null
             return null;
           }
         }
@@ -421,12 +430,20 @@ public final class LockManager
           // and either return it or return null.
           writeLock.unlock();
           writeLock = existingLock.writeLock();
-          if (writeLock.tryLock())
+          try
           {
-            return writeLock;
+            if (writeLock.tryLock(0, TimeUnit.SECONDS))
+            {
+              return writeLock;
+            }
+            else
+            {
+              return null;
+            }
           }
-          else
+          catch(InterruptedException ie)
           {
+            // This should never happen. Just return null
             return null;
           }
         }
