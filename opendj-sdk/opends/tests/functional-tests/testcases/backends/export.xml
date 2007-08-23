@@ -1946,7 +1946,7 @@
               </message>
               <call function="'exportLdif'">
                 { 'ldifFile'    : '%s/backends/ExportWrapCol.ldif' % logsRemoteDataDir,
-                  'extraParams' : '-w 25'
+                  'extraParams' : '--wrapColumn 25'
                 }
               </call>
               <call function="'checktestRC'">
