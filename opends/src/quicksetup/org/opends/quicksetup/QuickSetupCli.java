@@ -87,7 +87,7 @@ public class QuickSetupCli {
                 new PlainTextProgressMessageFormatter();
         cliApp.setUserData(userData);
         cliApp.setProgressMessageFormatter(formatter);
-        if (!userData.isSilent()) {
+        if (!userData.isQuiet()) {
           cliApp.addProgressUpdateListener(
                   new ProgressUpdateListener() {
                     public void progressUpdate(ProgressUpdateEvent ev) {

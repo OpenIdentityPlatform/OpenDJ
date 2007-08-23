@@ -81,7 +81,7 @@ public class UserData
 
   private Map<ServerDescriptor, Integer> remoteWithNoReplicationPort;
 
-  private boolean silent;
+  private boolean quiet;
 
   private boolean interactive;
 
@@ -449,23 +449,23 @@ public class UserData
   /**
    * Sets whether or not this session should print messages to the
    * console if in CLI mode.
-   * @param silent where true indicates this sesssion should be silent
+   * @param quiet where true indicates this sesssion should be quiet
    */
-  public void setSilent(boolean silent) {
-    this.silent = silent;
+  public void setQuiet(boolean quiet) {
+    this.quiet = quiet;
   }
 
   /**
-   * Indicates whether or not the user has requested silent mode.
+   * Indicates whether or not the user has requested quiet mode.
    * <p>
-   * Silent mode in the CLI means that nothing is written to output including
+   * Quiet mode in the CLI means that nothing is written to output including
    * prompts for information and whether or not to continue an operation
    * experiencing errors.
    *
-   * @return boolean where true indicates this session should be silent.
+   * @return boolean where true indicates this session should be quiet.
    */
-  public boolean isSilent() {
-    return this.silent;
+  public boolean isQuiet() {
+    return this.quiet;
   }
 
   /**
@@ -509,7 +509,7 @@ public class UserData
    * @return boolean where true indicates this session should be interactive
    */
   public boolean isInteractive() {
-    return !this.silent && this.interactive;
+    return !this.quiet && this.interactive;
   }
 
   /**

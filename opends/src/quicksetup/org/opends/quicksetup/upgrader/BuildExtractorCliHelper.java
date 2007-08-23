@@ -54,9 +54,9 @@ public class BuildExtractorCliHelper extends UpgraderCliHelper {
     throws UserDataException {
     UpgradeUserData uud = super.createUserData(args);
 
-    // Build extractor is always silent whether user
+    // Build extractor is always quiet whether user
     // has specified this or not.
-    uud.setSilent(true);
+    uud.setQuiet(true);
 
     if (localInstallPackFileNameArg.isPresent()) {
       String localInstallPackFileName =

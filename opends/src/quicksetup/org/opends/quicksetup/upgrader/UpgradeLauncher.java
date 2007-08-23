@@ -178,7 +178,7 @@ public class UpgradeLauncher extends Launcher {
         INFO_UPGRADE_LAUNCHER_USAGE_DESCRIPTION.get(), false);
     BooleanArgument showUsage;
     FileBasedArgument file;
-    BooleanArgument silent;
+    BooleanArgument quiet;
     BooleanArgument interactive;
     try
     {
@@ -196,12 +196,12 @@ public class UpgradeLauncher extends Launcher {
           SecureConnectionCliParser.INTERACTIVE_OPTION_LONG,
           INFO_UPGRADE_DESCRIPTION_INTERACTIVE.get());
       argParser.addArgument(interactive);
-      silent = new BooleanArgument(
-          SecureConnectionCliParser.SILENT_OPTION_LONG,
-          SecureConnectionCliParser.SILENT_OPTION_SHORT,
-          SecureConnectionCliParser.SILENT_OPTION_LONG,
+      quiet = new BooleanArgument(
+          SecureConnectionCliParser.QUIET_OPTION_LONG,
+          SecureConnectionCliParser.QUIET_OPTION_SHORT,
+          SecureConnectionCliParser.QUIET_OPTION_LONG,
           INFO_UPGRADE_DESCRIPTION_SILENT.get());
-      argParser.addArgument(silent);
+      argParser.addArgument(quiet);
       showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
         OPTION_LONG_HELP,
         INFO_DESCRIPTION_USAGE.get());

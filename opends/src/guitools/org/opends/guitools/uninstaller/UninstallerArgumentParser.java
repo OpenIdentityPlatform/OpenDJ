@@ -54,7 +54,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
 {
   private BooleanArgument interactive;
   private BooleanArgument forceOnError;
-  private BooleanArgument silent;
+  private BooleanArgument quiet;
   private BooleanArgument removeAll;
   private BooleanArgument removeServerLibraries;
   private BooleanArgument removeDatabases;
@@ -163,12 +163,12 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
         "forceOnError",
         INFO_UNINSTALLDS_DESCRIPTION_FORCE.get());
     args.add(forceOnError);
-    silent = new BooleanArgument(
-        SecureConnectionCliParser.SILENT_OPTION_LONG,
-        SecureConnectionCliParser.SILENT_OPTION_SHORT,
-        SecureConnectionCliParser.SILENT_OPTION_LONG,
+    quiet = new BooleanArgument(
+        SecureConnectionCliParser.QUIET_OPTION_LONG,
+        SecureConnectionCliParser.QUIET_OPTION_SHORT,
+        SecureConnectionCliParser.QUIET_OPTION_LONG,
         INFO_UNINSTALLDS_DESCRIPTION_SILENT.get());
-    args.add(silent);
+    args.add(quiet);
 
     adminUidArg = new StringArgument("adminUID", 'I',
         "adminUID", false, false, true, "adminUID",
@@ -224,14 +224,14 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
   }
 
   /**
-   * Tells whether the user specified to have a silent uninstall or not.
+   * Tells whether the user specified to have a quiet uninstall or not.
    * This method must be called after calling parseArguments.
-   * @return <CODE>true</CODE> if the user specified to have a silent
+   * @return <CODE>true</CODE> if the user specified to have a quiet
    * uninstall and <CODE>false</CODE> otherwise.
    */
-  public boolean isSilent()
+  public boolean isQuiet()
   {
-    return silent.isPresent();
+    return quiet.isPresent();
   }
 
   /**

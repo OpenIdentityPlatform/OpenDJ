@@ -293,7 +293,7 @@ public final class DSConfig extends ConsoleApplication {
       verboseArgument = new BooleanArgument("verbose", 'v', "verbose",
           INFO_DESCRIPTION_VERBOSE.get());
 
-      quietArgument = new BooleanArgument("quiet", 'q', "quiet",
+      quietArgument = new BooleanArgument("quiet", 'Q', "quiet",
           INFO_DESCRIPTION_QUIET.get());
 
       scriptFriendlyArgument = new BooleanArgument("script-friendly", 's',

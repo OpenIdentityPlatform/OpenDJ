@@ -108,7 +108,7 @@ public class InstallLauncher extends Launcher {
     BooleanArgument   addBaseEntry;
     BooleanArgument   cliMode;
     BooleanArgument   showUsage;
-    BooleanArgument   silentInstall;
+    BooleanArgument   quietInstall;
     BooleanArgument   skipPortCheck;
     BooleanArgument   enableWindowsService;
     FileBasedArgument rootPWFile;
@@ -126,9 +126,11 @@ public class InstallLauncher extends Launcher {
           INFO_INSTALLDS_DESCRIPTION_CLI.get());
       argParser.addArgument(cliMode);
 
-      silentInstall = new BooleanArgument("silent", 's', "silentInstall",
+      quietInstall = new BooleanArgument("quiet",
+          OPTION_SHORT_QUIET,
+          OPTION_LONG_QUIET,
           INFO_INSTALLDS_DESCRIPTION_SILENT.get());
-      argParser.addArgument(silentInstall);
+      argParser.addArgument(quietInstall);
 
       baseDN = new StringArgument("basedn", OPTION_SHORT_BASEDN,
           OPTION_LONG_BASEDN, false, true, true,

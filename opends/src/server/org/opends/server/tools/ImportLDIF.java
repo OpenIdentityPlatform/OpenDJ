@@ -365,7 +365,8 @@ public class ImportLDIF extends TaskTool {
       argParser.addArgument(isEncrypted);
 
 
-      quietMode = new BooleanArgument("quietmode", 'Q', "quiet",
+      quietMode = new BooleanArgument("quietmode", OPTION_SHORT_QUIET,
+                                      OPTION_LONG_QUIET,
                                       INFO_LDIFIMPORT_DESCRIPTION_QUIET.get());
       argParser.addArgument(quietMode);
 
