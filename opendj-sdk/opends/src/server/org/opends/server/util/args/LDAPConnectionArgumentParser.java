@@ -97,7 +97,18 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
   protected StringArgument    trustStorePW;
 
   /**
-   * {@inheritDoc}
+   * Creates a new instance of this argument parser with no arguments.
+   * Unnamed trailing arguments will not be allowed.
+   *
+   * @param  mainClassName               The fully-qualified name of the Java
+   *                                     class that should be invoked to launch
+   *                                     the program with which this argument
+   *                                     parser is associated.
+   * @param  toolDescription             A human-readable description for the
+   *                                     tool, which will be included when
+   *                                     displaying usage information.
+   * @param  longArgumentsCaseSensitive  Indicates whether long arguments should
+   *                                     be treated in a case-sensitive manner.
    */
   public LDAPConnectionArgumentParser(String mainClassName,
                                       Message toolDescription,
@@ -107,7 +118,35 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
   }
 
   /**
-   * {@inheritDoc}
+   * Creates a new instance of this argument parser with no arguments that may
+   * or may not be allowed to have unnamed trailing arguments.
+   *
+   * @param  mainClassName               The fully-qualified name of the Java
+   *                                     class that should be invoked to launch
+   *                                     the program with which this argument
+   *                                     parser is associated.
+   * @param  toolDescription             A human-readable description for the
+   *                                     tool, which will be included when
+   *                                     displaying usage information.
+   * @param  longArgumentsCaseSensitive  Indicates whether long arguments should
+   *                                     be treated in a case-sensitive manner.
+   * @param  allowsTrailingArguments     Indicates whether this parser allows
+   *                                     unnamed trailing arguments to be
+   *                                     provided.
+   * @param  minTrailingArguments        The minimum number of unnamed trailing
+   *                                     arguments that must be provided.  A
+   *                                     value less than or equal to zero
+   *                                     indicates that no minimum will be
+   *                                     enforced.
+   * @param  maxTrailingArguments        The maximum number of unnamed trailing
+   *                                     arguments that may be provided.  A
+   *                                     value less than or equal to zero
+   *                                     indicates that no maximum will be
+   *                                     enforced.
+   * @param  trailingArgsDisplayName     The display name that should be used
+   *                                     as a placeholder for unnamed trailing
+   *                                     arguments in the generated usage
+   *                                     information.
    */
   public LDAPConnectionArgumentParser(String mainClassName,
                                       Message toolDescription,
