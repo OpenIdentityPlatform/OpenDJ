@@ -70,6 +70,17 @@ get-group-implementation-prop:implementation-name:Static:enabled:group-class:
 get-group-implementation-prop:implementation-name:Dynamic:enabled:group-class:
 get-group-implementation-prop:implementation-name:Virtual Static:enabled:group-class:
 get-identity-mapper-prop:mapper-name:Exact Match:match-attribute:match-base-dn:
+get-je-index-prop:index-name:aci:index-attribute:index-type:
+get-je-index-prop:index-name:cn:index-attribute:index-type:
+get-je-index-prop:index-name:ds-sync-hist:index-attribute:index-type:
+get-je-index-prop:index-name:entryuuid:index-attribute:index-type:
+get-je-index-prop:index-name:givenName:index-attribute:index-type:
+get-je-index-prop:index-name:mail:index-attribute:index-type:
+get-je-index-prop:index-name:member:index-attribute:index-type:
+get-je-index-prop:index-name:objectClass:index-attribute:index-type:
+get-je-index-prop:index-name:sn:index-attribute:index-type:
+get-je-index-prop:index-name:telephoneNumber:index-attribute:index-type:
+get-je-index-prop:index-name:uid:index-attribute:index-type:
 get-key-manager-prop:manager-name:JKS:key-store-pin:key-store-file:
 get-key-manager-prop:manager-name:PKCS12:key-store-pin:key-store-file:
 get-key-manager-prop:manager-name:PKCS11:key-store-pin:key-store-pin-file:
