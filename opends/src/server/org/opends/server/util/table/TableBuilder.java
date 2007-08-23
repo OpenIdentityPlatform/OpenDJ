@@ -25,7 +25,6 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util.table;
-import org.opends.messages.Message;
 
 
 
@@ -33,6 +32,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import org.opends.messages.Message;
 
 
 
@@ -225,7 +226,7 @@ public final class TableBuilder {
 
     // Create the cell.
     String s = String.valueOf(value);
-    rows.get(height - 1).add(String.valueOf(value));
+    rows.get(height - 1).add(s);
     column++;
 
     // Update statistics.
