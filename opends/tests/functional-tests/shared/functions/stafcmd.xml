@@ -671,7 +671,54 @@
       </call>
 
       <return>cmdRC</return>
-      </sequence>
-    </function>  
-  
+    </sequence>
+
+  </function>	
+
+  <function name="getFile">
+    <function-prolog>
+      This function get the contents of a file
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="filename" type="required">
+        <function-arg-description>
+          The name of the file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="type" type="optional" default="'text'">
+        <function-arg-description>
+          The type of the file
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="format" type="optional" default="'native'">
+        <function-arg-description>
+          The format of the file
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>      
+    </function-map-args>
+    <sequence>
+      <stafcmd name="'STAF Command: Get File'">
+        <location>'%s' % location</location>
+        <service>'fs'</service>
+        <request>
+          'GET FILE %s %s FORMAT %s' % (filename,type,format)
+        </request>
+      </stafcmd>
+      <script>
+        cmdRC=RC
+        cmdResult=STAFResult
+      </script>
+      <return>[cmdRC,cmdResult]</return>
+    </sequence>
+  </function>
+  	
 </stax>

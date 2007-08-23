@@ -42,7 +42,7 @@
     <script>
           SERVER_KEYPASS="servercert"
           SERVER_STOREPASS="servercert"
-          CERT_TMP="%s/../%s/CERT_%s" % (dsPath,relativeDataDir,DIRECTORY_INSTANCE_PORT)
+          CERT_TMP="%s/CERT_%s" % (logsRemoteDataDir,DIRECTORY_INSTANCE_PORT)
           CLIENT_KEYSTORE="%s/keystore" % (CERT_TMP)
           CLIENT_KEYPASS="password"
           CLIENT_STOREPASS="password"    

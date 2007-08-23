@@ -286,9 +286,11 @@
         logsTestDataDir='%s/testdata' % logsDir
         logsTempDir='%s/temp' % logsDir
 
-        relativeDataDir='shared/data'
+        relativeSharedDir='shared'
+        relativeJavaDir='%s/java' % relativeSharedDir
+        relativeDataDir='%s/data' % relativeSharedDir
         logsLocalDataDir='%s/%s' % (logsTestDataDir,relativeDataDir)
-        logsRemoteDataDir='%s/%s' % (DIRECTORY_INSTANCE_DIR,relativeDataDir)     
+        logsRemoteDataDir='%s/%s' % (DIRECTORY_INSTANCE_DIR,relativeDataDir) 
       </script>
 
       <message>
