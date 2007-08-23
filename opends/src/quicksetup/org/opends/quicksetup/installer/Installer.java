@@ -1842,9 +1842,11 @@ public abstract class Installer extends GuiApplication {
               getDefaultLDAPTimeout(), null);
         }
 
+        // Check the remote server for ADS. If it does not exist, create the
+        // initial ADS there. Otherwise, create a global administrator if the
+        // user requested one.
         ADSContext adsContext = new ADSContext(ctx);
-        boolean hasAdminData = adsContext.hasAdminData();
-        if (hasAdminData)
+        if (adsContext.hasAdminData())
         {
           /* Add global administrator if the user specified one. */
           if (getUserData().mustCreateAdministrator())
@@ -1889,7 +1891,8 @@ public abstract class Installer extends GuiApplication {
           notifyListeners(getLineBreak());
           checkAbort();
         }
-        /* Configure local server to have an ADS */
+
+        // Create an empty ADS suffix on the local server.
         notifyListeners(getFormattedWithPoints(
             INFO_PROGRESS_CREATING_ADS.get()));
         try
@@ -1904,11 +1907,28 @@ public abstract class Installer extends GuiApplication {
               ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
               failedMsg, t);
         }
-        createLocalAds(localCtx, false);
+
+        try
+        {
+          ADSContext localAdsContext = new ADSContext(localCtx);
+          localAdsContext.createAdministrationSuffix(null);
+        }
+        catch (ADSContextException ace)
+        {
+          throw ace;
+        }
+        catch (Throwable t)
+        {
+          throw new ApplicationException(
+                  ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+                  getThrowableMsg(INFO_BUG_MSG.get(), t), t);
+        }
+
         notifyListeners(getFormattedDone());
         notifyListeners(getLineBreak());
         checkAbort();
 
+        // Configure replication on remote servers hosting ADS (I guess).
         lastLoadedCache = new TopologyCache(adsContext, getTrustManager());
         lastLoadedCache.reloadTopology();
         Set<Integer> knownServerIds = new HashSet<Integer>();
@@ -1978,28 +1998,14 @@ public abstract class Installer extends GuiApplication {
             }
           }
         }
-        /* Register new server data. */
-        try
+
+        /* Register new server in remote ADS. */
+        if(0 != adsContext.registerOrUpdateServer(getNewServerAdsProperties()))
         {
-          adsContext.registerServer(getNewServerAdsProperties());
-          registeredNewServerOnRemote = true;
+          LOG.log(Level.WARNING, "Server was already registered. Updating " +
+            "server registration.");
         }
-        catch (ADSContextException adse)
-        {
-          if (adse.getError() ==
-            ADSContextException.ErrorType.ALREADY_REGISTERED)
-          {
-            LOG.log(Level.WARNING, "Server already registered. Unregistering "+
-                "and registering server");
-            /* This might occur after registering and unregistering a server */
-            adsContext.unregisterServer(getNewServerAdsProperties());
-            adsContext.registerServer(getNewServerAdsProperties());
-          }
-          else
-          {
-            throw adse;
-          }
-        }
+        registeredNewServerOnRemote = true;
 
         /* Configure replication on local server */
         helper.configureReplication(localCtx, dns, hmRepServers,
@@ -2127,7 +2133,28 @@ public abstract class Installer extends GuiApplication {
               ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
               failedMsg, t);
         }
-        createLocalAds(localCtx, true);
+
+        try
+        {
+          ADSContext localAdsContext = new ADSContext(localCtx);
+          localAdsContext.createAdminData(null);
+          localAdsContext.registerServer(getNewServerAdsProperties());
+          if (getUserData().mustCreateAdministrator())
+          {
+            localAdsContext.createAdministrator(getAdministratorProperties());
+          }
+        }
+        catch (ADSContextException ace)
+        {
+          throw ace;
+        }
+        catch (Throwable t)
+        {
+          throw new ApplicationException(
+                  ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+                  getThrowableMsg(INFO_BUG_MSG.get(), t), t);
+        }
+
         int replicationPort =
           getUserData().getReplicationOptions().getReplicationPort();
         Set<String> dns = new HashSet<String>();
@@ -3769,38 +3796,6 @@ public abstract class Installer extends GuiApplication {
     return createLdapContext(ldapUrl, dn, pwd,
         getDefaultLDAPTimeout(), null);
   }
-  private void createLocalAds(InitialLdapContext ctx, boolean addData)
-  throws ApplicationException, ADSContextException
-  {
-    try
-    {
-      ADSContext adsContext = new ADSContext(ctx);
-      if (addData)
-      {
-        adsContext.createAdminData(null);
-        adsContext.registerServer(getNewServerAdsProperties());
-        if (getUserData().mustCreateAdministrator())
-        {
-          adsContext.createAdministrator(getAdministratorProperties());
-        }
-      }
-      else
-      {
-        adsContext.createAdministrationSuffix(null);
-      }
-    }
-    catch (ADSContextException ace)
-    {
-      throw ace;
-    }
-    catch (Throwable t)
-    {
-      throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
-              getThrowableMsg(INFO_BUG_MSG.get(), t), t);
-    }
-  }
-
 
   /**
    * Gets an InitialLdapContext based on the information that appears on the
