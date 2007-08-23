@@ -26,6 +26,8 @@
  */
 package org.opends.server.backends.jeb;
 
+import org.opends.server.types.EntryEncodeConfig;
+
 /**
  * Configuration class to indicate desired compression and cryptographic options
  * for the data stored in the database.
@@ -37,7 +39,24 @@ public class DataConfig
    */
   private boolean compressed = false;
 
+  /**
+   * The configuration to use when encoding entries in the database.
+   */
+  private EntryEncodeConfig encodeConfig = new EntryEncodeConfig();
 
+  /**
+   * Constrct a new DataConfig object with the specified settings.
+   *
+   * @param compressed true if data should be compressed, false if not.
+   * @param compactEncoding true if data should be encoded in compact form,
+   * false if not.
+   */
+  public DataConfig(boolean compressed, boolean compactEncoding)
+  {
+    this.compressed = compressed;
+    this.encodeConfig = new EntryEncodeConfig(false, compactEncoding,
+                                              compactEncoding);
+  }
 
   /**
    * Determine whether data should be compressed before writing to the database.
@@ -46,6 +65,16 @@ public class DataConfig
   public boolean isCompressed()
   {
     return compressed;
+  }
+
+  /**
+   * Determine whether entries should be encoded with the compact form before
+   * writing to the database.
+   * @return true if data should be encoded in the compact form.
+   */
+  public boolean isCompactEncoding()
+  {
+    return encodeConfig.compressAttributeDescriptions();
   }
 
 
@@ -60,16 +89,38 @@ public class DataConfig
   }
 
   /**
+   * Configure whether data should be encoded with the compact form before
+   * writing to the database.
+   * @param compactEncoding true if data should be encoded in compact form,
+   * false if not.
+   */
+  public void setCompactEncoding(boolean compactEncoding)
+  {
+    this.encodeConfig = new EntryEncodeConfig(false, compactEncoding,
+                                              compactEncoding);
+  }
+
+  /**
+   * Get the EntryEncodeConfig object in use by this configuration.
+   * @return the EntryEncodeConfig object in use by this configuration.
+   */
+  public EntryEncodeConfig getEntryEncodeConfig()
+  {
+    return this.encodeConfig;
+  }
+
+  /**
    * Get a string representation of this object.
    * @return A string representation of this object.
    */
   public String toString()
   {
     StringBuilder builder = new StringBuilder();
-    if (compressed)
-    {
-      builder.append("[compressed]");
-    }
+    builder.append("DataConfig(compressed=");
+    builder.append(compressed);
+    builder.append(", ");
+    encodeConfig.toString(builder);
+    builder.append(")");
     return builder.toString();
   }
 }

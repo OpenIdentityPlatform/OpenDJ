@@ -1573,6 +1573,10 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.467
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.468
   NAME 'ds-cfg-unique-attribute-base-dn' SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.471
+  NAME 'ds-cfg-backend-compact-encoding'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1619,7 +1623,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.6 NAME 'ds-cfg-je-backend'
   ds-cfg-database-logging-file-handler-on $ ds-cfg-database-logging-level $
   ds-cfg-database-checkpointer-bytes-interval $
   ds-cfg-database-checkpointer-wakeup-interval $
-  ds-cfg-database-lock-num-lock-tables $ ds-cfg-database-cleaner-num-threads )
+  ds-cfg-database-lock-num-lock-tables $ ds-cfg-database-cleaner-num-threads $
+  ds-cfg-backend-compact-encoding )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.7 NAME 'ds-cfg-je-database'
   SUP top STRUCTURAL MAY ( cn $ ds-cfg-database-cache-percent $
