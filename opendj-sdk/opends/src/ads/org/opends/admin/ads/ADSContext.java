@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -81,8 +80,8 @@ public class ADSContext
     /**
      * Boolean syntax.
      */
-    BOOLEAN;
-  };
+    BOOLEAN
+  }
 
   /**
    * Enumeration containing the different server properties that are stored in
@@ -165,8 +164,9 @@ public class ADSContext
     /**
      * Private constructor.
      * @param n the name of the attribute.
+     * @param s the name of the syntax.
      */
-    private ServerProperty(String n,ADSPropertySyntax s)
+    private ServerProperty(String n, ADSPropertySyntax s)
     {
       attrName = n;
       attSyntax = s ;
@@ -189,7 +189,7 @@ public class ADSContext
     {
       return attSyntax;
     }
-  };
+  }
 
   /** Default global admin UID. */
   public static final String GLOBAL_ADMIN_UID = "admin";
@@ -269,7 +269,7 @@ public class ADSContext
     {
       return attrName;
     }
-  };
+  }
 
   /**
    * The list of server group properties that are multivalued.
@@ -310,8 +310,9 @@ public class ADSContext
     /**
      * Private constructor.
      * @param n the name of the attribute.
+     * @param s the name of the syntax.
      */
-    private AdministratorProperty(String n,ADSPropertySyntax s)
+    private AdministratorProperty(String n, ADSPropertySyntax s)
     {
       attrName = n;
       attSyntax = s ;
@@ -509,11 +510,14 @@ public class ADSContext
    * if there is no server registered associated with those properties,
    * registers it and if it is already registered, updates it.
    * @param serverProperties the server properties.
+   * @return 0 if the server was registered; 1 if udpated (i.e., the server
+   * entry was already in ADS).
    * @throws ADSContextException if something goes wrong.
    */
-  public void registerOrUpdateServer(
+  public int registerOrUpdateServer(
       Map<ServerProperty, Object> serverProperties) throws ADSContextException
   {
+    int result = 0;
     try
     {
       registerServer(serverProperties);
@@ -523,12 +527,14 @@ public class ADSContext
       if (x.getError() == ADSContextException.ErrorType.ALREADY_REGISTERED)
       {
         updateServer(serverProperties, null);
+        result = 1;
       }
       else
       {
         throw x;
       }
     }
+    return result;
   }
 
   /**
@@ -1253,7 +1259,6 @@ public class ADSContext
    * Returns the attributes for some server properties.
    * @param serverProperties the server properties.
    * @return the attributes for the given server properties.
-   * @throws ADSContextException if something goes wrong.
    */
   private static BasicAttributes makeAttrsFromServerProperties(
       Map<ServerProperty, Object> serverProperties)
@@ -1283,8 +1288,8 @@ public class ADSContext
   /**
    * Returns the attribute for a given server property.
    * @param property the server property.
+   * @param value the value.
    * @return the attribute for a given server property.
-   * @throws ADSContextException if something goes wrong.
    */
   private static Attribute makeAttrFromServerProperty(ServerProperty property,
       Object value)
@@ -1295,12 +1300,10 @@ public class ADSContext
     {
     case GROUPS:
       result = new BasicAttribute(ServerProperty.GROUPS.getAttributeName());
-      Iterator groupIterator = ((Set)value).iterator();
-      while (groupIterator.hasNext())
-      {
-        result.add(groupIterator.next());
-      }
-      break;
+        for (Object o : ((Set) value)) {
+            result.add(o);
+        }
+        break;
     default:
       result = new BasicAttribute(property.getAttributeName(), value);
     }
@@ -1311,7 +1314,6 @@ public class ADSContext
    * Returns the attributes for some server group properties.
    * @param serverGroupProperties the server group properties.
    * @return the attributes for the given server group properties.
-   * @throws ADSContextException if something goes wrong.
    */
   private static BasicAttributes makeAttrsFromServerGroupProperties(
       Map<ServerGroupProperty, Object> serverGroupProperties)
@@ -1335,7 +1337,6 @@ public class ADSContext
    * Returns the attributes for some server group properties.
    * @param serverGroupProperties the server group properties.
    * @return the attributes for the given server group properties.
-   * @throws ADSContextException if something goes wrong.
    */
   private static BasicAttributes makeAttrsFromServerGroupProperties(
       Set<ServerGroupProperty> serverGroupProperties)
@@ -1357,8 +1358,8 @@ public class ADSContext
   /**
    * Returns the attribute for a given server group property.
    * @param property the server group property.
+   * @param value the value.
    * @return the attribute for a given server group property.
-   * @throws ADSContextException if something goes wrong.
    */
   private static Attribute makeAttrFromServerGroupProperty(
       ServerGroupProperty property, Object value)
@@ -1370,12 +1371,10 @@ public class ADSContext
     case MEMBERS:
       result = new BasicAttribute(
           ServerGroupProperty.MEMBERS.getAttributeName());
-      Iterator memberIterator = ((Set)value).iterator();
-      while (memberIterator.hasNext())
-      {
-        result.add(memberIterator.next());
-      }
-      break;
+        for (Object o : ((Set) value)) {
+            result.add(o);
+        }
+        break;
     default:
       result = new BasicAttribute(property.getAttributeName(), value);
     }
@@ -1403,7 +1402,7 @@ public class ADSContext
         {
           continue ;
         }
-        Object value = null;
+        Object value;
 
         if (attr.size() >= 1 &&
             MULTIVALUED_SERVER_GROUP_PROPERTIES.contains(prop))
@@ -1451,7 +1450,7 @@ public class ADSContext
       {
         Attribute attr = (Attribute)ne.next();
         String attrID = attr.getID();
-        Object value = null;
+        Object value;
 
         if (attrID.endsWith(";binary"))
         {
@@ -1529,7 +1528,7 @@ public class ADSContext
       while (ne.hasMore()) {
         Attribute attr = ne.next();
         String attrID = attr.getID();
-        Object value = null;
+        Object value;
 
         if (attrID.equalsIgnoreCase("cn"))
         {
@@ -1697,13 +1696,14 @@ public class ADSContext
   //
   /**
    * Returns the LdapName object for the given dn.
+   * @param dn the DN.
    * @return the LdapName object for the given dn.
    * @throws ADSContextException if a valid LdapName could not be retrieved
    * for the given dn.
    */
   private static LdapName nameFromDN(String dn) throws ADSContextException
   {
-    LdapName result = null;
+    LdapName result;
     try
     {
       result = new LdapName(dn);
@@ -1719,6 +1719,7 @@ public class ADSContext
 
   /**
    * Returns the String rdn for the given search result name.
+   * @param rdnName the search result name.
    * @return the String rdn for the given search result name.
    * @throws ADSContextException if a valid String rdn could not be retrieved
    * for the given result name.
@@ -1745,6 +1746,7 @@ public class ADSContext
 
   /**
    * Tells whether an entry with the provided DN exists.
+   * @param dn the DN to check.
    * @return <CODE>true</CODE> if the entry exists and <CODE>false</CODE> if
    * it does not.
    * @throws ADSContextException if an error occurred while checking if the
@@ -1870,7 +1872,7 @@ public class ADSContext
 
   /**
    * Removes the administration suffix.
-   * @throws ADSContextException
+   * @throws ADSContextException if something goes wrong.
    */
   private void removeAdministrationSuffix() throws ADSContextException
   {
