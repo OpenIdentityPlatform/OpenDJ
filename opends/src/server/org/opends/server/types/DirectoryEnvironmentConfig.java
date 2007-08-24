@@ -971,6 +971,48 @@ public final class DirectoryEnvironmentConfig
   }
 
   /**
+   * Specifies whether a fair ordering should be used for the lock manager.
+   *
+   * @param   fairOrdering True if fair ordering should be used or False
+   *                       otherwise.
+   *
+   * @return  The previously-configured setting for fair ordering.  If
+   *          there was no previously-configured value, then the
+   *          default initial setting will be returned.
+   *
+   * @throws  InitializationException  If the Directory Server is
+   *                                   already running.
+   */
+  public boolean setLockManagerFairOrdering(boolean fairOrdering)
+         throws InitializationException
+  {
+    if (DirectoryServer.isRunning())
+    {
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
+    }
+
+    String fairOrderingStr =
+         setProperty(PROPERTY_LOCK_MANAGER_FAIR_ORDERING,
+                     String.valueOf(fairOrdering));
+    if (fairOrderingStr == null)
+    {
+      return LockManager.DEFAULT_FAIR_ORDERING;
+    }
+    else
+    {
+      try
+      {
+        return Boolean.parseBoolean(fairOrderingStr);
+      }
+      catch (Exception e)
+      {
+        return LockManager.DEFAULT_FAIR_ORDERING;
+      }
+    }
+  }
+
+  /**
    * Retrieves the initial table size for the server lock table.  This
    * can be used to ensure that the lock table has the appropriate
    * size for the expected number of locks that will be held at any
@@ -1034,22 +1076,22 @@ public final class DirectoryEnvironmentConfig
                         lockTableSize));
     }
 
-    String concurrencyStr =
+    String tableSizeStr =
          setProperty(PROPERTY_LOCK_MANAGER_TABLE_SIZE,
                      String.valueOf(lockTableSize));
-    if (concurrencyStr == null)
+    if (tableSizeStr == null)
     {
-      return LockManager.DEFAULT_CONCURRENCY_LEVEL;
+      return LockManager.DEFAULT_INITIAL_TABLE_SIZE;
     }
     else
     {
       try
       {
-        return Integer.parseInt(concurrencyStr);
+        return Integer.parseInt(tableSizeStr);
       }
       catch (Exception e)
       {
-        return LockManager.DEFAULT_CONCURRENCY_LEVEL;
+        return LockManager.DEFAULT_INITIAL_TABLE_SIZE;
       }
     }
   }
