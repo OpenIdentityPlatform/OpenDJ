@@ -105,7 +105,7 @@
         if dsPath:
           STAFCmd='%s/setup%s' % (dsPath,fileExt)
           STAFCmdParamsList.append('--cli')
-          STAFCmdParamsList.append('-s')    
+          STAFCmdParamsList.append('-Q')    
                   
         if dsPort:
           STAFCmdParamsList.append('-p %s' % dsPort)
