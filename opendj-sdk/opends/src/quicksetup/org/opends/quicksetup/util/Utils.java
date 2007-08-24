@@ -1211,6 +1211,7 @@ public class Utils
     {
       perm = "755";
     } else if (name.endsWith(Installation.UNIX_SETUP_FILE_NAME) ||
+            name.endsWith(Installation.UNIX_UNINSTALL_GUI_FILE_NAME) ||
             name.endsWith(Installation.UNIX_UNINSTALL_FILE_NAME) ||
             name.endsWith(Installation.UNIX_UPGRADE_FILE_NAME))
     {
