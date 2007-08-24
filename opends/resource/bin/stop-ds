@@ -189,6 +189,10 @@ then
         STOPPED=0
       fi
     fi
+  else
+    echo "ERROR:  Unable to find the server.pid file to determine the process"
+    echo "        ID of the OpenDS process to terminate."
+    exit 1
   fi
 fi
 
