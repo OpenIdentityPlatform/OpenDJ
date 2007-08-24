@@ -971,10 +971,11 @@ public final class DirectoryEnvironmentConfig
   }
 
   /**
-   * Specifies whether a fair ordering should be used for the lock manager.
+   * Specifies whether a fair ordering should be used for the lock
+   * manager.
    *
-   * @param   fairOrdering True if fair ordering should be used or False
-   *                       otherwise.
+   * @param  fairOrdering  {@code true} if fair ordering should be
+   *                       used, or {@code false} if not.
    *
    * @return  The previously-configured setting for fair ordering.  If
    *          there was no previously-configured value, then the
