@@ -248,8 +248,11 @@ public class SoftReferenceEntryCache
       backendMap = idMap.get(backend);
     if (backendMap != null) {
       SoftReference<CacheEntry> ref = backendMap.get(entryID);
-      if ((ref != null) && (ref.get() != null)) {
-        return ref.get().getDN();
+      if (ref != null) {
+        CacheEntry cacheEntry = ref.get();
+        if (cacheEntry != null) {
+          return cacheEntry.getDN();
+        }
       }
     }
     return null;
