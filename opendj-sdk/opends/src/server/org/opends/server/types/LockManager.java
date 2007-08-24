@@ -61,6 +61,11 @@ public final class LockManager
   private static final DebugTracer TRACER = getTracer();
 
   /**
+   * The default setting for the use of fair ordering locks.
+   */
+  public static final boolean DEFAULT_FAIR_ORDERING = true;
+
+  /**
    * The default initial size to use for the lock table.
    */
   public static final int DEFAULT_INITIAL_TABLE_SIZE = 64;
@@ -93,6 +98,9 @@ public final class LockManager
   private static
        ConcurrentHashMap<DN,ReentrantReadWriteLock> lockTable;
 
+  // Whether fair ordering should be used on the locks.
+  private static boolean fair;
+
 
 
   // Initialize the lock table.
@@ -104,6 +112,7 @@ public final class LockManager
          environmentConfig.getLockManagerTableSize(),
          DEFAULT_LOAD_FACTOR,
          environmentConfig.getLockManagerConcurrencyLevel());
+    fair = environmentConfig.getLockManagerFairOrdering();
   }
 
 
@@ -158,6 +167,8 @@ public final class LockManager
 
       oldTable.clear();
     }
+
+    fair = environmentConfig.getLockManagerFairOrdering();
   }
 
 
@@ -175,7 +186,8 @@ public final class LockManager
    */
   public static Lock tryLockRead(DN entryDN)
   {
-    ReentrantReadWriteLock entryLock = new ReentrantReadWriteLock();
+    ReentrantReadWriteLock entryLock =
+        new ReentrantReadWriteLock(fair);
     Lock readLock = entryLock.readLock();
     readLock.lock();
 
@@ -296,7 +308,8 @@ public final class LockManager
       return readLock;
     }
 
-    ReentrantReadWriteLock entryLock = new ReentrantReadWriteLock();
+    ReentrantReadWriteLock entryLock =
+        new ReentrantReadWriteLock(fair);
     readLock = entryLock.readLock();
     readLock.lock();
 
@@ -387,7 +400,8 @@ public final class LockManager
    */
   public static Lock tryLockWrite(DN entryDN)
   {
-    ReentrantReadWriteLock entryLock = new ReentrantReadWriteLock();
+    ReentrantReadWriteLock entryLock =
+        new ReentrantReadWriteLock(fair);
     Lock writeLock = entryLock.writeLock();
     writeLock.lock();
 
@@ -505,7 +519,8 @@ public final class LockManager
       return writeLock;
     }
 
-    ReentrantReadWriteLock entryLock = new ReentrantReadWriteLock();
+    ReentrantReadWriteLock entryLock =
+        new ReentrantReadWriteLock(fair);
     writeLock = entryLock.writeLock();
     writeLock.lock();
 
