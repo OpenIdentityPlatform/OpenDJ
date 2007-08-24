@@ -131,20 +131,20 @@ public class OfflineInstaller extends Installer
         checkAbort();
       }
 
+      if (mustCreateAds())
+      {
+        notifyListeners(getTaskSeparator());
+        setCurrentProgressStep(InstallProgressStep.CONFIGURING_ADS);
+        updateADS();
+        checkAbort();
+      }
+
       if (mustInitializeSuffixes())
       {
         notifyListeners(getTaskSeparator());
         setCurrentProgressStep(
             InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES);
         initializeSuffixes();
-        checkAbort();
-      }
-
-      if (mustCreateAds())
-      {
-        notifyListeners(getTaskSeparator());
-        setCurrentProgressStep(InstallProgressStep.CONFIGURING_ADS);
-        updateADS();
         checkAbort();
       }
 
@@ -384,17 +384,17 @@ public class OfflineInstaller extends Installer
       totalTime += hmTime.get(InstallProgressStep.CONFIGURING_REPLICATION);
     }
 
+    if (mustCreateAds())
+    {
+      totalTime += hmTime.get(InstallProgressStep.CONFIGURING_ADS);
+      steps.add(InstallProgressStep.CONFIGURING_ADS);
+    }
+
     if (mustInitializeSuffixes())
     {
       totalTime += hmTime.get(
           InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES);
       steps.add(InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES);
-    }
-
-    if (mustCreateAds())
-    {
-      totalTime += hmTime.get(InstallProgressStep.CONFIGURING_ADS);
-      steps.add(InstallProgressStep.CONFIGURING_ADS);
     }
 
     if (mustStop())
