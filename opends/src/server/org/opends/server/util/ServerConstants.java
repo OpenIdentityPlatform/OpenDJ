@@ -2580,6 +2580,13 @@ public final class ServerConstants
   public static final String PROPERTY_ERROR_LEVEL =
       "org.opends.server.error.level";
 
+  /**
+   * The name of the system property that can be used to specify if  the entry
+   * lock manager should use a fair ordering policy.
+   */
+  public static final String PROPERTY_LOCK_MANAGER_FAIR_ORDERING =
+       "org.opends.server.LockManagerFairOrdering";
+
 
 
   /**

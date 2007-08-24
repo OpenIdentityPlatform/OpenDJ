@@ -944,7 +944,31 @@ public final class DirectoryEnvironmentConfig
     }
   }
 
-
+  /**
+   * Retrieves whether a fair ordering should be used for the lock
+   * manager.
+   *
+   * @return True if fair orderin should be used or false otherwise
+   */
+  public boolean getLockManagerFairOrdering()
+  {
+    String sizeStr = getProperty(PROPERTY_LOCK_MANAGER_FAIR_ORDERING);
+    if (sizeStr == null)
+    {
+      return LockManager.DEFAULT_FAIR_ORDERING;
+    }
+    else
+    {
+      try
+      {
+        return Boolean.parseBoolean(sizeStr);
+      }
+      catch (Exception e)
+      {
+        return LockManager.DEFAULT_FAIR_ORDERING;
+      }
+    }
+  }
 
   /**
    * Retrieves the initial table size for the server lock table.  This
