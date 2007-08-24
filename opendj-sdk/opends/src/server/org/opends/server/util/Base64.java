@@ -25,15 +25,34 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
-import org.opends.messages.Message;
 
 
 
-import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.util.Validator.*;
-
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.StringTokenizer;
+
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import org.opends.server.util.args.ArgumentException;
+import org.opends.server.util.args.BooleanArgument;
+import org.opends.server.util.args.StringArgument;
+import org.opends.server.util.args.SubCommand;
+import org.opends.server.util.args.SubCommandArgumentParser;
+
+import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.Validator.*;
 
 
 
@@ -385,6 +404,297 @@ public final class Base64
     byte[] returnArray = new byte[buffer.limit()];
     buffer.get(returnArray);
     return returnArray;
+  }
+
+
+
+  /**
+   * Provide a command-line utility that may be used to base64-encode and
+   * decode strings and file contents.
+   *
+   * @param  args  The command-line arguments provided to this program.
+   */
+  public static void main(String[] args)
+  {
+    Message description = INFO_BASE64_TOOL_DESCRIPTION.get();
+    SubCommandArgumentParser argParser =
+         new SubCommandArgumentParser(Base64.class.getName(), description,
+                                      false);
+
+    BooleanArgument showUsage        = null;
+    StringArgument  encodedData      = null;
+    StringArgument  encodedFile      = null;
+    StringArgument  rawData          = null;
+    StringArgument  rawFile          = null;
+    StringArgument  toEncodedFile    = null;
+    StringArgument  toRawFile        = null;
+    SubCommand      decodeSubCommand = null;
+    SubCommand      encodeSubCommand = null;
+
+    try
+    {
+      decodeSubCommand = new SubCommand(argParser, "decode",
+                                        INFO_BASE64_DECODE_DESCRIPTION.get());
+
+      encodeSubCommand = new SubCommand(argParser, "encode",
+                                        INFO_BASE64_ENCODE_DESCRIPTION.get());
+
+
+      encodedData = new StringArgument("encodeddata", 'd', "encodedData", false,
+                             false, true, "{data}", null, null,
+                             INFO_BASE64_ENCODED_DATA_DESCRIPTION.get());
+      decodeSubCommand.addArgument(encodedData);
+
+
+      encodedFile = new StringArgument("encodedfile", 'f', "encodedDataFile",
+                             false, false, true, "{path}", null, null,
+                             INFO_BASE64_ENCODED_FILE_DESCRIPTION.get());
+      decodeSubCommand.addArgument(encodedFile);
+
+
+      toRawFile = new StringArgument("torawfile", 'o', "toRawFile", false,
+                                     false, true, "{path}", null, null,
+                                     INFO_BASE64_TO_RAW_FILE_DESCRIPTION.get());
+      decodeSubCommand.addArgument(toRawFile);
+
+
+      rawData = new StringArgument("rawdata", 'd', "rawData", false, false,
+                                   true, "{data}", null, null,
+                                   INFO_BASE64_RAW_DATA_DESCRIPTION.get());
+      encodeSubCommand.addArgument(rawData);
+
+
+      rawFile = new StringArgument("rawfile", 'f', "rawDataFile", false, false,
+                                   true, "{path}", null, null,
+                                   INFO_BASE64_RAW_FILE_DESCRIPTION.get());
+      encodeSubCommand.addArgument(rawFile);
+
+
+      toEncodedFile = new StringArgument("toencodedfile", 'o', "toEncodedFile",
+                               false, false, true, "{path}", null, null,
+                               INFO_BASE64_TO_ENCODED_FILE_DESCRIPTION.get());
+      encodeSubCommand.addArgument(toEncodedFile);
+
+
+      ArrayList<SubCommand> subCommandList = new ArrayList<SubCommand>(2);
+      subCommandList.add(decodeSubCommand);
+      subCommandList.add(encodeSubCommand);
+
+
+      showUsage = new BooleanArgument("help", 'H', "help",
+                                      INFO_BASE64_HELP_DESCRIPTION.get());
+      argParser.addGlobalArgument(showUsage);
+      argParser.setUsageGroupArgument(showUsage, subCommandList);
+    }
+    catch (ArgumentException ae)
+    {
+      System.err.println(ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
+      System.exit(1);
+    }
+
+    try
+    {
+      argParser.parseArguments(args);
+    }
+    catch (ArgumentException ae)
+    {
+      System.err.println(ERR_CANNOT_PARSE_ARGS.get(ae.getMessage()).toString());
+      System.exit(1);
+    }
+
+    SubCommand subCommand = argParser.getSubCommand();
+    if (showUsage.isPresent())
+    {
+      if (subCommand == null)
+      {
+        System.out.println(argParser.getUsage());
+      }
+      else
+      {
+        MessageBuilder messageBuilder = new MessageBuilder();
+        argParser.getSubCommandUsage(messageBuilder, subCommand);
+        System.out.println(messageBuilder.toString());
+      }
+
+      return;
+    }
+
+    if (subCommand == null)
+    {
+      System.err.println(argParser.getUsage());
+      System.exit(1);
+    }
+    if (subCommand.getName().equals(encodeSubCommand.getName()))
+    {
+      byte[] dataToEncode = null;
+      if (rawData.isPresent())
+      {
+        dataToEncode = rawData.getValue().getBytes();
+      }
+      else
+      {
+        try
+        {
+          boolean shouldClose;
+          InputStream inputStream;
+          if (rawFile.isPresent())
+          {
+            inputStream = new FileInputStream(rawFile.getValue());
+            shouldClose = true;
+          }
+          else
+          {
+            inputStream = System.in;
+            shouldClose = false;
+          }
+
+          ByteArrayOutputStream baos = new ByteArrayOutputStream();
+          byte[] buffer = new byte[8192];
+          while (true)
+          {
+            int bytesRead = inputStream.read(buffer);
+            if (bytesRead < 0)
+            {
+              break;
+            }
+            else
+            {
+              baos.write(buffer, 0, bytesRead);
+            }
+          }
+
+          if (shouldClose)
+          {
+            inputStream.close();
+          }
+
+          dataToEncode = baos.toByteArray();
+        }
+        catch (Exception e)
+        {
+          System.err.println(ERR_BASE64_CANNOT_READ_RAW_DATA.get(
+                                  getExceptionMessage(e)).toString());
+          System.exit(1);
+        }
+      }
+
+      String base64Data = encode(dataToEncode);
+      if (toEncodedFile.isPresent())
+      {
+        try
+        {
+          BufferedWriter writer =
+               new BufferedWriter(new FileWriter(toEncodedFile.getValue()));
+          writer.write(base64Data);
+          writer.newLine();
+          writer.close();
+        }
+        catch (Exception e)
+        {
+          System.err.println(ERR_BASE64_CANNOT_WRITE_ENCODED_DATA.get(
+                                  getExceptionMessage(e)).toString());
+          System.exit(1);
+        }
+      }
+      else
+      {
+        System.out.println(base64Data);
+      }
+    }
+    else if (subCommand.getName().equals(decodeSubCommand.getName()))
+    {
+      String dataToDecode = null;
+      if (rawData.isPresent())
+      {
+        dataToDecode = rawData.getValue();
+      }
+      else
+      {
+        try
+        {
+          boolean shouldClose;
+          BufferedReader reader;
+          if (encodedFile.isPresent())
+          {
+            reader = new BufferedReader(new FileReader(encodedFile.getValue()));
+            shouldClose = true;
+          }
+          else
+          {
+            reader = new BufferedReader(new InputStreamReader(System.in));
+            shouldClose = false;
+          }
+
+          StringBuilder buffer = new StringBuilder();
+          while (true)
+          {
+            String line = reader.readLine();
+            if (line == null)
+            {
+              break;
+            }
+
+            StringTokenizer tokenizer = new StringTokenizer(line);
+            while (tokenizer.hasMoreTokens())
+            {
+              buffer.append(tokenizer.nextToken());
+            }
+          }
+
+          if (shouldClose)
+          {
+            reader.close();
+          }
+
+          dataToDecode = buffer.toString();
+        }
+        catch (Exception e)
+        {
+          System.err.println(ERR_BASE64_CANNOT_READ_ENCODED_DATA.get(
+                                  getExceptionMessage(e)).toString());
+          System.exit(1);
+        }
+      }
+
+      byte[] decodedData = null;
+      try
+      {
+        decodedData = decode(dataToDecode);
+      }
+      catch (ParseException pe)
+      {
+        System.err.println(pe.getMessage());
+        System.exit(1);
+      }
+
+      try
+      {
+        if (toRawFile.isPresent())
+        {
+          FileOutputStream outputStream =
+               new FileOutputStream(toRawFile.getValue());
+          outputStream.write(decodedData);
+          outputStream.close();
+        }
+        else
+        {
+          System.out.write(decodedData);
+          System.out.flush();
+        }
+      }
+      catch (Exception e)
+      {
+        System.err.println(ERR_BASE64_CANNOT_WRITE_RAW_DATA.get(
+                                getExceptionMessage(e)).toString());
+        System.exit(1);
+      }
+    }
+    else
+    {
+      System.err.println(ERR_BASE64_UNKNOWN_SUBCOMMAND.get(
+                              subCommand.getName()).toString());
+      System.exit(1);
+    }
   }
 }
 
