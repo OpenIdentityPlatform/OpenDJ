@@ -305,7 +305,7 @@ public class ADSContext
     ADMINISTRATOR_DN("administrator dn",ADSPropertySyntax.STRING);
 
     private String attrName;
-    private ADSPropertySyntax attSyntax;
+    private ADSPropertySyntax attrSyntax;
 
     /**
      * Private constructor.
@@ -315,7 +315,7 @@ public class ADSContext
     private AdministratorProperty(String n, ADSPropertySyntax s)
     {
       attrName = n;
-      attSyntax = s ;
+      attrSyntax = s ;
     }
 
     /**
@@ -333,7 +333,7 @@ public class ADSContext
      */
     public ADSPropertySyntax getAttributeSyntax()
     {
-      return attSyntax;
+      return attrSyntax;
     }
   }
 
@@ -361,7 +361,7 @@ public class ADSContext
   }
 
   // The context used to retrieve information
-  InitialLdapContext dirContext;
+  private final InitialLdapContext dirContext;
 
 
   /**
@@ -916,6 +916,9 @@ public class ADSContext
       new HashMap<ServerGroupProperty, Object>();
     allServersGroupsMap.put(ServerGroupProperty.UID, ALL_SERVERGROUP_NAME);
     createServerGroup(allServersGroupsMap);
+
+    // Create the CryptoManager DIT below the administration suffix
+    createContainerEntry(getInstanceKeysContainerDN());
   }
 
   /**
@@ -1868,6 +1871,8 @@ public class ADSContext
     }
     helper.createAdministrationSuffix(getDirContext(), ben,
         getDbName(), getImportTemp());
+
+    retrieveInstanceKeyCertificate();
   }
 
   /**
@@ -1893,5 +1898,159 @@ public class ADSContext
   private static String getImportTemp()
   {
     return "importAdminTemp";
+  }
+
+
+
+  /*
+     *** CryptoManager related types, fields, and methods. ***
+   */
+
+  /**
+   * The enumeration consisting of properties of the instance-key public-key
+   * certificate entries in ADS.
+   */
+  public enum InstanceKeyProperty
+  {
+    /**
+     * The unique name of the instance key public-key certificate.
+     */
+    KEY_ID("ds-cfg-key-id",ADSPropertySyntax.STRING),
+
+    /**
+     * The public-key certificate of the instance key.
+     */
+    HOST_NAME("ds-cfg-ads-certificate",ADSPropertySyntax.STRING);
+
+    private String attrName;
+    private ADSPropertySyntax attrSyntax;
+
+    /**
+     * Private constructor.
+     * @param n the name of the attribute.
+     * @param s the name of the syntax.
+     */
+    private InstanceKeyProperty(String n, ADSPropertySyntax s)
+    {
+      attrName = n;
+      attrSyntax = s ;
+    }
+
+    /**
+     * Returns the attribute name.
+     * @return the attribute name.
+     */
+    public String getAttributeName()
+    {
+      return attrName;
+    }
+
+    /**
+     * Returns the attribute syntax.
+     * @return the attribute syntax.
+     */
+    public ADSPropertySyntax getAttributeSyntax()
+    {
+      return attrSyntax;
+    }
+  }
+
+  /*
+   * The instance-key public-key certificate from the local truststore of the
+   * instance bound by this context.
+   */
+  private String instanceKeyCertificate = null;
+
+  /**
+   * Updates the instance key public-key certificate value of this context from
+   * the local truststore of the instance bound by this context. Any current
+   * value of the certificate is overwritten. The intent of this method is to
+   * retrieve the instance-key public-key certificate when this context is bound
+   * to an instance, and cache it for later use in registering the instance into
+   * ADS.
+   *
+   * @throws ADSContextException if unable to retrieve certificate from bound
+   * instance.
+   */
+  private void retrieveInstanceKeyCertificate() throws ADSContextException
+  {
+    if( ! isExistingEntry(nameFromDN("cn=ads-truststore")))
+    {
+      return; /* TODO: Once Andy commits the truststore backend, this case is
+                 an exceptional condition and will be caught below (i.e., remove
+                 this code). */
+    }
+
+    /* TODO: this DN is declared in some core constants file. Create a constants
+       file for the installer and import it into the core. */
+    final String dnStr = "ds-cfg-key-id=ads-certificate,cn=ads-truststore";
+    instanceKeyCertificate = null ;
+    for(int i = 0; null == instanceKeyCertificate && i < 2 ; ++i )
+    {
+      /* If the entry does not exist, add it (inducing CryptoManager to do some
+         magic to create the attribute values), then repeat the search. */
+      try
+      {
+        SearchControls sc = new SearchControls();
+        sc.setSearchScope(SearchControls.OBJECT_SCOPE);
+        String attrIDs[] = { "ds-cfg-ads-certificate" };
+        sc.setReturningAttributes(attrIDs);
+        SearchResult adsCertEntry
+           = dirContext.search(nameFromDN(dnStr), "(objectclass=*)", sc).next();
+        final Attribute certAttr
+                = adsCertEntry.getAttributes().get("ds-cfg-ads-certificate");
+        if(null == certAttr) break; // unexpected, but handled below (exception)
+        instanceKeyCertificate = (String)certAttr.get();
+      }
+      catch(NameNotFoundException x)
+      {
+        BasicAttributes attrs = new BasicAttributes();
+        Attribute oc = new BasicAttribute("objectclass");
+        oc.add("top");
+        oc.add("ds-cfg-self-signed-cert-request");
+        attrs.put(oc);
+        createEntry(dnStr, attrs);
+      }
+      catch (NoPermissionException x)
+      {
+        throw new ADSContextException(
+                ADSContextException.ErrorType.ACCESS_PERMISSION);
+      }
+      catch(javax.naming.NamingException x)
+      {
+        throw new ADSContextException(
+                ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+      }
+    }
+
+    if(null == instanceKeyCertificate){
+      throw new ADSContextException(
+              ADSContextException.ErrorType.ERROR_UNEXPECTED);
+    }
+  }
+
+  /**
+   * Returns the instance-key public-key certificate directly from the
+   * truststore backend of the instance referenced through this context.
+   *
+   * @return The public-key certificate of the instance.
+   *
+   * @throws ADSContextException if public-key certificate cannot be retrieved.
+   */
+  public String getInstanceKeyCertificate() throws ADSContextException
+  {
+    if(null == instanceKeyCertificate){
+      retrieveInstanceKeyCertificate();
+    }
+    return instanceKeyCertificate;
+  }
+
+  /**
+   * Returns the parent entry of the server key entries in ADS.
+   * @return the parent entry of the server key entries in ADS.
+   */
+  private static String getInstanceKeysContainerDN()
+  {
+    return "cn=instance keys," + getAdministrationSuffixDN();
   }
 }
