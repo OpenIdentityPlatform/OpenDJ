@@ -89,6 +89,10 @@
         <call function="'repeat_chars'" />
 
         <import machine="STAF_LOCAL_HOSTNAME"
+          file="'%s/testcases/security/pwd_validator/security_mult_validators.xml' % (TESTS_DIR)"/>
+        <call function="'mult_validators'" />
+
+        <import machine="STAF_LOCAL_HOSTNAME"
           file="'%s/testcases/security/pwd_validator/security_skip_val_for_admins.xml' % (TESTS_DIR)"/>
         <call function="'skip_val_for_admins'" />
 
