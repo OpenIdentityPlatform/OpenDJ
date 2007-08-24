@@ -117,7 +117,7 @@
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
                     'attributeName'          : 'default-password-storage-scheme' ,
-                    'attributeValue'         : 'SHA-1' ,
+                    'attributeValue'         : 'SHA' ,
                     'modifyType'             : 'add' }
             </call>
             
@@ -256,7 +256,7 @@
 
             <call function="'checktestString'">
                 { 'returnString'       : returnString ,
-                  'expectedString'     : 'SHA-1' }
+                  'expectedString'     : ': SHA' }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -427,7 +427,7 @@
 
             <call function="'checktestString'">
                 { 'returnString'       : returnString ,
-                  'expectedString'     : '{SHA-1}' }
+                  'expectedString'     : '{SHA}' }
             </call>
             
             <call function="'testCase_Postamble'"/>
