@@ -50,14 +50,18 @@
             #@TestPurpose               Add BASE64 password scheme
             #@TestPreamble              none
             #@TestStep                  Admin add BASE64.
+            #@TestStep                  Admin deletes SHA-1.
+            #@TestStep                  Admin creates new SHA-1.
+            #@TestStep                  Admin adds new SHA-1 to default storage scheme of the Default Password Policy.
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
+                                        for all operations.
         -->
         <testcase name="getTestCaseName('Multiple Schemes - Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Multiple Pwd Schemes: Preamble - Admin Adding BASE64 Storage Scheme'
+               'Security: Multiple Pwd Schemes: Preamble - Admin adding BASE64 storage scheme'
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -68,6 +72,52 @@
                     'propertyName'           : 'Default Password Policy' ,
                     'attributeName'          : 'default-password-storage-scheme' ,
                     'attributeValue'         : 'BASE64' ,
+                    'modifyType'             : 'add' }
+            </call>
+            
+            <message>
+               'Security: Multiple Pwd Schemes: Preamble - Admin deleting SHA-1 storage scheme'
+            </message>
+
+            <call function="'dsconfig'">
+            { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'           : 'delete-password-storage-scheme' ,    
+              'objectType'           : 'scheme-name' ,
+              'objectName'           : 'SHA-1',
+              'expectedRC'           : 0 } 
+            </call>          
+            
+            <message>
+               'Security: Multiple Pwd Schemes: Preamble - Admin creating new storage scheme'
+            </message>
+
+            <call function="'dsconfig'">
+            { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'           : 'create-password-storage-scheme' ,    
+              'objectType'           : 'scheme-name' ,
+              'objectName'           : 'SHA-1',
+              'optionsString'        : '--type generic --set enabled:true --set scheme-class:org.opends.server.extensions.SHA1PasswordStorageScheme ',
+              'expectedRC'           : 0 } 
+            </call>          
+            
+            <message>
+               'Security: Multiple Pwd Schemes: Preamble - Admin adding new storage scheme'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'SHA-1' ,
                     'modifyType'             : 'add' }
             </call>
             
@@ -168,6 +218,52 @@
           </sequence>
         </testcase>
 
+        <!--- Test Case : Check for Multi-value for Pwd Schemes - BASE64-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Multiple Schemes
+            #@TestName                  Check for SHA-1 Password Scheme
+            #@TestIssue                 322
+            #@TestPurpose               Test for the SHA-1 scheme in the password policy
+            #@TestPreamble              none
+            #@TestStep                  Admin retrieve the value for 
+                                        ds-cfg-default-password-storage-scheme.
+            #@TestPostamble             none
+            #@TestResult                Success if the string, "SHA-1", 
+                                        is part of the return string.
+        -->
+        <testcase name="getTestCaseName('Multiple Schemes - Check Pwd Schemes - SHA-1')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Multiple Pwd Schemes: Checking for Password Schemes - SHA-1'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'      : 'ds-cfg-default-password-storage-scheme' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'SHA-1' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+          
+          </sequence>
+        </testcase>
+
         <!--- Test Case : User Change Password Multiple Schemes-->
        <!---
             Place test-specific test information here.
@@ -181,12 +277,10 @@
             #@TestStep                  User binds with new password.
             #@TestStep                  Admin retrieves userpassword from user entry and
                                         checks for the prefix string {SSHA}.
-            #@TestStep                  Admin retrieves userpassword from user entry and
-                                        checks for the prefix string {BASE64}.
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
                                         and the user password is stored in both
-                                        SSHA and BASE64 schemes.
+                                        SSHA scheme.
         -->
         <testcase name="getTestCaseName('Multiple Schemes - Pwd Change')">
           <sequence>
@@ -257,16 +351,12 @@
             #@TestIssue                 322
             #@TestPurpose               Test that a user's password is stored in the new schemes.
             #@TestPreamble              none
-            #@TestStep                  User changes his password.
-            #@TestStep                  User binds with new password.
-            #@TestStep                  Admin retrieves userpassword from user entry and
-                                        checks for the prefix string {SSHA}.
             #@TestStep                  Admin retrieves userpassword from user entry and
                                         checks for the prefix string {BASE64}.
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
-                                        and the user password is stored in both
-                                        SSHA and BASE64 schemes.
+                                        and the user password is stored in
+                                        BASE64 scheme.
         -->
         <testcase name="getTestCaseName('Multiple Schemes - Check for Second Scheme On Pwd Change')">
           <sequence>
@@ -292,6 +382,52 @@
             <call function="'checktestString'">
                 { 'returnString'       : returnString ,
                   'expectedString'     : '{BASE64}' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+          
+          </sequence>
+        </testcase>
+
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Multiple Schemes
+            #@TestName                  User Password Change
+            #@TestIssue                 322
+            #@TestPurpose               Test that a user's password is stored in the new schemes.
+            #@TestPreamble              none
+            #@TestStep                  Admin retrieves userpassword from user entry and
+                                        checks for the prefix string {SHA-1}.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+                                        and the user password is stored in
+                                        SHA-1 scheme.
+        -->
+        <testcase name="getTestCaseName('Multiple Schemes - Check for New Scheme On Pwd Change')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Multiple Pwd Schemes: Checking for New Scheme On New Password'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'uid=bhall,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'userpassword' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : '{SHA-1}' }
             </call>
             
             <call function="'testCase_Postamble'"/>
