@@ -30,7 +30,6 @@ package org.opends.server.extensions;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.TestCaseUtils;
@@ -96,14 +95,6 @@ public abstract class CommonEntryCacheTestCase
    * Entry cache configuration instance.
    */
   protected EntryCacheCfg configuration;
-
-
-
-  /**
-   * Indicates whether a concurrent test thread should assert
-   * that the cache is empty before executing the actual test.
-   */
-  private AtomicBoolean cacheEmptyAssert = new AtomicBoolean();
 
 
 
@@ -307,6 +298,7 @@ public abstract class CommonEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @SuppressWarnings("unchecked")
   public void testPutEntry()
          throws Exception
   {
@@ -324,6 +316,11 @@ public abstract class CommonEntryCacheTestCase
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       toVerboseString());
 
+    assertNotNull(cache.getEntry(b, 1, LockType.NONE, new ArrayList<Lock>()),
+      "Expected to find entry id " + Integer.toString(-1) +
+      " in the cache.  Cache contents:" + ServerConstants.EOL +
+      toVerboseString());
+
     // Clear the cache so that other tests can start from scratch.
     cache.clear();
   }
@@ -335,6 +332,7 @@ public abstract class CommonEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @SuppressWarnings("unchecked")
   public void testPutEntryIfAbsent()
          throws Exception
   {
@@ -355,6 +353,16 @@ public abstract class CommonEntryCacheTestCase
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       toVerboseString());
 
+    assertNotNull(cache.getEntry(testEntriesList.get(0).getDN()),
+      "Expected to find " + testEntriesList.get(0).getDN().toString() +
+      " in the cache.  Cache contents:" + ServerConstants.EOL +
+      toVerboseString());
+
+    assertNotNull(cache.getEntry(b, 1, LockType.NONE, new ArrayList<Lock>()),
+      "Expected to find entry id " + Integer.toString(-1) +
+      " in the cache.  Cache contents:" + ServerConstants.EOL +
+      toVerboseString());
+
     // Clear the cache so that other tests can start from scratch.
     cache.clear();
   }
@@ -366,6 +374,7 @@ public abstract class CommonEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @SuppressWarnings("unchecked")
   public void testRemoveEntry()
          throws Exception
   {
@@ -385,6 +394,11 @@ public abstract class CommonEntryCacheTestCase
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       toVerboseString());
 
+    assertNull(cache.getEntry(b, 1, LockType.NONE, new ArrayList<Lock>()),
+      "Not expected to find entry id " + Integer.toString(-1) +
+      " in the cache.  Cache contents:" + ServerConstants.EOL +
+      toVerboseString());
+
     // Clear the cache so that other tests can start from scratch.
     cache.clear();
   }
@@ -396,6 +410,7 @@ public abstract class CommonEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @SuppressWarnings("unchecked")
   public void testClear()
          throws Exception
   {
@@ -412,6 +427,11 @@ public abstract class CommonEntryCacheTestCase
 
     assertNull(cache.getEntry(testEntriesList.get(0).getDN()),
       "Not expected to find " + testEntriesList.get(0).getDN().toString() +
+      " in the cache.  Cache contents:" + ServerConstants.EOL +
+      toVerboseString());
+
+    assertNull(cache.getEntry(b, 1, LockType.NONE, new ArrayList<Lock>()),
+      "Not expected to find entry id " + Integer.toString(-1) +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       toVerboseString());
 
@@ -448,6 +468,11 @@ public abstract class CommonEntryCacheTestCase
       b.getBackendID() + " in the cache.  Cache contents:" +
       ServerConstants.EOL + toVerboseString());
 
+    assertNull(cache.getEntry(testEntriesList.get(0).getDN()),
+      "Not expected to find " + testEntriesList.get(0).getDN().toString() +
+      " in the cache.  Cache contents:" + ServerConstants.EOL +
+      toVerboseString());
+
     assertNotNull(cache.getEntry(c, 1, LockType.NONE, new ArrayList<Lock>()),
       "Expected to find entry id " + Integer.toString(1) + " on backend " +
       c.getBackendID() + " in the cache.  Cache contents:" +
@@ -464,6 +489,7 @@ public abstract class CommonEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @SuppressWarnings("unchecked")
   public void testClearSubtree()
          throws Exception
   {
@@ -484,6 +510,11 @@ public abstract class CommonEntryCacheTestCase
 
     assertNull(cache.getEntry(testEntriesList.get(0).getDN()),
       "Not expected to find " + testEntriesList.get(0).getDN().toString() +
+      " in the cache.  Cache contents:" + ServerConstants.EOL +
+      toVerboseString());
+
+    assertNull(cache.getEntry(b, 1, LockType.NONE, new ArrayList<Lock>()),
+      "Not expected to find entry id " + Integer.toString(-1) +
       " in the cache.  Cache contents:" + ServerConstants.EOL +
       toVerboseString());
 
@@ -524,25 +555,20 @@ public abstract class CommonEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @SuppressWarnings("unchecked")
   public void testCacheConcurrency()
          throws Exception
   {
-    if(cacheEmptyAssert.compareAndSet(false, true)) {
-      assertNull(toVerboseString(),
-        "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-        toVerboseString());
-    }
-
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
 
     for(int loops = 0; loops < CONCURRENCYLOOPS; loops++) {
       for(int i = 0; i < NUMTESTENTRIES; i++) {
         cache.putEntry(testEntriesList.get(i), b, i);
         cache.getEntry(testEntriesList.get(i).getDN());
+        cache.removeEntry(testEntriesList.get(i).getDN());
+        cache.putEntryIfAbsent(testEntriesList.get(i), b, i);
+        cache.getEntry(b, i, LockType.NONE, new ArrayList<Lock>());
       }
     }
-
-    // Clear the cache so that other tests can start from scratch.
-    cache.clear();
   }
 }

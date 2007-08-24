@@ -34,7 +34,10 @@ import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.testng.annotations.BeforeClass;
 import org.opends.server.admin.std.meta.*;
 import org.opends.server.types.Entry;
+import org.opends.server.util.ServerConstants;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterGroups;
+import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
@@ -287,10 +290,31 @@ public class SoftReferenceEntryCacheTestCase
 
 
 
+  @BeforeGroups(groups = "testSoftRefCacheConcurrency")
+  public void cacheConcurrencySetup()
+         throws Exception
+  {
+    assertNull(super.toVerboseString(),
+      "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
+      super.toVerboseString());
+  }
+
+
+
+  @AfterGroups(groups = "testSoftRefCacheConcurrency")
+  public void cacheConcurrencyCleanup()
+         throws Exception
+  {
+    // Clear the cache so that other tests can start from scratch.
+    super.cache.clear();
+  }
+
+
+
   /**
    * {@inheritDoc}
    */
-  @Test(groups="slow",
+  @Test(groups = { "slow", "testSoftRefCacheConcurrency" },
         threadPoolSize = 10,
         invocationCount = 10,
         timeOut = 60000)
