@@ -87,6 +87,11 @@ public class FileSystemEntryCacheTestCase
     // Initialize the cache.
     super.cache = new FileSystemEntryCache();
     super.cache.initializeEntryCache(configuration);
+
+    // Make sure the cache is empty.
+    assertNull(super.toVerboseString(),
+      "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
+      super.toVerboseString());
   }
 
 
@@ -428,10 +433,31 @@ public class FileSystemEntryCacheTestCase
 
 
 
+  @BeforeGroups(groups = "testFSFIFOCacheConcurrency")
+  public void cacheConcurrencySetup()
+         throws Exception
+  {
+    assertNull(super.toVerboseString(),
+      "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
+      super.toVerboseString());
+  }
+
+
+
+  @AfterGroups(groups = "testFSFIFOCacheConcurrency")
+  public void cacheConcurrencyCleanup()
+         throws Exception
+  {
+    // Clear the cache so that other tests can start from scratch.
+    super.cache.clear();
+  }
+
+
+
   /**
    * {@inheritDoc}
    */
-  @Test(groups="slow",
+  @Test(groups = { "slow", "testFSFIFOCacheConcurrency" },
         threadPoolSize = 10,
         invocationCount = 10,
         // In case of disk based FS.
@@ -445,7 +471,7 @@ public class FileSystemEntryCacheTestCase
 
 
 
-  @BeforeGroups(groups = "testLRUCacheConcurrency")
+  @BeforeGroups(groups = "testFSLRUCacheConcurrency")
   public void LRUCacheConcurrencySetup()
          throws Exception
   {
@@ -455,7 +481,7 @@ public class FileSystemEntryCacheTestCase
 
 
 
-  @AfterGroups(groups = "testLRUCacheConcurrency")
+  @AfterGroups(groups = "testFSLRUCacheConcurrency")
   public void LRUCacheConcurrencyCleanup()
          throws Exception
   {
@@ -472,7 +498,7 @@ public class FileSystemEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(groups = { "slow", "testLRUCacheConcurrency" },
+  @Test(groups = { "slow", "testFSLRUCacheConcurrency" },
         threadPoolSize = 10,
         invocationCount = 10,
         // In case of disk based FS.
@@ -502,8 +528,8 @@ public class FileSystemEntryCacheTestCase
       super.cache.putEntry(super.testEntriesList.get(i), b, i);
     }
 
-    // Make sure first MAXENTRIES out of NUMTESTENTRIES rotated.
-    for(int i = 0; i < super.MAXENTRIES; i++ ) {
+    // Make sure first NUMTESTENTRIES - MAXENTRIES got rotated.
+    for(int i = 0; i < (super.NUMTESTENTRIES - super.MAXENTRIES); i++ ) {
       assertFalse(super.cache.containsEntry(
         super.testEntriesList.get(i).getDN()), "Not expected to find " +
         super.testEntriesList.get(i).getDN().toString() + " in the " +

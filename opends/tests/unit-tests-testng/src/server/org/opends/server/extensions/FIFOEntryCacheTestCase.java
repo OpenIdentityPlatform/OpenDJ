@@ -39,6 +39,8 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.util.ServerConstants;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterGroups;
+import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
@@ -314,10 +316,31 @@ public class FIFOEntryCacheTestCase
 
 
 
+  @BeforeGroups(groups = "testFIFOCacheConcurrency")
+  public void cacheConcurrencySetup()
+         throws Exception
+  {
+    assertNull(super.toVerboseString(),
+      "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
+      super.toVerboseString());
+  }
+
+
+
+  @AfterGroups(groups = "testFIFOCacheConcurrency")
+  public void cacheConcurrencyCleanup()
+         throws Exception
+  {
+    // Clear the cache so that other tests can start from scratch.
+    super.cache.clear();
+  }
+
+
+
   /**
    * {@inheritDoc}
    */
-  @Test(groups="slow",
+  @Test(groups = { "slow", "testFIFOCacheConcurrency" },
         threadPoolSize = 10,
         invocationCount = 10,
         timeOut = 60000)
@@ -347,8 +370,8 @@ public class FIFOEntryCacheTestCase
       super.cache.putEntry(super.testEntriesList.get(i), b, i);
     }
 
-    // Make sure first MAXENTRIES out of NUMTESTENTRIES rotated.
-    for(int i = 0; i < super.MAXENTRIES; i++ ) {
+    // Make sure first NUMTESTENTRIES - MAXENTRIES got rotated.
+    for(int i = 0; i < (super.NUMTESTENTRIES - super.MAXENTRIES); i++ ) {
       assertFalse(super.cache.containsEntry(
         super.testEntriesList.get(i).getDN()), "Not expected to find " +
         super.testEntriesList.get(i).getDN().toString() + " in the " +
