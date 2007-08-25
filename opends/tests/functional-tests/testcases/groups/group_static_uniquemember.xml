@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE stax SYSTEM "../../stax.dtd">
+<!DOCTYPE stax SYSTEM "../../shared/stax.dtd">
 <!--
  ! CDDL HEADER START
  !
@@ -27,17 +27,11 @@
  ! -->
 
 <stax>
-
   <defaultcall function="main_staticgroup_uniquemember"/>
-
   <function name="main_staticgroup_uniquemember">
-
     <sequence>
-
       <block name="'staticgroup_uniquemember'">
-      
         <sequence>
-          
           <script>
             applicationDn='uid=my_application,dc=groups,dc=com'
             applicationPswd='pw_my_application'
@@ -54,15 +48,14 @@
             user11='user_11'
             user11Dn='uid=%s,ou=static,dc=groups,dc=com' % (user11)
             user11Pswd='pw_11'
-            
-          </script>      
- 
+          </script>
+          
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='groups'              
+              CurrentTestPath['group']='groups'
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
-                      
+          
           <call function="'testSuite_Preamble'"/>
           
           <!--- Test Suite information
@@ -74,14 +67,14 @@
           #@TestScript          group_static.xml
           #@TestHTMLLink        http://opends.dev.java.net/
           -->
-
+          
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/groups/group_setup.xml' % (TESTS_DIR)"/>
+                  file="'%s/testcases/groups/group_setup.xml' % (TESTS_DIR)"/>
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/groups/group_lib.xml' % (TESTS_DIR)"/>
+                  file="'%s/testcases/groups/group_lib.xml' % (TESTS_DIR)"/>
           
           <call function="'group_setup'"> { 'startDS' : True } </call>
-
+          
           
           <!--- Test Case information
           #@TestMarker          Static Group Tests
@@ -97,7 +90,7 @@
             <sequence>
               <call function="'testCase_Preamble'"/>
 
-              <script>  
+              <script>
                 listAttr = []
                 listAttr.append('cn:%s' % newStaticGroup)
                 listAttr.append('objectclass:top')
@@ -109,33 +102,34 @@
                 '++++ Application add group entry %s' % newStaticGroup
               </message>
               <call function="'addAnEntry'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : applicationDn ,
-                'dsInstancePswd'   : applicationPswd ,
-                'DNToAdd'          : newStaticGroupDn,
-                'listAttributes'   : listAttr
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : applicationDn,
+                  'dsInstancePswd' : applicationPswd,
+                  'DNToAdd'        : newStaticGroupDn,
+                  'listAttributes' : listAttr
                 }
               </call>
               <message>
                 '++++ Application do a search to check the entry has been created'
               </message>
               <call function="'ldapSearchWithScript'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : applicationDn ,
-                'dsInstancePswd'   : applicationPswd ,
-                'dsBaseDN'         : newStaticGroupDn ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'dsAttributes'     : 'uniquemember' }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : applicationDn,
+                  'dsInstancePswd' : applicationPswd,
+                  'dsBaseDN'       : newStaticGroupDn,
+                  'dsFilter'       : 'objectclass=*',
+                  'dsAttributes'   : 'uniquemember'
+                }
               </call>
               <message>
                 '++++ Check the search return entry %s' % user11Dn
               </message>
               <call function="'CheckMatches'">
                 { 'string2find' : user11Dn ,
-                'mainString'    : STAXResult[0][1] ,
-                'nbExpected'    : 1
+                  'mainString'  : STAXResult[0][1] ,
+                  'nbExpected'  : 1
                 }
               </call>
               <call function="'CheckIsMemberOf'">
@@ -144,11 +138,10 @@
                   'nbExpected'  : 1
                 }
               </call>
-
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
-
+          
           <!--- Test Case information
           #@TestMarker          Static Group Tests
           #@TestName            Group: Static: uniquemember: delete a static group entry
@@ -167,32 +160,32 @@
               </message>
               <call function="'DeleteEntry'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : applicationDn ,
-                'dsInstancePswd'   : applicationPswd ,
-                'dsBaseDN'         : newStaticGroupDn,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'   : applicationDn ,
+                  'dsInstancePswd' : applicationPswd ,
+                  'dsBaseDN'       : newStaticGroupDn,
                 }
               </call>
               <message>
                 '++++ Check the group entry %s no more exist' % newStaticGroup
               </message>
               <call function="'ldapSearchWithScript'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : applicationDn ,
-                'dsInstancePswd'   : applicationPswd ,
-                'dsBaseDN'         : newStaticGroupDn ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'dsAttributes'     : 'uniquemember',
-                'expectedRC'       : 32 }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : applicationDn,
+                  'dsInstancePswd' : applicationPswd,
+                  'dsBaseDN'       : newStaticGroupDn,
+                  'dsFilter'       : 'objectclass=*',
+                  'dsAttributes'   : 'uniquemember',
+                  'expectedRC'     : 32
+                }
               </call>
               <call function="'CheckIsMemberOf'">
                 { 'baseDn'      : user11Dn ,
-                  'string2find' : newStaticGroupDn ,
+                  'string2find' : newStaticGroupDn,
                   'nbExpected'  : 0
                 }
               </call>
-
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
@@ -214,27 +207,26 @@
                 '++++ user %s, not member of the group, do a search, should pass' % user11
               </message>
               <call function="'ldapSearchWithScript'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : user11Dn ,
-                'dsInstancePswd'   : user11Pswd ,
-                'dsBaseDN'         : user11Dn ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'dsAttributes'     : 'uid',
-                'expectedRC'       : 0 }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : user11Dn,
+                  'dsInstancePswd' : user11Pswd,
+                  'dsBaseDN'       : user11Dn,
+                  'dsFilter'       : 'objectclass=*',
+                  'dsAttributes'   : 'uid',
+                  'expectedRC'     : 0
+                }
               </call>
               <call function="'CheckMatches'">
                 { 'string2find' : 'uid' ,
-                'mainString'    : STAXResult[0][1] ,
-                'nbExpected'    : 2
+                  'mainString'  : STAXResult[0][1],
+                  'nbExpected'  : 2
                 }
               </call>
-
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
           
-                   
           <!--- Test Case information
           #@TestMarker          Static Group Tests
           #@TestName            Group: Static: uniquemember: ldapsearch through group
@@ -252,36 +244,35 @@
                 '++++ user %s, member of the group do a search, should be denied has group have no permission' % user1
               </message>
               <call function="'ldapSearchWithScript'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : user1Dn ,
-                'dsInstancePswd'   : user1Pswd ,
-                'dsBaseDN'         : user1Dn ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'dsAttributes'     : 'uid',
-                'expectedRC'       : 0 }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : user1Dn,
+                  'dsInstancePswd' : user1Pswd,
+                  'dsBaseDN'       : user1Dn,
+                  'dsFilter'       : 'objectclass=*',
+                  'dsAttributes'   : 'uid',
+                  'expectedRC'     : 0
+                }
               </call>
               <message>
                 '++++ Check the search return nothing'
               </message>
               <call function="'CheckMatches'">
-                { 'string2find' : 'dn' ,
-                'mainString'    : STAXResult[0][1] ,
-                'nbExpected'    : 0
+                { 'string2find' : 'dn',
+                  'mainString'  : STAXResult[0][1],
+                  'nbExpected'  : 0
                 }
               </call>
               <call function="'CheckIsMemberOf'">
                 { 'baseDn'      : user1Dn ,
-                  'string2find' : staticGroup1Dn ,
+                  'string2find' : staticGroup1Dn,
                   'nbExpected'  : 1
                 }
               </call>
-
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
-
-                  
+          
           <!--- Test Case information
           #@TestMarker          Group StaticGroup Tests
           #@TestName            Group: Static: uniquemember: application search in group
@@ -295,18 +286,18 @@
           <testcase name="getTestCaseName('uniquemember: application search in group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
-
               <message>
                 '++++ Application do a search on static group, should work'
-              </message>                            
+              </message>
               <call function="'ldapSearchWithScript'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : applicationDn ,
-                'dsInstancePswd'   : applicationPswd ,
-                'dsBaseDN'         : staticGroup1Dn ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'dsAttributes'     : 'uniquemember' }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : applicationDn,
+                  'dsInstancePswd' : applicationPswd,
+                  'dsBaseDN'       : staticGroup1Dn,
+                  'dsFilter'       : 'objectclass=*',
+                  'dsAttributes'   : 'uniquemember'
+                }
               </call>
               <script> 
                 STAXReason = STAXResult[0][1]
@@ -316,16 +307,14 @@
                 '++++ Check ldapsearch result return 10 entries'
               </message>
               <call function="'CheckMatches'">
-                { 'string2find' : 'uniquemember' ,
-                'mainString'    : STAXReason ,
-                'nbExpected'    : 10
+                { 'string2find' : 'uniqueMember',
+                  'mainString'  : STAXReason,
+                  'nbExpected'  : 10
                 }
               </call>
-                        
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
-
           
           <!--- Test Case information
           #@TestMarker          Group StaticGroup Tests
@@ -340,19 +329,18 @@
           <testcase name="getTestCaseName('uniquemember: application add user in group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
-
               <message>
                 '++++ Application add a new user %s / %s into the static group' % (user11Dn,user11Pswd)
               </message>
               <call function="'modifyAnAttribute'">
-                { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'      : applicationDn ,
-                'dsInstancePswd'    : applicationPswd ,
-                'DNToModify'        : staticGroup1Dn ,
-                'changetype'        : 'add' ,
-                'attributeName'     : 'uniquemember' ,
-                'newAttributeValue' : user11Dn
+                { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'      : applicationDn,
+                  'dsInstancePswd'    : applicationPswd,
+                  'DNToModify'        : staticGroup1Dn,
+                  'changetype'        : 'add',
+                  'attributeName'     : 'uniquemember',
+                  'newAttributeValue' : user11Dn
                 }
               </call>
               <!-- ******************** -->
@@ -361,12 +349,13 @@
               </message>
               <call function="'ldapSearchWithScript'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : applicationDn ,
-                'dsInstancePswd'   : applicationPswd ,
-                'dsBaseDN'         : staticGroup1Dn ,
-                'dsFilter'         : 'objectclass=*' ,
-                'dsAttributes'     : 'uniquemember' }
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'   : applicationDn ,
+                  'dsInstancePswd' : applicationPswd ,
+                  'dsBaseDN'       : staticGroup1Dn ,
+                  'dsFilter'       : 'objectclass=*' ,
+                  'dsAttributes'   : 'uniquemember'
+                }
               </call>
               <script> 
                 STAXCode = RC
@@ -378,8 +367,8 @@
               </message>
               <call function="'CheckMatches'">
                 { 'string2find' : user11Dn ,
-                'mainString'    : ldapSearchResult ,
-                'nbExpected'    : 1
+                  'mainString'  : ldapSearchResult ,
+                  'nbExpected'  : 1
                 }
               </call>
               <!-- ******************** -->
@@ -387,22 +376,23 @@
                 '++++ Check added user %s has no more privileges' % user11
               </message>
               <call function="'ldapSearchWithScript'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : user11Dn ,
-                'dsInstancePswd'   : user11Pswd ,
-                'dsBaseDN'         : user11Dn ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'dsAttributes'     : 'uid',
-                'expectedRC'       : 0 }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : user11Dn,
+                  'dsInstancePswd' : user11Pswd,
+                  'dsBaseDN'       : user11Dn,
+                  'dsFilter'       : 'objectclass=*',
+                  'dsAttributes'   : 'uid',
+                  'expectedRC'     : 0
+                }
               </call>
               <message>
                 '++++ Check the search returns nothing'
               </message>
               <call function="'CheckMatches'">
-                { 'string2find' : 'dn' ,
-                'mainString'    : STAXResult[0][1] ,
-                'nbExpected'    : 0
+                { 'string2find' : 'dn',
+                  'mainString'  : STAXResult[0][1],
+                  'nbExpected'  : 0
                 }
               </call>
               <!-- ******************** -->
@@ -412,11 +402,9 @@
                   'nbExpected'  : 1
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
-          
           
           <!--- Test Case information
           #@TestMarker          Static Group Tests
@@ -431,17 +419,16 @@
           <testcase name="getTestCaseName('uniquemember: delete user entry belonging to the group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
-
               <!-- ******************** -->
               <message>
                 '++++ Application delete the user entry that belong to the static group'
               </message>
               <call function="'DeleteEntry'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : applicationDn ,
-                'dsInstancePswd'   : applicationPswd ,
-                'dsBaseDN'         : user11Dn,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'   : applicationDn ,
+                  'dsInstancePswd' : applicationPswd ,
+                  'dsBaseDN'       : user11Dn,
                 }
               </call>
               <!-- ******************** -->
@@ -449,13 +436,14 @@
                 '++++ Application search users through the static group'
               </message>
               <call function="'ldapSearchWithScript'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : applicationDn ,
-                'dsInstancePswd'   : applicationPswd ,
-                'dsBaseDN'         : staticGroup1Dn ,
-                'dsFilter'         : 'objectclass=*' ,
-                'dsAttributes'     : 'uniquemember' }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : applicationDn,
+                  'dsInstancePswd' : applicationPswd,
+                  'dsBaseDN'       : staticGroup1Dn,
+                  'dsFilter'       : 'objectclass=*',
+                  'dsAttributes'   : 'uniquemember'
+                }
               </call>
               <script> 
                 STAXCode = RC
@@ -466,9 +454,9 @@
                 '++++ Check ldapsearch result still returns the deleted entry uid as referential integrity plugin is disabled'
               </message>
               <call function="'CheckMatches'">
-                { 'string2find' : user11Dn ,
-                'mainString'    : ldapSearchResult ,
-                'nbExpected'    : 1
+                { 'string2find' : user11Dn,
+                  'mainString'  : ldapSearchResult,
+                  'nbExpected'  : 1
                 }
               </call>
               <!-- ******************** -->
@@ -476,16 +464,16 @@
                 '++++ Check ldapsearch result returns 11 entries'
               </message>
               <call function="'CheckMatches'">
-                { 'string2find' : 'uniquemember' ,
-                'mainString'    : ldapSearchResult ,
-                'nbExpected'    : 11
+                { 'string2find' : 'uniqueMember',
+                  'mainString'  : ldapSearchResult,
+                  'nbExpected'  : 11
                 }
               </call>
               <!-- ******************** -->
               <message>
                 '++++ Add the deleted entry'
               </message>
-              <script>  
+              <script>
                 listAttr = []
                 listAttr.append('uid:%s' % user11)
                 listAttr.append('objectclass:top')
@@ -497,27 +485,24 @@
                 listAttr.append('userPassword:%s' % user11Pswd)
               </script>
               <call function="'addAnEntry'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : applicationDn ,
-                'dsInstancePswd'   : applicationPswd ,
-                'DNToAdd'          : user11Dn,
-                'listAttributes'   : listAttr
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : applicationDn,
+                  'dsInstancePswd' : applicationPswd,
+                  'DNToAdd'        : user11Dn,
+                  'listAttributes' : listAttr
                 }
               </call>
               <!-- ******************** -->
               <call function="'CheckIsMemberOf'">
-                { 'baseDn'      : user11Dn ,
-                  'string2find' : staticGroup1Dn ,
+                { 'baseDn'      : user11Dn,
+                  'string2find' : staticGroup1Dn,
                   'nbExpected'  : 1
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
-          
-          
           
           <!--- Test Case information
           #@TestMarker          Group StaticGroup Tests
@@ -532,32 +517,33 @@
           <testcase name="getTestCaseName('uniquemember: application delete user from group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
-
               <message>
                 '++++ Application delete attribute uniquemember:%s from the static group' % user11
               </message>
               <call function="'modifyAnAttribute'">
-                { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'      : applicationDn ,
-                'dsInstancePswd'    : applicationPswd ,
-                'DNToModify'        : staticGroup1Dn ,
-                'changetype'        : 'delete' ,
-                'attributeName'     : 'uniquemember', 
-                'newAttributeValue' : user11Dn }
+                { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'      : applicationDn,
+                  'dsInstancePswd'    : applicationPswd,
+                  'DNToModify'        : staticGroup1Dn,
+                  'changetype'        : 'delete',
+                  'attributeName'     : 'uniquemember',
+                  'newAttributeValue' : user11Dn
+                }
               </call>
               <!-- ******************** -->
               <message>
                 '++++ Application search users through the static group'
               </message>
               <call function="'ldapSearchWithScript'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : applicationDn ,
-                'dsInstancePswd'   : applicationPswd ,
-                'dsBaseDN'         : staticGroup1Dn ,
-                'dsFilter'         : 'objectclass=*' ,
-                'dsAttributes'     : 'uniquemember' }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : applicationDn,
+                  'dsInstancePswd' : applicationPswd,
+                  'dsBaseDN'       : staticGroup1Dn,
+                  'dsFilter'       : 'objectclass=*',
+                  'dsAttributes'   : 'uniquemember'
+                }
               </call>
               <script> 
                 ldapSearchResult = STAXResult[0][1]
@@ -567,9 +553,9 @@
                 '++++ Check ldapsearch result should not returns the deleted group entry'
               </message>
               <call function="'CheckMatches'">
-                { 'string2find' : user11Dn ,
-                'mainString'    : ldapSearchResult ,
-                'nbExpected'    : 0
+                { 'string2find' : user11Dn,
+                  'mainString'  : ldapSearchResult,
+                  'nbExpected'  : 0
                 }
               </call>
               <!-- ******************** -->
@@ -577,22 +563,23 @@
                 '++++ User %s should now be able to do search' % user11
               </message>
               <call function="'ldapSearchWithScript'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : user11Dn ,
-                'dsInstancePswd'   : user11Pswd ,
-                'dsBaseDN'         : user11Dn ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'dsAttributes'     : 'uid',
-                'expectedRC'       : 0 }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : user11Dn,
+                  'dsInstancePswd' : user11Pswd,
+                  'dsBaseDN'       : user11Dn,
+                  'dsFilter'       : 'objectclass=*',
+                  'dsAttributes'   : 'uid',
+                  'expectedRC'     : 0
+                }
               </call>
               <message>
                 '++++ Check the search returns entry'
               </message>
               <call function="'CheckMatches'">
-                { 'string2find' : 'dn' ,
-                'mainString'    : STAXResult[0][1] ,
-                'nbExpected'    : 1
+                { 'string2find' : 'dn',
+                  'mainString'  : STAXResult[0][1],
+                  'nbExpected'  : 1
                 }
               </call>
               <!-- ******************** -->
@@ -602,13 +589,9 @@
                   'nbExpected'  : 0
                 }
               </call>
-
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
-           
-
-          
           
           <!--- Test Case information
           #@TestMarker          Static Group Tests
@@ -623,7 +606,6 @@
           <testcase name="getTestCaseName('uniquemember: delete all attributes in a static group entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
-
               <!-- ******************** -->
               <message>
                 '++++ Create a static group entry %s' % newStaticGroupDn
@@ -639,12 +621,12 @@
                 listAttr.append('uniquemember:%s' % user11Dn)
               </script>
               <call function="'addAnEntry'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : applicationDn ,
-                'dsInstancePswd'   : applicationPswd ,
-                'DNToAdd'          : newStaticGroupDn,
-                'listAttributes'   : listAttr
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : applicationDn,
+                  'dsInstancePswd' : applicationPswd,
+                  'DNToAdd'        : newStaticGroupDn,
+                  'listAttributes' : listAttr
                 }
               </call>
               <!-- ******************** -->
@@ -658,13 +640,13 @@
                 listAttr.append('uniquemember:%s' % user11Dn)
               </script>
               <call function="'modifyAnAttribute'">
-                { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'      : applicationDn ,
-                'dsInstancePswd'    : applicationPswd ,
-                'DNToModify'        : newStaticGroupDn ,
-                'changetype'        : 'delete' ,
-                'listAttributes'    : listAttr
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : applicationDn,
+                  'dsInstancePswd' : applicationPswd,
+                  'DNToModify'     : newStaticGroupDn,
+                  'changetype'     : 'delete',
+                  'listAttributes' : listAttr
                 }
               </call>
               <!-- ******************** -->
@@ -672,35 +654,36 @@
                 '++++ Do a search on the group, should return no user entries'
               </message>
               <call function="'ldapSearchWithScript'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : applicationDn ,
-                'dsInstancePswd'   : applicationPswd ,
-                'dsBaseDN'         : newStaticGroupDn ,
-                'dsFilter'         : 'objectclass=*'  ,
-                'dsAttributes'     : 'uniquemember' }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'     : applicationDn,
+                  'dsInstancePswd'   : applicationPswd,
+                  'dsBaseDN'         : newStaticGroupDn,
+                  'dsFilter'         : 'objectclass=*',
+                  'dsAttributes'     : 'uniquemember'
+                }
               </call>
               <script> 
                STAXCode = RC
                ldapSearchResult = STAXResult[0][1]
               </script> 
               <call function="'CheckMatches'">
-                { 'string2find' : 'uniquemember' ,
-                'mainString'    : ldapSearchResult ,
-                'nbExpected'    : 0
+                { 'string2find' : 'uniquemember',
+                  'mainString'  : ldapSearchResult,
+                  'nbExpected'  : 0
                 }
               </call>
               <!-- ******************** -->
               <call function="'CheckIsMemberOf'">
-                { 'baseDn'      : user1Dn ,
-                  'string2find' : staticGroup1Dn ,
+                { 'baseDn'      : user1Dn,
+                  'string2find' : staticGroup1Dn,
                   'nbExpected'  : 1
                 }
               </call>
               <!-- ******************** -->
               <call function="'CheckIsMemberOf'">
-                { 'baseDn'      : user1Dn ,
-                  'string2find' : newStaticGroupDn ,
+                { 'baseDn'      : user1Dn,
+                  'string2find' : newStaticGroupDn,
                   'nbExpected'  : 0
                 }
               </call>
@@ -709,20 +692,16 @@
                 '++++ Delete the group entry created'
               </message>
               <call function="'DeleteEntry'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : applicationDn ,
-                'dsInstancePswd'   : applicationPswd ,
-                'dsBaseDN'         : newStaticGroupDn
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : applicationDn,
+                  'dsInstancePswd' : applicationPswd,
+                  'dsBaseDN'       : newStaticGroupDn
                 }
               </call>
-              
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
-          
-          
-                    
           
           <!--- Test Case information
           #@TestMarker          Group StaticGroup Tests
@@ -744,24 +723,13 @@
             </sequence>
           </testcase>
           
-          
-          
-          
-          
-          
           <!-- *********************************************** -->
           <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/groups/group_cleanup.xml' % (TESTS_DIR)"/>
+                  file="'%s/testcases/groups/group_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'group_cleanup'"> { 'stopDS' : True } </call>
-          
           <call function="'testSuite_Postamble'"/>
-  
         </sequence>
-        
       </block>
-                  
     </sequence>
-    
   </function>
-
 </stax>
