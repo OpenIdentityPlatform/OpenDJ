@@ -163,7 +163,6 @@ public class WebStartInstaller extends Installer {
           notifyListeners(getTaskSeparator());
           setCurrentProgressStep(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
           enableWindowsService();
-
           checkAbort();
       }
 
@@ -172,17 +171,6 @@ public class WebStartInstaller extends Installer {
         notifyListeners(getTaskSeparator());
         setCurrentProgressStep(InstallProgressStep.STARTING_SERVER);
         new ServerController(this).startServer();
-
-        checkAbort();
-      }
-
-      if (mustConfigureReplication())
-      {
-        setCurrentProgressStep(InstallProgressStep.CONFIGURING_REPLICATION);
-        notifyListeners(getTaskSeparator());
-
-        configureReplication();
-
         checkAbort();
       }
 
@@ -191,7 +179,14 @@ public class WebStartInstaller extends Installer {
         notifyListeners(getTaskSeparator());
         setCurrentProgressStep(InstallProgressStep.CONFIGURING_ADS);
         updateADS();
+        checkAbort();
+      }
 
+      if (mustConfigureReplication())
+      {
+        notifyListeners(getTaskSeparator());
+        setCurrentProgressStep(InstallProgressStep.CONFIGURING_REPLICATION);
+        configureReplication();
         checkAbort();
       }
 
@@ -201,7 +196,6 @@ public class WebStartInstaller extends Installer {
         setCurrentProgressStep(
             InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES);
         initializeSuffixes();
-
         checkAbort();
       }
 
