@@ -212,9 +212,8 @@ public class FileSystemEntryCache
   private long persistentEntriesRestored = 0;
 
   // The configuration to use when encoding entries in the database.
-  // TODO: make compression feature configurable.
-  private static EntryEncodeConfig encodeConfig =
-      new EntryEncodeConfig(true, false, false);
+  private EntryEncodeConfig encodeConfig =
+    new EntryEncodeConfig(true, false, false);
 
   /**
    * Creates a new instance of this entry cache.
@@ -1212,6 +1211,7 @@ public class FileSystemEntryCache
     int                   newJECachePercent;
     long                  newJECacheSize;
     boolean               newPersistentCache;
+    boolean               newCompactEncoding;
     String                newCacheType = DEFAULT_FSCACHE_TYPE;
     String                newCacheHome = DEFAULT_FSCACHE_HOME;
 
@@ -1237,6 +1237,9 @@ public class FileSystemEntryCache
 
     // Check if this cache is persistent.
     newPersistentCache = configuration.isPersistentCache();
+
+    // Check if this cache should use compact encoding.
+    newCompactEncoding = configuration.isBackendCompactEncoding();
 
     switch (errorHandler.getConfigPhase())
     {
@@ -1330,6 +1333,9 @@ public class FileSystemEntryCache
       maxEntries       = new AtomicLong(newMaxEntries);
       maxAllowedMemory = newMaxAllowedMemory;
       persistentCache  = newPersistentCache;
+
+      encodeConfig     = new EntryEncodeConfig(true,
+        newCompactEncoding, newCompactEncoding);
 
       setLockTimeout(newLockTimeout);
       setIncludeFilters(newIncludeFilters);
