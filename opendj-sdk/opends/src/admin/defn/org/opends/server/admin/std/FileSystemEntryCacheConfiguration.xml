@@ -217,6 +217,38 @@
     </adm:profile>
   </adm:property>
 
+  <adm:property name="backend-compact-encoding">
+    <adm:synopsis>
+      Indicates whether the cache should use a compact form when encoding
+      cache entries by compressing the attribute descriptions and object
+      class sets. Note that compression does not preserve user-supplied
+      capitalization in the object class and attribute type names.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changing this property will only affect the encoding of the cache
+          entries put in the cache after the change is made. It will not be
+          retroactively applied to existing cache entries.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.471</ldap:oid>
+        <ldap:name>ds-cfg-backend-compact-encoding</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
   <adm:property name="database-cache-percent">
     <adm:synopsis>
       The maximum memory usage for the internal JE cache as a percentage
