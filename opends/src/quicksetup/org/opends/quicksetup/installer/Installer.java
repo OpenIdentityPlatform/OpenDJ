@@ -1292,19 +1292,25 @@ public abstract class Installer extends GuiApplication {
         }
       }
     }
+
+    /* For each suffix specified by the user, create a map from the suffix
+       DN to the set of replication servers. The initial instance in a topology
+       is a degenerate case. Also, collect a set of all observed replication
+       servers as the set of ADS suffix replicas (all instances hosting the
+       replication server also replicate ADS). */
     Set<String> dns = new HashSet<String>();
-    DataReplicationOptions rep = getUserData().getReplicationOptions();
-    String newReplicationServer = getLocalReplicationServer();
+    Map<String, Set<String>> replicationServers
+            = new HashMap<String, Set<String>>();
+    HashSet<String> adsServers = new HashSet<String>();
 
-    Map<String, Set<String>> replicationServers =
-      new HashMap<String, Set<String>>();
-
-    if (rep.getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY)
+    if (getUserData().getReplicationOptions().getType()
+            == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY)
     {
       String dn = getUserData().getNewSuffixOptions().getBaseDn();
       dns.add(dn);
       HashSet<String> h = new HashSet<String>();
-      h.add(newReplicationServer);
+      h.add(getLocalReplicationServer());
+      adsServers.add(getLocalReplicationServer());
       replicationServers.put(dn, h);
     }
     else
@@ -1316,20 +1322,25 @@ public abstract class Installer extends GuiApplication {
         dns.add(suffix.getDN());
         HashSet<String> h = new HashSet<String>();
         h.addAll(suffix.getReplicationServers());
-        h.add(newReplicationServer);
+        adsServers.addAll(suffix.getReplicationServers());
+        h.add(getLocalReplicationServer());
+        adsServers.add(getLocalReplicationServer());
         for (ReplicaDescriptor replica : suffix.getReplicas())
         {
           ServerDescriptor server = replica.getServer();
-          Integer replicationPort = getUserData().
-          getRemoteWithNoReplicationPort().get(server);
+          Integer replicationPort
+                  = getUserData().getRemoteWithNoReplicationPort().get(server);
           if (replicationPort != null)
           {
             h.add(server.getHostName()+":"+replicationPort);
+            adsServers.add(server.getHostName()+":"+replicationPort);
           }
         }
         replicationServers.put(suffix.getDN(), h);
       }
     }
+    dns.add(ADSContext.getAdministrationSuffixDN());
+    replicationServers.put(ADSContext.getAdministrationSuffixDN(), adsServers);
 
     InitialLdapContext ctx = null;
     try
@@ -1368,7 +1379,8 @@ public abstract class Installer extends GuiApplication {
     notifyListeners(getLineBreak());
     checkAbort();
 
-    if (rep.getType() == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY)
+    if (getUserData().getReplicationOptions().getType()
+            == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY)
     {
       Map<ServerDescriptor, Set<ReplicaDescriptor>> hm =
         new HashMap<ServerDescriptor, Set<ReplicaDescriptor>>();
@@ -1408,6 +1420,7 @@ public abstract class Installer extends GuiApplication {
         {
           dns.add(replica.getSuffix().getDN());
         }
+        dns.add(ADSContext.getAdministrationSuffixDN());
 
         ctx = getRemoteConnection(server, getTrustManager());
         ConfiguredReplication repl =
@@ -1694,7 +1707,41 @@ public abstract class Installer extends GuiApplication {
 
     Set<SuffixDescriptor> suffixes =
       getUserData().getSuffixesToReplicateOptions().getSuffixes();
-    int i = 0;
+
+    /* Initialize local ADS contents using any replica. */
+    {
+      ServerDescriptor server
+       = suffixes.iterator().next().getReplicas().iterator().next().getServer();
+      InitialLdapContext rCtx = null;
+      try
+      {
+        rCtx = getRemoteConnection(server, getTrustManager());
+        ServerDescriptor s = ServerDescriptor.createStandalone(rCtx);
+        for (ReplicaDescriptor replica : s.getReplicas())
+        {
+          if (areDnsEqual(replica.getSuffix().getDN(),
+                  ADSContext.getAdministrationSuffixDN()))
+          {
+            suffixes.add(replica.getSuffix());
+            break;
+          }
+        }
+      }
+      catch (NamingException ne)
+      {
+        throw new ApplicationException(
+                ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+                INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
+                        server.getHostPort(true),
+                        ne.getLocalizedMessage()), ne);
+      }
+      finally
+      {
+        try{ rCtx.close(); }
+        catch (Throwable t){}
+      }
+    }
+
     for (SuffixDescriptor suffix : suffixes)
     {
       String dn = suffix.getDN();
@@ -1794,11 +1841,7 @@ public abstract class Installer extends GuiApplication {
         }
         throw ae;
       }
-      if (i > 0)
-      {
-        notifyListeners(getLineBreak());
-      }
-      i++;
+      notifyListeners(getLineBreak());
       checkAbort();
     }
   }
@@ -1928,77 +1971,6 @@ public abstract class Installer extends GuiApplication {
         notifyListeners(getLineBreak());
         checkAbort();
 
-        // Configure replication on remote servers hosting ADS (I guess).
-        lastLoadedCache = new TopologyCache(adsContext, getTrustManager());
-        lastLoadedCache.reloadTopology();
-        Set<Integer> knownServerIds = new HashSet<Integer>();
-        Set<Integer> knownReplicationServerIds = new HashSet<Integer>();
-        Set<String> replicationServers = new HashSet<String>();
-        replicationServers.add(getLocalReplicationServer());
-        Set<ServerDescriptor> remoteWithAds = new HashSet<ServerDescriptor>();
-
-        for (SuffixDescriptor suffix : lastLoadedCache.getSuffixes())
-        {
-          for (ReplicaDescriptor replica : suffix.getReplicas())
-          {
-            knownServerIds.add(replica.getReplicationId());
-          }
-          if (areDnsEqual(suffix.getDN(),
-              ADSContext.getAdministrationSuffixDN()))
-          {
-            replicationServers.addAll(suffix.getReplicationServers());
-            for (ReplicaDescriptor replica : suffix.getReplicas())
-            {
-              ServerDescriptor server = replica.getServer();
-              Object e = server.getServerProperties().get
-              (ServerDescriptor.ServerProperty.IS_REPLICATION_SERVER);
-              if (Boolean.TRUE.equals(e))
-              {
-                replicationServers.add(server.getHostName()+":"+
-                    server.getServerProperties().get
-                    (ServerDescriptor.ServerProperty.REPLICATION_SERVER_PORT));
-              }
-              remoteWithAds.add(server);
-            }
-          }
-        }
-        for (ServerDescriptor server : lastLoadedCache.getServers())
-        {
-          Object v = server.getServerProperties().get
-          (ServerDescriptor.ServerProperty.REPLICATION_SERVER_ID);
-          if (v != null)
-          {
-            knownReplicationServerIds.add((Integer)v);
-          }
-        }
-        InstallerHelper helper = new InstallerHelper();
-        Set<String> dns = new HashSet<String>();
-        dns.add(ADSContext.getAdministrationSuffixDN());
-        Map <String, Set<String>>hmRepServers =
-          new HashMap<String, Set<String>>();
-        hmRepServers.put(ADSContext.getAdministrationSuffixDN(),
-            replicationServers);
-        for (ServerDescriptor server : remoteWithAds)
-        {
-          Integer replicationPort = (Integer)server.getServerProperties().get
-          (ServerDescriptor.ServerProperty.REPLICATION_SERVER_PORT);
-          if (replicationPort != null)
-          {
-            InitialLdapContext rCtx = getRemoteConnection(server,
-                getTrustManager());
-            helper.configureReplication(rCtx, dns, hmRepServers,
-                replicationPort, server.getHostPort(true),
-                knownReplicationServerIds, knownServerIds);
-            try
-            {
-              rCtx.close();
-            }
-            catch (Throwable t)
-            {
-            }
-          }
-        }
-
         /* Register new server in remote ADS. */
         if(0 != adsContext.registerOrUpdateServer(getNewServerAdsProperties()))
         {
@@ -2007,58 +1979,6 @@ public abstract class Installer extends GuiApplication {
         }
         registeredNewServerOnRemote = true;
 
-        /* Configure replication on local server */
-        helper.configureReplication(localCtx, dns, hmRepServers,
-            getUserData().getReplicationOptions().getReplicationPort(),
-            getLocalHostPort(), knownReplicationServerIds, knownServerIds);
-
-        /* Initialize local ADS contents. */
-        ServerDescriptor server = ServerDescriptor.createStandalone(ctx);
-        for (ReplicaDescriptor replica : server.getReplicas())
-        {
-          if (areDnsEqual(replica.getSuffix().getDN(),
-              ADSContext.getAdministrationSuffixDN()))
-          {
-            notifyListeners(getFormattedWithPoints(
-                INFO_PROGRESS_INITIALIZING_ADS.get()));
-
-            int replicationId = replica.getReplicationId();
-            int nTries = 5;
-            boolean initDone = false;
-            while (!initDone)
-            {
-              try
-              {
-                initializeSuffix(localCtx, replicationId,
-                    ADSContext.getAdministrationSuffixDN(),
-                    false, server.getHostPort(true));
-                initDone = true;
-              }
-              catch (PeerNotFoundException pnfe)
-              {
-                LOG.log(Level.INFO, "Peer could not be found");
-                if (nTries == 1)
-                {
-                  throw new ApplicationException(
-                      ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
-                      pnfe.getMessageObject(), null);
-                }
-                try
-                {
-                  Thread.sleep((5 - nTries) * 3000);
-                }
-                catch (Throwable t)
-                {
-                }
-              }
-              nTries--;
-            }
-            notifyListeners(getFormattedDone());
-            notifyListeners(getLineBreak());
-            checkAbort();
-            break;
-          }
-        }
       }
       catch (NoPermissionException x)
       {
@@ -2073,14 +1993,6 @@ public abstract class Installer extends GuiApplication {
             ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
             INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
                     getHostDisplay(auth), ne.getLocalizedMessage()), ne);
-      }
-      catch (TopologyCacheException tpe)
-      {
-        LOG.log(Level.WARNING, "Error reloading topology cache to "+
-            "configure ADS replication.", tpe);
-        throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
-            INFO_BUG_MSG.get(), tpe);
       }
       catch (ADSContextException ace)
       {
@@ -2155,22 +2067,6 @@ public abstract class Installer extends GuiApplication {
                   getThrowableMsg(INFO_BUG_MSG.get(), t), t);
         }
 
-        int replicationPort =
-          getUserData().getReplicationOptions().getReplicationPort();
-        Set<String> dns = new HashSet<String>();
-        dns.add(ADSContext.getAdministrationSuffixDN());
-        Map<String, Set<String>> hmReplicationServers =
-          new HashMap<String, Set<String>>();
-        HashSet<String> replicationServers = new HashSet<String>();
-        String newReplicationServer = getLocalReplicationServer();
-        replicationServers.add(newReplicationServer);
-        hmReplicationServers.put(ADSContext.getAdministrationSuffixDN(),
-            replicationServers);
-        InstallerHelper helper = new InstallerHelper();
-
-        helper.configureReplication(localCtx, dns, hmReplicationServers,
-            replicationPort, getLocalHostPort(),
-            new HashSet<Integer>(), new HashSet<Integer>());
         notifyListeners(getFormattedDone());
         notifyListeners(getLineBreak());
       }

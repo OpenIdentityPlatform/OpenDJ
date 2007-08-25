@@ -122,20 +122,19 @@ public class OfflineInstaller extends Installer
         checkAbort();
       }
 
-      if (mustConfigureReplication())
-      {
-        setCurrentProgressStep(InstallProgressStep.CONFIGURING_REPLICATION);
-        notifyListeners(getTaskSeparator());
-
-        configureReplication();
-        checkAbort();
-      }
-
       if (mustCreateAds())
       {
         notifyListeners(getTaskSeparator());
         setCurrentProgressStep(InstallProgressStep.CONFIGURING_ADS);
         updateADS();
+        checkAbort();
+      }
+
+      if (mustConfigureReplication())
+      {
+        notifyListeners(getTaskSeparator());
+        setCurrentProgressStep(InstallProgressStep.CONFIGURING_REPLICATION);
+        configureReplication();
         checkAbort();
       }
 
