@@ -26,56 +26,26 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-
   <defaultcall function="main_logging"/>
-
   <function name="main_logging">
-
     <sequence>
-
       <block name="'logging'">
-      
          <sequence>
-  
-          <script>
-            CurrentTestPath['group']='logging'
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
-
-          <call function="'testSuite_Preamble'"/>
-              
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-            file="'%s/testcases/logging/logging_setup.xml' % (TESTS_DIR)"/>
-          <call function="'logging_setup'"/>         
-  
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/logging/logging_rotation.xml' % (TESTS_DIR)"/>
-          <call function="'logging_rotation'" />
-    
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/logging/logging_properties.xml' % (TESTS_DIR)"/>
-          <call function="'logging_properties'" />
-
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/logging/logging_writer.xml' % (TESTS_DIR)"/>
-          <call function="'logging_writer'" />            
-  
-          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/logging/logging_retention.xml' % (TESTS_DIR)"/>
-          <call function="'logging_retention'" />
-           
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-            file="'%s/testcases/logging/logging_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'logging_cleanup'"/>                
-         
-          <call function="'testSuite_Postamble'"/>
-
+           <script>
+             CurrentTestPath['group']=STAXCurrentBlock
+           </script>
+          
+          <call function="'testGroup_Preamble'" />
+          <iterate var="_test" in="['setup','rotation','properties','writer','retention','cleanup']" >
+            <sequence>
+              <import machine="STAF_LOCAL_HOSTNAME"
+                      file="'%s/testcases/logging/logging_%s.xml' % (TESTS_DIR,_test)"/>
+              <call function="'logging_%s' % _test" />
+            </sequence>
+          </iterate>
+          <call function="'testGroup_Postamble'" />
         </sequence>
-   
       </block>
-   
     </sequence>
-
   </function>
-
 </stax>
