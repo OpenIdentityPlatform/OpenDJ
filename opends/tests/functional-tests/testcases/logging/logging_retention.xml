@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE stax SYSTEM "../../../stax.dtd">
+<!DOCTYPE stax SYSTEM "../../shared/stax.dtd">
 <!--
  ! CDDL HEADER START
  !
@@ -26,232 +26,257 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-  
-<defaultcall function="logging_retention"/>
-<function name="logging_retention" scope="local">      
-
-<sequence>
-                                                           
-<!--- Test Case : retention policy -->
-<!---
-#@TestMarker            size limit  retention 
-#@TestName              size limit  retention 
-#@TestIssue               Check the size limit retention policy
-#@TestPreamble         none
-#@TestStep                Create a new size limit retention policy
-#@TestStep                Configure the Size Limit retention policy with a Max file to 3
-#@TestStep                Execute ldapsearch request until the log are cleaned
-#@TestPostamble       none
-#@TestResult              the number of logs must not exceed 3
-      -->
-
-    
-  <testcase name="'logging : Retention policy :  file count  '">
-
-   <sequence>
-    <call function="'testCase_Preamble'"/>
-  <message>
-        '----  Check the file count  -----'
-    </message>            
-     
-  <!-- set the max number of files to keep -->   
-  <script>
-    numberFiles=5
-    maxFiles=6
-    </script>         
-
-<call function="'ldapSearchWithScript'">
-      { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-         'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-             'dsBaseDN'    : DIRECTORY_INSTANCE_SFX,
-         'dsInstanceDn'   :  DIRECTORY_INSTANCE_DN,
-             'dsInstancePswd'   :     DIRECTORY_INSTANCE_PSWD,
-         'dsFilter'    : 'objectclass=*',
-             'dsScope'        : 'base',
-             'expectedRC'     :  0 }
-           </call> 
-               
-    <message>'-- create a new  file count  retention policy --'</message>   
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'create-log-retention-policy' ,
-        'objectType'              : 'policy-name' ,
-        'objectName'             : 'my file count retention policy',
-        'optionsString'           : '--type  file-count  --set number-of-files:%s' % (numberFiles),
-        'expectedRC'             : 0 } 
-    </call>  
-     
-    <message>'------  Add this retention policy to the Access log publisher --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Access Logger',
-        'optionsString'           : '--add retention-policy-dn:"cn=my file count retention policy,cn=Log Retention Policies,cn=config"',
-        'expectedRC'             : 0 } 
-    </call>
-
-    <message>'-- create a new size limit rotation policy --'</message>   
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'create-log-rotation-policy' ,
-        'objectType'              : 'policy-name' ,
-        'objectName'             : 'my size Limit Rotation Policy',
-        'optionsString'           : '--type size-limit --set file-size-limit:4kb',
-        'expectedRC'             : 0 } 
-    </call>  
-  
-    <message>'------  Add this rotation policy to the Access log publisher --' </message>
-    <call function="'dsconfig'">
-  { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
-  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-  'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
-  'subcommand'    : 'set-log-publisher-prop' ,
-  'objectType'      : 'publisher-name' ,
-  'objectName'     :  'File-Based Access Logger',
-  'optionsString'      : '--add rotation-policy-dn:"cn=my size Limit Rotation Policy,cn=Log Rotation Policies,cn=config"',
-  'expectedRC'     : 0 }
-    </call>
-
-  <call function="'dsconfig'">
-  { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
-  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-  'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
-  'subcommand'    : 'set-log-publisher-prop' ,
-  'objectType'      : 'publisher-name' ,
-  'objectName'     :  'File-Based Access Logger',
-  'optionsString'      : '--add  auto-flush:true --set append:true --set asynchronous:false',
-  'expectedRC'     : 0 }
-    </call>
-
-  <!--  Starting loop -->
-
-   <!--  Execute ldapsearch until we detect a log rotation -->
-   <!--  Check the number of logs files never exceed the number-of-files -->
-    <script>
-    cpt=0
-    error=0
-    </script>    
-     
-   <loop from="1" to="10" until="error != 0">
-        <sequence>
-          <message>'###########################'</message>
-      <message>'      LOOP %s :' % cpt </message>
-        <message>'###########################'</message>
-          <message>'--- Execute a Search request ---'</message>
-    
-           <call function="'ldapSearchWithScript'">
-      { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-         'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-             'dsBaseDN'    : DIRECTORY_INSTANCE_SFX,
-         'dsInstanceDn'   :  DIRECTORY_INSTANCE_DN,
-             'dsInstancePswd'   :     DIRECTORY_INSTANCE_PSWD,
-         'dsFilter'    : 'objectclass=*',
-             'dsScope'        : 'base',
-             'expectedRC'     :  0 }
-           </call>   
-
-             <call function="'listFolder'">
-             { 'location' : '%s' % (DIRECTORY_INSTANCE_HOST),
-               'foldername' : '%s/%s/logs' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME),
-               'filename' : 'access'
-              }
-             </call>
-
-             <if expr="int(len(cmdResult)) > maxFiles">
-                <sequence>
-                  <script>
-            error=1
-                  </script>                    
-                  <message>'Error, the number of logs files exceed the retention policy'</message>
-                <call function="'testFailed'"/>
-            </sequence>
-             </if>
-
-       <script>
-          cpt=cpt+1
-           </script>
-        </sequence>
-    </loop>   
- 
-    <if expr="error == 0" >
+  <defaultcall function="logging_retention"/>
+  <function name="logging_retention" scope="local">
+    <block name="STAXCurrentFunction">
       <sequence>
-             <message>'SUCCESS:  the retention policy has been checked'</message>
-           <call function="'testPassed'"/>
-        </sequence>
-      </if>       
-
-    <!-- cleanup --> 
-   <message>'------  remove this rotation policy to the Access log publisher --' </message>
-    <call function="'dsconfig'">
-  { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
-  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-  'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
-  'subcommand'    : 'set-log-publisher-prop' ,
-  'objectType'      : 'publisher-name' ,
-  'objectName'     :  'File-Based Access Logger',
-  'optionsString'      : '--remove rotation-policy-dn:"cn=my size Limit Rotation Policy,cn=Log Rotation Policies,cn=config"',
-  'expectedRC'     : 0 }
-    </call>
-     
-
-    <message>'------  remove this retention policy to the Access log publisher --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Access Logger',
-        'optionsString'           : '--remove retention-policy-dn:"cn=my file count retention policy,cn=Log Retention Policies,cn=config"',
-        'expectedRC'             : 0 } 
-    </call>
-
-
-    <message>'-- delete a new  file count  retention policy --'</message>   
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'delete-log-retention-policy' ,
-        'objectType'              : 'policy-name' ,
-        'objectName'             : 'my file count retention policy',
-        'expectedRC'             : 0 } 
-    </call>           
-
-
-    <message>'-- delete a new size limit rotation policy --'</message>   
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'delete-log-rotation-policy' ,
-        'objectType'              : 'policy-name' ,
-        'objectName'             : 'my size Limit Rotation Policy',
-        'expectedRC'             : 0 } 
-    </call>             
-                    
-    <call function="'testCase_Postamble'"/>
-  </sequence>
- </testcase>
-       
-</sequence>
-</function>
-
+        <script>
+          CurrentTestPath['suite']=STAXCurrentFunction
+        </script>
+        <call function="'testSuite_Preamble'" />
+        <!--- Test Case : retention policy -->
+        <!---
+          #@TestMarker     size limit  retention 
+          #@TestName       size limit  retention 
+          #@TestIssue      Check the size limit retention policy
+          #@TestPreamble   none
+          #@TestStep       Create a new size limit retention policy
+          #@TestStep       Configure the Size Limit retention policy with a Max file to 3
+          #@TestStep       Execute ldapsearch request until the log are cleaned
+          #@TestPostamble  none
+          #@TestResult     the number of logs must not exceed 3
+        -->
+        <testcase name="getTestCaseName('file count')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              '----  Check the file count  -----'
+            </message>
+            <!-- set the max number of files to keep -->
+            <script>
+              numberFiles=5
+              maxFiles=6
+            </script>
+            
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'       : DIRECTORY_INSTANCE_SFX,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'dsFilter'       : 'objectclass=*',
+                'dsScope'        : 'base',
+                'expectedRC'     :  0
+              }
+            </call>
+            
+            <message>
+              '-- create a new  file count  retention policy --'
+            </message>
+            <call function="'dsconfig'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'create-log-retention-policy',
+                'objectType'     : 'policy-name',
+                'objectName'     : 'my file count retention policy',
+                'optionsString'  : '--type  file-count  --set number-of-files:%s' % (numberFiles),
+                'expectedRC'     : 0
+              }
+            </call>
+            
+            <message>
+              '------  Add this retention policy to the Access log publisher --'
+            </message>
+            <call function="'dsconfig'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'set-log-publisher-prop',
+                'objectType'     : 'publisher-name',
+                'objectName'     :  'File-Based Access Logger',
+                'optionsString'  : '--add retention-policy-dn:"cn=my file count retention policy,cn=Log Retention Policies,cn=config"',
+                'expectedRC'     : 0
+              }
+            </call>
+            <message>
+              '-- create a new size limit rotation policy --'
+            </message>
+            <call function="'dsconfig'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'create-log-rotation-policy',
+                'objectType'     : 'policy-name',
+                'objectName'     : 'my size Limit Rotation Policy',
+                'optionsString'  : '--type size-limit --set file-size-limit:4kb',
+                'expectedRC'     : 0
+              } 
+            </call>
+            <message>
+              '------  Add this rotation policy to the Access log publisher --'
+            </message>
+            <call function="'dsconfig'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'set-log-publisher-prop',
+                'objectType'     : 'publisher-name',
+                'objectName'     :  'File-Based Access Logger',
+                'optionsString'  : '--add rotation-policy-dn:"cn=my size Limit Rotation Policy,cn=Log Rotation Policies,cn=config"',
+                'expectedRC'     : 0
+              }
+            </call>
+            
+            <call function="'dsconfig'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'set-log-publisher-prop',
+                'objectType'     : 'publisher-name',
+                'objectName'     :  'File-Based Access Logger',
+                'optionsString'  : '--add  auto-flush:true --set append:true --set asynchronous:false',
+                'expectedRC'     : 0
+              }
+            </call>
+            
+            <!--  Starting loop -->
+            
+            <!--  Execute ldapsearch until we detect a log rotation -->
+            <!--  Check the number of logs files never exceed the number-of-files -->
+            <script>
+              cpt=0
+              error=0
+            </script>
+          
+            <loop from="1" to="10" until="error != 0">
+              <sequence>
+                <message>'###########################'</message>
+                <message>'      LOOP %s :' % cpt </message>
+                <message>'###########################'</message>
+                <message>'--- Execute a Search request ---'</message>
+                
+                <call function="'ldapSearchWithScript'">
+                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                    'dsBaseDN'       : DIRECTORY_INSTANCE_SFX,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                    'dsFilter'       : 'objectclass=*',
+                    'dsScope'        : 'base',
+                    'expectedRC'     :  0
+                  }
+                </call>
+                
+                <call function="'listFolder'">
+                  { 'location'   : DIRECTORY_INSTANCE_HOST,
+                    'foldername' : '%s/%s/logs' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME),
+                    'filename'   : 'access'
+                  }
+                </call>
+                
+                <if expr="int(len(cmdResult)) > maxFiles">
+                  <sequence>
+                    <script>
+                      error=1
+                    </script>
+                    <message>
+                      'Error, the number of logs files exceed the retention policy'
+                    </message>
+                    <call function="'testFailed'" />
+                  </sequence>
+                </if>
+                
+                <script>
+                  cpt=cpt+1
+                </script>
+              </sequence>
+            </loop>
+            
+            <if expr="error == 0" >
+              <sequence>
+                <message>
+                  'SUCCESS:  the retention policy has been checked'
+                </message>
+                <call function="'testPassed'"/>
+              </sequence>
+            </if>
+            
+            <!-- cleanup --> 
+            <message>
+              '------  remove this rotation policy to the Access log publisher --'
+            </message>
+            <call function="'dsconfig'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'set-log-publisher-prop',
+                'objectType'     : 'publisher-name',
+                'objectName'     : 'File-Based Access Logger',
+                'optionsString'  : '--remove rotation-policy-dn:"cn=my size Limit Rotation Policy,cn=Log Rotation Policies,cn=config"',
+                'expectedRC'     : 0
+              }
+            </call>
+            
+            <message>
+              '------  remove this retention policy to the Access log publisher --'
+            </message>
+            <call function="'dsconfig'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'set-log-publisher-prop',
+                'objectType'     : 'publisher-name',
+                'objectName'     : 'File-Based Access Logger',
+                'optionsString'  : '--remove retention-policy-dn:"cn=my file count retention policy,cn=Log Retention Policies,cn=config"',
+                'expectedRC'     : 0
+              } 
+            </call>
+            
+            
+            <message>
+              '-- delete a new  file count  retention policy --'
+            </message>  
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'           : 'delete-log-retention-policy' ,
+                'objectType'              : 'policy-name' ,
+                'objectName'             : 'my file count retention policy',
+                'expectedRC'             : 0
+              } 
+            </call>
+            
+            
+            <message>
+              '-- delete a new size limit rotation policy --'
+            </message>
+            <call function="'dsconfig'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'delete-log-rotation-policy',
+                'objectType'     : 'policy-name',
+                'objectName'     : 'my size Limit Rotation Policy',
+                'expectedRC'     : 0
+              }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+        <call function="'testSuite_Postamble'"/>
+      </sequence>
+    </block>
+  </function>
 </stax>
-  

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE stax SYSTEM "../../../stax.dtd">
+<!DOCTYPE stax SYSTEM "../../shared/stax.dtd">
 <!--
  ! CDDL HEADER START
  !
@@ -26,1079 +26,1157 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-  
-<defaultcall function="logging_properties"/>
-<function name="logging_properties" scope="local">      
-
-<sequence>
-                               
-       <!--- Test Case : access logger -->
-       <!---
-  #@TestMarker             access logger
-  #@TestName               access logger properties check
-  #@TestIssue                   
-  #@TestPurpose           check the access logger properties.
-  #@TestPreamble           none
-  #@TestStep                 Check the  Access Logger's properties are correctly set and get using dsconfig
-  #@TestStep                 Set a property
-    #@TestStep                 Get the property and check it has been correctly updated
-  #@TestPostamble          none
-  #@TestResult                Success if OpenDS returns 0 for all operations
+  <defaultcall function="logging_properties"/>
+  <function name="logging_properties" scope="local">
+    <sequence>
+      <script>
+        CurrentTestPath['suite']=STAXCurrentFunction
+      </script>
+      <call function="'testSuite_Preamble'" />
+      <!--- Test Case : access logger -->
+      <!---
+        #@TestMarker     access logger
+        #@TestName       access logger properties check
+        #@TestIssue      
+        #@TestPurpose    check the access logger properties.
+        #@TestPreamble   none
+        #@TestStep       Check the  Access Logger's properties are correctly set and get using dsconfig
+        #@TestStep       Set a property
+        #@TestStep       Get the property and check it has been correctly updated
+        #@TestPostamble  none
+        #@TestResult     Success if OpenDS returns 0 for all operations
       -->
       
-    
-  <testcase name="'logging : properties checks:  Access logger '">
-
-   <sequence>
-    <call function="'testCase_Preamble'"/>
-  <message>
-        '----  Check the Access logger s properties  -----'
-    </message>      
-
-  <!--   create a logger  publisher-->         
-  <message>'------  create logger publisher --' </message>
-     
-     <!-- DESACTRIVATED : bug 2107]-->
-     <call function="'testFailed'"/>    
-     <script>
-       bug=2107
-       </script>
-     <if expr="bug == 0">
-       <sequence>
-        <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'create-log-publisher' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Access Logger',
-        'optionsString'           : '--type file-based-access --set asynchronous:false --set log-file-mode:555 --set log-file:logs/access --set enabled:true ',
-        'expectedRC'             : 0 } 
-         </call>          
-       </sequence>
-      </if>
-  
-  <!--   auto-flush  -->         
-  <message>'------  set auto-flush to true --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :   'File-Based Access Logger',
-        'optionsString'           : '--set auto-flush:true',
-        'expectedRC'             : 0 } 
-    </call>
-  <message>'------  get auto-flush --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-publisher' ,
-        'propertyType'           : 'publisher' ,
-        'propertyName'           :  'File-Based Access Logger',
-        'attributeName'          : 'auto-flush',
-        'expectedAttributeValue'         : 'true'  }
-    </call>     
-
-  <!--   append  -->               
-  <message>'------  set append  to false  --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Access Logger',
-        'optionsString'           : '--set append:false',
-        'expectedRC'             : 0 } 
-    </call>     
-  <message>'------  get append --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-publisher' ,
-        'propertyType'           : 'publisher' ,
-        'propertyName'           :  'File-Based Access Logger',
-        'attributeName'          : 'append',
-        'expectedAttributeValue'         : 'false'  }
-    </call>     
-     
-  <!--   asynchronous  -->                    
-  <message>'------  set asynchronous  to true  --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Access Logger',
-        'optionsString'           : '--set asynchronous:true',
-        'expectedRC'             : 0 } 
-    </call>              
-  <message>'------  get asynchronous --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-publisher' ,
-        'propertyType'           : 'publisher' ,
-        'propertyName'           : 'File-Based Access Logger',
-        'attributeName'          : 'asynchronous',
-        'expectedAttributeValue'         : 'true'  }
-    </call>     
-     
-  <!--   buffer-size  -->     
-  <message>'------  set buffer-size  to 10mb  --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Access Logger',
-        'optionsString'           : '--set buffer-size:10mb',
-        'expectedRC'             : 0 } 
-    </call>  
-  <message>'------  get buffer-size --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-publisher' ,
-        'propertyType'           : 'publisher' ,
-        'propertyName'           : 'File-Based Access Logger',
-        'attributeName'          : 'buffer-size',
-        'expectedAttributeValue'         : '10 mb'  }
-    </call>     
-     
-  <!--   time-interval  -->            
-  <message>'------  set time-interval  to 3m  --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Access Logger',
-        'optionsString'           : '--set time-interval:3m',
-        'expectedRC'             : 0 } 
-    </call>       
-  <message>'------  get time-interval --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-publisher' ,
-        'propertyType'           : 'publisher' ,
-        'propertyName'           : 'File-Based Access Logger',
-        'attributeName'          : 'time-interval',
-    'extraParams'             : '-M s',
-        'expectedAttributeValue'         : '180 s'  }
-    </call>     
-     
-  <!--   log-file  -->       
-  <message>'------  set log-file  to logs/testaccess  --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Access Logger',
-        'optionsString'           : '--set log-file:logs/testaccess',
-        'expectedRC'             : 0 } 
-    </call>       
-  <message>'------  get log-file --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-publisher' ,
-        'propertyType'           : 'publisher' ,
-        'propertyName'           : 'File-Based Access Logger',
-        'attributeName'          : 'log-file',
-        'expectedAttributeValue'         : 'logs/testaccess'  }
-    </call>     
-  <!--   log-file  -->       
-  <message>'------  set log-file  to logs/access  --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Access Logger',
-        'optionsString'           : '--set log-file:logs/access',
-        'expectedRC'             : 0 } 
-    </call>       
+      <testcase name="getTestCaseName('Access logger')">
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+            '----  Check the Access logger s properties  -----'
+          </message>
           
-  <!--   log-file-mode  -->                         
-  <message>'------  set log-file-mode  to 777  --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Access Logger',
-        'optionsString'           : '--set log-file-mode:777',
-        'expectedRC'             : 0 } 
-    </call>    
-  <message>'------  get log-file-mode --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-publisher' ,
-        'propertyType'           : 'publisher' ,
-        'propertyName'           : 'File-Based Access Logger',
-        'attributeName'          : 'log-file-mode',
-        'expectedAttributeValue'         : '777'  }
-    </call>     
-
-  <!--   queue-size  -->                         
-  <message>'------  set queue-size  to 1000  --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Access Logger',
-        'optionsString'           : '--set queue-size:1000',
-        'expectedRC'             : 0 } 
-    </call>    
-  <message>'------  get queue-size --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-publisher' ,
-        'propertyType'           : 'publisher' ,
-        'propertyName'           : 'File-Based Access Logger',
-        'attributeName'          : 'queue-size',
-        'expectedAttributeValue'         : '1000'  }
-    </call>               
-     
-  <!--   suppress-synchronization-operations  -->                         
-  <message>'------  set suppress-synchronization-operations  to 1000  --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Access Logger',
-        'optionsString'           : '--set suppress-synchronization-operations:true',
-        'expectedRC'             : 0 } 
-    </call>    
-  <message>'------  get suppress-synchronization-operations --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-publisher' ,
-        'propertyType'           : 'publisher' ,
-        'propertyName'           : 'File-Based Access Logger',
-        'attributeName'          : 'suppress-synchronization-operations',
-        'expectedAttributeValue'         : 'true'  }
-    </call>     
+          <!--   create a logger  publisher-->         
+          <message>
+            '------  create logger publisher --'
+          </message>
           
-
-  <!--   suppress-internal-operations  -->                         
-  <message>'------  set suppress-internal-operations  to false  --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Access Logger',
-        'optionsString'           : '--set suppress-internal-operations:false',
-        'expectedRC'             : 0 } 
-    </call>    
-  <message>'------  get suppress-synchronization-operations --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-publisher' ,
-        'propertyType'           : 'publisher' ,
-        'propertyName'           : 'File-Based Access Logger',
-        'attributeName'          : 'suppress-internal-operations',
-        'expectedAttributeValue'         : 'false'  }
-    </call>          
-     
-  <!--   delete  a logger  publisher-->         
-     <if expr="bug == 0">
-       <sequence>     
-       <message>'------  delete logger publisher --' </message>
-        <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'delete-log-publisher' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Access Logger',
-        'expectedRC'             : 0 } 
-        </call>          
-      </sequence>
-     </if>
-    <call function="'testCase_Postamble'"/>
-  </sequence>
- </testcase>
-
-       <!--- Test Case : Error logger -->
-       <!---
-  #@TestMarker             error logger
-  #@TestName               error logger properties check
-  #@TestIssue                   
-  #@TestPurpose           check the error logger properties.
-  #@TestPreamble           none
-  #@TestStep                 Check the  error Logger's properties are correctly set and get using dsconfig
-  #@TestStep                 Set a property
-    #@TestStep                 Get the property and check it has been correctly updated
-  #@TestPostamble          none
-  #@TestResult                Success if OpenDS returns 0 for all operations
-      -->
-      
-  <testcase name="'logging : properties checks:  Error logger '">
-
-   <sequence>
-    <call function="'testCase_Preamble'"/>
-  <message>
-        '----  Check the Error logger s properties  -----'
-    </message>      
-
-  
-  <!--    default-severity  -->         
-  <message>'------  set default-severity to mild-error --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :   'File-Based Error Logger',
-        'optionsString'           : '--set default-severity:mild-error',
-        'expectedRC'             : 0 } 
-    </call>
-  <message>'------  get default-severity --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-publisher' ,
-        'propertyType'           : 'publisher' ,
-        'propertyName'           :  'File-Based Error Logger',
-        'attributeName'          : 'default-severity',
-        'expectedAttributeValue'         : 'mild-error'  }
-    </call>     
-
-  <!--  override-severity -->   
-  <message>'------  set override-severity    --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Error Logger',
-        'optionsString'           : '--set "override-severity:request=info,schema"',
-        'expectedRC'             : 0 } 
-    </call>     
-  <message>'------  get override-severity --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-publisher' ,
-        'propertyType'           : 'publisher' ,
-        'propertyName'           :  'File-Based Error Logger',
-        'attributeName'          : 'override-severity',
-        'expectedAttributeValue'         : 'request=info,schema'  }
-    </call>     
-     
-    <call function="'testCase_Postamble'"/>
-  </sequence>
- </testcase>
-
-
-       <!--- Test Case : Debug logger -->
-       <!---
-  #@TestMarker             Debug logger
-  #@TestName               Debug logger properties check
-  #@TestIssue                   
-  #@TestPurpose           check the Debug logger properties.
-  #@TestPreamble           none
-  #@TestStep                 Check the  Debug Logger's properties are correctly set and get using dsconfig
-  #@TestStep                 Set a property
-    #@TestStep                 Get the property and check it has been correctly updated
-  #@TestPostamble          none
-  #@TestResult                Success if OpenDS returns 0 for all operations
-      -->
-      
-  <testcase name="'logging : properties checks:  Debug logger '">
-
-   <sequence>
-    <call function="'testCase_Preamble'"/>
-  <message>
-        '----  Check the Debug loggers properties  -----'
-    </message>  
-     
-  <!--    default-debug-category  -->         
-  <message>'------  set default-debug-category  --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :   'File-Based Debug Logger',
-        'optionsString'           : '--set default-debug-category:thrown',
-        'expectedRC'             : 0 } 
-    </call>
-  <message>'------  get default-debug-category --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-publisher' ,
-        'propertyType'           : 'publisher' ,
-        'propertyName'           :  'File-Based Debug Logger',
-        'attributeName'          : 'default-debug-category',
-        'expectedAttributeValue'         : 'thrown'  }
-    </call>     
-
-  <!--  default-debug-level -->   
-  <message>'------  set default-debug-level    --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Debug Logger',
-        'optionsString'           : '--set default-debug-level:verbose',
-        'expectedRC'             : 0 } 
-    </call>     
-  <message>'------  get default-debug-level --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-publisher' ,
-        'propertyType'           : 'publisher' ,
-        'propertyName'           :  'File-Based Debug Logger',
-        'attributeName'          : 'default-debug-level',
-        'expectedAttributeValue'         : 'verbose'  }
-    </call>     
-
-
-  <!--  default-include-throwable-cause -->   
-  <message>'------  set default-include-throwable-cause    --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Debug Logger',
-        'optionsString'           : '--set default-include-throwable-cause:true',
-        'expectedRC'             : 0 } 
-    </call>     
-  <message>'------  get default-include-throwable-cause --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-publisher' ,
-        'propertyType'           : 'publisher' ,
-        'propertyName'           :  'File-Based Debug Logger',
-        'attributeName'          : 'default-include-throwable-cause',
-        'expectedAttributeValue'         : 'true'  }
-    </call>     
-
-
-  <!--  default-omit-method-entry-arguments -->   
-  <message>'------  set default-omit-method-entry-arguments    --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Debug Logger',
-        'optionsString'           : '--set default-omit-method-entry-arguments:true',
-        'expectedRC'             : 0 } 
-    </call>     
-  <message>'------  get default-omit-method-entry-arguments --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-publisher' ,
-        'propertyType'           : 'publisher' ,
-        'propertyName'           :  'File-Based Debug Logger',
-        'attributeName'          : 'default-omit-method-entry-arguments',
-        'expectedAttributeValue'         : 'true'  }
-    </call>     
-     
-
-  <!--  default-omit-method-return-value -->   
-  <message>'------  set default-include-throwable-cause    --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Debug Logger',
-        'optionsString'           : '--set default-omit-method-return-value:true',
-        'expectedRC'             : 0 } 
-    </call>     
-  <message>'------  get default-omit-method-return-value --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-publisher' ,
-        'propertyType'           : 'publisher' ,
-        'propertyName'           :  'File-Based Debug Logger',
-        'attributeName'          : 'default-omit-method-return-value',
-        'expectedAttributeValue'         : 'true'  }
-    </call>                        
-     
-
-  <!--  default-throwable-stack-frames -->   
-  <message>'------  set default-throwable-stack-frames    --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Debug Logger',
-        'optionsString'           : '--set default-throwable-stack-frames:2',
-        'expectedRC'             : 0 } 
-    </call>     
-  <message>'------  get default-throwable-stack-frames --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-publisher' ,
-        'propertyType'           : 'publisher' ,
-        'propertyName'           :  'File-Based Debug Logger',
-        'attributeName'          : 'default-throwable-stack-frames',
-        'expectedAttributeValue'         : '2'  }
-    </call>                                   
-    <call function="'testCase_Postamble'"/>
-  </sequence>
- </testcase>    
-                            
-       <!--- Test Case : Rotation policy -->
-       <!---
-  #@TestMarker             Rotation policy
-  #@TestName               Check dsconfig properties of Rotation policy 
-  #@TestIssue                   
-  #@TestPurpose           check the rotation policy properties.
-  #@TestPreamble         none
-  #@TestStep                 Check the rotation policy's properties are correctly set and get using dsconfig
-  #@TestStep                 Set a property
-    #@TestStep                 Get the property and check it has been correctly updated
-  #@TestPostamble         none
-  #@TestResult               Success if OpenDS returns 0 for all operations
-      -->
-      
-    
-  <testcase name="'logging : properties checks:  Rotation policy '">
-
-   <sequence>
-    <call function="'testCase_Preamble'"/>
-  <message>
-        '----  Check the Rotation policy properties  -----'
-    </message>      
-     
-   
-  <!-- create-log-rotation-policy  with the type size-limit -->         
-  <message>'------  create a size limit rotation policy --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'create-log-rotation-policy' ,    
-        'objectType'              : 'policy-name' ,
-        'objectName'             :  'my size rotation policy',
-        'optionsString'           : '--type size-limit --set file-size-limit:5mb',
-        'expectedRC'             : 0 } 
-    </call>
-     
+          <!-- DESACTRIVATED : bug 2107]-->
+          <!--<call function="'testFailed'"/>-->
+          <script>
+            bug=2107
+          </script>
+          <if expr="bug == 0">
+            <sequence>
+              <call function="'dsconfig'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'subcommand'     : 'create-log-publisher',
+                  'objectType'     : 'publisher-name',
+                  'objectName'     :  'File-Based Access Logger',
+                  'optionsString'  : '--type file-based-access --set asynchronous:false --set log-file-mode:555 --set log-file:logs/access --set enabled:true ',
+                  'expectedRC'     : 0
+                }
+              </call>
+            </sequence>
+          </if>
           
-  <message>'------  get file-size-limit --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-rotation-policy' ,
-        'propertyType'           : 'policy' ,
-        'propertyName'           : 'my size rotation policy',
-        'attributeName'          : 'file-size-limit',
-        'expectedAttributeValue'         : '5 mb'  }
-    </call>     
-
-  <!--   set file-size-limit  -->               
-  <message>'------  set file-size-limit  to 6kb  --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-rotation-policy-prop' ,    
-        'objectType'              : 'policy-name' ,
-        'objectName'             :   'my size rotation policy',
-        'optionsString'           : '--set file-size-limit:5kb',
-        'expectedRC'             : 0 } 
-    </call>     
-  <message>'------  get file-size-limit --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-rotation-policy' ,
-        'propertyType'           : 'policy' ,
-        'propertyName'           : 'my size rotation policy',
-        'attributeName'          : 'file-size-limit',
-        'expectedAttributeValue'         : '5 kb'  }
-    </call>     
-    
-  <message>'------  delete a size limit rotation policy --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'delete-log-rotation-policy' ,    
-        'objectType'              : 'policy-name' ,
-        'objectName'             :  'my size rotation policy',
-        'expectedRC'             : 0 } 
-    </call>  
-     
-  <!-- ################################-->
-  <!-- create-log-rotation-policy  with the type time-limit -->         
-  <message>'------  create a time limit rotation policy --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'create-log-rotation-policy' ,    
-        'objectType'              : 'policy-name' ,
-        'objectName'             :  'my time rotation policy',
-        'optionsString'           : '--type time-limit --set rotation-interval:3d',
-        'expectedRC'             : 0 } 
-    </call>
-     
-  <message>'------  get rotation-interval --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-rotation-policy' ,
-        'propertyType'           : 'policy' ,
-        'propertyName'           : 'my time rotation policy',
-        'attributeName'          : 'rotation-interval',
-        'extraParams'         : '-M d',
-        'expectedAttributeValue'         : '3 d'  }
-    </call>     
-
-  <!--   set rotation-interval  -->               
-  <message>'------  set rotation-interval  to 3s  --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-rotation-policy-prop' ,    
-        'objectType'              : 'policy-name' ,
-        'objectName'             :   'my time rotation policy',
-        'optionsString'           : '--set rotation-interval:3s',
-        'expectedRC'             : 0 } 
-    </call>     
-  <message>'------  get rotation-interval --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-rotation-policy' ,
-        'propertyType'           : 'policy' ,
-        'propertyName'           : 'my time rotation policy',
-        'attributeName'          : 'rotation-interval',
-        'extraParams'         : '-M s',    
-        'expectedAttributeValue'         : '3 s'  }
-    </call>          
-
-  <message>'------  delete a time limit rotation policy --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'delete-log-rotation-policy' ,    
-        'objectType'              : 'policy-name' ,
-        'objectName'             :  'my time rotation policy',
-        'expectedRC'             : 0 } 
-    </call>
-               
-  <!-- ################################-->
-  <!-- create-log-rotation-policy  with the type fixed-time -->         
-  <message>'------  create a fixed time limit rotation policy --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'create-log-rotation-policy' ,    
-        'objectType'              : 'policy-name' ,
-        'objectName'             :  'my fixedtime rotation policy',
-        'optionsString'           : '--type fixed-time --set time-of-day:1203',
-        'expectedRC'             : 0 } 
-    </call>
-     
-  <message>'------  get time-of-day --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-rotation-policy' ,
-        'propertyType'           : 'policy' ,
-        'propertyName'           :  'my fixedtime rotation policy',
-        'attributeName'          : 'time-of-day',
-        'expectedAttributeValue'         : '1203'  }
-    </call>     
-
-  <!--   set time-of-day  -->               
-  <message>'------  set time-of-day  to 3s  --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-rotation-policy-prop' ,    
-        'objectType'              : 'policy-name' ,
-        'objectName'             :   'my fixedtime rotation policy',
-        'optionsString'           : '--set time-of-day:0934',
-        'expectedRC'             : 0 } 
-    </call>     
-  <message>'------  get time-of-day --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-rotation-policy' ,
-        'propertyType'           : 'policy' ,
-        'propertyName'           :  'my fixedtime rotation policy',
-        'attributeName'          : 'time-of-day',
-        'expectedAttributeValue'         : '0934'  }
-    </call>  
-
-  <!-- delete-log-rotation-policy  with the type fixed-time -->         
-  <message>'------  delete a fixed time limit rotation policy --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'delete-log-rotation-policy' ,    
-        'objectType'              : 'policy-name' ,
-        'objectName'             :  'my fixedtime rotation policy',
-        'expectedRC'             : 0 } 
-    </call>
-                    
-    <call function="'testCase_Postamble'"/>
-  </sequence>
- </testcase>
-
-
-                      
-       <!--- Test Case : Retention policy -->
-       <!---
-  #@TestMarker             retention policy
-  #@TestName               Check dsconfig properties of retention policy 
-  #@TestIssue                   
-  #@TestPurpose           check the retention policy properties.
-  #@TestPreamble         none
-  #@TestStep                 Check the retention policy's properties are correctly set and get using dsconfig
-  #@TestStep                 Set a property
-    #@TestStep                 Get the property and check it has been correctly updated
-  #@TestPostamble         none
-  #@TestResult               Success if OpenDS returns 0 for all operations
+          <!--   auto-flush  -->
+          <message>'------  set auto-flush to true --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'set-log-publisher-prop',
+              'objectType'     : 'publisher-name',
+              'objectName'     :   'File-Based Access Logger',
+              'optionsString'  : '--set auto-flush:true',
+              'expectedRC'     : 0
+            } 
+          </call>
+          <message>
+            '------  get auto-flush --'
+          </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-publisher',
+              'propertyType'           : 'publisher',
+              'propertyName'           : 'File-Based Access Logger',
+              'attributeName'          : 'auto-flush',
+              'expectedAttributeValue' : 'true'
+            }
+          </call>
+          <!--   append  -->
+          <message>'------  set append  to false  --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'set-log-publisher-prop',
+              'objectType'     : 'publisher-name',
+              'objectName'     : 'File-Based Access Logger',
+              'optionsString'  : '--set append:false',
+              'expectedRC'     : 0
+            }
+          </call>
+          <message>'------  get append --' </message>     
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-publisher',
+              'propertyType'           : 'publisher',
+              'propertyName'           :  'File-Based Access Logger',
+              'attributeName'          : 'append',
+              'expectedAttributeValue' : 'false'
+            }
+          </call>
+          
+          <!--   asynchronous  -->
+          <message>'------  set asynchronous  to true  --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'     : 'set-log-publisher-prop',
+              'objectType'     : 'publisher-name',
+              'objectName'     :  'File-Based Access Logger',
+              'optionsString'  : '--set asynchronous:true',
+              'expectedRC'     : 0
+            }
+          </call>
+          <message>'------  get asynchronous --' </message>     
+          <call function="'dsconfigGet'">
+          { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+          'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+          'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+          'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+          'objectName'             : 'log-publisher' ,
+          'propertyType'           : 'publisher' ,
+          'propertyName'           : 'File-Based Access Logger',
+          'attributeName'          : 'asynchronous',
+          'expectedAttributeValue'         : 'true'  }
+          </call>     
+          
+          <!--   buffer-size  -->     
+          <message>'------  set buffer-size  to 10mb  --' </message>
+          <call function="'dsconfig'">
+          { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+          'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+          'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+          'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+          'subcommand'           : 'set-log-publisher-prop' ,    
+          'objectType'              : 'publisher-name' ,
+          'objectName'             :  'File-Based Access Logger',
+          'optionsString'           : '--set buffer-size:10mb',
+          'expectedRC'             : 0 } 
+          </call>  
+          <message>'------  get buffer-size --' </message>     
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-publisher',
+              'propertyType'           : 'publisher',
+              'propertyName'           : 'File-Based Access Logger',
+              'attributeName'          : 'buffer-size',
+              'expectedAttributeValue' : '10 mb'
+            }
+          </call>
+          
+          <!--   time-interval  -->            
+          <message>'------  set time-interval  to 3m  --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'set-log-publisher-prop',
+              'objectType'     : 'publisher-name',
+              'objectName'     : 'File-Based Access Logger',
+              'optionsString'  : '--set time-interval:3m',
+              'expectedRC'     : 0
+            }
+          </call>
+          <message>'------  get time-interval --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-publisher',
+              'propertyType'           : 'publisher',
+              'propertyName'           : 'File-Based Access Logger',
+              'attributeName'          : 'time-interval',
+              'extraParams'            : '-M s',
+              'expectedAttributeValue' : '180 s'
+            }
+          </call>
+          
+          <!--   log-file  -->
+          <message>'------  set log-file  to logs/testaccess  --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'set-log-publisher-prop',
+              'objectType'     : 'publisher-name',
+              'objectName'     :  'File-Based Access Logger',
+              'optionsString'  : '--set log-file:logs/testaccess',
+              'expectedRC'     : 0
+            }
+          </call>
+          <message>'------  get log-file --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-publisher',
+              'propertyType'           : 'publisher',
+              'propertyName'           : 'File-Based Access Logger',
+              'attributeName'          : 'log-file',
+              'expectedAttributeValue' : 'logs/testaccess'
+            }
+          </call>
+          <!--   log-file  -->
+          <message>'------  set log-file  to logs/access  --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'set-log-publisher-prop',
+              'objectType'     : 'publisher-name',
+              'objectName'     :  'File-Based Access Logger',
+              'optionsString'  : '--set log-file:logs/access',
+              'expectedRC'     : 0
+            }
+          </call>
+          
+          <!--   log-file-mode  -->                         
+          <message>'------  set log-file-mode  to 777  --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'set-log-publisher-prop',
+              'objectType'     : 'publisher-name',
+              'objectName'     : 'File-Based Access Logger',
+              'optionsString'  : '--set log-file-mode:777',
+              'expectedRC'     : 0
+            } 
+          </call>
+          <message>'------  get log-file-mode --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-publisher',
+              'propertyType'           : 'publisher',
+              'propertyName'           : 'File-Based Access Logger',
+              'attributeName'          : 'log-file-mode',
+              'expectedAttributeValue' : '777'
+            }
+          </call>
+          
+          <!--   queue-size  -->                         
+          <message>'------  set queue-size  to 1000  --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'     : 'set-log-publisher-prop',
+              'objectType'     : 'publisher-name',
+              'objectName'     :  'File-Based Access Logger',
+              'optionsString'  : '--set queue-size:1000',
+              'expectedRC'     : 0
+            }
+          </call>    
+          <message>'------  get queue-size --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-publisher',
+              'propertyType'           : 'publisher',
+              'propertyName'           : 'File-Based Access Logger',
+              'attributeName'          : 'queue-size',
+              'expectedAttributeValue' : '1000'
+            }
+          </call>
+          
+          <!--   suppress-synchronization-operations  -->
+          <message>
+            '------  set suppress-synchronization-operations  to 1000  --'
+          </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'set-log-publisher-prop',
+              'objectType'     : 'publisher-name',
+              'objectName'     :  'File-Based Access Logger',
+              'optionsString'  : '--set suppress-synchronization-operations:true',
+              'expectedRC'     : 0
+            }
+          </call>
+          <message>
+            '------  get suppress-synchronization-operations --'
+          </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-publisher',
+              'propertyType'           : 'publisher',
+              'propertyName'           : 'File-Based Access Logger',
+              'attributeName'          : 'suppress-synchronization-operations',
+              'expectedAttributeValue' : 'true'
+            }
+          </call>
+          
+          <!--   suppress-internal-operations  -->
+          <message>
+            '------  set suppress-internal-operations  to false  --'
+          </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'     : 'set-log-publisher-prop',
+              'objectType'     : 'publisher-name',
+              'objectName'     : 'File-Based Access Logger',
+              'optionsString'  : '--set suppress-internal-operations:false',
+              'expectedRC'     : 0
+            }
+          </call>
+          <message>
+            '------  get suppress-synchronization-operations --'
+          </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-publisher',
+              'propertyType'           : 'publisher',
+              'propertyName'           : 'File-Based Access Logger',
+              'attributeName'          : 'suppress-internal-operations',
+              'expectedAttributeValue' : 'false'
+            }
+          </call>
+          
+          <!--   delete  a logger  publisher-->
+          <if expr="bug == 0">
+            <sequence>
+              <message>'------  delete logger publisher --' </message>
+              <call function="'dsconfig'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'subcommand'     : 'delete-log-publisher',
+                  'objectType'     : 'publisher-name',
+                  'objectName'     : 'File-Based Access Logger',
+                  'expectedRC'     : 0
+                }
+              </call>
+            </sequence>
+          </if>
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase>
+      
+      <!--- Test Case : Error logger -->
+      <!---
+        #@TestMarker             error logger
+        #@TestName               error logger properties check
+        #@TestIssue                   
+        #@TestPurpose           check the error logger properties.
+        #@TestPreamble           none
+        #@TestStep                 Check the  error Logger's properties are correctly set and get using dsconfig
+        #@TestStep                 Set a property
+        #@TestStep                 Get the property and check it has been correctly updated
+        #@TestPostamble          none
+        #@TestResult                Success if OpenDS returns 0 for all operations
       -->
       
-    
-  <testcase name="'logging : properties checks:  retention policy '">
-
-   <sequence>
-    <call function="'testCase_Preamble'"/>
-  <message>
-        '----  Check the retention policy properties  -----'
-    </message>      
-     
-   
-  <!-- create-log-retention-policy  with the type size-limit -->         
-  <message>'------  create a size limit retention policy --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'create-log-retention-policy' ,    
-        'objectType'              : 'policy-name' ,
-        'objectName'             :  'my size retention policy',
-        'optionsString'           : '--type size-limit --set disk-space-used:5mb',
-        'expectedRC'             : 0 } 
-    </call>
-     
-          
-  <message>'------  get file-size-limit --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-retention-policy' ,
-        'propertyType'           : 'policy' ,
-        'propertyName'           : 'my size retention policy',
-        'attributeName'          : 'disk-space-used',
-        'expectedAttributeValue'         : '5 mb'  }
-    </call>     
-
-  <!--   set disk-space-used  -->               
-  <message>'------  set file-size-limit  to 5kb  --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-retention-policy-prop' ,    
-        'objectType'              : 'policy-name' ,
-        'objectName'             :   'my size retention policy',
-        'optionsString'           : '--set disk-space-used:5kb',
-        'expectedRC'             : 0 } 
-    </call>     
-  <message>'------  get disk-space-used --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-retention-policy' ,
-        'propertyType'           : 'policy' ,
-        'propertyName'           : 'my size retention policy',
-        'attributeName'          : 'disk-space-used',
-        'expectedAttributeValue'         : '5 kb'  }
-    </call>     
-    
-  <message>'------  delete a size limit retention policy --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'delete-log-retention-policy' ,    
-        'objectType'              : 'policy-name' ,
-        'objectName'             :  'my size retention policy',
-        'expectedRC'             : 0 } 
-    </call>  
-     
-  <!-- ################################-->
-  <!-- create-log-retention-policy  with the type  free-disk-space -->         
-  <message>'------  create a free-disk-space limit retention policy --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'create-log-retention-policy' ,    
-        'objectType'              : 'policy-name' ,
-        'objectName'             :  'my free-disk-space retention policy',
-        'optionsString'           : '--type free-disk-space --set free-disk-space:6Gb',
-        'expectedRC'             : 0 } 
-    </call>
-     
-  <message>'------  get free_disk-space --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-retention-policy' ,
-        'propertyType'           : 'policy' ,
-        'propertyName'           : 'my free-disk-space retention policy',
-        'attributeName'          : 'free-disk-space',
-        'expectedAttributeValue'         : '6 gb'  }
-    </call>     
-
-  <!--   set free_disk-space  -->               
-  <message>'------  set free_disk-space  to 4mb --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-retention-policy-prop' ,    
-        'objectType'              : 'policy-name' ,
-        'objectName'             :   'my free-disk-space retention policy',
-        'optionsString'           : '--set free-disk-space:4mb',
-        'expectedRC'             : 0 } 
-    </call>     
-  <message>'------  get free_disk-space --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-retention-policy' ,
-        'propertyType'           : 'policy' ,
-        'propertyName'           : 'my free-disk-space retention policy',
-        'attributeName'          : 'free-disk-space',
-        'expectedAttributeValue'         : '4 mb'  }
-    </call>          
-
-  <message>'------  delete a free-disk-space retention policy --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'delete-log-retention-policy' ,    
-        'objectType'              : 'policy-name' ,
-        'objectName'             :  'my free-disk-space retention policy',
-        'expectedRC'             : 0 } 
-    </call>
-               
-  <!-- ################################-->
-  <!-- create-log-retention-policy  with the type  file-count -->         
-  <message>'------  create a fixed time limit retention policy --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'create-log-retention-policy' ,    
-        'objectType'              : 'policy-name' ,
-        'objectName'             :  'my filecount retention policy',
-        'optionsString'           : '--type file-count --set number-of-files:10',
-        'expectedRC'             : 0 } 
-    </call>
-     
-  <message>'------  get number-of-files --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-retention-policy' ,
-        'propertyType'           : 'policy' ,
-        'propertyName'           :  'my filecount retention policy',
-        'attributeName'          : 'number-of-files',
-        'expectedAttributeValue'         : '10'  }
-    </call>     
-
-  <!--   set number-of-files  -->               
-  <message>'------  set number-of-files  to 32  --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-retention-policy-prop' ,    
-        'objectType'              : 'policy-name' ,
-        'objectName'             :   'my filecount retention policy',
-        'optionsString'           : '--set number-of-files:32',
-        'expectedRC'             : 0 } 
-    </call>     
-  <message>'------  get number-of-files --' </message>     
-    <call function="'dsconfigGet'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-retention-policy' ,
-        'propertyType'           : 'policy' ,
-        'propertyName'           :  'my filecount retention policy',
-        'attributeName'          : 'number-of-files',
-        'expectedAttributeValue'         : '32'  }
-    </call>  
-
-  <!-- delete-log-retention-policy  with the type file-count -->         
-  <message>'------  delete a fixed file-count  retention policy --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'delete-log-retention-policy' ,    
-        'objectType'              : 'policy-name' ,
-        'objectName'             :  'my filecount retention policy',
-        'expectedRC'             : 0 } 
-    </call>
-                    
-    <call function="'testCase_Postamble'"/>
-  </sequence>
- </testcase>    
+      <testcase name="getTestCaseName('Error logger')">
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+            <message>
+              '----  Check the Error logger s properties  -----'
+            </message>
+            <!--    default-severity  -->
+            <message>
+              '------  set default-severity to mild-error --'
+            </message>
+            <call function="'dsconfig'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'set-log-publisher-prop',
+                'objectType'     : 'publisher-name',
+                'objectName'     :   'File-Based Error Logger',
+                'optionsString'  : '--set default-severity:mild-error',
+                'expectedRC'     : 0
+              }
+            </call>
+            <message>'------  get default-severity --' </message>
+            <call function="'dsconfigGet'">
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+                'objectName'             : 'log-publisher',
+                'propertyType'           : 'publisher',
+                'propertyName'           :  'File-Based Error Logger',
+                'attributeName'          : 'default-severity',
+                'expectedAttributeValue' : 'mild-error'
+              }
+            </call>
+            
+            <!--  override-severity -->
+            <message>'------  set override-severity    --' </message>
+            <call function="'dsconfig'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'     : 'set-log-publisher-prop',
+                'objectType'     : 'publisher-name',
+                'objectName'     : 'File-Based Error Logger',
+                'optionsString'  : '--set "override-severity:request=info,schema"',
+                'expectedRC'     : 0
+              }
+            </call>
+            <message>
+              '------  get override-severity --'
+            </message>
+            <call function="'dsconfigGet'">
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+                'objectName'             : 'log-publisher',
+                'propertyType'           : 'publisher',
+                'propertyName'           : 'File-Based Error Logger',
+                'attributeName'          : 'override-severity',
+                'expectedAttributeValue' : 'request=info,schema'
+              }
+            </call>
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+      </testcase>
         
-</sequence>
-</function>
-
+        <!--- Test Case : Debug logger -->
+        <!---
+          #@TestMarker     Debug logger
+          #@TestName       Debug logger properties check
+          #@TestIssue      
+          #@TestPurpose    check the Debug logger properties.
+          #@TestPreamble   none
+          #@TestStep       Check the  Debug Logger's properties are correctly set and get using dsconfig
+          #@TestStep       Set a property
+          #@TestStep       Get the property and check it has been correctly updated
+          #@TestPostamble  none
+          #@TestResult     Success if OpenDS returns 0 for all operations
+        -->
+        
+      <testcase name="getTestCaseName('Debug logger')">
+        <sequence>
+          <call function="'testCase_Preamble'" />
+          <message>
+            '----  Check the Debug loggers properties  -----'
+          </message>
+          
+          <!--    default-debug-category  -->         
+          <message>'------  set default-debug-category  --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'set-log-publisher-prop',
+              'objectType'     : 'publisher-name',
+              'objectName'     :   'File-Based Debug Logger',
+              'optionsString'  : '--set default-debug-category:thrown',
+              'expectedRC'     : 0
+            }
+          </call>
+          <message>'------  get default-debug-category --' </message>     
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-publisher',
+              'propertyType'           : 'publisher',
+              'propertyName'           : 'File-Based Debug Logger',
+              'attributeName'          : 'default-debug-category',
+              'expectedAttributeValue' : 'thrown'
+            }
+          </call>
+          
+          <!--  default-debug-level -->   
+          <message>'------  set default-debug-level    --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'  : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'    : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'      : 'set-log-publisher-prop',
+              'objectType'      : 'publisher-name',
+              'objectName'      :  'File-Based Debug Logger',
+              'optionsString'   : '--set default-debug-level:verbose',
+              'expectedRC'      : 0
+            }
+          </call>
+          <message>'------  get default-debug-level --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-publisher',
+              'propertyType'           : 'publisher',
+              'propertyName'           : 'File-Based Debug Logger',
+              'attributeName'          : 'default-debug-level',
+              'expectedAttributeValue' : 'verbose'
+            }
+          </call>
+          
+          <!--  default-include-throwable-cause -->
+          <message>
+            '------  set default-include-throwable-cause    --'
+          </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'set-log-publisher-prop',
+              'objectType'     : 'publisher-name',
+              'objectName'     :  'File-Based Debug Logger',
+              'optionsString'  : '--set default-include-throwable-cause:true',
+              'expectedRC'     : 0
+            }
+          </call>     
+          <message>'------  get default-include-throwable-cause --' </message>     
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-publisher',
+              'propertyType'           : 'publisher',
+              'propertyName'           :  'File-Based Debug Logger',
+              'attributeName'          : 'default-include-throwable-cause',
+              'expectedAttributeValue' : 'true'
+            }
+          </call>
+          
+          <!--  default-omit-method-entry-arguments -->
+          <message>
+            '------  set default-omit-method-entry-arguments    --'
+          </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'set-log-publisher-prop',
+              'objectType'     : 'publisher-name',
+              'objectName'     : 'File-Based Debug Logger',
+              'optionsString'  : '--set default-omit-method-entry-arguments:true',
+              'expectedRC'     : 0
+            } 
+          </call>
+          <message>
+            '------  get default-omit-method-entry-arguments --'
+          </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-publisher',
+              'propertyType'           : 'publisher',
+              'propertyName'           : 'File-Based Debug Logger',
+              'attributeName'          : 'default-omit-method-entry-arguments',
+              'expectedAttributeValue' : 'true'
+            }
+          </call>
+          
+          <!--  default-omit-method-return-value -->   
+          <message>
+            '------  set default-include-throwable-cause    --'
+          </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'           : 'set-log-publisher-prop' ,    
+              'objectType'              : 'publisher-name' ,
+              'objectName'             :  'File-Based Debug Logger',
+              'optionsString'           : '--set default-omit-method-return-value:true',
+              'expectedRC'             : 0 } 
+          </call>     
+          <message>'------  get default-omit-method-return-value --' </message>     
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-publisher',
+              'propertyType'           : 'publisher',
+              'propertyName'           :  'File-Based Debug Logger',
+              'attributeName'          : 'default-omit-method-return-value',
+              'expectedAttributeValue' : 'true'
+            }
+          </call>
+           
+          <!--  default-throwable-stack-frames -->
+          <message>
+            '------  set default-throwable-stack-frames    --'
+          </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'set-log-publisher-prop',
+              'objectType'     : 'publisher-name',
+              'objectName'     :  'File-Based Debug Logger',
+              'optionsString'  : '--set default-throwable-stack-frames:2',
+              'expectedRC'     : 0
+            }
+          </call>
+          <message>'------  get default-throwable-stack-frames --' </message>     
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-publisher',
+              'propertyType'           : 'publisher',
+              'propertyName'           : 'File-Based Debug Logger',
+              'attributeName'          : 'default-throwable-stack-frames',
+              'expectedAttributeValue' : '2'
+            }
+          </call>
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase>
+      
+      <!--- Test Case : Rotation policy -->
+      <!---
+        #@TestMarker             Rotation policy
+        #@TestName               Check dsconfig properties of Rotation policy 
+        #@TestIssue                   
+        #@TestPurpose           check the rotation policy properties.
+        #@TestPreamble         none
+        #@TestStep                 Check the rotation policy's properties are correctly set and get using dsconfig
+        #@TestStep                 Set a property
+        #@TestStep                 Get the property and check it has been correctly updated
+        #@TestPostamble         none
+        #@TestResult               Success if OpenDS returns 0 for all operations
+      -->
+      <testcase name="getTestCaseName('Rotation policy')">
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+            '----  Check the Rotation policy properties  -----'
+          </message>
+          
+          <!-- create-log-rotation-policy  with the type size-limit -->
+          <message>'------  create a size limit rotation policy --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'create-log-rotation-policy',
+              'objectType'     : 'policy-name',
+              'objectName'     : 'my size rotation policy',
+              'optionsString'  : '--type size-limit --set file-size-limit:5mb',
+              'expectedRC'     : 0
+            } 
+          </call>
+          
+          <message>'------  get file-size-limit --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-rotation-policy',
+              'propertyType'           : 'policy',
+              'propertyName'           : 'my size rotation policy',
+              'attributeName'          : 'file-size-limit',
+              'expectedAttributeValue' : '5 mb'
+            }
+          </call>
+          
+          <!--   set file-size-limit  -->
+          <message>'------  set file-size-limit  to 6kb  --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'     : 'set-log-rotation-policy-prop',
+              'objectType'     : 'policy-name',
+              'objectName'     : 'my size rotation policy',
+              'optionsString'  : '--set file-size-limit:5kb',
+              'expectedRC'     : 0
+            }
+          </call>
+          <message>'------  get file-size-limit --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-rotation-policy',
+              'propertyType'           : 'policy',
+              'propertyName'           : 'my size rotation policy',
+              'attributeName'          : 'file-size-limit',
+              'expectedAttributeValue' : '5 kb'
+            }
+          </call>
+          
+          <message>'------  delete a size limit rotation policy --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'delete-log-rotation-policy',
+              'objectType'     : 'policy-name',
+              'objectName'     : 'my size rotation policy',
+              'expectedRC'     : 0
+            } 
+          </call>
+          
+          <!-- ################################-->
+          <!-- create-log-rotation-policy  with the type time-limit -->
+          <message>
+            '------  create a time limit rotation policy --'
+          </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'create-log-rotation-policy',
+              'objectType'     : 'policy-name',
+              'objectName'     : 'my time rotation policy',
+              'optionsString'  : '--type time-limit --set rotation-interval:3d',
+              'expectedRC'     : 0
+            } 
+          </call>
+           
+          <message>'------  get rotation-interval --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-rotation-policy',
+              'propertyType'           : 'policy',
+              'propertyName'           : 'my time rotation policy',
+              'attributeName'          : 'rotation-interval',
+              'extraParams'            : '-M d',
+              'expectedAttributeValue' : '3 d'
+            }
+          </call>
+          
+          <!--   set rotation-interval  -->               
+          <message>'------  set rotation-interval  to 3s  --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'set-log-rotation-policy-prop',
+              'objectType'     : 'policy-name',
+              'objectName'     : 'my time rotation policy',
+              'optionsString'  : '--set rotation-interval:3s',
+              'expectedRC'     : 0
+            }
+          </call>
+          <message>'------  get rotation-interval --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-rotation-policy',
+              'propertyType'           : 'policy',
+              'propertyName'           : 'my time rotation policy',
+              'attributeName'          : 'rotation-interval',
+              'extraParams'            : '-M s',
+              'expectedAttributeValue' : '3 s'
+            }
+          </call>
+          
+          <message>'------  delete a time limit rotation policy --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'delete-log-rotation-policy',
+              'objectType'     : 'policy-name',
+              'objectName'     : 'my time rotation policy',
+              'expectedRC'     : 0
+            }
+          </call>
+          
+          <!-- ################################-->
+          <!-- create-log-rotation-policy  with the type fixed-time -->         
+          <message>'------  create a fixed time limit rotation policy --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'create-log-rotation-policy',
+              'objectType'     : 'policy-name',
+              'objectName'     : 'my fixedtime rotation policy',
+              'optionsString'  : '--type fixed-time --set time-of-day:1203',
+              'expectedRC'     : 0
+            }
+          </call>
+          
+          <message>'------  get time-of-day --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-rotation-policy',
+              'propertyType'           : 'policy',
+              'propertyName'           : 'my fixedtime rotation policy',
+              'attributeName'          : 'time-of-day',
+              'expectedAttributeValue' : '1203'
+            }
+          </call>
+          
+          <!--   set time-of-day  -->
+          <message>'------  set time-of-day  to 3s  --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'set-log-rotation-policy-prop',
+              'objectType'     : 'policy-name',
+              'objectName'     : 'my fixedtime rotation policy',
+              'optionsString'  : '--set time-of-day:0934',
+              'expectedRC'     : 0
+            }
+          </call>
+          <message>'------  get time-of-day --' </message>     
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+              'objectName'             : 'log-rotation-policy' ,
+              'propertyType'           : 'policy' ,
+              'propertyName'           :  'my fixedtime rotation policy',
+              'attributeName'          : 'time-of-day',
+              'expectedAttributeValue' : '0934'
+            }
+          </call>
+          
+          <!-- delete-log-rotation-policy  with the type fixed-time -->         
+          <message>'------  delete a fixed time limit rotation policy --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'delete-log-rotation-policy',
+              'objectType'     : 'policy-name',
+              'objectName'     : 'my fixedtime rotation policy',
+              'expectedRC'     : 0
+            }
+          </call>
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase>
+          
+          
+      <!--- Test Case : Retention policy -->
+      <!---
+        #@TestMarker     retention policy
+        #@TestName       Check dsconfig properties of retention policy 
+        #@TestIssue      
+        #@TestPurpose    check the retention policy properties.
+        #@TestPreamble   none
+        #@TestStep       Check the retention policy's properties are correctly set and get using dsconfig
+        #@TestStep       Set a property
+        #@TestStep       Get the property and check it has been correctly updated
+        #@TestPostamble  none
+        #@TestResult     Success if OpenDS returns 0 for all operations
+        -->
+      <testcase name="getTestCaseName('retention policy')">
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+            <message>
+              '----  Check the retention policy properties  -----'
+            </message>
+            <!-- create-log-retention-policy  with the type size-limit -->
+            <message>
+              '------  create a size limit retention policy --'
+            </message>
+            <call function="'dsconfig'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'create-log-retention-policy',
+                'objectType'     : 'policy-name',
+                'objectName'     :  'my size retention policy',
+                'optionsString'  : '--type size-limit --set disk-space-used:5mb',
+                'expectedRC'     : 0
+              } 
+            </call>
+            <message>'------  get file-size-limit --' </message>     
+            <call function="'dsconfigGet'">
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+                'objectName'             : 'log-retention-policy',
+                'propertyType'           : 'policy',
+                'propertyName'           : 'my size retention policy',
+                'attributeName'          : 'disk-space-used',
+                'expectedAttributeValue' : '5 mb'
+              }
+            </call>
+            
+            <!--   set disk-space-used  -->
+            <message>'------  set file-size-limit  to 5kb  --' </message>
+            <call function="'dsconfig'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'set-log-retention-policy-prop',
+                'objectType'     : 'policy-name',
+                'objectName'     : 'my size retention policy',
+                'optionsString'  : '--set disk-space-used:5kb',
+                'expectedRC'     : 0
+              }
+            </call>
+            <message>'------  get disk-space-used --' </message>
+            <call function="'dsconfigGet'">
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+                'objectName'             : 'log-retention-policy',
+                'propertyType'           : 'policy',
+                'propertyName'           : 'my size retention policy',
+                'attributeName'          : 'disk-space-used',
+                'expectedAttributeValue' : '5 kb'
+              }
+            </call>
+            
+            <message>
+              '------  delete a size limit retention policy --'
+            </message>
+            <call function="'dsconfig'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'delete-log-retention-policy',
+                'objectType'     : 'policy-name',
+                'objectName'     : 'my size retention policy',
+                'expectedRC'     : 0
+              }
+            </call>
+            
+            <!-- ################################-->
+            <!-- create-log-retention-policy  with the type  free-disk-space -->
+            <message>
+              '------  create a free-disk-space limit retention policy --'
+            </message>
+            <call function="'dsconfig'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'create-log-retention-policy',
+                'objectType'     : 'policy-name',
+                'objectName'     : 'my free-disk-space retention policy',
+                'optionsString'  : '--type free-disk-space --set free-disk-space:6Gb',
+                'expectedRC'     : 0
+              }
+            </call>
+            
+            <message>
+              '------  get free_disk-space --'
+            </message>
+            <call function="'dsconfigGet'">
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                'objectName'             : 'log-retention-policy' ,
+                'propertyType'           : 'policy' ,
+                'propertyName'           : 'my free-disk-space retention policy',
+                'attributeName'          : 'free-disk-space',
+                'expectedAttributeValue' : '6 gb'
+              }
+            </call>
+            
+            <!--   set free_disk-space  -->
+            <message>'------  set free_disk-space  to 4mb --' </message>
+            <call function="'dsconfig'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'set-log-retention-policy-prop',
+                'objectType'     : 'policy-name',
+                'objectName'     : 'my free-disk-space retention policy',
+                'optionsString'  : '--set free-disk-space:4mb',
+                'expectedRC'     : 0
+              }
+            </call>
+            <message>'------  get free_disk-space --' </message>
+            <call function="'dsconfigGet'">
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+                'objectName'             : 'log-retention-policy',
+                'propertyType'           : 'policy',
+                'propertyName'           : 'my free-disk-space retention policy',
+                'attributeName'          : 'free-disk-space',
+                'expectedAttributeValue' : '4 mb'
+              }
+            </call>
+            
+            <message>
+              '------  delete a free-disk-space retention policy --'
+            </message>
+            <call function="'dsconfig'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'delete-log-retention-policy',
+                'objectType'     : 'policy-name',
+                'objectName'     : 'my free-disk-space retention policy',
+                'expectedRC'     : 0
+              }
+            </call>
+           
+          <!-- ################################-->
+          <!-- create-log-retention-policy  with the type  file-count -->
+          <message>
+            '------  create a fixed time limit retention policy --'
+          </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'create-log-retention-policy',
+              'objectType'     : 'policy-name',
+              'objectName'     : 'my filecount retention policy',
+              'optionsString'  : '--type file-count --set number-of-files:10',
+              'expectedRC'     : 0
+            }
+          </call>
+          
+          <message>'------  get number-of-files --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+              'objectName'             : 'log-retention-policy' ,
+              'propertyType'           : 'policy' ,
+              'propertyName'           :  'my filecount retention policy',
+              'attributeName'          : 'number-of-files',
+              'expectedAttributeValue' : '10'
+            }
+          </call>
+          
+          <!--   set number-of-files  -->
+          <message>'------  set number-of-files  to 32  --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'set-log-retention-policy-prop',
+              'objectType'     : 'policy-name',
+              'objectName'     : 'my filecount retention policy',
+              'optionsString'  : '--set number-of-files:32',
+              'expectedRC'     : 0
+            }
+          </call>
+          <message>'------  get number-of-files --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+              'objectName'             : 'log-retention-policy',
+              'propertyType'           : 'policy',
+              'propertyName'           :'my filecount retention policy',
+              'attributeName'          : 'number-of-files',
+              'expectedAttributeValue' : '32'
+            }
+          </call>
+          
+          <!-- delete-log-retention-policy  with the type file-count -->
+          <message>
+            '------  delete a fixed file-count  retention policy --'
+          </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'delete-log-retention-policy',
+              'objectType'     : 'policy-name',
+              'objectName'     : 'my filecount retention policy',
+              'expectedRC'     : 0
+            }
+          </call>
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase>
+      <call function="'testSuite_Postamble'" /> 
+    </sequence>
+  </function>
 </stax>
-  

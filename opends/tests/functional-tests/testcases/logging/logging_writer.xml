@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE stax SYSTEM "../../../stax.dtd">
+<!DOCTYPE stax SYSTEM "../../shared/stax.dtd">
 <!--
  ! CDDL HEADER START
  !
@@ -26,277 +26,270 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-  
-<defaultcall function="logging_writer"/>
-<function name="logging_writer" scope="local">      
-
-<sequence>
-    
-
-<!-- #################################### -->
-<!--
-  #@TestMarker             access logger
-  #@TestName               access logger properties check
-  #@TestIssue                   
-  #@TestPurpose           check the asynchronous mode with auto-flush works
-  #@TestPreamble         none
-  #@TestStep                 Set the Access Logger's properties to be an asynchronous mode
-  #@TestStep                 Set the auto-flush to TRUE
-    #@TestStep                 Set the append property to false
-    #@TestStep                 Configure the Size Limit rotation policy with a Max size to 1mb
-    #@TestStep                 Execute ldapsearch request until the log are writen in the disk
-  #@TestPostamble         none
-  #@TestResult               The recors must be written to disk after each operation
-      -->
-<!-- #################################### -->
-                               
-    
-<testcase name="'logging : Synchronous mode- auto-flush=true :  Access logger '">
-
-  <sequence>
-    <call function="'testCase_Preamble'"/>
-  <message>
-        '----  Check the Synchronous mode for Access loggers -----'
-    </message>      
-   
-                   
-  <message>
-    '  asynchronous:false  -  auto-flush:true  -  append:false -  buffer-size:20kb '
-  </message>      
-
-     
-  <message>'------  set properties --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Access Logger',
-        'optionsString'           : '--set auto-flush:true --set append:false --set asynchronous:false --set buffer-size:20kb',
-        'expectedRC'             : 0 } 
-    </call>
-
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-rotation-policy-prop' ,    
-        'objectType'              : 'policy-name' ,
-        'objectName'             :  'Size Limit Rotation Policy',
-        'optionsString'           : '--set file-size-limit:1mb',
-        'expectedRC'             : 0 } 
-    </call>
-     
-   <!--  Starting loop -->       
-   <script>  
-          listName=[]
-          listSize=[]
-   </script>     
-   <script>
-     cpt=0
-     </script>  
-     
-   <!--  Execute ldapsearch until logs are written to disk -->
-   <!-- as auto-flush is true, the logs must be written after each operation  -->
-   <loop from="1" to="5" until="RC != 0">
-     <sequence>
-         <message>'###########################'</message>       
-     <message>'                  LOOP %s :' % cpt </message>
-     <message>'###########################'</message>
-        <message>'--- Execute a Search request ---'</message>  
-
-          <call function="'ldapSearchWithScript'">
-    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-      'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,     
-          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,  
-      'dsInstanceDn'   :  DIRECTORY_INSTANCE_DN,
-          'dsInstancePswd'   :     DIRECTORY_INSTANCE_PSWD,
-      'dsFilter'    : 'objectclass=*'  ,
-          'dsScope'                 : 'base',
-          'expectedRC'           :  0 }           
-          </call>    
-
-
-        <call function="'dsconfigGet'">
-        { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'objectName'             : 'log-publisher' ,
-        'propertyType'           : 'publisher' ,
-        'propertyName'           : 'File-Based Access Logger',
-        'attributeName'          : 'rotation-policy-dn'      
-      }
-         </call>        
-                       
-        <message>'--- Check log files ---'</message>  
-          <call function="'listFolder'">
-          { 'location' : '%s' % (DIRECTORY_INSTANCE_HOST),
-           'foldername' : '%s/%s/logs' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME),
-           'filename' : 'access'
-           }
-    </call>    
-       
-      <if expr="len(cmdResult) > 0">
-        <sequence>                  
-          <iterate var="result" in="cmdResult">
-       <sequence>
-         <script>
-           logname=result["name"]
-           logsize=result["size"]
-           found=0
-         </script>
-         <message>'log file status for file  %s is %s ' % (logname,logsize)</message>
-         <script>   
-           for currentLog in listName:
-               if currentLog == logname:
-                  found=1
-                  currentIndex=listName.index(currentLog)
-                  currentSize=listSize[currentIndex]
-                  if currentSize != logsize:
-                      RC=1
-                      listSize[currentIndex]=logsize
-                      break
-              
-          if found == 0:
-             listName.append(logname)
-             listSize.append(logsize)  
-         </script>
-       </sequence>    
-    </iterate>
-    </sequence>
-      </if>    
-        <message>'The new log file status is : %s : %s' % (listName,listSize)</message>       
-     <script>
-       cpt=cpt+1
-     </script>   
-     </sequence>   
-     </loop>  
-   <message>'The log file status of the file "%s" has changed ' % logname</message> 
-
-   <!-- Check log file -->
-   <!-- records must be writen after each operation -->   
-   <!-- we should exit the loop after the first ldapsearch -->  
-   <if expr="cpt != 2">
-     <sequence>
-     <message>'ERROR.  The writer are not flushed after every log records'</message>     
-         <call function="'testFailed'"/>     
-     </sequence>
-   <else>
-      <sequence>
-      <message>'SUCCESS. The writer are flushed after every log records' </message>
-          <call function="'testPassed'"/>     
-          </sequence>        
-   </else>   
-   </if>
-       
-  </sequence>
- </testcase>
-
-
-<!-- #################################### -->
-<!--
-  #@TestMarker            Debug logger
-  #@TestName              Debug logger properties check
-  #@TestIssue                   
-  #@TestPurpose          Basic tests on the Debug logger
-  #@TestPreamble        none
-  #@TestStep                Enabled the Debug  Logger
-  #@TestStep                Define a spefic log file for debug message 
-    #@TestStep                set the debug-log-level to All
-    #@TestStep                Restart the server
-    #@TestStep                Execute a ldapsearch request
-  #@TestPostamble         none
-  #@TestResult              Check the debug log file has been created and contains datas
-      -->
-<!-- #################################### -->
-            
-  
-<testcase name="'logging :   basic tests on Debug logger '">
-
-  <sequence>
-    <call function="'testCase_Preamble'"/>
-  <message>
-        '----  Basic tests on Debug loggers -----'
-    </message>      
-     
-  <message>'------  Enabled Debug logger --' </message>
-    <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'           : 'set-log-publisher-prop' ,    
-        'objectType'              : 'publisher-name' ,
-        'objectName'             :  'File-Based Debug Logger',
-        'optionsString'           : '--set enabled:true --set default-debug-level:all --set log-file:logs/mydebug',
-        'expectedRC'             : 0 } 
-    </call>       
-               
-    <call function="'RestartDs'">
-    {   'dsHost'    : DIRECTORY_INSTANCE_HOST,
-             'dsPort'    : DIRECTORY_INSTANCE_PORT,
-             'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-             'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
-     </call>
-
-     <message>'--- Check log files ---'</message>  
-     <call function="'listFolder'">
-          { 'location' : '%s' % (DIRECTORY_INSTANCE_HOST),
-           'foldername' : '%s/%s/logs' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME),
-           'filename' : 'mydebug'
-           }
-   </call>
-
-   <script>
-     error=0
-     </script> 
-   <if expr="len(cmdResult) == 0">                               
-     <sequence>
-     <message>'ERROR.  The Debug logger should be created'</message>     
+  <defaultcall function="logging_writer"/>
+  <function name="logging_writer" scope="local">
+    <sequence>
       <script>
-        error=1
-        </script>            
-     </sequence>
-   <else>
-      <sequence>
-             <iterate var="result" in="cmdResult">
+        CurrentTestPath['suite']=STAXCurrentFunction
+      </script>
+      <call function="'testSuite_Preamble'"/>
+      <!-- #################################### -->
+      <!--
+        #@TestMarker      access logger
+        #@TestName        access logger properties check
+        #@TestIssue       
+        #@TestPurpose     check the asynchronous mode with auto-flush works
+        #@TestPreamble    none
+        #@TestStep        Set the Access Logger's properties to be an asynchronous mode
+        #@TestStep        Set the auto-flush to TRUE
+        #@TestStep        Set the append property to false
+        #@TestStep        Configure the Size Limit rotation policy with a Max size to 1mb
+        #@TestStep        Execute ldapsearch request until the log are writen in the disk
+        #@TestPostamble   none
+        #@TestResult      The recors must be written to disk after each operation
+            -->
+      <!-- #################################### -->
+      <testcase name="getTestCaseName('Synchronous mode- auto-flush=true - Access logger')">
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+            '----  Check the Synchronous mode for Access loggers -----'
+          </message>
+          <message>
+            '  asynchronous:false  -  auto-flush:true  -  append:false -  buffer-size:20kb '
+          </message>
+          <message>'------  set properties --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'     : 'set-log-publisher-prop',
+              'objectType'     : 'publisher-name',
+              'objectName'     :  'File-Based Access Logger',
+              'optionsString'  : '--set auto-flush:true --set append:false --set asynchronous:false --set buffer-size:20kb',
+              'expectedRC'     : 0
+            }
+          </call>
+          
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'set-log-rotation-policy-prop',
+              'objectType'     : 'policy-name',
+              'objectName'     : 'Size Limit Rotation Policy',
+              'optionsString'  : '--set file-size-limit:1mb',
+              'expectedRC'     : 0
+            } 
+          </call>
+          
+          <!--  Starting loop -->
+          <script>
+            listName=[]
+            listSize=[]
+            cpt=0
+          </script>
+          
+          <!--  Execute ldapsearch until logs are written to disk -->
+          <!-- as auto-flush is true, the logs must be written after each operation  -->
+          <loop from="1" to="5" until="RC != 0">
             <sequence>
-           <script>      
-           logsize=result["size"]
-                 </script>    
+              <message>'###########################'</message>       
+              <message>'                  LOOP %s :' % cpt </message>
+              <message>'###########################'</message>
+              <message>'--- Execute a Search request ---'</message>  
               
-           <if expr="logsize == 0">
-                   <sequence>
-                      <message>'ERROR.  The Debug logger should contain data'</message>      
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsBaseDN'       : DIRECTORY_INSTANCE_SFX,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsFilter'       : 'objectclass=*',
+                  'dsScope'        : 'base',
+                  'expectedRC'     : 0
+                }
+              </call>
+              
+              <call function="'dsconfigGet'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'objectName'     : 'log-publisher',
+                  'propertyType'   : 'publisher',
+                  'propertyName'   : 'File-Based Access Logger',
+                  'attributeName'  : 'rotation-policy-dn'
+                }
+              </call>
+              
+              <message>'--- Check log files ---'</message>  
+              <call function="'listFolder'">
+                { 'location'   : '%s' % (DIRECTORY_INSTANCE_HOST),
+                  'foldername' : '%s/%s/logs' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME),
+                  'filename'   : 'access'
+                 }
+              </call>
+              
+              <if expr="len(cmdResult) > 0">
+                <sequence>                  
+                  <iterate var="result" in="cmdResult">
+                    <sequence>
                       <script>
-              error=1
-              </script>             
-                   </sequence>          
-           </if>    
-             </sequence>    
-       </iterate>   
-         </sequence>
-   </else>   
-   </if>  
+                        logname=result["name"]
+                        logsize=result["size"]
+                        found=0
+                      </script>
+                      <message>
+                        'log file status for file  %s is %s ' % (logname,logsize)
+                      </message>
+                      <script>
+                        for currentLog in listName:
+                          if currentLog == logname:
+                            found=1
+                            currentIndex=listName.index(currentLog)
+                            currentSize=listSize[currentIndex]
+                            if currentSize != logsize:
+                              RC=1
+                              listSize[currentIndex]=logsize
+                              break
+                          
+                        if found == 0:
+                          listName.append(logname)
+                          listSize.append(logsize)
+                      </script>
+                    </sequence>
+                  </iterate>
+                </sequence>
+              </if>
+              <message>
+                'The new log file status is : %s : %s' % (listName,listSize)
+              </message>
+              <script>
+                cpt=cpt+1
+              </script>
+            </sequence>
+          </loop>
+          <message>
+            'The log file status of the file "%s" has changed ' % logname
+          </message>
+          
+          <!-- Check log file -->
+          <!-- records must be writen after each operation -->
+          <!-- we should exit the loop after the first ldapsearch -->
+          <if expr="cpt != 2">
+            <sequence>
+              <message>
+                'ERROR.  The writer are not flushed after every log records'
+              </message>
+              <call function="'testFailed'"/>
+            </sequence>
+            <else>
+              <sequence>
+                <message>
+                  'SUCCESS. The writer are flushed after every log records'
+                </message>
+                <call function="'testPassed'"/>
+              </sequence>
+            </else>
+          </if>
+        </sequence>
+      </testcase>
+      
+      <!-- #################################### -->
+      <!--
+          #@TestMarker       Debug logger
+          #@TestName         Debug logger properties check
+          #@TestIssue        
+          #@TestPurpose      Basic tests on the Debug logger
+          #@TestPreamble     none
+          #@TestStep         Enabled the Debug  Logger
+          #@TestStep         Define a spefic log file for debug message 
+          #@TestStep         set the debug-log-level to All
+          #@TestStep         Restart the server
+          #@TestStep         Execute a ldapsearch request
+          #@TestPostamble    none
+          #@TestResult       Check the debug log file has been created and contains datas
+            -->
+      <!-- #################################### -->
+      
+      <testcase name="getTestCaseName('basic tests on Debug logger')">
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+            '----  Basic tests on Debug loggers -----'
+          </message>
+          
+          <message>'------  Enabled Debug logger --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'set-log-publisher-prop',
+              'objectType'     : 'publisher-name',
+              'objectName'     :  'File-Based Debug Logger',
+              'optionsString'  : '--set enabled:true --set default-debug-level:all --set log-file:logs/mydebug',
+              'expectedRC'     : 0
+            }
+          </call>
+          
+          <call function="'RestartDs'">
+            { 'dsHost'    : DIRECTORY_INSTANCE_HOST,
+              'dsPort'    : DIRECTORY_INSTANCE_PORT,
+              'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+              'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+            }
+          </call>
+          <message>'--- Check log files ---'</message>  
+          <call function="'listFolder'">
+            { 'location'   : '%s' % DIRECTORY_INSTANCE_HOST,
+              'foldername' : '%s/%s/logs' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME),
+              'filename'   : 'mydebug'
+            }
+          </call>
 
-   <if expr="error == 0">
-     <sequence>
-         <call function="'testPassed'"/>      
-         </sequence>
-     <else>
-         <sequence>     
-         <call function="'testFailed'"/>            
-         </sequence>            
-     </else>     
-   </if>       
-  </sequence>
- </testcase>  
-        
-</sequence>
-</function>
-
+          <script>
+           error=0
+          </script> 
+          <if expr="len(cmdResult) == 0">                               
+            <sequence>
+              <message>'ERROR.  The Debug logger should be created'</message>     
+              <script>
+                error=1
+              </script>
+            </sequence>
+            <else>
+              <sequence>
+                <iterate var="result" in="cmdResult">
+                  <sequence>
+                    <script>
+                      logsize=result["size"]
+                    </script>
+                    <if expr="logsize == 0">
+                      <sequence>
+                        <message>'ERROR.  The Debug logger should contain data'</message>      
+                        <script>
+                          error=1
+                        </script>
+                      </sequence>
+                    </if>
+                  </sequence>
+                </iterate>
+              </sequence>
+            </else>
+          </if>
+          
+          <if expr="error == 0">
+            <call function="'testPassed'"/>
+            <else>
+              <call function="'testFailed'"/>
+            </else>
+          </if>
+        </sequence>
+      </testcase>
+    </sequence>
+  </function>
 </stax>
