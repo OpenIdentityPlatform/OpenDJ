@@ -26,25 +26,17 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-
   <defaultcall function="replication_binarycopy"/>
-
   <function name="replication_binarycopy">
-
     <sequence>
-
       <block name="'binarycopy'">
-
         <sequence>
-            
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='replication'                 
+              CurrentTestPath['group']='replication'
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
-
           <call function="'testSuite_Preamble'"/>
-
           <!--- Test Suite information
           #@TestSuiteName       Replication Binary Copy Tests
           #@TestSuitePurpose    Verify that the servers in a replicated topology can be initialised by the means of a binary copy (backup-restore).
@@ -54,16 +46,15 @@
           #@TestScript          replication_binarycopy.xml
           #@TestHTMLLink        http://opends.dev.java.net/
           -->
-            
-                                                                        
+          
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/replication/replication_setup.xml' % (TESTS_DIR)"/>
+                  file="'%s/testcases/replication/replication_setup.xml' % (TESTS_DIR)"/>
           <call function="'replication_setup'" />
-                                    
+          
           <script>
             synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()              
-          </script>            
-            
+          </script>
+          
           <!--- Test Case information
           #@TestMarker          Replication Binary Copy Tests
           #@TestName            Replication: Binary Copy: Off-line initialisation
@@ -73,78 +64,82 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->               
+          -->
           <testcase name="getTestCaseName('Off-line initialisation')">
-            <sequence>            
+            <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
                  'Replication: Binary Copy: Off-line initialisation. Initialise replicated servers using off-line backup/restore'
               </message>
-                              
-              <!-- Stop the servers in the topology -->  
+              <!-- Stop the servers in the topology -->
               <call function="'stopServers'">
                 [_topologyServerList]
               </call>
               
-                                
-              <!-- Import data into "master" server -->              
+              <!-- Import data into "master" server -->
               <call function="'ImportLdifWithScript'">
-                { 'location'     : masterHost,
-                  'dsPath'       : masterPath,
-                  'dsBackEnd'    : 'userRoot',             
-                  'dsLdifFile'   : '%s/replication/Example.ldif' % masterDataDir }
+                { 'location'   : masterHost,
+                  'dsPath'     : masterPath,
+                  'dsBackEnd'  : 'userRoot',
+                  'dsLdifFile' : '%s/replication/Example.ldif' % masterDataDir
+                }
               </call>
-
-              <!-- Check some data was imported into "master" server -->    
+              
+              <!-- Check some data was imported into "master" server -->
               <call function="'checkImport'">
-                { 'location'  : clientHost,
-                  'dsPath'    : clientPath,                
-                  'dsHost'    : masterHost,
-                  'dsPort'    : master.getPort(),
-                  'dsDn'      : master.getRootDn(),
-                  'dsPswd'    : master.getRootPwd(),
+                { 'location'        : clientHost,
+                  'dsPath'          : clientPath,
+                  'dsHost'          : masterHost,
+                  'dsPort'          : master.getPort(),
+                  'dsDn'            : master.getRootDn(),
+                  'dsPswd'          : master.getRootPwd(),
                   'expectedEntries' : ['uid=scarter,ou=People,o=example',
                                        'uid=dmiller, ou=People, o=example',
-                                       'uid=rhunt, ou=People, o=example'] }
+                                       'uid=rhunt, ou=People, o=example'] 
+               }
               </call>
-                
               
-              <!-- Backup "master" server -->  
+              <!-- Backup "master" server -->
               <call function="'backup'">
-                { 'location'  :  masterHost,
-                  'dsPath'  :  masterPath,
-                  'backupDir'  :  '%s/replication/master_backup' % masterDataDir }
-              </call>                
-                
+                { 'location'  : masterHost,
+                  'dsPath'    : masterPath,
+                  'backupDir' : '%s/replication/master_backup' % masterDataDir
+                }
+              </call>
+              
               <!-- Copy backup to "consumer" servers and restore it -->
               <paralleliterate var="consumer" in="consumerList">
                 <sequence>
+                  <call function="'copyFile'">
+                    { 'srcfile'    : '%s/config/schematokens.dat' % dsPath,
+                      'destfile'   : '%s/%s/config/schematokens.dat' % (consumer.getDir(),OPENDSNAME),
+                      'remotehost' : consumer.getHostname()
+                    }
+                  </call>
                   <call function="'CopyFolderByExtension'">
-                    { 'location'   :  masterHost,
-                      'remotehost'  :  consumer.getHostname(),
-                      'srcfolder'  :  '%s/replication/master_backup' % masterDataDir,
-                      'destfolder' :  '%s/%s/replication/master_backup' % (consumer.getDir(),relativeDataDir),
-                      'extension'  : '*' }
-                  </call>         
-
+                    { 'location'   : masterHost,
+                      'remotehost' : consumer.getHostname(),
+                      'srcfolder'  : '%s/replication/master_backup' % masterDataDir,
+                      'destfolder' : '%s/%s/replication/master_backup' % (consumer.getDir(),relativeDataDir),
+                      'extension'  : '*'
+                    }
+                  </call>
                   <call function="'restore'">
-                    { 'location'  :  consumer.getHostname(),
-                      'dsPath'  :  '%s/%s' % (consumer.getDir(), OPENDSNAME),
-                      'backupDir'  :  '%s/%s/replication/master_backup' % (consumer.getDir(),relativeDataDir) }
-                  </call>                                              
-                </sequence>                  
+                    { 'location'  : consumer.getHostname(),
+                      'dsPath'    : '%s/%s' % (consumer.getDir(), OPENDSNAME),
+                      'backupDir' : '%s/%s/replication/master_backup' % (consumer.getDir(),relativeDataDir)
+                    }
+                  </call>
+                </sequence>
               </paralleliterate>
-                
-                
-
+              
               <!-- Start the servers in the topology -->  
               <call function="'startServers'">
                 [_topologyServerList]
-              </call>                
-
-                
-                
-              <!-- Add entry to "master" server -->                       
+              </call>
+              
+              
+              <!-- Add entry to "master" server -->
               <call function="'addEntry'">
                 { 'location'       : clientHost,
                   'dsPath'         : clientPath,
@@ -152,20 +147,18 @@
                   'dsInstancePort' : master.getPort(), 
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
-                  'entryToBeAdded' : '%s/replication/tfitter.ldif' % clientDataDir }
-              </call>         
-                       
-              <!-- Verify the synchronization of the trees among the servers in the topology -->          
+                  'entryToBeAdded' : '%s/replication/tfitter.ldif' % clientDataDir
+                }
+              </call>
+              
+              <!-- Verify the synchronization of the trees among the servers in the topology -->
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
-              </call> 
-                                
+              </call>
               <call function="'testCase_Postamble'"/>
             </sequence>
-          </testcase>                     
+          </testcase>
           
-
-            
           <!--- Test Case information
           #@TestMarker          Replication Binary Copy Tests
           #@TestName            Replication: Binary Copy: On-line initialisation
@@ -175,96 +168,105 @@
           #@TestSteps
           #@TestPostamble
           #@TestResult
-          -->               
+          -->
           <testcase name="getTestCaseName('On-line initialisation')">
-            <sequence>            
+            <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
                  'Replication: Binary Copy: On-line initialisation. Initialise replicated servers using on-line backup/restore'
               </message>
-                              
-              <!-- Clean the servers in the topology                   
+              
+              <!-- Clean the servers in the topology
               <call function="'deleteTrees'">
                 [_topologyServerList, synchroSuffix, False]
               </call> -->
-
+              
               <!-- Delete manually added entry so that replication server won't add it automatically later on -->
               <call function="'ldapDeleteWithScript'">
-                { 'location'  :  clientHost,
-                  'dsPath'  :  clientPath,
-                  'dsInstanceHost'  :  master.getHostname(),
-                  'dsInstancePort'  :  master.getPort(),
-                  'dsInstanceDn'  : master.getRootDn(),
+                { 'location'       :  clientHost,
+                  'dsPath'         :  clientPath,
+                  'dsInstanceHost' :  master.getHostname(),
+                  'dsInstancePort' :  master.getPort(),
+                  'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' :  master.getRootPwd(),
-                  'dsDn'  :  ['uid=tfitter, ou=People,%s' % synchroSuffix] }
-              </call>                                                                
-                                
-              <!-- Import data into "master" server -->              
-              <call function="'importLdifTask'">
-                { 'location'  :  clientHost,
-                  'dsPath'  :  clientPath,
-                  'dsInstanceHost'  : masterHost,
-                  'dsInstancePort'  :  master.getPort(),
-                  'dsInstanceDn'  :  master.getRootDn(),
-                  'dsInstancePswd'  :  master.getRootPwd(),
-                  'taskID'  :  'import task',
-                  'ldifFile'  :  '%s/replication/Example.ldif' % masterDataDir }
+                  'dsDn'           :  ['uid=tfitter, ou=People,%s' % synchroSuffix]
+                }
               </call>
-
+              
+              <!-- Import data into "master" server -->
+              <call function="'importLdifTask'">
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost,
+                  'dsInstancePort' : master.getPort(),
+                  'dsInstanceDn'   : master.getRootDn(),
+                  'dsInstancePswd' : master.getRootPwd(),
+                  'taskID'         : 'import task',
+                  'ldifFile'       : '%s/replication/Example.ldif' % masterDataDir
+                }
+              </call>
+              
               <!-- Check some data was imported into "master" server -->    
               <call function="'checkImport'">
-                { 'location'  : clientHost,
-                  'dsPath'    : clientPath,                
-                  'dsHost'    : masterHost,
-                  'dsPort'    : master.getPort(),
-                  'dsDn'      : master.getRootDn(),
-                  'dsPswd'    : master.getRootPwd(),
+                { 'location'        : clientHost,
+                  'dsPath'          : clientPath,
+                  'dsHost'          : masterHost,
+                  'dsPort'          : master.getPort(),
+                  'dsDn'            : master.getRootDn(),
+                  'dsPswd'          : master.getRootPwd(),
                   'expectedEntries' : ['uid=scarter,ou=People,o=example',
                                        'uid=dmiller, ou=People, o=example',
                                        'uid=rhunt, ou=People, o=example'], 
-                  'startDS'  : 'no' }
+                  'startDS'         : 'no'
+                }
               </call>
-                
               
-              <!-- Backup "master" server -->  
+              <!-- Backup "master" server -->
               <call function="'backupTask'">
-                { 'location'  :  clientHost,
-                  'dsPath'  :  clientPath,
-                  'dsInstanceHost'  : masterHost,
-                  'dsInstancePort'  :  master.getPort(),
-                  'dsInstanceDn'  :  master.getRootDn(),
-                  'dsInstancePswd'  :  master.getRootPwd(),
-                  'taskID'  :  'backup task',
-                  'backupDir'  :  '%s/replication/master_backup_online' % masterDataDir }
-              </call>                
-                
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost,
+                  'dsInstancePort' : master.getPort(),
+                  'dsInstanceDn'   : master.getRootDn(),
+                  'dsInstancePswd' : master.getRootPwd(),
+                  'taskID'         : 'backup task',
+                  'backupDir'      : '%s/replication/master_backup_online' % masterDataDir 
+                }
+              </call>
+              
               <!-- Copy backup to "consumer" servers and restore it -->
               <paralleliterate var="consumer" in="consumerList">
                 <sequence>
+                  <call function="'copyFile'">
+                    { 'srcfile'    : '%s/config/schematokens.dat' % dsPath,
+                      'destfile'   : '%s/%s/config/schematokens.dat' % (consumer.getDir(),OPENDSNAME),
+                      'remotehost' : consumer.getHostname()
+                    }
+                  </call>
                   <call function="'CopyFolderByExtension'">
-                    { 'location'   :  masterHost,
-                      'remotehost'  :  consumer.getHostname(),
-                      'srcfolder'  :  '%s/replication/master_backup_online' % masterDataDir,
-                      'destfolder' :  '%s/%s/replication/master_backup_online' % (consumer.getDir(),relativeDataDir),
-                      'extension'  : '*' }
-                  </call>         
-
+                    { 'location'   : masterHost,
+                      'remotehost' : consumer.getHostname(),
+                      'srcfolder'  : '%s/replication/master_backup_online' % masterDataDir,
+                      'destfolder' : '%s/%s/replication/master_backup_online' % (consumer.getDir(),relativeDataDir),
+                      'extension'  : '*'
+                    }
+                  </call>
+                  
                   <call function="'restoreTask'">
-                    { 'location'  :  clientHost,
-                      'dsPath'  :  clientPath,
-                      'dsInstanceHost'  :  consumer.getHostname(),
-                      'dsInstancePort'  : consumer.getPort(),
-                      'dsInstanceDn'  :  consumer.getRootDn(),
-                      'dsInstancePswd'  :  consumer.getRootPwd(),
-                      'taskID'  :  'restore task',
-                      'backupDir'  :  '%s/%s/replication/master_backup_online' % (consumer.getDir(),relativeDataDir) }
-                  </call>                                              
-                </sequence>                  
+                    { 'location'       : clientHost,
+                      'dsPath'         : clientPath,
+                      'dsInstanceHost' : consumer.getHostname(),
+                      'dsInstancePort' : consumer.getPort(),
+                      'dsInstanceDn'   : consumer.getRootDn(),
+                      'dsInstancePswd' : consumer.getRootPwd(),
+                      'taskID'         : 'restore task',
+                      'backupDir'      :  '%s/%s/replication/master_backup_online' % (consumer.getDir(),relativeDataDir)
+                    }
+                  </call>
+                </sequence>
               </paralleliterate>
-                
-                
-                
-              <!-- Add entry to "master" server -->                       
+              
+              <!-- Add entry to "master" server -->
               <call function="'addEntry'">
                 { 'location'       : clientHost,
                   'dsPath'         : clientPath,
@@ -272,32 +274,24 @@
                   'dsInstancePort' : master.getPort(), 
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
-                  'entryToBeAdded' : '%s/replication/tfitter.ldif' % clientDataDir }
-              </call>         
-                       
-              <!-- Verify the synchronization of the trees among the servers in the topology -->          
+                  'entryToBeAdded' : '%s/replication/tfitter.ldif' % clientDataDir
+                }
+              </call>
+              
+              <!-- Verify the synchronization of the trees among the servers in the topology -->
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
-              </call> 
-                                
+              </call>
               <call function="'testCase_Postamble'"/>
             </sequence>
-          </testcase>                     
-            
-                        
- 
+          </testcase>
+          
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/replication/replication_cleanup.xml' % (TESTS_DIR)"/>
+                  file="'%s/testcases/replication/replication_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'replication_cleanup'" />
-                          
           <call function="'testSuite_Postamble'"/>
-                  
         </sequence>
-
       </block>
-    
     </sequence>
-
   </function>
-
 </stax>

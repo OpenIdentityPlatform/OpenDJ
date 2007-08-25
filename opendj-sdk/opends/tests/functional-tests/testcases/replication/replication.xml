@@ -26,57 +26,45 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-
   <defaultcall function="main_replication"/>
-
   <function name="main_replication">
-
     <sequence>
-
       <block name="'replication'">
-
         <sequence>
-            
           <script>
             CurrentTestPath={}
             envAlreadyLoaded='true'
             CurrentTestPath['group']='replication'
           </script>
-      
           <call function="'testGroup_Preamble'"/>
-            
+          
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/replication/totalupdate/totalupdate.xml' % (TESTS_DIR)"/>
+                  file="'%s/testcases/replication/totalupdate/totalupdate.xml' % (TESTS_DIR)"/>
           <call function="'main_totalupdate'" />
-
+          
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/replication/binarycopy/binarycopy.xml' % (TESTS_DIR)"/>
-          <call function="'replication_binarycopy'" />          
-
+                  file="'%s/testcases/replication/binarycopy/binarycopy.xml' % (TESTS_DIR)"/>
+          <call function="'replication_binarycopy'" />
+          
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/replication/ldifimport/ldifimport.xml' % (TESTS_DIR)"/>
-          <call function="'replication_ldifimport'" />          
-                        
+                  file="'%s/testcases/replication/ldifimport/ldifimport.xml' % (TESTS_DIR)"/>
+          <call function="'replication_ldifimport'" />
+          
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/replication/resynchronization/resynchronization.xml' % (TESTS_DIR)"/>
-          <call function="'replication_resynchronization'" />          
-            
+                  file="'%s/testcases/replication/resynchronization/resynchronization.xml' % (TESTS_DIR)"/>
+          <call function="'replication_resynchronization'" />
+          
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/replication/basic/replication_basic.xml' % (TESTS_DIR)"/>
-          <call function="'replication_basic'" />          
-                          
+                  file="'%s/testcases/replication/basic/replication_basic.xml' % (TESTS_DIR)"/>
+          <call function="'replication_basic'" />
+          
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/schema/schema.xml' % (TESTS_DIR)"/>
-          <call function="'replication_schema'" />          
-            
+          <call function="'replication_schema'" />
+          
           <call function="'testGroup_Postamble'"/>
-                  
         </sequence>
-
       </block>
-    
     </sequence>
-
   </function>
-
 </stax>
