@@ -43,18 +43,11 @@ import java.io.InputStream;
  */
 public class CliUserInteraction extends CliApplicationHelper
         implements UserInteraction {
-
-  private PrintStream out;
-  private PrintStream err;
-  private InputStream in;
-
   /**
    * Creates an instance that will use standard streams for interaction.
    */
   public CliUserInteraction() {
-    this.out = System.out;
-    this.err = System.err;
-    this.in = System.in;
+    super(System.out, System.err, System.in);
   }
 
   /**
@@ -64,9 +57,7 @@ public class CliUserInteraction extends CliApplicationHelper
    * @param in InputStream from which information will be read
    */
   public CliUserInteraction(PrintStream out, PrintStream err, InputStream in) {
-    this.out = out;
-    this.err = err;
-    this.in = in;
+    super(out, err, in);
   }
 
   /**

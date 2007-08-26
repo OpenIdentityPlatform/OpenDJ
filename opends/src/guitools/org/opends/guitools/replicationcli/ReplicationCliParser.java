@@ -60,7 +60,7 @@ public class ReplicationCliParser extends SecureConnectionCliParser
   private SubCommand disableReplicationSubCmd;
   private SubCommand initializeReplicationSubCmd;
 
-  private BooleanArgument interactive;
+  private BooleanArgument noPromptArg;
 
   /**
    * The 'hostName' global argument for the first server.
@@ -361,38 +361,39 @@ public class ReplicationCliParser extends SecureConnectionCliParser
     {
       defaultArgs.remove(argsToRemove[i]);
     }
+    int index = 0;
 
     baseDNsArg = new StringArgument("baseDNs", 'b',
         "baseDNs", false, true, true, OPTION_VALUE_BASEDN, null,
         null, INFO_DESCRIPTION_REPLICATION_BASEDNS.get());
-    defaultArgs.add(baseDNsArg);
+    defaultArgs.add(index++, baseDNsArg);
 
     adminUidArg = new StringArgument("adminUID", 'I',
         "adminUID", false, false, true, "adminUID",
         Constants.GLOBAL_ADMIN_UID, null,
         INFO_DESCRIPTION_REPLICATION_ADMIN_UID.get(
             ENABLE_REPLICATION_SUBCMD_NAME));
-    defaultArgs.add(adminUidArg);
+    defaultArgs.add(index++, adminUidArg);
 
     adminPasswordArg = new StringArgument("adminPassword",
         OPTION_SHORT_BINDPWD, "adminPassword", false, false, true,
         OPTION_VALUE_BINDPWD, null, null,
         INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORD.get());
-    defaultArgs.add(adminPasswordArg);
+    defaultArgs.add(index++, adminPasswordArg);
 
     adminPasswordFileArg = new FileBasedArgument("adminPasswordFile",
         OPTION_SHORT_BINDPWD_FILE, "adminPasswordFile", false, false,
         OPTION_VALUE_BINDPWD_FILE, null, null,
         INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORDFILE.get());
-    defaultArgs.add(adminPasswordFileArg);
+    defaultArgs.add(index++, adminPasswordFileArg);
 
     defaultArgs.remove(verboseArg);
-    interactive = new BooleanArgument(
-        INTERACTIVE_OPTION_LONG,
-        INTERACTIVE_OPTION_SHORT,
-        INTERACTIVE_OPTION_LONG,
-        INFO_DESCRIPTION_INTERACTIVE.get());
-    defaultArgs.add(interactive);
+    noPromptArg = new BooleanArgument(
+        NO_PROMPT_OPTION_LONG,
+        NO_PROMPT_OPTION_SHORT,
+        NO_PROMPT_OPTION_LONG,
+        INFO_DESCRIPTION_NO_PROMPT.get());
+    defaultArgs.add(index++, noPromptArg);
 
     quietArg = new BooleanArgument(
         SecureConnectionCliParser.QUIET_OPTION_LONG,
@@ -580,7 +581,7 @@ public class ReplicationCliParser extends SecureConnectionCliParser
    */
   public boolean isInteractive()
   {
-    return interactive.isPresent();
+    return !noPromptArg.isPresent();
   }
 
   /**

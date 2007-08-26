@@ -52,7 +52,7 @@ import org.opends.server.util.args.StringArgument;
  */
 public class UninstallerArgumentParser extends SecureConnectionCliParser
 {
-  private BooleanArgument interactive;
+  private BooleanArgument noPrompt;
   private BooleanArgument forceOnError;
   private BooleanArgument quiet;
   private BooleanArgument removeAll;
@@ -151,17 +151,17 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
         INFO_UNINSTALLDS_DESCRIPTION_REMOVE_LDIF_FILES.get()
         );
     args.add(removeLDIFFiles);
-    interactive = new BooleanArgument(
-        INTERACTIVE_OPTION_LONG,
-        INTERACTIVE_OPTION_SHORT,
-        INTERACTIVE_OPTION_LONG,
-        INFO_DESCRIPTION_INTERACTIVE.get());
-    args.add(interactive);
+    noPrompt = new BooleanArgument(
+        NO_PROMPT_OPTION_LONG,
+        NO_PROMPT_OPTION_SHORT,
+        NO_PROMPT_OPTION_LONG,
+        INFO_DESCRIPTION_NO_PROMPT.get());
+    args.add(noPrompt);
     forceOnError = new BooleanArgument(
         "forceOnError",
         'f',
         "forceOnError",
-        INFO_UNINSTALLDS_DESCRIPTION_FORCE.get());
+        INFO_UNINSTALLDS_DESCRIPTION_FORCE.get(noPrompt.getLongIdentifier()));
     args.add(forceOnError);
     quiet = new BooleanArgument(
         SecureConnectionCliParser.QUIET_OPTION_LONG,
@@ -209,7 +209,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    */
   public boolean isInteractive()
   {
-    return interactive.isPresent();
+    return !noPrompt.isPresent();
   }
 
   /**
@@ -370,11 +370,10 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
   public int validateGlobalOptions(MessageBuilder buf)
   {
     int returnValue;
-    if (interactive.isPresent() && forceOnError.isPresent())
+    if (!noPrompt.isPresent() && forceOnError.isPresent())
     {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
-          interactive.getLongIdentifier(),
-          forceOnError.getLongIdentifier());
+      Message message = ERR_UNINSTALL_FORCE_REQUIRES_NO_PROMPT.get(
+          forceOnError.getLongIdentifier(), noPrompt.getLongIdentifier());
       if (buf.length() > 0)
       {
         buf.append(EOL);

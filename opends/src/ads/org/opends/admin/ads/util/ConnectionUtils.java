@@ -703,6 +703,28 @@ public class ConnectionUtils
   }
 
   /**
+   * Returns the LDAP URL for the provided parameters.
+   * @param host the host name.
+   * @param port the LDAP port.
+   * @param useSSL whether to use SSL or not.
+   * @return the LDAP URL for the provided parameters.
+   */
+  public static String getLDAPUrl(String host, int port, boolean useSSL)
+  {
+    String ldapUrl;
+    host = getHostNameForLdapUrl(host);
+    if (useSSL)
+    {
+      ldapUrl = "ldaps://"+host+":"+port;
+    }
+    else
+    {
+      ldapUrl = "ldap://"+host+":"+port;
+    }
+    return ldapUrl;
+  }
+
+  /**
    * Tells whether the provided Throwable was caused because of a problem with
    * a certificate while trying to establish a connection.
    * @param t the Throwable to analyze.

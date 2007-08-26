@@ -29,10 +29,12 @@ package org.opends.quicksetup;
 
 
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.quicksetup.util.Utils;
@@ -53,21 +55,49 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
+import javax.naming.NamingException;
+import javax.naming.NoPermissionException;
+import javax.naming.ldap.InitialLdapContext;
+
 /**
  * Helper class containing useful methods for processing input and output
  * for a CliApplication.
  */
-public class CliApplicationHelper {
+public abstract class CliApplicationHelper {
 
   static private final Logger LOG =
-          Logger.getLogger(CliApplication.class.getName());
+          Logger.getLogger(CliApplicationHelper.class.getName());
 
   /** Format string used for deriving the console prompt. */
   static public final String PROMPT_FORMAT = "%s%n[%s]:";
 
-  private BooleanArgument interactiveArg = null;
+  private BooleanArgument noPromptArg = null;
 
   private BooleanArgument quietArg = null;
+
+  /** The print stream to use for standard error. */
+  protected PrintStream err;
+
+  /** The print stream to use for standard output. */
+  protected PrintStream out;
+
+  /** The input stream. */
+  protected InputStream in;
+
+  /**
+   * Constructor for the CliApplicationHelper object.
+   *
+   * @param  out the print stream to use for standard output.
+   * @param  err the print stream to use for standard error.
+   * @param  in the input stream to use for standard input.
+   */
+  protected CliApplicationHelper(PrintStream out, PrintStream err,
+      InputStream in)
+  {
+    this.out = out;
+    this.err = err;
+    this.in = in;
+  }
 
   /**
    * Interactively prompts (on standard output) the user to provide a string
@@ -95,8 +125,8 @@ public class CliApplicationHelper {
 
       Message msg = Message.raw(PROMPT_FORMAT, prompt, defaultValue);
 
-      System.out.print(msg);
-      System.out.flush();
+      out.print(msg);
+      out.flush();
 
       response = Message.raw(readLine());
       if (response.toString().equals(""))
@@ -131,23 +161,23 @@ public class CliApplicationHelper {
             Utils.getCommandLineMaxLineWidth());
 
     while (true) {
-      System.out.print(wrappedPrompt);
+      out.print(wrappedPrompt);
 
       if (defaultValue == null) {
-        System.out.print(": ");
+        out.print(": ");
       } else {
-        System.out.print("[");
-        System.out.print(defaultValue);
-        System.out.print("]: ");
+        out.print("[");
+        out.print(defaultValue);
+        out.print("]: ");
       }
 
-      System.out.flush();
+      out.flush();
 
       String response = readLine();
       if (response.equals("")) {
         if (defaultValue == null) {
           Message message = INFO_ERROR_EMPTY_RESPONSE.get();
-          System.err.println(StaticUtils.wrapText(message,
+          err.println(StaticUtils.wrapText(message,
                   Utils.getCommandLineMaxLineWidth()));
         } else {
           return defaultValue;
@@ -172,8 +202,8 @@ public class CliApplicationHelper {
     printLineBreak();
     String wrappedPrompt = StaticUtils.wrapText(msg,
         Utils.getCommandLineMaxLineWidth());
-    System.out.print(wrappedPrompt+" ");
-    System.out.flush();
+    out.print(wrappedPrompt+" ");
+    out.flush();
     try
     {
       char[] pwChars = PasswordReader.readPassword();
@@ -223,7 +253,7 @@ public class CliApplicationHelper {
         if (port == -1)
         {
           Message message = INFO_CLI_INVALID_PORT.get();
-          System.err.println(StaticUtils.wrapText(message,
+          err.println(StaticUtils.wrapText(message,
                   Utils.getCommandLineMaxLineWidth()));
         }
       }
@@ -238,7 +268,7 @@ public class CliApplicationHelper {
    *          attempting to read the response.
    */
   public String readLine() {
-    return readLine(System.in, System.err);
+    return readLine(in, err);
   }
 
   /**
@@ -367,7 +397,7 @@ public class CliApplicationHelper {
    * <CODE>false</CODE> otherwise.
    */
   protected boolean isInteractive() {
-    return interactiveArg != null && interactiveArg.isPresent();
+    return noPromptArg == null || !noPromptArg.isPresent();
   }
 
   /**
@@ -392,18 +422,19 @@ public class CliApplicationHelper {
     // Initialize all the common command-line argument types and register
     // them with the parser.
     try {
-      interactiveArg =
-           new BooleanArgument("noninteractive session",
-                   SecureConnectionCliParser.INTERACTIVE_OPTION_SHORT,
-                   SecureConnectionCliParser.INTERACTIVE_OPTION_LONG,
-                   null);
-      argParser.addArgument(interactiveArg);
+      noPromptArg = new BooleanArgument(
+          SecureConnectionCliParser.NO_PROMPT_OPTION_LONG,
+          SecureConnectionCliParser.NO_PROMPT_OPTION_SHORT,
+          SecureConnectionCliParser.NO_PROMPT_OPTION_LONG,
+          INFO_DESCRIPTION_NO_PROMPT.get());
+      argParser.addArgument(noPromptArg);
 
       quietArg =
-           new BooleanArgument("silent session",
-                   SecureConnectionCliParser.QUIET_OPTION_SHORT,
-                   SecureConnectionCliParser.QUIET_OPTION_LONG,
-                   null);
+        new BooleanArgument(
+            SecureConnectionCliParser.QUIET_OPTION_LONG,
+            SecureConnectionCliParser.QUIET_OPTION_SHORT,
+            SecureConnectionCliParser.QUIET_OPTION_LONG,
+            INFO_DESCRIPTION_QUIET.get());
       argParser.addArgument(quietArg);
 
     } catch (ArgumentException e) {
@@ -420,7 +451,7 @@ public class CliApplicationHelper {
    */
   protected void printErrorMessage(Message msg)
   {
-    System.err.println(org.opends.server.util.StaticUtils.wrapText(msg,
+    err.println(org.opends.server.util.StaticUtils.wrapText(msg,
         Utils.getCommandLineMaxLineWidth()));
   }
 
@@ -430,7 +461,7 @@ public class CliApplicationHelper {
    */
   protected void printErrorMessage(String msg)
   {
-    System.err.println(org.opends.server.util.StaticUtils.wrapText(msg,
+    err.println(org.opends.server.util.StaticUtils.wrapText(msg,
         Utils.getCommandLineMaxLineWidth()));
   }
 
@@ -439,7 +470,7 @@ public class CliApplicationHelper {
    */
   protected void printLineBreak()
   {
-    System.out.println();
+    out.println();
   }
 
   /**
@@ -511,6 +542,50 @@ public class CliApplicationHelper {
   }
 
   /**
+   * Returns an InitialLdapContext using the provided parameters.  We try
+   * to guarantee that the connection is able to read the configuration.
+   * @param host the host name.
+   * @param port the port to connect.
+   * @param useSSL whether to use SSL or not.
+   * @param useStartTLS whether to use StartTLS or not.
+   * @param bindDn the bind dn to be used.
+   * @param pwd the password.
+   * @param trustManager the trust manager.
+   * @return an InitialLdapContext connected.
+   * @throws NamingException if there was an error establishing the connection.
+   */
+  protected InitialLdapContext createContext(String host, int port,
+      boolean useSSL, boolean useStartTLS, String bindDn, String pwd,
+      ApplicationTrustManager trustManager)
+  throws NamingException
+  {
+    InitialLdapContext ctx;
+    String ldapUrl = ConnectionUtils.getLDAPUrl(host, port, useSSL);
+    if (useSSL)
+    {
+      ctx = Utils.createLdapsContext(ldapUrl, bindDn, pwd,
+          Utils.getDefaultLDAPTimeout(), null, trustManager);
+    }
+    else if (useStartTLS)
+    {
+      ctx = Utils.createStartTLSContext(ldapUrl, bindDn, pwd,
+          Utils.getDefaultLDAPTimeout(), null, trustManager,
+          null);
+    }
+    else
+    {
+      ctx = Utils.createLdapContext(ldapUrl, bindDn, pwd,
+          Utils.getDefaultLDAPTimeout(), null);
+    }
+    if (!ConnectionUtils.connectedAsAdministrativeUser(ctx))
+    {
+      throw new NoPermissionException(
+          ERR_NOT_ADMINISTRATIVE_USER.get().toString());
+    }
+    return ctx;
+  }
+
+  /**
    * Prompts the user to accept the certificate.
    * @param t the throwable that was generated because the certificate was
    * not trusted.
@@ -539,7 +614,7 @@ public class CliApplicationHelper {
     }
     else
     {
-      System.err.println();
+      err.println();
       Message msg = Utils.getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(),
           t);
       printErrorMessage(msg);
@@ -705,10 +780,10 @@ public class CliApplicationHelper {
       };
       for (int j=0; j<labels.length; j++)
       {
-        System.out.println(StaticUtils.wrapText(labels[j]+" "+values[j],
+        out.println(StaticUtils.wrapText(labels[j]+" "+values[j],
             Utils.getCommandLineMaxLineWidth()));
       }
     }
-    System.out.flush();
+    out.flush();
   }
 }

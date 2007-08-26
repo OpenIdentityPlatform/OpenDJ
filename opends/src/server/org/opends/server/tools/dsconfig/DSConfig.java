@@ -51,6 +51,7 @@ import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.Tag;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
+import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.tools.ClientException;
 import org.opends.server.types.DebugLogLevel;
@@ -150,9 +151,9 @@ public final class DSConfig extends ConsoleApplication {
   private final Map<SubCommand, SubCommandHandler> handlers =
     new HashMap<SubCommand, SubCommandHandler>();
 
-  // The argument which should be used to request interactive
+  // The argument which should be used to request non interactive
   // behavior.
-  private BooleanArgument interactiveArgument;
+  private BooleanArgument noPromptArgument;
 
   // The command-line argument parser.
   private final SubCommandArgumentParser parser;
@@ -231,7 +232,7 @@ public final class DSConfig extends ConsoleApplication {
    * {@inheritDoc}
    */
   public boolean isInteractive() {
-    return interactiveArgument.isPresent();
+    return !noPromptArgument.isPresent();
   }
 
 
@@ -293,14 +294,20 @@ public final class DSConfig extends ConsoleApplication {
       verboseArgument = new BooleanArgument("verbose", 'v', "verbose",
           INFO_DESCRIPTION_VERBOSE.get());
 
-      quietArgument = new BooleanArgument("quiet", 'Q', "quiet",
+      quietArgument = new BooleanArgument(
+          SecureConnectionCliParser.QUIET_OPTION_LONG,
+          SecureConnectionCliParser.QUIET_OPTION_SHORT,
+          SecureConnectionCliParser.QUIET_OPTION_LONG,
           INFO_DESCRIPTION_QUIET.get());
 
       scriptFriendlyArgument = new BooleanArgument("script-friendly", 's',
           "script-friendly", INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
 
-      interactiveArgument = new BooleanArgument("interactive", 'i',
-          "interactive", INFO_DESCRIPTION_INTERACTIVE.get());
+      noPromptArgument = new BooleanArgument(
+          SecureConnectionCliParser.NO_PROMPT_OPTION_LONG,
+          SecureConnectionCliParser.NO_PROMPT_OPTION_SHORT,
+          SecureConnectionCliParser.NO_PROMPT_OPTION_LONG,
+          INFO_DESCRIPTION_NO_PROMPT.get());
 
       showUsageArgument = new BooleanArgument("showUsage", OPTION_SHORT_HELP,
               OPTION_LONG_HELP,
@@ -312,7 +319,7 @@ public final class DSConfig extends ConsoleApplication {
       parser.addGlobalArgument(verboseArgument);
       parser.addGlobalArgument(quietArgument);
       parser.addGlobalArgument(scriptFriendlyArgument);
-      parser.addGlobalArgument(interactiveArgument);
+      parser.addGlobalArgument(noPromptArgument);
 
       // Register any global arguments required by the management
       // context factory.
@@ -443,10 +450,10 @@ public final class DSConfig extends ConsoleApplication {
       return 1;
     }
 
-    if (quietArgument.isPresent() && interactiveArgument.isPresent()) {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+    if (quietArgument.isPresent() && !noPromptArgument.isPresent()) {
+      Message message = ERR_DSCFG_ERROR_QUIET_AND_INTERACTIVE_INCOMPATIBLE.get(
               quietArgument.getLongIdentifier(),
-          interactiveArgument.getLongIdentifier());
+          noPromptArgument.getLongIdentifier());
       displayMessageAndUsageReference(message);
       return 1;
     }

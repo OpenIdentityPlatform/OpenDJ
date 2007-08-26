@@ -78,6 +78,14 @@ class UninstallCliHelper extends CliApplicationHelper {
   private UninstallerArgumentParser parser;
 
   /**
+   * Default constructor.
+   */
+  public UninstallCliHelper()
+  {
+    super(System.out, System.err, System.in);
+  }
+
+  /**
    * Creates a UserData based in the arguments provided.  It asks
    * user for additional information if what is provided in the arguments is not
    * enough.
@@ -620,21 +628,21 @@ class UninstallCliHelper extends CliApplicationHelper {
       try
       {
         String dn = ADSContext.getAdministratorDN(uid);
-        if ((ldapsUrl != null) && (parser.useSSL() || !parser.startTLS()))
+        if ((ldapsUrl != null) && (parser.useSSL() || !parser.useStartTLS()))
         {
           usedUrl = ldapsUrl;
           ctx = Utils.createLdapsContext(ldapsUrl, dn, pwd,
               Utils.getDefaultLDAPTimeout(), null, userData.getTrustManager());
         }
         else if ((startTlsUrl != null) &&
-            (!parser.useSSL() || parser.startTLS()))
+            (!parser.useSSL() || parser.useStartTLS()))
         {
           usedUrl = startTlsUrl;
           ctx = Utils.createStartTLSContext(startTlsUrl, dn, pwd,
               Utils.getDefaultLDAPTimeout(), null, userData.getTrustManager(),
               null);
         }
-        else if ((ldapUrl != null) && !parser.useSSL() && !parser.startTLS())
+        else if ((ldapUrl != null) && !parser.useSSL() && !parser.useStartTLS())
         {
           usedUrl = ldapUrl;
           ctx = Utils.createLdapContext(ldapUrl, dn, pwd,
@@ -838,19 +846,19 @@ class UninstallCliHelper extends CliApplicationHelper {
       String adminUid = userData.getAdminUID();
       String pwd = userData.getAdminPwd();
       String dn = ADSContext.getAdministratorDN(adminUid);
-      if ((ldapsUrl != null) && (parser.useSSL() || !parser.startTLS()))
+      if ((ldapsUrl != null) && (parser.useSSL() || !parser.useStartTLS()))
       {
         ctx = Utils.createLdapsContext(ldapsUrl, dn, pwd,
             Utils.getDefaultLDAPTimeout(), null, userData.getTrustManager());
       }
       else if ((startTlsUrl != null) &&
-          (!parser.useSSL() || parser.startTLS()))
+          (!parser.useSSL() || parser.useStartTLS()))
       {
         ctx = Utils.createStartTLSContext(startTlsUrl, dn, pwd,
             Utils.getDefaultLDAPTimeout(), null, userData.getTrustManager(),
             null);
       }
-      else if ((ldapUrl != null) && !parser.useSSL() && !parser.startTLS())
+      else if ((ldapUrl != null) && !parser.useSSL() && !parser.useStartTLS())
       {
         ctx = Utils.createLdapContext(ldapUrl, dn, pwd,
             Utils.getDefaultLDAPTimeout(), null);

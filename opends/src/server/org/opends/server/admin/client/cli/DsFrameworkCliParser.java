@@ -247,7 +247,7 @@ public class DsFrameworkCliParser extends SecureConnectionCliParser
         return null;
       }
     }
-    else if (startTLS())
+    else if (useStartTLS())
     {
       String ldapUrl = "ldap://" + host + ":" + port;
       try

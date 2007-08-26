@@ -179,7 +179,7 @@ public class UpgradeLauncher extends Launcher {
     BooleanArgument showUsage;
     FileBasedArgument file;
     BooleanArgument quiet;
-    BooleanArgument interactive;
+    BooleanArgument noPrompt;
     try
     {
       file = new FileBasedArgument(
@@ -190,12 +190,12 @@ public class UpgradeLauncher extends Launcher {
               "{file}",
               null, null, INFO_UPGRADE_DESCRIPTION_FILE.get());
       argParser.addArgument(file);
-      interactive = new BooleanArgument(
-          SecureConnectionCliParser.INTERACTIVE_OPTION_LONG,
-          SecureConnectionCliParser.INTERACTIVE_OPTION_SHORT,
-          SecureConnectionCliParser.INTERACTIVE_OPTION_LONG,
-          INFO_UPGRADE_DESCRIPTION_INTERACTIVE.get());
-      argParser.addArgument(interactive);
+      noPrompt = new BooleanArgument(
+          SecureConnectionCliParser.NO_PROMPT_OPTION_LONG,
+          SecureConnectionCliParser.NO_PROMPT_OPTION_SHORT,
+          SecureConnectionCliParser.NO_PROMPT_OPTION_LONG,
+          INFO_UPGRADE_DESCRIPTION_NO_PROMPT.get());
+      argParser.addArgument(noPrompt);
       quiet = new BooleanArgument(
           SecureConnectionCliParser.QUIET_OPTION_LONG,
           SecureConnectionCliParser.QUIET_OPTION_SHORT,

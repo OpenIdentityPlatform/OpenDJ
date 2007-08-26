@@ -124,7 +124,7 @@ public class ConfigFromLDAP
     this.trustManager = trustManager;
     this.offlineConf = offlineConf;
     this.policy = policy;
-    String ldapUrl = getURL(offlineConf, policy);
+    String ldapUrl = offlineConf.getURL(policy);
 
     if (!Utils.areDnsEqual(dn, this.dn) ||
         !pwd.equals(this.pwd) ||
@@ -1002,83 +1002,5 @@ public class ConfigFromLDAP
   private boolean isConfigBackend(String id)
   {
     return ConfigFromFile.isConfigBackend(id);
-  }
-
-  private String getURL(ConfigFromFile offlineConf,
-      ConnectionProtocolPolicy policy) throws ConfigException
-  {
-    String url;
-    String ldapUrl = offlineConf.getLDAPURL();
-    String startTlsUrl = offlineConf.getStartTLSURL();
-    String ldapsUrl = offlineConf.getLDAPSURL();
-    switch (policy)
-    {
-    case USE_STARTTLS:
-      if (startTlsUrl != null)
-      {
-        url = startTlsUrl;
-      }
-      else
-      {
-        throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
-      }
-      break;
-    case USE_LDAPS:
-      if (ldapsUrl != null)
-      {
-        url = ldapsUrl;
-      }
-      else
-      {
-        throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
-      }
-      break;
-    case USE_LDAP:
-      if (ldapUrl != null)
-      {
-        url = ldapUrl;
-      }
-      else
-      {
-        throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
-      }
-      break;
-    case USE_MOST_SECURE_AVAILABLE:
-      if (ldapsUrl != null)
-      {
-        url = ldapsUrl;
-      }
-      else if (startTlsUrl != null)
-      {
-        url = startTlsUrl;
-      }
-      else if (ldapUrl != null)
-      {
-        url = ldapUrl;
-      }
-      else
-      {
-        throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
-      }
-      break;
-    case USE_LESS_SECURE_AVAILABLE:
-      if (ldapUrl != null)
-      {
-        url = ldapUrl;
-      }
-      else if (ldapsUrl != null)
-      {
-        url = ldapsUrl;
-      }
-      else
-      {
-        throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
-      }
-      break;
-      default:
-        throw new IllegalStateException("Unknown connection policy: "+
-            policy);
-    }
-    return url;
   }
 }

@@ -50,6 +50,14 @@ public class UpgraderCliHelper extends CliApplicationHelper {
   StringArgument localInstallPackFileNameArg = null;
 
   /**
+   * Default constructor.
+   */
+  public UpgraderCliHelper()
+  {
+    super(System.out, System.err, System.in);
+  }
+
+  /**
    * Creates a set of user data from command line arguments and installation
    * status.
    * @param args String[] of arguments passed in from the command line
