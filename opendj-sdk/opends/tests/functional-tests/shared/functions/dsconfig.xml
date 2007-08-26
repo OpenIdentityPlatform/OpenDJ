@@ -44,6 +44,8 @@
       
       if dsInstancePswd:
         STAFCmdParamsList.append('-w "%s"' % dsInstancePswd)
+        
+      STAFCmdParamsList.append('-n')
     </script>
   </function>
   
