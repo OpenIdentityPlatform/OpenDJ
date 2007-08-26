@@ -415,7 +415,7 @@ public class FileSystemEntryCache
               public void run() {
                 if ((persistentEntriesRestored > 0) &&
                     (persistentEntriesRestored < persistentEntriesTotal)) {
-                  Message message = INFO_FSCACHE_RESTORE_PROGRESS_REPORT.get(
+                  Message message = NOTE_FSCACHE_RESTORE_PROGRESS_REPORT.get(
                       persistentEntriesRestored, persistentEntriesTotal);
                   logError(message);
                 }
@@ -446,7 +446,7 @@ public class FileSystemEntryCache
               timer.cancel();
 
               // Final persistent state restore progress report.
-              Message message = INFO_FSCACHE_RESTORE_PROGRESS_REPORT.get(
+              Message message = NOTE_FSCACHE_RESTORE_PROGRESS_REPORT.get(
                   persistentEntriesRestored, persistentEntriesTotal);
               logError(message);
             }
@@ -478,7 +478,7 @@ public class FileSystemEntryCache
           }
 
           // Log an error message.
-          logError(INFO_FSCACHE_INDEX_NOT_FOUND.get());
+          logError(NOTE_FSCACHE_INDEX_NOT_FOUND.get());
 
           // Clear the entry cache.
           clear();
@@ -550,7 +550,7 @@ public class FileSystemEntryCache
         public void run() {
           if ((persistentEntriesSaved > 0) &&
               (persistentEntriesSaved < persistentEntriesTotal)) {
-            Message message = INFO_FSCACHE_SAVE_PROGRESS_REPORT.get(
+            Message message = NOTE_FSCACHE_SAVE_PROGRESS_REPORT.get(
                 persistentEntriesSaved, persistentEntriesTotal);
             logError(message);
           }
@@ -577,7 +577,7 @@ public class FileSystemEntryCache
         timer.cancel();
 
         // Final persistent state save progress report.
-        Message message = INFO_FSCACHE_SAVE_PROGRESS_REPORT.get(
+        Message message = NOTE_FSCACHE_SAVE_PROGRESS_REPORT.get(
             persistentEntriesSaved, persistentEntriesTotal);
         logError(message);
       }
