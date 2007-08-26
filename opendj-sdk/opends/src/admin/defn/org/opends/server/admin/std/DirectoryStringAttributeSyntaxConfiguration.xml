@@ -46,6 +46,16 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     </ldap:object-class>
   </adm:profile>
 
+  <adm:property-override name="syntax-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.schema.DirectoryStringSyntax
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+
   <adm:property name="allow-zero-length-values" mandatory="false">
     <adm:synopsis>
       Indicate whether zero-length (i.e., empty string) values will be allowed.

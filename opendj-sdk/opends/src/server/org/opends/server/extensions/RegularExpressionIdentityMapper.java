@@ -34,7 +34,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.SortedSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -146,22 +145,8 @@ public class RegularExpressionIdentityMapper
 
 
     // Get the attribute types to use for the searches.
-    SortedSet<String> attrNames = currentConfig.getMatchAttribute();
-    attributeTypes = new AttributeType[attrNames.size()];
-    int i=0;
-    for (String name : attrNames)
-    {
-      AttributeType type = DirectoryServer.getAttributeType(toLowerCase(name),
-                                                            false);
-      if (type == null)
-      {
-        Message message = ERR_REGEXMAP_UNKNOWN_ATTR.get(
-                String.valueOf(configEntryDN), name);
-        throw new ConfigException(message);
-      }
-
-      attributeTypes[i++] = type;
-    }
+    attributeTypes =
+         currentConfig.getMatchAttribute().toArray(new AttributeType[0]);
 
 
     // Create the attribute list to include in search requests.  We want to
@@ -353,21 +338,6 @@ public class RegularExpressionIdentityMapper
       configAcceptable = false;
     }
 
-    // Make sure that the set of attribute types is acceptable.
-    SortedSet<String> attributeNames = configuration.getMatchAttribute();
-    for (String name : attributeNames)
-    {
-      AttributeType t = DirectoryServer.getAttributeType(toLowerCase(name),
-                                                         false);
-      if (t == null)
-      {
-        Message message = ERR_REGEXMAP_UNKNOWN_ATTR.get(
-                String.valueOf(configuration.dn()), name);
-        unacceptableReasons.add(message);
-        configAcceptable = false;
-      }
-    }
-
 
     return configAcceptable;
   }
@@ -406,28 +376,8 @@ public class RegularExpressionIdentityMapper
     }
 
 
-    // Get the attribute types to use for the searches.
-    SortedSet<String> attrNames = configuration.getMatchAttribute();
-    AttributeType[] newAttributeTypes = new AttributeType[attrNames.size()];
-    int i=0;
-    for (String name : attrNames)
-    {
-      AttributeType type = DirectoryServer.getAttributeType(toLowerCase(name),
-                                                            false);
-      if (type == null)
-      {
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = ResultCode.NO_SUCH_ATTRIBUTE;
-        }
-
-        Message message = ERR_REGEXMAP_UNKNOWN_ATTR.get(
-                        String.valueOf(configEntryDN), name);
-        messages.add(message);
-      }
-
-      newAttributeTypes[i++] = type;
-    }
+    AttributeType[] newAttributeTypes =
+         configuration.getMatchAttribute().toArray(new AttributeType[0]);
 
 
     if (resultCode == ResultCode.SUCCESS)

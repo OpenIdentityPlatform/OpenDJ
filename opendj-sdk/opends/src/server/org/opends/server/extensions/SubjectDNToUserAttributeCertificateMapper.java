@@ -32,7 +32,6 @@ import org.opends.messages.Message;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import javax.security.auth.x500.X500Principal;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -83,9 +82,6 @@ public class SubjectDNToUserAttributeCertificateMapper
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // The attribute type that will be used to map the certificate's subject.
-  private AttributeType subjectAttributeType;
-
   // The DN of the configuration entry for this certificate mapper.
   private DN configEntryDN;
 
@@ -118,18 +114,6 @@ public class SubjectDNToUserAttributeCertificateMapper
 
     currentConfig = configuration;
     configEntryDN = configuration.dn();
-
-
-    // Get the attribute type that will be used to hold the fingerprint.
-    String attrName = configuration.getSubjectAttribute();
-    subjectAttributeType =
-         DirectoryServer.getAttributeType(toLowerCase(attrName), false);
-    if (subjectAttributeType == null)
-    {
-      Message message =
-          ERR_SDTUACM_NO_SUCH_ATTR.get(String.valueOf(configEntryDN), attrName);
-      throw new ConfigException(message);
-    }
   }
 
 
@@ -152,7 +136,7 @@ public class SubjectDNToUserAttributeCertificateMapper
   {
     SubjectDNToUserAttributeCertificateMapperCfg config =
          currentConfig;
-    AttributeType subjectAttributeType = this.subjectAttributeType;
+    AttributeType subjectAttributeType = config.getSubjectAttribute();
 
 
     // Make sure that a peer certificate was provided.
@@ -255,23 +239,9 @@ public class SubjectDNToUserAttributeCertificateMapper
                            configuration,
                       List<Message> unacceptableReasons)
   {
+    // If we've gotten to this point, then the configuration should be
+    // acceptable.
     boolean configAcceptable = true;
-    DN cfgEntryDN = configuration.dn();
-
-    // Make sure that the subject attribute is defined in the server schema.
-    String attrName = configuration.getSubjectAttribute();
-    AttributeType newSubjectType =
-                       DirectoryServer.getAttributeType(toLowerCase(attrName),
-                                       false);
-    if (newSubjectType == null)
-    {
-      unacceptableReasons.add(ERR_SDTUACM_NO_SUCH_ATTR.get(
-              String.valueOf(cfgEntryDN),
-              attrName));
-      configAcceptable = false;
-    }
-
-
     return configAcceptable;
   }
 
@@ -284,36 +254,8 @@ public class SubjectDNToUserAttributeCertificateMapper
               SubjectDNToUserAttributeCertificateMapperCfg
                    configuration)
   {
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
-
-
-    // Make sure that the fingerprint attribute is defined in the server schema.
-    String attrName = configuration.getSubjectAttribute();
-    AttributeType newSubjectType =
-                       DirectoryServer.getAttributeType(toLowerCase(attrName),
-                                       false);
-    if (newSubjectType == null)
-    {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = ResultCode.NO_SUCH_ATTRIBUTE;
-      }
-
-      messages.add(ERR_SDTUACM_NO_SUCH_ATTR.get(
-              String.valueOf(configEntryDN), attrName));
-    }
-
-
-    if (resultCode == ResultCode.SUCCESS)
-    {
-      subjectAttributeType = newSubjectType;
-      currentConfig        = configuration;
-    }
-
-
-   return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    currentConfig = configuration;
+    return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 }
 

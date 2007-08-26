@@ -82,8 +82,7 @@ public class FingerprintCertificateMapper
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // The attribute type that will be used to map the certificate's fingerprint.
-  private AttributeType fingerprintAttributeType;
+
 
   // The DN of the configuration entry for this certificate mapper.
   private DN configEntryDN;
@@ -121,18 +120,6 @@ public class FingerprintCertificateMapper
     configEntryDN = configuration.dn();
 
 
-    // Get the attribute type that will be used to hold the fingerprint.
-    String attrName = configuration.getFingerprintAttribute();
-    fingerprintAttributeType =
-         DirectoryServer.getAttributeType(toLowerCase(attrName), false);
-    if (fingerprintAttributeType == null)
-    {
-      Message message =
-          ERR_FCM_NO_SUCH_ATTR.get(String.valueOf(configEntryDN), attrName);
-      throw new ConfigException(message);
-    }
-
-
     // Get the algorithm that will be used to generate the fingerprint.
     switch (configuration.getFingerprintAlgorithm())
     {
@@ -164,7 +151,7 @@ public class FingerprintCertificateMapper
          throws DirectoryException
   {
     FingerprintCertificateMapperCfg config = currentConfig;
-    AttributeType fingerprintAttributeType = this.fingerprintAttributeType;
+    AttributeType fingerprintAttributeType = config.getFingerprintAttribute();
     String fingerprintAlgorithm = this.fingerprintAlgorithm;
 
     // Make sure that a peer certificate was provided.
@@ -289,23 +276,9 @@ public class FingerprintCertificateMapper
                       FingerprintCertificateMapperCfg configuration,
                       List<Message> unacceptableReasons)
   {
+    // If we've gotten to this point, then the configuration should be
+    // acceptable.
     boolean configAcceptable = true;
-    DN cfgEntryDN = configuration.dn();
-
-    // Make sure that the fingerprint attribute is defined in the server schema.
-    String attrName = configuration.getFingerprintAttribute();
-    AttributeType newFingerprintType =
-                       DirectoryServer.getAttributeType(toLowerCase(attrName),
-                                       false);
-    if (newFingerprintType == null)
-    {
-      unacceptableReasons.add(ERR_FCM_NO_SUCH_ATTR.get(
-              String.valueOf(cfgEntryDN),
-              attrName));
-      configAcceptable = false;
-    }
-
-
     return configAcceptable;
   }
 
@@ -320,23 +293,6 @@ public class FingerprintCertificateMapper
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<Message> messages            = new ArrayList<Message>();
-
-
-    // Make sure that the fingerprint attribute is defined in the server schema.
-    String attrName = configuration.getFingerprintAttribute();
-    AttributeType newFingerprintType =
-                       DirectoryServer.getAttributeType(toLowerCase(attrName),
-                                       false);
-    if (newFingerprintType == null)
-    {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = ResultCode.NO_SUCH_ATTRIBUTE;
-      }
-
-      messages.add(ERR_FCM_NO_SUCH_ATTR.get(
-              String.valueOf(configEntryDN), attrName));
-    }
 
 
     // Get the algorithm that will be used to generate the fingerprint.
@@ -354,9 +310,8 @@ public class FingerprintCertificateMapper
 
     if (resultCode == ResultCode.SUCCESS)
     {
-      fingerprintAttributeType = newFingerprintType;
-      fingerprintAlgorithm     = newFingerprintAlgorithm;
-      currentConfig            = configuration;
+      fingerprintAlgorithm = newFingerprintAlgorithm;
+      currentConfig        = configuration;
     }
 
 
