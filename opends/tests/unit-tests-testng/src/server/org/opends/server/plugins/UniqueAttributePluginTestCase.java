@@ -86,8 +86,12 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
    */
   @BeforeMethod
   public void clearConfigEntries() throws Exception {
-    deleteAttrsFromEntry(uidConfigDN,dsConfigAttrType, dsConfigBaseDN);
-    deleteAttrsFromEntry(testConfigDN,dsConfigAttrType, dsConfigBaseDN);
+    deleteAttrsFromEntry(uidConfigDN, dsConfigBaseDN);
+    deleteAttrsFromEntry(testConfigDN, dsConfigBaseDN);
+    //Put an attribute type there that won't impact the rest of the unit
+    //tests.
+    replaceAttrInEntry(uidConfigDN, dsConfigAttrType,"oncRpcNumber");
+    replaceAttrInEntry(testConfigDN, dsConfigAttrType,"bootParameter");
   }
 
 
@@ -126,28 +130,6 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
         "ds-cfg-plugin-type: preOperationAdd",
         "ds-cfg-plugin-type: preOperationModify",
         "ds-cfg-plugin-type: preOperationModifyDN",
-        "",
-        "dn: cn=UID Unique Attribute,cn=Plugins,cn=config",
-        "objectClass: top",
-        "objectClass: ds-cfg-plugin",
-        "objectClass: ds-cfg-unique-attribute-plugin",
-        "cn: UID Unique Attribute",
-        "ds-cfg-plugin-class: org.opends.server.plugins.UniqueAttributePlugin",
-        "ds-cfg-plugin-enabled: true",
-        "ds-cfg-plugin-type: preOperationAdd",
-        "ds-cfg-plugin-type: preOperationModify",
-        "ds-cfg-plugin-type: preOperationModifyDN",
-        "",
-        "dn: cn=UID Unique Attribute,cn=Plugins,cn=config",
-        "objectClass: top",
-        "objectClass: ds-cfg-plugin",
-        "objectClass: ds-cfg-unique-attribute-plugin",
-        "cn: UID Unique Attribute",
-        "ds-cfg-plugin-class: org.opends.server.plugins.UniqueAttributePlugin",
-        "ds-cfg-plugin-enabled: true",
-        "ds-cfg-plugin-type: preOperationAdd",
-        "ds-cfg-plugin-type: preOperationModify",
-        "ds-cfg-plugin-type: preOperationModifyDN",
         "ds-cfg-unique-attribute-type: uid",
         "",
         "dn: cn=mail Unique Attribute,cn=Plugins,cn=config",
@@ -161,7 +143,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
         "ds-cfg-plugin-type: preOperationModify",
         "ds-cfg-plugin-type: preOperationModifyDN",
         "ds-cfg-unique-attribute-type: mail",
-        "ds-cfg-unique-attribute-type: othermail",
+        "ds-cfg-unique-attribute-type: sn",
         "",
         "dn: cn=phone Unique Attribute,cn=Plugins,cn=config",
         "objectClass: top",
@@ -173,50 +155,41 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
         "ds-cfg-plugin-type: preOperationAdd",
         "ds-cfg-plugin-type: preOperationModify",
         "ds-cfg-plugin-type: preOperationModifyDN",
-        "ds-cfg-unique-attribute-type: telephone",
+        "ds-cfg-unique-attribute-type: telephoneNumber",
         "ds-cfg-unique-attribute-type: mobile",
-        "ds-cfg-unique-attribute-type: fax",
+        "ds-cfg-unique-attribute-type: facsimileTelephoneNumber",
         "ds-cfg-unique-attribute-base-dn: dc=example,dc=com",
         "ds-cfg-unique-attribute-base-dn: o=test",
         "",
-        "dn: cn=UID Unique Attribute,cn=Plugins,cn=config",
+        "dn: cn=UID0 Unique Attribute,cn=Plugins,cn=config",
         "objectClass: top",
         "objectClass: ds-cfg-plugin",
         "objectClass: ds-cfg-unique-attribute-plugin",
-        "cn: UID Unique Attribute",
+        "cn: UUID0 Unique Attribute",
         "ds-cfg-plugin-class: org.opends.server.plugins.UniqueAttributePlugin",
         "ds-cfg-plugin-enabled: true",
         "ds-cfg-plugin-type: preOperationAdd",
-        "ds-cfg-plugin-type: preOperationModify",
-        "ds-cfg-plugin-type: preOperationModifyDN",
         "ds-cfg-unique-attribute-type: uid",
         "",
-        "dn: cn=UID Unique Attribute,cn=Plugins,cn=config",
+        "dn: cn=UID1 Unique Attribute,cn=Plugins,cn=config",
         "objectClass: top",
         "objectClass: ds-cfg-plugin",
         "objectClass: ds-cfg-unique-attribute-plugin",
-        "cn: UUID Unique Attribute",
-        "ds-cfg-plugin-class: org.opends.server.plugins.UniqueAttributePlugin",
-        "ds-cfg-plugin-enabled: true",
-        "ds-cfg-plugin-type: preOperationAdd",
-        "",
-        "dn: cn=UID Unique Attribute,cn=Plugins,cn=config",
-        "objectClass: top",
-        "objectClass: ds-cfg-plugin",
-        "objectClass: ds-cfg-unique-attribute-plugin",
-        "cn: UUID Unique Attribute",
+        "cn: UUID1 Unique Attribute",
         "ds-cfg-plugin-class: org.opends.server.plugins.UniqueAttributePlugin",
         "ds-cfg-plugin-enabled: true",
         "ds-cfg-plugin-type: preOperationModify",
+        "ds-cfg-unique-attribute-type: uid",
         "",
-        "dn: cn=UID Unique Attribute,cn=Plugins,cn=config",
+        "dn: cn=UID2 Unique Attribute,cn=Plugins,cn=config",
         "objectClass: top",
         "objectClass: ds-cfg-plugin",
         "objectClass: ds-cfg-unique-attribute-plugin",
-        "cn: UUID Unique Attribute",
+        "cn: UUID2 Unique Attribute",
         "ds-cfg-plugin-class: org.opends.server.plugins.UniqueAttributePlugin",
         "ds-cfg-plugin-enabled: true",
-        "ds-cfg-plugin-type: preOperationModifyDN");
+        "ds-cfg-plugin-type: preOperationModifyDN",
+        "ds-cfg-unique-attribute-type: uid");
   Object[][] array = new Object[entries.size()][1];
   for (int i=0; i < array.length; i++)
   {
@@ -275,6 +248,17 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
         "ds-cfg-plugin-enabled: true",
         "ds-cfg-plugin-type: preOperationAdd",
         "ds-cfg-plugin-type: preOperationModify",
+        "ds-cfg-plugin-type: preOperationModifyDN",
+        "",
+        "dn: cn=UID Unique Attribute,cn=Plugins,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-plugin",
+        "objectClass: ds-cfg-unique-attribute-plugin",
+        "cn: UID Unique Attribute",
+        "ds-cfg-plugin-class: org.opends.server.plugins.UniqueAttributePlugin",
+        "ds-cfg-plugin-enabled: true",
+        "ds-cfg-plugin-type: preOperationAdd",
+        "ds-cfg-plugin-type: preOperationModify",
         "ds-cfg-plugin-type: ldifImport",
         "",
         "dn: cn=phone Unique Attribute,cn=Plugins,cn=config",
@@ -305,7 +289,22 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
         "ds-cfg-unique-attribute-type: mobile",
         "ds-cfg-unique-attribute-type: fax",
         "ds-cfg-unique-attribute-base-dn: dc=example,dc=com",
-        "ds-cfg-unique-attribute-base-dn: badDN");
+        "ds-cfg-unique-attribute-base-dn: badDN",
+        "",
+        "dn: cn=phone Unique Attribute,cn=Plugins,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-plugin",
+        "objectClass: ds-cfg-unique-attribute-plugin",
+        "cn: phone Unique Attribute",
+        "ds-cfg-plugin-class: org.opends.server.plugins.UniqueAttributePlugin",
+        "ds-cfg-plugin-enabled: true",
+        "ds-cfg-plugin-type: preOperationAdd",
+        "ds-cfg-plugin-type: preOperationModify",
+        "ds-cfg-plugin-type: preOperationModifyDN",
+        "ds-cfg-unique-attribute-type: telephone",
+        "ds-cfg-unique-attribute-type: mobile",
+        "ds-cfg-unique-attribute-type: badattribute",
+        "ds-cfg-unique-attribute-base-dn: dc=example,dc=com" );
 
     Object[][] array = new Object[entries.size()][1];
     for (int i=0; i < array.length; i++)
@@ -358,7 +357,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
      addEntry(e, ResultCode.SUCCESS);
     //Setup uid attribute to be unique. Test using public naming contexts
     //for base DNs.
-    addAttrToEntry(uidConfigDN,dsConfigAttrType,"uid");
+    replaceAttrInEntry(uidConfigDN,dsConfigAttrType,"uid");
     //Rename with new rdn, should fail, there is an entry already with that
     //uid value.
     doModDN(DN.decode("uid=3user.3, ou=people, o=test"), RDN.decode("uid=4"),
@@ -369,7 +368,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
                       RDN.decode("sn=xx+uid=4"),
                       false, null, ResultCode.CONSTRAINT_VIOLATION);
     //Now add a base dn to be unique under, so new superior move can be tested.
-    addAttrToEntry(uidConfigDN,dsConfigBaseDN,"ou=new people,o=test");
+    replaceAttrInEntry(uidConfigDN,dsConfigBaseDN,"ou=new people,o=test");
 
 
     //Try to move the entry to a new superior.
@@ -395,7 +394,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
    */
   @Test()
   public void testModOperationNameContexts() throws Exception {
-    addAttrToEntry(uidConfigDN,dsConfigAttrType,"mail");
+    replaceAttrInEntry(uidConfigDN,dsConfigAttrType,"mail");
     LinkedList<Modification> mods = new LinkedList<Modification>();
     addMods(mods,"mail",ModificationType.REPLACE,"userx@test","userxx@test",
            "user1t@test");
@@ -418,10 +417,8 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     doMods(mods, DN.decode("uid=1user.1,ou=People,o=test"),
            ResultCode.SUCCESS);
     mods.clear();
-    //Remove mail as the unique attribute.
-    deleteAttrsFromEntry(uidConfigDN,dsConfigAttrType);
-    //Add employeenumber as the unique attribute.
-    addAttrToEntry(uidConfigDN,dsConfigAttrType,"employeenumber");
+    //Replace employeenumber as the unique attribute.
+    replaceAttrInEntry(uidConfigDN,dsConfigAttrType,"employeenumber");
     addMods(mods,"employeenumber",ModificationType.INCREMENT,"1");
     //Test modify increment extension.
     //Fail because incremented value of employeenumber (2) already exists.
@@ -440,11 +437,11 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
   @Test()
   public void testDseeCompatAdd() throws Exception {
     //Set up one plugin with mail attribute and a suffix.
-    addAttrToEntry(uidConfigDN,dsConfigAttrType,"mail");
-    addAttrToEntry(uidConfigDN,dsConfigBaseDN,"ou=People,o=test");
+    replaceAttrInEntry(uidConfigDN,dsConfigAttrType,"mail");
+    replaceAttrInEntry(uidConfigDN,dsConfigBaseDN,"ou=People,o=test");
     //Set up another plugin with the mail attribute and a different suffix.
-    addAttrToEntry(testConfigDN,dsConfigAttrType,"mail");
-    addAttrToEntry(testConfigDN,dsConfigBaseDN,"ou=People1,o=test");
+    replaceAttrInEntry(testConfigDN,dsConfigAttrType,"mail");
+    replaceAttrInEntry(testConfigDN,dsConfigBaseDN,"ou=People1,o=test");
     //Add two entries with same mail attribute value into the different
     //base DNs.
     Entry e1 = makeEntry("cn=test user1, ou=People,o=test");
@@ -470,19 +467,17 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
    */
   @Test()
   public void testAddOperation() throws Exception {
-    addAttrToEntry(uidConfigDN,dsConfigAttrType,"mail");
-    addAttrToEntry(uidConfigDN,dsConfigBaseDN,"ou=People1,o=test");
-    addAttrToEntry(uidConfigDN,dsConfigBaseDN,"ou=People,o=test");
+    replaceAttrInEntry(uidConfigDN,dsConfigAttrType,"mail");
+    replaceAttrInEntry(uidConfigDN,dsConfigBaseDN,"ou=People1,o=test",
+                       "ou=People, o=test");
     Entry e = makeEntry("cn=test user, ou=People,o=test");
     addAttribute(e, "mail", "user1t@test");
     //Fail because mail attribute already exists under "ou=people,o=test".
     addEntry(e, ResultCode.CONSTRAINT_VIOLATION);
     delAttribute(e, "mail");
-    //Remove mail attribute type from config.
-    deleteAttrsFromEntry(uidConfigDN,dsConfigAttrType);
-    //Add mobile, pager, telephonenumber to config.
-    addAttrToEntry(uidConfigDN,dsConfigAttrType,"mobile",
-                  "pager","telephonenumber");
+    //Replace mobile, pager, telephonenumber to config.
+    replaceAttrInEntry(uidConfigDN,dsConfigAttrType,"mobile",
+                       "pager","telephonenumber");
     addAttribute(e, "mobile", "1-999-1234","1-999-5678","1-444-9012");
     addEntry(e, ResultCode.CONSTRAINT_VIOLATION);
     e.setDN(DN.decode("cn=test user, ou=People,o=test"));
@@ -496,9 +491,9 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     addEntry(e, ResultCode.CONSTRAINT_VIOLATION);
     //Test two plugin configuration. Add mail attribute to second plugin
     //instance, leave the first instance as it is.
-    addAttrToEntry(testConfigDN,dsConfigAttrType,"mail");
+    replaceAttrInEntry(testConfigDN,dsConfigAttrType,"mail");
     //Add suffix to second plugin.
-    addAttrToEntry(testConfigDN,dsConfigBaseDN,"ou=People,o=test");
+    replaceAttrInEntry(testConfigDN,dsConfigBaseDN,"ou=People,o=test");
     delAttribute(e, "pager");
     //Add some values that will pass the first plugin.
     addAttribute(e, "telephonenumber", "2-999-1234","1-999-5678","1-999-9012");
@@ -517,15 +512,14 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
    */
   @Test()
   public void testAddOperationNameContext() throws Exception {
-    addAttrToEntry(uidConfigDN,dsConfigAttrType,"mail");
+    replaceAttrInEntry(uidConfigDN,dsConfigAttrType,"mail");
     Entry e = makeEntry("cn=test user, ou=People,o=test");
     addAttribute(e, "mail", "user77x@test");
     //Fail because mail value "user77x@test" is a value under the
     //"dc=example,dc=com" naming context.
     addEntry(e, ResultCode.CONSTRAINT_VIOLATION);
     delAttribute(e, "mail");
-    deleteAttrsFromEntry(uidConfigDN,dsConfigAttrType);
-    addAttrToEntry(uidConfigDN,dsConfigAttrType,"mobile",
+    replaceAttrInEntry(uidConfigDN,dsConfigAttrType,"mobile",
                   "pager","telephonenumber");
     addAttribute(e, "mobile", "1-999-1234","1-999-5678","2-777-9012");
     //Fail because "2-777-9012"  is a telephone value under the
@@ -773,6 +767,22 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
             InternalClientConnection.getRootConnection();
     conn.processModify(dn, mods);
   }
+
+  private void
+  replaceAttrInEntry(DN dn, String attrTypeString, String... attrValStrings) {
+    LinkedList<Modification> mods = new LinkedList<Modification>();
+    LinkedHashSet<AttributeValue> attrValues =
+                                            new LinkedHashSet<AttributeValue>();
+    AttributeType attrType = getAttrType(attrTypeString);
+    for(String valString : attrValStrings)
+      attrValues.add(new AttributeValue(attrType, valString));
+    Attribute attr = new Attribute(attrType, attrTypeString, attrValues);
+    mods.add(new Modification(ModificationType.REPLACE, attr));
+    InternalClientConnection conn =
+            InternalClientConnection.getRootConnection();
+    conn.processModify(dn, mods);
+  }
+
 
   /**
    * Try to add an entry to the server checking for the expected return

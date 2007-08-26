@@ -2215,6 +2215,6 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.121
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.120
   NAME 'ds-cfg-unique-attribute-plugin' SUP ds-cfg-plugin
-  STRUCTURAL
-  MAY ( ds-cfg-unique-attribute-type $ ds-cfg-unique-attribute-base-dn )
+  STRUCTURAL MUST ds-cfg-unique-attribute-type
+  MAY ds-cfg-unique-attribute-base-dn
   X-ORIGIN 'OpenDS Directory Server' )
