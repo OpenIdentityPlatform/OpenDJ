@@ -94,6 +94,7 @@ import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.AcceptRejectWarn;
+import org.opends.server.types.AccountStatusNotification;
 import org.opends.server.types.AccountStatusNotificationType;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -2180,15 +2181,21 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
                 Message message = INFO_MODIFY_PASSWORD_CHANGED.get();
                 pwPolicyState.generateAccountStatusNotification(
-                    AccountStatusNotificationType.PASSWORD_CHANGED, entryDN,
-                    message);
+                    AccountStatusNotificationType.PASSWORD_CHANGED,
+                    modifiedEntry, message,
+                    AccountStatusNotification.createProperties(pwPolicyState,
+                         false, -1, localOp.getCurrentPasswords(),
+                         localOp.getNewPasswords()));
               }
               else
               {
                 Message message = INFO_MODIFY_PASSWORD_RESET.get();
                 pwPolicyState.generateAccountStatusNotification(
-                    AccountStatusNotificationType.PASSWORD_RESET, entryDN,
-                    message);
+                    AccountStatusNotificationType.PASSWORD_RESET, modifiedEntry,
+                    message,
+                    AccountStatusNotification.createProperties(pwPolicyState,
+                         false, -1, localOp.getCurrentPasswords(),
+                         localOp.getNewPasswords()));
               }
             }
 
@@ -2198,15 +2205,19 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               {
                 Message message = INFO_MODIFY_ACCOUNT_ENABLED.get();
                 pwPolicyState.generateAccountStatusNotification(
-                    AccountStatusNotificationType.ACCOUNT_ENABLED, entryDN,
-                    message);
+                    AccountStatusNotificationType.ACCOUNT_ENABLED,
+                    modifiedEntry, message,
+                    AccountStatusNotification.createProperties(pwPolicyState,
+                         false, -1, null, null));
               }
               else
               {
                 Message message = INFO_MODIFY_ACCOUNT_DISABLED.get();
                 pwPolicyState.generateAccountStatusNotification(
-                    AccountStatusNotificationType.ACCOUNT_DISABLED, entryDN,
-                    message);
+                    AccountStatusNotificationType.ACCOUNT_DISABLED,
+                    modifiedEntry, message,
+                    AccountStatusNotification.createProperties(pwPolicyState,
+                         false, -1, null, null));
               }
             }
 
@@ -2214,8 +2225,10 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             {
               Message message = INFO_MODIFY_ACCOUNT_UNLOCKED.get();
               pwPolicyState.generateAccountStatusNotification(
-                  AccountStatusNotificationType.ACCOUNT_UNLOCKED, entryDN,
-                  message);
+                  AccountStatusNotificationType.ACCOUNT_UNLOCKED, modifiedEntry,
+                  message,
+                  AccountStatusNotification.createProperties(pwPolicyState,
+                       false, -1, null, null));
             }
           }
 
@@ -3384,8 +3397,10 @@ bindProcessing:
               localOp.setAuthFailureReason(message);
 
               pwPolicyState.generateAccountStatusNotification(
-                   AccountStatusNotificationType.ACCOUNT_EXPIRED, bindDN,
-                      message);
+                   AccountStatusNotificationType.ACCOUNT_EXPIRED, userEntry,
+                   message,
+                   AccountStatusNotification.createProperties(pwPolicyState,
+                         false, -1, null, null));
 
               break bindProcessing;
             }
@@ -3417,8 +3432,10 @@ bindProcessing:
               localOp.setAuthFailureReason(message);
 
               pwPolicyState.generateAccountStatusNotification(
-                   AccountStatusNotificationType.ACCOUNT_RESET_LOCKED, bindDN,
-                      message);
+                   AccountStatusNotificationType.ACCOUNT_RESET_LOCKED,
+                   userEntry, message,
+                   AccountStatusNotification.createProperties(pwPolicyState,
+                         false, -1, null, null));
 
               break bindProcessing;
             }
@@ -3436,8 +3453,10 @@ bindProcessing:
               localOp.setAuthFailureReason(message);
 
               pwPolicyState.generateAccountStatusNotification(
-                   AccountStatusNotificationType.ACCOUNT_IDLE_LOCKED, bindDN,
-                      message);
+                   AccountStatusNotificationType.ACCOUNT_IDLE_LOCKED, userEntry,
+                   message,
+                   AccountStatusNotification.createProperties(pwPolicyState,
+                         false, -1, null, null));
 
               break bindProcessing;
             }
@@ -3479,8 +3498,10 @@ bindProcessing:
                   localOp.setAuthFailureReason(message);
 
                   pwPolicyState.generateAccountStatusNotification(
-                       AccountStatusNotificationType.PASSWORD_EXPIRED, bindDN,
-                          message);
+                       AccountStatusNotificationType.PASSWORD_EXPIRED,
+                       userEntry, message,
+                       AccountStatusNotification.createProperties(pwPolicyState,
+                             false, -1, null, null));
 
                   break bindProcessing;
                 }
@@ -3494,8 +3515,10 @@ bindProcessing:
                 localOp.setAuthFailureReason(message);
 
                 pwPolicyState.generateAccountStatusNotification(
-                     AccountStatusNotificationType.PASSWORD_EXPIRED, bindDN,
-                        message);
+                     AccountStatusNotificationType.PASSWORD_EXPIRED, userEntry,
+                     message,
+                     AccountStatusNotification.createProperties(pwPolicyState,
+                           false, -1, null, null));
 
                 break bindProcessing;
               }
@@ -3766,8 +3789,10 @@ bindProcessing:
                         timeToExpiration);
 
                 pwPolicyState.generateAccountStatusNotification(
-                     AccountStatusNotificationType.PASSWORD_EXPIRING, bindDN,
-                        message);
+                     AccountStatusNotificationType.PASSWORD_EXPIRING, userEntry,
+                     message,
+                     AccountStatusNotification.createProperties(pwPolicyState,
+                           false, numSeconds, null, null));
               }
 
               if (isGraceLogin)
@@ -3791,11 +3816,13 @@ bindProcessing:
                 {
                   AccountStatusNotificationType notificationType;
 
+                  boolean tempLocked;
                   int lockoutDuration = pwPolicyState.getSecondsUntilUnlock();
                   if (lockoutDuration > -1)
                   {
                     notificationType = AccountStatusNotificationType.
                                             ACCOUNT_TEMPORARILY_LOCKED;
+                    tempLocked = true;
 
                     message = ERR_BIND_ACCOUNT_TEMPORARILY_LOCKED.get(
                             secondsToTimeString(lockoutDuration));
@@ -3804,13 +3831,15 @@ bindProcessing:
                   {
                     notificationType = AccountStatusNotificationType.
                                             ACCOUNT_PERMANENTLY_LOCKED;
+                    tempLocked = false;
 
                     message = ERR_BIND_ACCOUNT_PERMANENTLY_LOCKED.get();
                   }
 
                   pwPolicyState.generateAccountStatusNotification(
-                       notificationType, localOp.getUserEntryDN(),
-                          message);
+                       notificationType, userEntry, message,
+                       AccountStatusNotification.createProperties(pwPolicyState,
+                             tempLocked, -1, null, null));
                 }
               }
             }
@@ -3990,8 +4019,10 @@ bindProcessing:
               localOp.setAuthFailureReason(message);
 
               pwPolicyState.generateAccountStatusNotification(
-                   AccountStatusNotificationType.ACCOUNT_EXPIRED, bindDN,
-                      message);
+                   AccountStatusNotificationType.ACCOUNT_EXPIRED,
+                   saslAuthUserEntry, message,
+                   AccountStatusNotification.createProperties(pwPolicyState,
+                         false, -1, null, null));
 
               break bindProcessing;
             }
@@ -4037,8 +4068,10 @@ bindProcessing:
               localOp.setAuthFailureReason(message);
 
               pwPolicyState.generateAccountStatusNotification(
-                   AccountStatusNotificationType.ACCOUNT_IDLE_LOCKED, bindDN,
-                      message);
+                   AccountStatusNotificationType.ACCOUNT_IDLE_LOCKED,
+                   saslAuthUserEntry, message,
+                   AccountStatusNotification.createProperties(pwPolicyState,
+                         false, -1, null, null));
 
               break bindProcessing;
             }
@@ -4060,8 +4093,10 @@ bindProcessing:
                 localOp.setAuthFailureReason(message);
 
                 pwPolicyState.generateAccountStatusNotification(
-                     AccountStatusNotificationType.ACCOUNT_RESET_LOCKED, bindDN,
-                        message);
+                     AccountStatusNotificationType.ACCOUNT_RESET_LOCKED,
+                     saslAuthUserEntry, message,
+                     AccountStatusNotification.createProperties(pwPolicyState,
+                           false, -1, null, null));
 
                 break bindProcessing;
               }
@@ -4101,8 +4136,10 @@ bindProcessing:
                     localOp.setAuthFailureReason(message);
 
                     pwPolicyState.generateAccountStatusNotification(
-                         AccountStatusNotificationType.PASSWORD_EXPIRED, bindDN,
-                            message);
+                         AccountStatusNotificationType.PASSWORD_EXPIRED,
+                         saslAuthUserEntry, message,
+                         AccountStatusNotification.createProperties(
+                              pwPolicyState, false, -1, null, null));
 
                     break bindProcessing;
                   }
@@ -4116,8 +4153,10 @@ bindProcessing:
                   localOp.setAuthFailureReason(message);
 
                   pwPolicyState.generateAccountStatusNotification(
-                       AccountStatusNotificationType.PASSWORD_EXPIRED, bindDN,
-                          message);
+                       AccountStatusNotificationType.PASSWORD_EXPIRED,
+                       saslAuthUserEntry, message,
+                       AccountStatusNotification.createProperties(pwPolicyState,
+                             false, -1, null, null));
 
                   break bindProcessing;
                 }
@@ -4169,8 +4208,10 @@ bindProcessing:
                         timeToExpiration);
 
                 pwPolicyState.generateAccountStatusNotification(
-                     AccountStatusNotificationType.PASSWORD_EXPIRING, bindDN,
-                        message);
+                     AccountStatusNotificationType.PASSWORD_EXPIRING,
+                     saslAuthUserEntry, message,
+                     AccountStatusNotification.createProperties(pwPolicyState,
+                           false, numSeconds, null, null));
               }
 
               if (isGraceLogin)
@@ -4369,6 +4410,7 @@ bindProcessing:
                   if (pwPolicyState.lockedDueToFailures())
                   {
                     AccountStatusNotificationType notificationType;
+                    boolean tempLocked;
                     Message message;
 
                     int lockoutDuration = pwPolicyState.getSecondsUntilUnlock();
@@ -4376,6 +4418,7 @@ bindProcessing:
                     {
                       notificationType = AccountStatusNotificationType.
                                               ACCOUNT_TEMPORARILY_LOCKED;
+                      tempLocked = true;
                       message = ERR_BIND_ACCOUNT_TEMPORARILY_LOCKED.get(
                               secondsToTimeString(lockoutDuration));
                     }
@@ -4383,12 +4426,14 @@ bindProcessing:
                     {
                       notificationType = AccountStatusNotificationType.
                                               ACCOUNT_PERMANENTLY_LOCKED;
+                      tempLocked = false;
                       message = ERR_BIND_ACCOUNT_PERMANENTLY_LOCKED.get();
                     }
 
                     pwPolicyState.generateAccountStatusNotification(
-                         notificationType, localOp.getUserEntryDN(),
-                            message);
+                         notificationType, saslAuthUserEntry, message,
+                         AccountStatusNotification.createProperties(
+                              pwPolicyState, tempLocked, -1, null, null));
                   }
                 }
               }

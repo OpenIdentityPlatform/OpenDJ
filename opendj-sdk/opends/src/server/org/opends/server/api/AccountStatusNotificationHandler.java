@@ -25,18 +25,16 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
-import org.opends.messages.Message;
 
 
 
 import java.util.List;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.std.server.
        AccountStatusNotificationHandlerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.AccountStatusNotification;
-import org.opends.server.types.AccountStatusNotificationType;
-import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 
 
@@ -133,35 +131,12 @@ public abstract class
 
   /**
    * Performs any processing that may be necessary in conjunction with
-   * the provided account status notification type.
-   *
-   * @param  notificationType  The type for this account status
-   *                           notification.
-   * @param  userDN            The DN of the user entry to which this
-   *                           notification applies.
-   * @param  message           The human-readable message for this
-   *                           notification.
-   */
-  public abstract void
-       handleStatusNotification(
-          AccountStatusNotificationType notificationType,
-          DN userDN, Message message);
-
-
-
-  /**
-   * Performs any processing that may be necessary in conjunction with
    * the provided account status notification.
    *
    * @param  notification  The account status notification to be
    *                       processed.
    */
-  public void handleStatusNotification(
-                   AccountStatusNotification notification)
-  {
-    handleStatusNotification(notification.getNotificationType(),
-                             notification.getUserDN(),
-                             notification.getMessage());
-  }
+  public abstract void handleStatusNotification(
+                            AccountStatusNotification notification);
 }
 
