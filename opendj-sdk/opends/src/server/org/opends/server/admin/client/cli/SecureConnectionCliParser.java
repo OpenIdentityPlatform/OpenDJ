@@ -157,20 +157,20 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
   protected BooleanArgument useSSLArg = null;
 
   /**
-   * The 'startTLSArg' global argument.
+   * The 'useStartTLSArg' global argument.
    */
-  protected BooleanArgument startTLSArg = null;
+  protected BooleanArgument useStartTLSArg = null;
 
   /** Short form of the option for specifying a noninteractive session. */
   static public final Character INTERACTIVE_OPTION_SHORT = 'i';
 
-  /** Long form of the option for specifying a noninteractive session. */
+  /** Long form of the option for specifying a quiet session. */
   static public final String QUIET_OPTION_LONG = "quiet";
 
   /** Long form of the option for specifying a noninteractive session. */
   static public final String INTERACTIVE_OPTION_LONG = "interactive";
 
-  /** Short form of the option for specifying a noninteractive session. */
+  /** Short form of the option for specifying a quiet session. */
   static public final Character QUIET_OPTION_SHORT = 'Q';
 
   /**
@@ -181,7 +181,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
   /**
    * End Of Line.
    */
-  protected static String EOL = System.getProperty("line.separator");
+  public static String EOL = System.getProperty("line.separator");
 
   /**
    * The Logger.
@@ -400,10 +400,10 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
         OPTION_LONG_USE_SSL, INFO_DESCRIPTION_USE_SSL.get());
     set.add(useSSLArg);
 
-    startTLSArg = new BooleanArgument("startTLS", OPTION_SHORT_START_TLS,
+    useStartTLSArg = new BooleanArgument("startTLS", OPTION_SHORT_START_TLS,
         OPTION_LONG_START_TLS,
         INFO_DESCRIPTION_START_TLS.get());
-    set.add(startTLSArg);
+    set.add(useStartTLSArg);
 
     hostNameArg = new StringArgument("host", OPTION_SHORT_HOST,
         OPTION_LONG_HOST, false, false, true, OPTION_VALUE_HOST, "localhost",
@@ -584,10 +584,10 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
 
     // Couldn't have at the same time startTLSArg and
     // useSSLArg
-    if (startTLSArg.isPresent()
+    if (useStartTLSArg.isPresent()
             && useSSLArg.isPresent()) {
       Message message = ERR_TOOL_CONFLICTING_ARGS.get(
-              startTLSArg
+              useStartTLSArg
                       .getLongIdentifier(), useSSLArg.getLongIdentifier());
       errors.add(message);
     }
@@ -666,7 +666,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    */
   public boolean startTLS()
   {
-    if (startTLSArg.isPresent())
+    if (useStartTLSArg.isPresent())
     {
       return true;
     }

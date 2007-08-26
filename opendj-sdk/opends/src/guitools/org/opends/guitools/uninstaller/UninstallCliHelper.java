@@ -555,25 +555,6 @@ class UninstallCliHelper extends CliApplicationHelper {
     return confirm(INFO_CLI_UNINSTALL_CONFIRM_DELETE_FILES.get());
   }
 
-  private boolean confirm(Message msg) {
-    boolean confirm = true;
-    Message[] validValues = {
-        INFO_CLI_YES_SHORT.get(),
-        INFO_CLI_NO_SHORT.get(),
-        INFO_CLI_YES_LONG.get(),
-        INFO_CLI_NO_LONG.get(),
-    };
-    Message answer = promptConfirm(msg, validValues[2], validValues);
-    if (INFO_CLI_NO_SHORT.get().toString()
-            .equalsIgnoreCase(answer.toString()) ||
-        INFO_CLI_NO_LONG.get().toString()
-                .equalsIgnoreCase(answer.toString()))
-    {
-      confirm = false;
-    }
-    return confirm;
-  }
-
   /**
    *  Ask for confirmation to update configuration on remote servers.
    *  @return <CODE>true</CODE> if the user wants to continue and stop the
@@ -626,7 +607,7 @@ class UninstallCliHelper extends CliApplicationHelper {
     {
       while (uid == null)
       {
-        uid = askForAdministratorUID();
+        uid = askForAdministratorUID(parser.getDefaultAdministratorUID());
       }
       while (pwd == null)
       {
@@ -725,17 +706,6 @@ class UninstallCliHelper extends CliApplicationHelper {
     }
     userData.setUpdateRemoteReplication(accepted);
     return accepted;
-  }
-
-  private String askForAdministratorUID()
-  {
-    return promptForString(INFO_UNINSTALL_CLI_ADMINISTRATOR_UID_PROMPT.get(),
-        Constants.GLOBAL_ADMIN_UID);
-  }
-
-  private String askForAdministratorPwd()
-  {
-    return promptForPassword(INFO_UNINSTALL_CLI_ADMINISTRATOR_PWD_PROMPT.get());
   }
 
   private String askForReferencedHostName(String defaultHostName)
@@ -916,7 +886,7 @@ class UninstallCliHelper extends CliApplicationHelper {
     } catch (TopologyCacheException te)
     {
       LOG.log(Level.WARNING, "Error connecting to server: "+te, te);
-      printErrorMessage(Utils.getStringRepresentation(te));
+      printErrorMessage(Utils.getMessage(te));
 
     } catch (Throwable t)
     {
@@ -973,7 +943,7 @@ class UninstallCliHelper extends CliApplicationHelper {
         exceptions.add(e);
       }
     }
-    Set<String> exceptionMsgs = new LinkedHashSet<String>();
+    Set<Message> exceptionMsgs = new LinkedHashSet<Message>();
     /* Check the exceptions and see if we throw them or not. */
     for (TopologyCacheException e : exceptions)
     {
@@ -1007,21 +977,18 @@ class UninstallCliHelper extends CliApplicationHelper {
           else
           {
             stopProcessing = true;
-            String url = e.getLdapUrl();
-            int index = url.indexOf("//");
-            String hostPort = url.substring(index + 2);
             printErrorMessage(
                 INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
-                hostPort, e.getCause().getMessage()));
+                e.getHostPort(), e.getCause().getMessage()));
           }
         }
         else
         {
-          exceptionMsgs.add(Utils.getStringRepresentation(e));
+          exceptionMsgs.add(Utils.getMessage(e));
         }
         break;
       default:
-        exceptionMsgs.add(Utils.getStringRepresentation(e));
+        exceptionMsgs.add(Utils.getMessage(e));
       }
     }
     if (interactive)
@@ -1029,9 +996,9 @@ class UninstallCliHelper extends CliApplicationHelper {
       if (!stopProcessing && (exceptionMsgs.size() > 0))
       {
         returnValue = confirm(
-            ERR_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
-                Utils.getStringFromCollection(exceptionMsgs,
-                  Constants.LINE_SEPARATOR)));
+            ERR_UNINSTALL_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
+                Utils.getMessageFromCollection(exceptionMsgs,
+                  Constants.LINE_SEPARATOR).toString()));
       }
       else if (reloadTopologyCache)
       {
@@ -1047,7 +1014,7 @@ class UninstallCliHelper extends CliApplicationHelper {
     {
       if (exceptionMsgs.size() > 0)
       {
-        printErrorMessage(Utils.getStringFromCollection(exceptionMsgs,
+        printErrorMessage(Utils.getMessageFromCollection(exceptionMsgs,
             Constants.LINE_SEPARATOR));
         returnValue = false;
       }

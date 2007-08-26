@@ -1374,8 +1374,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             if (throwable instanceof TopologyCacheException)
             {
               qs.displayError(
-                      Message.raw(getStringRepresentation(
-                              (TopologyCacheException)throwable)),
+                      getMessage(
+                              (TopologyCacheException)throwable),
                       INFO_ERROR_TITLE.get());
             }
             else
@@ -1438,7 +1438,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         exceptions.add(e);
       }
     }
-    Set<String> exceptionMsgs = new LinkedHashSet<String>();
+    Set<Message> exceptionMsgs = new LinkedHashSet<Message>();
     /* Check the exceptions and see if we throw them or not. */
     for (TopologyCacheException e : exceptions)
     {
@@ -1504,13 +1504,13 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           }
         }
       }
-      exceptionMsgs.add(getStringRepresentation(e));
+      exceptionMsgs.add(getMessage(e));
     }
     if (!stopProcessing && (exceptionMsgs.size() > 0))
     {
       Message confirmationMsg =
-        ERR_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
-                getStringFromCollection(exceptionMsgs, "n"));
+        ERR_UNINSTALL_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
+                getMessageFromCollection(exceptionMsgs, "\n").toString());
       stopProcessing = !qs.displayConfirmation(confirmationMsg,
           INFO_CONFIRMATION_TITLE.get());
     }
@@ -1568,8 +1568,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             {
               if (throwable instanceof TopologyCacheException)
               {
-                qs.displayError(Message.raw(
-                    getStringRepresentation((TopologyCacheException)throwable)),
+                qs.displayError(getMessage((TopologyCacheException)throwable),
                     INFO_ERROR_TITLE.get());
               }
               else

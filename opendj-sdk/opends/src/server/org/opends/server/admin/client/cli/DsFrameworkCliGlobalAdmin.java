@@ -690,7 +690,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
 
       // Check that propName is a known prop.
       AdministratorProperty adminUserProperty = ADSContext
-          .getAdminUSerPropFromName(propertyName);
+          .getAdminUserPropFromName(propertyName);
       if (adminUserProperty == null)
       {
         Message message = ERR_CLI_ERROR_PROPERTY_UNRECOGNIZED.get(propertyName);

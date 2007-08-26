@@ -338,7 +338,7 @@ public class ADSContext
   }
 
   private static HashMap<String, AdministratorProperty>
-    nameToAdminUSerProperty = null;
+    nameToAdminUserProperty = null;
 
   /**
    * Get a AdministratorProperty associated to a name.
@@ -347,17 +347,17 @@ public class ADSContext
    * @return The corresponding AdministratorProperty or null if name
    * doesn't match with an existing property.
    */
-  public static AdministratorProperty getAdminUSerPropFromName(String name)
+  public static AdministratorProperty getAdminUserPropFromName(String name)
   {
-    if (nameToAdminUSerProperty == null)
+    if (nameToAdminUserProperty == null)
     {
-      nameToAdminUSerProperty = new HashMap<String, AdministratorProperty>();
+      nameToAdminUserProperty = new HashMap<String, AdministratorProperty>();
       for (AdministratorProperty u : AdministratorProperty.values())
       {
-        nameToAdminUSerProperty.put(u.getAttributeName(), u);
+        nameToAdminUserProperty.put(u.getAttributeName(), u);
       }
     }
-    return nameToAdminUSerProperty.get(name);
+    return nameToAdminUserProperty.get(name);
   }
 
   // The context used to retrieve information
@@ -898,6 +898,8 @@ public class ADSContext
    * So this should not be called by the Java Web Start before being sure that
    * this jar is loaded.
    * @param backendName the backend name which will handle admin information.
+   * <CODE>null</CODE> to use the default backend name for the admin
+   * information.
    * @throws ADSContextException if something goes wrong.
    */
   public void createAdminData(String backendName) throws ADSContextException

@@ -572,7 +572,12 @@ public class InstallerHelper {
                 ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.getId()) != -1;
   }
 
-  private int getReplicationId(Set<Integer> usedIds)
+  /**
+   * Returns the ID to be used for a new replication server or domain.
+   * @param usedIds the list of already used ids.
+   * @return the ID to be used for a new replication server or domain.
+   */
+  public static int getReplicationId(Set<Integer> usedIds)
   {
     Random r = new Random();
     int id = 0;
@@ -583,7 +588,13 @@ public class InstallerHelper {
     return id;
   }
 
-  private String getDomainName(String[] existingDomains, int newDomainId)
+  /**
+   * Returns the name to be used for a new replication domain.
+   * @param existingDomains the existing domains names.
+   * @param newDomainId the new domain replication id.
+   * @return the name to be used for a new replication domain.
+   */
+  public static String getDomainName(String[] existingDomains, int newDomainId)
   {
     String domainName = DOMAIN_BASE_NAME+newDomainId;
     boolean nameExists = true;

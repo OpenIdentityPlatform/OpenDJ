@@ -195,6 +195,43 @@ public class CliApplicationHelper {
   }
 
   /**
+   * Prompts the user to provide a port.
+   * @param msg the message to be displayed.
+   * @param defaultValue the default value to be proposed.
+   * @return the user to provide a port.
+   */
+  protected int promptForPort(Message msg, int defaultValue)
+  {
+    int port = -1;
+    while (port == -1)
+    {
+      String s = promptForString(msg, String.valueOf(defaultValue));
+      if ((s != null) && (s.trim().length() > 0))
+      {
+        try
+        {
+          port = Integer.parseInt(s);
+          if ((port < 0) || (port > 65535))
+          {
+            port = -1;
+          }
+        }
+        catch (Throwable t)
+        {
+          port = -1;
+        }
+        if (port == -1)
+        {
+          Message message = INFO_CLI_INVALID_PORT.get();
+          System.err.println(StaticUtils.wrapText(message,
+                  Utils.getCommandLineMaxLineWidth()));
+        }
+      }
+    }
+    return port;
+  }
+
+  /**
    * Reads a line of text from standard input.
    * @return  The line of text read from standard input, or <CODE>null</CODE>
    *          if the end of the stream is reached or an error occurs while
@@ -403,6 +440,74 @@ public class CliApplicationHelper {
   protected void printLineBreak()
   {
     System.out.println();
+  }
+
+  /**
+   * Prompts the user to give the Global Administrator UID.
+   * @param defaultValue the default value that will be proposed in the prompt
+   * message.
+   * @return the Global Administrator UID as provided by the user.
+   */
+  protected String askForAdministratorUID(String defaultValue)
+  {
+    return promptForString(INFO_ADMINISTRATOR_UID_PROMPT.get(), defaultValue);
+  }
+
+  /**
+   * Prompts the user to give the Global Administrator password.
+   * @return the Global Administrator password as provided by the user.
+   */
+  protected String askForAdministratorPwd()
+  {
+    return promptForPassword(INFO_ADMINISTRATOR_PWD_PROMPT.get());
+  }
+
+  /**
+   * Prompts the user to confirm a question.  The default proposed value as
+   * answer is to confirm the question.
+   * @param msg the message to be displayed to the user.
+   * @return <CODE>true</CODE> if the user accepted the message and
+   * <CODE>false</CODE> otherwise.
+   */
+  protected boolean confirm(Message msg)
+  {
+    return confirm(msg, true);
+  }
+
+  /**
+   * Prompts the user to confirm a question.
+   * @param msg the message to be displayed to the user.
+   * @param defaultTrue whether the default proposed value as answer is to
+   * accept the message or not.
+   * @return <CODE>true</CODE> if the user accepted the message and
+   * <CODE>false</CODE> otherwise.
+   */
+  protected boolean confirm(Message msg, boolean defaultTrue) {
+    boolean confirm = true;
+    Message[] validValues = {
+        INFO_CLI_YES_SHORT.get(),
+        INFO_CLI_NO_SHORT.get(),
+        INFO_CLI_YES_LONG.get(),
+        INFO_CLI_NO_LONG.get(),
+    };
+    Message defaultMessage;
+    if (defaultTrue)
+    {
+      defaultMessage = validValues[2];
+    }
+    else
+    {
+      defaultMessage = validValues[3];
+    }
+    Message answer = promptConfirm(msg, defaultMessage, validValues);
+    if (INFO_CLI_NO_SHORT.get().toString()
+            .equalsIgnoreCase(answer.toString()) ||
+        INFO_CLI_NO_LONG.get().toString()
+                .equalsIgnoreCase(answer.toString()))
+    {
+      confirm = false;
+    }
+    return confirm;
   }
 
   /**

@@ -517,18 +517,17 @@ public class Utils
   public static String getStringFromCollection(Collection<String> col,
       String separator)
   {
-    String msg = null;
+    StringBuffer msg = new StringBuffer();
     for (String m : col)
     {
-      if (msg == null)
+
+      if (msg.length() > 0)
       {
-        msg = m;
-      } else
-      {
-        msg += separator + m;
+        msg.append(separator);
       }
+      msg.append(m);
     }
-    return msg;
+    return msg.toString();
   }
 
   /**
@@ -669,7 +668,7 @@ public class Utils
    * @param te the exception.
    * @return a localized representation of the provide TopologyCacheException.
    */
-  public static String getStringRepresentation(TopologyCacheException te)
+  public static Message getMessage(TopologyCacheException te)
   {
     MessageBuilder buf = new MessageBuilder();
 
@@ -690,7 +689,7 @@ public class Utils
       // This is unexpected.
       buf.append(getThrowableMsg(INFO_BUG_MSG.get(), te.getCause()));
     }
-    return buf.toString();
+    return buf.toMessage();
   }
 
   /**

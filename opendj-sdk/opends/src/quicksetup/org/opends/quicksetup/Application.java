@@ -682,9 +682,9 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @param e the exception we want to obtain the representation from.
    * @return a localized representation of a TopologyCacheException object.
    */
-  protected String getStringRepresentation(TopologyCacheException e)
+  protected Message getMessage(TopologyCacheException e)
   {
-    return Utils.getStringRepresentation(e);
+    return Utils.getMessage(e);
   }
 
   /**

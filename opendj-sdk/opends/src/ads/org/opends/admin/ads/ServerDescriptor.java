@@ -27,17 +27,14 @@
 
 package org.opends.admin.ads;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.naming.Context;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -178,6 +175,69 @@ public class ServerDescriptor
   public boolean isRegistered()
   {
     return !adsProperties.isEmpty();
+  }
+
+  /**
+   * Tells whether this server is a replication server or not.
+   * @return <CODE>true</CODE> if the server is a replication server and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean isReplicationServer()
+  {
+    return Boolean.TRUE.equals(
+        serverProperties.get(ServerProperty.IS_REPLICATION_SERVER));
+  }
+
+  /**
+   * Returns the String representation of this replication server based
+   * on the information we have ("hostname":"replication port") and
+   * <CODE>null</CODE> if this is not a replication server.
+   * @return the String representation of this replication server based
+   * on the information we have ("hostname":"replication port") and
+   * <CODE>null</CODE> if this is not a replication server.
+   */
+  public String getReplicationServerHostPort()
+  {
+    String hostPort = null;
+    if (isReplicationServer())
+    {
+      hostPort = getHostName().toLowerCase()+ ":" + getReplicationServerPort();
+    }
+    return hostPort;
+  }
+
+  /**
+   * Returns the replication server ID of this server and -1 if this is not a
+   * replications server.
+   * @return the replication server ID of this server and -1 if this is not a
+   * replications server.
+   */
+  public int getReplicationServerId()
+  {
+    int port = -1;
+    if (isReplicationServer())
+    {
+      port = (Integer)serverProperties.get(
+          ServerProperty.REPLICATION_SERVER_ID);
+    }
+    return port;
+  }
+
+  /**
+   * Returns the replication port of this server and -1 if this is not a
+   * replications server.
+   * @return the replication port of this server and -1 if this is not a
+   * replications server.
+   */
+  public int getReplicationServerPort()
+  {
+    int port = -1;
+    if (isReplicationServer())
+    {
+      port = (Integer)serverProperties.get(
+          ServerProperty.REPLICATION_SERVER_PORT);
+    }
+    return port;
   }
 
   /**
@@ -405,6 +465,7 @@ public class ServerDescriptor
         adsProperties.put(adsProps[i][1], String.valueOf(port));
       }
     }
+    adsProperties.put(ADSContext.ServerProperty.ID, getHostPort(true));
   }
 
   /**
@@ -442,17 +503,9 @@ public class ServerDescriptor
     updateReplicas(desc, ctx);
     updateReplication(desc, ctx);
 
-    String s = (String)ctx.getEnvironment().get(Context.PROVIDER_URL);
-    try
-    {
-      URI ldapURL = new URI(s);
-      desc.serverProperties.put(ServerProperty.HOST_NAME, ldapURL.getHost());
-    }
-    catch (URISyntaxException use)
-    {
-      // This is really strange.  Seems like a bug somewhere.
-      LOG.log(Level.WARNING, "Error parsing ldap URL "+s, use);
-    }
+    desc.serverProperties.put(ServerProperty.HOST_NAME,
+        ConnectionUtils.getHostName(ctx));
+
     return desc;
   }
 
@@ -683,7 +736,14 @@ public class ServerDescriptor
             if (areDnsEqual(replica.getSuffix().getDN(), dn))
             {
               replica.setReplicationId(id);
-              replica.setReplicationServers(replicationServers);
+              // Keep the values of the replication servers in lower case
+              // to make use of Sets as String simpler.
+              LinkedHashSet<String> repServers = new LinkedHashSet<String>();
+              for (String s: replicationServers)
+              {
+                repServers.add(s.toLowerCase());
+              }
+              replica.setReplicationServers(repServers);
             }
           }
         }
@@ -724,8 +784,15 @@ public class ServerDescriptor
         desc.serverProperties.put(ServerProperty.REPLICATION_SERVER_ID,
             Integer.parseInt(v));
         Set<String> values = getValues(sr, "ds-cfg-replication-server");
+        // Keep the values of the replication servers in lower case
+        // to make use of Sets as String simpler.
+        LinkedHashSet<String> repServers = new LinkedHashSet<String>();
+        for (String s: values)
+        {
+          repServers.add(s.toLowerCase());
+        }
         desc.serverProperties.put(ServerProperty.EXTERNAL_REPLICATION_SERVERS,
-            values);
+            repServers);
       }
     }
     catch (NameNotFoundException nse)

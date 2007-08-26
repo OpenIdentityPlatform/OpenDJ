@@ -29,10 +29,13 @@ package org.opends.admin.ads.util;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.URI;
 import java.security.GeneralSecurityException;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.naming.CommunicationException;
 import javax.naming.Context;
@@ -57,6 +60,12 @@ import javax.net.ssl.TrustManager;
 public class ConnectionUtils
 {
   private static final int DEFAULT_LDAP_CONNECT_TIMEOUT = 10000;
+
+  private static final String STARTTLS_PROPERTY =
+    "org.opends.connectionutils.isstarttls";
+
+  static private final Logger LOG =
+    Logger.getLogger(ConnectionUtils.class.getName());
 
   /**
    * Private constructor: this class cannot be instantiated.
@@ -313,8 +322,10 @@ public class ConnectionUtils
             throw xx;
           }
 
+          result.addToEnvironment(STARTTLS_PROPERTY, "true");
           if (fDn != null)
           {
+
             result.addToEnvironment(Context.SECURITY_AUTHENTICATION , "simple");
             result.addToEnvironment(Context.SECURITY_PRINCIPAL, fDn);
             if (fPwd != null)
@@ -338,6 +349,168 @@ public class ConnectionUtils
     return getInitialLdapContext(t, pair, timeout);
   }
 
+  /**
+   * Returns the LDAP URL used in the provided InitialLdapContext.
+   * @param ctx the context to analyze.
+   * @return the LDAP URL used in the provided InitialLdapContext.
+   */
+  public static String getLdapUrl(InitialLdapContext ctx)
+  {
+    String s = null;
+    try
+    {
+      s = (String)ctx.getEnvironment().get(Context.PROVIDER_URL);
+    }
+    catch (NamingException ne)
+    {
+      // This is really strange.  Seems like a bug somewhere.
+      LOG.log(Level.WARNING, "Naming exception getting environment of "+ctx,
+          ne);
+    }
+    return s;
+  }
+
+  /**
+   * Returns the host name used in the provided InitialLdapContext.
+   * @param ctx the context to analyze.
+   * @return the host name used in the provided InitialLdapContext.
+   */
+  public static String getHostName(InitialLdapContext ctx)
+  {
+    String s = null;
+    try
+    {
+      URI ldapURL = new URI(getLdapUrl(ctx));
+      s = ldapURL.getHost();
+    }
+    catch (Throwable t)
+    {
+      // This is really strange.  Seems like a bug somewhere.
+      LOG.log(Level.WARNING, "Error getting host: "+t, t);
+    }
+    return s;
+  }
+
+  /**
+   * Returns the port number used in the provided InitialLdapContext.
+   * @param ctx the context to analyze.
+   * @return the port number used in the provided InitialLdapContext.
+   */
+  public static int getPort(InitialLdapContext ctx)
+  {
+    int port = -1;
+    try
+    {
+      URI ldapURL = new URI(getLdapUrl(ctx));
+      port = ldapURL.getPort();
+    }
+    catch (Throwable t)
+    {
+      // This is really strange.  Seems like a bug somewhere.
+      LOG.log(Level.WARNING, "Error getting port: "+t, t);
+    }
+    return port;
+  }
+
+  /**
+   * Returns the host port representation of the server to which this
+   * context is connected.
+   * @param ctx the context to analyze.
+   * @return the host port representation of the server to which this
+   * context is connected.
+   */
+  public static String getHostPort(InitialLdapContext ctx)
+  {
+    return getHostName(ctx)+":"+getPort(ctx);
+  }
+
+  /**
+   * Returns the bind DN used in the provided InitialLdapContext.
+   * @param ctx the context to analyze.
+   * @return the bind DN used in the provided InitialLdapContext.
+   */
+  public static String getBindDN(InitialLdapContext ctx)
+  {
+    String bindDN = null;
+    try
+    {
+      bindDN = (String)ctx.getEnvironment().get(Context.SECURITY_PRINCIPAL);
+    }
+    catch (NamingException ne)
+    {
+      // This is really strange.  Seems like a bug somewhere.
+      LOG.log(Level.WARNING, "Naming exception getting environment of "+ctx,
+          ne);
+    }
+    return bindDN;
+  }
+
+  /**
+   * Returns the password used in the provided InitialLdapContext.
+   * @param ctx the context to analyze.
+   * @return the password used in the provided InitialLdapContext.
+   */
+  public static String getBindPassword(InitialLdapContext ctx)
+  {
+    String bindPwd = null;
+    try
+    {
+      bindPwd = (String)ctx.getEnvironment().get(Context.SECURITY_CREDENTIALS);
+    }
+    catch (NamingException ne)
+    {
+      // This is really strange.  Seems like a bug somewhere.
+      LOG.log(Level.WARNING, "Naming exception getting environment of "+ctx,
+          ne);
+    }
+    return bindPwd;
+  }
+
+  /**
+   * Tells whether we are using SSL in the provided InitialLdapContext.
+   * @param ctx the context to analyze.
+   * @return <CODE>true</CODE> if we are using SSL and <CODE>false</CODE>
+   * otherwise.
+   */
+  public static boolean isSSL(InitialLdapContext ctx)
+  {
+    boolean isSSL = false;
+    String s = null;
+    try
+    {
+      s = getLdapUrl(ctx);
+      isSSL = s.toLowerCase().startsWith("ldaps");
+    }
+    catch (Throwable t)
+    {
+      // This is really strange.  Seems like a bug somewhere.
+      LOG.log(Level.WARNING, "Error getting if is SSL "+t, t);
+    }
+    return isSSL;
+  }
+
+  /**
+   * Tells whether we are using StartTLS in the provided InitialLdapContext.
+   * @param ctx the context to analyze.
+   * @return <CODE>true</CODE> if we are using StartTLS and <CODE>false</CODE>
+   * otherwise.
+   */
+  public static boolean isStartTLS(InitialLdapContext ctx)
+  {
+    boolean isStartTLS = false;
+    try
+    {
+      isStartTLS = "true".equalsIgnoreCase((String)ctx.getEnvironment().get(
+            STARTTLS_PROPERTY));
+    }
+    catch (NamingException ne)
+    {
+      // This is really strange.  Seems like a bug somewhere.
+      LOG.log(Level.WARNING, "Naming exception getting environment of "+ctx,
+          ne);
+    }
+    return isStartTLS;
+  }
 
   /**
    * Method used to know if we can connect as administrator in a server with a
@@ -354,21 +527,19 @@ public class ConnectionUtils
     boolean canConnectAsAdministrativeUser = false;
     try
     {
-      InitialLdapContext ctx =
-        createLdapContext(ldapUrl, dn, pwd, getDefaultLDAPTimeout(), null);
+      InitialLdapContext ctx;
+      if (ldapUrl.toLowerCase().startsWith("ldap:"))
+      {
+        ctx = createLdapContext(ldapUrl, dn, pwd, getDefaultLDAPTimeout(),
+            null);
+      }
+      else
+      {
+        ctx = createLdapsContext(ldapUrl, dn, pwd, getDefaultLDAPTimeout(),
+            null, null, null);
+      }
 
-      /*
-       * Search for the config to check that it is the directory manager.
-       */
-      SearchControls searchControls = new SearchControls();
-      searchControls.setCountLimit(1);
-      searchControls.setSearchScope(
-      SearchControls. OBJECT_SCOPE);
-      searchControls.setReturningAttributes(
-      new String[] {"dn"});
-      ctx.search("cn=config", "objectclass=*", searchControls);
-
-      canConnectAsAdministrativeUser = true;
+      canConnectAsAdministrativeUser = connectedAsAdministrativeUser(ctx);
     } catch (NamingException ne)
     {
       // Nothing to do.
@@ -377,6 +548,40 @@ public class ConnectionUtils
       throw new IllegalStateException("Unexpected throwable.", t);
     }
     return canConnectAsAdministrativeUser;
+  }
+
+  /**
+   * Method used to know if we are connected as administrator in a server with a
+   * given InitialLdapContext.
+   * @param ctx the context.
+   * @return <CODE>true</CODE> if we are connected and read the configuration
+   * and <CODE>false</CODE> otherwise.
+   */
+  public static boolean connectedAsAdministrativeUser(InitialLdapContext ctx)
+  {
+    boolean connectedAsAdministrativeUser = false;
+    try
+    {
+      /*
+       * Search for the config to check that it is the directory manager.
+       */
+      SearchControls searchControls = new SearchControls();
+      searchControls.setCountLimit(1);
+      searchControls.setSearchScope(
+          SearchControls. OBJECT_SCOPE);
+      searchControls.setReturningAttributes(
+          new String[] {"dn"});
+      ctx.search("cn=config", "objectclass=*", searchControls);
+
+      connectedAsAdministrativeUser = true;
+    } catch (NamingException ne)
+    {
+      // Nothing to do.
+    } catch (Throwable t)
+    {
+      throw new IllegalStateException("Unexpected throwable.", t);
+    }
+    return connectedAsAdministrativeUser;
   }
 
   /**
