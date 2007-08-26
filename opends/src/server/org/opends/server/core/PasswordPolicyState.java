@@ -25,8 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+
 
 
 import java.text.SimpleDateFormat;
@@ -38,9 +37,12 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
@@ -55,6 +57,7 @@ import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.AccountStatusNotification;
+import org.opends.server.types.AccountStatusNotificationProperty;
 import org.opends.server.types.AccountStatusNotificationType;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -4596,27 +4599,22 @@ public class PasswordPolicyState
   /**
    * Generates an account status notification for this user.
    *
-   * @param  notificationType  The type for the account status notification.
-   * @param  userDN            The DN of the user entry to which this
-   *                           notification applies.
-   * @param  message           The human-readable message for the notification.
+   * @param  notificationType        The type for the account status
+   *                                 notification.
+   * @param  userEntry               The entry for the user to which this
+   *                                 notification applies.
+   * @param  message                 The human-readable message for the
+   *                                 notification.
+   * @param  notificationProperties  The set of properties for the notification.
    */
   public void generateAccountStatusNotification(
           AccountStatusNotificationType notificationType,
-          DN userDN, Message message)
+          Entry userEntry, Message message,
+          Map<AccountStatusNotificationProperty,List<String>>
+               notificationProperties)
   {
-    Collection<AccountStatusNotificationHandler> handlers =
-         passwordPolicy.getAccountStatusNotificationHandlers().values();
-    if ((handlers == null) || handlers.isEmpty())
-    {
-      return;
-    }
-
-    for (AccountStatusNotificationHandler handler : handlers)
-    {
-      handler.handleStatusNotification(notificationType, userDN,
-              message);
-    }
+    generateAccountStatusNotification(new AccountStatusNotification(
+         notificationType, userEntry, message, notificationProperties));
   }
 
 

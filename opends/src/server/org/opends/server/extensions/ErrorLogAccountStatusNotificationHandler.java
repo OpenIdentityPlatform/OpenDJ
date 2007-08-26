@@ -45,11 +45,10 @@ import org.opends.server.admin.std.server.
        ErrorLogAccountStatusNotificationHandlerCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.config.ConfigException;
+import org.opends.server.types.AccountStatusNotification;
 import org.opends.server.types.AccountStatusNotificationType;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-
-
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
@@ -72,15 +71,15 @@ public class ErrorLogAccountStatusNotificationHandler
    * The set of names for the account status notification types that may be
    * logged by this notification handler.
    */
-  private static final HashSet<Message> NOTIFICATION_TYPE_NAMES =
-       new HashSet<Message>();
+  private static final HashSet<String> NOTIFICATION_TYPE_NAMES =
+       new HashSet<String>();
 
   static
   {
     for (AccountStatusNotificationType t :
          AccountStatusNotificationType.values())
     {
-      NOTIFICATION_TYPE_NAMES.add(t.getNotificationName());
+      NOTIFICATION_TYPE_NAMES.add(t.getName());
     }
   }
 
@@ -114,17 +113,14 @@ public class ErrorLogAccountStatusNotificationHandler
   /**
    * {@inheritDoc}
    */
-  public void handleStatusNotification(AccountStatusNotificationType
-          notificationType,
-                                       DN userDN, Message message)
+  public void handleStatusNotification(
+                   AccountStatusNotification notification)
   {
-    if (notificationTypes.contains(notificationType))
-    {
-      logError(NOTE_ERRORLOG_ACCTNOTHANDLER_NOTIFICATION.get(
-                notificationType.getNotificationName(),
-                String.valueOf(userDN),
-                message.getDescriptor().getId(), message));
-    }
+    logError(NOTE_ERRORLOG_ACCTNOTHANDLER_NOTIFICATION.get(
+                  notification.getNotificationType().getName(),
+                  String.valueOf(notification.getUserDN()),
+                  notification.getMessage().getDescriptor().getId(),
+                  notification.getMessage()));
   }
 
 
