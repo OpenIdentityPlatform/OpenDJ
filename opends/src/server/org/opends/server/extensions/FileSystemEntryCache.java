@@ -1051,8 +1051,6 @@ public class FileSystemEntryCache
       List<Message> unacceptableReasons
       )
   {
-    // Make sure that we can process the defined character sets.  If so, then
-    // we'll accept the new configuration.
     boolean applyChanges = false;
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
@@ -1072,9 +1070,7 @@ public class FileSystemEntryCache
       FileSystemEntryCacheCfg configuration
       )
   {
-    // Make sure that we can process the defined character sets.  If so, then
-    // activate the new configuration.
-    boolean applyChanges = false;
+    boolean applyChanges = true;
     ArrayList<Message> errorMessages = new ArrayList<Message>();
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
@@ -1296,8 +1292,10 @@ public class FileSystemEntryCache
       case PHASE_APPLY:
         jeCachePercent = newJECachePercent;
         try {
-            EnvironmentConfig envConfig = entryCacheEnv.getConfig();
-            envConfig.setCachePercent(jeCachePercent);
+            EnvironmentMutableConfig envConfig =
+              entryCacheEnv.getMutableConfig();
+            envConfig.setCachePercent((jeCachePercent != 0 ? jeCachePercent :
+              EnvironmentConfig.DEFAULT.getCachePercent()));
             entryCacheEnv.setMutableConfig(envConfig);
             entryCacheEnv.evictMemory();
         } catch (Exception e) {
@@ -1312,7 +1310,8 @@ public class FileSystemEntryCache
         }
         jeCacheSize = newJECacheSize;
         try {
-            EnvironmentConfig envConfig = entryCacheEnv.getConfig();
+            EnvironmentMutableConfig envConfig =
+              entryCacheEnv.getMutableConfig();
             envConfig.setCacheSize(jeCacheSize);
             entryCacheEnv.setMutableConfig(envConfig);
             entryCacheEnv.evictMemory();

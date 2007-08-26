@@ -470,8 +470,6 @@ public class SoftReferenceEntryCache
       SoftReferenceEntryCacheCfg configuration,
       List<Message> unacceptableReasons)
   {
-    // Make sure that we can process the defined character sets.  If so, then
-    // we'll accept the new configuration.
     boolean applyChanges = false;
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
@@ -493,9 +491,7 @@ public class SoftReferenceEntryCache
       SoftReferenceEntryCacheCfg configuration
       )
   {
-    // Make sure that we can process the defined character sets.  If so, then
-    // activate the new configuration.
-    boolean applyChanges = false;
+    boolean applyChanges = true;
     ArrayList<Message> errorMessages = new ArrayList<Message>();
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
