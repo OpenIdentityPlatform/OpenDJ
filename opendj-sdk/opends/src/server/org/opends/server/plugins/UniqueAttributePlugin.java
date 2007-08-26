@@ -94,14 +94,8 @@ public class UniqueAttributePlugin
     for(DN baseDN : configuration.getUniqueAttributeBaseDN())
       baseDNs.add(baseDN);
     //Load attribute types if any.
-    for(String attributeType : configuration.getUniqueAttributeType()) {
-      AttributeType type =
-              DirectoryServer.getAttributeType(attributeType.toLowerCase());
-      if(type == null)
-        type =
-           DirectoryServer.getDefaultAttributeType(attributeType.toLowerCase());
-      uniqueAttributeTypes.add(type);
-    }
+    for(AttributeType attributeType : configuration.getUniqueAttributeType())
+      uniqueAttributeTypes.add(attributeType);
   }
 
 
@@ -147,14 +141,8 @@ public class UniqueAttributePlugin
     for(DN baseDN : newConfiguration.getUniqueAttributeBaseDN())
       newConfiguredBaseDNs.add(baseDN);
     //Load attribute types from new configuration.
-    for(String attributeType : newConfiguration.getUniqueAttributeType()) {
-      AttributeType type =
-              DirectoryServer.getAttributeType(attributeType.toLowerCase());
-      if(type == null)
-        type =
-           DirectoryServer.getDefaultAttributeType(attributeType.toLowerCase());
-      newUniqueattributeTypes.add(type);
-    }
+    for(AttributeType attributeType : newConfiguration.getUniqueAttributeType())
+      newUniqueattributeTypes.add(attributeType);
     //Switch to the new lists and configurations.
     baseDNs = newConfiguredBaseDNs;
     uniqueAttributeTypes = newUniqueattributeTypes;

@@ -57,7 +57,7 @@
     </adm:default-behavior>
   </adm:property-override>
 
-    <adm:property name="unique-attribute-type" mandatory="false"
+    <adm:property name="unique-attribute-type" mandatory="true"
                 multi-valued="true">
     <adm:synopsis>
       Specifies the attribute type to check for value uniqueness.
@@ -72,12 +72,12 @@
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The plugin will bypass unique attribute checking.
+          The plugin will not start if at least one of these is not defined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:string />
+      <adm:attribute-type />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
