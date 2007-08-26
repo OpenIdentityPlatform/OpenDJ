@@ -884,8 +884,6 @@ public class FIFOEntryCache
       List<Message> unacceptableReasons
       )
   {
-    // Make sure that we can process the defined character sets.  If so, then
-    // we'll accept the new configuration.
     boolean applyChanges = false;
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
@@ -907,9 +905,7 @@ public class FIFOEntryCache
       FIFOEntryCacheCfg configuration
       )
   {
-    // Make sure that we can process the defined character sets.  If so, then
-    // activate the new configuration.
-    boolean applyChanges = false;
+    boolean applyChanges = true;
     ArrayList<Message> errorMessages = new ArrayList<Message>();
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
