@@ -130,12 +130,14 @@
               <!-- Copy backup to "consumer" servers and restore it -->
               <paralleliterate var="consumer" in="consumerList">
                 <sequence>
-                  <call function="'copyFile'">
-                    { 'srcfile'    : '%s/config/schematokens.dat' % dsPath,
-                      'destfile'   : '%s/%s/config/schematokens.dat' % (consumer.getDir(),OPENDSNAME),
-                      'remotehost' : consumer.getHostname()
-                    }
-                  </call>
+                  <if expr="os.path.exists('%s/config/schematokens.dat' % dsPath)">
+                    <call function="'copyFile'">
+                      { 'srcfile'    : '%s/config/schematokens.dat' % dsPath,
+                        'destfile'   : '%s/%s/config/schematokens.dat' % (consumer.getDir(),OPENDSNAME),
+                        'remotehost' : consumer.getHostname()
+                      }
+                    </call>
+                  </if>
                   <call function="'CopyFolderByExtension'">
                     { 'location'   : masterHost,
                       'remotehost' : consumer.getHostname(),
@@ -257,12 +259,14 @@
               <!-- Copy backup to "consumer" servers and restore it -->
               <paralleliterate var="consumer" in="consumerList">
                 <sequence>
-                  <call function="'copyFile'">
-                    { 'srcfile'    : '%s/config/schematokens.dat' % dsPath,
-                      'destfile'   : '%s/%s/config/schematokens.dat' % (consumer.getDir(),OPENDSNAME),
-                      'remotehost' : consumer.getHostname()
-                    }
-                  </call>
+                  <if expr="os.path.exists('%s/config/schematokens.dat' % dsPath)">
+                    <call function="'copyFile'">
+                      { 'srcfile'    : '%s/config/schematokens.dat' % dsPath,
+                        'destfile'   : '%s/%s/config/schematokens.dat' % (consumer.getDir(),OPENDSNAME),
+                        'remotehost' : consumer.getHostname()
+                      }
+                    </call>
+                  </if>
                   <call function="'CopyFolderByExtension'">
                     { 'location'   : masterHost,
                       'remotehost' : consumer.getHostname(),

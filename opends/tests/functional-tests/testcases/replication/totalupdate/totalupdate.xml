@@ -26,29 +26,23 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-
-  <defaultcall function="main_totalupdate"/>
-
-  <function name="main_totalupdate">
-
+  <defaultcall function="replication_totalupdate"/>
+  <function name="replication_totalupdate">
     <sequence>
-
       <block name="'total-update'">
-
         <sequence>
-            
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='replication'                 
+              CurrentTestPath['group']='replication'
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
-
+          
           <call function="'testSuite_Preamble'"/>
                                                 
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/replication_setup.xml' % (TESTS_DIR)"/>
           <call function="'replication_setup'" />
-
+          
           <script>
             server1DataDir = '%s/%s' % (server1.getDir(),relativeDataDir)
           </script>
@@ -58,58 +52,63 @@
             <sequence>
             
               <call function="'testCase_Preamble'"/>
-
-              <!-- Stop the Directory Server -->              
+              
+              <!-- Stop the Directory Server -->
               <call function="'StopDsWithScript'">
                 { 'location'  : server1.getHostname(),
-                  'dsPath'    : '%s/%s' % (server1.getDir(),OPENDSNAME),                
+                  'dsPath'    : '%s/%s' % (server1.getDir(),OPENDSNAME),
                   'dsHost'    : server1.getHostname(),
                   'dsPort'    : server1.getPort(),
                   'dsBindDN'  : server1.getRootDn(),
-                  'dsBindPwd' : server1.getRootPwd() }
+                  'dsBindPwd' : server1.getRootPwd()
+                }
               </call>
-
+              
               <!-- Check that the Directory Server is stopped -->
               
-              <!-- Import data into Directory Server -->              
+              <!-- Import data into Directory Server -->
               <call function="'ImportLdifWithScript'">
                 { 'location'     : server1.getHostname() ,
                   'dsPath'       : '%s/%s' % (server1.getDir(),OPENDSNAME),
                   'dsBackEnd'    : 'userRoot',          
-                  'dsLdifFile'   : '%s/replication/Example.ldif' % server1DataDir }
+                  'dsLdifFile'   : '%s/replication/Example.ldif' % server1DataDir
+                }
               </call>
-
-              <!-- Check some data was imported into Directory Server -->    
+              
+              <!-- Check some data was imported into Directory Server -->
               <call function="'checkImport'">
-                { 'location'  : server1.getHostname(),
-                  'dsPath'    : '%s/%s' % (server1.getDir(),OPENDSNAME),                
-                  'dsHost'    : server1.getHostname(),
-                  'dsPort'    : server1.getPort(),
-                  'dsDn'      : server1.getRootDn(),
-                  'dsPswd'    : server1.getRootPwd(),
+                { 'location'        : server1.getHostname(),
+                  'dsPath'          : '%s/%s' % (server1.getDir(),OPENDSNAME),
+                  'dsHost'          : server1.getHostname(),
+                  'dsPort'          : server1.getPort(),
+                  'dsDn'            : server1.getRootDn(),
+                  'dsPswd'          : server1.getRootPwd(),
                   'expectedEntries' : ['uid=scarter,ou=People,o=example',
                                        'uid=dmiller, ou=People, o=example',
-                                       'uid=rhunt, ou=People, o=example'] }
+                                       'uid=rhunt, ou=People, o=example']
+                }
               </call>
-
+              
               <!-- Start the Directory Server -->
               <call function="'StartDsWithScript'">
                 { 'location'  : server1.getHostname(),
-                  'dsPath'    : '%s/%s' % (server1.getDir(),OPENDSNAME) }
+                  'dsPath'    : '%s/%s' % (server1.getDir(),OPENDSNAME)
+                }
               </call>
-
+              
               <!-- Wait for DS to start -->
               <call function="'isAlive'">
                 { 'location'         : server1.getHostname(),
-                  'dsPath'           : '%s/%s' % (server1.getDir(),OPENDSNAME),              
+                  'dsPath'           : '%s/%s' % (server1.getDir(),OPENDSNAME),
                   'dsInstanceHost'   : server1.getHostname() ,
                   'dsInstancePort'   : server1.getPort() ,
                   'dsInstanceDn'     : server1.getRootDn() ,
                   'dsInstancePswd'   : server1.getRootPwd() ,
                   'noOfLoops'        : 10 ,
-                  'noOfMilliSeconds' : 2000 }
+                  'noOfMilliSeconds' : 2000
+                }
               </call>
-          
+              
               <!-- Perform the total update -->
               <call function="'TotalUpdateTask'">
                 { 'location'        : server1.getHostname(),
@@ -120,13 +119,14 @@
                   'dsInstancePswd'  : server2.getRootPwd(),
                   'taskID'          : 'task',
                   'domainDN'        : 'o=example',
-                  'replicaServerID' : '1' }
+                  'replicaServerID' : '1'
+                }
               </call>
-       
+              
               <script>
                 STAXCode, STAXReason=STAXResult
               </script>
-               
+              
               <if expr="STAXCode != 0">
                 <sequence>
                   <message>
@@ -136,10 +136,10 @@
                 </sequence>
               </if>
               
-              <!-- Verify the total update -->  
+              <!-- Verify the total update -->
               <call function="'checkImport'">
                 { 'location'  : server2.getHostname(),
-                  'dsPath'    : '%s/%s' % (server2.getDir(),OPENDSNAME),                
+                  'dsPath'    : '%s/%s' % (server2.getDir(),OPENDSNAME),
                   'dsHost'    : server2.getHostname(),
                   'dsPort'    : server2.getPort(),
                   'dsDn'      : server2.getRootDn(),
@@ -147,27 +147,20 @@
                   'expectedEntries' : ['uid=scarter,ou=People,o=example',
                                        'uid=dmiller, ou=People, o=example',
                                        'uid=rhunt, ou=People, o=example'],
-                  'startDS'  : 'no' }
+                  'startDS'  : 'no'
+                }
               </call>
-                                                       
               <call function="'testCase_Postamble'"/>
-              
             </sequence>
-            
-          </testcase>          
+          </testcase>
           
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/replication_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'replication_cleanup'" />
-                          
+          
           <call function="'testSuite_Postamble'"/>
-                  
         </sequence>
-
       </block>
-    
     </sequence>
-
   </function>
-
 </stax>
