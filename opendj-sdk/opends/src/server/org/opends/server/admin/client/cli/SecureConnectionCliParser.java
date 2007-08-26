@@ -161,14 +161,17 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    */
   protected BooleanArgument useStartTLSArg = null;
 
+  // the trust manager.
+  private ApplicationTrustManager trustManager;
+
   /** Short form of the option for specifying a noninteractive session. */
-  static public final Character INTERACTIVE_OPTION_SHORT = 'i';
+  static public final Character NO_PROMPT_OPTION_SHORT = 'n';
 
   /** Long form of the option for specifying a quiet session. */
   static public final String QUIET_OPTION_LONG = "quiet";
 
   /** Long form of the option for specifying a noninteractive session. */
-  static public final String INTERACTIVE_OPTION_LONG = "interactive";
+  static public final String NO_PROMPT_OPTION_LONG = "no-prompt";
 
   /** Short form of the option for specifying a quiet session. */
   static public final Character QUIET_OPTION_SHORT = 'Q';
@@ -258,6 +261,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
         try
         {
           out.write(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn).getBytes());
+          out.flush();
           char[] pwChars = PasswordReader.readPassword();
           bindPasswordValue = new String(pwChars);
         } catch(Exception ex)
@@ -289,8 +293,8 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
       // read the password from the stdin.
       try
       {
-        out.write(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn).toString()
-                .getBytes());
+        out.write(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn).toString().getBytes());
+        out.flush();
         char[] pwChars = PasswordReader.readPassword();
         return new String(pwChars);
       }
@@ -664,7 +668,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    *
    * @return True if startTLS mode is required
    */
-  public boolean startTLS()
+  public boolean useStartTLS()
   {
     if (useStartTLSArg.isPresent())
     {
@@ -683,78 +687,83 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    */
   public ApplicationTrustManager getTrustManager()
   {
-    ApplicationTrustManager truststoreManager = null ;
-    KeyStore truststore = null ;
-    if (trustAllArg.isPresent())
+    if (trustManager == null)
     {
-      // Running a null TrustManager  will force createLdapsContext and
-      // createStartTLSContext to use a bindTrustManager.
-      return null ;
-    }
-    else
-    if (trustStorePathArg.isPresent())
-    {
-      try
+      KeyStore truststore = null ;
+      if (trustAllArg.isPresent())
       {
-        FileInputStream fos = new FileInputStream(trustStorePathArg.getValue());
-        String trustStorePasswordStringValue = null;
-        char[] trustStorePasswordValue = null;
-        if (trustStorePasswordArg.isPresent())
+        // Running a null TrustManager  will force createLdapsContext and
+        // createStartTLSContext to use a bindTrustManager.
+        return null ;
+      }
+      else
+        if (trustStorePathArg.isPresent())
         {
-          trustStorePasswordStringValue = trustStorePasswordArg.getValue();
-        }
-        else if (trustStorePasswordFileArg.isPresent())
-        {
-          trustStorePasswordStringValue = trustStorePasswordFileArg.getValue();
-        }
+          try
+          {
+            FileInputStream fos =
+              new FileInputStream(trustStorePathArg.getValue());
+            String trustStorePasswordStringValue = null;
+            char[] trustStorePasswordValue = null;
+            if (trustStorePasswordArg.isPresent())
+            {
+              trustStorePasswordStringValue = trustStorePasswordArg.getValue();
+            }
+            else if (trustStorePasswordFileArg.isPresent())
+            {
+              trustStorePasswordStringValue =
+                trustStorePasswordFileArg.getValue();
+            }
 
-        if (trustStorePasswordStringValue !=  null)
-        {
-          trustStorePasswordStringValue = System
+            if (trustStorePasswordStringValue !=  null)
+            {
+              trustStorePasswordStringValue = System
               .getProperty("javax.net.ssl.trustStorePassword");
+            }
+
+
+            if (trustStorePasswordStringValue !=  null)
+            {
+              trustStorePasswordValue =
+                trustStorePasswordStringValue.toCharArray();
+            }
+
+            truststore = KeyStore.getInstance(KeyStore.getDefaultType());
+            truststore.load(fos, trustStorePasswordValue);
+            fos.close();
+          }
+          catch (KeyStoreException e)
+          {
+            // Nothing to do: if this occurs we will systematically refuse the
+            // certificates.  Maybe we should avoid this and be strict, but we
+            // are in a best effort mode.
+            LOG.log(Level.WARNING, "Error with the truststore", e);
+          }
+          catch (NoSuchAlgorithmException e)
+          {
+            // Nothing to do: if this occurs we will systematically refuse the
+            // certificates.  Maybe we should avoid this and be strict, but we
+            // are in a best effort mode.
+            LOG.log(Level.WARNING, "Error with the truststore", e);
+          }
+          catch (CertificateException e)
+          {
+            // Nothing to do: if this occurs we will systematically refuse the
+            // certificates.  Maybe we should avoid this and be strict, but we
+            // are in a best effort mode.
+            LOG.log(Level.WARNING, "Error with the truststore", e);
+          }
+          catch (IOException e)
+          {
+            // Nothing to do: if this occurs we will systematically refuse the
+            // certificates.  Maybe we should avoid this and be strict, but we
+            // are in a best effort mode.
+            LOG.log(Level.WARNING, "Error with the truststore", e);
+          }
         }
-
-
-        if (trustStorePasswordStringValue !=  null)
-        {
-          trustStorePasswordValue = trustStorePasswordStringValue.toCharArray();
-        }
-
-        truststore = KeyStore.getInstance(KeyStore.getDefaultType());
-        truststore.load(fos, trustStorePasswordValue);
-        fos.close();
-      }
-      catch (KeyStoreException e)
-      {
-        // Nothing to do: if this occurs we will systematically refuse the
-        // certificates.  Maybe we should avoid this and be strict, but we are
-        // in a best effort mode.
-        LOG.log(Level.WARNING, "Error with the truststore", e);
-      }
-      catch (NoSuchAlgorithmException e)
-      {
-        // Nothing to do: if this occurs we will systematically refuse the
-        // certificates.  Maybe we should avoid this and be strict, but we are
-        // in a best effort mode.
-        LOG.log(Level.WARNING, "Error with the truststore", e);
-      }
-      catch (CertificateException e)
-      {
-        // Nothing to do: if this occurs we will systematically refuse the
-        // certificates.  Maybe we should avoid this and be strict, but we are
-        // in a best effort mode.
-        LOG.log(Level.WARNING, "Error with the truststore", e);
-      }
-      catch (IOException e)
-      {
-        // Nothing to do: if this occurs we will systematically refuse the
-        // certificates.  Maybe we should avoid this and be strict, but we are
-        // in a best effort mode.
-        LOG.log(Level.WARNING, "Error with the truststore", e);
-      }
+      trustManager = new ApplicationTrustManager(truststore);
     }
-    truststoreManager = new ApplicationTrustManager(truststore);
-    return truststoreManager;
+    return trustManager;
   }
 
   /**

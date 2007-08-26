@@ -267,6 +267,89 @@ public class ConfigFromFile
     return url;
   }
 
+  /**
+   * Retuns the LDAP URL for the specified connection policy.
+   * @param policy the connection policy to be used.
+   * @return the LDAP URL for the specified connection policy.
+   * @throws ConfigException if a valid LDAP URL could not be found.
+   */
+  public String getURL(ConnectionProtocolPolicy policy) throws ConfigException
+  {
+    String url;
+    String ldapUrl = getLDAPURL();
+    String startTlsUrl = getStartTLSURL();
+    String ldapsUrl = getLDAPSURL();
+    switch (policy)
+    {
+    case USE_STARTTLS:
+      if (startTlsUrl != null)
+      {
+        url = startTlsUrl;
+      }
+      else
+      {
+        throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
+      }
+      break;
+    case USE_LDAPS:
+      if (ldapsUrl != null)
+      {
+        url = ldapsUrl;
+      }
+      else
+      {
+        throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
+      }
+      break;
+    case USE_LDAP:
+      if (ldapUrl != null)
+      {
+        url = ldapUrl;
+      }
+      else
+      {
+        throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
+      }
+      break;
+    case USE_MOST_SECURE_AVAILABLE:
+      if (ldapsUrl != null)
+      {
+        url = ldapsUrl;
+      }
+      else if (startTlsUrl != null)
+      {
+        url = startTlsUrl;
+      }
+      else if (ldapUrl != null)
+      {
+        url = ldapUrl;
+      }
+      else
+      {
+        throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
+      }
+      break;
+    case USE_LESS_SECURE_AVAILABLE:
+      if (ldapUrl != null)
+      {
+        url = ldapUrl;
+      }
+      else if (ldapsUrl != null)
+      {
+        url = ldapsUrl;
+      }
+      else
+      {
+        throw new ConfigException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
+      }
+      break;
+      default:
+        throw new IllegalStateException("Unknown connection policy: "+
+            policy);
+    }
+    return url;
+  }
+
   private String getLDAPURL(boolean secure)
   {
     String url = null;

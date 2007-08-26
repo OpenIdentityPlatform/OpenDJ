@@ -34,6 +34,8 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
 import static org.opends.server.util.StaticUtils.wrapText;
 
+import java.io.File;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -49,7 +51,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.naming.NamingException;
-import javax.naming.NoPermissionException;
 import javax.naming.ldap.InitialLdapContext;
 
 import org.opends.admin.ads.ADSContext;
@@ -67,6 +68,7 @@ import org.opends.messages.MessageBuilder;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.CliApplicationHelper;
 import org.opends.quicksetup.Constants;
+import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.installer.InstallerHelper;
@@ -98,14 +100,14 @@ public class ReplicationCliMain extends CliApplicationHelper
    */
   private static final String CLASS_NAME = ReplicationCliMain.class.getName();
 
+  /** Prefix for log files. */
+  static public final String LOG_FILE_PREFIX = "opends-replication-";
+
+  /** Suffix for log files. */
+  static public final String LOG_FILE_SUFFIX = ".log";
+
   private static final Logger LOG =
     Logger.getLogger(CliApplicationHelper.class.getName());
-
-  // The print stream to use for standard error.
-  private PrintStream err;
-
-  // The print stream to use for standard output.
-  private PrintStream out;
 
   // The argument parser to be used.
   private ReplicationCliParser argParser;
@@ -117,13 +119,13 @@ public class ReplicationCliMain extends CliApplicationHelper
   /**
    * Constructor for the ReplicationCliMain object.
    *
-   * @param  out the print stream to use for standard output.
-   * @param  err the print stream to use for standard error.
+   * @param out the print stream to use for standard output.
+   * @param err the print stream to use for standard error.
+   * @param in the input stream to use for standard input.
    */
-  public ReplicationCliMain(PrintStream out, PrintStream err)
+  public ReplicationCliMain(PrintStream out, PrintStream err, InputStream in)
   {
-    this.out = out;
-    this.err = err;
+    super(out, err, in);
   }
 
   /**
@@ -134,7 +136,7 @@ public class ReplicationCliMain extends CliApplicationHelper
 
   public static void main(String[] args)
   {
-    int retCode = mainCLI(args, true, System.out, System.err);
+    int retCode = mainCLI(args, true, System.out, System.err, System.in);
 
     if(retCode != 0)
     {
@@ -153,7 +155,7 @@ public class ReplicationCliMain extends CliApplicationHelper
 
   public static int mainCLI(String[] args)
   {
-    return mainCLI(args, true, System.out, System.err);
+    return mainCLI(args, true, System.out, System.err, System.in);
   }
 
   /**
@@ -169,11 +171,12 @@ public class ReplicationCliMain extends CliApplicationHelper
    * @param  errStream         The output stream to use for standard error, or
    *                           <CODE>null</CODE> if standard error is not
    *                           needed.
+   * @param  inStream          The input stream to use for standard input.
    * @return The error code.
    */
 
   public static int mainCLI(String[] args, boolean initializeServer,
-      OutputStream outStream, OutputStream errStream)
+      OutputStream outStream, OutputStream errStream, InputStream inStream)
   {
     PrintStream out;
     if (outStream == null)
@@ -195,7 +198,18 @@ public class ReplicationCliMain extends CliApplicationHelper
       err = new PrintStream(errStream);
     }
 
-    ReplicationCliMain replicationCli = new ReplicationCliMain(out, err);
+    try {
+      QuickSetupLog.initLogFileHandler(
+              File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX),
+              "org.opends.guitools.replicationcli");
+      QuickSetupLog.disableConsoleLogging();
+    } catch (Throwable t) {
+      System.err.println("Unable to initialize log");
+      t.printStackTrace();
+    }
+
+    ReplicationCliMain replicationCli = new ReplicationCliMain(out, err,
+        inStream);
     return replicationCli.execute(args, initializeServer);
   }
 
@@ -487,7 +501,7 @@ public class ReplicationCliMain extends CliApplicationHelper
         LOG.log(Level.WARNING, "Error connecting to "+host1+":"+port1, ne);
         if (Utils.isCertificateException(ne))
         {
-          String usedUrl = getLDAPUrl(host1, port1, useSSL1);
+          String usedUrl = ConnectionUtils.getLDAPUrl(host1, port1, useSSL1);
           if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl))
           {
             cancelled = true;
@@ -499,7 +513,7 @@ public class ReplicationCliMain extends CliApplicationHelper
           {
             printLineBreak();
             printErrorMessage(ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(
-                host1+":"+port1));
+                host1+":"+port1, ne.getMessage()));
           }
           printLineBreak();
           if (!firstTimeAsked || (argParser.getHostName1() == null))
@@ -516,20 +530,20 @@ public class ReplicationCliMain extends CliApplicationHelper
           if (!firstTimeAsked || (argParser.getBindDn1() == null))
           {
             bindDn1 = promptForString(
-              INFO_REPLICATION_BINDDN_PROMPT.get(),
+              INFO_CLI_BINDDN_PROMPT.get(),
               getValue(bindDn1, argParser.getDefaultBindDn1()));
           }
           if (!firstTimeAsked || (argParser.getBindPassword1() == null))
           {
-            pwd1 = promptForPassword(INFO_REPLICATION_PASSWORD_PROMPT.get());
+            pwd1 = promptForPassword(
+                INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDn1));
           }
           if (!firstTimeAsked || (!useSSL1 && !useStartTLS1))
           {
-            useSSL1 = confirm(INFO_REPLICATION_USESSL_PROMPT.get(),
-                useSSL1);
+            useSSL1 = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL1);
             if (!useSSL1)
             {
-              useStartTLS1 = confirm(INFO_REPLICATION_USESTARTTLS_PROMPT.get(),
+              useStartTLS1 = confirm(INFO_CLI_USESTARTTLS_PROMPT.get(),
                   useStartTLS1);
             }
           }
@@ -621,7 +635,7 @@ public class ReplicationCliMain extends CliApplicationHelper
         LOG.log(Level.WARNING, "Error connecting to "+host2+":"+port2, ne);
         if (Utils.isCertificateException(ne))
         {
-          String usedUrl = getLDAPUrl(host2, port2, useSSL2);
+          String usedUrl = ConnectionUtils.getLDAPUrl(host2, port2, useSSL2);
           if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl))
           {
             cancelled = true;
@@ -633,7 +647,7 @@ public class ReplicationCliMain extends CliApplicationHelper
           {
             printLineBreak();
             printErrorMessage(ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(
-                host2+":"+port2));
+                host2+":"+port2, ne.getMessage()));
           }
           printLineBreak();
           if (!firstTimeAsked || (argParser.getHostName2() == null))
@@ -649,21 +663,21 @@ public class ReplicationCliMain extends CliApplicationHelper
           }
           if (!firstTimeAsked || (argParser.getBindDn2() == null))
           {
-            bindDn2 = promptForString(
-              INFO_REPLICATION_BINDDN_PROMPT.get(),
+            bindDn2 = promptForString(INFO_CLI_BINDDN_PROMPT.get(),
               getValue(bindDn2, argParser.getDefaultBindDn2()));
           }
           if (!firstTimeAsked || (argParser.getBindPassword2() == null))
           {
-            pwd2 = promptForPassword(INFO_REPLICATION_PASSWORD_PROMPT.get());
+            pwd2 = promptForPassword(
+                INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDn2));
           }
           if (!firstTimeAsked || !useSSL2 || !useStartTLS2)
           {
-            useSSL2 = confirm(INFO_REPLICATION_USESSL_PROMPT.get(),
+            useSSL2 = confirm(INFO_CLI_USESSL_PROMPT.get(),
                 useSSL2);
             if (!useSSL2)
             {
-              useStartTLS2 = confirm(INFO_REPLICATION_USESTARTTLS_PROMPT.get(),
+              useStartTLS2 = confirm(INFO_CLI_USESTARTTLS_PROMPT.get(),
                   useStartTLS2);
             }
           }
@@ -830,7 +844,7 @@ public class ReplicationCliMain extends CliApplicationHelper
         LOG.log(Level.WARNING, "Error connecting to "+host+":"+port, ne);
         if (Utils.isCertificateException(ne))
         {
-          String usedUrl = getLDAPUrl(host, port, useSSL);
+          String usedUrl = ConnectionUtils.getLDAPUrl(host, port, useSSL);
           if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl))
           {
             cancelled = true;
@@ -840,7 +854,7 @@ public class ReplicationCliMain extends CliApplicationHelper
         {
           printLineBreak();
           printErrorMessage(ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(
-              host+":"+port));
+              host+":"+port, ne.getMessage()));
           printLineBreak();
           if (!firstTimeAsked || (argParser.getHostNameToDisable() == null))
           {
@@ -864,11 +878,11 @@ public class ReplicationCliMain extends CliApplicationHelper
           }
           if (!firstTimeAsked || useSSL)
           {
-            useSSL = confirm(INFO_REPLICATION_USESSL_PROMPT.get(), useSSL);
+            useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL);
             if (!useSSL)
             {
               useStartTLS =
-                confirm(INFO_REPLICATION_USESTARTTLS_PROMPT.get(), useStartTLS);
+                confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), useStartTLS);
             }
           }
           firstTimeAsked = false;
@@ -991,7 +1005,8 @@ public class ReplicationCliMain extends CliApplicationHelper
             ne);
         if (Utils.isCertificateException(ne))
         {
-          String usedUrl = getLDAPUrl(hostSource, portSource, useSSLSource);
+          String usedUrl = ConnectionUtils.getLDAPUrl(hostSource, portSource,
+              useSSLSource);
           if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl))
           {
             cancelled = true;
@@ -1001,7 +1016,7 @@ public class ReplicationCliMain extends CliApplicationHelper
         {
           printLineBreak();
           printErrorMessage(ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(
-              hostSource+":"+portSource));
+              hostSource+":"+portSource, ne.getMessage()));
           printLineBreak();
           if (!firstTimeAsked || (argParser.getHostNameSource() == null))
           {
@@ -1025,13 +1040,11 @@ public class ReplicationCliMain extends CliApplicationHelper
           }
           if (!firstTimeAsked || useSSLSource)
           {
-            useSSLSource = confirm(INFO_REPLICATION_USESSL_PROMPT.get(),
-                useSSLSource);
+            useSSLSource = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSLSource);
             if (!useSSLSource)
             {
               useStartTLSSource =
-                confirm(INFO_REPLICATION_USESTARTTLS_PROMPT.get(),
-                    useStartTLSSource);
+                confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), useStartTLSSource);
             }
           }
           firstTimeAsked = false;
@@ -1077,8 +1090,8 @@ public class ReplicationCliMain extends CliApplicationHelper
 
         if (Utils.isCertificateException(ne))
         {
-          String usedUrl = getLDAPUrl(hostDestination, portDestination,
-              useSSLDestination);
+          String usedUrl = ConnectionUtils.getLDAPUrl(hostDestination,
+              portDestination, useSSLDestination);
           if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl))
           {
             cancelled = true;
@@ -1088,7 +1101,7 @@ public class ReplicationCliMain extends CliApplicationHelper
         {
           printLineBreak();
           printErrorMessage(ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(
-              hostDestination+":"+portDestination));
+              hostDestination+":"+portDestination, ne.getMessage()));
           printLineBreak();
           if (!firstTimeAsked || (argParser.getHostNameDestination() == null))
           {
@@ -1106,12 +1119,12 @@ public class ReplicationCliMain extends CliApplicationHelper
           }
           if (!firstTimeAsked || useSSLDestination)
           {
-            useSSLDestination = confirm(INFO_REPLICATION_USESSL_PROMPT.get(),
+            useSSLDestination = confirm(INFO_CLI_USESSL_PROMPT.get(),
                 useSSLDestination);
             if (!useSSLDestination)
             {
               useStartTLSDestination =
-                confirm(INFO_REPLICATION_USESTARTTLS_PROMPT.get(),
+                confirm(INFO_CLI_USESTARTTLS_PROMPT.get(),
                     useStartTLSDestination);
             }
           }
@@ -1363,72 +1376,6 @@ public class ReplicationCliMain extends CliApplicationHelper
   }
 
   /**
-   * Returns an InitialLdapContext using the provided parameters.  We try
-   * to guarantee that the connection is able to read the configuration.
-   * @param host the host name.
-   * @param port the port to connect.
-   * @param useSSL whether to use SSL or not.
-   * @param useStartTLS whether to use StartTLS or not.
-   * @param bindDn the bind dn to be used.
-   * @param pwd the password.
-   * @param trustManager the trust manager.
-   * @return an InitialLdapContext connected.
-   * @throws NamingException if there was an error establishing the connection.
-   */
-  private InitialLdapContext createContext(String host, int port,
-      boolean useSSL, boolean useStartTLS, String bindDn, String pwd,
-      ApplicationTrustManager trustManager)
-  throws NamingException
-  {
-    InitialLdapContext ctx;
-    String ldapUrl = getLDAPUrl(host, port, useSSL);
-    if (useSSL)
-    {
-      ctx = Utils.createLdapsContext(ldapUrl, bindDn, pwd,
-          Utils.getDefaultLDAPTimeout(), null, trustManager);
-    }
-    else if (useStartTLS)
-    {
-      ctx = Utils.createStartTLSContext(ldapUrl, bindDn, pwd,
-          Utils.getDefaultLDAPTimeout(), null, trustManager,
-          null);
-    }
-    else
-    {
-      ctx = Utils.createLdapContext(ldapUrl, bindDn, pwd,
-          Utils.getDefaultLDAPTimeout(), null);
-    }
-    if (!ConnectionUtils.connectedAsAdministrativeUser(ctx))
-    {
-      throw new NoPermissionException(
-          ERR_NOT_ADMINISTRATIVE_USER.get().toString());
-    }
-    return ctx;
-  }
-
-  /**
-   * Returns the LDAP URL for the provided parameters.
-   * @param host the host name.
-   * @param port the LDAP port.
-   * @param useSSL whether to use SSL or not.
-   * @return the LDAP URL for the provided parameters.
-   */
-  private String getLDAPUrl(String host, int port, boolean useSSL)
-  {
-    String ldapUrl;
-    host = Utils.getHostNameForLdapUrl(host);
-    if (useSSL)
-    {
-      ldapUrl = "ldaps://"+host+":"+port;
-    }
-    else
-    {
-      ldapUrl = "ldap://"+host+":"+port;
-    }
-    return ldapUrl;
-  }
-
-  /**
    * Tells whether the server to which the LdapContext is connected has a
    * replication port or not.
    * @param ctx the InitialLdapContext to be used.
@@ -1581,7 +1528,7 @@ public class ReplicationCliMain extends CliApplicationHelper
                     printLineBreak();
                     printErrorMessage(
                         ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(
-                        host+":"+port));
+                        host+":"+port, t.getMessage()));
                     LOG.log(Level.WARNING, "Complete error stack:", t);
                     printLineBreak();
                   }

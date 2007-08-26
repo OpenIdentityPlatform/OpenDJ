@@ -28,23 +28,33 @@
 package org.opends.guitools.statuspanel;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.net.URI;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.naming.NamingException;
+import javax.naming.ldap.InitialLdapContext;
 import javax.swing.table.TableModel;
 
+import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.statuspanel.ui.DatabasesTableModel;
 import org.opends.guitools.statuspanel.ui.ListenersTableModel;
+import org.opends.quicksetup.CliApplicationHelper;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.QuickSetupLog;
+import org.opends.quicksetup.util.Utils;
+
 import static org.opends.quicksetup.util.Utils.*;
 
 import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode;
-import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.core.DirectoryServer;
 
 import org.opends.messages.Message;
@@ -53,7 +63,7 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
-import org.opends.server.util.args.Argument;
+import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.args.ArgumentException;
 
 /**
@@ -63,90 +73,222 @@ import org.opends.server.util.args.ArgumentException;
  * in the command line.
  *
  */
-class StatusCli extends SecureConnectionCliParser
+class StatusCli extends CliApplicationHelper
 {
-  private String[] args;
 
   private boolean displayMustAuthenticateLegend;
   private boolean displayMustStartLegend;
+
+  /** Prefix for log files. */
+  static public final String LOG_FILE_PREFIX = "opends-status-";
+
+  /** Suffix for log files. */
+  static public final String LOG_FILE_SUFFIX = ".log";
+
+  /**
+   * The enumeration containing the different return codes that the command-line
+   * can have.
+   *
+   */
+  enum ErrorReturnCode
+  {
+    /**
+     * Successful display of the status.
+     */
+    SUCCESSFUL(0),
+    /**
+     * We did no have an error but the status was not displayed (displayed
+     * version or usage).
+     */
+    SUCCESSFUL_NOP(0),
+    /**
+     * Unexpected error (potential bug).
+     */
+    ERROR_UNEXPECTED(1),
+    /**
+     * Cannot parse arguments.
+     */
+    ERROR_PARSING_ARGS(2),
+    /**
+     * User cancelled (for instance not accepting the certificate proposed).
+     */
+    USER_CANCELLED(3);
+
+    private int returnCode;
+    private ErrorReturnCode(int returnCode)
+    {
+      this.returnCode = returnCode;
+    }
+
+    /**
+     * Get the corresponding return code value.
+     *
+     * @return The corresponding return code value.
+     */
+    public int getReturnCode()
+    {
+      return returnCode;
+    }
+  };
 
   /**
    * The Logger.
    */
   static private final Logger LOG = Logger.getLogger(StatusCli.class.getName());
 
+  // The argument parser
+  private StatusCliParser argParser;
+
   /**
-   * The main method which is called by the status command lines.
-   * @param args the arguments passed by the status command lines.
+   * Constructor for the StatusCli object.
+   *
+   * @param out the print stream to use for standard output.
+   * @param err the print stream to use for standard error.
+   * @param in the input stream to use for standard input.
    */
+  public StatusCli(PrintStream out, PrintStream err, InputStream in)
+  {
+    super(out, err, in);
+  }
+
+  /**
+   * The main method for the status CLI tool.
+   *
+   * @param args the command-line arguments provided to this program.
+   */
+
   public static void main(String[] args)
   {
-    QuickSetupLog.disableConsoleLogging();
-    StatusCli cli = new StatusCli(args);
-    System.exit(cli.run());
+    int retCode = mainCLI(args, true, System.out, System.err, System.in);
+
+    if(retCode != 0)
+    {
+      System.exit(retCode);
+    }
   }
 
   /**
-   * The constructor for this object.
-   * @param args the arguments of the status command line.
+   * Parses the provided command-line arguments and uses that information to
+   * run the replication tool.
+   *
+   * @param args the command-line arguments provided to this program.
+   *
+   * @return The error code.
    */
-  StatusCli(String[] args)
+
+  public static int mainCLI(String[] args)
   {
-    super(org.opends.guitools.statuspanel.StatusCli.class.getName(),
-        INFO_STATUS_CLI_USAGE_DESCRIPTION.get(), false);
-    this.args = args;
-    DirectoryServer.bootstrapClient();
+    return mainCLI(args, true, System.out, System.err, System.in);
   }
 
   /**
-   * Parses the user data and displays usage if something is missing and the
-   * status otherwise.
+   * Parses the provided command-line arguments and uses that information to
+   * run the replication tool.
+   *
+   * @param  args              The command-line arguments provided to this
+   *                           program.
+   * @param initializeServer   Indicates whether to initialize the server.
+   * @param  outStream         The output stream to use for standard output, or
+   *                           <CODE>null</CODE> if standard output is not
+   *                           needed.
+   * @param  errStream         The output stream to use for standard error, or
+   *                           <CODE>null</CODE> if standard error is not
+   *                           needed.
+   * @param  inStream          The input stream to use for standard input.
+   * @return The error code.
+   */
+
+  public static int mainCLI(String[] args, boolean initializeServer,
+      OutputStream outStream, OutputStream errStream, InputStream inStream)
+  {
+    PrintStream out;
+    if (outStream == null)
+    {
+      out = NullOutputStream.printStream();
+    }
+    else
+    {
+      out = new PrintStream(outStream);
+    }
+
+    PrintStream err;
+    if (errStream == null)
+    {
+      err = NullOutputStream.printStream();
+    }
+    else
+    {
+      err = new PrintStream(errStream);
+    }
+
+    try {
+      QuickSetupLog.initLogFileHandler(
+              File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX),
+              "org.opends.guitools.statuspanel");
+      QuickSetupLog.disableConsoleLogging();
+    } catch (Throwable t) {
+      System.err.println("Unable to initialize log");
+      t.printStackTrace();
+    }
+
+    StatusCli statusCli = new StatusCli(out, err, inStream);
+
+    return statusCli.execute(args, initializeServer);
+  }
+
+  /**
+   * Parses the provided command-line arguments and uses that information to
+   * run the status CLI.
+   *
+   * @param args the command-line arguments provided to this program.
+   * @param  initializeServer  Indicates whether to initialize the server.
    *
    * @return the return code (SUCCESSFUL, USER_DATA_ERROR or BUG.
    */
-  int run()
+  public int execute(String[] args, boolean initializeServer)
   {
+    if (initializeServer)
+    {
+      DirectoryServer.bootstrapClient();
+    }
+
+    argParser = new StatusCliParser(StatusCli.class.getName());
     try
     {
-      ArrayList<Argument> defaultArgs =
-        new ArrayList<Argument>(createGlobalArguments(System.err));
-      defaultArgs.remove(portArg);
-      defaultArgs.remove(hostNameArg);
-      defaultArgs.remove(verboseArg);
-      initializeGlobalArguments(defaultArgs);
+      argParser.initializeGlobalArguments(err);
     }
     catch (ArgumentException ae)
     {
       Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-      System.err.println(wrap(message));
-      return DsFrameworkCliReturnCode.ERROR_UNEXPECTED.getReturnCode();
+      err.println(wrap(message));
+      return ErrorReturnCode.ERROR_UNEXPECTED.getReturnCode();
     }
 
     // Validate user provided data
     try
     {
-      parseArguments(args);
+      argParser.parseArguments(args);
     }
     catch (ArgumentException ae)
     {
       Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-      System.err.println(wrap(message));
-      System.err.println(getUsage());
+      err.println(wrap(message));
+      err.println(argParser.getUsage());
 
-      return DsFrameworkCliReturnCode.ERROR_PARSING_ARGS.getReturnCode();
+      return ErrorReturnCode.ERROR_PARSING_ARGS.getReturnCode();
     }
 
     //  If we should just display usage or version information,
     // then print it and exit.
-    if (usageOrVersionDisplayed())
+    if (argParser.usageOrVersionDisplayed())
     {
-      return DsFrameworkCliReturnCode.SUCCESSFUL_NOP.getReturnCode();
+      return ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode();
     }
-    int v = validateGlobalOptions(System.err);
+    int v = argParser.validateGlobalOptions(err);
 
     if (v != DsFrameworkCliReturnCode.SUCCESSFUL_NOP.getReturnCode())
     {
-      System.err.println(getUsage());
+      err.println(argParser.getUsage());
       return v;
     }
     else
@@ -163,35 +305,131 @@ class StatusCli extends SecureConnectionCliParser
       {
         if (isServerRunning)
         {
-          String directoryManagerDn = getBindDN();
-          String directoryManagerPwd = getBindPassword(directoryManagerDn,
-              System.out, System.err);
-          if (directoryManagerDn == null)
+          String bindDn = argParser.getBindDN();
+          String bindPwd;
+          boolean useSSL = argParser.useSSL();
+          boolean useStartTLS = argParser.useStartTLS();
+          if (argParser.isInteractive())
           {
-            directoryManagerDn = "";
-          }
-          if (directoryManagerPwd == null)
-          {
-            directoryManagerPwd = "";
-          }
-          ServerStatusDescriptor desc = createServerStatusDescriptor(
-              directoryManagerDn, directoryManagerPwd);
-          ConfigFromLDAP onLineConf = new ConfigFromLDAP();
-          ConnectionProtocolPolicy policy;
-          if (useStartTLSArg.isPresent())
-          {
-            policy = ConnectionProtocolPolicy.USE_STARTTLS;
-          }
-          if (useSSLArg.isPresent())
-          {
-            policy = ConnectionProtocolPolicy.USE_LDAPS;
+            boolean connected = false;
+            boolean cancelled = false;
+
+            bindPwd = argParser.getBindPassword();
+            if (bindPwd == null)
+            {
+              bindPwd = promptForPassword(
+                  INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDn));
+            }
+
+            InitialLdapContext ctx = null;
+            while (!connected && !cancelled)
+            {
+              String host = "localhost";
+              int port = 389;
+              try
+              {
+                String ldapUrl = offLineConf.getURL(
+                    getConnectionPolicy(useSSL, useStartTLS));
+                try
+                {
+                  URI uri = new URI(ldapUrl);
+                  host = uri.getHost();
+                  port = uri.getPort();
+                }
+                catch (Throwable t)
+                {
+                  LOG.log(Level.SEVERE, "Error parsing url: "+ldapUrl);
+                }
+                ctx = createContext(host, port, useSSL, useStartTLS, bindDn,
+                    bindPwd, getTrustManager());
+                connected = true;
+              }
+              catch (ConfigException ce)
+              {
+                LOG.log(Level.WARNING, "Error reading config file: "+ce, ce);
+                printLineBreak();
+                printErrorMessage(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
+                useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL);
+                if (!useSSL)
+                {
+                  useStartTLS =
+                    confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), useStartTLS);
+                }
+              }
+              catch (NamingException ne)
+              {
+                LOG.log(Level.WARNING, "Error connecting: "+ne, ne);
+
+                if (Utils.isCertificateException(ne))
+                {
+                  String usedUrl = ConnectionUtils.getLDAPUrl(host, port,
+                      useSSL);
+                  if (!promptForCertificateConfirmation(ne, getTrustManager(),
+                      usedUrl))
+                  {
+                    cancelled = true;
+                  }
+                }
+                else
+                {
+                  printLineBreak();
+                  printErrorMessage(
+                      ERR_STATUS_CLI_ERROR_CONNECTING_PROMPT_AGAIN.get(
+                          ne.getMessage()));
+                  String defaultValue = (bindDn != null) ? bindDn :
+                    argParser.getDefaultBindDn();
+
+                  bindDn = promptForString(
+                      INFO_CLI_BINDDN_PROMPT.get(), defaultValue);
+
+                  bindPwd = promptForPassword(
+                      INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDn));
+
+                  printLineBreak();
+                  useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL);
+                  if (!useSSL)
+                  {
+                    useStartTLS =
+                      confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), useStartTLS);
+                  }
+                }
+              }
+            }
+            if (ctx != null)
+            {
+              try
+              {
+                ctx.close();
+              }
+              catch (Throwable t)
+              {
+              }
+            }
+            if (cancelled)
+            {
+              return ErrorReturnCode.USER_CANCELLED.getReturnCode();
+            }
           }
           else
           {
-            policy = ConnectionProtocolPolicy.USE_MOST_SECURE_AVAILABLE;
+            bindPwd = argParser.getBindPassword();
+
+            if (bindDn == null)
+            {
+              bindDn = "";
+            }
+            if (bindPwd == null)
+            {
+              bindPwd = "";
+            }
           }
-          onLineConf.setConnectionInfo(offLineConf, policy, directoryManagerDn,
-              directoryManagerPwd, getTrustManager());
+          ServerStatusDescriptor desc = createServerStatusDescriptor(
+              bindDn, bindPwd);
+          ConfigFromLDAP onLineConf = new ConfigFromLDAP();
+          ConnectionProtocolPolicy policy = getConnectionPolicy(useSSL,
+              useStartTLS);
+          onLineConf.setConnectionInfo(offLineConf, policy, bindDn,
+              bindPwd, getTrustManager());
           onLineConf.readConfiguration();
           updateDescriptorWithOnLineInfo(desc, onLineConf);
           writeStatus(desc);
@@ -206,11 +444,11 @@ class StatusCli extends SecureConnectionCliParser
       }
       catch (ConfigException ce)
       {
-        System.err.println(wrap(ce.getMessageObject()));
+        printErrorMessage(ce.getMessageObject());
       }
     }
 
-    return DsFrameworkCliReturnCode.SUCCESSFUL_NOP.getReturnCode();
+    return ErrorReturnCode.SUCCESSFUL.getReturnCode();
   }
 
   private ServerStatusDescriptor createServerStatusDescriptor(String dn,
@@ -286,23 +524,23 @@ class StatusCli extends SecureConnectionCliParser
     {
       labelWidth = Math.max(labelWidth, labels[i].length());
     }
-    System.out.println();
+    out.println();
     Message title = INFO_SERVER_STATUS_TITLE.get();
-    System.out.println(centerTitle(title));
+    out.println(centerTitle(title));
     writeStatusContents(desc, labelWidth);
     writeCurrentConnectionContents(desc, labelWidth);
-    System.out.println();
+    out.println();
 
     title = INFO_SERVER_DETAILS_TITLE.get();
-    System.out.println(centerTitle(title));
+    out.println(centerTitle(title));
     writeAdministrativeUserContents(desc, labelWidth);
     writeInstallPathContents(desc, labelWidth);
     writeVersionContents(desc, labelWidth);
     writeJavaVersionContents(desc, labelWidth);
-    System.out.println();
+    out.println();
 
     writeListenerContents(desc);
-    System.out.println();
+    out.println();
 
     writeDatabaseContents(desc);
 
@@ -310,16 +548,16 @@ class StatusCli extends SecureConnectionCliParser
 
     if (displayMustStartLegend)
     {
-      System.out.println();
-      System.out.println(wrap(INFO_NOT_AVAILABLE_SERVER_DOWN_CLI_LEGEND.get()));
+      out.println();
+      out.println(wrap(INFO_NOT_AVAILABLE_SERVER_DOWN_CLI_LEGEND.get()));
     }
     else if (displayMustAuthenticateLegend)
     {
-      System.out.println();
-      System.out.println(
+      out.println();
+      out.println(
           wrap(INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LEGEND.get()));
     }
-    System.out.println();
+    out.println();
   }
 
   /**
@@ -519,7 +757,7 @@ class StatusCli extends SecureConnectionCliParser
   private void writeListenerContents(ServerStatusDescriptor desc)
   {
     Message title = INFO_LISTENERS_TITLE.get();
-    System.out.println(centerTitle(title));
+    out.println(centerTitle(title));
 
     Set<ListenerDescriptor> listeners = desc.getListeners();
 
@@ -529,17 +767,17 @@ class StatusCli extends SecureConnectionCliParser
       {
         if (!desc.isAuthenticated())
         {
-          System.out.println(
+          out.println(
               wrap(INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get()));
         }
         else
         {
-          System.out.println(wrap(INFO_NO_LISTENERS_FOUND.get()));
+          out.println(wrap(INFO_NO_LISTENERS_FOUND.get()));
         }
       }
       else
       {
-        System.out.println(wrap(INFO_NO_LISTENERS_FOUND.get()));
+        out.println(wrap(INFO_NO_LISTENERS_FOUND.get()));
       }
     }
     else
@@ -558,7 +796,7 @@ class StatusCli extends SecureConnectionCliParser
   private void writeDatabaseContents(ServerStatusDescriptor desc)
   {
     Message title = INFO_DATABASES_TITLE.get();
-    System.out.println(centerTitle(title));
+    out.println(centerTitle(title));
 
     Set<DatabaseDescriptor> databases = desc.getDatabases();
 
@@ -568,17 +806,17 @@ class StatusCli extends SecureConnectionCliParser
       {
         if (!desc.isAuthenticated())
         {
-          System.out.println(
+          out.println(
               wrap(INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get()));
         }
         else
         {
-          System.out.println(wrap(INFO_NO_DBS_FOUND.get()));
+          out.println(wrap(INFO_NO_DBS_FOUND.get()));
         }
       }
       else
       {
-        System.out.println(wrap(INFO_NO_DBS_FOUND.get()));
+        out.println(wrap(INFO_NO_DBS_FOUND.get()));
       }
     }
     else
@@ -606,8 +844,8 @@ class StatusCli extends SecureConnectionCliParser
     Message errorMsg = desc.getErrorMessage();
     if (errorMsg != null)
     {
-      System.out.println();
-      System.out.println(wrap(errorMsg));
+      out.println();
+      out.println(wrap(errorMsg));
     }
   }
 
@@ -718,13 +956,13 @@ class StatusCli extends SecureConnectionCliParser
         headerLine.append(" ");
       }
     }
-    System.out.println(wrap(headerLine.toMessage()));
+    out.println(wrap(headerLine.toMessage()));
     MessageBuilder t = new MessageBuilder();
     for (int i=0; i<headerLine.length(); i++)
     {
       t.append("=");
     }
-    System.out.println(wrap(t.toMessage()));
+    out.println(wrap(t.toMessage()));
 
     for (int i=0; i<tableModel.getRowCount(); i++)
     {
@@ -771,7 +1009,7 @@ class StatusCli extends SecureConnectionCliParser
           line.append(" ");
         }
       }
-      System.out.println(wrap(line.toMessage()));
+      out.println(wrap(line.toMessage()));
     }
   }
 
@@ -809,7 +1047,7 @@ class StatusCli extends SecureConnectionCliParser
     {
       if (i > 0)
       {
-        System.out.println();
+        out.println();
       }
       for (int j=0; j<tableModel.getColumnCount(); j++)
       {
@@ -899,7 +1137,7 @@ class StatusCli extends SecureConnectionCliParser
       buf.append(" ");
     }
     buf.append(" ").append(String.valueOf(value));
-    System.out.println(wrap(buf.toMessage()));
+    out.println(wrap(buf.toMessage()));
 
   }
 
@@ -924,6 +1162,40 @@ class StatusCli extends SecureConnectionCliParser
     }
     return centered;
   }
+
+  /**
+   * Returns the trust manager to be used by this application.
+   * @return the trust manager to be used by this application.
+   */
+  private ApplicationTrustManager getTrustManager()
+  {
+    return argParser.getTrustManager();
+  }
+
+  /**
+   * Returns the ConnectionPolicy to be used with the parameters provided
+   * by the user.
+   * @param useSSL whether the user asked to use SSL or not.
+   * @param useStartTLS whether the user asked to use Start TLS or not.
+   * @return the ConnectionPolicy to be used with the parameters provided
+   * by the user.
+   */
+  private ConnectionProtocolPolicy getConnectionPolicy(boolean useSSL,
+      boolean useStartTLS)
+  {
+    ConnectionProtocolPolicy policy;
+    if (useStartTLS)
+    {
+      policy = ConnectionProtocolPolicy.USE_STARTTLS;
+    }
+    if (useSSL)
+    {
+      policy = ConnectionProtocolPolicy.USE_LDAPS;
+    }
+    else
+    {
+      policy = ConnectionProtocolPolicy.USE_LESS_SECURE_AVAILABLE;
+    }
+    return policy;
+  }
 }
-
-

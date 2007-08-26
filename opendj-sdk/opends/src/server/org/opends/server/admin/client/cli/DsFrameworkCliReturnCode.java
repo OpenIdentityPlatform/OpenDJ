@@ -57,7 +57,7 @@ import org.opends.admin.ads.ADSContextException.ErrorType;
     CANNOT_INITIALIZE_ARGS(1, ERR_ADMIN_NO_MESSAGE.get()),
 
     /**
-     * Cannot parse argument.
+     * Cannot parse arguments.
      */
     ERROR_PARSING_ARGS(2, ERR_ADMIN_NO_MESSAGE.get()),
     /**
