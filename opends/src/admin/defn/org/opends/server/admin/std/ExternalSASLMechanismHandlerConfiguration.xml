@@ -26,16 +26,18 @@
  !      Portions Copyright 2007 Sun Microsystems, Inc.
  ! -->
 
-<adm:managed-object name="external-sasl-mechanism-handler" 
+<adm:managed-object name="external-sasl-mechanism-handler"
   plural-name="external-sasl-mechanism-handlers"
   package="org.opends.server.admin.std" extends="sasl-mechanism-handler"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
+
   <adm:synopsis>
     The
     <adm:user-friendly-name />
     is used to perform all processing related to SASL EXTERNAL authentication.
   </adm:synopsis>
+
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.44</ldap:oid>
@@ -43,6 +45,7 @@
       <ldap:superior>ds-cfg-sasl-mechanism-handler</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+
   <adm:property-override name="handler-class">
     <adm:default-behavior>
       <adm:defined>
@@ -52,6 +55,7 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
+
   <adm:property name="certificate-validation-policy" mandatory="true">
     <adm:synopsis>
       Indicates whether to attempt to validate the peer certificate against a
@@ -97,13 +101,14 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+
   <adm:property name="certificate-attribute" mandatory="false">
     <adm:synopsis>
       Specifies the attribute that should hold user certificates.
     </adm:synopsis>
     <adm:description>
       Specifies the name of the attribute that will be used to hold the
-      certificate information in user entries for the purpose of validation. 
+      certificate information in user entries for the purpose of validation.
       This must specify the name of a valid attribute type defined in the
       server schema.  Changes to this configuration attribute will take effect
       immediately.
@@ -114,7 +119,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:string />
+      <adm:attribute-type />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -123,6 +128,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+
   <adm:property name="certificate-mapper-dn" mandatory="true">
     <adm:synopsis>
       Specifies the DN of the certificate mapper to use.

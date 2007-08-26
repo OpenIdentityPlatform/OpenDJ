@@ -1,15 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+
 <adm:managed-object name="debug-log-publisher"
-  plural-name="debug-log-publishers"
-  package="org.opends.server.admin.std" extends="log-publisher"
-  abstract="true" xmlns:adm="http://www.opends.org/admin"
-  xmlns:ldap="http://www.opends.org/admin-ldap"
-  xmlns:cli="http://www.opends.org/admin-cli">
+plural-name="debug-log-publishers"
+package="org.opends.server.admin.std" extends="log-publisher"
+abstract="true" xmlns:adm="http://www.opends.org/admin"
+xmlns:ldap="http://www.opends.org/admin-ldap"
+xmlns:cli="http://www.opends.org/admin-cli">
+
   <adm:synopsis>
     <adm:user-friendly-plural-name />
     are responsible for distributing debug log messages from the debug
     logger to a destination.
   </adm:synopsis>
+
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.25</ldap:oid>
@@ -17,6 +46,7 @@
       <ldap:superior>ds-cfg-logger</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+
   <adm:relation name="debug-target">
     <adm:one-to-many naming-property="debug-scope"/>
     <adm:profile name="ldap">
@@ -29,6 +59,7 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
+
   <adm:property name="java-implementation-class" mandatory="true">
     <adm:synopsis>
       The fully-qualified name of the Java class that provides the
@@ -49,6 +80,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+
   <adm:property name="default-debug-level" mandatory="true">
     <adm:synopsis>
       The lowest severity level of debug messages to log when none of
@@ -97,6 +129,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+
   <adm:property name="default-debug-category" multi-valued="true">
     <adm:synopsis>
       The debug message categories to be logged when none of the
@@ -105,7 +138,8 @@
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          Messages with any category will be logged.
+          Messages with any category will be logged if they have a sufficient
+          debug level.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -147,6 +181,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+
   <adm:property name="default-omit-method-entry-arguments">
     <adm:synopsis>
       Property to indicate whether to include method arguments in debug
@@ -169,6 +204,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+
   <adm:property name="default-omit-method-return-value">
     <adm:synopsis>
       Property to indicate whether to include the return value in debug
@@ -189,6 +225,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+
   <adm:property name="default-include-throwable-cause">
     <adm:synopsis>
       Property to indicate whether to include the cause of exceptions in
@@ -209,6 +246,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+
   <adm:property name="default-throwable-stack-frames">
     <adm:synopsis>
       Property to indicate the number of stack frames to include in the

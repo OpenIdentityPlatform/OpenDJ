@@ -30,14 +30,17 @@
   package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
+
   <adm:synopsis>
     <adm:user-friendly-plural-name />
     are responsible for establishing a mapping between a client
     certificate and the entry for the user that corresponds to that
     certificate.
   </adm:synopsis>
+
   <adm:tag name="security"/>
   <adm:tag name="user-management"/>
+
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.12</ldap:oid>
@@ -45,6 +48,7 @@
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
       Indicate whether the
@@ -61,19 +65,13 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+
   <adm:property name="mapper-class" mandatory="true">
     <adm:synopsis>
       The fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
       implementation.
     </adm:synopsis>
-    <adm:default-behavior>
-      <adm:defined>
-        <adm:value>
-          org.opends.server.extensions.SubjectEqualsDNCertificateMapper
-        </adm:value>
-      </adm:defined>
-    </adm:default-behavior>
     <adm:syntax>
       <adm:java-class>
         <adm:instance-of>

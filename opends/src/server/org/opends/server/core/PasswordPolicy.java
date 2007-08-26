@@ -267,69 +267,28 @@ public class PasswordPolicy
 
     // Get the password attribute.  If specified, it must have either the
     // user password or auth password syntax.
-    String passwordAttr = configuration.getPasswordAttribute();
-    try
+    passwordAttribute = configuration.getPasswordAttribute();
+    String syntaxOID = passwordAttribute.getSyntaxOID();
+    if (syntaxOID.equals(SYNTAX_AUTH_PASSWORD_OID))
     {
-      if (passwordAttr == null)
-      {
-        this.passwordAttribute  = null;
-        this.authPasswordSyntax = false;
-        // FIXME: clearly this is an error, but I have not found an example
-        // where it is handled (in a very cursory survey of calls to
-        // ConfigEntry.getConfigAttribute).
-        // Let it fall through and be caught by holistic validation.
-      }
-      else
-      {
-        String lowerName = toLowerCase(passwordAttr);
-        AttributeType pwAttrType = DirectoryServer.getAttributeType(lowerName);
-        if (pwAttrType == null)
-        {
-          Message message = ERR_PWPOLICY_UNDEFINED_PASSWORD_ATTRIBUTE.get(
-              String.valueOf(configEntryDN), String.valueOf(passwordAttr));
-          throw new ConfigException(message);
-        }
-
-        String syntaxOID = pwAttrType.getSyntaxOID();
-        if (syntaxOID.equals(SYNTAX_AUTH_PASSWORD_OID))
-        {
-          this.passwordAttribute  = pwAttrType;
-          this.authPasswordSyntax = true;
-        }
-        else if (syntaxOID.equals(SYNTAX_USER_PASSWORD_OID))
-        {
-          this.passwordAttribute  = pwAttrType;
-          this.authPasswordSyntax = false;
-        }
-        else
-        {
-          String syntax = pwAttrType.getSyntax().getSyntaxName();
-          if ((syntax == null) || (syntax.length() == 0))
-          {
-            syntax = syntaxOID;
-          }
-
-          Message message = ERR_PWPOLICY_INVALID_PASSWORD_ATTRIBUTE_SYNTAX.
-              get(String.valueOf(configEntryDN), String.valueOf(passwordAttr),
-                  String.valueOf(syntax));
-          throw new ConfigException(message);
-        }
-      }
+      authPasswordSyntax = true;
     }
-    catch (ConfigException ce)
+    else if (syntaxOID.equals(SYNTAX_USER_PASSWORD_OID))
     {
-      throw ce;
+      authPasswordSyntax = false;
     }
-    catch (Exception e)
+    else
     {
-      if (debugEnabled())
+      String syntax = passwordAttribute.getSyntax().getSyntaxName();
+      if ((syntax == null) || (syntax.length() == 0))
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        syntax = syntaxOID;
       }
 
-      Message message = ERR_PWPOLICY_CANNOT_DETERMINE_PASSWORD_ATTRIBUTE.get(
-          String.valueOf(configEntryDN), getExceptionMessage(e));
-      throw new InitializationException(message, e);
+      Message message = ERR_PWPOLICY_INVALID_PASSWORD_ATTRIBUTE_SYNTAX.
+          get(String.valueOf(configEntryDN), passwordAttribute.getNameOrOID(),
+              String.valueOf(syntax));
+      throw new ConfigException(message);
     }
 
 
@@ -668,39 +627,8 @@ public class PasswordPolicy
     // the server schema.  It does not need to have a generalized time syntax
     // because the value that it will store will not necessarily conform to this
     // format.
-    String lastLoginTimeAtt = configuration.getLastLoginTimeAttribute();
-    try
-    {
-      if (lastLoginTimeAtt != null)
-      {
-        String lowerName = toLowerCase(lastLoginTimeAtt);
-        AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
-        if (attrType == null)
-        {
-          Message message = ERR_PWPOLICY_UNDEFINED_LAST_LOGIN_TIME_ATTRIBUTE.
-              get(String.valueOf(configEntryDN),
-                  String.valueOf(lastLoginTimeAtt));
-          throw new ConfigException(message);
-        }
+    lastLoginTimeAttribute = configuration.getLastLoginTimeAttribute();
 
-        this.lastLoginTimeAttribute = attrType;
-      }
-    }
-    catch (ConfigException ce)
-    {
-      throw ce;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_PWPOLICY_CANNOT_DETERMINE_LAST_LOGIN_TIME_ATTR.get(
-          String.valueOf(configEntryDN), getExceptionMessage(e));
-      throw new InitializationException(message, e);
-    }
 
     // Get the last login time format.  If specified, it must be a valid format
     // string.

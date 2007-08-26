@@ -45,6 +45,16 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     </ldap:object-class>
   </adm:profile>
 
+  <adm:property-override name="syntax-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.schema.TelephoneNumberSyntax
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+
   <adm:property name="strict-format" mandatory="false">
     <adm:synopsis>
       Indicates whether to require telephone number values to strictly comply

@@ -143,18 +143,12 @@ public class ExternalSASLMechanismHandler
 
     // Get the attribute type to use for validating the certificates.  If none
     // is provided, then default to the userCertificate type.
-    String attrTypeName = configuration.getCertificateAttribute();
-    if (attrTypeName == null)
-    {
-      attrTypeName = DEFAULT_VALIDATION_CERT_ATTRIBUTE;
-    }
-    certificateAttributeType =
-         DirectoryServer.getAttributeType(toLowerCase(attrTypeName), false);
+    certificateAttributeType = configuration.getCertificateAttribute();
     if (certificateAttributeType == null)
     {
-      Message message = ERR_SASLEXTERNAL_UNKNOWN_CERT_ATTR.get(
-          String.valueOf(attrTypeName), String.valueOf(configEntryDN));
-      throw new ConfigException(message);
+      certificateAttributeType =
+           DirectoryServer.getAttributeType(DEFAULT_VALIDATION_CERT_ATTRIBUTE,
+                                            true);
     }
 
 
@@ -478,24 +472,6 @@ public class ExternalSASLMechanismHandler
     boolean configAcceptable = true;
     DN cfgEntryDN = configuration.dn();
 
-    // Get the attribute type to use for validating the certificates.  If none
-    // is provided, then default to the userCertificate type.
-    String attrTypeName = configuration.getCertificateAttribute();
-    if (attrTypeName != null)
-    {
-      attrTypeName = DEFAULT_VALIDATION_CERT_ATTRIBUTE;
-    }
-    AttributeType newCertificateType =
-         DirectoryServer.getAttributeType(toLowerCase(attrTypeName), false);
-    if (newCertificateType == null)
-    {
-      unacceptableReasons.add(ERR_SASLEXTERNAL_UNKNOWN_CERT_ATTR.get(
-              String.valueOf(attrTypeName),
-              String.valueOf(cfgEntryDN)));
-      configAcceptable = false;
-    }
-
-
     // Make sure that the configured certificate mapper is valid.
     CertificateMapper certificateMapper =
          DirectoryServer.getCertificateMapper(
@@ -545,24 +521,12 @@ public class ExternalSASLMechanismHandler
 
     // Get the attribute type to use for validating the certificates.  If none
     // is provided, then default to the userCertificate type.
-    String attrTypeName = configuration.getCertificateAttribute();
-    if (attrTypeName == null)
-    {
-      attrTypeName = DEFAULT_VALIDATION_CERT_ATTRIBUTE;
-    }
-    AttributeType newCertificateType =
-         DirectoryServer.getAttributeType(toLowerCase(attrTypeName), false);
+    AttributeType newCertificateType = configuration.getCertificateAttribute();
     if (newCertificateType == null)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = ResultCode.NO_SUCH_ATTRIBUTE;
-      }
-
-
-      messages.add(ERR_SASLEXTERNAL_UNKNOWN_CERT_ATTR.get(
-              String.valueOf(attrTypeName),
-              String.valueOf(configEntryDN)));
+      newCertificateType =
+           DirectoryServer.getAttributeType(DEFAULT_VALIDATION_CERT_ATTRIBUTE,
+                                            true);
     }
 
 

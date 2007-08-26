@@ -31,12 +31,14 @@
   package="org.opends.server.admin.std" extends="identity-mapper"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
+
   <adm:synopsis>
     The
     <adm:user-friendly-name />
     maps an identifier string to user entries by searching for the entry
     containing a specified attribute whose value is the provided identifer.
   </adm:synopsis>
+
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.45</ldap:oid>
@@ -44,6 +46,7 @@
       <ldap:superior>ds-cfg-identity-mapper</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+
   <adm:property-override name="mapper-class">
     <adm:default-behavior>
       <adm:defined>
@@ -53,6 +56,7 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
+
   <adm:property name="match-attribute" mandatory="true" multi-valued="true">
     <adm:synopsis>
       Specifies the attribute to use to perform the mapping.
@@ -67,7 +71,7 @@
       entry.
     </adm:description>
     <adm:syntax>
-      <adm:string />
+      <adm:attribute-type />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -76,6 +80,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+
   <adm:property name="match-base-dn" mandatory="false" multi-valued="true">
     <adm:synopsis>
       Specifies the set of base DNs below which to search for users.

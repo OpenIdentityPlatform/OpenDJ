@@ -35,7 +35,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.SortedSet;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ExactMatchIdentityMapperCfg;
@@ -120,22 +119,8 @@ public class ExactMatchIdentityMapper
 
 
     // Get the attribute types to use for the searches.
-    SortedSet<String> attrNames = currentConfig.getMatchAttribute();
-    attributeTypes = new AttributeType[attrNames.size()];
-    int i=0;
-    for (String name : attrNames)
-    {
-      AttributeType type = DirectoryServer.getAttributeType(toLowerCase(name),
-                                                            false);
-      if (type == null)
-      {
-        Message message =
-            ERR_EXACTMAP_UNKNOWN_ATTR.get(String.valueOf(configEntryDN), name);
-        throw new ConfigException(message);
-      }
-
-      attributeTypes[i++] = type;
-    }
+    attributeTypes =
+         currentConfig.getMatchAttribute().toArray(new AttributeType[0]);
 
 
     // Create the attribute list to include in search requests.  We want to
@@ -314,24 +299,9 @@ public class ExactMatchIdentityMapper
                       ExactMatchIdentityMapperCfg configuration,
                       List<Message> unacceptableReasons)
   {
+    // If we've gotten to this point, then the configuration should be
+    // acceptable.
     boolean configAcceptable = true;
-
-    // Make sure that the set of attribute types is acceptable.
-    SortedSet<String> attributeNames = configuration.getMatchAttribute();
-    for (String name : attributeNames)
-    {
-      AttributeType t = DirectoryServer.getAttributeType(toLowerCase(name),
-                                                         false);
-      if (t == null)
-      {
-
-        unacceptableReasons.add(ERR_EXACTMAP_UNKNOWN_ATTR.get(
-                String.valueOf(configuration.dn()), name));
-        configAcceptable = false;
-      }
-    }
-
-
     return configAcceptable;
   }
 
@@ -348,34 +318,9 @@ public class ExactMatchIdentityMapper
     ArrayList<Message> messages            = new ArrayList<Message>();
 
 
-    // Get the attribute types to use for the searches.
-    SortedSet<String> attrNames = configuration.getMatchAttribute();
-    AttributeType[] newAttributeTypes = new AttributeType[attrNames.size()];
-    int i=0;
-    for (String name : attrNames)
-    {
-      AttributeType type = DirectoryServer.getAttributeType(toLowerCase(name),
-                                                            false);
-      if (type == null)
-      {
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = ResultCode.NO_SUCH_ATTRIBUTE;
-        }
-
-        messages.add(ERR_EXACTMAP_UNKNOWN_ATTR.get(
-                String.valueOf(configEntryDN), name));
-      }
-
-      newAttributeTypes[i++] = type;
-    }
-
-
-    if (resultCode == ResultCode.SUCCESS)
-    {
-      attributeTypes = newAttributeTypes;
-      currentConfig  = configuration;
-    }
+    attributeTypes =
+         configuration.getMatchAttribute().toArray(new AttributeType[0]);
+    currentConfig = configuration;
 
 
    return new ConfigChangeResult(resultCode, adminActionRequired, messages);

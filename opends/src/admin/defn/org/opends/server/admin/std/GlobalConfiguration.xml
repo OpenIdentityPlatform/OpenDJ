@@ -30,13 +30,13 @@
   package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
-  
+
   <adm:user-friendly-name>Global Configuration</adm:user-friendly-name>
-  
+
   <adm:user-friendly-plural-name>
     Global Configurations
   </adm:user-friendly-plural-name>
-  
+
   <adm:synopsis>
     The global configuration contains properties that affect the overall
     operation of the
