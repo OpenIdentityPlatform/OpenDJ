@@ -167,7 +167,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
         SecureConnectionCliParser.QUIET_OPTION_LONG,
         SecureConnectionCliParser.QUIET_OPTION_SHORT,
         SecureConnectionCliParser.QUIET_OPTION_LONG,
-        INFO_UNINSTALLDS_DESCRIPTION_SILENT.get());
+        INFO_UNINSTALLDS_DESCRIPTION_QUIET.get());
     args.add(quiet);
 
     adminUidArg = new StringArgument("adminUID", 'I',

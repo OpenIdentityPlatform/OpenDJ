@@ -74,7 +74,6 @@ import org.opends.quicksetup.installer.ui.RemoteReplicationPortsPanel;
 import org.opends.quicksetup.installer.ui.ServerSettingsPanel;
 import org.opends.quicksetup.installer.ui.SuffixesToReplicatePanel;
 import org.opends.server.util.SetupUtils;
-import org.opends.server.types.OpenDsException;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.QuickSetupMessages.*;
@@ -1927,8 +1926,7 @@ public abstract class Installer extends GuiApplication {
           adsContext.createAdminData(null);
           adsContext.createAdministrator(getAdministratorProperties());
           adsContext.registerServer(
-              getRemoteServerProperties(auth.getHostName(),
-                  adsContext.getDirContext()));
+              getRemoteServerProperties(adsContext.getDirContext()));
           createdRemoteAds = true;
           notifyListeners(getFormattedDone());
           notifyListeners(getLineBreak());
@@ -2841,7 +2839,7 @@ public abstract class Installer extends GuiApplication {
         }
         Set<TopologyCacheException> exceptions =
         updateUserDataWithSuffixesInADS(adsContext, trustManager);
-        Set<String> exceptionMsgs = new LinkedHashSet<String>();
+        Set<Message> exceptionMsgs = new LinkedHashSet<Message>();
         /* Check the exceptions and see if we throw them or not. */
         for (TopologyCacheException e : exceptions)
         {
@@ -2901,13 +2899,13 @@ public abstract class Installer extends GuiApplication {
               }
             }
           }
-          exceptionMsgs.add(getStringRepresentation(e));
+          exceptionMsgs.add(getMessage(e));
         }
         if (exceptionMsgs.size() > 0)
         {
           Message confirmationMsg =
             INFO_ERROR_READING_REGISTERED_SERVERS_CONFIRM.get(
-                    getStringFromCollection(exceptionMsgs, "n"));
+                    getMessageFromCollection(exceptionMsgs, "\n"));
           throw new UserDataConfirmationException(Step.REPLICATION_OPTIONS,
               confirmationMsg);
         }
@@ -2984,7 +2982,6 @@ public abstract class Installer extends GuiApplication {
       }
       else if (t instanceof ADSContextException)
       {
-        String[] args = {host+":"+port, t.toString()};
         errorMsgs.add(INFO_REMOTE_ADS_EXCEPTION.get(
                 host+":"+port, t.toString()));
       }
@@ -3365,66 +3362,11 @@ public abstract class Installer extends GuiApplication {
   }
 
   private Map<ADSContext.ServerProperty, Object> getRemoteServerProperties(
-      String hostName, InitialLdapContext ctx) throws NamingException
+      InitialLdapContext ctx) throws NamingException
   {
     ServerDescriptor server = ServerDescriptor.createStandalone(ctx);
-    Map<ADSContext.ServerProperty, Object> serverProperties =
-      new HashMap<ADSContext.ServerProperty, Object>();
-    serverProperties.put(ADSContext.ServerProperty.HOST_NAME, hostName);
-    ADSContext.ServerProperty[][] adsProperties =
-    {
-        {ADSContext.ServerProperty.LDAP_PORT,
-        ADSContext.ServerProperty.LDAP_ENABLED},
-        {ADSContext.ServerProperty.LDAPS_PORT,
-        ADSContext.ServerProperty.LDAPS_ENABLED},
-        {ADSContext.ServerProperty.JMX_PORT,
-        ADSContext.ServerProperty.JMX_ENABLED},
-        {ADSContext.ServerProperty.JMXS_PORT,
-        ADSContext.ServerProperty.JMXS_ENABLED}
-
-    };
-    ServerDescriptor.ServerProperty[][] properties =
-    {
-        {ServerDescriptor.ServerProperty.LDAP_PORT,
-         ServerDescriptor.ServerProperty.LDAP_ENABLED},
-        {ServerDescriptor.ServerProperty.LDAPS_PORT,
-         ServerDescriptor.ServerProperty.LDAPS_ENABLED},
-        {ServerDescriptor.ServerProperty.JMX_PORT,
-         ServerDescriptor.ServerProperty.JMX_ENABLED},
-        {ServerDescriptor.ServerProperty.JMXS_PORT,
-         ServerDescriptor.ServerProperty.JMXS_ENABLED}
-    };
-    for (int i=0; i<properties.length; i++)
-    {
-      ArrayList portNumbers =
-        (ArrayList)server.getServerProperties().get(properties[i][0]);
-      if (portNumbers != null)
-      {
-        ArrayList enabled =
-          (ArrayList)server.getServerProperties().get(properties[i][1]);
-        boolean enabledFound = false;
-        for (int j=0; j<enabled.size() && !enabledFound; j++)
-        {
-          if (Boolean.TRUE.equals(enabled.get(j)))
-          {
-            enabledFound = true;
-            serverProperties.put(adsProperties[i][0],
-                String.valueOf(portNumbers.get(j)));
-          }
-        }
-        if (!enabledFound && (portNumbers.size() > 0))
-        {
-          serverProperties.put(adsProperties[i][0],
-              String.valueOf(portNumbers.get(0)));
-        }
-        serverProperties.put(adsProperties[i][1], enabledFound?"true":"false");
-      }
-    }
-
-    serverProperties.put(ADSContext.ServerProperty.ID,
-        server.getHostPort(true));
-
-    return serverProperties;
+    server.updateAdsPropertiesWithServerProperties();
+    return server.getAdsProperties();
   }
 
   /**
@@ -3739,7 +3681,21 @@ public abstract class Installer extends GuiApplication {
         trustManager);
   }
 
-  private void initializeSuffix(InitialLdapContext ctx, int replicaId,
+  /**
+   * Initializes a suffix with the contents of a replica that has a given
+   * replication id.
+   * @param ctx the connection to the server whose suffix we want to initialize.
+   * @param replicaId the replication ID of the replica we want to use to
+   * initialize the contents of the suffix.
+   * @param suffixDn the dn of the suffix.
+   * @param displayProgress whether we want to display progress or not.
+   * @param sourceServerDisplay the string to be used to represent the server
+   * that contains the data that will be used to initialize the suffix.
+   * @throws ApplicationException if an unexpected error occurs.
+   * @throws PeerNotFoundException if the replication mechanism cannot find
+   * a peer.
+   */
+  public void initializeSuffix(InitialLdapContext ctx, int replicaId,
       String suffixDn, boolean displayProgress, String sourceServerDisplay)
   throws ApplicationException, PeerNotFoundException
   {
@@ -3982,24 +3938,5 @@ public abstract class Installer extends GuiApplication {
     int value = 0;
     value = (random.nextInt() & modulo);
     return value;
-  }
-}
-
-/**
- * The exception that is thrown during initialization if the peer specified
- * could not be found.
- *
- */
-class PeerNotFoundException extends OpenDsException {
-
-  private static final long serialVersionUID = -362726764261560341L;
-
-  /**
-   * The constructor for the exception.
-   * @param message the localized message.
-   */
-  PeerNotFoundException(Message message)
-  {
-    super(message);
   }
 }

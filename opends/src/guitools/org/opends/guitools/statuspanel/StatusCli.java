@@ -178,7 +178,7 @@ class StatusCli extends SecureConnectionCliParser
               directoryManagerDn, directoryManagerPwd);
           ConfigFromLDAP onLineConf = new ConfigFromLDAP();
           ConnectionProtocolPolicy policy;
-          if (startTLSArg.isPresent())
+          if (useStartTLSArg.isPresent())
           {
             policy = ConnectionProtocolPolicy.USE_STARTTLS;
           }

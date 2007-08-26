@@ -36,12 +36,11 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.naming.Context;
-import javax.naming.NamingException;
 import javax.naming.ldap.LdapName;
 
 import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.ServerLoader;
 
 /**
@@ -72,27 +71,14 @@ public class TopologyCache
    * @param trustManager the ApplicationTrustManager that must be used to trust
    * certificates when we create connections to the registered servers to read
    * their configuration.
-   * @throws TopologyCacheException if an error occurred reading the
-   * authentication data in the DirContext associated with the provided
-   * ADSContext.
    */
   public TopologyCache(ADSContext adsContext,
       ApplicationTrustManager trustManager)
-  throws TopologyCacheException
   {
     this.adsContext = adsContext;
     this.trustManager = trustManager;
-    try
-    {
-      dn = (String)adsContext.getDirContext().getEnvironment().get(
-          Context.SECURITY_PRINCIPAL);
-      pwd = (String)adsContext.getDirContext().getEnvironment().get(
-          Context.SECURITY_CREDENTIALS);
-    }
-    catch (NamingException ne)
-    {
-      throw new TopologyCacheException(TopologyCacheException.Type.BUG, ne);
-    }
+    dn = ConnectionUtils.getBindDN(adsContext.getDirContext());
+    pwd = ConnectionUtils.getBindPassword(adsContext.getDirContext());
   }
 
   /**
@@ -255,5 +241,14 @@ public class TopologyCache
   {
     return new ServerLoader(serverProperties, dn, pwd,
         trustManager.createCopy());
+  }
+
+  /**
+   * Returns the adsContext used by this TopologyCache.
+   * @return the adsContext used by this TopologyCache.
+   */
+  public ADSContext getAdsContext()
+  {
+    return adsContext;
   }
 }

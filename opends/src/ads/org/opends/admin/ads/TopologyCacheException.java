@@ -141,6 +141,19 @@ public class TopologyCacheException extends OpenDsException {
   }
 
   /**
+   * Returns the host port representation of the server we where connected to
+   * (or trying to connect) when this exception was generated.
+   * @return the host port representation of the server we where connected to
+   * (or trying to connect) when this exception was generated.
+   */
+  public String getHostPort()
+  {
+    int index = ldapUrl.indexOf("//");
+    String hostPort = ldapUrl.substring(index + 2);
+    return hostPort;
+  }
+
+  /**
    * Returns the ApplicationTrustManager that we were using when this exception
    * was generated.
    * @return the ApplicationTrustManager that we were using when this exception
