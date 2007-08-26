@@ -174,37 +174,37 @@ public class TraditionalWorkerThread
           }
         }
       }
-      catch (Exception e)
+      catch (Throwable t)
       {
         if (debugEnabled())
         {
           TRACER.debugWarning(
             "Uncaught exception in worker thread while processing " +
-                "operation %s: %s", String.valueOf(operation), e);
+                "operation %s: %s", String.valueOf(operation), t);
 
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, t);
         }
 
         try
         {
           Message message = ERR_UNCAUGHT_WORKER_THREAD_EXCEPTION.
               get(getName(), String.valueOf(operation),
-                  stackTraceToSingleLineString(e));
+                  stackTraceToSingleLineString(t));
           logError(message);
 
           operation.setResultCode(DirectoryServer.getServerErrorResultCode());
           operation.appendErrorMessage(message);
           operation.getClientConnection().sendResponse(operation);
         }
-        catch (Exception e2)
+        catch (Throwable t2)
         {
           if (debugEnabled())
           {
             TRACER.debugWarning(
               "Exception in worker thread while trying to log a " +
-                  "message about an uncaught exception %s: %s", e, e2);
+                  "message about an uncaught exception %s: %s", t, t2);
 
-            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
+            TRACER.debugCaught(DebugLogLevel.ERROR, t2);
           }
         }
 
@@ -213,17 +213,16 @@ public class TraditionalWorkerThread
         {
           Message message = ERR_UNCAUGHT_WORKER_THREAD_EXCEPTION.get(getName(),
                                       String.valueOf(operation),
-                                      stackTraceToSingleLineString(e));
+                                      stackTraceToSingleLineString(t));
 
-          operation.disconnectClient(
-                                     DisconnectReason.SERVER_ERROR,
+          operation.disconnectClient(DisconnectReason.SERVER_ERROR,
                                      true, message);
         }
-        catch (Exception e2)
+        catch (Throwable t2)
         {
           if (debugEnabled())
           {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
+            TRACER.debugCaught(DebugLogLevel.ERROR, t2);
           }
         }
       }
