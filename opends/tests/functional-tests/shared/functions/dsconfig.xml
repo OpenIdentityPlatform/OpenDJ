@@ -106,14 +106,14 @@
         <function-arg-property name="type" value="string" />
       </function-arg-def>
       
-      <function-arg-def name="propertyType" type="required">
+      <function-arg-def name="propertyType" type="optional" default="''">
         <function-arg-description>
           Property type to modify, e.g. validator
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
       
-      <function-arg-def name="propertyName" type="required">
+      <function-arg-def name="propertyName" type="optional" default="''">
         <function-arg-description>
           Property to modify, e.g. enabled
         </function-arg-description>
@@ -162,7 +162,9 @@
         
         STAFCmdParamsList=[]
         STAFCmdParamsList.append('set-%s-prop ' % (objectName))
-        STAFCmdParamsList.append('--%s-name "%s" ' % (propertyType,propertyName))
+        
+        if propertyType:
+          STAFCmdParamsList.append('--%s-name "%s" ' % (propertyType,propertyName))
         
         if modifyType == 'reset':
             STAFCmdParamsList.append('--%s %s' % (modifyType,attributeName))
