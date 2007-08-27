@@ -113,7 +113,7 @@
           #@TestResult
           -->
     
-          <!--  Not clear how to create a second backend    
+          <!--  Not clear how to create a second backend
           <testcase name="getTestCaseName('LDIF Non Default')">
     
             <sequence>
@@ -1030,7 +1030,6 @@
                   'dsBackEnd'          : 'userRoot'
                   }
               </call>
-    
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
@@ -1091,6 +1090,9 @@
               <message log="1" level="'Error'">
                 'Error: Known bug. Issue 839: Encrypted LDIF export is not implemented'
               </message>
+              <script>
+                knownIssue(839)
+              </script>
     
               <call function="'testCase_Postamble'"/>
     

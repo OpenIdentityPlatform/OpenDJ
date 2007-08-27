@@ -36,7 +36,8 @@
            </script>
           
           <call function="'testGroup_Preamble'" />
-          <iterate var="_test" in="['setup','rotation','properties','writer','retention','cleanup']" >
+          <!--<iterate var="_test" in="['setup','rotation','properties','writer','retention','cleanup']" >-->
+          <iterate var="_test" in="['setup','properties','cleanup']" >
             <sequence>
               <import machine="STAF_LOCAL_HOSTNAME"
                       file="'%s/testcases/logging/logging_%s.xml' % (TESTS_DIR,_test)"/>

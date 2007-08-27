@@ -554,6 +554,7 @@
       <sequence>
         <script>
           testcaseStartTime=strftime("%Y%m%d@%H:%M:%S",localtime())
+          issuesList=[]
         </script>
         <call function="'testCase_StartBanner'" />
     </sequence>
@@ -616,7 +617,7 @@
       </call>
       <script>
         class Test:
-          def __init__(self, group, suite, fullname, start, stop, failures, successes):
+          def __init__(self, group, suite, fullname, start, stop, failures, successes, issues):
             self.log=''
             self.group=group
             self.suite=suite
@@ -630,13 +631,18 @@
             else:
               self.name=fullname
             self.duration = 0
-            if failures == 0:
-              if successes == 0:
-                self.result='inconclusive'
+            if len(issues) == 0:
+              if failures == 0:
+                if successes == 0:
+                  self.result='inconclusive'
+                else:
+                  self.result='pass'
               else:
-                self.result='pass'
+                self.result='fail'
             else:
-              self.result='fail'
+              self.result='known'
+            self.issues=issues
+              
             
           def toXML(self):
             xml  = '      &lt;test&gt;\n'
@@ -647,6 +653,10 @@
             xml += '        &lt;stop&gt;%s&lt;/stop&gt;\n'         % self.stop
             xml += '        &lt;result&gt;%s&lt;/result&gt;\n'     % self.result
             xml += '        &lt;duration&gt;%d&lt;/duration&gt;\n' % self.duration
+            xml += '        &lt;issues&gt;\n'
+            for issue in self.issues:
+              xml += '          &lt;issue&gt;%s&lt;/issue&gt;\n' % issue
+            xml += '        &lt;/issues&gt;\n'
             xml += '        &lt;log&gt;\n&lt;![CDATA['
             xml += '%s' % self.log
             xml += '        ]]&gt;&lt;/log&gt;\n'
@@ -654,15 +664,18 @@
             return xml
             
           def appendLog(self, log):
-            #log=log.replace('&lt;','')
-            #log=log.replace('&gt;','')
-            #log=log.replace('&amp;','&amp;amp;')
-            self.log +='%s\n' % log
+            _leftPadding=''
+            while len(log)>100:
+              _logChunk=log[:100]
+              log=log[100:]
+              self.log+='%s%s\n' % (_leftPadding,_logChunk)
+              _leftPadding='...    '
+            self.log += '%s%s\n' % (_leftPadding,log)
             
           def getName(self):
             return self.name
          
-        thisTest = Test(CurrentTestPath['group'],CurrentTestPath['suite'],STAXCurrentTestcase, testcaseStartTime,testcaseEndTime,numFail,numPass)
+        thisTest = Test(CurrentTestPath['group'],CurrentTestPath['suite'],STAXCurrentTestcase, testcaseStartTime,testcaseEndTime,numFail,numPass,issuesList)
             
         doLog = False
         testlog=open('%s/tests-log.xml' % TMPDIR,'a')
@@ -1243,8 +1256,7 @@
         </function-arg-description>
       </function-arg-def>
       <function-arg-def name="env" 
-                        type="optional" 
-                        default="['PATH=/bin:/usr/bin:%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]">
+                        type="optional">
         <function-arg-description>
           the environment variables to set. The default set here should just
           work for OpenDS commands
@@ -1286,6 +1298,12 @@
         import java.util.Date
         random.seed(java.util.Date().getTime())
         _id = '%s#%d' % (strftime('%Y-%m-%d %H:%M:%S',localtime()),random.randint(0,999))
+        
+        if not env:
+          if isWindows:
+            env=['PATH=C:\Windows;C:\Windows\system32;%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          else:
+            env=['PATH=/bin:/usr/bin:%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
       </script>
       <message>
         '%s: Running command:\n %s %s\nlocation: %s\nenv: %s\nworkdir: %s' % (_id,command,arguments,location,env,path)
