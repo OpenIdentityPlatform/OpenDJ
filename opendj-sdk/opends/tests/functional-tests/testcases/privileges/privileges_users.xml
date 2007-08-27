@@ -58,7 +58,7 @@
             file="'%s/testcases/privileges/privileges_setup.xml' % (TESTS_DIR)"/>
           <call function="'privileges_setup'" />
 
-    <!---
+          <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                Privileges Users Tests
@@ -246,7 +246,7 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
-                    'attributes'       : 'cn sn uid'}
+                    'attributes'       : 'cn sn uid' }
                 </call>
     
                 <script> 
@@ -1073,6 +1073,197 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                Privileges Users Tests
+                #@TestName                  modify-acl - add aci - disable privilege
+                #@TestIssue                 1683
+                #@TestPurpose               disable privilege for modify-acl privilege for normal users - add aci
+                #@TestPreamble              none
+                #@TestStep                  Admin adds write ACI.
+                #@TestStep                  User adds ACI.
+                #@TestStep                  Admin adds disabled-privilege.
+                #@TestStep                  User adds ACI.
+                #@TestStep                  Admin deletes write ACI.
+                #@TestStep                  User adds second ACI.
+                #@TestStep                  Admin deletes disabled-privilege.
+                #@TestStep                  Admin deletes user-added ACI.
+                #@TestStep                  User adds second ACI.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for steps 2, 6, and 9, and 0
+                                            for all other ldap operations.
+            -->
+            <testcase name="getTestCaseName('modify-acl - add aci - disable privilege')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Users: modify-acl - add aci - disable privilege, Admin adding write ACI'
+                </message>
+    
+                <script>
+                    write_aci="(targetattr=\"aci || ds-privilege-name\")(version 3.0; acl \"add_write_acl\"; allow (write) userdn=\"ldap:///all\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <script>
+                    search_aci="(targetattr=\"*\")(version 3.0; acl \"add_search_aci\"; allow (search,read) userdn=\"ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com\";)"
+                </script>
+                
+                <message>
+                   'Privileges: Users: modify-acl - add aci - disable privilege, user adding ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 50 }
+                </call>
+                
+                <message>
+                   'Privileges: Users: modify-acl - add aci - disable privilege, Admin disabling privilege'
+                </message>
+    
+                <call function="'dsconfigSet'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'objectName'             : 'global-configuration' ,
+                    'attributeName'          : 'disabled-privilege' ,
+                    'attributeValue'         : 'modify-acl' }
+                </call>
+            
+                <message>
+                   'Privileges: Users: modify-acl - add aci - disable privilege, user adding ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <message>
+                   'Privileges: Users: modify-acl - add aci - disable privilege, Admin deleting write ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <message>
+                   'Privileges: Users: modify-acl - add aci - disable privilege, user adding second ACI'
+                </message>
+    
+                <script>
+                    search2_aci="(targetattr=\"*\")(version 3.0; acl \"add_search_aci2\"; allow (write) userdn=\"ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search2_aci ,
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 50
+                  }
+                </call>
+    
+                <message>
+                   'Privileges: Users: modify-acl - add aci - disable privilege, Admin un-disabling privilege'
+                </message>
+    
+                <call function="'dsconfigSet'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'objectName'             : 'global-configuration' ,
+                    'attributeName'          : 'disabled-privilege' ,
+                    'attributeValue'         : 'modify-acl' ,
+                    'modifyType'             : 'remove' }
+                </call>
+            
+                <message>
+                   'Privileges: Users: modify-acl - add aci - disable privilege, Admin deleting user-added ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <message>
+                   'Privileges: Users: modify-acl - add aci - disable privilege, user adding second ACI'
+                </message>
+    
+                <script>
+                    search3_aci="(targetattr=\"*\")(version 3.0; acl \"add_search_aci_scarter\"; allow (search,read) userdn=\"ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'uid=scarter, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search3_aci ,
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 50
+                  }
+                </call>
+                
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult  }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Users Tests
                 #@TestName                  modify-acl - replace aci
                 #@TestIssue                 471
                 #@TestPurpose               modify-acl privilege for normal users - replace aci
@@ -1510,6 +1701,137 @@
     
                 <message>
                    'Privileges: Users: config-read, user searching cn=config'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'cn=config' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'ds-cfg-check-schema' ,
+                    'extraParams'      : '-s base' ,
+                    'expectedRC'       : 50 }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestStringNotPresent'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: cn=config' }
+                </call>
+               
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+             
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Users Tests
+                #@TestName                  config-read - disable privilege
+                #@TestIssue                 1683
+                #@TestPurpose               config-read privilege for normal users
+                #@TestPreamble              none
+                #@TestStep                  User searches cn=config, check default behavior.
+                #@TestStep                  Admin adds privilege.
+                #@TestStep                  User searches cn=config.
+                #@TestStep                  Admin removes privilege.
+                #@TestStep                  User searches cn=config.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for steps 1 and 5, and 0
+                                            for all other ldap operations. 
+                                            Proper entries returned for allowed searches.
+            -->
+            <testcase name="getTestCaseName('config-read - disable privilege')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Users: config-read - disable privilege, check default privilege, user searching cn=config'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'cn=config' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'ds-cfg-check-schema' ,
+                    'extraParams'      : '-s base' ,
+                    'expectedRC'       : 50
+                  }
+                </call>
+    
+                <message>
+                   'Privileges: Users: config-read - disable privilege, Admin disabling privilege'
+                </message>
+    
+                <call function="'dsconfigSet'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'objectName'             : 'global-configuration' ,
+                    'attributeName'          : 'disabled-privilege' ,
+                    'attributeValue'         : 'config-read' }
+                </call>
+            
+                <message>
+                   'Privileges: Users: config-read - disable privilege, user searching cn=config'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'cn=config' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'ds-cfg-check-schema' ,
+                    'extraParams'      : '-s base' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: cn=config' ,
+                      'expectedResult'     : '1' }
+                </call>
+                
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'ds-cfg-check-schema:' ,
+                      'expectedResult'     : '1' }
+                </call>
+                
+                <message>
+                   'Privileges: Users: config-read - disable privilege, Admin un-disabling privilege'
+                </message>
+ 
+                <call function="'dsconfigSet'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'objectName'             : 'global-configuration' ,
+                    'attributeName'          : 'disabled-privilege' ,
+                    'attributeValue'         : 'config-read' ,
+                    'modifyType'             : 'remove' }
+                </call>
+            
+                <message>
+                   'Privileges: Users: config-read - disable privilege, user searching cn=config'
                 </message>
     
                 <call function="'SearchObject'">
