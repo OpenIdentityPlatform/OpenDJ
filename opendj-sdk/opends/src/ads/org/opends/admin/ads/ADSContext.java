@@ -1961,7 +1961,7 @@ public class ADSContext
    * The instance-key public-key certificate from the local truststore of the
    * instance bound by this context.
    */
-  private String localInstanceKeyCertificate = null;
+  private byte[] localInstanceKeyCertificate = null;
 
   /**
    * Updates the instance key public-key certificate value of this context from
@@ -2001,7 +2001,7 @@ public class ADSContext
         final Attribute certAttr = adsCertEntry.getAttributes().get(
                                         "ds-cfg-public-key-certificate;binary");
         if (null != certAttr) {
-          localInstanceKeyCertificate = (String)certAttr.get();
+          localInstanceKeyCertificate = (byte[])certAttr.get();
         }
       }
       catch (NameNotFoundException x) {
@@ -2044,7 +2044,7 @@ public class ADSContext
    *
    * @throws ADSContextException if public-key certificate cannot be retrieved.
    */
-  public String getLocalInstanceKeyCertificate() throws ADSContextException
+  public byte[] getLocalInstanceKeyCertificate() throws ADSContextException
   {
     if (null == localInstanceKeyCertificate) {
       retrieveLocalInstanceKeyCertificate();
