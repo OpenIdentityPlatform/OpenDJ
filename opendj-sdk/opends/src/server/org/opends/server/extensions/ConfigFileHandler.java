@@ -76,29 +76,9 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.tools.LDIFModify;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.BackupConfig;
-import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.BackupInfo;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.CryptoManager;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
 
 
-import org.opends.server.types.ExistingFileBehavior;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.LDIFImportResult;
-import org.opends.server.types.Modification;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.RestoreConfig;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
@@ -1131,7 +1111,39 @@ public class ConfigFileHandler
     return true;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
+  {
+    long ret = numSubordinates(entryDN);
+    if(ret < 0)
+    {
+      return ConditionResult.UNDEFINED;
+    }
+    else if(ret == 0)
+    {
+      return ConditionResult.FALSE;
+    }
+    else
+    {
+      return ConditionResult.TRUE;
+    }
+  }
 
+  /**
+   * {@inheritDoc}
+   */
+  public long numSubordinates(DN entryDN) throws DirectoryException
+  {
+    ConfigEntry baseEntry = configEntries.get(entryDN);
+    if (baseEntry == null)
+    {
+      return -1;
+    }
+
+    return baseEntry.getChildren().size();
+  }
 
   /**
    * Retrieves the requested entry from this backend.

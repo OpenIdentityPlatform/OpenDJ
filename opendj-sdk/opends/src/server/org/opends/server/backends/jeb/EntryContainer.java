@@ -704,6 +704,32 @@ public class EntryContainer
   }
 
   /**
+   * Determine the number of subordinate entries for a given entry.
+   *
+   * @param entryDN The distinguished name of the entry.
+   * @return The number of subordinate entries for the given entry or -1 if
+   *         the entry does not exist.
+   * @throws DatabaseException If an error occurs in the JE database.
+   */
+  public long getNumSubordinates(DN entryDN) throws DatabaseException
+  {
+    EntryID entryID = dn2id.get(null, entryDN);
+    if (entryID != null)
+    {
+      DatabaseEntry key =
+          new DatabaseEntry(JebFormat.entryIDToDatabase(entryID.longValue()));
+      EntryIDSet entryIDSet =
+          id2children.readKey(key, null, LockMode.DEFAULT);
+      long count = entryIDSet.size();
+      if(count != Long.MAX_VALUE)
+      {
+        return count;
+      }
+    }
+    return -1;
+  }
+
+  /**
    * Processes the specified search in this entryContainer.
    * Matching entries should be provided back to the core server using the
    * <CODE>SearchOperation.returnEntry</CODE> method.

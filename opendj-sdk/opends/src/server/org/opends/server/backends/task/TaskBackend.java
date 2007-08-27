@@ -49,22 +49,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.BackupConfig;
-import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.CancelledOperationException;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.LDIFImportResult;
-import org.opends.server.types.RestoreConfig;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.opends.server.util.Validator;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -387,7 +372,71 @@ public class TaskBackend
     return true;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
+  {
+    long ret = numSubordinates(entryDN);
+    if(ret < 0)
+    {
+      return ConditionResult.UNDEFINED;
+    }
+    else if(ret == 0)
+    {
+      return ConditionResult.FALSE;
+    }
+    else
+    {
+      return ConditionResult.TRUE;
+    }
+  }
 
+  /**
+   * {@inheritDoc}
+   */
+  public long numSubordinates(DN entryDN) throws DirectoryException
+  {
+    if (entryDN == null)
+    {
+      return -1;
+    }
+
+    if (entryDN.equals(taskRootDN))
+    {
+      // scheduled and recurring parents.
+      return 2;
+    }
+    else if (entryDN.equals(scheduledTaskParentDN))
+    {
+      return taskScheduler.getScheduledTaskCount();
+    }
+    else if (entryDN.equals(recurringTaskParentDN))
+    {
+      return taskScheduler.getRecurringTaskCount();
+    }
+
+    DN parentDN = entryDN.getParentDNInSuffix();
+    if (parentDN == null)
+    {
+      return -1;
+    }
+
+    if (parentDN.equals(scheduledTaskParentDN) &&
+        taskScheduler.getScheduledTask(entryDN) != null)
+    {
+      return 0;
+    }
+    else if (parentDN.equals(recurringTaskParentDN) &&
+        taskScheduler.getRecurringTask(entryDN) != null)
+    {
+      return 0;
+    }
+    else
+    {
+      return -1;
+    }
+  }
 
   /**
    * Retrieves the requested entry from this backend.

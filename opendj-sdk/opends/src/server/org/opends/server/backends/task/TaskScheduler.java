@@ -1323,6 +1323,46 @@ public class TaskScheduler
     }
   }
 
+  /**
+   * Retrieves the number of scheduled tasks in the task backend.
+   *
+   * @return  The total number of entries in the task backend.
+   */
+  public long getScheduledTaskCount()
+  {
+    schedulerLock.lock();
+
+    try
+    {
+      return tasks.size();
+    }
+    finally
+    {
+      schedulerLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves the number of recurring tasks in the task backend.
+   *
+   * @return  The total number of entries in the task backend.
+   */
+  public long getRecurringTaskCount()
+  {
+    schedulerLock.lock();
+
+    try
+    {
+      return recurringTasks.size();
+    }
+    finally
+    {
+      schedulerLock.unlock();
+    }
+  }
+
 
 
   /**

@@ -142,14 +142,15 @@ public class BufferedIndex
     {
       if (entryLimit > 0 && entryIDList.size() >= entryLimit)
       {
-        bufferedValue.value = new EntryIDSet();
+        entryIDList = new EntryIDSet(entryIDList.size());
+        entryIDList.add(entryID);
+        bufferedValue.value = entryIDList;
         bufferedValue.isDirty = true;
+        return;
       }
-      else
-      {
-        bufferedValue.isDirty = entryIDList.add(entryID);
-      }
+
     }
+    bufferedValue.isDirty = entryIDList.add(entryID);
   }
 
   /**

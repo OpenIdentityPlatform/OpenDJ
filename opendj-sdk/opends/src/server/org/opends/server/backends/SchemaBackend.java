@@ -76,42 +76,11 @@ import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.MatchingRuleUseSyntax;
 import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.BackupConfig;
-import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.BackupInfo;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.CryptoManager;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DITContentRule;
-import org.opends.server.types.DITStructureRule;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ExistingFileBehavior;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.LDIFImportResult;
-import org.opends.server.types.MatchingRuleUse;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.NameForm;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.ObjectClassType;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.RDN;
-import org.opends.server.types.RestoreConfig;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.Schema;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.Validator;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -626,7 +595,49 @@ public class SchemaBackend
     return true;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
+  {
+    long ret = numSubordinates(entryDN);
+    if(ret < 0)
+    {
+      return ConditionResult.UNDEFINED;
+    }
+    else if(ret == 0)
+    {
+      return ConditionResult.FALSE;
+    }
+    else
+    {
+      return ConditionResult.TRUE;
+    }
+  }
 
+  /**
+   * {@inheritDoc}
+   */
+  public long numSubordinates(DN entryDN) throws DirectoryException
+  {
+    boolean found = false;
+
+    for (DN dn : baseDNs)
+    {
+      if (dn.equals(entryDN))
+      {
+        found = true;
+        break;
+      }
+    }
+
+    if (! found)
+    {
+      return -1;
+    }
+
+    return 0;
+  }
 
   /**
    * Retrieves the requested entry from this backend.

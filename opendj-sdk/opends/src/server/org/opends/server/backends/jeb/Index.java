@@ -198,7 +198,7 @@ public class Index extends DatabaseContainer
       {
         if (indexEntryLimit > 0 && entryIDList.size() >= indexEntryLimit)
         {
-          entryIDList = new EntryIDSet();
+          entryIDList = new EntryIDSet(entryIDList.size());
           entryLimitExceededCount++;
 
           if(debugEnabled())
@@ -212,18 +212,13 @@ public class Index extends DatabaseContainer
 
           }
         }
-        else
-        {
-          if(!entryIDList.add(entryID))
-          {
-            success = false;
-          }
-        }
-
-        byte[] after = entryIDList.toDatabase();
-        data.setData(after);
-        put(txn, key, data);
       }
+
+      success = entryIDList.add(entryID);
+
+      byte[] after = entryIDList.toDatabase();
+      data.setData(after);
+      put(txn, key, data);
     }
     else
     {
@@ -245,7 +240,7 @@ public class Index extends DatabaseContainer
    * @throws DatabaseException If an error occurs in the JE database.
    */
   public void removeID(Transaction txn, DatabaseEntry key, EntryID entryID)
-       throws DatabaseException
+      throws DatabaseException
   {
     OperationStatus status;
     LockMode lockMode = LockMode.RMW;
@@ -256,48 +251,42 @@ public class Index extends DatabaseContainer
     if (status == OperationStatus.SUCCESS)
     {
       EntryIDSet entryIDList = new EntryIDSet(key.getData(), data.getData());
-      if (entryIDList.isDefined())
+      // Ignore failures if rebuild is running since the entry ID is
+      // probably already removed.
+      if (!entryIDList.remove(entryID) && !rebuildRunning)
       {
-        // Ignore failures if rebuild is running since the entry ID is
-        // probably already removed.
-        if (!entryIDList.remove(entryID) && !rebuildRunning)
+        if(trusted)
         {
-          // Invalidate the key by setting it undefined
-          byte[] after = new EntryIDSet().toDatabase();
-          data.setData(after);
-          put(txn, key, data);
+          setTrusted(txn, false);
 
-          if(trusted)
+
+
+          if(debugEnabled())
           {
-            setTrusted(txn, false);
-
-            if(debugEnabled())
-            {
-              StringBuilder builder = new StringBuilder();
-              StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-              TRACER.debugError("The expected entry ID does not exist in " +
-                  "the entry ID list for index %s.\nKey:%s",
-                                name, builder.toString());
-            }
-
-            logError(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
+            StringBuilder builder = new StringBuilder();
+            StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
+            TRACER.debugError("The expected entry ID does not exist in " +
+                "the entry ID list for index %s.\nKey:%s",
+                              name, builder.toString());
           }
+
+          logError(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
+        }
+      }
+      else
+      {
+        byte[] after = entryIDList.toDatabase();
+        if (after == null)
+        {
+          // No more IDs, so remove the key. If index is not
+          // trusted then this will cause all subsequent reads
+          // for this key to return undefined set.
+          delete(txn, key);
         }
         else
         {
-          byte[] after = entryIDList.toDatabase();
-          if (after == null)
-          {
-            // No more IDs, so remove the key. If index is not
-            // trusted then this will cause all subsequent reads
-            // for this key to return undefined set.
-            delete(txn, key);
-          }
-          else
-          {
-            data.setData(after);
-            put(txn, key, data);
-          }
+          data.setData(after);
+          put(txn, key, data);
         }
       }
     }

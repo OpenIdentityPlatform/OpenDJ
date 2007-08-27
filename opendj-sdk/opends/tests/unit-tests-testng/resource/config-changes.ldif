@@ -754,20 +754,6 @@ objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: uid
 ds-cfg-index-type: equality
 
-dn: ds-cfg-index-attribute=ds-sync-hist,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
-changetype: add
-objectClass: top
-objectClass: ds-cfg-je-index
-ds-cfg-index-attribute: ds-sync-hist
-ds-cfg-index-type: ordering
-
-dn: ds-cfg-index-attribute=entryuuid,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
-changetype: add
-objectClass: top
-objectClass: ds-cfg-je-index
-ds-cfg-index-attribute: entryuuid
-ds-cfg-index-type: equality
-
 dn: cn=Virtual Static member,cn=Virtual Attributes,cn=config
 changetype: modify
 replace: ds-cfg-allow-retrieving-membership

@@ -586,6 +586,23 @@ public class TestBackendImpl extends JebTestCase {
   }
 
   @Test(dependsOnMethods = "testAdd")
+  public void testNumSubordinates() throws Exception
+  {
+    DN dn = DN.decode("dc=test,dc=com");
+    assertEquals(backend.numSubordinates(dn), 1);
+    dn = DN.decode("ou=People,dc=test,dc=com");
+    assertEquals(backend.numSubordinates(dn), 12);
+    dn = DN.decode("dc=com");
+    assertEquals(backend.numSubordinates(dn), -1);
+    dn = DN.decode("dc=test1,dc=com");
+    assertEquals(backend.numSubordinates(dn), 2);
+    dn = DN.decode("uid=user.10,ou=People,dc=test,dc=com");
+    assertEquals(backend.numSubordinates(dn), 0);
+    dn = DN.decode("uid=does not exist,ou=People,dc=test,dc=com");
+    assertEquals(backend.numSubordinates(dn), -1);
+  }
+
+  @Test(dependsOnMethods = "testAdd")
   public void testSearchIndex() throws Exception {
     InternalClientConnection conn =
         InternalClientConnection.getRootConnection();
@@ -719,7 +736,8 @@ public class TestBackendImpl extends JebTestCase {
 
   @Test(dependsOnMethods = {"testAdd", "testSearchIndex",
       "testSearchScope", "testSearchNotIndexed", "testModifyDNNewSuperior",
-      "testMatchedDN"})
+      "testMatchedDN", "testNumSubordinates",
+      "testNumSubordinatesIndexEntryLimitExceeded"})
   public void testDeleteSubtree() throws Exception {
     Control control = new Control(OID_SUBTREE_DELETE_CONTROL, false);
     ArrayList<Control> deleteSubTreeControl = new ArrayList<Control>();
@@ -852,7 +870,8 @@ public class TestBackendImpl extends JebTestCase {
   }
 
   @Test(dependsOnMethods = {"testSearchNotIndexed", "testAdd",
-      "testSearchIndex", "testSearchScope", "testMatchedDN"})
+      "testSearchIndex", "testSearchScope", "testMatchedDN",
+      "testNumSubordinates", "testNumSubordinatesIndexEntryLimitExceeded"})
   public void testReplaceEntry() throws Exception {
     Entry entry;
     Entry oldEntry;
@@ -971,7 +990,8 @@ public class TestBackendImpl extends JebTestCase {
   }
 
   @Test(dependsOnMethods = {"testSearchNotIndexed", "testAdd",
-      "testSearchIndex", "testSearchScope", "testMatchedDN"})
+      "testSearchIndex", "testSearchScope", "testMatchedDN",
+      "testNumSubordinates", "testNumSubordinatesIndexEntryLimitExceeded"})
   public void testModifyEntry() throws Exception {
     Entry entry;
     Entry newEntry;
@@ -1145,7 +1165,8 @@ public class TestBackendImpl extends JebTestCase {
 
   @Test(dependsOnMethods = {"testSearchNotIndexed", "testAdd", "testSearchIndex",
       "testSearchScope", "testModifyEntry", "testModifyDN", "testReplaceEntry",
-      "testDeleteEntry", "testMatchedDN"})
+      "testDeleteEntry", "testMatchedDN", "testNumSubordinates",
+      "testNumSubordinatesIndexEntryLimitExceeded"})
   public void testModifyDNNewSuperior() throws Exception {
     //Add the new superior entry we want to move to. Test to see if the child ID
     //always above parent invarient is preseved.
@@ -1500,6 +1521,25 @@ public class TestBackendImpl extends JebTestCase {
         result.get(0).getAttribute("debugsearchindex").get(0).getValues().toString();
     assertTrue(debugString.contains("NOT-INDEXED"));
 
+  }
+
+    @Test(dependsOnMethods = "testSearchNotIndexed")
+  public void testNumSubordinatesIndexEntryLimitExceeded() throws Exception
+  {
+    DN dn = DN.decode("dc=test,dc=com");
+    assertEquals(backend.numSubordinates(dn), 1);
+
+    // 1 entry was deleted and 2 added for a total of 13
+    dn = DN.decode("ou=People,dc=test,dc=com");
+    assertEquals(backend.numSubordinates(dn), 13);
+    dn = DN.decode("dc=com");
+    assertEquals(backend.numSubordinates(dn), -1);
+    dn = DN.decode("dc=test1,dc=com");
+    assertEquals(backend.numSubordinates(dn), 2);
+    dn = DN.decode("uid=user.10,ou=People,dc=test,dc=com");
+    assertEquals(backend.numSubordinates(dn), 0);
+    dn = DN.decode("uid=does not exist,ou=People,dc=test,dc=com");
+    assertEquals(backend.numSubordinates(dn), -1);
   }
 
 

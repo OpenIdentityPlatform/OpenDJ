@@ -1948,6 +1948,24 @@ ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real
 ds-cfg-virtual-attribute-filter: (&(objectClass=groupOfUniqueNames)(objectClass=ds-virtual-static-group))
 ds-cfg-allow-retrieving-membership: false
 
+dn: cn=numSubordinates,cn=Virtual Attributes,cn=config
+objectClass: top
+objectClass: ds-cfg-virtual-attribute
+cn: numSubordinates
+ds-cfg-virtual-attribute-class: org.opends.server.extensions.NumSubordinatesVirtualAttributeProvider
+ds-cfg-virtual-attribute-enabled: true
+ds-cfg-virtual-attribute-type: numSubordinates
+ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real
+
+dn: cn=hasSubordinates,cn=Virtual Attributes,cn=config
+objectClass: top
+objectClass: ds-cfg-virtual-attribute
+cn: hasSubordinates
+ds-cfg-virtual-attribute-class: org.opends.server.extensions.HasSubordinatesVirtualAttributeProvider
+ds-cfg-virtual-attribute-enabled: true
+ds-cfg-virtual-attribute-type: hasSubordinates
+ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real
+
 dn: cn=Work Queue,cn=config
 objectClass: top
 objectClass: ds-cfg-work-queue
