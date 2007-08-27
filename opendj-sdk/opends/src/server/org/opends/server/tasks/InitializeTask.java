@@ -25,29 +25,24 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
-import org.opends.messages.MessageBuilder;
-
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.getAttributeType;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+
 import java.util.List;
 
+import org.opends.messages.MessageBuilder;
+import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.opends.messages.TaskMessages;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.plugin.ReplicationDomain;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
 import org.opends.server.types.ResultCode;
 
 /**
@@ -122,8 +117,8 @@ public class InitializeTask extends Task
     String sourceString = TaskUtils.getSingleValueString(attrList);
     source = domain.decodeSource(sourceString);
 
-    createAttribute(ATTR_TASK_INITIALIZE_LEFT, 0);
-    createAttribute(ATTR_TASK_INITIALIZE_DONE, 0);
+    replaceAttributeValue(ATTR_TASK_INITIALIZE_LEFT, String.valueOf(0));
+    replaceAttributeValue(ATTR_TASK_INITIALIZE_DONE, String.valueOf(0));
   }
 
   /**
@@ -148,12 +143,15 @@ public class InitializeTask extends Task
         while (initState == TaskState.RUNNING)
         {
           initState.wait(1000);
-          updateAttribute(ATTR_TASK_INITIALIZE_LEFT, left);
-          updateAttribute(ATTR_TASK_INITIALIZE_DONE, total-left);
+          replaceAttributeValue(
+              ATTR_TASK_INITIALIZE_LEFT, String.valueOf(left));
+          replaceAttributeValue(
+              ATTR_TASK_INITIALIZE_DONE, String.valueOf(total-left));
         }
       }
-      updateAttribute(ATTR_TASK_INITIALIZE_LEFT, left);
-      updateAttribute(ATTR_TASK_INITIALIZE_DONE, total-left);
+      replaceAttributeValue(ATTR_TASK_INITIALIZE_LEFT, String.valueOf(left));
+      replaceAttributeValue(
+          ATTR_TASK_INITIALIZE_DONE, String.valueOf(total-left));
     }
     catch(InterruptedException ie) {}
     catch(DirectoryException de)
@@ -199,50 +197,6 @@ public class InitializeTask extends Task
     {}
   }
 
-  /**
-   * Create a new attribute the task entry.
-   * @param name The name of the attribute
-   * @param value The value to store
-   */
-  protected void createAttribute(String name, long value)
-  {
-    AttributeType type;
-    LinkedHashSet<AttributeValue> values =
-      new LinkedHashSet<AttributeValue>();
-
-    Entry taskEntry = getTaskEntry();
-    try
-    {
-      type = getAttributeType(name, true);
-      values.add(new AttributeValue(type,
-          new ASN1OctetString(String.valueOf(value))));
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(type, name,values));
-      taskEntry.putAttribute(type, attrList);
-    }
-    finally
-    {
-      // taskScheduler.unlockEntry(taskEntryDN, lock);
-    }
-  }
-
-  /**
-   * Update an attribute for this task.
-   * @param name The name of the attribute.
-   * @param value The value.
-   * @throws DirectoryException When an error occurs.
-   */
-  protected void updateAttribute(String name, long value)
-  throws DirectoryException
-  {
-    Entry taskEntry = getTaskEntry();
-
-    ArrayList<Modification> modifications = new ArrayList<Modification>();
-    modifications.add(new Modification(ModificationType.REPLACE,
-        new Attribute(name, String.valueOf(value))));
-
-    taskEntry.applyModifications(modifications);
-  }
 
   /**
    * Set the total number of entries expected to be imported.
