@@ -583,8 +583,8 @@ public class ReplicationCache
       {
         // TODO Handle error properly (sender timeout in addition)
         /*
-         * An error happened trying the send back an ack to this server.
-         * Log an error and close the connection to this server.
+         * An error happened trying the send back an error to this server.
+         * Log an error and close the connection to the sender server.
          */
         MessageBuilder mb2 = new MessageBuilder();
         mb2.append(ERR_CHANGELOG_ERROR_SENDING_ERROR.get(this.toString()));
@@ -604,8 +604,9 @@ public class ReplicationCache
         catch(IOException ioe)
         {
           /*
-           * An error happened trying the send back an ack to this server.
-           * Log an error and close the connection to this server.
+           * An error happened trying the send a routabled message
+           * to its destination server.
+           * Send back an error to the originator of the message.
            */
           MessageBuilder mb = new MessageBuilder();
           mb.append(ERR_CHANGELOG_ERROR_SENDING_MSG.get(this.toString()));
@@ -613,7 +614,24 @@ public class ReplicationCache
           mb.append(" ");
           mb.append(msg.getClass().getCanonicalName());
           logError(mb.toMessage());
-          senderHandler.shutdown();
+
+          MessageBuilder mb1 = new MessageBuilder();
+          mb1.append(ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get());
+          mb1.append("serverID:" + msg.getDestination());
+          ErrorMessage errMsg = new ErrorMessage(
+              msg.getsenderID(), mb1.toMessage());
+          try
+          {
+            senderHandler.send(errMsg);
+          }
+          catch(IOException ioe1)
+          {
+            // an error happened on the sender session trying to recover
+            // from an error on the receiver session.
+            // We don't have much solution left beside closing the sessions.
+            senderHandler.shutdown();
+            targetHandler.shutdown();
+          }
           // TODO Handle error properly (sender timeout in addition)
         }
       }

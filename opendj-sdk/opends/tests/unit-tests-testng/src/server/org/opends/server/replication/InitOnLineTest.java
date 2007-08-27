@@ -111,7 +111,6 @@ public class InitOnLineTest extends ReplicationTestCase
   private static final DebugTracer TRACER = getTracer();
 
   private static final int WINDOW_SIZE = 10;
-  private static final int CHANGELOG_QUEUE_SIZE = 100;
 
   /**
    * A "person" entry
@@ -501,15 +500,13 @@ public class InitOnLineTest extends ReplicationTestCase
           // Check that the left counter.
           AttributeType taskStateType =
             DirectoryServer.getAttributeType(ATTR_TASK_INITIALIZE_LEFT, true);
-          String leftString =
-            resultEntry.getAttributeValue(taskStateType,
+          resultEntry.getAttributeValue(taskStateType,
                 DirectoryStringSyntax.DECODER);
 
           // Check that the total counter.
           taskStateType =
            DirectoryServer.getAttributeType(ATTR_TASK_INITIALIZE_DONE, true);
-          String totalString =
-           resultEntry.getAttributeValue(taskStateType,
+          resultEntry.getAttributeValue(taskStateType,
                DirectoryStringSyntax.DECODER);
         }
         catch(Exception e)
@@ -544,7 +541,7 @@ public class InitOnLineTest extends ReplicationTestCase
             log(logMessages.get(0));
             log(expectedMessage.toString());
             assertTrue(logMessages.get(0).indexOf(
-                expectedMessage.toString())>0);
+                expectedMessage.toString())>=0);
           }
         }
       }
@@ -1387,7 +1384,7 @@ public class InitOnLineTest extends ReplicationTestCase
     String testCase = "InitializeNoSource";
     log("Starting "+testCase);
 
-    // Start SS
+    // Start Replication Server
     changelog1 = createChangelogServer(changelog1ID);
 
     // Creates config to synchronize suffix

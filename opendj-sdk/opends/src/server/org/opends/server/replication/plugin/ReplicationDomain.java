@@ -799,9 +799,10 @@ public class ReplicationDomain extends DirectoryThread
 
     if (update == null)
     {
-      synchronized (broker)
+      while (update == null)
       {
-        while (update == null)
+        InitializeRequestMessage initMsg = null;
+        synchronized (broker)
         {
           ReplicationMessage msg;
           try
@@ -822,32 +823,27 @@ public class ReplicationDomain extends DirectoryThread
             {
               // Another server requests us to provide entries
               // for a total update
-              InitializeRequestMessage initMsg = (InitializeRequestMessage) msg;
-              try
-              {
-                initializeTarget(initMsg.getsenderID(), initMsg.getsenderID(),
-                                 null);
-              }
-              catch(DirectoryException de)
-              {
-                // An error message has been sent to the peer
-                // Nothing more to do locally
-              }
+              initMsg = (InitializeRequestMessage) msg;
             }
             else if (msg instanceof InitializeTargetMessage)
             {
               // Another server is exporting its entries to us
-              InitializeTargetMessage initMsg = (InitializeTargetMessage) msg;
+              InitializeTargetMessage importMsg = (InitializeTargetMessage) msg;
 
               try
               {
-                importBackend(initMsg);
+                // This must be done while we are still holding the
+                // broker lock because we are now going to receive a
+                // bunch of entries from the remote server and we
+                // want the import thread to catch them and
+                // not the ListenerThread.
+                importBackend(importMsg);
               }
               catch(DirectoryException de)
               {
                 // Return an error message to notify the sender
                 ErrorMessage errorMsg =
-                  new ErrorMessage(initMsg.getsenderID(),
+                  new ErrorMessage(importMsg.getsenderID(),
                                    de.getMessageObject());
                 MessageBuilder mb = new MessageBuilder();
                 mb.append(de.getMessageObject());
@@ -878,6 +874,28 @@ public class ReplicationDomain extends DirectoryThread
           catch (SocketTimeoutException e)
           {
             // just retry
+          }
+        }
+        // Test if we have received and export request message and
+        // if that's the case handle it now.
+        // This must be done outside of the portion of code protected
+        // by the broker lock so that we keep receiveing update
+        // when we are doing and export and so that a possible
+        // closure of the socket happening when we are publishing the
+        // entries to the remote can be handled by the other
+        // ListenerThread when they call this method and therefore the
+        // broker.receive() method.
+        if (initMsg != null)
+        {
+          try
+          {
+            initializeTarget(initMsg.getsenderID(), initMsg.getsenderID(),
+                null);
+          }
+          catch(DirectoryException de)
+          {
+            // An error message has been sent to the peer
+            // Nothing more to do locally
           }
         }
       }

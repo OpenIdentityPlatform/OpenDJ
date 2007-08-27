@@ -25,6 +25,9 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.getAttributeType;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
@@ -32,7 +35,6 @@ import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 import java.util.List;
 
-import org.opends.messages.MessageBuilder;
 import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
@@ -72,6 +74,8 @@ public class InitializeTask extends Task
   // The number of entries still to be processed for this import to be
   // completed
   long left = 0;
+
+  private Message initTaskError = null;
 
   /**
    * {@inheritDoc}
@@ -160,6 +164,9 @@ public class InitializeTask extends Task
       initState = TaskState.STOPPED_BY_ERROR;
     }
 
+    if (initTaskError != null)
+      logError(initTaskError);
+
     if (debugEnabled())
     {
       TRACER.debugInfo("InitializeTask is ending with state:%s",
@@ -181,7 +188,7 @@ public class InitializeTask extends Task
     {
       if (de != null)
       {
-        logError(de.getMessageObject());
+        initTaskError = de.getMessageObject();
       }
       if (debugEnabled())
       {
