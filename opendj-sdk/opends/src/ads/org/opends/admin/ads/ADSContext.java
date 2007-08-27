@@ -1874,7 +1874,7 @@ public class ADSContext
     helper.createAdministrationSuffix(getDirContext(), ben,
         getDbName(), getImportTemp());
 
-    retrieveInstanceKeyCertificate();
+    retrieveLocalInstanceKeyCertificate();
   }
 
   /**
@@ -1961,7 +1961,7 @@ public class ADSContext
    * The instance-key public-key certificate from the local truststore of the
    * instance bound by this context.
    */
-  private String instanceKeyCertificate = null;
+  private String localInstanceKeyCertificate = null;
 
   /**
    * Updates the instance key public-key certificate value of this context from
@@ -1974,7 +1974,7 @@ public class ADSContext
    * @throws ADSContextException if unable to retrieve certificate from bound
    * instance.
    */
-  private void retrieveInstanceKeyCertificate() throws ADSContextException
+  private void retrieveLocalInstanceKeyCertificate() throws ADSContextException
   {
     if( ! isExistingEntry(nameFromDN("cn=ads-truststore")))
     {
@@ -1986,46 +1986,51 @@ public class ADSContext
     /* TODO: this DN is declared in some core constants file. Create a constants
        file for the installer and import it into the core. */
     final String dnStr = "ds-cfg-key-id=ads-certificate,cn=ads-truststore";
-    instanceKeyCertificate = null ;
-    for(int i = 0; null == instanceKeyCertificate && i < 2 ; ++i )
-    {
-      /* If the entry does not exist, add it (inducing CryptoManager to do some
-         magic to create the attribute values), then repeat the search. */
-      try
-      {
-        SearchControls sc = new SearchControls();
+    localInstanceKeyCertificate = null;
+    for (int i = 0; null == localInstanceKeyCertificate && i < 2 ; ++i ) {
+      /* If the entry does not exist in the instance's truststore backend, add
+         it (which induces the CryptoManager to create the public-key
+         certificate attribute), then repeat the search. */
+      try {
+        final SearchControls sc = new SearchControls();
         sc.setSearchScope(SearchControls.OBJECT_SCOPE);
-        String attrIDs[] = { "ds-cfg-ads-certificate" };
+        final String attrIDs[] = { "ds-cfg-ads-certificate" };
         sc.setReturningAttributes(attrIDs);
-        SearchResult adsCertEntry
+        final SearchResult adsCertEntry
            = dirContext.search(nameFromDN(dnStr), "(objectclass=*)", sc).next();
         final Attribute certAttr
                 = adsCertEntry.getAttributes().get("ds-cfg-ads-certificate");
-        if(null == certAttr) break; // unexpected, but handled below (exception)
-        instanceKeyCertificate = (String)certAttr.get();
+        if (null != certAttr) {
+          localInstanceKeyCertificate = (String)certAttr.get();
+        }
       }
-      catch(NameNotFoundException x)
-      {
-        BasicAttributes attrs = new BasicAttributes();
-        Attribute oc = new BasicAttribute("objectclass");
-        oc.add("top");
-        oc.add("ds-cfg-self-signed-cert-request");
-        attrs.put(oc);
-        createEntry(dnStr, attrs);
+      catch (NameNotFoundException x) {
+        if (0 == i) {
+          /* Poke CryptoManager to initialize truststore. Note that createEntry
+             wraps any JNDI exception with an ADSException. */
+          final BasicAttributes attrs = new BasicAttributes();
+          final Attribute oc = new BasicAttribute("objectclass");
+          oc.add("top");
+          oc.add("ds-cfg-self-signed-cert-request");
+          attrs.put(oc);
+          createEntry(dnStr, attrs);
+        }
+        else {
+          throw new ADSContextException(
+                  ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+        }
       }
-      catch (NoPermissionException x)
-      {
+      catch (NoPermissionException x) {
         throw new ADSContextException(
-                ADSContextException.ErrorType.ACCESS_PERMISSION);
+                ADSContextException.ErrorType.ACCESS_PERMISSION, x);
       }
-      catch(javax.naming.NamingException x)
-      {
+      catch (javax.naming.NamingException x) {
         throw new ADSContextException(
                 ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
       }
     }
 
-    if(null == instanceKeyCertificate){
+    if (null == localInstanceKeyCertificate) {
       throw new ADSContextException(
               ADSContextException.ErrorType.ERROR_UNEXPECTED);
     }
@@ -2039,12 +2044,12 @@ public class ADSContext
    *
    * @throws ADSContextException if public-key certificate cannot be retrieved.
    */
-  public String getInstanceKeyCertificate() throws ADSContextException
+  public String getLocalInstanceKeyCertificate() throws ADSContextException
   {
-    if(null == instanceKeyCertificate){
-      retrieveInstanceKeyCertificate();
+    if (null == localInstanceKeyCertificate) {
+      retrieveLocalInstanceKeyCertificate();
     }
-    return instanceKeyCertificate;
+    return localInstanceKeyCertificate;
   }
 
   /**
