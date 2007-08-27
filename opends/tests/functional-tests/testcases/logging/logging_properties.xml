@@ -60,8 +60,9 @@
           </message>
           
           <!-- DESACTRIVATED : bug 2107]-->
-          <call function="'testFailed'"/>
+          <!--<call function="'testFailed'"/>-->
           <script>
+            knownIssue(2107)
             bug=2107
           </script>
           <if expr="bug == 0">

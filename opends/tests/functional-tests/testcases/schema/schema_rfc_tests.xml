@@ -774,7 +774,9 @@
                     'optionsString'          : '--set enabled:false'
                     }
             </call> 
-    
+            <script>
+              knownIssue(2046)
+            </script>
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }

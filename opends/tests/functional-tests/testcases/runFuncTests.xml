@@ -113,6 +113,11 @@
         # this function return a well-formatted testcase name
         def getTestCaseName(name):
           return '%s: %s: %s' % (CurrentTestPath['group'],CurrentTestPath['suite'],name)
+          
+        # this functions adds a known issue to a testcase's known issues list
+        issuesList=[]
+        def knownIssue(issue):
+          issuesList.append(issue)
         
         class functionToRun:
           def __init__(self, name):

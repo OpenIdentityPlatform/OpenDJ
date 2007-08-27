@@ -195,6 +195,16 @@
     
     <!-- table of contents -->
     <center><h2>Table of Contents</h2></center>
+    <table width="100%">
+      <tr>
+        <td>Description</td>
+        <td width="5%">Success Rate</td>
+        <td width="5%">Pass</td>
+        <td width="5%">Fail</td>
+        <td width="5%">Inc.</td>
+        <td width="5%">Cov.</td>
+      </tr>
+    </table>
     <ul class="myCollapsible">
       <xsl:for-each select="$tests">
         <xsl:sort select="group" order="ascending"/>
@@ -316,15 +326,45 @@
                       </tr>
                     </table>
                     <ul>
-                      <xsl:for-each select="$tests[group=$group][suite=$suite][result='fail' or result='inconclusive']">
+                      <xsl:for-each select="$tests[group=$group][suite=$suite][result='fail' or result='inconclusive' or result='known']">
                         <xsl:variable name="name" select="name"/>
                         <li>
-                          <a>
-                            <xsl:attribute name="href">
-                              <xsl:value-of select="concat(concat(concat(concat(concat('#',$group),'-'),$suite),'-'),$name)"/>
-                            </xsl:attribute>
-                            <xsl:value-of select="name"/>
-                          </a>
+                          <table>
+                            <tr>
+                              <xsl:attribute name="class">
+                                <xsl:choose>
+                                  <xsl:when test="result='fail'">
+                                    <xsl:value-of select="'unacceptable'" />
+                                  </xsl:when>
+                                  <xsl:when test="result='known'">
+                                    <xsl:value-of select="'acceptable'" />
+                                  </xsl:when>
+                                  <xsl:otherwise>
+                                    <xsl:value-of select="'perfect'" />
+                                  </xsl:otherwise>
+                                </xsl:choose>
+                              </xsl:attribute>
+                              <td>
+                                <a>
+                                  <xsl:attribute name="href">
+                                    <xsl:value-of select="concat(concat(concat(concat(concat('#',$group),'-'),$suite),'-'),$name)"/>
+                                  </xsl:attribute>
+                                  <xsl:value-of select="name"/>
+                                </a>
+                              </td>
+                              <td width="10%">
+                                <xsl:for-each select="./issues">
+                                  <xsl:variable name="issue" select="issue" />
+                                  <a target="issue">
+                                    <xsl:attribute name="href">
+                                      <xsl:value-of select="concat('https://opends.dev.java.net/issues/show_bug.cgi?id=',$issue)" />
+                                    </xsl:attribute>
+                                    <xsl:value-of select="$issue" />
+                                  </a><br />
+                                </xsl:for-each>
+                              </td>
+                            </tr>
+                          </table>
                           <ul>
                             <li>
                               <pre><xsl:value-of select="log" /></pre>

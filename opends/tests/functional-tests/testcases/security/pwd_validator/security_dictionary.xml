@@ -169,7 +169,9 @@
                     'attributeValue'         : 'false' ,
                     'modifyType'             : 'set' }
             </call>
-            
+            <script>
+              knownIssue(2081)
+            </script>
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -193,6 +195,9 @@
                     'newAttributeValue'      : 'sbbad' ,
                     'changetype'             : 'replace' }
             </call>
+            <script>
+              knownIssue(2081)
+            </script>
             <!-- Uncomment when Issue 2081 is resolved.
             <message>
                'Security: Pwd Validator: Dictionary: user binding with valid password'

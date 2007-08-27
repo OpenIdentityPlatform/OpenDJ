@@ -133,12 +133,14 @@
         if isWindows:
           fileExt='.bat'
           fileFolder='bat'
+          pathSeparator=';'
         else:
           fileExt=''
           fileFolder='bin'
+          pathSeparator=':'
       </script>
       
-      <!-- Set the signal handlers -->          
+      <!-- Set the signal handlers -->
       <call function="'signals'"/>
       
       <!-- Initialize any global variables -->

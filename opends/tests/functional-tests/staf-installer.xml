@@ -618,7 +618,7 @@ email.server.pwd=${email.server.pwd.input}
       </fileset>
     </copy>
     <echo>You may access the tests report at</echo>
-    <echo>${tests.run.dir}/${tests.run.time}/report/results.html</echo>
+    <echo>${tests.run.dir}/${tests.run.time}/report/my-report.html</echo>
     <antcall target="send-mail"/>
   </target>
   
@@ -694,7 +694,7 @@ email.server.pwd=${email.server.pwd.input}
   
   <target name="send-mail-prepare">
     <condition property="test.successful">
-      <available file="${staf.tmp.dir}/results.html"/>
+      <available file="${staf.tmp.dir}/my-report.html"/>
     </condition>
     <condition property="email.send">
       <equals arg1="${email.enabled}" arg2="y"
@@ -705,7 +705,7 @@ email.server.pwd=${email.server.pwd.input}
   <target name="send-mail-get-percentage" depends="send-mail-prepare" if="test.successful">
     <echo>test report found.Proceeding...</echo>
     <delete file="${staf.tmp.dir}/percentage.properties"/>
-    <copy file="${staf.tmp.dir}/results.html" tofile="${staf.tmp.dir}/percentage.properties">
+    <copy file="${staf.tmp.dir}/my-report.html" tofile="${staf.tmp.dir}/percentage.properties">
       <filterchain>
         <linecontains>
          <contains value='font size="+2'/>
@@ -732,14 +732,14 @@ email.server.pwd=${email.server.pwd.input}
       </or>
     </condition>
     <condition property="email.file" 
-               value="${staf.tmp.dir}/results.html" 
+               value="${staf.tmp.dir}/my-report.html" 
                else="staf-installer/failure.html">
-      <available file="${staf.tmp.dir}/results.html"/>
+      <available file="${staf.tmp.dir}/my-report.html"/>
     </condition>
     <condition property="email.subject"
                value="FT - Run - ${daily.date} - ${os.name} - ${os.arch} - ${test.percentage}%"
                else="FT - Failed -${daily.date} - ${os.name} - ${os.arch}">
-      <available file="${staf.tmp.dir}/results.html"/>
+      <available file="${staf.tmp.dir}/my-report.html"/>
     </condition>
     <antcall target="send-mail-noauth"/>
     <antcall target="send-mail-withauth"/>
@@ -1123,7 +1123,7 @@ email.server.pwd=${email.server.pwd.input}
     <java jar="${staf.install.dir}/services/stax/STAXDoc.jar" fork="true">
       <arg value="-d"/> 
       <arg value="${staf.home}/doc"/>
-      <arg value="testcases"/>
+      <!--<arg value="testcases"/>
       <arg value="testcases/aci"/>
       <arg value="testcases/backends"/>
       <arg value="testcases/core"/>
@@ -1139,8 +1139,9 @@ email.server.pwd=${email.server.pwd.input}
       <arg value="testcases/security/pwd_storage"/>
       <arg value="testcases/security/pwd_validator"/>
       <arg value="testcases/security/sasl"/>
-      <arg value="testcases/security/startTLS"/>
+      <arg value="testcases/security/startTLS"/>-->
       <arg value="shared/functions"/>
+      <arg value="testcases/sample" />
     </java>
   </target>
   

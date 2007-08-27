@@ -199,7 +199,9 @@
                   'dsPath'      : '%s/server2/%s' % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
                 }
               </call>
-              
+              <script>
+                knownIssue(2173)
+              </script>
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult

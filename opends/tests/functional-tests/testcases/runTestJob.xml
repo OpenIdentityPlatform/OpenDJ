@@ -513,13 +513,6 @@
           </if>
         </sequence>
       </if>
-      
-      <!-- fixMe: Copy the html results file to TMPDIR for Hudson -->
-      <call function="'copyFile'">
-        { 'srcfile'    : htmlfile,
-          'destfile'   : '%s/results.html' % TMPDIR
-        }
-      </call>
     </sequence>
   
   </function>
