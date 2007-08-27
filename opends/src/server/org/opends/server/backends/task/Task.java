@@ -53,6 +53,8 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ModificationType;
 
 
 import org.opends.server.types.InitializationException;
@@ -594,6 +596,46 @@ public abstract class Task
     }
   }
 
+  /**
+   * Replaces an attribute values of the task entry.
+   *
+   * @param  name  The name of the attribute that must be replaced.
+   *
+   * @param  value The value that must replace the previous values of the
+   *               attribute.
+   *
+   * @throws DirectoryException When an error occurs.
+   */
+  protected void replaceAttributeValue(String name, String value)
+  throws DirectoryException
+  {
+    // We only need to grab the entry-level lock if we don't already hold the
+    // broader scheduler lock.
+    boolean needLock = (! taskScheduler.holdsSchedulerLock());
+    Lock lock = null;
+    if (needLock)
+    {
+      lock = taskScheduler.writeLockEntry(taskEntryDN);
+    }
+
+    try
+    {
+      Entry taskEntry = getTaskEntry();
+
+      ArrayList<Modification> modifications = new ArrayList<Modification>();
+      modifications.add(new Modification(ModificationType.REPLACE,
+          new Attribute(name, value)));
+
+      taskEntry.applyModifications(modifications);
+    }
+    finally
+    {
+      if (needLock)
+      {
+        taskScheduler.unlockEntry(taskEntryDN, lock);
+      }
+    }
+  }
 
 
   /**
