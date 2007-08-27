@@ -53,27 +53,7 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.BackupConfig;
-import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.CancelledOperationException;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.LDIFImportResult;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.RestoreConfig;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
+import org.opends.server.types.*;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.Validator;
 
@@ -401,7 +381,61 @@ public class RootDSEBackend
     return true;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
+  {
+    long ret = numSubordinates(entryDN);
+    if(ret < 0)
+    {
+      return ConditionResult.UNDEFINED;
+    }
+    else if(ret == 0)
+    {
+      return ConditionResult.FALSE;
+    }
+    else
+    {
+      return ConditionResult.TRUE;
+    }
+  }
 
+  /**
+   * {@inheritDoc}
+   */
+  public long numSubordinates(DN entryDN) throws DirectoryException
+  {
+    if (entryDN == null || ! entryDN.isNullDN())
+    {
+      return -1;
+    }
+
+    long count = 0;
+
+    Map<DN,Backend> baseMap;
+    if (subordinateBaseDNs == null)
+    {
+      baseMap = DirectoryServer.getPublicNamingContexts();
+    }
+    else
+    {
+      baseMap = subordinateBaseDNs;
+    }
+
+    for (DN subBase : baseMap.keySet())
+    {
+
+      Backend b = baseMap.get(subBase);
+      Entry subBaseEntry = b.getEntry(subBase);
+      if (subBaseEntry != null)
+      {
+        count++;
+      }
+    }
+
+    return count;
+  }
 
   /**
    * Retrieves the requested entry from this backend.

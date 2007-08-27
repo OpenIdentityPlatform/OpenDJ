@@ -257,9 +257,32 @@ public class IndexMergeThread extends DirectoryThread
               if (index.read(txn, dbKey, dbData, LockMode.RMW) ==
                    OperationStatus.SUCCESS)
               {
-                if (dbData.getSize() == 0)
+                if (dbData.getSize() == 8 &&
+                    (dbData.getData()[0] & 0x80) == 0x80)
                 {
-                  // Entry limit already exceeded.
+                  // Entry limit already exceeded. Just update the
+                  // undefined size assuming no overlap will occur between
+                  // the add values and the longs in the DB.
+                  long undefinedSize =
+                   JebFormat.entryIDUndefinedSizeFromDatabase(dbData.getData());
+
+                  for(Longs l : addValues)
+                  {
+                    undefinedSize += l.size();
+                  }
+
+                  if(replaceExisting)
+                  {
+                    for(Longs l : delValues)
+                    {
+                      undefinedSize -= l.size();
+                    }
+                  }
+
+                  byte[] undefinedSizeBytes =
+                      JebFormat.entryIDUndefinedSizeToDatabase(undefinedSize);
+                  dbData.setData(undefinedSizeBytes);
+                  index.put(txn, dbKey, dbData);
                   break writeMergedValue;
                 }
                 merged.decode(dbData.getData());
@@ -281,7 +304,10 @@ public class IndexMergeThread extends DirectoryThread
 
             if (merged.size() > entryLimit)
             {
-              index.writeKey(txn, dbKey, new EntryIDSet());
+              byte[] undefinedSizeBytes =
+                  JebFormat.entryIDUndefinedSizeToDatabase(merged.size());
+              dbData.setData(undefinedSizeBytes);
+              index.put(txn, dbKey, dbData);
             }
             else
             {

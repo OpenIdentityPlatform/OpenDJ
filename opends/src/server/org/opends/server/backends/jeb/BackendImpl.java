@@ -311,7 +311,7 @@ public class BackendImpl
       EnvironmentConfig envConfig =
           ConfigurableEnvironment.parseConfigEntry(cfg);
 
-      initializeRootContainer(envConfig);
+      rootContainer = initializeRootContainer(envConfig);
     }
 
     // Preload the database cache.
@@ -598,7 +598,63 @@ public class BackendImpl
     return -1;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
+  {
+    long ret = numSubordinates(entryDN);
+    if(ret < 0)
+    {
+      return ConditionResult.UNDEFINED;
+    }
+    else if(ret == 0)
+    {
+      return ConditionResult.FALSE;
+    }
+    else
+    {
+      return ConditionResult.TRUE;
+    }
+  }
 
+  /**
+   * {@inheritDoc}
+   */
+  public long numSubordinates(DN entryDN) throws DirectoryException
+  {
+    EntryContainer ec = rootContainer.getEntryContainer(entryDN);
+    if(ec == null)
+    {
+      return -1;
+    }
+
+    readerBegin();
+    ec.sharedLock.lock();
+    try
+    {
+      long count = ec.getNumSubordinates(entryDN);
+      if(count == Long.MAX_VALUE)
+      {
+        // The index entry limit has exceeded and there is no count maintained.
+        return -1;
+      }
+      return count;
+    }
+    catch (DatabaseException e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      throw createDirectoryException(e);
+    }
+    finally
+    {
+      ec.sharedLock.unlock();
+      readerEnd();
+    }
+  }
 
   /**
    * Retrieves the requested entry from this backend.  Note that the caller must
@@ -938,7 +994,7 @@ public class BackendImpl
         envConfig.setConfigParam("je.env.isLocking", "true");
         envConfig.setConfigParam("je.env.runCheckpointer", "true");
 
-        initializeRootContainer(envConfig);
+        rootContainer = initializeRootContainer(envConfig);
       }
 
 
@@ -1081,7 +1137,7 @@ public class BackendImpl
         envConfig.setConfigParam("je.env.runCheckpointer", "false");
       }
 
-      initializeRootContainer(envConfig);
+      rootContainer = initializeRootContainer(envConfig);
 
       ImportJob importJob = new ImportJob(importConfig);
       return importJob.importLDIF(rootContainer);
@@ -1192,7 +1248,7 @@ public class BackendImpl
         envConfig.setConfigParam("je.env.isLocking", "true");
         envConfig.setConfigParam("je.env.runCheckpointer", "true");
 
-        initializeRootContainer(envConfig);
+        rootContainer = initializeRootContainer(envConfig);
       }
 
       VerifyJob verifyJob = new VerifyJob(verifyConfig);
@@ -1275,7 +1331,7 @@ public class BackendImpl
         EnvironmentConfig envConfig =
             ConfigurableEnvironment.parseConfigEntry(cfg);
 
-        initializeRootContainer(envConfig);
+        rootContainer = initializeRootContainer(envConfig);
       }
 
       RebuildJob rebuildJob = new RebuildJob(rebuildConfig);
@@ -1502,6 +1558,34 @@ public class BackendImpl
   }
 
   /**
+   * Returns a new read-only handle to the JE root container for this backend.
+   * The caller is responsible for closing the root container after use.
+   *
+   * @return The read-only RootContainer object for this backend.
+   *
+   * @throws  ConfigException  If an unrecoverable problem arises during
+   *                           initialization.
+   * @throws  InitializationException  If a problem occurs during initialization
+   *                                   that is not related to the server
+   *                                   configuration.
+   */
+  public RootContainer getReadOnlyRootContainer()
+      throws ConfigException, InitializationException
+  {
+    EnvironmentConfig envConfig =
+        ConfigurableEnvironment.parseConfigEntry(cfg);
+
+    envConfig.setReadOnly(true);
+    envConfig.setAllowCreate(false);
+    envConfig.setTransactional(false);
+    envConfig.setTxnNoSync(false);
+    envConfig.setConfigParam("je.env.isLocking", "true");
+    envConfig.setConfigParam("je.env.runCheckpointer", "true");
+
+    return initializeRootContainer(envConfig);
+  }
+
+  /**
    * Clears all the entries from the backend.  This method is for test cases
    * that use the JE backend.
    *
@@ -1589,14 +1673,15 @@ public class BackendImpl
     return cfg.dn();
   }
 
-  private void initializeRootContainer(EnvironmentConfig envConfig)
+  private RootContainer initializeRootContainer(EnvironmentConfig envConfig)
       throws ConfigException, InitializationException
   {
     // Open the database environment
     try
     {
-      rootContainer = new RootContainer(this, cfg);
-      rootContainer.open(envConfig);
+      RootContainer rc = new RootContainer(this, cfg);
+      rc.open(envConfig);
+      return rc;
     }
     catch (DatabaseException e)
     {

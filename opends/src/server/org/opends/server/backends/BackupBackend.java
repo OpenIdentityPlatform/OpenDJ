@@ -43,31 +43,11 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.BackupConfig;
-import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.BackupInfo;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.LDIFImportResult;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.RDN;
-import org.opends.server.types.RestoreConfig;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 import static org.opends.messages.BackendMessages.*;
 
 import static org.opends.server.util.ServerConstants.*;
@@ -341,7 +321,101 @@ public class BackupBackend
     return true;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
+  {
+    long ret = numSubordinates(entryDN);
+    if(ret < 0)
+    {
+      return ConditionResult.UNDEFINED;
+    }
+    else if(ret == 0)
+    {
+      return ConditionResult.FALSE;
+    }
+    else
+    {
+      return ConditionResult.TRUE;
+    }
+  }
 
+  /**
+   * {@inheritDoc}
+   */
+  public long numSubordinates(DN entryDN) throws DirectoryException
+  {
+    // If the requested entry was null, then return undefined.
+    if (entryDN == null)
+    {
+      return -1;
+    }
+
+    // If the requested entry was the backend base entry, then return
+    // the number of backup directories.
+    if (backupBaseDN.equals(entryDN))
+    {
+      long count = 0;
+      for (File f : backupDirectories)
+      {
+        // Check to see if the descriptor file exists.  If not, then skip this
+        // backup directory.
+        File descriptorFile = new File(f, BACKUP_DIRECTORY_DESCRIPTOR_FILE);
+        if (! descriptorFile.exists())
+        {
+          continue;
+        }
+        count ++;
+      }
+      return count;
+    }
+
+    // See if the requested entry was one level below the backend base entry.
+    // If so, then it must point to a backup directory.  Otherwise, it must be
+    // two levels below the backup base entry and must point to a specific
+    // backup.
+    DN parentDN = entryDN.getParentDNInSuffix();
+    if (parentDN == null)
+    {
+      return -1;
+    }
+    else if (backupBaseDN.equals(parentDN))
+    {
+      long count = 0;
+      Entry backupDirEntry = getBackupDirectoryEntry(entryDN);
+
+      AttributeType t =
+          DirectoryServer.getAttributeType(ATTR_BACKUP_DIRECTORY_PATH, true);
+      List<Attribute> attrList = backupDirEntry.getAttribute(t);
+      if ((attrList != null) && (! attrList.isEmpty()))
+      {
+        for (AttributeValue v : attrList.get(0).getValues())
+        {
+          try
+          {
+            BackupDirectory backupDirectory =
+                BackupDirectory.readBackupDirectoryDescriptor(
+                    v.getStringValue());
+            count += backupDirectory.getBackups().keySet().size();
+          }
+          catch (Exception e)
+          {
+            return -1;
+          }
+        }
+      }
+      return count;
+    }
+    else if (backupBaseDN.equals(parentDN.getParentDNInSuffix()))
+    {
+      return 0;
+    }
+    else
+    {
+      return -1;
+    }
+  }
 
   /**
    * Retrieves the requested entry from this backend.

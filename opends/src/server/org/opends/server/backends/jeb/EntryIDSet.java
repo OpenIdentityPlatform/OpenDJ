@@ -45,6 +45,12 @@ public class EntryIDSet implements Iterable<EntryID>
   private long[] values = null;
 
   /**
+   * The size of the set when it is not defined. This value is only maintained
+   * when the set is undefined.
+   */
+  private long undefinedSize = Long.MAX_VALUE;
+
+  /**
    * The database key containing this set, if the set was constructed
    * directly from the database.
    */
@@ -56,6 +62,18 @@ public class EntryIDSet implements Iterable<EntryID>
   public EntryIDSet()
   {
     values = null;
+    undefinedSize = Long.MAX_VALUE;
+  }
+
+  /**
+   * Create a new undefined set with a initial size.
+   *
+   * @param size The undefined size for this set.
+   */
+  public EntryIDSet(long size)
+  {
+    values = null;
+    undefinedSize = size;
   }
 
   /**
@@ -74,7 +92,25 @@ public class EntryIDSet implements Iterable<EntryID>
       return;
     }
 
-    values = JebFormat.entryIDListFromDatabase(bytes);
+    if (bytes.length == 0)
+    {
+      // Entry limit has exceeded and there is no encoded undefined set size.
+      values = null;
+      undefinedSize = Long.MAX_VALUE;
+    }
+    else if ((bytes[0] & 0x80) == 0x80)
+    {
+      // Entry limit has exceeded and there is an encoded undefined set size.
+      values = null;
+      undefinedSize = JebFormat.entryIDUndefinedSizeFromDatabase(bytes);
+    }
+    else
+    {
+      // Seems like entry limit has not been exceeded and the bytes is a
+      // list of entry IDs.
+      values = JebFormat.entryIDListFromDatabase(bytes);
+    }
+
   }
 
   /**
@@ -105,13 +141,26 @@ public class EntryIDSet implements Iterable<EntryID>
     boolean needSort = false;
     int count = 0;
 
+    boolean undefined = false;
     for (EntryIDSet l : sets)
     {
       if (!l.isDefined())
       {
-        return new EntryIDSet();
+        if(l.undefinedSize == Long.MAX_VALUE)
+        {
+          return new EntryIDSet();
+        }
+        else
+        {
+          undefined = true;
+        }
       }
       count += l.size();
+    }
+
+    if(undefined)
+    {
+      return new EntryIDSet(count);
     }
 
     long[] n = new long[count];
@@ -165,11 +214,11 @@ public class EntryIDSet implements Iterable<EntryID>
    *
    * @return The number of IDs in the set.
    */
-  public int size()
+  public long size()
   {
     if (values == null)
     {
-      return Integer.MAX_VALUE;
+      return undefinedSize;
     }
     else
     {
@@ -200,7 +249,16 @@ public class EntryIDSet implements Iterable<EntryID>
       if (keyBytes != null)
       {
         // The index entry limit was exceeded
-        buffer.append("[LIMIT-EXCEEDED]");
+        if(undefinedSize == Long.MAX_VALUE)
+        {
+          buffer.append("[LIMIT-EXCEEDED]");
+        }
+        else
+        {
+          buffer.append("[LIMIT-EXCEEDED:");
+          buffer.append(undefinedSize);
+          buffer.append("]");
+        }
       }
       else
       {
@@ -232,7 +290,14 @@ public class EntryIDSet implements Iterable<EntryID>
    */
   public byte[] toDatabase()
   {
-    return JebFormat.entryIDListToDatabase(values);
+    if(isDefined())
+    {
+      return JebFormat.entryIDListToDatabase(values);
+    }
+    else
+    {
+      return JebFormat.entryIDUndefinedSizeToDatabase(undefinedSize);
+    }
   }
 
   /**
@@ -246,7 +311,11 @@ public class EntryIDSet implements Iterable<EntryID>
   {
     if (values == null)
     {
-      return false;
+      if(undefinedSize != Long.MAX_VALUE)
+      {
+        undefinedSize++;
+      }
+      return true;
     }
 
     long id = entryID.longValue();
@@ -299,7 +368,11 @@ public class EntryIDSet implements Iterable<EntryID>
   {
     if (values == null)
     {
-      return false;
+      if(undefinedSize != Long.MAX_VALUE)
+      {
+        undefinedSize--;
+      }
+      return true;
     }
 
     if (values.length == 0)
@@ -376,6 +449,7 @@ public class EntryIDSet implements Iterable<EntryID>
     if (!this.isDefined())
     {
       this.values = that.values;
+      this.undefinedSize = that.undefinedSize;
       return;
     }
 
@@ -430,11 +504,26 @@ public class EntryIDSet implements Iterable<EntryID>
   {
     if (!this.isDefined())
     {
+      // Can't simply add the undefined size of this set to that set since
+      // we don't know if there are any duplicates. In this case, we can't
+      // maintain the undefined size anymore.
+      if(undefinedSize != Long.MAX_VALUE && that.size() > 0)
+      {
+        undefinedSize = Long.MAX_VALUE;
+      }
       return;
     }
 
     if (!that.isDefined())
     {
+      if(that.size() == 0)
+      {
+        undefinedSize = values.length;
+      }
+      else
+      {
+        undefinedSize = Long.MAX_VALUE;
+      }
       values = null;
       return;
     }
@@ -533,11 +622,26 @@ public class EntryIDSet implements Iterable<EntryID>
   {
     if (!this.isDefined())
     {
+      // Can't simply subtract the undefined size of this set to that set since
+      // we don't know if there are any duplicates. In this case, we can't
+      // maintain the undefined size anymore.
+      if(undefinedSize != Long.MAX_VALUE && that.size() > 0)
+      {
+        undefinedSize = Long.MAX_VALUE;
+      }
       return;
     }
 
     if (!that.isDefined())
     {
+      if(that.size() == 0)
+      {
+        undefinedSize = values.length;
+      }
+      else
+      {
+        undefinedSize = Long.MAX_VALUE;
+      }
       values = null;
       return;
     }

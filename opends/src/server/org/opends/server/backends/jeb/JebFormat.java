@@ -301,26 +301,47 @@ public class JebFormat
   }
 
   /**
+   * Decode an entry ID count from its database representation.
+   *
+   * @param bytes The database value of the entry ID count.
+   * @return The entry ID count.
+   */
+  public static long entryIDUndefinedSizeFromDatabase(byte[] bytes)
+  {
+    if(bytes == null)
+    {
+      return 0;
+    }
+
+    if(bytes.length == 8)
+    {
+      long v = 0;
+      v |= (bytes[0] & 0x7F);
+      for (int i = 1; i < 8; i++)
+      {
+        v <<= 8;
+        v |= (bytes[i] & 0xFF);
+      }
+      return v;
+    }
+    else
+    {
+      return Long.MAX_VALUE;
+    }
+  }
+
+  /**
    * Decode an array of entry ID values from its database representation.
    *
    * @param bytes The raw database value, null if there is no value and
-   *              hence no entry IDs.  Zero length means the index entry
-   *              limit has been exceeded.
+   *              hence no entry IDs. Note that this method will throw an
+   *              ArrayIndexOutOfBoundsException if the bytes array length is
+   *              not a multiple of 8.
    *
    * @return An array of entry ID values.
    */
   public static long[] entryIDListFromDatabase(byte[] bytes)
   {
-    if (bytes == null)
-    {
-      return new long[0];
-    }
-
-    if (bytes.length == 0)
-    {
-      return null;
-    }
-
     byte[] decodedBytes = bytes;
 
     int count = decodedBytes.length / 8;
@@ -360,21 +381,32 @@ public class JebFormat
   }
 
   /**
+   * Encode an entry ID set count to its database representation.
+   * @param count The entry ID set count to be encoded.
+   * @return The encoded database value of the entry ID.
+   */
+  public static byte[] entryIDUndefinedSizeToDatabase(long count)
+  {
+    byte[] bytes = new byte[8];
+    long v = count;
+    for (int i = 7; i >= 1; i--)
+    {
+      bytes[i] = (byte) (v & 0xFF);
+      v >>>= 8;
+    }
+    bytes[0] = (byte) ((v | 0x80) & 0xFF);
+    return bytes;
+  }
+
+  /**
    * Encode an array of entry ID values to its database representation.
    *
-   * @param entryIDArray An array of entry ID values. A null value indicates
-   * that the entry limit is exceeded, and a zero length array indicates no
-   * values.
+   * @param entryIDArray An array of entry ID values.
+   *
    * @return The encoded database value.
    */
   public static byte[] entryIDListToDatabase(long[] entryIDArray)
   {
-    if (entryIDArray == null)
-    {
-      // index entry limit exceeded
-      return new byte[0];
-    }
-
     if (entryIDArray.length == 0)
     {
       // Zero values

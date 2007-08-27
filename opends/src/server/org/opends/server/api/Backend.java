@@ -57,6 +57,7 @@ import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.WritabilityMode;
+import org.opends.server.types.ConditionResult;
 
 import static org.opends.messages.BackendMessages.*;
 
@@ -234,6 +235,40 @@ public abstract class Backend
    */
   public abstract Entry getEntry(DN entryDN)
          throws DirectoryException;
+
+
+
+  /**
+   * Indicates whether the requested entry has any subordinates.
+   *
+   * @param entryDN The distinguished name of the entry.
+   *
+   * @return {@code ConditionResult.TRUE} if the entry has one or more
+   *         subordinates or {@code ConditionResult.FALSE} otherwise
+   *         or {@code ConditionResult.UNDEFINED} if it can not be
+   *         determined.
+   *
+   * @throws DirectoryException  If a problem occurs while trying to
+   *                              retrieve the entry.
+   */
+  public abstract ConditionResult hasSubordinates(DN entryDN)
+        throws DirectoryException;
+
+
+
+  /**
+   * Retrieves the number of subordinates for the requested entry.
+   *
+   * @param entryDN The distinguished name of the entry.
+   *
+   * @return The number of subordinate entries for the requested entry
+   *         or -1 if it can not be determined.
+   *
+   * @throws DirectoryException  If a problem occurs while trying to
+   *                              retrieve the entry.
+   */
+  public abstract long numSubordinates(DN entryDN)
+      throws DirectoryException;
 
 
 
