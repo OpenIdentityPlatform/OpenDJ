@@ -83,6 +83,9 @@ public abstract class Application implements ProgressNotifier, Runnable {
   /** Handler for listeners and event firing. */
   protected ProgressUpdateListenerDelegate listenerDelegate;
 
+  private ErrorPrintStream err = new ErrorPrintStream();
+  private OutputPrintStream out = new OutputPrintStream();
+
   /**
    * Creates an application by instantiating the Application class
    * denoted by the System property
@@ -725,6 +728,27 @@ public abstract class Application implements ProgressNotifier, Runnable {
   }
 
   /**
+   * Returns the error stream to be used by the application when launching
+   * command lines.
+   * @return  the error stream to be used by the application when launching
+   * command lines.
+   */
+  protected ErrorPrintStream getApplicationErrorStream()
+  {
+    return err;
+  }
+
+  /**
+   * Returns the output stream to be used by the application when launching
+   * command lines.
+   * @return  the output stream to be used by the application when launching
+   * command lines.
+   */
+  protected OutputPrintStream getApplicationOutputStream()
+  {
+    return out;
+  }
+  /**
    * This class is used to notify the ProgressUpdateListeners of events
    * that are written to the standard error.  It is used in WebStartInstaller
    * and in OfflineInstaller.  These classes just create a ErrorPrintStream and
@@ -791,6 +815,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
 
     private boolean isFirstLine;
 
+    private boolean notifyListeners = true;
+
     /**
      * Format a string before sending a listener notification.
      * @param string to format
@@ -814,16 +840,21 @@ public abstract class Application implements ProgressNotifier, Runnable {
     @Override
     public void println(String msg)
     {
-      MessageBuilder mb = new MessageBuilder();
-      if (isFirstLine)
+      if (notifyListeners)
       {
-        mb.append(formatString(msg));
-      } else
-      {
-        mb.append(formatter.getLineBreak());
-        mb.append(formatString(msg));
+        MessageBuilder mb = new MessageBuilder();
+        if (isFirstLine)
+        {
+          mb.append(formatString(msg));
+        } else
+        {
+          mb.append(formatter.getLineBreak());
+          mb.append(formatString(msg));
+        }
+
+        notifyListeners(mb.toMessage());
       }
-      notifyListeners(mb.toMessage());
+      LOG.log(Level.INFO, "server: " + msg);
       isFirstLine = false;
     }
 
@@ -844,6 +875,28 @@ public abstract class Application implements ProgressNotifier, Runnable {
             "len + off are bigger than the length of the byte array");
       }
       println(new String(b, off, len));
+    }
+
+    /**
+     * Notifies the progress update listeners of the application of the message
+     * we received.
+     * @return <CODE>true</CODE> if we must notify the application listeners
+     * of the message and <CODE>false</CODE> otherwise.
+     */
+    public boolean isNotifyListeners()
+    {
+      return notifyListeners;
+    }
+
+    /**
+     * Tells whether we must notify the listeners or not of the message
+     * received.
+     * @param notifyListeners the boolean that informs of whether we have
+     * to notify the listeners or not.
+     */
+    public void setNotifyListeners(boolean notifyListeners)
+    {
+      this.notifyListeners = notifyListeners;
     }
   }
 }

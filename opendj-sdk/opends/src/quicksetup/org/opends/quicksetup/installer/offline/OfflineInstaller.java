@@ -88,10 +88,8 @@ public class OfflineInstaller extends Installer
 
     try
     {
-      PrintStream err = new ErrorPrintStream();
-      PrintStream out = new OutputPrintStream();
-      System.setErr(err);
-      System.setOut(out);
+      System.setErr(getApplicationErrorStream());
+      System.setOut(getApplicationOutputStream());
 
       checkAbort();
 

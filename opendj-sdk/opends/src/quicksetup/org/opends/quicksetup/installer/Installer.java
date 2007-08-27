@@ -1002,6 +1002,8 @@ public abstract class Installer extends GuiApplication {
     String[] args = new String[argList.size()];
     argList.toArray(args);
 
+    getApplicationOutputStream().setNotifyListeners(false);
+    getApplicationErrorStream().setNotifyListeners(false);
     try
     {
       int result = helper.invokeImportLDIF(args);
@@ -1018,7 +1020,11 @@ public abstract class Installer extends GuiApplication {
           ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
           getThrowableMsg(INFO_ERROR_CREATING_BASE_ENTRY.get(), t), t);
     }
-
+    finally
+    {
+      getApplicationOutputStream().setNotifyListeners(true);
+      getApplicationErrorStream().setNotifyListeners(true);
+    }
     notifyListeners(getFormattedDone());
   }
 
