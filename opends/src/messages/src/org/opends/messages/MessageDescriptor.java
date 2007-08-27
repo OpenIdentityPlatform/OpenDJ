@@ -963,7 +963,10 @@ public abstract class MessageDescriptor {
    * @return int ordinal value
    */
   public int getOrdinal() {
-    return this.ordinal;
+    if (this.ordinal == null)
+      return 0;
+    else
+      return this.ordinal;
   }
 
   /**
