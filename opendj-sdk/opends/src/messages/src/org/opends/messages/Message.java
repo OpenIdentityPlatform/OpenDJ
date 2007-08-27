@@ -318,10 +318,47 @@ public class Message implements CharSequence, Formattable, Comparable {
   }
 
   /**
-   * {@inheritDoc}
+   * Formats the object using the provided {@link Formatter formatter}.
+   *
+   * @param  formatter
+   *         The {@link Formatter formatter}.
+   *
+   * @param  flags
+   *         The flags modify the output format.  The value is interpreted as
+   *         a bitmask.  Any combination of the following flags may be set:
+   *         {@link java.util.FormattableFlags#LEFT_JUSTIFY}, {@link
+   *         java.util.FormattableFlags#UPPERCASE}, and {@link
+   *         java.util.FormattableFlags#ALTERNATE}.  If no flags are set, the
+   *         default formatting of the implementing class will apply.
+   *
+   * @param  width
+   *         The minimum number of characters to be written to the output.
+   *         If the length of the converted value is less than the
+   *         <tt>width</tt> then the output will be padded by
+   *         <tt>'&nbsp;&nbsp;'</tt> until the total number of characters
+   *         equals width.  The padding is at the beginning by default.  If
+   *         the {@link java.util.FormattableFlags#LEFT_JUSTIFY} flag is set
+   *         then the padding will be at the end.  If <tt>width</tt> is
+   *         <tt>-1</tt> then there is no minimum.
+   *
+   * @param  precision
+   *         The maximum number of characters to be written to the output.
+   *         The precision is applied before the width, thus the output will
+   *         be truncated to <tt>precision</tt> characters even if the
+   *         <tt>width</tt> is greater than the <tt>precision</tt>.  If
+   *         <tt>precision</tt> is <tt>-1</tt> then there is no explicit
+   *         limit on the number of characters.
+   *
+   * @throws  IllegalFormatException
+   *          If any of the parameters are invalid.  For specification of all
+   *          possible formatting errors, see the <a
+   *          href="../util/Formatter.html#detail">Details</a> section of the
+   *          formatter class specification.
    */
   public void formatTo(Formatter formatter, int flags,
-                       int width, int precision) {
+                       int width, int precision)
+    throws IllegalFormatException
+  {
     // Ignores flags, width and precission for now.
     // see javadoc for Formattable
     Locale l = formatter.locale();
@@ -343,15 +380,32 @@ public class Message implements CharSequence, Formattable, Comparable {
   }
 
   /**
-   * {@inheritDoc}
+   * Compares this object with the specified object for order.  Returns a
+   * negative integer, zero, or a positive integer as this object is less
+   * than, equal to, or greater than the specified object.
+   *
+   * @param   o the object to be compared.
+   * @return  a negative integer, zero, or a positive integer as this object
+   *          is less than, equal to, or greater than the specified object.
+   *
+   * @throws ClassCastException if the specified object's type prevents it
+   *         from being compared to this object.
    */
-  public int compareTo(Object o) {
+  public int compareTo(Object o) throws ClassCastException {
     Message thatMessage = (Message)o;
     return toString().compareTo(thatMessage.toString());
   }
 
   /**
-   * {@inheritDoc}
+   * Indicates whether some other message is "equal to" this one.  Messages
+   * are considered equal if their string representation in the default
+   * locale are equal.
+   *
+   * @param   o   the reference object with which to compare.
+   * @return  <code>true</code> if this object is the same as the obj
+   *          argument; <code>false</code> otherwise.
+   * @see     #hashCode()
+   * @see     java.util.Hashtable
    */
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -363,7 +417,11 @@ public class Message implements CharSequence, Formattable, Comparable {
   }
 
   /**
-   * {@inheritDoc}
+   * Returns a hash code value for the object.
+   *
+   * @return  a hash code value for this object.
+   * @see     java.lang.Object#equals(java.lang.Object)
+   * @see     java.util.Hashtable
    */
   public int hashCode() {
     int result;
