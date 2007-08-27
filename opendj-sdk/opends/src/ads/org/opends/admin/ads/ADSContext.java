@@ -1922,7 +1922,7 @@ public class ADSContext
     /**
      * The public-key certificate of the instance key.
      */
-    HOST_NAME("ds-cfg-ads-certificate",ADSPropertySyntax.STRING);
+    KEY_CERT("ds-cfg-public-key-certificate;binary",ADSPropertySyntax.STRING);
 
     private String attrName;
     private ADSPropertySyntax attrSyntax;
@@ -1994,12 +1994,12 @@ public class ADSContext
       try {
         final SearchControls sc = new SearchControls();
         sc.setSearchScope(SearchControls.OBJECT_SCOPE);
-        final String attrIDs[] = { "ds-cfg-ads-certificate" };
+        final String attrIDs[] = { "ds-cfg-public-key-certificate;binary" };
         sc.setReturningAttributes(attrIDs);
         final SearchResult adsCertEntry
            = dirContext.search(nameFromDN(dnStr), "(objectclass=*)", sc).next();
-        final Attribute certAttr
-                = adsCertEntry.getAttributes().get("ds-cfg-ads-certificate");
+        final Attribute certAttr = adsCertEntry.getAttributes().get(
+                                        "ds-cfg-public-key-certificate;binary");
         if (null != certAttr) {
           localInstanceKeyCertificate = (String)certAttr.get();
         }
