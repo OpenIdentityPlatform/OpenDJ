@@ -442,7 +442,7 @@ public class ServerDescriptor
       if (s != null)
       {
         int port = -1;
-        for (int j=0; j<s.size(); i++)
+        for (int j=0; j<s.size(); j++)
         {
           if (Boolean.TRUE.equals(s.get(j)))
           {
