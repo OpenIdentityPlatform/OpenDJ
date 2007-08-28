@@ -1134,7 +1134,7 @@ public abstract class Installer extends GuiApplication {
   {
     InitialLdapContext ctx = null;
     if (registeredNewServerOnRemote || createdAdministrator ||
-    createdRemoteAds)
+            createdRemoteAds)
     {
       // Try to connect
       DataReplicationOptions repl = getUserData().getReplicationOptions();
@@ -1170,7 +1170,8 @@ public abstract class Installer extends GuiApplication {
           {
             try
             {
-              adsContext.unregisterServer(getNewServerAdsProperties());
+              adsContext.unregisterServer(getNewServerAdsProperties(
+                                                                getUserData()));
             }
             catch (ADSContextException ace)
             {
@@ -1189,7 +1190,8 @@ public abstract class Installer extends GuiApplication {
           }
           if (createdAdministrator)
           {
-            adsContext.deleteAdministrator(getAdministratorProperties());
+            adsContext.deleteAdministrator(getAdministratorProperties(
+                                                                getUserData()));
           }
         }
         notifyListeners(getFormattedDone());
@@ -1853,246 +1855,171 @@ public abstract class Installer extends GuiApplication {
 
   /**
    * This method updates the ADS contents (and creates the according suffixes).
-   * NOTE: this method assumes that the server is running.
+   * If the user specified an existing topology, the new instance is
+   * registered with that ADS (the ADS might need to be created), and the
+   * local ADS will be populated when the local server is added to the remote
+   * server's ADS replication domain in a subsequent step. Otherwise, an ADS
+   * is created on the new instance and the server is registered with the new
+   * ADS. NOTE: this method assumes that the local server and any remote server
+   * are running.
    * @throws ApplicationException if something goes wrong.
    */
   protected void updateADS() throws ApplicationException
   {
-    /*
-     * First check if the remote server contains an ADS: if it is the case the
-     * best is to update its contents with the new data and then configure the
-     * local server to be replicated with the remote server.
-     */
     DataReplicationOptions repl = getUserData().getReplicationOptions();
     boolean remoteServer =
-      repl.getType() == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY;
-    InitialLdapContext localCtx = null;
-    if (remoteServer)
-    {
-      // Try to connect
-      AuthenticationData auth = repl.getAuthenticationData();
-      String ldapUrl = getLdapUrl(auth);
-      String dn = auth.getDn();
-      String pwd = auth.getPwd();
-      InitialLdapContext ctx = null;
-      try
-      {
-        if (auth.useSecureConnection())
-        {
-          ApplicationTrustManager trustManager = getTrustManager();
-          trustManager.setHost(auth.getHostName());
-          ctx = createLdapsContext(ldapUrl, dn, pwd,
-              getDefaultLDAPTimeout(), null, trustManager);
-        }
-        else
-        {
-          ctx = createLdapContext(ldapUrl, dn, pwd,
-              getDefaultLDAPTimeout(), null);
-        }
+            repl.getType() == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY;
+    AuthenticationData auth = (remoteServer) ? repl.getAuthenticationData()
+                                             : null;
+    InitialLdapContext remoteCtx = null; // Bound to remote ADS host (if any).
+    InitialLdapContext localCtx = null; // Bound to local server.
+    ADSContext adsContext = null; // Bound to ADS host (via one of above).
 
-        // Check the remote server for ADS. If it does not exist, create the
-        // initial ADS there. Otherwise, create a global administrator if the
-        // user requested one.
-        ADSContext adsContext = new ADSContext(ctx);
-        if (adsContext.hasAdminData())
+    /* Outer try-catch-finally to convert ADSContextException to
+       ApplicationException and clean up JNDI contexts. */
+    try
+    {
+      if (remoteServer)
+      {
+        /* In case the user specified an existing topology... */
+        try
         {
-          /* Add global administrator if the user specified one. */
-          if (getUserData().mustCreateAdministrator())
+          String ldapUrl = getLdapUrl(auth);
+          String dn = auth.getDn();
+          String pwd = auth.getPwd();
+          if (auth.useSecureConnection())
           {
-            try
-            {
-              notifyListeners(getFormattedWithPoints(
-                  INFO_PROGRESS_CREATING_ADMINISTRATOR.get()));
-              adsContext.createAdministrator(getAdministratorProperties());
-              createdAdministrator = true;
-              notifyListeners(getFormattedDone());
-              notifyListeners(getLineBreak());
-              checkAbort();
-            }
-            catch (ADSContextException ade)
-            {
-              if (ade.getError() ==
-                ADSContextException.ErrorType.ALREADY_REGISTERED)
-              {
-                notifyListeners(getFormattedWarning(
-                    INFO_ADMINISTRATOR_ALREADY_REGISTERED.get()));
-              }
-              else
-              {
-                throw ade;
-              }
-            }
+            ApplicationTrustManager trustManager = getTrustManager();
+            trustManager.setHost(auth.getHostName());
+            remoteCtx = createLdapsContext(ldapUrl, dn, pwd,
+                                   getDefaultLDAPTimeout(), null, trustManager);
+          }
+          else
+          {
+            remoteCtx = createLdapContext(ldapUrl, dn, pwd,
+                                          getDefaultLDAPTimeout(), null);
+          }
+          adsContext = new ADSContext(remoteCtx); // adsContext owns remoteCtx
+
+          /* Check the remote server for ADS. If it does not exist, create the
+             initial ADS there and register the server with itself. */
+          if (! adsContext.hasAdminData())
+          {
+            notifyListeners(getFormattedWithPoints(
+               INFO_PROGRESS_CREATING_ADS_ON_REMOTE.get(getHostDisplay(auth))));
+
+            adsContext.createAdminData(null);
+            adsContext.registerServer(
+                    getRemoteServerProperties(adsContext.getDirContext()));
+            createdRemoteAds = true;
+            notifyListeners(getFormattedDone());
+            notifyListeners(getLineBreak());
+            checkAbort();
           }
         }
+        catch (NoPermissionException x)
+        {
+          throw new ApplicationException(
+                  ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+                  INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(
+                          getHostDisplay(auth)), x);
+        }
+        catch (NamingException ne)
+        {
+          throw new ApplicationException(
+                  ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+                  INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
+                          getHostDisplay(auth), ne.getLocalizedMessage()), ne);
+        }
+      }
+
+      /* Act on local server depending on if using remote or local ADS */
+      notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CREATING_ADS.get()));
+      try
+      {
+        localCtx = createLocalContext();
+        if (remoteServer)
+        {
+          /* Create an empty ADS suffix on the local server. */
+          ADSContext localAdsContext = new ADSContext(localCtx);
+          localAdsContext.createAdministrationSuffix(null);
+        }
         else
         {
-          notifyListeners(getFormattedWithPoints(
-              INFO_PROGRESS_CREATING_ADS_ON_REMOTE.get(getHostDisplay(auth))));
-
+          /* Configure local server to have an ADS */
+          adsContext = new ADSContext(localCtx); // adsContext owns localCtx
           adsContext.createAdminData(null);
-          adsContext.createAdministrator(getAdministratorProperties());
-          adsContext.registerServer(
-              getRemoteServerProperties(adsContext.getDirContext()));
-          createdRemoteAds = true;
+        }
+      }
+      catch (NamingException t)
+      {
+        Message failedMsg = getThrowableMsg(
+                INFO_ERROR_CONNECTING_TO_LOCAL.get(), t);
+        throw new ApplicationException(
+                ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+                failedMsg, t);
+      }
+      assert null != adsContext ; // Bound either to local or remote ADS.
+
+      /* Register new server in ADS. */
+      if (0 != adsContext.registerOrUpdateServer(getNewServerAdsProperties(
+              getUserData())))
+      {
+        LOG.log(Level.WARNING, "Server was already registered. Updating " +
+                "server registration.");
+      }
+      else if (remoteServer)
+      {
+        registeredNewServerOnRemote = true;
+      }
+      notifyListeners(getFormattedDone());
+      notifyListeners(getLineBreak());
+      checkAbort();
+
+      /* Add global administrator if the user specified one. */
+      if (getUserData().mustCreateAdministrator())
+      {
+        try
+        {
+          notifyListeners(getFormattedWithPoints(
+                  INFO_PROGRESS_CREATING_ADMINISTRATOR.get()));
+          adsContext.createAdministrator(getAdministratorProperties(
+                  getUserData()));
+          if (remoteServer && !createdRemoteAds) createdAdministrator = true;
           notifyListeners(getFormattedDone());
           notifyListeners(getLineBreak());
           checkAbort();
         }
-
-        // Create an empty ADS suffix on the local server.
-        notifyListeners(getFormattedWithPoints(
-            INFO_PROGRESS_CREATING_ADS.get()));
-        try
+        catch (ADSContextException ade)
         {
-          localCtx = createLocalContext();
-        }
-        catch (Throwable t)
-        {
-          Message failedMsg = getThrowableMsg(
-                  INFO_ERROR_CONNECTING_TO_LOCAL.get(), t);
-          throw new ApplicationException(
-              ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
-              failedMsg, t);
-        }
-
-        try
-        {
-          ADSContext localAdsContext = new ADSContext(localCtx);
-          localAdsContext.createAdministrationSuffix(null);
-        }
-        catch (ADSContextException ace)
-        {
-          throw ace;
-        }
-        catch (Throwable t)
-        {
-          throw new ApplicationException(
-                  ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
-                  getThrowableMsg(INFO_BUG_MSG.get(), t), t);
-        }
-
-        notifyListeners(getFormattedDone());
-        notifyListeners(getLineBreak());
-        checkAbort();
-
-        /* Register new server in remote ADS. */
-        if(0 != adsContext.registerOrUpdateServer(getNewServerAdsProperties()))
-        {
-          LOG.log(Level.WARNING, "Server was already registered. Updating " +
-            "server registration.");
-        }
-        registeredNewServerOnRemote = true;
-
-      }
-      catch (NoPermissionException x)
-      {
-        throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
-            INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(
-                    getHostDisplay(auth)), x);
-      }
-      catch (NamingException ne)
-      {
-        throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
-            INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
-                    getHostDisplay(auth), ne.getLocalizedMessage()), ne);
-      }
-      catch (ADSContextException ace)
-      {
-        throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
-            INFO_REMOTE_ADS_EXCEPTION.get(
-                    getHostDisplay(auth), ace.getReason()), ace);
-      }
-      finally
-      {
-        if (ctx != null)
-        {
-          try
+          if (ade.getError() ==
+                  ADSContextException.ErrorType.ALREADY_REGISTERED)
           {
-            ctx.close();
+            notifyListeners(getFormattedWarning(
+                    INFO_ADMINISTRATOR_ALREADY_REGISTERED.get()));
           }
-          catch (Throwable t)
+          else
           {
-          }
-        }
-        if (localCtx != null)
-        {
-          try
-          {
-            localCtx.close();
-          }
-          catch (Throwable t)
-          {
+            throw ade;
           }
         }
       }
     }
-    else
+    catch (ADSContextException ace)
     {
-      try
-      {
-        /* Configure local server to have an ADS */
-        notifyListeners(getFormattedWithPoints(
-            INFO_PROGRESS_CREATING_ADS.get()));
-        try
-        {
-          localCtx = createLocalContext();
-        }
-        catch (Throwable t)
-        {
-          Message failedMsg = getThrowableMsg(
-                  INFO_ERROR_CONNECTING_TO_LOCAL.get(),
-                  t);
-          throw new ApplicationException(
+      throw new ApplicationException(
               ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
-              failedMsg, t);
-        }
-
-        try
-        {
-          ADSContext localAdsContext = new ADSContext(localCtx);
-          localAdsContext.createAdminData(null);
-          localAdsContext.registerServer(getNewServerAdsProperties());
-          if (getUserData().mustCreateAdministrator())
-          {
-            localAdsContext.createAdministrator(getAdministratorProperties());
-          }
-        }
-        catch (ADSContextException ace)
-        {
-          throw ace;
-        }
-        catch (Throwable t)
-        {
-          throw new ApplicationException(
-                  ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
-                  getThrowableMsg(INFO_BUG_MSG.get(), t), t);
-        }
-
-        notifyListeners(getFormattedDone());
-        notifyListeners(getLineBreak());
-      }
-      catch (ADSContextException ace)
-      {
-        throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
-            INFO_ADS_EXCEPTION.get(ace.toString()), ace);
-      }
-      finally
-      {
-        if (localCtx != null)
-        {
-          try
-          {
-            localCtx.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
-      }
+              ((remoteServer)
+                      ? INFO_REMOTE_ADS_EXCEPTION.get(
+                             getHostDisplay(auth), ace.getReason())
+                      : INFO_ADS_EXCEPTION.get(ace.toString())), ace);
+    }
+    finally
+    {
+      if (null != remoteCtx)
+        try { remoteCtx.close(); } catch (NamingException x){ }
+      if (null != localCtx)
+        try { localCtx.close(); } catch (NamingException x){ }
     }
   }
 
@@ -2200,19 +2127,20 @@ public abstract class Installer extends GuiApplication {
     return auth.getHostName()+":"+auth.getPort();
   }
 
-  private Map<ADSContext.ServerProperty, Object> getNewServerAdsProperties()
+  private Map<ADSContext.ServerProperty, Object>
+  getNewServerAdsProperties(UserData userData)
   {
     Map<ADSContext.ServerProperty, Object> serverProperties =
       new HashMap<ADSContext.ServerProperty, Object>();
     serverProperties.put(ADSContext.ServerProperty.HOST_NAME,
-          getUserData().getHostName());
+          userData.getHostName());
     serverProperties.put(ADSContext.ServerProperty.LDAP_PORT,
-        String.valueOf(getUserData().getServerPort()));
+        String.valueOf(userData.getServerPort()));
     serverProperties.put(ADSContext.ServerProperty.LDAP_ENABLED, "true");
 
     // TODO: even if the user does not configure SSL maybe we should choose
     // a secure port that is not being used and that we can actually use.
-    SecurityOptions sec = getUserData().getSecurityOptions();
+    SecurityOptions sec = userData.getSecurityOptions();
     if (sec.getEnableSSL())
     {
       serverProperties.put(ADSContext.ServerProperty.LDAPS_PORT,
@@ -2240,7 +2168,7 @@ public abstract class Installer extends GuiApplication {
     String path;
     if (isWebStart())
     {
-      path = getUserData().getServerLocation();
+      path = userData.getServerLocation();
     }
     else
     {
@@ -2249,7 +2177,7 @@ public abstract class Installer extends GuiApplication {
     serverProperties.put(ADSContext.ServerProperty.INSTANCE_PATH, path);
 
     String serverID = serverProperties.get(ADSContext.ServerProperty.HOST_NAME)+
-    ":"+getUserData().getServerPort();
+    ":"+userData.getServerPort();
 
     /* TODO: do we want to ask this specifically to the user? */
     serverProperties.put(ADSContext.ServerProperty.ID, serverID);
@@ -2260,14 +2188,14 @@ public abstract class Installer extends GuiApplication {
   }
 
   private Map<ADSContext.AdministratorProperty, Object>
-  getAdministratorProperties()
+  getAdministratorProperties(UserData userData)
   {
     Map<ADSContext.AdministratorProperty, Object> adminProperties =
       new HashMap<ADSContext.AdministratorProperty, Object>();
     adminProperties.put(ADSContext.AdministratorProperty.UID,
-        getUserData().getGlobalAdministratorUID());
+        userData.getGlobalAdministratorUID());
     adminProperties.put(ADSContext.AdministratorProperty.PASSWORD,
-        getUserData().getGlobalAdministratorPassword());
+        userData.getGlobalAdministratorPassword());
     adminProperties.put(ADSContext.AdministratorProperty.DESCRIPTION,
         INFO_GLOBAL_ADMINISTRATOR_DESCRIPTION.get().toString());
     return adminProperties;
@@ -3941,8 +3869,6 @@ public abstract class Installer extends GuiApplication {
 
   private static int getRandomInt(Random random,int modulo)
   {
-    int value = 0;
-    value = (random.nextInt() & modulo);
-    return value;
+    return (random.nextInt() & modulo);
   }
 }
