@@ -201,7 +201,7 @@
   <adm:property name="window-size" mandatory="false"
     multi-valued="false">
     <adm:synopsis>
-      Specifies the window size that will this Domain must use when
+      Specifies the window size that this domain will use when
       communicating with replication servers.
     </adm:synopsis>
     <adm:default-behavior>

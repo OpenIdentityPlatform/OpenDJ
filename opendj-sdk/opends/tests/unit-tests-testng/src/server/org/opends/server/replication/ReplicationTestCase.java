@@ -28,13 +28,13 @@ package org.opends.server.replication;
 
 import static org.opends.server.config.ConfigConstants.ATTR_TASK_COMPLETION_TIME;
 import static org.opends.server.config.ConfigConstants.ATTR_TASK_STATE;
+import org.opends.server.config.ConfigException;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -58,6 +58,7 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.PersistentServerState;
 import org.opends.server.replication.plugin.ReplicationBroker;
+import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.types.Attribute;
@@ -106,7 +107,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   private DN monitorDn;
   private String monitorAttr;
   private long lastCount;
-  
+
   /**
    * schema check flag
    */
@@ -141,7 +142,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected ReplicationBroker openReplicationSession(
       final DN baseDn, short serverId, int window_size,
       int port, int timeout, boolean emptyOldChanges)
-          throws Exception, SocketException
+          throws Exception
   {
     ServerState state;
     if (emptyOldChanges)
@@ -150,7 +151,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
        state = new ServerState();
 
     ReplicationBroker broker = new ReplicationBroker(
-        state, baseDn, serverId, 0, 0, 0, 0, window_size, 0);
+        state, baseDn, serverId, 0, 0, 0, 0, window_size, 0,
+        getReplSessionSecurity());
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);
@@ -188,10 +190,11 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected ReplicationBroker openReplicationSession(
       final DN baseDn, short serverId, int window_size,
       int port, int timeout, ServerState state)
-          throws Exception, SocketException
+          throws Exception
   {
     ReplicationBroker broker = new ReplicationBroker(
-        state, baseDn, serverId, 0, 0, 0, 0, window_size, 0);
+        state, baseDn, serverId, 0, 0, 0, 0, window_size, 0,
+        getReplSessionSecurity());
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);
@@ -210,7 +213,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       final DN baseDn, short serverId, int window_size,
       int port, int timeout, int maxSendQueue, int maxRcvQueue,
       boolean emptyOldChanges)
-          throws Exception, SocketException
+          throws Exception
   {
     ServerState state;
     if (emptyOldChanges)
@@ -220,7 +223,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
     ReplicationBroker broker = new ReplicationBroker(
         state, baseDn, serverId, maxRcvQueue, 0,
-        maxSendQueue, 0, window_size, 0);
+        maxSendQueue, 0, window_size, 0,
+        getReplSessionSecurity());
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);
@@ -367,7 +371,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     while (op.getSearchEntries().isEmpty() && (count<100));
     if (op.getSearchEntries().isEmpty())
       throw new Exception("Could not read monitoring information");
-    
+
     SearchResultEntry entry = op.getSearchEntries().getFirst();
     AttributeType attrType =
          DirectoryServer.getDefaultAttributeType(attr);
@@ -481,7 +485,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       LockManager.unlock(dn, lock);
     }
   }
-  
+
   /**
    * Update the monitor count for the specified monitor attribute.
    */
@@ -498,7 +502,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       assertTrue(false);
     }
   }
-  
+
   /**
    * Get the delta between the current / last monitor counts.
    * @return The delta between the current and last monitor count.
@@ -535,7 +539,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     mods.add(mod);
     return mods;
   }
-  
+
   /**
    * Utility method to create, run a task and check its result.
    */
@@ -604,6 +608,19 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     TaskState taskState = TaskState.fromString(stateString);
     assertEquals(taskState, TaskState.COMPLETED_SUCCESSFULLY,
                  "The task completed in an unexpected state");
+  }
+
+  /**
+   * Create a new replication session security object that can be used in
+   * unit tests.
+   *
+   * @return A new replication session security object.
+   * @throws ConfigException If an error occurs.
+   */
+  protected static ReplSessionSecurity getReplSessionSecurity()
+       throws ConfigException
+  {
+    return new ReplSessionSecurity(null, null, null, true);
   }
 
 }

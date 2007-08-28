@@ -871,7 +871,8 @@ public class ServerDescriptor
     "schema".equalsIgnoreCase(id) ||
     "config".equalsIgnoreCase(id) ||
     "monitor".equalsIgnoreCase(id) ||
-    "backup".equalsIgnoreCase(id);
+    "backup".equalsIgnoreCase(id) ||
+    "ads-truststore".equalsIgnoreCase(id);
   }
 
   /**

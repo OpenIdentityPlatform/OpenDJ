@@ -83,6 +83,17 @@ public interface ProtocolSession
                          DataFormatException;
 
   /**
+   * Stop using the security layer, if there is any.
+   */
+  public abstract void stopEncryption();
+
+  /**
+   * Determine whether the session is using a security layer.
+   * @return true if the connection is encrypted, false otherwise.
+   */
+  public abstract boolean isEncrypted();
+
+  /**
    * Retrieve the IP address of the remote server.
    *
    * @return The IP address of the remote server.

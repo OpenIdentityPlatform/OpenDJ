@@ -275,7 +275,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
     ServerSocket socket = TestCaseUtils.bindFreePort();
     replServerPort = socket.getLocalPort();
     socket.close();
-    
+
     // Change log
     String replServerLdif =
       "dn: " + "cn=Replication Server, " + synchroPluginStringDN + "\n"
@@ -334,7 +334,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
       assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
     }
   }
-  
+
   @Test(enabled=true)
   public void protocolVersion() throws Exception
   {
@@ -349,24 +349,25 @@ public class ProtocolWindowTest extends ReplicationTestCase
     ProtocolVersion.setCurrentVersion((short)2);
 
     ReplicationBroker broker = new ReplicationBroker(
-        new ServerState(), 
-        baseDn, 
-        (short) 13, 0, 0, 0, 0, 1000, 0);
- 
+        new ServerState(),
+        baseDn,
+        (short) 13, 0, 0, 0, 0, 1000, 0,
+        getReplSessionSecurity());
+
 
     // Check broker hard-coded version
     short pversion = broker.getProtocolVersion();
     assertEquals(pversion, 2);
-    
+
     // Connect the broker to the replication server
     ProtocolVersion.setCurrentVersion((short)0);
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + replServerPort);
     broker.start(servers);
     TestCaseUtils.sleep(100); // wait for connection established
-    
+
     // Check broker negociated version
     pversion = broker.getProtocolVersion();
     assertEquals(pversion, 0);
-  }    
+  }
 }

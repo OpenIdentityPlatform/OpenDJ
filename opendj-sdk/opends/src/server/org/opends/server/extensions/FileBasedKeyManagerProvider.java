@@ -43,7 +43,6 @@ import javax.net.ssl.KeyManagerFactory;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.FileBasedKeyManagerCfg;
-import org.opends.server.admin.std.server.KeyManagerCfg;
 import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -315,11 +314,10 @@ public class FileBasedKeyManagerProvider
    * {@inheritDoc}
    */
   @Override()
-  public boolean isConfigurationAcceptable(KeyManagerCfg configuration,
+  public boolean isConfigurationAcceptable(FileBasedKeyManagerCfg configuration,
                                            List<Message> unacceptableReasons)
   {
-    FileBasedKeyManagerCfg config = (FileBasedKeyManagerCfg) configuration;
-    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+    return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
 
 

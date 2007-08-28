@@ -30,15 +30,7 @@ import com.sleepycat.je.JEVersion;
 
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.server.AlertHandlerCfg;
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.opends.server.admin.std.server.ConnectionHandlerCfg;
-import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
-import org.opends.server.admin.std.server.MonitorProviderCfg;
-import org.opends.server.admin.std.server.PasswordValidatorCfg;
-import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.std.server.RootDSEBackendCfg;
-import org.opends.server.admin.std.server.SynchronizationProviderCfg;
+import org.opends.server.admin.std.server.*;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
@@ -2189,7 +2181,10 @@ public class DirectoryServer
   public void initializeCryptoManager()
          throws ConfigException, InitializationException
   {
-    cryptoManager = new CryptoManager();
+    RootCfg root =
+         ServerManagementContext.getInstance().getRootConfiguration();
+    CryptoManagerCfg cryptoManagerCfg = root.getCryptoManager();
+    cryptoManager = new CryptoManager(cryptoManagerCfg);
   }
 
 

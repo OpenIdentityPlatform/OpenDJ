@@ -38,21 +38,24 @@ import java.util.zip.DataFormatException;
 
 import org.opends.server.loggers.debug.DebugTracer;
 
+import javax.net.ssl.SSLSocket;
+
 /**
- * This class Implement a protocol session using a basic socket and relying on
- * the innate encoding/decoding capabilities of the ReplicationMessage
- * by using the getBytes() and generateMsg() methods of those classes.
+ * This class implements a protocol session using TLS.
  */
-public class SocketSession implements ProtocolSession
+public class TLSSocketSession implements ProtocolSession
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
 
-  private Socket socket;
+  private Socket plainSocket;
+  private SSLSocket secureSocket;
   private InputStream input;
   private OutputStream output;
+  private InputStream plainInput;
+  private OutputStream plainOutput;
   byte[] rcvLengthBuf = new byte[8];
 
   /**
@@ -68,21 +71,25 @@ public class SocketSession implements ProtocolSession
 
 
   /**
-   * Creates a new SocketSession based on the provided socket.
+   * Creates a new TLSSocketSession.
    *
-   * @param socket The Socket on which the SocketSession will be based.
+   * @param socket       The regular Socket on which the SocketSession will be
+   *                     based.
+   * @param secureSocket The secure Socket on which the SocketSession will be
+   *                     based.
    * @throws IOException When an IException happens on the socket.
    */
-  public SocketSession(Socket socket) throws IOException
+  public TLSSocketSession(Socket socket, SSLSocket secureSocket)
+       throws IOException
   {
-    this.socket = socket;
-    /*
-     * Use a window instead of the TCP flow control.
-     * Therefore set a very large value for send and receive buffer sizes.
-     */
-    input = socket.getInputStream();
-    output = socket.getOutputStream();
+    plainSocket = socket;
+    this.secureSocket = secureSocket;
+    plainInput = plainSocket.getInputStream();
+    plainOutput = plainSocket.getOutputStream();
+    input = secureSocket.getInputStream();
+    output = secureSocket.getOutputStream();
   }
+
 
   /**
    * {@inheritDoc}
@@ -93,7 +100,14 @@ public class SocketSession implements ProtocolSession
     {
       TRACER.debugVerbose("Closing SocketSession.");
     }
-    socket.close();
+    if (plainSocket != null && !plainSocket.isClosed())
+    {
+      plainSocket.close();
+    }
+    if (secureSocket != null && !secureSocket.isClosed())
+    {
+      secureSocket.close();
+    }
   }
 
   /**
@@ -167,7 +181,8 @@ public class SocketSession implements ProtocolSession
    */
   public void stopEncryption()
   {
-    // There is no security layer.
+    input = plainInput;
+    output = plainOutput;
   }
 
   /**
@@ -175,7 +190,7 @@ public class SocketSession implements ProtocolSession
    */
   public boolean isEncrypted()
   {
-    return false;
+    return !(input == plainInput);
   }
 
   /**
@@ -203,7 +218,7 @@ public class SocketSession implements ProtocolSession
    */
   public String getRemoteAddress()
   {
-    return socket.getInetAddress().getHostAddress();
+    return plainSocket.getInetAddress().getHostAddress();
   }
 
   /**
@@ -211,6 +226,6 @@ public class SocketSession implements ProtocolSession
    */
   public void setSoTimeout(int timeout) throws SocketException
   {
-    socket.setSoTimeout(timeout);
+    plainSocket.setSoTimeout(timeout);
   }
 }

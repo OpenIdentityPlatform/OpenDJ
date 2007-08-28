@@ -63,6 +63,12 @@ public class ServerStartMessage extends StartMessage implements
   private long heartbeatInterval = 0;
 
   /**
+   * Whether to continue using SSL to encrypt messages after the start
+   * messages have been exchanged.
+   */
+  private boolean sslEncryption;
+
+  /**
    * Create a new ServerStartMessage.
    *
    * @param serverId The serverId of the server for which the ServerStartMessage
@@ -76,13 +82,16 @@ public class ServerStartMessage extends StartMessage implements
    * @param heartbeatInterval The requested heartbeat interval.
    * @param serverState  The state of this server.
    * @param protocolVersion The replication protocol version of the creator.
+   * @param sslEncryption Whether to continue using SSL to encrypt messages
+   *                      after the start messages have been exchanged.
    */
   public ServerStartMessage(short serverId, DN baseDn, int maxReceiveDelay,
                             int maxReceiveQueue, int maxSendDelay,
                             int maxSendQueue, int windowSize,
                             long heartbeatInterval,
                             ServerState serverState,
-                            short protocolVersion)
+                            short protocolVersion,
+                            boolean sslEncryption)
   {
     super(protocolVersion);
 
@@ -94,7 +103,7 @@ public class ServerStartMessage extends StartMessage implements
     this.maxSendQueue = maxSendQueue;
     this.windowSize = windowSize;
     this.heartbeatInterval = heartbeatInterval;
-
+    this.sslEncryption = sslEncryption;
     this.serverState = serverState;
 
     try
@@ -191,6 +200,13 @@ public class ServerStartMessage extends StartMessage implements
        */
       length = getNextLength(in, pos);
       heartbeatInterval = Integer.valueOf(new String(in, pos, length, "UTF-8"));
+      pos += length +1;
+
+      /*
+       * read the sslEncryption setting
+       */
+      length = getNextLength(in, pos);
+      sslEncryption = Boolean.valueOf(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
       /*
@@ -308,6 +324,8 @@ public class ServerStartMessage extends StartMessage implements
                      String.valueOf(windowSize).getBytes("UTF-8");
       byte[] byteHeartbeatInterval =
                      String.valueOf(heartbeatInterval).getBytes("UTF-8");
+      byte[] byteSSLEncryption =
+                     String.valueOf(sslEncryption).getBytes("UTF-8");
       byte[] byteServerState = serverState.getBytes();
 
       int length = byteDn.length + 1 + byteServerId.length + 1 +
@@ -318,6 +336,7 @@ public class ServerStartMessage extends StartMessage implements
                    byteMaxSendQueue.length + 1 +
                    byteWindowSize.length + 1 +
                    byteHeartbeatInterval.length + 1 +
+                   byteSSLEncryption.length + 1 +
                    byteServerState.length + 1;
 
       /* encode the header in a byte[] large enough to also contain the mods */
@@ -341,6 +360,8 @@ public class ServerStartMessage extends StartMessage implements
       pos = addByteArray(byteWindowSize, resultByteArray, pos);
 
       pos = addByteArray(byteHeartbeatInterval, resultByteArray, pos);
+
+      pos = addByteArray(byteSSLEncryption, resultByteArray, pos);
 
       pos = addByteArray(byteServerState, resultByteArray, pos);
 
@@ -372,5 +393,17 @@ public class ServerStartMessage extends StartMessage implements
   public long getHeartbeatInterval()
   {
     return heartbeatInterval;
+  }
+
+  /**
+   * Get the SSL encryption value for the ldap server that created the
+   * message.
+   *
+   * @return The SSL encryption value for the ldap server that created the
+   *         message.
+   */
+  public boolean getSSLEncryption()
+  {
+    return sslEncryption;
   }
 }

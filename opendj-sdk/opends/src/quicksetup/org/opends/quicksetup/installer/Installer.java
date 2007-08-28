@@ -3577,7 +3577,7 @@ public abstract class Installer extends GuiApplication {
     switch (type)
     {
     case 0:
-      // Will return a figure
+      // Will return a digit
       d = next % 10;
       if (d < 0)
       {

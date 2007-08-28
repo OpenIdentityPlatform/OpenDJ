@@ -150,6 +150,9 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
     attr = new Attribute(type, ATTR_SERVER_STATE, values);
     attributes.add(attr);
 
+    attributes.add(new Attribute("ssl-encryption",
+                                 String.valueOf(domain.isSessionEncrypted())));
+
     return attributes;
 
   }
