@@ -762,7 +762,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
   protected class ErrorPrintStream extends ApplicationPrintStream {
 
     /**
-     * {@inheritDoc}
+     * Default constructor.
+     *
      */
     public ErrorPrintStream() {
       super();
@@ -792,7 +793,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
   {
 
     /**
-     * {@inheritDoc}
+     * Default constructor.
+     *
      */
     public OutputPrintStream() {
       super();
