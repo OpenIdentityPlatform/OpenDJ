@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+
+<adm:managed-object name="crypto-manager"
+  plural-name="crypto-managers"
+  package="org.opends.server.admin.std"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    provides hashing, encryption and other kinds of cryptographic operations.
+    It also contains methods for compressing and uncompressing data.
+  </adm:synopsis>
+  <adm:tag name="security"/>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>ds-cfg-crypto-manager-oid</ldap:oid>
+      <ldap:name>ds-cfg-crypto-manager</ldap:name>
+      <ldap:superior>top</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="ssl-protocols" multi-valued="true">
+    <adm:synopsis>
+      Specifies the names of the SSL protocols that will be allowed for
+      use in SSL or TLS communication.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property will take effect immediately but will
+          only impact new SSL/TLS-based sessions created after the
+          change.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Uses the default set of SSL protocols provided by the server's
+          JVM.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.461</ldap:oid>
+        <ldap:name>ds-cfg-ssl-protocol</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="ssl-cipher-suites" multi-valued="true">
+    <adm:synopsis>
+      Specifies the names of the SSL cipher suites that will be allowed
+      for use in SSL or TLS communication.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property will take effect immediately but will
+          only impact new SSL/TLS-based sessions created after the
+          change.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Uses the default set of SSL cipher suites provided by the
+          server's JVM.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.462</ldap:oid>
+        <ldap:name>ds-cfg-ssl-cipher-suite</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="ssl-encryption" multi-valued="false">
+    <adm:synopsis>
+      Specifies whether SSL/TLS is used to provide encrypted communication
+      between two OpenDS server components.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property will take effect immediately but will
+          only impact new SSL/TLS-based sessions created after the
+          change.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          false
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>ds-cfg-ssl-encryption-oid</ldap:oid>
+        <ldap:name>ds-cfg-ssl-encryption</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property-reference name="ssl-cert-nickname" />
+</adm:managed-object>
+
