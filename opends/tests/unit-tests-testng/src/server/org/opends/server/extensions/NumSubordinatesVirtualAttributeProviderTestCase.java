@@ -24,7 +24,7 @@
  *
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
-package c;
+package org.opends.server.extensions;
 
 import org.opends.server.types.*;
 import org.opends.server.TestCaseUtils;
