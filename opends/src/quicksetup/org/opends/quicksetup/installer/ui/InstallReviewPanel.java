@@ -271,7 +271,7 @@ public class InstallReviewPanel extends ReviewPanel {
    * @param userInstallData the DataOptions of the user.
    * @return the localized string describing the DataOptions chosen by the user.
    */
-  private Message getDataDisplayString(UserData userInstallData)
+  private String getDataDisplayString(UserData userInstallData)
   {
     Message msg;
 
@@ -334,7 +334,7 @@ public class InstallReviewPanel extends ReviewPanel {
       msg = INFO_REVIEW_REPLICATE_SUFFIX.get(buf.toString());
     }
 
-    return msg;
+    return msg.toString();
   }
    /**
     * Returns the String representing the replication port configuration.
