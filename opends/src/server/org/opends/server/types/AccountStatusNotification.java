@@ -180,6 +180,26 @@ public final class AccountStatusNotification
 
 
   /**
+   * Retrieves the set of values for the specified account status
+   * notification property.
+   *
+   * @param  property  The account status notification property for
+   *                   which to retrieve the associated values.
+   *
+   * @return  The set of values for the specified account status
+   *          notification property, or {@code null} if the specified
+   *          property is not defined for this account status
+   *          notification.
+   */
+  public List<String> getNotificationProperty(
+                           AccountStatusNotificationProperty property)
+  {
+    return notificationProperties.get(property);
+  }
+
+
+
+  /**
    * Creates a set of account status notification properties from the
    * provided information.
    *
@@ -259,7 +279,7 @@ public final class AccountStatusNotification
                        (1000*timeToExpiration);
         propList = new ArrayList<String>(1);
         propList.add(new Date(expTime).toString());
-        props.put(ACCOUNT_UNLOCK_TIME, propList);
+        props.put(PASSWORD_EXPIRATION_TIME, propList);
     }
 
     if ((oldPasswords != null) && (! oldPasswords.isEmpty()))

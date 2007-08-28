@@ -3526,11 +3526,6 @@ bindProcessing:
             else if (pwPolicyState.shouldWarn())
             {
               int numSeconds = pwPolicyState.getSecondsUntilExpiration();
-              Message timeToExpiration = secondsToTimeString(numSeconds);
-
-              Message message = INFO_BIND_PASSWORD_EXPIRING.get(
-                      timeToExpiration);
-              localOp.appendErrorMessage(message);
 
               if (pwPolicyWarningType == null)
               {
@@ -3785,7 +3780,7 @@ bindProcessing:
                 int numSeconds = pwPolicyState.getSecondsUntilExpiration();
                 Message timeToExpiration = secondsToTimeString(numSeconds);
 
-                Message message = INFO_BIND_PASSWORD_EXPIRING.get(
+                Message message = WARN_BIND_PASSWORD_EXPIRING.get(
                         timeToExpiration);
 
                 pwPolicyState.generateAccountStatusNotification(
@@ -4164,11 +4159,6 @@ bindProcessing:
               else if (pwPolicyState.shouldWarn())
               {
                 int numSeconds = pwPolicyState.getSecondsUntilExpiration();
-                Message timeToExpiration = secondsToTimeString(numSeconds);
-
-                Message message = INFO_BIND_PASSWORD_EXPIRING.get(
-                        timeToExpiration);
-                localOp.appendErrorMessage(message);
 
                 if (pwPolicyWarningType == null)
                 {
@@ -4204,7 +4194,7 @@ bindProcessing:
                 int numSeconds = pwPolicyState.getSecondsUntilExpiration();
                 Message timeToExpiration = secondsToTimeString(numSeconds);
 
-                Message message = INFO_BIND_PASSWORD_EXPIRING.get(
+                Message message = WARN_BIND_PASSWORD_EXPIRING.get(
                         timeToExpiration);
 
                 pwPolicyState.generateAccountStatusNotification(

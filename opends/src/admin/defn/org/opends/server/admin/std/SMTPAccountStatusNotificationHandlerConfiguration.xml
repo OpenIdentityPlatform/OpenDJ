@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+! CDDL HEADER START
+!
+! The contents of this file are subject to the terms of the
+! Common Development and Distribution License, Version 1.0 only
+! (the "License").  You may not use this file except in compliance
+! with the License.
+!
+! You can obtain a copy of the license at
+! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+! See the License for the specific language governing permissions
+! and limitations under the License.
+!
+! When distributing Covered Code, include this CDDL HEADER in each
+! file and include the License file at
+! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+! add the following below this CDDL HEADER, with the fields enclosed
+! by brackets "[]" replaced with your own identifying information:
+!      Portions Copyright [yyyy] [name of copyright owner]
+!
+! CDDL HEADER END
+!
+!
+!      Portions Copyright 2007 Sun Microsystems, Inc.
+! -->
+
+<adm:managed-object name="smtp-account-status-notification-handler"
+                    plural-name="smtp-account-status-notification-handlers"
+                    extends="account-status-notification-handler"
+                    package="org.opends.server.admin.std"
+                    xmlns:adm="http://www.opends.org/admin"
+                    xmlns:ldap="http://www.opends.org/admin-ldap">
+
+  <adm:synopsis>
+    <adm:user-friendly-name />
+    is an account status notification handler that can be used to send email
+    messages to end users and/or administrators whenever an account status
+    notification is generated.
+  </adm:synopsis>
+
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.123</ldap:oid>
+      <ldap:name>
+        ds-cfg-smtp-account-status-notification-handler
+      </ldap:name>
+      <ldap:superior>
+        ds-cfg-account-status-notification-handler
+      </ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+
+  <adm:property-override name="notification-handler-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.extensions.SMTPAccountStatusNotificationHandler
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+
+  <adm:property name="email-address-attribute-type" mandatory="false"
+                multi-valued="true">
+    <adm:synopsis>
+      Specifies which attribute in user entries may be used to obtain the email
+      address to use when notifying the end user.  Multiple attributes can be
+      specified as separate values, and in that case all email addresses
+      identified in all such values will receive the notification.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          If no email address attribute types are specified, then no attempt
+          will be made to send email notification messages to end users.  Only
+          those users specified in the set of additional recipient addresses
+          will be sent the notification messages.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:attribute-type />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.476</ldap:oid>
+        <ldap:name>ds-cfg-email-address-attribute-type</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="recipient-address" mandatory="false" multi-valued="true">
+    <adm:synopsis>
+      Specifies an email address to which notification messages will be sent,
+      either instead of or in addition to the end user for whom the notification
+      has been generated.  This may be used to ensure that server administrators
+      also receive a copy of any notification messages that are generated.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          If no additional recipient addresses are specified, then only the end
+          users that are the subjects of the account status notifications will
+          receive the notification messages.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.448</ldap:oid>
+        <ldap:name>ds-cfg-recipient-address</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="send-message-without-end-user-address" mandatory="true"
+                multi-valued="false">
+    <adm:synopsis>
+      Indicates whether an email notification message should be generated and
+      sent to the set of notification recipients even if the user entry does not
+      contain any values for any of the email address attributes (and therefore
+      it will not be possible to notify the end user).  This is only applicable
+      if both one or more email address attribute types and one or more
+      additional recipient addresses are specified.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          true
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.477</ldap:oid>
+        <ldap:name>ds-cfg-send-message-without-end-user-address</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="sender-address" mandatory="true" multi-valued="false">
+    <adm:synopsis>
+      Specifies the e-mail address from which the message will be sent.  Note
+      that this does not necessarily have to be a legitimate e-mail address.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.447</ldap:oid>
+        <ldap:name>ds-cfg-sender-address</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="message-subject" mandatory="true" multi-valued="true">
+    <adm:synopsis>
+      Specifies the subject that should be used for email messages generated by
+      this account status notification handler.  The values for this property
+      should begin with the name of an account status notification type followed
+      by a colon and the subject that should be used for the associated
+      notification message.  If an email message is generated for an account
+      status notification type for which no subject is defined, then that
+      message will be given a generic subject.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.449</ldap:oid>
+        <ldap:name>ds-cfg-message-subject</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="message-template-file" mandatory="true"
+                multi-valued="true">
+    <adm:synopsis>
+      Specifies the path to the file containing the message template that is to
+      be used to generate the email notification messages.  The values for this
+      property should begin with the name of an account status notification type
+      followed by a colon and the path to the template file that should be used
+      for that notification type.  If an account status notification has a
+      notification type that is not associated with a message template file,
+      then no email message will be generated for that notification.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.478</ldap:oid>
+        <ldap:name>ds-cfg-message-template-file</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+</adm:managed-object>
+
