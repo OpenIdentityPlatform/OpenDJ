@@ -48,25 +48,14 @@ import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.ReplicationBroker;
-import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.DeleteMsg;
-import org.opends.server.replication.protocol.ModifyDNMsg;
-import org.opends.server.replication.protocol.ModifyDnContext;
-import org.opends.server.replication.protocol.ModifyMsg;
-import org.opends.server.replication.protocol.ProtocolVersion;
-import org.opends.server.replication.protocol.ReplServerStartMessage;
-import org.opends.server.replication.protocol.ReplicationMessage;
-import org.opends.server.replication.protocol.ServerStartMessage;
-import org.opends.server.replication.protocol.SocketSession;
-import org.opends.server.replication.protocol.WindowMessage;
-import org.opends.server.replication.protocol.WindowProbe;
-import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.protocol.*;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.RDN;
+import org.opends.server.types.DirectoryConfig;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
 import org.testng.annotations.AfterClass;
@@ -782,14 +771,20 @@ public class ReplicationServerTest extends ReplicationTestCase
      * This should guarantee that old changes are not perturbing this test.
      */
 
-    // open the first session to the
+    // open the first session to the replication server
+    String serverURL = "localhost:" + replicationServerPort;
     InetSocketAddress ServerAddr = new InetSocketAddress(
         InetAddress.getByName("localhost"), replicationServerPort);
     Socket socket = new Socket();
     socket.setReceiveBufferSize(1000000);
     socket.setTcpNoDelay(true);
     socket.connect(ServerAddr, 500);
-    SocketSession session = new SocketSession(socket);
+    ReplSessionSecurity replSessionSecurity = getReplSessionSecurity();
+    ProtocolSession session =
+         replSessionSecurity.createClientSession(serverURL, socket);
+
+    boolean sslEncryption =
+         DirectoryConfig.getCryptoManager().isSslEncryption();
 
     try
     {
@@ -797,7 +792,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       ServerStartMessage msg =
         new ServerStartMessage((short) 1723, DN.decode("dc=example,dc=com"),
             0, 0, 0, 0, WINDOW, (long) 5000, new ServerState(),
-            ProtocolVersion.currentVersion());
+            ProtocolVersion.currentVersion(), sslEncryption);
       session.publish(msg);
 
       // Read the Replication Server state from the ReplServerStartMessage that
@@ -807,6 +802,11 @@ public class ReplicationServerTest extends ReplicationTestCase
       int serverwindow = replStartMsg.getWindowSize();
       ServerState replServerState = replStartMsg.getServerState();
 
+      if (!sslEncryption)
+      {
+        session.stopEncryption();
+      }
+
       // close the session
       session.close();
 
@@ -815,18 +815,23 @@ public class ReplicationServerTest extends ReplicationTestCase
       socket.setReceiveBufferSize(1000000);
       socket.setTcpNoDelay(true);
       socket.connect(ServerAddr, 500);
-      session = new SocketSession(socket);
+      session = replSessionSecurity.createClientSession(serverURL, socket);
 
       // send a ServerStartMessage containing the ServerState that was just
       // received.
       msg = new ServerStartMessage(
           (short) 1724, DN.decode("dc=example,dc=com"),
           0, 0, 0, 0, WINDOW, (long) 5000, replServerState,
-          ProtocolVersion.currentVersion());
+          ProtocolVersion.currentVersion(), sslEncryption);
       session.publish(msg);
 
       // Read the ReplServerStartMessage that come back.
       session.receive();
+
+      if (!sslEncryption)
+      {
+        session.stopEncryption();
+      }
 
       // Now comes the real test : check that the Replication Server
       // answers correctly to a WindowProbe Message.

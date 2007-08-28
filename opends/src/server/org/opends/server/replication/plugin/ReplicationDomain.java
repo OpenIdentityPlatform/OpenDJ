@@ -80,22 +80,7 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.protocol.AckMessage;
-import org.opends.server.replication.protocol.AddContext;
-import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.DeleteContext;
-import org.opends.server.replication.protocol.DoneMessage;
-import org.opends.server.replication.protocol.EntryMessage;
-import org.opends.server.replication.protocol.ErrorMessage;
-import org.opends.server.replication.protocol.InitializeRequestMessage;
-import org.opends.server.replication.protocol.InitializeTargetMessage;
-import org.opends.server.replication.protocol.ModifyContext;
-import org.opends.server.replication.protocol.ModifyDNMsg;
-import org.opends.server.replication.protocol.ModifyDnContext;
-import org.opends.server.replication.protocol.OperationContext;
-import org.opends.server.replication.protocol.RoutableMessage;
-import org.opends.server.replication.protocol.ReplicationMessage;
-import org.opends.server.replication.protocol.UpdateMessage;
+import org.opends.server.replication.protocol.*;
 import org.opends.server.tasks.InitializeTargetTask;
 import org.opends.server.tasks.InitializeTask;
 import org.opends.server.tasks.TaskUtils;
@@ -357,12 +342,12 @@ public class ReplicationDomain extends DirectoryThread
     configDn = configuration.dn();
 
     /*
-     * Modify conflicts are solved for all suffixes but the schema suffix
-     * because we don't want to store extra information in the schema
-     * ldif files.
-     * This has no negative impact because the changes on schema should
-     * not produce conflicts.
-     */
+    * Modify conflicts are solved for all suffixes but the schema suffix
+    * because we don't want to store extra information in the schema
+    * ldif files.
+    * This has no negative impact because the changes on schema should
+    * not produce conflicts.
+    */
     if (baseDN.compareTo(DirectoryServer.getSchemaDN()) == 0)
     {
       solveConflictFlag = false;
@@ -390,7 +375,7 @@ public class ReplicationDomain extends DirectoryThread
      */
     broker = new ReplicationBroker(state, baseDN, serverId, maxReceiveQueue,
         maxReceiveDelay, maxSendQueue, maxSendDelay, window,
-        heartbeatInterval);
+        heartbeatInterval, new ReplSessionSecurity(configuration));
 
     broker.start(replicationServers);
 
@@ -2996,5 +2981,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   public DN getComponentEntryDN()
   {
     return configDn;
+  }
+
+  /**
+   * Determine whether the connection to the replication server is encrypted.
+   * @return true if the connection is encrypted, false otherwise.
+   */
+  public boolean isSessionEncrypted()
+  {
+    return broker.isSessionEncrypted();
   }
 }

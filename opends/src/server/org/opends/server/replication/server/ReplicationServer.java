@@ -53,7 +53,8 @@ import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.replication.protocol.SocketSession;
+import org.opends.server.replication.protocol.ReplSessionSecurity;
+import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -103,6 +104,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   private int replicationPort;
                         // de deleted from the persistent storage.
   private boolean stopListen = false;
+  private ReplSessionSecurity replSessionSecurity;
 
   /**
    * Creates a new Replication server using the provided configuration entry.
@@ -129,7 +131,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     {
       dbDirname = "changelogDb";
     }
-    // Chech that this path exists or create it.
+    // Check that this path exists or create it.
     File f = getFileForPath(dbDirname);
     try
     {
@@ -149,6 +151,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
       throw new ConfigException(msg, e);
     }
 
+    replSessionSecurity = new ReplSessionSecurity(configuration);
     initialize(replicationServerId, replicationPort);
     configuration.addChangeListener(this);
     DirectoryServer.registerMonitorProvider(this);
@@ -164,7 +167,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
 
   void runListen()
   {
-    Socket newSocket = null;
+    Socket newSocket;
     while ((shutdown == false) && (stopListen  == false))
     {
       // Wait on the replicationServer port.
@@ -177,10 +180,13 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
         newSocket.setReceiveBufferSize(1000000);
         newSocket.setTcpNoDelay(true);
         newSocket.setKeepAlive(true);
-        ServerHandler handler = new ServerHandler(
-                                     new SocketSession(newSocket), queueSize);
-        handler.start(null, serverId, serverURL, rcvWindow, this);
-      } catch (IOException e)
+        ProtocolSession session =
+             replSessionSecurity.createServerSession(newSocket);
+        ServerHandler handler = new ServerHandler(session, queueSize);
+        handler.start(null, serverId, serverURL, rcvWindow,
+                      false, this);
+      }
+      catch (Exception e)
       {
         // The socket has probably been closed as part of the
         // shutdown or changing the port number process.
@@ -264,6 +270,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     int separator = serverURL.lastIndexOf(':');
     String port = serverURL.substring(separator + 1);
     String hostname = serverURL.substring(0, separator);
+    boolean sslEncryption = replSessionSecurity.isSslEncryption(serverURL);
 
     try
     {
@@ -275,10 +282,12 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
       socket.connect(ServerAddr, 500);
 
       ServerHandler handler = new ServerHandler(
-                                      new SocketSession(socket), queueSize);
-     handler.start(baseDn, serverId, this.serverURL, rcvWindow, this);
+           replSessionSecurity.createClientSession(serverURL, socket),
+           queueSize);
+      handler.start(baseDn, serverId, this.serverURL, rcvWindow,
+                    sslEncryption, this);
     }
-    catch (IOException e)
+    catch (Exception e)
     {
       // ignore
     }
@@ -523,7 +532,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     }
 
     if ((configuration.getReplicationDbDirectory() != null) &&
-        (dbDirname != configuration.getReplicationDbDirectory()))
+        (!dbDirname.equals(configuration.getReplicationDbDirectory())))
     {
       return new ConfigChangeResult(ResultCode.SUCCESS, true);
     }

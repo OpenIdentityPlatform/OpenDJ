@@ -29,8 +29,6 @@ package org.opends.server.replication.plugin;
 
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.plugin.ReplicationBroker;
-import org.opends.server.replication.plugin.Historical;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -71,7 +69,7 @@ public class HistoricalTest
 
     // Create an internal connection.
     connection = InternalClientConnection.getRootConnection();
-    
+
     // find  a free port for the replicationServer
     ServerSocket socket = TestCaseUtils.bindFreePort();
     replServerPort = socket.getLocalPort();

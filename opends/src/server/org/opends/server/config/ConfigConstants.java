@@ -2842,12 +2842,76 @@ public final class ConfigConstants
 
 
   /**
-   * The DN of the entry that be the base of the configuration information for
+   * The DN of the entry that is the base of the configuration information for
    * the Directory Server trust manager providers.
    */
   public static final String DN_TRUSTMANAGER_PROVIDER_CONFIG_BASE =
        "cn=Trust Manager Providers," + DN_CONFIG_ROOT;
 
+
+
+  /**
+   * The ADS trust store backend id.
+   */
+  public static final String ID_ADS_TRUST_STORE_BACKEND = "ads-truststore";
+
+
+
+  /**
+   * The DN of the trust store backend configuration entry.
+   */
+  public static final String DN_TRUST_STORE_BACKEND =
+       ATTR_BACKEND_ID + "=" + ID_ADS_TRUST_STORE_BACKEND +
+            "," + DN_BACKEND_BASE;
+
+
+
+  /**
+   * Alias of the local instance certificate in the ADS keystore.
+   */
+  public static final String ADS_CERTIFICATE_ALIAS = "ads-certificate";
+
+
+
+  /**
+   * The DN of the entry that will serve as the base for local ADS trust store
+   * information.
+   */
+  public static final String DN_TRUST_STORE_ROOT = "cn=ads-truststore";
+
+
+
+  /**
+   * The name of the attribute that holds a server certificate alias.
+   */
+  public static final String ATTR_CERT_ALIAS = NAME_PREFIX_CFG + "key-id";
+
+
+
+  /**
+   * The name of the objectclass that will be used for a server
+   * certificate entry.
+   */
+  public static final String OC_INSTANCE_KEY =
+       NAME_PREFIX_CFG + "instance-key";
+
+
+
+  /**
+   * The name of the objectclass that will be used for a self-signed
+   * certificate request.
+   */
+  public static final String OC_SELF_SIGNED_CERT_REQUEST =
+       NAME_PREFIX_CFG + "self-signed-cert-request";
+
+
+
+  /**
+   * The name of the attribute that is used to specify a server
+   * instance key.
+   */
+  public static final String ATTR_ADS_CERTIFICATE =
+       NAME_PREFIX_CFG + "public-key-certificate";
 
 
   /**

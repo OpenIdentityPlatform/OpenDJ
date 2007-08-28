@@ -1576,6 +1576,31 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.471
   NAME 'ds-cfg-backend-compact-encoding'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+<<<<<<< .mine
+attributeTypes: ( ds-cfg-ssl-encryption-oid NAME 'ds-cfg-ssl-encryption'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( ds-cfg-public-key-certificate-OID
+  NAME 'ds-cfg-public-key-certificate'
+  DESC 'cryptographic public-key certificate'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.8
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( ds-cfg-key-id-OID
+  NAME 'ds-cfg-key-id'
+  DESC 'cryptographic cipher-key unique identifier'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( ds-cfg-key-compromised-time-OID
+  NAME 'ds-cfg-key-compromised-time'
+  DESC 'The time a cryptographic cipher key was suspected to be compromised'
+  EQUALITY generalizedTimeMatch
+  ORDERING generalizedTimeOrderingMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.24
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+=======
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.476
   NAME 'ds-cfg-email-address-attribute-type'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'OpenDS Directory Server' )
@@ -1586,6 +1611,7 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.477
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.478
   NAME 'ds-cfg-message-template-file' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   X-ORIGIN 'OpenDS Directory Server' )
+>>>>>>> .r2828
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -2234,5 +2260,32 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.123
   ds-cfg-send-notification-without-end-user-address $
   ds-cfg-message-template-file ) MAY ( ds-cfg-email-address-attribute-type $
   ds-cfg-recipient-address $ ds-cfg-message-subject )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( ds-cfg-trust-store-backend-oid
+  NAME 'ds-cfg-trust-store-backend'
+  SUP ds-cfg-backend STRUCTURAL
+  MAY ( ds-cfg-trust-store-type $ ds-cfg-trust-store-file $
+  ds-cfg-trust-store-pin $ ds-cfg-trust-store-pin-property $
+  ds-cfg-trust-store-pin-environment-variable $ ds-cfg-trust-store-pin-file )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( ds-cfg-crypto-manager-oid
+  NAME 'ds-cfg-crypto-manager'
+  SUP top
+  STRUCTURAL
+  MAY ( cn $ ds-cfg-ssl-protocol $ ds-cfg-ssl-cipher-suite $
+  ds-cfg-ssl-cert-nickname $ ds-cfg-ssl-encryption )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( ds-cfg-instance-key-OID
+  NAME 'ds-cfg-instance-key'
+  SUP top
+  STRUCTURAL
+  MUST ( ds-cfg-key-id $ ds-cfg-public-key-certificate )
+  MAY ds-cfg-key-compromised-time
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( ds-cfg-self-signed-cert-request-OID
+  NAME 'ds-cfg-self-signed-cert-request'
+  SUP top
+  STRUCTURAL
+  MUST ( ds-cfg-key-id )
   X-ORIGIN 'OpenDS Directory Server' )
 

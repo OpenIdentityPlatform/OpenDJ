@@ -43,12 +43,18 @@ public class ReplServerStartMessage extends StartMessage implements
 {
   private static final long serialVersionUID = -5871385537169856856L;
 
-  private String baseDn = null;
   private short serverId;
   private String serverURL;
+  private String baseDn = null;
+  private int windowSize;
   private ServerState serverState;
 
-  private int windowSize;
+  /**
+   * Whether to continue using SSL to encrypt messages after the start
+   * messages have been exchanged.
+   */
+  private boolean sslEncryption;
+
 
   /**
    * Create a ReplServerStartMessage.
@@ -59,11 +65,14 @@ public class ReplServerStartMessage extends StartMessage implements
    * @param windowSize The window size.
    * @param serverState our ServerState for this baseDn.
    * @param protocolVersion The replication protocol version of the creator.
+   * @param sslEncryption Whether to continue using SSL to encrypt messages
+   *                      after the start messages have been exchanged.
    */
   public ReplServerStartMessage(short serverId, String serverURL, DN baseDn,
                                int windowSize,
                                ServerState serverState,
-                               short protocolVersion)
+                               short protocolVersion,
+                               boolean sslEncryption)
   {
     super(protocolVersion);
     this.serverId = serverId;
@@ -74,6 +83,7 @@ public class ReplServerStartMessage extends StartMessage implements
       this.baseDn = null;
     this.windowSize = windowSize;
     this.serverState = serverState;
+    this.sslEncryption = sslEncryption;
   }
 
   /**
@@ -122,6 +132,13 @@ public class ReplServerStartMessage extends StartMessage implements
        */
       length = getNextLength(in, pos);
       windowSize = Integer.valueOf(new String(in, pos, length, "UTF-8"));
+      pos += length +1;
+
+      /*
+       * read the sslEncryption setting
+       */
+      length = getNextLength(in, pos);
+      sslEncryption = Boolean.valueOf(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
       /*
@@ -194,9 +211,12 @@ public class ReplServerStartMessage extends StartMessage implements
       byte[] byteServerUrl = serverURL.getBytes("UTF-8");
       byte[] byteServerState = serverState.getBytes();
       byte[] byteWindowSize = String.valueOf(windowSize).getBytes("UTF-8");
+      byte[] byteSSLEncryption =
+                     String.valueOf(sslEncryption).getBytes("UTF-8");
 
       int length = byteDn.length + 1 + byteServerId.length + 1 +
                    byteServerUrl.length + 1 + byteWindowSize.length + 1 +
+                   byteSSLEncryption.length + 1 +
                    byteServerState.length + 1;
 
       /* encode the header in a byte[] large enough to also contain the mods */
@@ -214,6 +234,9 @@ public class ReplServerStartMessage extends StartMessage implements
 
       /* put the window size */
       pos = addByteArray(byteWindowSize, resultByteArray, pos);
+
+      /* put the SSL Encryption setting */
+      pos = addByteArray(byteSSLEncryption, resultByteArray, pos);
 
       /* put the ServerState */
       pos = addByteArray(byteServerState, resultByteArray, pos);
@@ -234,5 +257,17 @@ public class ReplServerStartMessage extends StartMessage implements
   public int getWindowSize()
   {
     return windowSize;
+  }
+
+  /**
+   * Get the SSL encryption value for the server that created the
+   * message.
+   *
+   * @return The SSL encryption value for the server that created the
+   *         message.
+   */
+  public boolean getSSLEncryption()
+  {
+    return sslEncryption;
   }
 }

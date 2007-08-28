@@ -99,7 +99,7 @@ public abstract class KeyManagerProvider
    *          for this key manager provider, or {@code false} if not.
    */
   public boolean isConfigurationAcceptable(
-                      KeyManagerCfg configuration,
+                      T configuration,
                       List<Message> unacceptableReasons)
   {
     // This default implementation does not perform any special

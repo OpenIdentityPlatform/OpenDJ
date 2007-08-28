@@ -26,7 +26,7 @@
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
-
+import static org.opends.messages.CoreMessages.*;
 
 
 import java.io.InputStream;
@@ -40,19 +40,29 @@ import java.security.SecureRandom;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
+import java.util.SortedSet;
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.X509ExtendedKeyManager;
 
 import org.opends.server.config.ConfigException;
+import org.opends.server.config.ConfigConstants;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.StaticUtils.*;
-
+import org.opends.server.util.SelectableCertificateKeyManager;
+import org.opends.server.api.Backend;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.backends.TrustStoreBackend;
+import org.opends.server.admin.std.server.CryptoManagerCfg;
 
 /**
  * This class provides the interface to the Directory Server
@@ -92,10 +102,23 @@ public class CryptoManager
   // The preferred MAC algorithm for the Directory Server.
   private String preferredMACAlgorithm;
 
+  // The name of the local certificate to use for SSL.
+  private String sslCertNickname;
 
+  // Whether replication sessions use SSL encryption.
+  private boolean sslEncryption;
+
+  // The set of SSL protocols enabled or null for the default set.
+  private SortedSet<String> sslProtocols;
+
+  // The set of SSL cipher suites enabled or null for the default set.
+  private SortedSet<String> sslCipherSuites;
 
   /**
-   * Creates a new instance of this crypto manager object.
+   * Creates a new instance of this crypto manager object from a given
+   * configuration.
+   *
+   * @param   cfg  The configuration of this crypto manager.
    *
    * @throws  ConfigException  If a problem occurs while creating this
    *                           crypto manager that is a result of a
@@ -106,7 +129,7 @@ public class CryptoManager
    *                                   that is not the result of a
    *                                   problem in the configuration.
    */
-  public CryptoManager()
+  public CryptoManager(CryptoManagerCfg cfg)
          throws ConfigException, InitializationException
   {
     // FIXME -- Get the defaults from the configuration rather than
@@ -175,6 +198,11 @@ public class CryptoManager
                      Message.raw("Can't get preferred cipher:  " +
                      getExceptionMessage(e).toString()), e);
     }
+
+    sslCertNickname = cfg.getSSLCertNickname();
+    sslEncryption   = cfg.isSSLEncryption();
+    sslProtocols    = cfg.getSSLProtocols();
+    sslCipherSuites = cfg.getSSLCipherSuites();
   }
 
 
@@ -864,6 +892,123 @@ public class CryptoManager
     {
       inflater.end();
     }
+  }
+
+
+  /**
+   * Retrieve the ADS trust store backend.
+   * @return The ADS trust store backend.
+   * @throws ConfigException If the ADS trust store backend is
+   *                         not configured.
+   */
+  private TrustStoreBackend getTrustStoreBackend()
+       throws ConfigException
+  {
+    Backend b = DirectoryServer.getBackend(
+         ConfigConstants.ID_ADS_TRUST_STORE_BACKEND);
+    if (b == null)
+    {
+      Message msg =
+           ERR_CRYPTOMGR_ADS_TRUST_STORE_BACKEND_NOT_ENABLED.get(
+                ConfigConstants.ID_ADS_TRUST_STORE_BACKEND);
+      throw new ConfigException(msg);
+    }
+    if (!(b instanceof TrustStoreBackend))
+    {
+      Message msg =
+           ERR_CRYPTOMGR_ADS_TRUST_STORE_BACKEND_WRONG_CLASS.get(
+                ConfigConstants.ID_ADS_TRUST_STORE_BACKEND);
+      throw new ConfigException(msg);
+    }
+    return (TrustStoreBackend)b;
+  }
+
+  /**
+   * Create an SSL context that may be used for communication to
+   * another ADS component.
+   *
+   * @param sslCertNickname The name of the local certificate to use,
+   *                        or null if none is specified.
+   * @return A new SSL Context.
+   * @throws ConfigException If the context could not be created.
+   */
+  public SSLContext getSslContext(String sslCertNickname)
+       throws ConfigException
+  {
+    SSLContext sslContext;
+    try
+    {
+      TrustStoreBackend trustStoreBackend = getTrustStoreBackend();
+      KeyManager[] keyManagers = trustStoreBackend.getKeyManagers();
+      TrustManager[] trustManagers =
+           trustStoreBackend.getTrustManagers();
+
+      sslContext = SSLContext.getInstance("TLS");
+
+      if (sslCertNickname == null)
+      {
+        sslContext.init(keyManagers, trustManagers, null);
+      }
+      else
+      {
+        X509ExtendedKeyManager[] extendedKeyManagers =
+             SelectableCertificateKeyManager.wrap(
+                  keyManagers,
+                  sslCertNickname);
+        sslContext.init(extendedKeyManagers, trustManagers, null);
+      }
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      Message message =
+           ERR_CRYPTOMGR_SSL_CONTEXT_CANNOT_INITIALIZE.get(
+                getExceptionMessage(e));
+      throw new ConfigException(message, e);
+    }
+
+    return sslContext;
+  }
+
+
+  /**
+   * Get the name of the local certificate to use for SSL.
+   * @return The name of the local certificate to use for SSL.
+   */
+  public String getSslCertNickname()
+  {
+    return sslCertNickname;
+  }
+
+  /**
+   * Determine whether SSL encryption is enabled.
+   * @return true if SSL encryption is enabled.
+   */
+  public boolean isSslEncryption()
+  {
+    return sslEncryption;
+  }
+
+  /**
+   * Get the set of enabled SSL protocols.
+   * @return The set of enabled SSL protocols.
+   */
+  public SortedSet<String> getSslProtocols()
+  {
+    return sslProtocols;
+  }
+
+  /**
+   * Get the set of enabled SSL cipher suites.
+   * @return The set of enabled SSL cipher suites.
+   */
+  public SortedSet<String> getSslCipherSuites()
+  {
+    return sslCipherSuites;
   }
 }
 

@@ -335,6 +335,25 @@ ds-cfg-key-store-pin: password
 -
 replace: ds-cfg-key-store-pin-file
 
+dn: cn=Crypto Manager,cn=config
+changetype: modify
+replace: ds-cfg-ssl-cert-nickname
+ds-cfg-ssl-cert-nickname: server-cert
+-
+
+dn: ds-cfg-backend-id=ads-truststore,cn=Backends,cn=config
+changetype: modify
+replace: ds-cfg-backend-enabled
+ds-cfg-backend-enabled: true
+-
+replace: ds-cfg-trust-store-file
+ds-cfg-trust-store-file: config/server.keystore
+-
+replace: ds-cfg-trust-store-pin
+ds-cfg-trust-store-pin: password
+-
+replace: ds-cfg-trust-store-pin-file
+
 dn: cn=PKCS12,cn=Key Manager Providers,cn=config
 changetype: modify
 replace: ds-cfg-key-manager-provider-enabled

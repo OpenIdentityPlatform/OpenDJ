@@ -493,7 +493,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     state.update(new ChangeNumber((long)1, 1,(short)1));
     ServerStartMessage msg = new ServerStartMessage(serverId, baseDN,
-        window, window, window, window, window, window, state, (short)1);
+        window, window, window, window, window, window, state, (short)1, true);
     ServerStartMessage newMsg = new ServerStartMessage(msg.getBytes());
     assertEquals(msg.getServerId(), newMsg.getServerId());
     assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
@@ -503,6 +503,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getMaxSendQueue(), newMsg.getMaxSendQueue());
     assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
     assertEquals(msg.getHeartbeatInterval(), newMsg.getHeartbeatInterval());
+    assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
     assertEquals(msg.getServerState().getMaxChangeNumber((short)1),
         newMsg.getServerState().getMaxChangeNumber((short)1));
     assertEquals(msg.getVersion(), newMsg.getVersion());
@@ -526,15 +527,16 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     state.update(new ChangeNumber((long)1, 1,(short)1));
     ReplServerStartMessage msg = new ReplServerStartMessage(serverId,
-        url, baseDN, window, state, (short)1);
+        url, baseDN, window, state, (short)1, true);
     ReplServerStartMessage newMsg = new ReplServerStartMessage(msg.getBytes());
     assertEquals(msg.getServerId(), newMsg.getServerId());
+    assertEquals(msg.getServerURL(), newMsg.getServerURL());
     assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
-    assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
     assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
     assertEquals(msg.getServerState().getMaxChangeNumber((short)1),
         newMsg.getServerState().getMaxChangeNumber((short)1));
     assertEquals(msg.getVersion(), newMsg.getVersion());
+    assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
   }
 
   /**
@@ -548,7 +550,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     WindowMessage newMsg = new WindowMessage(msg.getBytes());
     assertEquals(msg.getNumAck(), newMsg.getNumAck());
   }
-  
+
   /**
    * Test that WindowProbe encoding and decoding works
    * by checking that : new WindowProbe(msg.getBytes()) does not throws

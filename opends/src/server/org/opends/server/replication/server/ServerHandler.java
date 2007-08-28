@@ -51,18 +51,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.protocol.ProtocolVersion;
-import org.opends.server.replication.protocol.AckMessage;
-import org.opends.server.replication.protocol.ReplServerStartMessage;
-import org.opends.server.replication.protocol.HeartbeatThread;
-import org.opends.server.replication.protocol.ProtocolSession;
-import org.opends.server.replication.protocol.RoutableMessage;
-import org.opends.server.replication.protocol.ServerStartMessage;
-import org.opends.server.replication.protocol.ReplicationMessage;
-import org.opends.server.replication.protocol.UpdateMessage;
-import org.opends.server.replication.protocol.WindowMessage;
-import org.opends.server.replication.protocol.WindowProbe;
-import org.opends.server.replication.protocol.ReplServerInfoMessage;
+import org.opends.server.replication.protocol.*;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -180,12 +169,16 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
    * @param replicationServerURL The URL of the replicationServer that creates
    *                             this server handler.
    * @param windowSize the window size that this server handler must use.
+   * @param sslEncryption For outgoing connections indicates whether encryption
+   *                      should be used after the exchange of start messages.
+   *                      Ignored for incoming connections.
    * @param replicationServer the ReplicationServer that created this server
    *                          handler.
    */
   public void start(DN baseDn, short replicationServerId,
                     String replicationServerURL,
-                    int windowSize, ReplicationServer replicationServer)
+                    int windowSize, boolean sslEncryption,
+                    ReplicationServer replicationServer)
   {
     this.replicationServerId = replicationServerId;
     rcvWindowSizeHalf = windowSize/2;
@@ -202,8 +195,7 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
         ReplServerStartMessage msg =
           new ReplServerStartMessage(replicationServerId, replicationServerURL,
                                     baseDn, windowSize, localServerState,
-                                    protocolVersion);
-
+                                    protocolVersion, sslEncryption);
         session.publish(msg);
       }
 
@@ -226,6 +218,9 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
         maxSendDelay = receivedMsg.getMaxSendDelay();
         maxSendQueue = receivedMsg.getMaxSendQueue();
         heartbeatInterval = receivedMsg.getHeartbeatInterval();
+
+        // The session initiator decides whether to use SSL.
+        sslEncryption = receivedMsg.getSSLEncryption();
 
         if (maxReceiveQueue > 0)
           restartReceiveQueue = (maxReceiveQueue > 1000 ?
@@ -266,7 +261,7 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
         ReplServerStartMessage myStartMsg =
           new ReplServerStartMessage(replicationServerId, replicationServerURL,
                                     this.baseDn, windowSize, localServerState,
-                                    protocolVersion);
+                                    protocolVersion, sslEncryption);
         session.publish(myStartMsg);
         sendWindowSize = receivedMsg.getWindowSize();
       }
@@ -288,12 +283,15 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
           replicationCache = replicationServer.getReplicationCache(this.baseDn);
           ServerState serverState = replicationCache.getDbServerState();
 
+          // The session initiator decides whether to use SSL.
+          sslEncryption = receivedMsg.getSSLEncryption();
+
           // Publish our start message
           ReplServerStartMessage outMsg =
             new ReplServerStartMessage(replicationServerId,
                                        replicationServerURL,
                                        this.baseDn, windowSize, serverState,
-                                       protocolVersion);
+                                       protocolVersion, sslEncryption);
           session.publish(outMsg);
         }
         else
@@ -307,6 +305,11 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
       {
         // TODO : log error
         return;   // we did not recognize the message, ignore it
+      }
+
+      if (!sslEncryption)
+      {
+        session.stopEncryption();
       }
 
       replicationCache = replicationServer.getReplicationCache(this.baseDn);
@@ -1230,6 +1233,10 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
     }
     Attribute attr = new Attribute(type, ATTR_SERVER_STATE, values);
     attributes.add(attr);
+
+    attributes.add(new Attribute("ssl-encryption",
+                                 String.valueOf(session.isEncrypted())));
+
     return attributes;
   }
 
