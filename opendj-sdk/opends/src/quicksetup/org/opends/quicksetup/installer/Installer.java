@@ -1875,95 +1875,70 @@ public abstract class Installer extends GuiApplication {
     InitialLdapContext localCtx = null; // Bound to local server.
     ADSContext adsContext = null; // Bound to ADS host (via one of above).
 
-    /* Outer try-catch-finally to convert ADSContextException to
-       ApplicationException and clean up JNDI contexts. */
+    /* Outer try-catch-finally to convert occurences of NamingException and
+       ADSContextException to ApplicationException and clean up JNDI contexts.*/
     try
     {
       if (remoteServer)
       {
         /* In case the user specified an existing topology... */
-        try
+        String ldapUrl = getLdapUrl(auth);
+        String dn = auth.getDn();
+        String pwd = auth.getPwd();
+        if (auth.useSecureConnection())
         {
-          String ldapUrl = getLdapUrl(auth);
-          String dn = auth.getDn();
-          String pwd = auth.getPwd();
-          if (auth.useSecureConnection())
-          {
-            ApplicationTrustManager trustManager = getTrustManager();
-            trustManager.setHost(auth.getHostName());
-            remoteCtx = createLdapsContext(ldapUrl, dn, pwd,
-                                   getDefaultLDAPTimeout(), null, trustManager);
-          }
-          else
-          {
-            remoteCtx = createLdapContext(ldapUrl, dn, pwd,
-                                          getDefaultLDAPTimeout(), null);
-          }
-          adsContext = new ADSContext(remoteCtx); // adsContext owns remoteCtx
+          ApplicationTrustManager trustManager = getTrustManager();
+          trustManager.setHost(auth.getHostName());
+          remoteCtx = createLdapsContext(ldapUrl, dn, pwd,
+                  getDefaultLDAPTimeout(), null, trustManager);
+        }
+        else
+        {
+          remoteCtx = createLdapContext(ldapUrl, dn, pwd,
+                  getDefaultLDAPTimeout(), null);
+        }
+        adsContext = new ADSContext(remoteCtx); // adsContext owns remoteCtx
 
-          /* Check the remote server for ADS. If it does not exist, create the
-             initial ADS there and register the server with itself. */
-          if (! adsContext.hasAdminData())
-          {
-            notifyListeners(getFormattedWithPoints(
+        /* Check the remote server for ADS. If it does not exist, create the
+           initial ADS there and register the server with itself. */
+        if (! adsContext.hasAdminData())
+        {
+          notifyListeners(getFormattedWithPoints(
                INFO_PROGRESS_CREATING_ADS_ON_REMOTE.get(getHostDisplay(auth))));
 
-            adsContext.createAdminData(null);
-            adsContext.registerServer(
-                    getRemoteServerProperties(adsContext.getDirContext()));
-            createdRemoteAds = true;
-            notifyListeners(getFormattedDone());
-            notifyListeners(getLineBreak());
-            checkAbort();
-          }
-        }
-        catch (NoPermissionException x)
-        {
-          throw new ApplicationException(
-                  ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
-                  INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(
-                          getHostDisplay(auth)), x);
-        }
-        catch (NamingException ne)
-        {
-          throw new ApplicationException(
-                  ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
-                  INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
-                          getHostDisplay(auth), ne.getLocalizedMessage()), ne);
+          adsContext.createAdminData(null);
+          ServerDescriptor server
+                  = ServerDescriptor.createStandalone(remoteCtx);
+          server.updateAdsPropertiesWithServerProperties();
+          adsContext.registerServer(server.getAdsProperties());
+          createdRemoteAds = true;
+          notifyListeners(getFormattedDone());
+          notifyListeners(getLineBreak());
+          checkAbort();
         }
       }
 
       /* Act on local server depending on if using remote or local ADS */
       notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CREATING_ADS.get()));
-      try
+      localCtx = createLocalContext();
+      if (remoteServer)
       {
-        localCtx = createLocalContext();
-        if (remoteServer)
-        {
-          /* Create an empty ADS suffix on the local server. */
-          ADSContext localAdsContext = new ADSContext(localCtx);
-          localAdsContext.createAdministrationSuffix(null);
-        }
-        else
-        {
-          /* Configure local server to have an ADS */
-          adsContext = new ADSContext(localCtx); // adsContext owns localCtx
-          adsContext.createAdminData(null);
-        }
+        /* Create an empty ADS suffix on the local server. */
+        ADSContext localAdsContext = new ADSContext(localCtx);
+        localAdsContext.createAdministrationSuffix(null);
       }
-      catch (NamingException t)
+      else
       {
-        Message failedMsg = getThrowableMsg(
-                INFO_ERROR_CONNECTING_TO_LOCAL.get(), t);
-        throw new ApplicationException(
-                ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
-                failedMsg, t);
+        /* Configure local server to have an ADS */
+        adsContext = new ADSContext(localCtx); // adsContext owns localCtx
+        adsContext.createAdminData(null);
       }
       assert null != adsContext ; // Bound either to local or remote ADS.
 
       /* Register new server in ADS. */
-      if (0 != adsContext.registerOrUpdateServer(getNewServerAdsProperties(
-              getUserData())))
+      ServerDescriptor server = ServerDescriptor.createStandalone(localCtx);
+      server.updateAdsPropertiesWithServerProperties();
+      if (0 != adsContext.registerOrUpdateServer(server.getAdsProperties()))
       {
         LOG.log(Level.WARNING, "Server was already registered. Updating " +
                 "server registration.");
@@ -2005,13 +1980,48 @@ public abstract class Installer extends GuiApplication {
         }
       }
     }
+    catch (NoPermissionException ne)
+    {
+      if (remoteServer)
+      {
+        throw new ApplicationException(
+                ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+                INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(
+                        getHostDisplay(auth)), ne);
+      }
+      else
+      {
+        // TODO: INFO for local PERMISSIONS exception?
+        Message failedMsg = getThrowableMsg(
+                INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne);
+        throw new ApplicationException(
+                ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+                failedMsg, ne);
+      }
+    }
+    catch (NamingException ne)
+    {
+      if (remoteServer)
+      {
+        throw new ApplicationException(
+                ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+                INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
+                        getHostDisplay(auth), ne.getLocalizedMessage()), ne);
+      }
+      else
+      {
+        throw new ApplicationException(
+                ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+                getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne), ne);
+      }
+    }
     catch (ADSContextException ace)
     {
       throw new ApplicationException(
               ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
               ((remoteServer)
                       ? INFO_REMOTE_ADS_EXCEPTION.get(
-                             getHostDisplay(auth), ace.getReason())
+                      getHostDisplay(auth), ace.getReason())
                       : INFO_ADS_EXCEPTION.get(ace.toString())), ace);
     }
     finally
@@ -3295,13 +3305,6 @@ public abstract class Installer extends GuiApplication {
     return 15 * 1024 * 1024;
   }
 
-  private Map<ADSContext.ServerProperty, Object> getRemoteServerProperties(
-      InitialLdapContext ctx) throws NamingException
-  {
-    ServerDescriptor server = ServerDescriptor.createStandalone(ctx);
-    server.updateAdsPropertiesWithServerProperties();
-    return server.getAdsProperties();
-  }
 
   /**
    * Update the UserInstallData with the contents we discover in the ADS.
