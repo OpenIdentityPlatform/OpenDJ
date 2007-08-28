@@ -28,10 +28,8 @@ package org.opends.server.extensions;
 
 import org.opends.server.types.*;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.extensions.NumSubordinatesVirtualAttributeProvider;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import static org.opends.server.util.StaticUtils.getBytes;
 import static org.opends.server.util.ServerConstants.OID_REAL_ATTRS_ONLY;
 import static org.opends.server.util.ServerConstants.OID_VIRTUAL_ATTRS_ONLY;
 import org.opends.server.core.DirectoryServer;
@@ -577,7 +575,7 @@ public class NumSubordinatesVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test
+  @Test(dataProvider = "testEntryDNs")
   public void testSearchnumSubordinatesAttrInGTEFilter(DN entryDN, int count)
          throws Exception
   {
@@ -609,7 +607,7 @@ public class NumSubordinatesVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test
+  @Test(dataProvider = "testEntryDNs")
   public void testSearchnumSubordinatesAttrInLTEFilter(DN entryDN, int count)
          throws Exception
   {
