@@ -670,6 +670,15 @@ public class RootContainer
     return (nextid.get() - 1);
   }
 
+  /**
+   * Resets the next entry ID counter to zero.  This should only be used after
+   * clearing all databases.
+   */
+  public void resetNextEntryID()
+  {
+    nextid.set(1);
+  }
+
 
 
   /**

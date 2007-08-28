@@ -48,6 +48,8 @@ import java.net.Socket;
 
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.backends.jeb.BackendImpl;
+import org.opends.server.backends.jeb.EntryContainer;
+import org.opends.server.backends.jeb.RootContainer;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
@@ -469,32 +471,13 @@ public final class TestCaseUtils {
        throws Exception
   {
     BackendImpl backend = (BackendImpl)DirectoryServer.getBackend(beID);
-
-    TaskUtils.disableBackend(beID);
-
-    try
+    RootContainer rootContainer = backend.getRootContainer();
+    for (EntryContainer ec : rootContainer.getEntryContainers())
     {
-      String lockFile = LockFileManager.getBackendLockFileName(backend);
-      StringBuilder failureReason = new StringBuilder();
-
-      if (!LockFileManager.acquireExclusiveLock(lockFile, failureReason))
-      {
-        throw new RuntimeException(failureReason.toString());
-      }
-
-      try
-      {
-        backend.clearBackend();
-      }
-      finally
-      {
-        LockFileManager.releaseLock(lockFile, failureReason);
-      }
+      ec.clear();
+      assertEquals(ec.getHighestEntryID().longValue(), 0L);
     }
-    finally
-    {
-      TaskUtils.enableBackend(beID);
-    }
+    rootContainer.resetNextEntryID();
 
     if (createBaseEntry)
     {
