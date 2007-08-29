@@ -117,7 +117,7 @@
             </sequence>
           </if>        
           <message log="1">
-            'SUCCESS: RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
+            'SUCCESS: RC=%s, Expected %s' % (returncode,expected)
           </message>
           <script>
             RC=0
@@ -626,16 +626,6 @@
           'endat'     : testcaseEndTime }
       </call>
       <script>
-        import re
-        
-        class Matcher:
-          def search(self, r,s):
-            _tmp = re.compile(r)
-            self.value = _tmp.match(s)
-            return self.value
-          def __getitem__(self, i):
-            return self.value.group(i)
-        
         class Test:
           def __init__(self, group, suite, fullname, start, stop, failures, successes, issues, duration):
             self.log=''
@@ -692,14 +682,15 @@
             return xml
           
           def appendLog(self, category, log):
-            _leftPadding=''
             wrappedLog=''
-            while len(log)>100:
-              _logChunk=log[:100]
-              log=log[100:]
-              wrappedLog+='%s%s%s' % (_leftPadding,_logChunk,newLine)
-              _leftPadding='...    '
-            wrappedLog += '%s%s%s' % (_leftPadding,log,newLine)
+            for _line in log.splitlines():
+              _leftPadding=''
+              while len(_line)>100:
+                _logChunk=line[:100]
+                _line=_line[100:]
+                wrappedLog+='%s%s%s' % (_leftPadding,_logChunk,newLine)
+                _leftPadding='...    '
+              wrappedLog += '%s%s%s' % (_leftPadding,log,newLine)
             if category == 'access':
               self.access+=wrappedLog
             elif category == 'error':
@@ -737,7 +728,7 @@
             # test case. this is especially useful for tests that execute
             # within the same second (that is the resolution of the STAF
             # log facility)
-            if tmp[3] == thisTest.getName():
+            if thisTest.getName().startswith(tmp[3]):
               doLog=True
         
         # parse the server's error log
