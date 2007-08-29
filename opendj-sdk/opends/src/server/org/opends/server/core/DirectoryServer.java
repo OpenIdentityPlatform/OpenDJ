@@ -42,6 +42,7 @@ import org.opends.server.api.BackupTaskListener;
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.api.CompressedSchema;
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.api.ConfigDeleteListener;
@@ -502,6 +503,9 @@ public class DirectoryServer
 
   // The crypto manager for the Directory Server.
   private CryptoManager cryptoManager;
+
+  // The default compressed schema manager.
+  private DefaultCompressedSchema compressedSchema;
 
   // The environment configuration for the Directory Server.
   private DirectoryEnvironmentConfig environmentConfig;
@@ -1176,6 +1180,8 @@ public class DirectoryServer
                   e.getLocalizedMessage());
       throw new InitializationException(message);
     }
+
+    compressedSchema = new DefaultCompressedSchema();
   }
 
 
@@ -2398,6 +2404,18 @@ public class DirectoryServer
         throw new InitializationException(de.getMessageObject());
       }
     }
+  }
+
+
+
+  /**
+   * Retrieves the default compressed schema manager for the Directory Server.
+   *
+   * @return  The default compressed schema manager for the Directory Server.
+   */
+  public static CompressedSchema getDefaultCompressedSchema()
+  {
+    return directoryServer.compressedSchema;
   }
 
 
