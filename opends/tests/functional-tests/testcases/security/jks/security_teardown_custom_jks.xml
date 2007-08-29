@@ -27,9 +27,9 @@
  ! -->
 <stax>
 
-  <defaultcall function="teardown_jks"/>
+  <defaultcall function="teardown_custom_jks"/>
 
-  <function name="teardown_jks">
+  <function name="teardown_custom_jks">
 
       <sequence>
 
@@ -42,7 +42,7 @@
             #@TestScript                security_teardown_jks.xml
         -->
         <!--- Delete Branch through SSL port -->
-        <testcase name="getTestCaseName('JKS - Postamble Reset')">
+        <testcase name="getTestCaseName('Custom JKS - Postamble Reset')">
         <!---
             Place test-specific test information here.
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
@@ -61,7 +61,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: JKS: Postamble Step 1. Deleting Branch Through SSL Port'
+               'Security: Custom JKS: Postamble Step 1. Deleting Branch Through SSL Port'
             </message>
 
             <call function="'DeleteEntry'">
@@ -73,17 +73,22 @@
                 'extraParams'      : '-Z -X -x' }
             </call>
 
+            <message>
+               'Security: Custom JKS: Postamble Step 2. Deleting Custom JKS'
+            </message>
 
-           <call function="'unconfigureSSL'">
+            <call function="'unconfigureSSL'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD }
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'customKeyMgr'     : "Custom JKS" ,
+                'customTrustMgr'   : "Custom Bind Trust" }
             </call>                
 
             <!--- Remove JKS Keystore -->
             <message>
-               'Security: JKS: Postamble Step 3. Removing JKS Keystore'
+               'Security: Custom JKS: Postamble Step 3. Removing JKS Keystore'
             </message>
 
             <call function="'deleteFile'">
@@ -98,7 +103,7 @@
       
             <!--- Search With Unsecure Port -->
             <message>
-               'Security: JKS: Postamble Step 4. Searching with Unsecure Connection'
+               'Security: Custom JKS: Postamble Step 4. Searching with Unsecure Connection'
             </message>
 
             <call function="'SearchObject'">

@@ -27,9 +27,9 @@
  ! -->
 <stax>
 
-  <defaultcall function="bob_jks"/>
+  <defaultcall function="bob_custom_jks"/>
 
-  <function name="bob_jks">
+  <function name="bob_custom_jks">
       <!---
             Place suite-specific test information here.
             #@TestSuiteName             JKS Tests
@@ -40,8 +40,8 @@
       <sequence>
 
        <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/jks/security_setup_jks.xml' % (TESTS_DIR)"/>
-       <call function="'setup_jks'" />
+            file="'%s/testcases/security/jks/security_setup_custom_jks.xml' % (TESTS_DIR)"/>
+       <call function="'setup_custom_jks'" />
   
        <!--- Test Case : Add Entries through SSL port -->
        <!---
@@ -59,7 +59,7 @@
             #@TestResult                Success if OpenDS returns 0
         -->
 
-        <testcase name="getTestCaseName('JKS - Add Entries')">
+        <testcase name="getTestCaseName('Custom JKS - Add Entries')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -94,7 +94,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="getTestCaseName('JKS - Modify Entry')">
+        <testcase name="getTestCaseName('Custom JKS - Modify Entry')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -129,7 +129,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="getTestCaseName('JKS - Add Attr to Entry')">
+        <testcase name="getTestCaseName('Custom JKS - Add Attr to Entry')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -164,7 +164,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="getTestCaseName('JKS - Modify Attr in Entry')">
+        <testcase name="getTestCaseName('Custom JKS - Modify Attr in Entry')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -199,7 +199,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="getTestCaseName('JKS - Delete Entry')">
+        <testcase name="getTestCaseName('Custom JKS - Delete Entry')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -220,8 +220,8 @@
         </testcase>
 
         <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/jks/security_teardown_jks.xml' % (TESTS_DIR)"/>
-        <call function="'teardown_jks'" />
+            file="'%s/testcases/security/jks/security_teardown_custom_jks.xml' % (TESTS_DIR)"/>
+        <call function="'teardown_custom_jks'" />
     
      </sequence>
 

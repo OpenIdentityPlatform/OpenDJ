@@ -27,9 +27,9 @@
  ! -->
 <stax>
 
-  <defaultcall function="setup_jks"/>
+  <defaultcall function="setup_custom_jks"/>
 
-  <function name="setup_jks">
+  <function name="setup_custom_jks">
       <!---
             Place group-specific test information here.
             #@TestGroupName             Security
@@ -61,11 +61,11 @@
             #@TestResult                Success if OpenDS returns 0 for all operations
         -->
         <!--- Generate Server Cert -->
-        <testcase name="getTestCaseName('JKS - Preamble Setup')">
+        <testcase name="getTestCaseName('Custom JKS - Preamble Setup')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: JKS: Preamble Step 1. Generating Server Certicate'
+               'Security: Custom JKS: Preamble Step 1. Generating Server Certicate'
             </message>
 
   
@@ -83,34 +83,34 @@
 
             <!--- Self-Sign Server Cert -->
             <message>
-               'Security: JKS: Preamble Step 2. Self-Signing Server Certificate'
+               'Security: Custom JKS: Preamble Step 2. Self-Signing Server Certificate'
             </message>
 
            <call function="'SelfSignCertificate'">
-            { 'certAlias'        : 'server-cert' ,
+            { 'certAlias'       : 'server-cert' ,
               'storepass'       : 'servercert',
               'keypass'         : 'servercert',
               'keystore'        : 'keystore',
               'storetype'       : 'JKS' }
             </call>        
    
-
-
             <!--- Configure JKS Keystore -->
             <message>
-               'Security: JKS: Preamble Step 3. Configuring JKS Keystore'
+               'Security: Custom JKS: Preamble Step 3. Configuring JKS Keystore'
             </message>
 
             <call function="'configureSSL'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD }
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'customKeyMgr'     : "Custom JKS" ,
+                'customTrustMgr'   : "Custom Bind Trust" }
             </call>
 
             <!--- Initial Search With SSL -->
             <message>
-               'Security: JKS: Preamble Step 4. Searching with SSL Connection'
+               'Security: Custom JKS: Preamble Step 4. Searching with SSL Connection'
             </message>
 
             <call function="'SearchObject'">
