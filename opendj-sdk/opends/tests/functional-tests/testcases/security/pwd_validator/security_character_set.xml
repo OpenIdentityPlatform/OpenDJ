@@ -354,6 +354,9 @@
                     'newAttributeValue'      : 'newruling' ,
                     'changetype'             : 'replace'  }
             </call>
+            <script>
+              knownIssue(1449)
+            </script>
             <!-- Uncomment this when Issue 2050/1449 is resolved.
             <message>
                'Security: Pwd Validator: Character Set: user binding with valid password'
