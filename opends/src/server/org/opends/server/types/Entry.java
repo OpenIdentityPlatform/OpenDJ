@@ -4102,7 +4102,8 @@ public class Entry
     LinkedList<byte[]> ocBytes = new LinkedList<byte[]>();
     if (config.compressObjectClassSets())
     {
-      byte[] b = CompressedSchema.encodeObjectClasses(objectClasses);
+      byte[] b = config.getCompressedSchema().
+                      encodeObjectClasses(objectClasses);
       ocBytes.add(b);
       ocLength = ASN1Element.encodeLength(b.length);
       totalBytes += ocLength.length + b.length;
@@ -4138,7 +4139,8 @@ public class Entry
 
           numUserAttributes++;
 
-          byte[] attrBytes = CompressedSchema.encodeAttribute(a);
+          byte[] attrBytes =
+               config.getCompressedSchema().encodeAttribute(a);
           byte[] lengthBytes =
                ASN1Element.encodeLength(attrBytes.length);
           userAttrBytes.add(lengthBytes);
@@ -4228,7 +4230,8 @@ public class Entry
 
           numOperationalAttributes++;
 
-          byte[] attrBytes = CompressedSchema.encodeAttribute(a);
+          byte[] attrBytes =
+               config.getCompressedSchema().encodeAttribute(a);
           byte[] lengthBytes =
                ASN1Element.encodeLength(attrBytes.length);
           operationalAttrBytes.add(lengthBytes);
@@ -4877,7 +4880,8 @@ public class Entry
       {
         byte[] ocBytes = new byte[ocLength];
         System.arraycopy(entryBytes, pos, ocBytes, 0, ocLength);
-        objectClasses = CompressedSchema.decodeObjectClasses(ocBytes);
+        objectClasses = config.getCompressedSchema().
+                             decodeObjectClasses(ocBytes);
         pos += ocLength;
       }
       else
@@ -4945,8 +4949,8 @@ public class Entry
           }
 
           // Decode the attribute.
-          Attribute a = CompressedSchema.decodeAttribute(entryBytes,
-                             pos, attrLength);
+          Attribute a = config.getCompressedSchema().decodeAttribute(
+                             entryBytes, pos, attrLength);
           List<Attribute> attrList =
                userAttributes.get(a.getAttributeType());
           if (attrList == null)
@@ -5108,8 +5112,8 @@ public class Entry
           }
 
           // Decode the attribute.
-          Attribute a = CompressedSchema.decodeAttribute(entryBytes,
-                             pos, attrLength);
+          Attribute a = config.getCompressedSchema().decodeAttribute(
+                             entryBytes, pos, attrLength);
           List<Attribute> attrList =
                operationalAttributes.get(a.getAttributeType());
           if (attrList == null)

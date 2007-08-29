@@ -25,13 +25,17 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+
+
+
 import org.opends.messages.Message;
-
-
-
+import org.opends.server.api.CompressedSchema;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.messages.CoreMessages.*;
+
+
+
 /**
  * This class defines a data structure that contains configuration
  * information about how an entry should be encoded.
@@ -89,6 +93,9 @@ public final class EntryEncodeConfig
   // The encoded representation of this encode configuration.
   private final byte[] encodedRepresentation;
 
+  // The compressed schema handler for this encode configuration.
+  private final CompressedSchema compressedSchema;
+
 
 
   /**
@@ -100,6 +107,8 @@ public final class EntryEncodeConfig
     excludeDN                = false;
     compressAttrDescriptions = false;
     compressObjectClassSets  = false;
+
+    compressedSchema = DirectoryServer.getDefaultCompressedSchema();
 
     encodedRepresentation = new byte[] { 0x00 };
   }
@@ -124,6 +133,52 @@ public final class EntryEncodeConfig
     this.excludeDN                = excludeDN;
     this.compressAttrDescriptions = compressAttrDescriptions;
     this.compressObjectClassSets  = compressObjectClassSets;
+
+    compressedSchema = DirectoryServer.getDefaultCompressedSchema();
+
+    byte flagByte = 0x00;
+    if (excludeDN)
+    {
+      flagByte |= ENCODE_FLAG_EXCLUDE_DN;
+    }
+
+    if (compressAttrDescriptions)
+    {
+      flagByte |= ENCODE_FLAG_COMPRESS_ADS;
+    }
+
+    if (compressObjectClassSets)
+    {
+      flagByte |= ENCODE_FLAG_COMPRESS_OCS;
+    }
+
+    encodedRepresentation = new byte[] { flagByte };
+  }
+
+
+
+  /**
+   * Creates a new encoded entry configuration wtih the specified
+   * settings.
+   *
+   * @param  excludeDN                 Indicates whether to exclude
+   *                                   the DN from the encoded entry.
+   * @param  compressAttrDescriptions  Indicates whether to compress
+   *                                   attribute descriptions.
+   * @param  compressObjectClassSets   Indicates whether to compress
+   *                                   object class sets.
+   * @param  compressedSchema          The compressed schema manager
+   *                                   for this encode config.
+   */
+  public EntryEncodeConfig(boolean excludeDN,
+                           boolean compressAttrDescriptions,
+                           boolean compressObjectClassSets,
+                           CompressedSchema compressedSchema)
+  {
+    this.excludeDN                = excludeDN;
+    this.compressAttrDescriptions = compressAttrDescriptions;
+    this.compressObjectClassSets  = compressObjectClassSets;
+    this.compressedSchema         = compressedSchema;
 
     byte flagByte = 0x00;
     if (excludeDN)
@@ -183,6 +238,22 @@ public final class EntryEncodeConfig
   public boolean compressObjectClassSets()
   {
     return compressObjectClassSets;
+  }
+
+
+
+  /**
+   * Retrieves the compressed schema manager that may be used to
+   * generate compact schema encodings with this entry encode
+   * configuration.
+   *
+   * @return  The compressed schema manager that may be used to
+   *          generate compact schema encodings with this entry encode
+   *          configuration.
+   */
+  public CompressedSchema getCompressedSchema()
+  {
+    return compressedSchema;
   }
 
 
