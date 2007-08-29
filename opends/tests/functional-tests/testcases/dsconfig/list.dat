@@ -7,7 +7,7 @@ list-connection-handlers:LDAP Connection Handler:LDAPS Connection Handler:
 list-extended-operation-handlers:Get Connection ID:Password Policy State:
 list-group-implementations:Dynamic:Static:
 list-identity-mappers:Exact Match:Regular Expression:
-list-je-indexes:entryuuid:givenName:
+list-je-indexes:entryUUID:givenName:
 list-key-managers:JKS:PKCS12:
 list-log-publishers:File-Based Audit Logger:File-Based Error Logger:
 list-log-retention-policies:File Count Retention Policy:Free Disk Space Retention Policy:
