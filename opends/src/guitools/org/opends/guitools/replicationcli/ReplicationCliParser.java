@@ -389,16 +389,16 @@ public class ReplicationCliParser extends SecureConnectionCliParser
 
     defaultArgs.remove(verboseArg);
     noPromptArg = new BooleanArgument(
-        NO_PROMPT_OPTION_LONG,
-        NO_PROMPT_OPTION_SHORT,
-        NO_PROMPT_OPTION_LONG,
+        OPTION_LONG_NO_PROMPT,
+        OPTION_SHORT_NO_PROMPT,
+        OPTION_LONG_NO_PROMPT,
         INFO_DESCRIPTION_NO_PROMPT.get());
     defaultArgs.add(index++, noPromptArg);
 
     quietArg = new BooleanArgument(
-        SecureConnectionCliParser.QUIET_OPTION_LONG,
-        SecureConnectionCliParser.QUIET_OPTION_SHORT,
-        SecureConnectionCliParser.QUIET_OPTION_LONG,
+        OPTION_LONG_QUIET,
+        OPTION_SHORT_QUIET,
+        OPTION_LONG_QUIET,
         INFO_REPLICATION_DESCRIPTION_QUIET.get());
     defaultArgs.add(quietArg);
     initializeGlobalArguments(defaultArgs);

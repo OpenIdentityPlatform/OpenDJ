@@ -54,7 +54,7 @@ import org.opends.server.util.args.BooleanArgument;
 public class UninstallGuiLauncher extends UninstallLauncher {
 
   /** Prefix for log files. */
-  static public final String LOG_FILE_PREFIX = "opends-uninstall-cli-";
+  static public final String LOG_FILE_PREFIX = "opends-uninstall-gui-";
 
   /** Suffix for log files. */
   static public final String LOG_FILE_SUFFIX = ".log";

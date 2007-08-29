@@ -30,6 +30,7 @@ package org.opends.guitools.uninstaller;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
+import static org.opends.server.tools.ToolConstants.*;
 
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -152,9 +153,9 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
         );
     args.add(removeLDIFFiles);
     noPrompt = new BooleanArgument(
-        NO_PROMPT_OPTION_LONG,
-        NO_PROMPT_OPTION_SHORT,
-        NO_PROMPT_OPTION_LONG,
+        OPTION_LONG_NO_PROMPT,
+        OPTION_SHORT_NO_PROMPT,
+        OPTION_LONG_NO_PROMPT,
         INFO_DESCRIPTION_NO_PROMPT.get());
     args.add(noPrompt);
     forceOnError = new BooleanArgument(
@@ -164,9 +165,9 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
         INFO_UNINSTALLDS_DESCRIPTION_FORCE.get(noPrompt.getLongIdentifier()));
     args.add(forceOnError);
     quiet = new BooleanArgument(
-        SecureConnectionCliParser.QUIET_OPTION_LONG,
-        SecureConnectionCliParser.QUIET_OPTION_SHORT,
-        SecureConnectionCliParser.QUIET_OPTION_LONG,
+        OPTION_LONG_QUIET,
+        OPTION_SHORT_QUIET,
+        OPTION_LONG_QUIET,
         INFO_UNINSTALLDS_DESCRIPTION_QUIET.get());
     args.add(quiet);
 

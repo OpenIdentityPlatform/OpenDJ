@@ -248,9 +248,8 @@ class UninstallCliHelper extends CliApplicationHelper {
       Message.raw("2"),
       Message.raw("3")
     };
-    Message answer = promptConfirm(
-            INFO_CLI_UNINSTALL_WHAT_TO_DELETE.get(),
-            options[0], options);
+    Message answer = promptConfirm(INFO_CLI_UNINSTALL_WHAT_TO_DELETE.get(),
+        options[0], options);
     if (options[2].toString().equals(answer.toString()))
     {
       cancelled = true;
@@ -304,15 +303,11 @@ class UninstallCliHelper extends CliApplicationHelper {
           if (!ignore)
           {
             Message msg = keys[i];
-            answer = promptConfirm(
-                    msg, INFO_CLI_YES_LONG.get(),
-                    validValues);
+            answer = promptConfirm(msg, INFO_CLI_YES_LONG.get(), validValues);
 
-            answers[i] =
-                    INFO_CLI_YES_LONG.get().toString().
-                            equalsIgnoreCase(answer.toString()) ||
-                            INFO_CLI_YES_SHORT.get().toString().
-                                    equalsIgnoreCase(answer.toString());
+            answers[i] = INFO_CLI_YES_LONG.get().toString().equalsIgnoreCase(
+                answer.toString()) || INFO_CLI_YES_SHORT.get().toString().
+                equalsIgnoreCase(answer.toString());
           }
           else
           {

@@ -54,7 +54,6 @@ import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.Tag;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
-import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.tools.ClientException;
 import org.opends.server.types.DebugLogLevel;
@@ -473,18 +472,18 @@ public final class DSConfig extends ConsoleApplication {
           INFO_DESCRIPTION_VERBOSE.get());
 
       quietArgument = new BooleanArgument(
-          SecureConnectionCliParser.QUIET_OPTION_LONG,
-          SecureConnectionCliParser.QUIET_OPTION_SHORT,
-          SecureConnectionCliParser.QUIET_OPTION_LONG, INFO_DESCRIPTION_QUIET
-              .get());
+          OPTION_LONG_QUIET,
+          OPTION_SHORT_QUIET,
+          OPTION_LONG_QUIET,
+          INFO_DESCRIPTION_QUIET.get());
 
       scriptFriendlyArgument = new BooleanArgument("script-friendly", 's',
           "script-friendly", INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
 
       noPromptArgument = new BooleanArgument(
-          SecureConnectionCliParser.NO_PROMPT_OPTION_LONG,
-          SecureConnectionCliParser.NO_PROMPT_OPTION_SHORT,
-          SecureConnectionCliParser.NO_PROMPT_OPTION_LONG,
+          OPTION_LONG_NO_PROMPT,
+          OPTION_SHORT_NO_PROMPT,
+          OPTION_LONG_NO_PROMPT,
           INFO_DESCRIPTION_NO_PROMPT.get());
 
       showUsageArgument = new BooleanArgument("showUsage", OPTION_SHORT_HELP,

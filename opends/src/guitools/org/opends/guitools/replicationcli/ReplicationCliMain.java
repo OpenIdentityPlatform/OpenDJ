@@ -299,64 +299,11 @@ public class ReplicationCliMain extends CliApplicationHelper
   }
 
   /**
-   * Displays an error message in the error output (wrapping it if necessary).
-   * @param msg the error message to be displayed.
+   * {@inheritDoc}
    */
-  protected void printErrorMessage(Message msg)
+  protected boolean isQuiet()
   {
-    err.println(org.opends.server.util.StaticUtils.wrapText(msg,
-        Utils.getCommandLineMaxLineWidth()));
-    LOG.log(Level.SEVERE, msg.toString());
-  }
-
-  /**
-   * Displays a progress message in the error output (wrapping it if necessary).
-   * @param msg the error message to be displayed.
-   */
-  protected void printProgressMessage(Message msg)
-  {
-    if (!argParser.isQuiet())
-    {
-      out.print(org.opends.server.util.StaticUtils.wrapText(msg,
-          Utils.getCommandLineMaxLineWidth()));
-      out.flush();
-    }
-    LOG.log(Level.INFO, msg.toString());
-  }
-
-  /**
-   * Prints a line break in the standard output if we are not in quite mode.
-   */
-  protected void printProgressLineBreak()
-  {
-    if (!argParser.isQuiet())
-    {
-      out.println();
-    }
-  }
-
-  /**
-   * Displays a warning message in the error output (wrapping it if necessary).
-   * @param msg the warning message to be displayed.
-   */
-  protected void printWarningMessage(Message msg)
-  {
-    if (!argParser.isQuiet())
-    {
-      // TODO: decide if even in quiet mode we must display this message or not.
-      out.print(org.opends.server.util.StaticUtils.wrapText(msg,
-          Utils.getCommandLineMaxLineWidth()));
-      out.flush();
-    }
-    LOG.log(Level.WARNING, msg.toString());
-  }
-
-  /**
-   * Prints a line break in the standard output.
-   */
-  protected void printLineBreak()
-  {
-    out.println();
+    return argParser.isQuiet();
   }
 
   /**
