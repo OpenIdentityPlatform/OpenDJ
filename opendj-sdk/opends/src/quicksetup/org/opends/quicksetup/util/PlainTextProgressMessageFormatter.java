@@ -192,7 +192,7 @@ implements ProgressMessageFormatter
   public Message getFormattedWithPoints(Message text)
   {
     return new MessageBuilder(text).append(SPACE)
-            .append(INFO_PROGRESS_POINTS.get()).toMessage();
+            .append(INFO_PROGRESS_POINTS.get()).append(SPACE).toMessage();
   }
 
   /**
@@ -262,8 +262,9 @@ implements ProgressMessageFormatter
   public Message getTaskSeparator()
   {
     return Message.raw(
-    "\n\n-----------------------------------------------------------------\n\n"
-            );
+        Constants.LINE_SEPARATOR+
+        "-----------------------------------------------------------------"+
+        Constants.LINE_SEPARATOR);
   }
 
   /**

@@ -850,7 +850,10 @@ public abstract class Application implements ProgressNotifier, Runnable {
           mb.append(formatString(msg));
         } else
         {
-          mb.append(formatter.getLineBreak());
+          if (!Utils.isCli())
+          {
+            mb.append(getLineBreak());
+          }
           mb.append(formatString(msg));
         }
 

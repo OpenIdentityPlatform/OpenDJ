@@ -82,4 +82,7 @@ public class Constants {
           HTML_LIST_ITEM_CLOSE
   };
 
+  /** The cli java system property. */
+  public static final String CLI_JAVA_PROPERTY = "org.opends.quicksetup.cli";
+
 }

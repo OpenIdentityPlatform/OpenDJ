@@ -28,7 +28,7 @@
 package org.opends.quicksetup;
 
 import org.opends.messages.Message;
-import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.messages.AdminToolMessages.*;
 
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.StaticUtils;
@@ -87,7 +87,7 @@ public class CliUserInteraction extends CliApplicationHelper
       sOptions.add(createOption(options.length + 1,
               viewDetailsOption != null ?
                       viewDetailsOption.toString() :
-                      "View Details")); // TODO: i18n
+                      INFO_CLI_VIEW_DETAILS.get().toString()));
     }
 
     println(String.valueOf(summary));
@@ -100,10 +100,10 @@ public class CliUserInteraction extends CliApplicationHelper
       for (String o : sOptions) {
         println(o);
       }
-      System.out.print( // TODO: i18n
-              Message.raw(CliUserInteraction.PROMPT_FORMAT,
-                      "Enter a number or press Enter to accept the default",
-                      Integer.toString(defInt)));
+      System.out.print(
+          Message.raw(CliApplicationHelper.PROMPT_DEFAULT_FORMAT,
+              INFO_CLI_NUMBER_PROMPT.get().toString(),
+              Integer.toString(defInt)));
 
       System.out.flush();
 
@@ -123,7 +123,7 @@ public class CliUserInteraction extends CliApplicationHelper
       } else if (respInt > 0 && respInt <= options.length) {
         returnValue = options[respInt - 1];
       } else {
-        println("Illegal response " + response); // TODO: i18n
+        println(INFO_CLI_INVALID_RESPONSE.get()+" " + response);
       }
     }
     return returnValue;

@@ -811,7 +811,7 @@ public class Utils
    */
   public static boolean isCli()
   {
-    return "true".equals(System.getProperty("org.opends.quicksetup.cli"));
+    return "true".equals(System.getProperty(Constants.CLI_JAVA_PROPERTY));
   }
 
   /**

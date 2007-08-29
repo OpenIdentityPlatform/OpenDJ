@@ -247,7 +247,7 @@ public abstract class Launcher {
    */
   protected int launchCli(CliApplication cliApp)
   {
-    System.setProperty("org.opends.quicksetup.cli", "true");
+    System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
     QuickSetupCli cli = new QuickSetupCli(cliApp, this);
     ApplicationReturnCode.ReturnCode returnValue = cli.run();
     if (returnValue.equals(ApplicationReturnCode.ReturnCode.USER_DATA_ERROR))

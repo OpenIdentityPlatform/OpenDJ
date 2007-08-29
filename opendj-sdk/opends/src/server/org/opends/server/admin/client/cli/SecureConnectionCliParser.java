@@ -164,18 +164,6 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
   // the trust manager.
   private ApplicationTrustManager trustManager;
 
-  /** Short form of the option for specifying a noninteractive session. */
-  static public final Character NO_PROMPT_OPTION_SHORT = 'n';
-
-  /** Long form of the option for specifying a quiet session. */
-  static public final String QUIET_OPTION_LONG = "quiet";
-
-  /** Long form of the option for specifying a noninteractive session. */
-  static public final String NO_PROMPT_OPTION_LONG = "no-prompt";
-
-  /** Short form of the option for specifying a quiet session. */
-  static public final Character QUIET_OPTION_SHORT = 'Q';
-
   /**
    * The tracer object for the debug logger.
    */
@@ -451,7 +439,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
         INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get());
     set.add(trustStorePasswordArg);
 
-    trustStorePasswordFileArg = new FileBasedArgument("truststorepasswordfile",
+    trustStorePasswordFileArg = new FileBasedArgument("truststorePasswordFile",
         OPTION_SHORT_TRUSTSTORE_PWD_FILE, OPTION_LONG_TRUSTSTORE_PWD_FILE,
         false, false, OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
         INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get());
@@ -469,7 +457,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
         INFO_DESCRIPTION_KEYSTOREPASSWORD.get());
     set.add(keyStorePasswordArg);
 
-    keyStorePasswordFileArg = new FileBasedArgument("keystorepasswordfile",
+    keyStorePasswordFileArg = new FileBasedArgument("keystorePasswordFile",
         OPTION_SHORT_KEYSTORE_PWD_FILE, OPTION_LONG_KEYSTORE_PWD_FILE, false,
         false, OPTION_VALUE_KEYSTORE_PWD_FILE, null, null,
         INFO_DESCRIPTION_KEYSTOREPASSWORD_FILE.get());

@@ -36,9 +36,9 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.server.tools.ToolConstants.*;
 
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
@@ -69,7 +69,10 @@ public abstract class CliApplicationHelper {
           Logger.getLogger(CliApplicationHelper.class.getName());
 
   /** Format string used for deriving the console prompt. */
-  static public final String PROMPT_FORMAT = "%s%n[%s]:";
+  static public final String PROMPT_DEFAULT_FORMAT = "%s%n[%s]:";
+
+  /** Format string used for deriving the console prompt. */
+  static public final String PROMPT_NO_DEFAULT_FORMAT = "%s";
 
   private BooleanArgument noPromptArg = null;
 
@@ -123,7 +126,17 @@ public abstract class CliApplicationHelper {
     while (!isValid)
     {
 
-      Message msg = Message.raw(PROMPT_FORMAT, prompt, defaultValue);
+      Message msg;
+
+      if (defaultValue == null)
+      {
+
+        msg = Message.raw(PROMPT_NO_DEFAULT_FORMAT, prompt, defaultValue);
+      }
+      else
+      {
+        msg = Message.raw(PROMPT_DEFAULT_FORMAT, prompt, defaultValue);
+      }
 
       out.print(msg);
       out.flush();
@@ -161,11 +174,11 @@ public abstract class CliApplicationHelper {
             Utils.getCommandLineMaxLineWidth());
 
     while (true) {
-      out.print(wrappedPrompt);
-
       if (defaultValue == null) {
-        out.print(": ");
+        out.print(wrappedPrompt);
+        out.print(" ");
       } else {
+        out.println(wrappedPrompt);
         out.print("[");
         out.print(defaultValue);
         out.print("]: ");
@@ -423,17 +436,17 @@ public abstract class CliApplicationHelper {
     // them with the parser.
     try {
       noPromptArg = new BooleanArgument(
-          SecureConnectionCliParser.NO_PROMPT_OPTION_LONG,
-          SecureConnectionCliParser.NO_PROMPT_OPTION_SHORT,
-          SecureConnectionCliParser.NO_PROMPT_OPTION_LONG,
+          OPTION_LONG_NO_PROMPT,
+          OPTION_SHORT_NO_PROMPT,
+          OPTION_LONG_NO_PROMPT,
           INFO_DESCRIPTION_NO_PROMPT.get());
       argParser.addArgument(noPromptArg);
 
       quietArg =
         new BooleanArgument(
-            SecureConnectionCliParser.QUIET_OPTION_LONG,
-            SecureConnectionCliParser.QUIET_OPTION_SHORT,
-            SecureConnectionCliParser.QUIET_OPTION_LONG,
+            OPTION_LONG_QUIET,
+            OPTION_SHORT_QUIET,
+            OPTION_LONG_QUIET,
             INFO_DESCRIPTION_QUIET.get());
       argParser.addArgument(quietArg);
 
@@ -444,7 +457,6 @@ public abstract class CliApplicationHelper {
     return argParser;
   }
 
-
   /**
    * Displays an error message in the error output (wrapping it if necessary).
    * @param msg the error message to be displayed.
@@ -453,6 +465,64 @@ public abstract class CliApplicationHelper {
   {
     err.println(org.opends.server.util.StaticUtils.wrapText(msg,
         Utils.getCommandLineMaxLineWidth()));
+    LOG.log(Level.SEVERE, msg.toString());
+  }
+
+  /**
+   * Displays a progress message in the error output (wrapping it if necessary).
+   * @param msg the error message to be displayed.
+   */
+  protected void printProgressMessage(Message msg)
+  {
+    if (!isQuiet())
+    {
+      out.print(org.opends.server.util.StaticUtils.wrapText(msg,
+          Utils.getCommandLineMaxLineWidth()));
+      out.flush();
+    }
+    LOG.log(Level.INFO, msg.toString());
+  }
+
+  /**
+   * Displays a progress message in the error output (wrapping it if necessary).
+   * @param msg the error message to be displayed.
+   */
+  protected void printProgressMessage(String msg)
+  {
+    if (!isQuiet())
+    {
+      out.print(org.opends.server.util.StaticUtils.wrapText(msg,
+          Utils.getCommandLineMaxLineWidth()));
+      out.flush();
+    }
+    LOG.log(Level.INFO, msg.toString());
+  }
+
+  /**
+   * Prints a line break in the standard output if we are not in quite mode.
+   */
+  protected void printProgressLineBreak()
+  {
+    if (!isQuiet())
+    {
+      out.println();
+    }
+  }
+
+  /**
+   * Displays a warning message in the error output (wrapping it if necessary).
+   * @param msg the warning message to be displayed.
+   */
+  protected void printWarningMessage(Message msg)
+  {
+    if (!isQuiet())
+    {
+      // TODO: decide if even in quiet mode we must display this message or not.
+      out.println(org.opends.server.util.StaticUtils.wrapText(msg,
+          Utils.getCommandLineMaxLineWidth()));
+      out.flush();
+    }
+    LOG.log(Level.WARNING, msg.toString());
   }
 
   /**
@@ -471,6 +541,20 @@ public abstract class CliApplicationHelper {
   protected void printLineBreak()
   {
     out.println();
+  }
+
+  /**
+   * Prints a line message in the standard output.
+   * @param msg the error message to be displayed.
+   * @param overrideQuietMode whether to override the quiet mode or not.
+   */
+  protected void printLine(Message msg, boolean overrideQuietMode)
+  {
+    if (!isQuiet() || overrideQuietMode)
+    {
+      out.println(org.opends.server.util.StaticUtils.wrapText(msg,
+          Utils.getCommandLineMaxLineWidth()));
+    }
   }
 
   /**

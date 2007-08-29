@@ -39,7 +39,6 @@ import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.QuickSetupLog;
 
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -191,15 +190,15 @@ public class UpgradeLauncher extends Launcher {
               null, null, INFO_UPGRADE_DESCRIPTION_FILE.get());
       argParser.addArgument(file);
       noPrompt = new BooleanArgument(
-          SecureConnectionCliParser.NO_PROMPT_OPTION_LONG,
-          SecureConnectionCliParser.NO_PROMPT_OPTION_SHORT,
-          SecureConnectionCliParser.NO_PROMPT_OPTION_LONG,
+          OPTION_LONG_NO_PROMPT,
+          OPTION_SHORT_NO_PROMPT,
+          OPTION_LONG_NO_PROMPT,
           INFO_UPGRADE_DESCRIPTION_NO_PROMPT.get());
       argParser.addArgument(noPrompt);
       quiet = new BooleanArgument(
-          SecureConnectionCliParser.QUIET_OPTION_LONG,
-          SecureConnectionCliParser.QUIET_OPTION_SHORT,
-          SecureConnectionCliParser.QUIET_OPTION_LONG,
+          OPTION_LONG_QUIET,
+          OPTION_SHORT_QUIET,
+          OPTION_LONG_QUIET,
           INFO_UPGRADE_DESCRIPTION_SILENT.get());
       argParser.addArgument(quiet);
       showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
