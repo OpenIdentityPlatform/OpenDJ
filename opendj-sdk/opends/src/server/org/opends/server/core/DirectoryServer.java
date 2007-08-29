@@ -98,6 +98,7 @@ import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.messages.MessageDescriptor;
 import org.opends.messages.Message;
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
 import org.opends.server.schema.AttributeTypeSyntax;
@@ -282,6 +283,11 @@ public class DirectoryServer
    * Windows Service.
    */
   private static int START_AS_DETACH_CALLED_FROM_WINDOWS_SERVICE = 102;
+  /**
+   * The server must be started as detached process and should not produce any
+   * output.
+   */
+  private static int START_AS_DETACH_QUIET = 103;
 
   // The policy to use regarding single structural objectclass enforcement.
   private AcceptRejectWarn singleStructuralClassPolicy;
@@ -8990,6 +8996,7 @@ public class DirectoryServer
   {
     // Define the arguments that may be provided to the server.
     BooleanArgument checkStartability = null;
+    BooleanArgument quietMode         = null;
     BooleanArgument windowsNetStart   = null;
     BooleanArgument displayUsage      = null;
     BooleanArgument fullVersion       = null;
@@ -9056,6 +9063,11 @@ public class DirectoryServer
       noDetach = new BooleanArgument("nodetach", 'N', "nodetach",
                                      INFO_DSCORE_DESCRIPTION_NODETACH.get());
       argParser.addArgument(noDetach);
+
+
+      quietMode = new BooleanArgument("quiet", 'Q', "quiet",
+                                      INFO_DESCRIPTION_QUIET.get());
+      argParser.addArgument(quietMode);
 
 
       displayUsage = new BooleanArgument("help", 'H', "help",
@@ -9317,9 +9329,12 @@ public class DirectoryServer
 
           if (noDetach.isPresent())
           {
-            MultiOutputStream multiStream =
-                 new MultiOutputStream(System.out, serverOutStream);
-            serverOutStream = new PrintStream(multiStream);
+            if (! quietMode.isPresent())
+            {
+              MultiOutputStream multiStream =
+                   new MultiOutputStream(System.out, serverOutStream);
+              serverOutStream = new PrintStream(multiStream);
+            }
           }
 
           System.setOut(serverOutStream);
@@ -9533,6 +9548,8 @@ public class DirectoryServer
 
     BooleanArgument noDetach =
       (BooleanArgument)argParser.getArgumentForLongID("nodetach");
+    BooleanArgument quietMode =
+      (BooleanArgument)argParser.getArgumentForLongID("quiet");
     BooleanArgument windowsNetStart =
       (BooleanArgument)argParser.getArgumentForLongID("windowsnetstart");
 
@@ -9617,6 +9634,10 @@ public class DirectoryServer
         if (noDetachPresent)
         {
           returnValue = START_AS_NON_DETACH;
+        }
+        else if (quietMode.isPresent())
+        {
+          returnValue = START_AS_DETACH_QUIET;
         }
         else
         {
