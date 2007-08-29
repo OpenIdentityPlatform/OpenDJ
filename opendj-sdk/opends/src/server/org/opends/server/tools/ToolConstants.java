@@ -345,6 +345,11 @@ public class ToolConstants
   public static final String OPTION_VALUE_KEYSTORE_PWD = "{keyStorePassword}";
 
   /**
+   * The value for the short option trustStorePassword.
+   */
+  public static final char OPTION_SHORT_TRUSTSTORE_PWD = 'T';
+
+  /**
    * The value for the long option trustStorePassword.
    */
   public static final String OPTION_LONG_TRUSTSTORE_PWD = "trustStorePassword";
@@ -389,6 +394,32 @@ public class ToolConstants
    * displayed in usage information.
    */
   public static final String OPTION_VALUE_TRUSTSTORE_PWD_FILE = "{path}";
+
+  /**
+   * The value for the short option trustAll .
+   */
+  public static final char OPTION_SHORT_TRUSTALL = 'X';
+
+  /**
+   * The value for the long option trustAll .
+   */
+  public static final String OPTION_LONG_TRUSTALL = "trustAll";
+
+  /**
+   * The value for the short option certNickname .
+   */
+  public static final char OPTION_SHORT_CERT_NICKNAME = 'N';
+
+  /**
+   * The value for the long option certNickname .
+   */
+  public static final String OPTION_LONG_CERT_NICKNAME = "certNickname";
+
+  /**
+   * The placeholder value of certNickname that will be  displayed in usage
+   * information.
+   */
+  public static final String OPTION_VALUE_CERT_NICKNAME = "{nickname}";
 
   /**
    * The value for the long option assertionFilter .
@@ -666,6 +697,14 @@ public class ToolConstants
    */
   public static final String OPTION_LONG_NO_PROMPT = "no-prompt";
 
+  /**
+   * Value for verbose option short form.
+   */
+  public static final Character OPTION_SHORT_VERBOSE = 'v';
 
+  /**
+   * Value for verbose option long form.
+   */
+  public static final String OPTION_LONG_VERBOSE = "verbose";
 }
 

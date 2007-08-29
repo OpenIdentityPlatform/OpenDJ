@@ -423,8 +423,8 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
         INFO_DESCRIPTION_BINDPASSWORDFILE.get());
     set.add(bindPasswordFileArg);
 
-    trustAllArg = new BooleanArgument("trustAll", 'X', "trustAll",
-        INFO_DESCRIPTION_TRUSTALL.get());
+    trustAllArg = new BooleanArgument("trustAll", OPTION_SHORT_TRUSTALL,
+        OPTION_LONG_TRUSTALL, INFO_DESCRIPTION_TRUSTALL.get());
     set.add(trustAllArg);
 
     trustStorePathArg = new StringArgument("trustStorePath",
@@ -433,13 +433,13 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
         INFO_DESCRIPTION_TRUSTSTOREPATH.get());
     set.add(trustStorePathArg);
 
-    trustStorePasswordArg = new StringArgument("trustStorePassword", null,
-        OPTION_LONG_TRUSTSTORE_PWD, false, false, true,
-        OPTION_VALUE_TRUSTSTORE_PWD, null, null,
+    trustStorePasswordArg = new StringArgument("trustStorePassword",
+        OPTION_SHORT_TRUSTSTORE_PWD, OPTION_LONG_TRUSTSTORE_PWD, false, false,
+        true, OPTION_VALUE_TRUSTSTORE_PWD, null, null,
         INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get());
     set.add(trustStorePasswordArg);
 
-    trustStorePasswordFileArg = new FileBasedArgument("truststorePasswordFile",
+    trustStorePasswordFileArg = new FileBasedArgument("trustStorePasswordFile",
         OPTION_SHORT_TRUSTSTORE_PWD_FILE, OPTION_LONG_TRUSTSTORE_PWD_FILE,
         false, false, OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
         INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get());
@@ -451,7 +451,8 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
         INFO_DESCRIPTION_KEYSTOREPATH.get());
     set.add(keyStorePathArg);
 
-    keyStorePasswordArg = new StringArgument("keyStorePassword", null,
+    keyStorePasswordArg = new StringArgument("keyStorePassword",
+        OPTION_SHORT_KEYSTORE_PWD,
         OPTION_LONG_KEYSTORE_PWD, false, false, true,
         OPTION_VALUE_KEYSTORE_PWD, null, null,
         INFO_DESCRIPTION_KEYSTOREPASSWORD.get());
@@ -463,13 +464,14 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
         INFO_DESCRIPTION_KEYSTOREPASSWORD_FILE.get());
     set.add(keyStorePasswordFileArg);
 
-    certNicknameArg = new StringArgument("certnickname", 'N', "certNickname",
-        false, false, true, "{nickname}", null, null,
+    certNicknameArg = new StringArgument("certNickname",
+        OPTION_SHORT_CERT_NICKNAME, OPTION_LONG_CERT_NICKNAME,
+        false, false, true, OPTION_VALUE_CERT_NICKNAME, null, null,
         INFO_DESCRIPTION_CERT_NICKNAME.get());
     set.add(certNicknameArg);
 
-    verboseArg = new BooleanArgument("verbose", 'v', "verbose",
-        INFO_DESCRIPTION_VERBOSE.get());
+    verboseArg = new BooleanArgument("verbose", OPTION_SHORT_VERBOSE,
+        OPTION_LONG_VERBOSE, INFO_DESCRIPTION_VERBOSE.get());
     set.add(verboseArg);
 
     return set;
