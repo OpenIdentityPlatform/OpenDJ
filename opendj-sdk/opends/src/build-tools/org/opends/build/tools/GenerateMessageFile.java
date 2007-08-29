@@ -140,7 +140,7 @@ public class GenerateMessageFile extends Task {
             .append("\n\nSEVERITY is one of ")
             .append(Severity.getPropertyKeyFormSet().toString())
             .append("\n\nDESCRIPTION is a descriptive string composed ")
-            .append("of uppercase characeter, digits and underscores ")
+            .append("of uppercase character, digits and underscores ")
             .append("describing the purpose of the message ")
             .append("\n\nORDINAL is an integer between 0 and 65535 that is ")
             .append("unique to other messages defined in this file.\n\n")
