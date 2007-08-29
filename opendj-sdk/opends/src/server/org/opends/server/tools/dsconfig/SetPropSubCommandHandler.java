@@ -529,7 +529,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       }
 
       PropertyValueEditor editor = new PropertyValueEditor(app);
-      MenuResult<Void> result2 = editor.edit(child, properties, true);
+      MenuResult<Void> result2 = editor.edit(child, properties, false);
       if (result2.isQuit()) {
         if (!app.isMenuDrivenMode()) {
           // User chose to cancel any changes.
