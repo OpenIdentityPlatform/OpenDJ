@@ -613,7 +613,7 @@
           if len(issuesList)==0:
             _status='FAIL'
           else:
-            _status='KNOWN ISSUES (%s)' % issuesList.join(',')
+            _status='KNOWN ISSUES (%s)' % ','.join(issuesList)
       </script>
       <message level="'status'">'## Test Verdict: %s ##' % _status</message>
       <call function="'testCase_EndBanner'" />
