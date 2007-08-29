@@ -329,6 +329,7 @@ class StatusCli extends CliApplicationHelper
             {
               bindPwd = promptForPassword(
                   INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDn));
+              printLineBreak();
               prompted = true;
             }
 
@@ -416,7 +417,6 @@ class StatusCli extends CliApplicationHelper
 
                   bindPwd = promptForPassword(
                       INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDn));
-
                   printLineBreak();
                   useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL);
                   if (!useSSL)
