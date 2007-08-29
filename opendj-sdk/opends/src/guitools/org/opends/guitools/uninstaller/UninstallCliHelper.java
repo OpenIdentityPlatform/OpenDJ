@@ -271,6 +271,7 @@ class UninstallCliHelper extends CliApplicationHelper {
       boolean somethingSelected = false;
       while (!somethingSelected)
       {
+        printLineBreak();
 //      Ask for confirmation for the different items
         Message[] keys = {
                 INFO_CLI_UNINSTALL_CONFIRM_LIBRARIES_BINARIES.get(),
@@ -418,10 +419,12 @@ class UninstallCliHelper extends CliApplicationHelper {
         {
           if (confirmToUpdateRemote())
           {
+            printLineBreak();
             cancelled = !askForAuthenticationIfNeeded(userData);
             if (cancelled)
             {
               /* Ask for confirmation to stop server */
+              printLineBreak();
               cancelled = !confirmToStopServer();
             }
             else
@@ -430,6 +433,7 @@ class UninstallCliHelper extends CliApplicationHelper {
                   interactive);
               if (cancelled)
               {
+                printLineBreak();
                 /* Ask for confirmation to stop server */
                 cancelled = !confirmToStopServer();
               }
@@ -437,6 +441,7 @@ class UninstallCliHelper extends CliApplicationHelper {
           }
           else
           {
+            printLineBreak();
             /* Ask for confirmation to stop server */
             cancelled = !confirmToStopServer();
           }
@@ -451,6 +456,7 @@ class UninstallCliHelper extends CliApplicationHelper {
       {
         if (interactive)
         {
+          printLineBreak();
           if (confirmToUpdateRemoteAndStart())
           {
             boolean startWorked = startServer(userData.isQuiet());
@@ -460,6 +466,7 @@ class UninstallCliHelper extends CliApplicationHelper {
               cancelled = !askForAuthenticationIfNeeded(userData);
               if (cancelled)
               {
+                printLineBreak();
                 /* Ask for confirmation to stop server */
                 cancelled = !confirmToStopServer();
               }
@@ -469,6 +476,7 @@ class UninstallCliHelper extends CliApplicationHelper {
                     interactive);
                 if (cancelled)
                 {
+                  printLineBreak();
                   /* Ask for confirmation to stop server */
                   cancelled = !confirmToStopServer();
                 }
@@ -479,6 +487,7 @@ class UninstallCliHelper extends CliApplicationHelper {
               userData.setStopServer(false);
               if (interactive)
               {
+                printLineBreak();
                 /* Ask for confirmation to delete files */
                 cancelled = !confirmDeleteFiles();
               }
@@ -486,6 +495,7 @@ class UninstallCliHelper extends CliApplicationHelper {
           }
           else
           {
+            printLineBreak();
             /* Ask for confirmation to stop server */
             cancelled = !confirmToStopServer();
           }
@@ -514,6 +524,7 @@ class UninstallCliHelper extends CliApplicationHelper {
       {
         if (interactive)
         {
+          printLineBreak();
           /* Ask for confirmation to stop server */
           cancelled = !confirmToStopServer();
         }
@@ -530,6 +541,7 @@ class UninstallCliHelper extends CliApplicationHelper {
         userData.setStopServer(false);
         if (interactive)
         {
+          printLineBreak();
           /* Ask for confirmation to delete files */
           cancelled = !confirmDeleteFiles();
         }
@@ -608,12 +620,19 @@ class UninstallCliHelper extends CliApplicationHelper {
     String ldapsUrl = conf.getLDAPSURL();
     while (!couldConnect && accepted)
     {
+      boolean prompted = false;
       while (uid == null)
       {
+        printLineBreak();
         uid = askForAdministratorUID(parser.getDefaultAdministratorUID());
+        prompted = true;
       }
       while (pwd == null)
       {
+        if (!prompted)
+        {
+          printLineBreak();
+        }
         pwd = askForAdministratorPwd();
       }
       userData.setAdminUID(uid);
@@ -661,6 +680,7 @@ class UninstallCliHelper extends CliApplicationHelper {
 
         if (Utils.isCertificateException(ne))
         {
+          printLineBreak();
           accepted = promptForCertificateConfirmation(ne,
               userData.getTrustManager(), usedUrl);
         }
@@ -671,6 +691,7 @@ class UninstallCliHelper extends CliApplicationHelper {
           printLineBreak();
           printErrorMessage(
               Utils.getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne));
+          printLineBreak();
           accepted = promptToProvideAuthenticationAgain();
         }
 
@@ -679,7 +700,9 @@ class UninstallCliHelper extends CliApplicationHelper {
         LOG.log(Level.WARNING, "Error connecting to server: "+t, t);
         uid = null;
         pwd = null;
+        printLineBreak();
         printErrorMessage(Utils.getThrowableMsg(INFO_BUG_MSG.get(), t));
+        printLineBreak();
         accepted = promptToProvideAuthenticationAgain();
       }
       finally
@@ -703,6 +726,7 @@ class UninstallCliHelper extends CliApplicationHelper {
       String referencedHostName = userData.getReferencedHostName();
       while (referencedHostName == null)
       {
+        printLineBreak();
         referencedHostName = askForReferencedHostName(userData.getHostName());
       }
       userData.setReferencedHostName(referencedHostName);
@@ -862,6 +886,7 @@ class UninstallCliHelper extends CliApplicationHelper {
       {
         LOG.log(Level.WARNING,
             "Error retrieving a valid LDAP URL in conf file");
+        printLineBreak();
         printErrorMessage(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
       ADSContext adsContext = new ADSContext(ctx);
@@ -889,11 +914,13 @@ class UninstallCliHelper extends CliApplicationHelper {
     } catch (TopologyCacheException te)
     {
       LOG.log(Level.WARNING, "Error connecting to server: "+te, te);
+      printLineBreak();
       printErrorMessage(Utils.getMessage(te));
 
     } catch (Throwable t)
     {
       LOG.log(Level.WARNING, "Error connecting to server: "+t, t);
+      printLineBreak();
       printErrorMessage(Utils.getThrowableMsg(INFO_BUG_MSG.get(), t));
     }
     finally
@@ -957,6 +984,7 @@ class UninstallCliHelper extends CliApplicationHelper {
       switch (e.getType())
       {
       case NOT_GLOBAL_ADMINISTRATOR:
+        printLineBreak();
         printErrorMessage(INFO_NOT_GLOBAL_ADMINISTRATOR_PROVIDED.get());
         stopProcessing = true;
         break;
@@ -966,6 +994,7 @@ class UninstallCliHelper extends CliApplicationHelper {
         {
           if (interactive)
           {
+            printLineBreak();
             if (promptForCertificateConfirmation(e.getCause(),
                 trustManager, e.getLdapUrl()))
             {
@@ -980,6 +1009,7 @@ class UninstallCliHelper extends CliApplicationHelper {
           else
           {
             stopProcessing = true;
+            printLineBreak();
             printErrorMessage(
                 INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
                 e.getHostPort(), e.getCause().getMessage()));
@@ -998,6 +1028,7 @@ class UninstallCliHelper extends CliApplicationHelper {
     {
       if (!stopProcessing && (exceptionMsgs.size() > 0))
       {
+        printLineBreak();
         returnValue = confirm(
             ERR_UNINSTALL_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
                 Utils.getMessageFromCollection(exceptionMsgs,
@@ -1017,6 +1048,7 @@ class UninstallCliHelper extends CliApplicationHelper {
     {
       if (exceptionMsgs.size() > 0)
       {
+        printLineBreak();
         printErrorMessage(Utils.getMessageFromCollection(exceptionMsgs,
             Constants.LINE_SEPARATOR));
         returnValue = false;

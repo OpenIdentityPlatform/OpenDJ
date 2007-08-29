@@ -272,8 +272,9 @@ class StatusCli extends CliApplicationHelper
     catch (ArgumentException ae)
     {
       Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-      err.println(wrap(message));
-      err.println(argParser.getUsage());
+      printErrorMessage(message);
+      printLineBreak();
+      printErrorMessage(argParser.getUsage());
 
       return ErrorReturnCode.ERROR_PARSING_ARGS.getReturnCode();
     }
@@ -288,7 +289,7 @@ class StatusCli extends CliApplicationHelper
 
     if (v != DsFrameworkCliReturnCode.SUCCESSFUL_NOP.getReturnCode())
     {
-      err.println(argParser.getUsage());
+      printErrorMessage(argParser.getUsage());
       return v;
     }
     else
@@ -329,7 +330,6 @@ class StatusCli extends CliApplicationHelper
             {
               bindPwd = promptForPassword(
                   INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDn));
-              printLineBreak();
               prompted = true;
             }
 
@@ -337,10 +337,12 @@ class StatusCli extends CliApplicationHelper
             {
               if (canUseSSL)
               {
-               useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL);
+                printLineBreak();
+                useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL);
               }
               if (!useSSL && canUseStartTLS)
               {
+                printLineBreak();
                 useStartTLS =
                   confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), useStartTLS);
               }
@@ -421,6 +423,7 @@ class StatusCli extends CliApplicationHelper
                   useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL);
                   if (!useSSL)
                   {
+                    printLineBreak();
                     useStartTLS =
                       confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), useStartTLS);
                   }
@@ -478,6 +481,7 @@ class StatusCli extends CliApplicationHelper
       }
       catch (ConfigException ce)
       {
+        printLineBreak();
         printErrorMessage(ce.getMessageObject());
       }
     }
