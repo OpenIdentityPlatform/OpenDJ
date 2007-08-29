@@ -119,8 +119,6 @@ public abstract class CliApplicationHelper {
                                   Message defaultValue,
                                   Message[] validValues) {
 
-    printLineBreak();
-
     boolean isValid = false;
     Message response = null;
     while (!isValid)
@@ -169,7 +167,6 @@ public abstract class CliApplicationHelper {
    * @return  The string value read from the user.
    */
   protected String promptForString(Message prompt, String defaultValue) {
-    printLineBreak();
     String wrappedPrompt = StaticUtils.wrapText(prompt,
             Utils.getCommandLineMaxLineWidth());
 
@@ -212,7 +209,6 @@ public abstract class CliApplicationHelper {
   protected String promptForPassword(Message msg)
   {
     String pwd;
-    printLineBreak();
     String wrappedPrompt = StaticUtils.wrapText(msg,
         Utils.getCommandLineMaxLineWidth());
     out.print(wrappedPrompt+" ");
@@ -228,6 +224,11 @@ public abstract class CliApplicationHelper {
       {
         pwd = new String(pwChars);
       }
+      // Sometimes the backspace trick creates problems in the terminal and
+      // out.println() does not write a new line.  printing a space fixes the
+      // problem
+      out.print(" ");
+      out.flush();
     }
     catch (Throwable t)
     {
@@ -698,7 +699,6 @@ public abstract class CliApplicationHelper {
     }
     else
     {
-      err.println();
       Message msg = Utils.getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(),
           t);
       printErrorMessage(msg);
@@ -767,7 +767,6 @@ public abstract class CliApplicationHelper {
     }
     if (displayErrorMessage)
     {
-      printLineBreak();
       printErrorMessage(msg);
     }
     Message[] validValues = {
