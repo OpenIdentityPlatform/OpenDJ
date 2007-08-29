@@ -655,5 +655,17 @@ public class ToolConstants
    * Value for the quiet option long form.
    */
   public static final String OPTION_LONG_QUIET = "quiet";
+
+  /**
+   * Value for noninteractive session short form.
+   */
+  public static final Character OPTION_SHORT_NO_PROMPT = 'n';
+
+  /**
+   * Value for noninteractive session long form.
+   */
+  public static final String OPTION_LONG_NO_PROMPT = "no-prompt";
+
+
 }
 

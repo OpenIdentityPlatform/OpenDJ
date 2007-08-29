@@ -137,7 +137,7 @@ class StatusCli extends CliApplicationHelper
   static private final Logger LOG = Logger.getLogger(StatusCli.class.getName());
 
   // The argument parser
-  private StatusCliParser argParser;
+  private StatusCliArgumentParser argParser;
 
   /**
    * Constructor for the StatusCli object.
@@ -169,7 +169,7 @@ class StatusCli extends CliApplicationHelper
 
   /**
    * Parses the provided command-line arguments and uses that information to
-   * run the replication tool.
+   * run the status tool.
    *
    * @param args the command-line arguments provided to this program.
    *
@@ -183,7 +183,7 @@ class StatusCli extends CliApplicationHelper
 
   /**
    * Parses the provided command-line arguments and uses that information to
-   * run the replication tool.
+   * run the status tool.
    *
    * @param  args              The command-line arguments provided to this
    *                           program.
@@ -252,7 +252,7 @@ class StatusCli extends CliApplicationHelper
       DirectoryServer.bootstrapClient();
     }
 
-    argParser = new StatusCliParser(StatusCli.class.getName());
+    argParser = new StatusCliArgumentParser(StatusCli.class.getName());
     try
     {
       argParser.initializeGlobalArguments(err);
@@ -300,12 +300,11 @@ class StatusCli extends CliApplicationHelper
        */
       ConfigFromFile offLineConf = new ConfigFromFile();
       offLineConf.readConfiguration();
-
       try
       {
         if (isServerRunning)
         {
-          String bindDn = argParser.getBindDN();
+          String bindDn;
           String bindPwd;
           boolean useSSL = argParser.useSSL();
           boolean useStartTLS = argParser.useStartTLS();
@@ -313,17 +312,48 @@ class StatusCli extends CliApplicationHelper
           {
             boolean connected = false;
             boolean cancelled = false;
+            boolean prompted = false;
 
+            boolean canUseSSL = offLineConf.getLDAPSURL() != null;
+            boolean canUseStartTLS = offLineConf.getStartTLSURL() != null;
+
+            bindDn = argParser.getExplicitBindDn();
             bindPwd = argParser.getBindPassword();
+            if (bindDn == null)
+            {
+              bindDn = promptForString(
+                  INFO_CLI_BINDDN_PROMPT.get(), argParser.getDefaultBindDn());
+              prompted = true;
+            }
             if (bindPwd == null)
             {
               bindPwd = promptForPassword(
                   INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDn));
+              prompted = true;
+            }
+
+            if (!useSSL && !useStartTLS)
+            {
+              if (canUseSSL)
+              {
+               useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL);
+              }
+              if (!useSSL && canUseStartTLS)
+              {
+                useStartTLS =
+                  confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), useStartTLS);
+              }
+              prompted = true;
             }
 
             InitialLdapContext ctx = null;
             while (!connected && !cancelled)
             {
+              if (prompted)
+              {
+                printLineBreak();
+              }
+
               String host = "localhost";
               int port = 389;
               try
@@ -355,6 +385,7 @@ class StatusCli extends CliApplicationHelper
                   useStartTLS =
                     confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), useStartTLS);
                 }
+                prompted = true;
               }
               catch (NamingException ne)
               {
@@ -369,6 +400,7 @@ class StatusCli extends CliApplicationHelper
                   {
                     cancelled = true;
                   }
+                  prompted = true;
                 }
                 else
                 {
@@ -392,6 +424,7 @@ class StatusCli extends CliApplicationHelper
                     useStartTLS =
                       confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), useStartTLS);
                   }
+                  prompted = true;
                 }
               }
             }
@@ -412,6 +445,7 @@ class StatusCli extends CliApplicationHelper
           }
           else
           {
+            bindDn = argParser.getBindDN();
             bindPwd = argParser.getBindPassword();
 
             if (bindDn == null)
