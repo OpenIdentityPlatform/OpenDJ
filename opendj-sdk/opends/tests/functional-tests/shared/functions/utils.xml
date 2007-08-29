@@ -553,8 +553,18 @@
     <function-no-args />
       <sequence>
         <script>
+          import time
+          testcaseStart=int(time.time())
           testcaseStartTime=strftime("%Y%m%d@%H:%M:%S",localtime())
           issuesList=[]
+          errorlog=open('%s/%s/logs/errors' % (TMPDIR,OPENDSNAME),'a')
+          errorlog.seek(0,2)
+          errorlog.write('Begin testcase %s\n' % STAXCurrentTestcase)
+          errorlog.close()
+          accesslog=open('%s/%s/logs/access' % (TMPDIR,OPENDSNAME),'a')
+          accesslog.seek(0,2)
+          accesslog.write('Begin testcase %s\n' % STAXCurrentTestcase)
+          accesslog.close()
         </script>
         <call function="'testCase_StartBanner'" />
     </sequence>
@@ -582,7 +592,7 @@
         SignalRaised='' 
       </script>
 
-      <!-- Query the test case results -->            
+      <!-- Query the test case results -->
       <call function="'queryTestcase'" />
       
       <script>
@@ -616,9 +626,21 @@
           'endat'     : testcaseEndTime }
       </call>
       <script>
+        import re
+        
+        class Matcher:
+          def search(self, r,s):
+            _tmp = re.compile(r)
+            self.value = _tmp.match(s)
+            return self.value
+          def __getitem__(self, i):
+            return self.value.group(i)
+        
         class Test:
-          def __init__(self, group, suite, fullname, start, stop, failures, successes, issues):
+          def __init__(self, group, suite, fullname, start, stop, failures, successes, issues, duration):
             self.log=''
+            self.error=''
+            self.access=''
             self.group=group
             self.suite=suite
             self.fullname=fullname
@@ -630,7 +652,7 @@
               self.name=''.join(tmp)
             else:
               self.name=fullname
-            self.duration = 0
+            self.duration = duration
             if len(issues) == 0:
               if failures == 0:
                 if successes == 0:
@@ -645,42 +667,55 @@
               
             
           def toXML(self):
-            xml  = '      &lt;test&gt;\n'
-            xml += '        &lt;name&gt;%s&lt;/name&gt;\n'         % self.name
-            xml += '        &lt;group&gt;%s&lt;/group&gt;\n'       % self.group
-            xml += '        &lt;suite&gt;%s&lt;/suite&gt;\n'       % self.suite
-            xml += '        &lt;start&gt;%s&lt;/start&gt;\n'       % self.start
-            xml += '        &lt;stop&gt;%s&lt;/stop&gt;\n'         % self.stop
-            xml += '        &lt;result&gt;%s&lt;/result&gt;\n'     % self.result
-            xml += '        &lt;duration&gt;%d&lt;/duration&gt;\n' % self.duration
-            xml += '        &lt;issues&gt;\n'
+            xml  = '      &lt;test&gt;%s' % newLine
+            xml += '        &lt;name&gt;%s&lt;/name&gt;%s'         % (self.name,newLine)
+            xml += '        &lt;group&gt;%s&lt;/group&gt;%s'       % (self.group,newLine)
+            xml += '        &lt;suite&gt;%s&lt;/suite&gt;%s'       % (self.suite,newLine)
+            xml += '        &lt;start&gt;%s&lt;/start&gt;%s'       % (self.start,newLine)
+            xml += '        &lt;stop&gt;%s&lt;/stop&gt;%s'         % (self.stop,newLine)
+            xml += '        &lt;result&gt;%s&lt;/result&gt;%s'     % (self.result,newLine)
+            xml += '        &lt;duration&gt;%d&lt;/duration&gt;%s' % (self.duration,newLine)
+            xml += '        &lt;issues&gt;%s'                      % newLine
             for issue in self.issues:
-              xml += '          &lt;issue&gt;%s&lt;/issue&gt;\n' % issue
-            xml += '        &lt;/issues&gt;\n'
-            xml += '        &lt;log&gt;\n&lt;![CDATA['
-            xml += '%s' % self.log
-            xml += '        ]]&gt;&lt;/log&gt;\n'
-            xml += '      &lt;/test&gt;\n'
+              xml += '          &lt;issue&gt;%s&lt;/issue&gt;%s'   % (issue,newLine)
+            xml += '        &lt;/issues&gt;%s'                     % newLine
+            xml += '        &lt;log&gt;\n&lt;![CDATA[%s'           % newLine
+            xml += self.log
+            xml += '        ]]&gt;&lt;/log&gt;%s'                  % newLine
+            xml += '        &lt;error&gt;\n&lt;![CDATA[%s'         % newLine
+            xml += self.error
+            xml += '        ]]&gt;&lt;/error&gt;%s'                % newLine
+            xml += '        &lt;access&gt;\n&lt;![CDATA[%s'        % newLine
+            xml += self.access
+            xml += '        ]]&gt;&lt;/access&gt;%s'               % newLine
+            xml += '      &lt;/test&gt;%s'                         % newLine
             return xml
-            
-          def appendLog(self, log):
+          
+          def appendLog(self, category, log):
             _leftPadding=''
+            wrappedLog=''
             while len(log)>100:
               _logChunk=log[:100]
               log=log[100:]
-              self.log+='%s%s\n' % (_leftPadding,_logChunk)
+              wrappedLog+='%s%s%s' % (_leftPadding,_logChunk,newLine)
               _leftPadding='...    '
-            self.log += '%s%s\n' % (_leftPadding,log)
+            wrappedLog += '%s%s%s' % (_leftPadding,log,newLine)
+            if category == 'access':
+              self.access+=wrappedLog
+            elif category == 'error':
+              self.error+=wrappedLog
+            else:
+              self.log += wrappedLog
             
           def getName(self):
             return self.name
-         
-        thisTest = Test(CurrentTestPath['group'],CurrentTestPath['suite'],STAXCurrentTestcase, testcaseStartTime,testcaseEndTime,numFail,numPass,issuesList)
-            
+        
+        testcaseStop=int(time.time())
+        testcaseDuration=testcaseStop-testcaseStart
+        thisTest = Test(CurrentTestPath['group'],CurrentTestPath['suite'],STAXCurrentTestcase, testcaseStartTime,testcaseEndTime,numFail,numPass,issuesList,testcaseDuration)
+        
         doLog = False
-        testlog=open('%s/tests-log.xml' % TMPDIR,'a')
-        testlog.seek(0,2)
-
+        
         # loop through the log lines
         for element in STAFResult:
           level=element['level'] 
@@ -692,7 +727,7 @@
           
           # if the current element is actually this test's output then log it
           if doLog == True:
-            thisTest.appendLog(element['message'])
+            thisTest.appendLog('test',element['message'])
             
           # this test is AFTER the append log so we don't get the
           # "starting testcase ..." header in the XML
@@ -704,7 +739,48 @@
             # log facility)
             if tmp[3] == thisTest.getName():
               doLog=True
-
+        
+        # parse the server's error log
+        # TODO: figure out how to do this for multiple instance for the replication
+        #       tests for example
+        errorlog=open('%s/%s/logs/errors' % (TMPDIR,OPENDSNAME),'a')
+        errorlog.seek(0,2)
+        errorlog.write('End testcase %s\n' % STAXCurrentTestcase)
+        errorlog.close()
+        accesslog=open('%s/%s/logs/access' % (TMPDIR,OPENDSNAME),'a')
+        accesslog.seek(0,2)
+        accesslog.write('End testcase %s\n' % STAXCurrentTestcase)
+        accesslog.close()
+        
+        errorlog=open('%s/%s/logs/errors' % (TMPDIR,OPENDSNAME), 'r')
+        _log=''
+        _doLog=False
+        for line in errorlog.readlines():
+          if line.startswith('End testcase %s' % STAXCurrentTestcase):
+            _doLog=False
+          if _doLog:
+            _log+=line
+          if line.startswith('Begin testcase %s' % STAXCurrentTestcase):
+            _doLog=True
+        errorlog.close()
+        thisTest.appendLog('error', _log)
+        
+        accesslog=open('%s/%s/logs/access' % (TMPDIR,OPENDSNAME), 'r')
+        _log=''
+        _doLog=False
+        for line in accesslog.readlines():
+          if line.startswith('End testcase %s' % STAXCurrentTestcase):
+            _doLog=False
+          if _doLog:
+            _log+=line
+          if line.startswith('Begin testcase %s' % STAXCurrentTestcase):
+            _doLog=True
+        accesslog.close()
+        thisTest.appendLog('access', _log)
+        
+        # save to test log
+        testlog=open('%s/tests-log.xml' % TMPDIR,'a')
+        testlog.seek(0,2)
         testlog.write(thisTest.toXML())
         testlog.close()
       </script>

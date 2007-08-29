@@ -110,6 +110,7 @@
     <xsl:variable name="total"          select="count($tests)"/>
     <xsl:variable name="pass"           select="count($tests[result='pass'])"/>
     <xsl:variable name="fail"           select="count($tests[result='fail'])"/>
+    <xsl:variable name="known"           select="count($tests[result='known'])"/>
     <xsl:variable name="unknown"        select="count($tests[result='inconclusive'])"/>
     <xsl:variable name="rate"           select="round((($pass div $total) * 100) - 0.5)"/>
     <!--- Test Report Header Variables -->
@@ -164,11 +165,12 @@
           <th align="center">Platform</th>
           <th align="center">JVM Version</th>
           <th align="center">JVM Vendor</th>
-          <th align="center">Total</th>
-          <th align="center">Pass</th>
-          <th align="center">Fail</th>
-          <th align="center">Inconclusive</th>
-          <th align="center">Coverage</th>
+          <th align="center" width="5%">Total</th>
+          <th align="center" width="5%">Pass</th>
+          <th align="center" width="5%">Fail</th>
+          <th align="center" width="5%">Known Issues</th>
+          <th align="center" width="5%">Inconclusive</th>
+          <th align="center" width="5%">Coverage</th>
         </tr>
         <tr>
           <th align="center"><xsl:value-of select="$identification/buildid"/></th>
@@ -179,6 +181,7 @@
           <th align="center"><xsl:value-of select="$total"/></th>
           <th align="center"><xsl:value-of select="$pass"/></th>
           <th align="center"><xsl:value-of select="$fail"/></th>
+          <th align="center"><xsl:value-of select="$known"/></th>
           <th align="center"><xsl:value-of select="$unknown"/></th>
           <th align="center">
             <a>
@@ -201,6 +204,7 @@
         <td width="5%">Success Rate</td>
         <td width="5%">Pass</td>
         <td width="5%">Fail</td>
+        <td width="5%">Known</td>
         <td width="5%">Inc.</td>
         <td width="5%">Cov.</td>
       </tr>
@@ -213,6 +217,7 @@
           <xsl:variable name="group-total"    select="count($tests[group=$group])"/>
           <xsl:variable name="group-pass"    select="count($tests[group=$group][result='pass'])"/>
           <xsl:variable name="group-fail"    select="count($tests[group=$group][result='fail'])"/>
+          <xsl:variable name="group-known"    select="count($tests[group=$group][result='known'])"/>
           <xsl:variable name="group-unknown" select="count($tests[group=$group][result='inconclusive'])"/>
           <xsl:variable name="group-rate"    select="round((($group-pass div $group-total) * 100) - 0.5)"/>
           <li>
@@ -255,12 +260,30 @@
                 <td width="5%">
                   <xsl:attribute name="class">
                     <xsl:choose>
+                      <xsl:when test="$group-known &gt; 0">
+                        <xsl:value-of select="'warning'" />
+                      </xsl:when>
+                    </xsl:choose>
+                  </xsl:attribute>
+                  <xsl:value-of select="$group-known"/>
+                </td>
+                <td width="5%">
+                  <xsl:attribute name="class">
+                    <xsl:choose>
                       <xsl:when test="$group-unknown &gt; 0">
                         <xsl:value-of select="'warning'" />
                       </xsl:when>
                     </xsl:choose>
                     </xsl:attribute>
                   <xsl:value-of select="$group-unknown"/>
+                </td>
+                <td width="5%">
+                  <a>
+                    <xsl:attribute name="href">
+                      <xsl:value-of select="concat(concat('coverage/',$group),'/coverage.html')"/>
+                    </xsl:attribute>
+                    <xsl:value-of select="/qa/functional-tests/results/group[name='$group']/coverage"/>%
+                  </a>
                 </td>
               </tr>
             </table>
@@ -271,6 +294,7 @@
                   <xsl:variable name="suite-total"   select="count($tests[group=$group][suite=$suite])"/>
                   <xsl:variable name="suite-pass"    select="count($tests[group=$group][suite=$suite][result='pass'])"/>
                   <xsl:variable name="suite-fail"    select="count($tests[group=$group][suite=$suite][result='fail'])"/>
+                  <xsl:variable name="suite-known"    select="count($tests[group=$group][suite=$suite][result='known'])"/>
                   <xsl:variable name="suite-unknown" select="count($tests[group=$group][suite=$suite][result='inconclusive'])"/>
                   <xsl:variable name="suite-rate"    select="round((($suite-pass div $suite-total) * 100) - 0.5)"/>
                   <li>
@@ -312,6 +336,16 @@
                             </xsl:choose>
                           </xsl:attribute>
                           <xsl:value-of select="$suite-fail"/>
+                        </td>
+                        <td width="5%">
+                          <xsl:attribute name="class">
+                            <xsl:choose>
+                              <xsl:when test="$suite-known &gt; 0">
+                                <xsl:value-of select="'warning'" />
+                              </xsl:when>
+                            </xsl:choose>
+                          </xsl:attribute>
+                          <xsl:value-of select="$suite-known"/>
                         </td>
                         <td width="5%">
                           <xsl:attribute name="class">
@@ -366,8 +400,26 @@
                             </tr>
                           </table>
                           <ul>
-                            <li>
-                              <pre><xsl:value-of select="log" /></pre>
+                            <li>Test Log<br />
+                              <ul>
+                                <li>
+                                  <pre><xsl:value-of select="log" /></pre>
+                                </li>
+                              </ul>
+                            </li>
+                            <li>Server access Log<br />
+                              <ul>
+                                <li>
+                                  <pre><xsl:value-of select="access" /></pre>
+                                </li>
+                              </ul>
+                            </li>
+                            <li>Server error Log<br />
+                              <ul>
+                                <li>
+                                  <pre><xsl:value-of select="error" /></pre>
+                                </li>
+                              </ul>
                             </li>
                           </ul>
                         </li>
@@ -388,10 +440,12 @@
       <xsl:variable name="group" select="group"/>
       <xsl:if test="generate-id(.)=generate-id($tests[group=$group])">
         <xsl:variable name="group-total"    select="count($tests[group=$group])"/>
-        <xsl:variable name="group-pass"    select="count($tests[group=$group][result='pass'])"/>
-        <xsl:variable name="group-fail"    select="count($tests[group=$group][result='fail'])"/>
-        <xsl:variable name="group-unknown" select="count($tests[group=$group][result='inconclusive'])"/>
-        <xsl:variable name="group-rate"    select="round((($group-pass div $group-total) * 100) - 0.5)"/>
+        <xsl:variable name="group-pass"     select="count($tests[group=$group][result='pass'])"/>
+        <xsl:variable name="group-fail"     select="count($tests[group=$group][result='fail'])"/>
+        <xsl:variable name="group-known"    select="count($tests[group=$group][result='known'])"/>
+        <xsl:variable name="group-unknown"  select="count($tests[group=$group][result='inconclusive'])"/>
+        <xsl:variable name="group-rate"     select="round((($group-pass div $group-total) * 100) - 0.5)"/>
+        <xsl:variable name="group-coverage" select="coverage"/>
         <p>
           <table>
             <tr>
@@ -399,6 +453,7 @@
               <th width="5%">Success Rate</th>
               <th width="5%">Pass</th>
               <th width="5%">Fail</th>
+              <th width="5%">Known</th>
               <th width="5%">Inc.</th>
               <th width="5%">Cov.</th>
             </tr>
@@ -427,28 +482,25 @@
               <td align="center"><xsl:value-of select="$group-rate"/>%</td>
               <td align="center"><xsl:value-of select="$group-pass"/></td>
               <td align="center"><xsl:value-of select="$group-fail"/></td>
+              <td align="center"><xsl:value-of select="$group-known"/></td>
               <td align="center"><xsl:value-of select="$group-unknown"/></td>
-              <xsl:for-each select="$groups">
-                <xsl:variable name="thisgroup" select="name"/>
-                <xsl:if test="generate-id(.)=generate-id($groups[name=$thisgroup])">
-                  <td>
-                    <a>
-                      <xsl:attribute name="href">
-                        <xsl:value-of select="concat(concat('coverage/',$group),'/coverage.html')"/>
-                      </xsl:attribute>  
-                      <xsl:value-of select="group"/> 
-                      <xsl:value-of select="coverage"/>%
-                    </a>
-                  </td>
-                </xsl:if>
-              </xsl:for-each>
+              <td>
+                <a>
+                  <xsl:attribute name="href">
+                    <xsl:value-of select="concat(concat('coverage/',$group),'/coverage.html')"/>
+                  </xsl:attribute>
+                  <xsl:variable name="group-cov" select="/qa/functional-tests/group[name=$group]" />
+                  <xsl:value-of select="$group-cov/coverage"/>%
+                </a>
+              </td>
             </tr>
             <xsl:for-each select="$tests[group=$group]">
               <xsl:variable name="suite" select="suite"/>
               <xsl:if test="generate-id(.)=generate-id($tests[group=$group][suite=$suite])">
-                <xsl:variable name="suite-total"    select="count($tests[group=$group][suite=$suite])"/>
+                <xsl:variable name="suite-total"   select="count($tests[group=$group][suite=$suite])"/>
                 <xsl:variable name="suite-pass"    select="count($tests[group=$group][suite=$suite][result='pass'])"/>
                 <xsl:variable name="suite-fail"    select="count($tests[group=$group][suite=$suite][result='fail'])"/>
+                <xsl:variable name="suite-known"   select="count($tests[group=$group][suite=$suite][result='known'])"/>
                 <xsl:variable name="suite-unknown" select="count($tests[group=$group][suite=$suite][result='inconclusive'])"/>
                 <xsl:variable name="suite-rate"    select="round((($suite-pass div $suite-total) * 100) - 0.5)"/>
                 <tr>
@@ -460,6 +512,7 @@
                         <th width="5%">Success rate</th>
                         <th width="5%">Pass</th>
                         <th width="5%">Fail</th>
+                        <th width="5%">Known</th>
                         <th width="5%">Inc.</th>
                       </tr>
                       <tr>
@@ -488,6 +541,7 @@
                         <td><xsl:value-of select="$suite-rate"/>%</td>
                         <td><xsl:value-of select="$suite-pass"/></td>
                         <td><xsl:value-of select="$suite-fail"/></td>
+                        <td><xsl:value-of select="$suite-known"/></td>
                         <td><xsl:value-of select="$suite-unknown"/></td>
                       </tr>
                     </table>

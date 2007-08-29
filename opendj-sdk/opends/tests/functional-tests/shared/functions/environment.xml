@@ -134,10 +134,12 @@
           fileExt='.bat'
           fileFolder='bat'
           pathSeparator=';'
+          newLine='\r\n'
         else:
           fileExt=''
           fileFolder='bin'
           pathSeparator=':'
+          newLine='\n'
       </script>
       
       <!-- Set the signal handlers -->
