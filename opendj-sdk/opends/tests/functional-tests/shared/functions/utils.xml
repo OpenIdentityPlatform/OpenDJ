@@ -557,14 +557,12 @@
           testcaseStart=int(time.time())
           testcaseStartTime=strftime("%Y%m%d@%H:%M:%S",localtime())
           issuesList=[]
-          errorlog=open('%s/%s/logs/errors' % (TMPDIR,OPENDSNAME),'a')
-          errorlog.seek(0,2)
-          errorlog.write('Begin testcase %s\n' % STAXCurrentTestcase)
-          errorlog.close()
-          accesslog=open('%s/%s/logs/access' % (TMPDIR,OPENDSNAME),'a')
-          accesslog.seek(0,2)
-          accesslog.write('Begin testcase %s\n' % STAXCurrentTestcase)
-          accesslog.close()
+          for logType in ['errors','access']:
+            if os.path.exists('%s/%s/logs/%s' % (TMPDIR,OPENDSNAME,logType)):
+              logfile=open('%s/%s/logs/%s' % (TMPDIR,OPENDSNAME,logType),'a')
+              logfile.seek(0,2)
+              logfile.write('Begin testcase %s\n' % STAXCurrentTestcase)
+              logfile.close()
         </script>
         <call function="'testCase_StartBanner'" />
     </sequence>
@@ -605,15 +603,19 @@
           numFail=int(STAFResult['numFails'])
         else:
           numFail=int(0)
-          
+        
+        if numFail == 0:
+          if numPass == 0:
+            _status='INCONCLUSIVE'
+          else:
+            _status='PASS'
+        else:
+          if len(issuesList)==0:
+            _status='FAIL'
+          else:
+            _status='KNOWN ISSUES (%s)' % issuesList.join(',')
       </script>
-             
-      <if expr="numFail &gt; 0">
-        <message level="'status'">'## Test Verdict: FAIL ##'</message>
-      <else>
-        <message level="'status'">'## Test Verdict: PASS ##'</message>
-      </else>
-      </if>
+      <message level="'status'">'## Test Verdict: %s ##' % _status</message>
       <call function="'testCase_EndBanner'" />
 
       <script>
@@ -628,9 +630,12 @@
       <script>
         class Test:
           def __init__(self, group, suite, fullname, start, stop, failures, successes, issues, duration):
-            self.log=''
-            self.error=''
-            self.access=''
+            self.log='%s/test.log'      % TMPDIR
+            self.errors='%s/error.log'   % TMPDIR
+            self.access='%s/access.log' % TMPDIR
+            open(self.log,'w').write('')
+            open(self.errors,'w').write('')
+            open(self.access,'w').write('')
             self.group=group
             self.suite=suite
             self.fullname=fullname
@@ -643,19 +648,19 @@
             else:
               self.name=fullname
             self.duration = duration
-            if len(issues) == 0:
-              if failures == 0:
-                if successes == 0:
-                  self.result='inconclusive'
-                else:
-                  self.result='pass'
+            if failures == 0:
+              if successes == 0:
+                self.result='inconclusive'
               else:
-                self.result='fail'
+                self.result='pass'
             else:
-              self.result='known'
+              if len(issues) == 0:
+                self.result='fail'
+              else:
+                self.result='known'
             self.issues=issues
-              
-            
+          
+          
           def toXML(self):
             xml  = '      &lt;test&gt;%s' % newLine
             xml += '        &lt;name&gt;%s&lt;/name&gt;%s'         % (self.name,newLine)
@@ -670,13 +675,13 @@
               xml += '          &lt;issue&gt;%s&lt;/issue&gt;%s'   % (issue,newLine)
             xml += '        &lt;/issues&gt;%s'                     % newLine
             xml += '        &lt;log&gt;\n&lt;![CDATA[%s'           % newLine
-            xml += self.log
+            xml += open(self.log).read()
             xml += '        ]]&gt;&lt;/log&gt;%s'                  % newLine
             xml += '        &lt;error&gt;\n&lt;![CDATA[%s'         % newLine
-            xml += self.error
+            xml += open(self.errors).read()
             xml += '        ]]&gt;&lt;/error&gt;%s'                % newLine
             xml += '        &lt;access&gt;\n&lt;![CDATA[%s'        % newLine
-            xml += self.access
+            xml += open(self.access).read()
             xml += '        ]]&gt;&lt;/access&gt;%s'               % newLine
             xml += '      &lt;/test&gt;%s'                         % newLine
             return xml
@@ -684,22 +689,31 @@
           def appendLog(self, category, log):
             wrappedLog=''
             for _line in log.splitlines():
+              _line=_line.strip()
               _leftPadding=''
               while len(_line)>100:
-                _logChunk=line[:100]
+                _logChunk=_line[:100]
                 _line=_line[100:]
                 wrappedLog+='%s%s%s' % (_leftPadding,_logChunk,newLine)
                 _leftPadding='...    '
-              wrappedLog += '%s%s%s' % (_leftPadding,log,newLine)
+              wrappedLog += '%s%s%s' % (_leftPadding,_line,newLine)
             if category == 'access':
-              self.access+=wrappedLog
+              fh=open(self.access,'a')
             elif category == 'error':
-              self.error+=wrappedLog
+              fh=open(self.errors,'a')
             else:
-              self.log += wrappedLog
+              fh=open(self.log,'a')
+            fh.seek(0,2)
+            fh.write(wrappedLog)
+            fh.close()
             
           def getName(self):
             return self.name
+            
+          def clean(self):
+            for _file in [self.log,self.errors,self.access]:
+              if os.path.exists(_file):
+                os.remove(_file)
         
         testcaseStop=int(time.time())
         testcaseDuration=testcaseStop-testcaseStart
@@ -734,46 +748,36 @@
         # parse the server's error log
         # TODO: figure out how to do this for multiple instance for the replication
         #       tests for example
-        errorlog=open('%s/%s/logs/errors' % (TMPDIR,OPENDSNAME),'a')
-        errorlog.seek(0,2)
-        errorlog.write('End testcase %s\n' % STAXCurrentTestcase)
-        errorlog.close()
-        accesslog=open('%s/%s/logs/access' % (TMPDIR,OPENDSNAME),'a')
-        accesslog.seek(0,2)
-        accesslog.write('End testcase %s\n' % STAXCurrentTestcase)
-        accesslog.close()
-        
-        errorlog=open('%s/%s/logs/errors' % (TMPDIR,OPENDSNAME), 'r')
-        _log=''
-        _doLog=False
-        for line in errorlog.readlines():
-          if line.startswith('End testcase %s' % STAXCurrentTestcase):
+        for logType in ['errors','access']:
+          if os.path.exists('%s/%s/logs/%s' % (TMPDIR,OPENDSNAME,logType)):
+            logfile=open('%s/%s/logs/%s' % (TMPDIR,OPENDSNAME,logType),'a')
+            logfile.seek(0,2)
+            logfile.write('End testcase %s\n' % STAXCurrentTestcase)
+            logfile.close()
+            logfile=open('%s/%s/logs/%s' % (TMPDIR,OPENDSNAME,logType), 'r')
+            _log=''
             _doLog=False
-          if _doLog:
-            _log+=line
-          if line.startswith('Begin testcase %s' % STAXCurrentTestcase):
-            _doLog=True
-        errorlog.close()
-        thisTest.appendLog('error', _log)
-        
-        accesslog=open('%s/%s/logs/access' % (TMPDIR,OPENDSNAME), 'r')
-        _log=''
-        _doLog=False
-        for line in accesslog.readlines():
-          if line.startswith('End testcase %s' % STAXCurrentTestcase):
-            _doLog=False
-          if _doLog:
-            _log+=line
-          if line.startswith('Begin testcase %s' % STAXCurrentTestcase):
-            _doLog=True
-        accesslog.close()
-        thisTest.appendLog('access', _log)
+            while True:
+              line = logfile.readline()
+              if not line:
+                break
+              if line.startswith('End testcase %s' % STAXCurrentTestcase):
+                _doLog=False
+              if _doLog:
+                _log+=line
+              if line.startswith('Begin testcase %s' % STAXCurrentTestcase):
+                _doLog=True
+            logfile.close()
+            thisTest.appendLog(logType, _log)
         
         # save to test log
         testlog=open('%s/tests-log.xml' % TMPDIR,'a')
         testlog.seek(0,2)
         testlog.write(thisTest.toXML())
         testlog.close()
+        # clean the temporary log files for this test
+        # this MUST be done AFTER the call to toXML or the logs will appear empty
+        thisTest.clean()
       </script>
     </sequence>
   </function>

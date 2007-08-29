@@ -307,7 +307,7 @@
                 '++++ Check ldapsearch result return 10 entries'
               </message>
               <call function="'CheckMatches'">
-                { 'string2find' : 'uniqueMember',
+                { 'string2find' : 'uniquemember',
                   'mainString'  : STAXReason,
                   'nbExpected'  : 10
                 }
@@ -464,7 +464,7 @@
                 '++++ Check ldapsearch result returns 11 entries'
               </message>
               <call function="'CheckMatches'">
-                { 'string2find' : 'uniqueMember',
+                { 'string2find' : 'uniquemember',
                   'mainString'  : ldapSearchResult,
                   'nbExpected'  : 11
                 }
