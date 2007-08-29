@@ -987,7 +987,7 @@
             #@TestPostamble
             #@TestResult
           -->
-          <testcase name="getTestCaseName('Rejects File')">
+          <testcase name="getTestCaseName('Overwrite Rejects File')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <call function="'importLdifTask'">
