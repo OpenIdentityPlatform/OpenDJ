@@ -25,13 +25,17 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
-import org.opends.messages.Message;
 
 
 
+import static org.opends.messages.DSConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+import org.opends.messages.Message;
 import org.opends.server.admin.client.AuthenticationException;
 import org.opends.server.admin.client.AuthenticationNotSupportedException;
 import org.opends.server.admin.client.CommunicationException;
@@ -46,6 +50,9 @@ import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommandArgumentParser;
+import org.opends.server.util.cli.CLIException;
+import org.opends.server.util.cli.ConsoleApplication;
+import org.opends.server.util.cli.ValidationCallback;
 
 
 
@@ -98,14 +105,132 @@ public final class LDAPManagementContextFactory implements
       throws ArgumentException, ClientException {
     // Lazily create the LDAP management context.
     if (context == null) {
+      boolean isHeadingDisplayed = false;
+
       // Get the LDAP host.
       String hostName = hostArgument.getValue();
+      final String tmpHostName = hostName;
+      if (app.isInteractive() && !hostArgument.isPresent()) {
+        if (!isHeadingDisplayed) {
+          app.println();
+          app.println();
+          app.println(INFO_DSCFG_HEADING_CONNECTION_PARAMETERS.get());
+          isHeadingDisplayed = true;
+        }
+
+        ValidationCallback<String> callback = new ValidationCallback<String>() {
+
+          public String validate(ConsoleApplication app, String input)
+              throws CLIException {
+            String ninput = input.trim();
+            if (ninput.length() == 0) {
+              return tmpHostName;
+            } else {
+              try {
+                InetAddress.getByName(ninput);
+                return ninput;
+              } catch (UnknownHostException e) {
+                // Try again...
+                app.println();
+                app.println(ERR_DSCFG_BAD_HOST_NAME.get(ninput));
+                app.println();
+                return null;
+              }
+            }
+          }
+
+        };
+
+        try {
+          app.println();
+          hostName = app.readValidatedInput(INFO_DSCFG_PROMPT_HOST_NAME
+              .get(hostName), callback);
+        } catch (CLIException e) {
+          throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
+        }
+      }
 
       // Get the LDAP port.
       int portNumber = portArgument.getIntValue();
+      final int tmpPortNumber = portNumber;
+      if (app.isInteractive() && !portArgument.isPresent()) {
+        if (!isHeadingDisplayed) {
+          app.println();
+          app.println();
+          app.println(INFO_DSCFG_HEADING_CONNECTION_PARAMETERS.get());
+          isHeadingDisplayed = true;
+        }
+
+        ValidationCallback<Integer> callback =
+          new ValidationCallback<Integer>() {
+
+          public Integer validate(ConsoleApplication app, String input)
+              throws CLIException {
+            String ninput = input.trim();
+            if (ninput.length() == 0) {
+              return tmpPortNumber;
+            } else {
+              try {
+                int i = Integer.parseInt(ninput);
+                if (i < 1 || i > 65535) {
+                  throw new NumberFormatException();
+                }
+                return i;
+              } catch (NumberFormatException e) {
+                // Try again...
+                app.println();
+                app.println(ERR_DSCFG_BAD_PORT_NUMBER.get(ninput));
+                app.println();
+                return null;
+              }
+            }
+          }
+
+        };
+
+        try {
+          app.println();
+          portNumber = app.readValidatedInput(INFO_DSCFG_PROMPT_PORT_NUMBER
+              .get(portNumber), callback);
+        } catch (CLIException e) {
+          throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
+        }
+      }
 
       // Get the LDAP bind credentials.
       String bindDN = bindDNArgument.getValue();
+      final String tmpBindDN = bindDN;
+      if (app.isInteractive() && !bindDNArgument.isPresent()) {
+        if (!isHeadingDisplayed) {
+          app.println();
+          app.println();
+          app.println(INFO_DSCFG_HEADING_CONNECTION_PARAMETERS.get());
+          isHeadingDisplayed = true;
+        }
+
+        ValidationCallback<String> callback = new ValidationCallback<String>() {
+
+          public String validate(ConsoleApplication app, String input)
+              throws CLIException {
+            String ninput = input.trim();
+            if (ninput.length() == 0) {
+              return tmpBindDN;
+            } else {
+              return ninput;
+            }
+          }
+
+        };
+
+        try {
+          app.println();
+          bindDN = app.readValidatedInput(
+              INFO_DSCFG_PROMPT_BIND_DN.get(bindDN), callback);
+        } catch (CLIException e) {
+          throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
+        }
+      }
+
       String bindPassword = bindPasswordArgument.getValue();
 
       if (bindPasswordFileArgument.isPresent()) {
@@ -122,11 +247,19 @@ public final class LDAPManagementContextFactory implements
               .unableToReadBindPasswordInteractively();
         }
 
+        if (!isHeadingDisplayed) {
+          app.println();
+          app.println();
+          app.println(INFO_DSCFG_HEADING_CONNECTION_PARAMETERS.get());
+          isHeadingDisplayed = true;
+        }
+
         try {
+          app.println();
           Message prompt = INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDN);
           bindPassword = app.readPassword(prompt);
         } catch (Exception e) {
-          throw ArgumentExceptionFactory.unableToReadBindPassword(e);
+          throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
         }
       }
 
@@ -143,9 +276,8 @@ public final class LDAPManagementContextFactory implements
         Message message = ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_FAILED.get(bindDN);
         throw new ClientException(LDAPResultCode.INVALID_CREDENTIALS, message);
       } catch (CommunicationException e) {
-        Message message =
-            ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
-                    hostName, String.valueOf(portNumber));
+        Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName,
+            String.valueOf(portNumber));
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
             message);
       }
@@ -200,9 +332,8 @@ public final class LDAPManagementContextFactory implements
     // arguments.
     if (bindPasswordArgument.isPresent()
         && bindPasswordFileArgument.isPresent()) {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.
-          get(bindPasswordArgument.getLongIdentifier(),
-              bindPasswordFileArgument.getLongIdentifier());
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(bindPasswordArgument
+          .getLongIdentifier(), bindPasswordFileArgument.getLongIdentifier());
       throw new ArgumentException(message);
     }
   }

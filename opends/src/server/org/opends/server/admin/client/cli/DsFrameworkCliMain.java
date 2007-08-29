@@ -39,6 +39,7 @@ import org.opends.server.util.args.ArgumentException;
 
 import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 import static org.opends.messages.AdminMessages.*;
+import static org.opends.messages.DSConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import org.opends.messages.MessageBuilder;
 import static org.opends.server.util.ServerConstants.*;

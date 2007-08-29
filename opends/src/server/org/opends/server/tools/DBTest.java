@@ -434,7 +434,7 @@ public class DBTest
     // Make sure that we have a sub-command.
     if (parser.getSubCommand() == null)
     {
-      Message message = ERR_DSCFG_ERROR_MISSING_SUBCOMMAND.get();
+      Message message = ERR_DBTEST_MISSING_SUBCOMMAND.get();
       displayMessageAndUsageReference(message);
       return 1;
     }

@@ -26,16 +26,14 @@
  */
 package org.opends.server.tools.dsconfig;
 
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.Message;
 
 
-import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.DSConfigMessages.*;
+import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 import java.io.PrintStream;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -45,6 +43,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AdministratorAction;
@@ -67,6 +67,10 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.args.SubCommandArgumentParser;
+import org.opends.server.util.cli.CLIException;
+import org.opends.server.util.cli.ConsoleApplication;
+import org.opends.server.util.cli.MenuResult;
+import org.opends.server.util.cli.OutputStreamConsoleApplication;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TablePrinter;
 import org.opends.server.util.table.TextTablePrinter;
@@ -101,9 +105,9 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       public Message visitAbsoluteInherited(
           AbsoluteInheritedDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
-        return INFO_DSCFG_HELP_FIELD_INHERITED_ABS.get(d
-            .getPropertyName(), d.getManagedObjectPath()
-            .getRelationDefinition().getUserFriendlyName());
+        return INFO_DSCFG_HELP_FIELD_INHERITED_ABS.get(d.getPropertyName(), d
+            .getManagedObjectPath().getRelationDefinition()
+            .getUserFriendlyName());
       }
 
 
@@ -148,13 +152,12 @@ final class HelpSubCommandHandler extends SubCommandHandler {
           RelativeInheritedDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
         if (d.getRelativeOffset() == 0) {
-          return INFO_DSCFG_HELP_FIELD_INHERITED_THIS.get(d
-              .getPropertyName(), d.getManagedObjectDefinition()
-              .getUserFriendlyName());
+          return INFO_DSCFG_HELP_FIELD_INHERITED_THIS.get(d.getPropertyName(),
+              d.getManagedObjectDefinition().getUserFriendlyName());
         } else {
-          return INFO_DSCFG_HELP_FIELD_INHERITED_PARENT.get(d
-              .getPropertyName(), d.getManagedObjectDefinition()
-              .getUserFriendlyName());
+          return INFO_DSCFG_HELP_FIELD_INHERITED_PARENT.get(
+              d.getPropertyName(), d.getManagedObjectDefinition()
+                  .getUserFriendlyName());
         }
       }
 
@@ -298,7 +301,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
        * {@inheritDoc}
        */
       @Override
-      public Void visitUnknown(PropertyDefinition<?> d, PrintStream p)
+      public <T> Void visitUnknown(PropertyDefinition<T> d, PrintStream p)
           throws UnknownPropertyDefinitionException {
         PropertyDefinitionUsageBuilder usageBuilder =
           new PropertyDefinitionUsageBuilder(true);
@@ -367,14 +370,14 @@ final class HelpSubCommandHandler extends SubCommandHandler {
   private final static int HEADING_WIDTH;
 
   /**
+   * The value for the long option category.
+   */
+  private static final String OPTION_DSCFG_LONG_CATEGORY = "category";
+
+  /**
    * The value for the long option inherited.
    */
   private static final String OPTION_DSCFG_LONG_INHERITED = "inherited";
-
-  /**
-   * The value for the short option inherited.
-   */
-  private static final Character OPTION_DSCFG_SHORT_INHERITED = null;
 
   /**
    * The value for the long option type.
@@ -382,29 +385,26 @@ final class HelpSubCommandHandler extends SubCommandHandler {
   private static final String OPTION_DSCFG_LONG_TYPE = "type";
 
   /**
-   * The value for the short option type.
-   */
-  private static final Character OPTION_DSCFG_SHORT_TYPE = 't';
-
-  /**
-   * The value for the long option category.
-   */
-  private static final String OPTION_DSCFG_LONG_CATEGORY = "category";
-
-  /**
    * The value for the short option category.
    */
   private static final Character OPTION_DSCFG_SHORT_CATEGORY = 'c';
 
+  /**
+   * The value for the short option inherited.
+   */
+  private static final Character OPTION_DSCFG_SHORT_INHERITED = null;
+
+  /**
+   * The value for the short option type.
+   */
+  private static final Character OPTION_DSCFG_SHORT_TYPE = 't';
+
   static {
     int tmp = INFO_DSCFG_HELP_HEADING_SYNTAX.get().length();
     tmp = Math.max(tmp, INFO_DSCFG_HELP_HEADING_DEFAULT.get().length());
-    tmp = Math.max(tmp, INFO_DSCFG_HELP_HEADING_MULTI_VALUED.get()
-        .length());
-    tmp = Math
-        .max(tmp, INFO_DSCFG_HELP_HEADING_MANDATORY.get().length());
-    tmp = Math
-        .max(tmp, INFO_DSCFG_HELP_HEADING_READ_ONLY.get().length());
+    tmp = Math.max(tmp, INFO_DSCFG_HELP_HEADING_MULTI_VALUED.get().length());
+    tmp = Math.max(tmp, INFO_DSCFG_HELP_HEADING_MANDATORY.get().length());
+    tmp = Math.max(tmp, INFO_DSCFG_HELP_HEADING_READ_ONLY.get().length());
     HEADING_WIDTH = tmp;
   }
 
@@ -413,17 +413,79 @@ final class HelpSubCommandHandler extends SubCommandHandler {
   /**
    * Creates a new help-properties sub-command.
    *
-   * @param app
-   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @return Returns the new help-properties sub-command.
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static HelpSubCommandHandler create(ConsoleApplication app,
-      SubCommandArgumentParser parser) throws ArgumentException {
-    return new HelpSubCommandHandler(app, parser);
+  public static HelpSubCommandHandler create(SubCommandArgumentParser parser)
+      throws ArgumentException {
+    return new HelpSubCommandHandler(parser);
+  }
+
+
+
+  /**
+   * Displays detailed help about a single component to the specified
+   * output stream.
+   *
+   * @param app
+   *          The application console.
+   * @param d
+   *          The managed object definition.
+   * @param c
+   *          The collection of properties to be displayed.
+   */
+  public static void displaySingleComponent(ConsoleApplication app,
+      AbstractManagedObjectDefinition<?, ?> d,
+      Collection<PropertyDefinition<?>> c) {
+    // Display the title.
+    app.println(INFO_DSCFG_HELP_HEADING_COMPONENT.get(d.getUserFriendlyName()));
+
+    app.println();
+    app.println(d.getSynopsis());
+    if (d.getDescription() != null) {
+      app.println();
+      app.println(d.getDescription());
+    }
+
+    app.println();
+    app.println();
+    displayPropertyOptionKey(app);
+
+    app.println();
+    app.println();
+
+    // Headings.
+    TableBuilder builder = new TableBuilder();
+
+    builder.appendHeading(INFO_DSCFG_HEADING_PROPERTY_NAME.get());
+    builder.appendHeading(INFO_DSCFG_HEADING_PROPERTY_OPTIONS.get());
+    builder.appendHeading(INFO_DSCFG_HEADING_PROPERTY_SYNTAX.get());
+
+    // Sort keys.
+    builder.addSortKey(0);
+
+    // Output summary of each property.
+    for (PropertyDefinition<?> pd : c) {
+      // Display the property.
+      builder.startRow();
+
+      // Display the property name.
+      builder.appendCell(pd.getName());
+
+      // Display the options.
+      builder.appendCell(getPropertyOptionSummary(pd));
+
+      // Display the syntax.
+      PropertyDefinitionUsageBuilder v = new PropertyDefinitionUsageBuilder(
+          false);
+      builder.appendCell(v.getUsage(pd));
+    }
+
+    TablePrinter printer = new TextTablePrinter(app.getErrorStream());
+    builder.print(printer);
   }
 
 
@@ -432,35 +494,35 @@ final class HelpSubCommandHandler extends SubCommandHandler {
    * Displays detailed help about a single property to the specified
    * output stream.
    *
+   * @param app
+   *          The application console.
    * @param d
    *          The managed object definition.
    * @param name
    *          The name of the property definition.
-   * @param out
-   *          The output stream.
    */
-  public static void displayVerboseSingleProperty(
-      AbstractManagedObjectDefinition<?, ?> d, String name, PrintStream out) {
+  public static void displayVerboseSingleProperty(ConsoleApplication app,
+      AbstractManagedObjectDefinition<?, ?> d, String name) {
     PropertyDefinition<?> pd = d.getPropertyDefinition(name);
 
     // Display the title.
-    out.println(INFO_DSCFG_HELP_HEADING_PROPERTY.get(name));
+    app.println(INFO_DSCFG_HELP_HEADING_PROPERTY.get(name));
 
     // Display the property synopsis and description.
-    out.println();
-    out.println(wrapText(pd.getSynopsis(), MAX_LINE_WIDTH));
+    app.println();
+    app.println(pd.getSynopsis(), 4);
     if (pd.getDescription() != null) {
-      out.println();
-      out.println(wrapText(pd.getDescription(), MAX_LINE_WIDTH));
+      app.println();
+      app.println(pd.getDescription(), 4);
     }
 
     // Display the syntax.
-    out.println();
+    app.println();
     SyntaxPrinter syntaxPrinter = new SyntaxPrinter();
-    syntaxPrinter.print(out, pd);
+    syntaxPrinter.print(app.getErrorStream(), pd);
 
     // Display remaining information in a table.
-    out.println();
+    app.println();
     TableBuilder builder = new TableBuilder();
 
     // Display the default behavior.
@@ -476,27 +538,27 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     builder.appendCell(INFO_DSCFG_HELP_HEADING_ADVANCED.get());
     builder.appendCell(HEADING_SEPARATOR);
     if (pd.hasOption(PropertyOption.ADVANCED)) {
-      builder.appendCell(INFO_DSCFG_GENERAL_CONFIRM_YES.get());
+      builder.appendCell(INFO_GENERAL_YES.get());
     } else {
-      builder.appendCell(INFO_DSCFG_GENERAL_CONFIRM_NO.get());
+      builder.appendCell(INFO_GENERAL_NO.get());
     }
 
     builder.startRow();
     builder.appendCell(INFO_DSCFG_HELP_HEADING_MULTI_VALUED.get());
     builder.appendCell(HEADING_SEPARATOR);
     if (pd.hasOption(PropertyOption.MULTI_VALUED)) {
-      builder.appendCell(INFO_DSCFG_GENERAL_CONFIRM_YES.get());
+      builder.appendCell(INFO_GENERAL_YES.get());
     } else {
-      builder.appendCell(INFO_DSCFG_GENERAL_CONFIRM_NO.get());
+      builder.appendCell(INFO_GENERAL_NO.get());
     }
 
     builder.startRow();
     builder.appendCell(INFO_DSCFG_HELP_HEADING_MANDATORY.get());
     builder.appendCell(HEADING_SEPARATOR);
     if (pd.hasOption(PropertyOption.MANDATORY)) {
-      builder.appendCell(INFO_DSCFG_GENERAL_CONFIRM_YES.get());
+      builder.appendCell(INFO_GENERAL_YES.get());
     } else {
-      builder.appendCell(INFO_DSCFG_GENERAL_CONFIRM_NO.get());
+      builder.appendCell(INFO_GENERAL_NO.get());
     }
 
     builder.startRow();
@@ -508,10 +570,10 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       builder.appendCell(INFO_DSCFG_HELP_FIELD_READ_ONLY.get(d
           .getUserFriendlyName()));
     } else {
-      builder.appendCell(INFO_DSCFG_GENERAL_CONFIRM_NO.get());
+      builder.appendCell(INFO_GENERAL_NO.get());
     }
 
-    TextTablePrinter factory = new TextTablePrinter(out);
+    TextTablePrinter factory = new TextTablePrinter(app.getErrorStream());
     factory.setDisplayHeadings(false);
     factory.setColumnWidth(0, HEADING_WIDTH);
     factory.setColumnWidth(2, 0);
@@ -524,8 +586,8 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     if (synopsis == null) {
       switch (action.getType()) {
       case COMPONENT_RESTART:
-        synopsis = INFO_DSCFG_HELP_FIELD_COMPONENT_RESTART.get(
-            d.getUserFriendlyName());
+        synopsis = INFO_DSCFG_HELP_FIELD_COMPONENT_RESTART.get(d
+            .getUserFriendlyName());
         break;
       case SERVER_RESTART:
         synopsis = INFO_DSCFG_HELP_FIELD_SERVER_RESTART.get();
@@ -537,42 +599,110 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     }
 
     if (synopsis != null) {
-      out.println();
-      out.println(wrapText(synopsis, MAX_LINE_WIDTH));
+      app.println();
+      app.println(synopsis);
     }
   }
 
-  // The sub-command associated with this handler.
-  private final SubCommand subCommand;
+
+
+  // Displays the property option summary key.
+  private static void displayPropertyOptionKey(ConsoleApplication app) {
+    MessageBuilder builder;
+
+    app.println(INFO_DSCFG_HELP_DESCRIPTION_OPTION.get());
+    app.println();
+
+    builder = new MessageBuilder();
+    builder.append(" r -- ");
+    builder.append(INFO_DSCFG_HELP_DESCRIPTION_READ.get());
+    app.println(builder.toMessage());
+
+    builder = new MessageBuilder();
+    builder.append(" w -- ");
+    builder.append(INFO_DSCFG_HELP_DESCRIPTION_WRITE.get());
+    app.println(builder.toMessage());
+
+    builder = new MessageBuilder();
+    builder.append(" m -- ");
+    builder.append(INFO_DSCFG_HELP_DESCRIPTION_MANDATORY.get());
+    app.println(builder.toMessage());
+
+    builder = new MessageBuilder();
+    builder.append(" s -- ");
+    builder.append(INFO_DSCFG_HELP_DESCRIPTION_SINGLE_VALUED.get());
+    app.println(builder.toMessage());
+
+    builder = new MessageBuilder();
+    builder.append(" a -- ");
+    builder.append(INFO_DSCFG_HELP_DESCRIPTION_ADMIN_ACTION.get());
+    app.println(builder.toMessage());
+  }
+
+
+
+  // Compute the options field.
+  private static String getPropertyOptionSummary(PropertyDefinition<?> pd) {
+    StringBuilder b = new StringBuilder();
+
+    if (pd.hasOption(PropertyOption.MONITORING)
+        || pd.hasOption(PropertyOption.READ_ONLY)) {
+      b.append("r-");
+    } else {
+      b.append("rw");
+    }
+
+    if (pd.hasOption(PropertyOption.MANDATORY)) {
+      b.append('m');
+    } else {
+      b.append('-');
+    }
+
+    if (pd.hasOption(PropertyOption.MULTI_VALUED)) {
+      b.append('-');
+    } else {
+      b.append('s');
+    }
+
+    AdministratorAction action = pd.getAdministratorAction();
+    if (action.getType() != AdministratorAction.Type.NONE) {
+      b.append('a');
+    } else {
+      b.append('-');
+    }
+    return b.toString();
+  }
 
   // The argument which should be used to specify the category of
   // managed object to be retrieved.
   private final StringArgument categoryArgument;
 
-  //The argument which should be used to display inherited properties.
+  // A table listing all the available types of managed object indexed
+  // on their parent type.
+  private final Map<String, Map<String,
+    AbstractManagedObjectDefinition<?, ?>>> categoryMap;
+
+  // The argument which should be used to display inherited
+  // properties.
   private BooleanArgument inheritedModeArgument;
+
+  // The sub-command associated with this handler.
+  private final SubCommand subCommand;
+
+  // A table listing all the available types of managed object indexed
+  // on their tag(s).
+  private final Map<Tag, Map<String,
+    AbstractManagedObjectDefinition<?, ?>>> tagMap;
 
   // The argument which should be used to specify the sub-type of
   // managed object to be retrieved.
   private final StringArgument typeArgument;
 
-  // A table listing all the available types of managed object indexed
-  // on their parent type.
-  private final Map<String,
-    Map<String, AbstractManagedObjectDefinition<?, ?>>> categoryMap;
-
-  // A table listing all the available types of managed object indexed
-  // on their tag(s).
-  private final Map<Tag,
-    Map<String, AbstractManagedObjectDefinition<?, ?>>> tagMap;
-
 
 
   // Private constructor.
-  private HelpSubCommandHandler(ConsoleApplication app,
-      SubCommandArgumentParser parser) throws ArgumentException {
-    super(app);
-
+  private HelpSubCommandHandler(SubCommandArgumentParser parser)
+      throws ArgumentException {
     // Create the sub-command.
     String name = "list-properties";
     Message desc = INFO_DSCFG_DESCRIPTION_SUBCMD_HELPPROP.get();
@@ -580,8 +710,8 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
     this.categoryArgument = new StringArgument(OPTION_DSCFG_LONG_CATEGORY,
         OPTION_DSCFG_SHORT_CATEGORY, OPTION_DSCFG_LONG_CATEGORY, false, false,
-        true, "{CATEGORY}", null, null,
-        INFO_DSCFG_DESCRIPTION_HELP_CATEGORY.get());
+        true, "{CATEGORY}", null, null, INFO_DSCFG_DESCRIPTION_HELP_CATEGORY
+            .get());
     this.subCommand.addArgument(this.categoryArgument);
 
     this.typeArgument = new StringArgument(OPTION_DSCFG_LONG_TYPE,
@@ -591,8 +721,8 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
     this.inheritedModeArgument = new BooleanArgument(
         OPTION_DSCFG_LONG_INHERITED, OPTION_DSCFG_SHORT_INHERITED,
-        OPTION_DSCFG_LONG_INHERITED,
-        INFO_DSCFG_DESCRIPTION_HELP_INHERITED.get());
+        OPTION_DSCFG_LONG_INHERITED, INFO_DSCFG_DESCRIPTION_HELP_INHERITED
+            .get());
     subCommand.addArgument(inheritedModeArgument);
 
     // Register common arguments.
@@ -600,10 +730,10 @@ final class HelpSubCommandHandler extends SubCommandHandler {
         INFO_DSCFG_DESCRIPTION_ADVANCED_HELP.get());
     registerPropertyNameArgument(this.subCommand);
 
-    this.categoryMap = new TreeMap<String,
-      Map<String, AbstractManagedObjectDefinition<?, ?>>>();
-    this.tagMap = new HashMap<Tag,
-      Map<String, AbstractManagedObjectDefinition<?, ?>>>();
+    this.categoryMap =
+      new TreeMap<String, Map<String, AbstractManagedObjectDefinition<?, ?>>>();
+    this.tagMap =
+      new HashMap<Tag, Map<String, AbstractManagedObjectDefinition<?, ?>>>();
   }
 
 
@@ -676,7 +806,9 @@ final class HelpSubCommandHandler extends SubCommandHandler {
    * {@inheritDoc}
    */
   @Override
-  public int run() throws ArgumentException, ClientException {
+  public MenuResult<Integer> run(ConsoleApplication app,
+      ManagementContextFactory factory) throws ArgumentException,
+      ClientException, CLIException {
     String categoryName = categoryArgument.getValue();
     String typeName = typeArgument.getValue();
     Tag tag = null;
@@ -774,36 +906,26 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       }
     }
 
-    if (!getConsoleApplication().isVerbose()) {
-      displayNonVerbose(categoryName, typeName, tag, propertyNames);
+    // Output everything to the output stream.
+    app = new OutputStreamConsoleApplication(app);
+    if (!app.isVerbose()) {
+      displayNonVerbose(app, categoryName, typeName, tag, propertyNames);
     } else {
-      displayVerbose(categoryName, typeName, tag, propertyNames);
+      displayVerbose(app, categoryName, typeName, tag, propertyNames);
     }
 
-    return 0;
+    return MenuResult.success(0);
   }
 
 
 
   // Output property summary table.
-  private void displayNonVerbose(String categoryName, String typeName,
-      Tag tag, Set<String> propertyNames) {
-    PrintStream out = getConsoleApplication().getOutputStream();
-    if (!getConsoleApplication().isScriptFriendly()) {
-      out.println(INFO_DSCFG_HELP_DESCRIPTION_OPTION.get());
-      out.println();
-      out.print(" r -- ");
-      out.println(INFO_DSCFG_HELP_DESCRIPTION_READ.get());
-      out.print(" w -- ");
-      out.println(INFO_DSCFG_HELP_DESCRIPTION_WRITE.get());
-      out.print(" m -- ");
-      out.println(INFO_DSCFG_HELP_DESCRIPTION_MANDATORY.get());
-      out.print(" s -- ");
-      out.println(INFO_DSCFG_HELP_DESCRIPTION_SINGLE_VALUED.get());
-      out.print(" a -- ");
-      out.println(INFO_DSCFG_HELP_DESCRIPTION_ADMIN_ACTION.get());
-      out.println();
-      out.println();
+  private void displayNonVerbose(ConsoleApplication app, String categoryName,
+      String typeName, Tag tag, Set<String> propertyNames) {
+    if (!app.isScriptFriendly()) {
+      displayPropertyOptionKey(app);
+      app.println();
+      app.println();
     }
 
     // Headings.
@@ -894,10 +1016,10 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     }
 
     TablePrinter printer;
-    if (getConsoleApplication().isScriptFriendly()) {
-      printer = createScriptFriendlyTablePrinter(out);
+    if (app.isScriptFriendly()) {
+      printer = createScriptFriendlyTablePrinter(app.getOutputStream());
     } else {
-      printer = new TextTablePrinter(out);
+      printer = new TextTablePrinter(app.getOutputStream());
     }
     builder.print(printer);
   }
@@ -905,15 +1027,22 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
 
   // Display detailed help on managed objects and their properties.
-  private void displayVerbose(String categoryName, String typeName,
-      Tag tag, Set<String> propertyNames) {
-    PrintStream out = getConsoleApplication().getOutputStream();
-
+  private void displayVerbose(ConsoleApplication app, String categoryName,
+      String typeName, Tag tag, Set<String> propertyNames) {
     // Construct line used to separate consecutive sections.
-    char[] c1 = new char[MAX_LINE_WIDTH];
-    Arrays.fill(c1, '=');
-    char[] c2 = new char[MAX_LINE_WIDTH];
-    Arrays.fill(c2, '-');
+    MessageBuilder mb;
+
+    mb = new MessageBuilder();
+    for (int i = 0; i < MAX_LINE_WIDTH; i++) {
+      mb.append('=');
+    }
+    Message c1 = mb.toMessage();
+
+    mb = new MessageBuilder();
+    for (int i = 0; i < MAX_LINE_WIDTH; i++) {
+      mb.append('-');
+    }
+    Message c2 = mb.toMessage();
 
     // Display help for each managed object.
     boolean isFirstManagedObject = true;
@@ -973,67 +1102,33 @@ final class HelpSubCommandHandler extends SubCommandHandler {
             // managed
             // object.
             if (!isFirstManagedObject) {
-              out.println();
-              out.println(c1);
-              out.println();
+              app.println();
+              app.println(c1);
+              app.println();
             } else {
               isFirstManagedObject = false;
             }
 
             // Display the title.
-            out.println(wrapText(INFO_DSCFG_HELP_HEADING_COMPONENT.get(
-                    mod.getUserFriendlyName()), MAX_LINE_WIDTH));
+            app.println(INFO_DSCFG_HELP_HEADING_COMPONENT.get(mod
+                .getUserFriendlyName()));
 
-            out.println();
-            out.println(wrapText(mod.getSynopsis(), MAX_LINE_WIDTH));
+            app.println();
+            app.println(mod.getSynopsis());
             if (mod.getDescription() != null) {
-              out.println();
-              out.println(wrapText(mod.getDescription(), MAX_LINE_WIDTH));
+              app.println();
+              app.println(mod.getDescription());
             }
           }
 
-          out.println();
-          out.println(c2);
-          out.println();
+          app.println();
+          app.println(c2);
+          app.println();
 
-          displayVerboseSingleProperty(mod, pd.getName(), out);
+          displayVerboseSingleProperty(app, mod, pd.getName());
           isFirstProperty = false;
         }
       }
     }
-  }
-
-
-
-  // Compute the options field.
-  private String getPropertyOptionSummary(PropertyDefinition<?> pd) {
-    StringBuilder b = new StringBuilder();
-
-    if (pd.hasOption(PropertyOption.MONITORING)
-        || pd.hasOption(PropertyOption.READ_ONLY)) {
-      b.append("r-");
-    } else {
-      b.append("rw");
-    }
-
-    if (pd.hasOption(PropertyOption.MANDATORY)) {
-      b.append('m');
-    } else {
-      b.append('-');
-    }
-
-    if (pd.hasOption(PropertyOption.MULTI_VALUED)) {
-      b.append('-');
-    } else {
-      b.append('s');
-    }
-
-    AdministratorAction action = pd.getAdministratorAction();
-    if (action.getType() != AdministratorAction.Type.NONE) {
-      b.append('a');
-    } else {
-      b.append('-');
-    }
-    return b.toString();
   }
 }

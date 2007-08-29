@@ -25,12 +25,12 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
+
+
+
+import static org.opends.messages.DSConfigMessages.*;
+
 import org.opends.messages.Message;
-
-
-
-import static org.opends.messages.ToolMessages.*;
-
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.DefaultBehaviorException;
 import org.opends.server.admin.IllegalPropertyValueException;
@@ -47,6 +47,7 @@ import org.opends.server.admin.client.IllegalManagedObjectNameException;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
+import org.opends.server.util.cli.CLIException;
 
 
 
@@ -57,16 +58,16 @@ import org.opends.server.util.args.ArgumentException;
 public final class ArgumentExceptionFactory {
 
   /**
-   * Creates an argument exception from an illegal managed object name
+   * Creates a CLI exception from an illegal managed object name
    * exception.
    *
    * @param e
    *          The illegal managed object name exception.
    * @param d
    *          The managed object definition.
-   * @return Returns an argument exception.
+   * @return Returns a CLI exception.
    */
-  public static ArgumentException adaptIllegalManagedObjectNameException(
+  public static CLIException adaptIllegalManagedObjectNameException(
       IllegalManagedObjectNameException e,
       AbstractManagedObjectDefinition<?, ?> d) {
     String illegalName = e.getIllegalName();
@@ -75,11 +76,11 @@ public final class ArgumentExceptionFactory {
     if (illegalName.length() == 0) {
       Message message =
           ERR_DSCFG_ERROR_ILLEGAL_NAME_EMPTY.get(d.getUserFriendlyPluralName());
-      return new ArgumentException(message);
+      return new CLIException(message);
     } else if (illegalName.trim().length() == 0) {
       Message message =
           ERR_DSCFG_ERROR_ILLEGAL_NAME_BLANK.get(d.getUserFriendlyPluralName());
-      return new ArgumentException(message);
+      return new CLIException(message);
     } else if (pd != null) {
       try {
         pd.decodeValue(illegalName);
@@ -90,13 +91,13 @@ public final class ArgumentExceptionFactory {
 
         Message message = ERR_DSCFG_ERROR_ILLEGAL_NAME_SYNTAX.get(
             illegalName, d.getUserFriendlyName(), syntax);
-        return new ArgumentException(message);
+        return new CLIException(message);
       }
     }
 
     Message message = ERR_DSCFG_ERROR_ILLEGAL_NAME_UNKNOWN.get(
         illegalName, d.getUserFriendlyName());
-    return new ArgumentException(message);
+    return new CLIException(message);
   }
 
 
@@ -320,16 +321,18 @@ public final class ArgumentExceptionFactory {
 
 
   /**
-   * Creates an argument exception which should be used when the bind
-   * password could not be read from the standard input.
+   * Creates an argument exception which should be used when the
+   * connection parameters could not be read from the standard input.
    *
    * @param cause
-   *          The reason why the bind password could not be read.
+   *          The reason why the connection parameters could not be
+   *          read.
    * @return Returns an argument exception.
    */
-  public static ArgumentException unableToReadBindPassword(Exception cause) {
-    Message message =
-        ERR_DSCFG_ERROR_CANNOT_READ_LDAP_BIND_PASSWORD.get(cause.getMessage());
+  public static ArgumentException unableToReadConnectionParameters(
+      Exception cause) {
+    Message message = ERR_DSCFG_ERROR_CANNOT_READ_CONNECTION_PARAMETERS
+        .get(cause.getMessage());
     return new ArgumentException(message, cause);
   }
 
@@ -345,22 +348,6 @@ public final class ArgumentExceptionFactory {
   public static ArgumentException unableToReadBindPasswordInteractively() {
     Message message = ERR_DSCFG_ERROR_BIND_PASSWORD_NONINTERACTIVE.get();
     return new ArgumentException(message);
-  }
-
-
-
-  /**
-   * Creates an argument exception which should be used when
-   * interaction with the console fails due to an IO exception.
-   *
-   * @param cause
-   *          The reason why console input failed.
-   * @return Returns an argument exception.
-   */
-  public static ArgumentException unableToReadConsoleInput(Exception cause) {
-    Message message =
-        ERR_DSCFG_ERROR_CANNOT_READ_CONSOLE_INPUT.get(cause.getMessage());
-    return new ArgumentException(message, cause);
   }
 
 
@@ -513,7 +500,7 @@ public final class ArgumentExceptionFactory {
 
 
   /**
-   * Creates an argument exception which should be used when a managed
+   * Creates a CLI exception which should be used when a managed
    * object is retrieved but does not have the correct type
    * appropriate for the associated sub-command.
    *
@@ -521,13 +508,13 @@ public final class ArgumentExceptionFactory {
    *          The relation definition.
    * @param d
    *          The definition of the managed object that was retrieved.
-   * @return Returns an argument exception.
+   * @return Returns a CLI exception.
    */
-  public static ArgumentException wrongManagedObjectType(
-      RelationDefinition<?, ?> r, ManagedObjectDefinition<?, ?> d) {
-    Message msg = ERR_DSCFG_ERROR_TYPE_UNRECOGNIZED.get(
-        d.getUserFriendlyName());
-    return new ArgumentException(msg);
+  public static CLIException wrongManagedObjectType(RelationDefinition<?, ?> r,
+      ManagedObjectDefinition<?, ?> d) {
+    Message msg = ERR_DSCFG_ERROR_TYPE_UNRECOGNIZED
+        .get(d.getUserFriendlyName());
+    return new CLIException(msg);
   }
 
 

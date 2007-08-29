@@ -24,36 +24,29 @@
  *
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
-package org.opends.server.tools.dsconfig;
-
-import org.opends.server.tools.ClientException;
+package org.opends.server.util.cli;
 
 
 
 /**
- * An interface for validating user input.
+ * An interactive console-based menu.
  *
  * @param <T>
- *          The type of the decoded input.
+ *          The type of success result value(s) returned by the
+ *          call-back. Use <code>Void</code> if the call-backs do
+ *          not return any values.
  */
-interface ValidationCallback<T> {
+public interface Menu<T> {
 
   /**
-   * Validates and decodes the user-provided input. Implementations
-   * must validate <code>input</code> and return the decoded value
-   * if the input is acceptable. If the input is unacceptable,
-   * implementations must return <code>null</code> and output a user
-   * friendly error message to the provided application console.
+   * Displays the menu and waits for the user to select a valid
+   * option. When the user selects an option, the call-back associated
+   * with the option will be invoked and its result returned.
    *
-   * @param app
-   *          The console application.
-   * @param input
-   *          The user input to be validated.
-   * @return Returns the decoded input if the input is valid, or
-   *         <code>null</code> if it is not.
-   * @throws ClientException
-   *           If an unexpected error occurred which prevented
-   *           validation.
+   * @return Returns the result of invoking the chosen menu call-back.
+   * @throws CLIException
+   *           If an I/O exception occurred or if one of the menu
+   *           option call-backs failed for some reason.
    */
-  T validate(ConsoleApplication app, String input) throws ClientException;
+  MenuResult<T> run() throws CLIException;
 }

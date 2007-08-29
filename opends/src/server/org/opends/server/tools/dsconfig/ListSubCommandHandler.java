@@ -25,11 +25,10 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
-import org.opends.messages.Message;
 
 
 
-import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.DSConfigMessages.*;
 
 import java.io.PrintStream;
 import java.util.List;
@@ -38,6 +37,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectDefinition;
@@ -51,12 +51,16 @@ import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
+import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.args.SubCommandArgumentParser;
+import org.opends.server.util.cli.CLIException;
+import org.opends.server.util.cli.ConsoleApplication;
+import org.opends.server.util.cli.MenuResult;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TablePrinter;
 import org.opends.server.util.table.TextTablePrinter;
@@ -74,8 +78,6 @@ final class ListSubCommandHandler extends SubCommandHandler {
   /**
    * Creates a new list-xxx sub-command for an instantiable relation.
    *
-   * @param app
-   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param p
@@ -86,10 +88,10 @@ final class ListSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static ListSubCommandHandler create(ConsoleApplication app,
+  public static ListSubCommandHandler create(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
       InstantiableRelationDefinition<?, ?> r) throws ArgumentException {
-    return new ListSubCommandHandler(app, parser, p, r, r.getPluralName(), r
+    return new ListSubCommandHandler(parser, p, r, r.getPluralName(), r
         .getUserFriendlyPluralName());
   }
 
@@ -98,8 +100,6 @@ final class ListSubCommandHandler extends SubCommandHandler {
   /**
    * Creates a new list-xxx sub-command for an optional relation.
    *
-   * @param app
-   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param p
@@ -110,10 +110,10 @@ final class ListSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static ListSubCommandHandler create(ConsoleApplication app,
+  public static ListSubCommandHandler create(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
       OptionalRelationDefinition<?, ?> r) throws ArgumentException {
-    return new ListSubCommandHandler(app, parser, p, r, r.getName(), r
+    return new ListSubCommandHandler(parser, p, r, r.getName(), r
         .getUserFriendlyName());
   }
 
@@ -132,12 +132,10 @@ final class ListSubCommandHandler extends SubCommandHandler {
 
 
   // Private constructor.
-  private ListSubCommandHandler(ConsoleApplication app,
+  private ListSubCommandHandler(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
       RelationDefinition<?, ?> r, String rname, Message rufn)
       throws ArgumentException {
-    super(app);
-
     this.path = p;
     this.relation = r;
 
@@ -161,6 +159,19 @@ final class ListSubCommandHandler extends SubCommandHandler {
 
 
   /**
+   * Gets the relation definition associated with the type of
+   * component that this sub-command handles.
+   *
+   * @return Returns the relation definition associated with the type
+   *         of component that this sub-command handles.
+   */
+  public RelationDefinition<?, ?> getRelationDefinition() {
+    return relation;
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -174,8 +185,9 @@ final class ListSubCommandHandler extends SubCommandHandler {
    * {@inheritDoc}
    */
   @Override
-  public int run()
-      throws ArgumentException, ClientException {
+  public MenuResult<Integer> run(ConsoleApplication app,
+      ManagementContextFactory factory) throws ArgumentException,
+      ClientException, CLIException {
     // Get the property names.
     Set<String> propertyNames = getPropertyNames();
 
@@ -186,10 +198,10 @@ final class ListSubCommandHandler extends SubCommandHandler {
     }
 
     PropertyValuePrinter valuePrinter = new PropertyValuePrinter(getSizeUnit(),
-        getTimeUnit(), getConsoleApplication().isScriptFriendly());
+        getTimeUnit(), app.isScriptFriendly());
 
     // Get the naming argument values.
-    List<String> names = getNamingArgValues(namingArgs);
+    List<String> names = getNamingArgValues(app, namingArgs);
 
     Message ufn;
     if (relation instanceof InstantiableRelationDefinition) {
@@ -201,20 +213,19 @@ final class ListSubCommandHandler extends SubCommandHandler {
     }
 
     // List the children.
-    ManagedObject<?> parent;
+    ManagementContext context = factory.getManagementContext(app);
+    MenuResult<ManagedObject<?>> result;
     try {
-      parent = getManagedObject(path, names);
+      result = getManagedObject(app, context, path, names);
     } catch (AuthorizationException e) {
       Message msg = ERR_DSCFG_ERROR_LIST_AUTHZ.get(ufn);
       throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
           msg);
     } catch (DefinitionDecodingException e) {
-
       ufn = path.getManagedObjectDefinition().getUserFriendlyName();
       Message msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(ufn, ufn, ufn);
       throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
     } catch (ManagedObjectDecodingException e) {
-
       ufn = path.getManagedObjectDefinition().getUserFriendlyName();
       Message msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(ufn);
       throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
@@ -225,12 +236,18 @@ final class ListSubCommandHandler extends SubCommandHandler {
       Message msg = ERR_DSCFG_ERROR_LIST_CME.get(ufn);
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (ManagedObjectNotFoundException e) {
-
       ufn = path.getManagedObjectDefinition().getUserFriendlyName();
       Message msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(ufn);
       throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
     }
 
+    if (result.isQuit()) {
+      return MenuResult.quit();
+    } else if (result.isCancel()) {
+      return MenuResult.cancel();
+    }
+
+    ManagedObject<?> parent = result.getValue();
     SortedMap<String, ManagedObject<?>> children =
       new TreeMap<String, ManagedObject<?>>();
     if (relation instanceof InstantiableRelationDefinition) {
@@ -301,11 +318,10 @@ final class ListSubCommandHandler extends SubCommandHandler {
     }
 
     // Output the results.
-    if (getConsoleApplication().isScriptFriendly()) {
+    if (app.isScriptFriendly()) {
       // Output just the names of the children.
-      PrintStream out = getConsoleApplication().getOutputStream();
       for (String name : children.keySet()) {
-        out.println(name);
+        app.println(Message.raw(name));
       }
     } else {
       // Create a table of their properties.
@@ -313,8 +329,6 @@ final class ListSubCommandHandler extends SubCommandHandler {
       builder.appendHeading(relation.getUserFriendlyName());
       builder
           .appendHeading(INFO_DSCFG_HEADING_COMPONENT_TYPE.get());
-      if (!propertyNames.isEmpty()) {
-      }
       for (String propertyName : propertyNames) {
         builder.appendHeading(Message.raw(propertyName));
       }
@@ -346,11 +360,11 @@ final class ListSubCommandHandler extends SubCommandHandler {
         for (String propertyName : propertyNames) {
           try {
             PropertyDefinition<?> pd = d.getPropertyDefinition(propertyName);
-            displayProperty(builder, child, pd, valuePrinter);
+            displayProperty(app, builder, child, pd, valuePrinter);
           } catch (IllegalArgumentException e) {
             // Assume this child managed object does not support this
             // property.
-            if (getConsoleApplication().isScriptFriendly()) {
+            if (app.isScriptFriendly()) {
               builder.appendCell();
             } else {
               builder.appendCell("-");
@@ -359,28 +373,35 @@ final class ListSubCommandHandler extends SubCommandHandler {
         }
       }
 
-      PrintStream out = getConsoleApplication().getOutputStream();
-      if (getConsoleApplication().isScriptFriendly()) {
+      PrintStream out = app.getOutputStream();
+      if (app.isScriptFriendly()) {
         TablePrinter printer = createScriptFriendlyTablePrinter(out);
         builder.print(printer);
       } else {
+        if (app.isInteractive()) {
+          // Make interactive mode prettier.
+          app.println();
+          app.println();
+        }
+
         TextTablePrinter printer = new TextTablePrinter(out);
         printer.setColumnSeparator(":");
         builder.print(printer);
       }
     }
 
-    return 0;
+    return MenuResult.success(0);
   }
 
 
 
   // Display the set of values associated with a property.
-  private <T> void displayProperty(TableBuilder builder, ManagedObject<?> mo,
-      PropertyDefinition<T> pd, PropertyValuePrinter valuePrinter) {
+  private <T> void displayProperty(ConsoleApplication app,
+      TableBuilder builder, ManagedObject<?> mo, PropertyDefinition<T> pd,
+      PropertyValuePrinter valuePrinter) {
     SortedSet<T> values = mo.getPropertyValues(pd);
     if (values.isEmpty()) {
-      if (getConsoleApplication().isScriptFriendly()) {
+      if (app.isScriptFriendly()) {
         builder.appendCell();
       } else {
         builder.appendCell("-");

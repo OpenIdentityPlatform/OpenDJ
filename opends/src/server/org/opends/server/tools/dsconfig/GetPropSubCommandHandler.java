@@ -25,11 +25,10 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
-import org.opends.messages.Message;
 
 
 
-import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.DSConfigMessages.*;
 
 import java.io.PrintStream;
 import java.util.Collection;
@@ -38,6 +37,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AliasDefaultBehaviorProvider;
 import org.opends.server.admin.DefaultBehaviorProviderVisitor;
@@ -59,12 +59,16 @@ import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
+import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.args.SubCommandArgumentParser;
+import org.opends.server.util.cli.CLIException;
+import org.opends.server.util.cli.ConsoleApplication;
+import org.opends.server.util.cli.MenuResult;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TablePrinter;
 import org.opends.server.util.table.TextTablePrinter;
@@ -83,8 +87,6 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
    * Creates a new get-xxx-prop sub-command for an instantiable
    * relation.
    *
-   * @param app
-   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param path
@@ -95,10 +97,10 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static GetPropSubCommandHandler create(ConsoleApplication app,
+  public static GetPropSubCommandHandler create(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
       InstantiableRelationDefinition<?, ?> r) throws ArgumentException {
-    return new GetPropSubCommandHandler(app, parser, path.child(r, "DUMMY"), r);
+    return new GetPropSubCommandHandler(parser, path.child(r, "DUMMY"), r);
   }
 
 
@@ -106,8 +108,6 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
   /**
    * Creates a new get-xxx-prop sub-command for an optional relation.
    *
-   * @param app
-   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param path
@@ -118,10 +118,10 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static GetPropSubCommandHandler create(ConsoleApplication app,
+  public static GetPropSubCommandHandler create(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
       OptionalRelationDefinition<?, ?> r) throws ArgumentException {
-    return new GetPropSubCommandHandler(app, parser, path.child(r), r);
+    return new GetPropSubCommandHandler(parser, path.child(r), r);
   }
 
 
@@ -129,8 +129,6 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
   /**
    * Creates a new get-xxx-prop sub-command for a singleton relation.
    *
-   * @param app
-   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param path
@@ -141,10 +139,10 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static GetPropSubCommandHandler create(ConsoleApplication app,
+  public static GetPropSubCommandHandler create(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
       SingletonRelationDefinition<?, ?> r) throws ArgumentException {
-    return new GetPropSubCommandHandler(app, parser, path.child(r), r);
+    return new GetPropSubCommandHandler(parser, path.child(r), r);
   }
 
   // The sub-commands naming arguments.
@@ -159,17 +157,15 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
 
   // Private constructor.
-  private GetPropSubCommandHandler(ConsoleApplication app,
+  private GetPropSubCommandHandler(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
       RelationDefinition<?, ?> r) throws ArgumentException {
-    super(app);
-
     this.path = path;
 
     // Create the sub-command.
     String name = "get-" + r.getName() + "-prop";
-    Message message = INFO_DSCFG_DESCRIPTION_SUBCMD_GETPROP.get(
-            r.getChildDefinition().getUserFriendlyName());
+    Message message = INFO_DSCFG_DESCRIPTION_SUBCMD_GETPROP.get(r
+        .getChildDefinition().getUserFriendlyName());
     this.subCommand = new SubCommand(parser, name, false, 0, 0, null, message);
 
     // Create the naming arguments.
@@ -190,6 +186,19 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
 
   /**
+   * Gets the relation definition associated with the type of
+   * component that this sub-command handles.
+   *
+   * @return Returns the relation definition associated with the type
+   *         of component that this sub-command handles.
+   */
+  public RelationDefinition<?, ?> getRelationDefinition() {
+    return path.getRelationDefinition();
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -203,47 +212,51 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
    * {@inheritDoc}
    */
   @Override
-  public int run() throws ArgumentException, ClientException {
+  public MenuResult<Integer> run(ConsoleApplication app,
+      ManagementContextFactory factory) throws ArgumentException,
+      ClientException, CLIException {
     // Get the property names.
     Set<String> propertyNames = getPropertyNames();
     PropertyValuePrinter valuePrinter = new PropertyValuePrinter(getSizeUnit(),
-        getTimeUnit(), getConsoleApplication().isScriptFriendly());
+        getTimeUnit(), app.isScriptFriendly());
 
     // Get the naming argument values.
-    List<String> names = getNamingArgValues(namingArgs);
+    List<String> names = getNamingArgValues(app, namingArgs);
 
     // Get the targeted managed object.
-    ManagedObject<?> child;
+    Message ufn = path.getRelationDefinition().getUserFriendlyName();
+    ManagementContext context = factory.getManagementContext(app);
+    MenuResult<ManagedObject<?>> result;
     try {
-      child = getManagedObject(path, names);
+      result = getManagedObject(app, context, path, names);
     } catch (AuthorizationException e) {
-      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
       Message msg = ERR_DSCFG_ERROR_GET_CHILD_AUTHZ.get(ufn);
-      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-          msg);
+      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (DefinitionDecodingException e) {
-      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
       Message msg = ERR_DSCFG_ERROR_GET_CHILD_DDE.get(ufn, ufn, ufn);
       throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
     } catch (ManagedObjectDecodingException e) {
-      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
       Message msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(ufn);
       throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
     } catch (CommunicationException e) {
-      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
       Message msg = ERR_DSCFG_ERROR_GET_CHILD_CE.get(ufn, e.getMessage());
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
     } catch (ConcurrentModificationException e) {
-      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
       Message msg = ERR_DSCFG_ERROR_GET_CHILD_CME.get(ufn);
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (ManagedObjectNotFoundException e) {
-      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      Message msg = ERR_DSCFG_ERROR_GET_CHILD_MONFE.get(ufn);
+       Message msg = ERR_DSCFG_ERROR_GET_CHILD_MONFE.get(ufn);
       throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
     }
 
+    if (result.isQuit()) {
+      return MenuResult.quit();
+    } else if (result.isCancel()) {
+      return MenuResult.cancel();
+    }
+
     // Validate the property names.
+    ManagedObject<?> child = result.getValue();
     ManagedObjectDefinition<?, ?> d = child.getManagedObjectDefinition();
     Collection<PropertyDefinition<?>> pdList;
     if (propertyNames.isEmpty()) {
@@ -274,12 +287,12 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
       }
 
       if (propertyNames.isEmpty() || propertyNames.contains(pd.getName())) {
-        displayProperty(builder, child, pd, valuePrinter);
+        displayProperty(app, builder, child, pd, valuePrinter);
       }
     }
 
-    PrintStream out = getConsoleApplication().getOutputStream();
-    if (getConsoleApplication().isScriptFriendly()) {
+    PrintStream out = app.getOutputStream();
+    if (app.isScriptFriendly()) {
       TablePrinter printer = createScriptFriendlyTablePrinter(out);
       builder.print(printer);
     } else {
@@ -289,14 +302,15 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
       builder.print(printer);
     }
 
-    return 0;
+    return MenuResult.success(0);
   }
 
 
 
   // Display the set of values associated with a property.
-  private <T> void displayProperty(TableBuilder builder, ManagedObject<?> mo,
-      PropertyDefinition<T> pd, PropertyValuePrinter valuePrinter) {
+  private <T> void displayProperty(final ConsoleApplication app,
+      TableBuilder builder, ManagedObject<?> mo, PropertyDefinition<T> pd,
+      PropertyValuePrinter valuePrinter) {
     SortedSet<T> values = mo.getPropertyValues(pd);
     if (values.isEmpty()) {
       // There are no values or default values. Display the default
@@ -314,7 +328,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
 
         public Message visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
-          if (getConsoleApplication().isVerbose()) {
+          if (app.isVerbose()) {
             return d.getSynopsis();
           } else {
             return null;
@@ -352,7 +366,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
       Message content = pd.getDefaultBehaviorProvider().accept(visitor, null);
       if (content == null) {
-        if (getConsoleApplication().isScriptFriendly()) {
+        if (app.isScriptFriendly()) {
           builder.appendCell();
         } else {
           builder.appendCell("-");
@@ -371,7 +385,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
         builder.startRow();
         builder.appendCell(pd.getName());
 
-        if (getConsoleApplication().isScriptFriendly()) {
+        if (app.isScriptFriendly()) {
           for (T value : values) {
             builder.appendCell(valuePrinter.print(pd, value));
           }

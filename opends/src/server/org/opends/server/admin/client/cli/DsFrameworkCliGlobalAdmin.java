@@ -29,6 +29,7 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 
 import static org.opends.messages.AdminMessages.*;
+import static org.opends.messages.DSConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 

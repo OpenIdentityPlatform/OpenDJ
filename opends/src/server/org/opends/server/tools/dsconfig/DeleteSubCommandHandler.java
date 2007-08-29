@@ -25,14 +25,14 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
-import org.opends.messages.Message;
 
 
 
-import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.DSConfigMessages.*;
 
 import java.util.List;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectNotFoundException;
@@ -44,6 +44,7 @@ import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
+import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
@@ -52,6 +53,9 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.args.SubCommandArgumentParser;
+import org.opends.server.util.cli.CLIException;
+import org.opends.server.util.cli.ConsoleApplication;
+import org.opends.server.util.cli.MenuResult;
 
 
 
@@ -79,8 +83,6 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
    * Creates a new delete-xxx sub-command for an instantiable
    * relation.
    *
-   * @param app
-   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param p
@@ -91,10 +93,10 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static DeleteSubCommandHandler create(ConsoleApplication app,
+  public static DeleteSubCommandHandler create(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
       InstantiableRelationDefinition<?, ?> r) throws ArgumentException {
-    return new DeleteSubCommandHandler(app, parser, p, r, p.child(r, "DUMMY"));
+    return new DeleteSubCommandHandler(parser, p, r, p.child(r, "DUMMY"));
   }
 
 
@@ -102,8 +104,6 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
   /**
    * Creates a new delete-xxx sub-command for an optional relation.
    *
-   * @param app
-   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param p
@@ -114,10 +114,10 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static DeleteSubCommandHandler create(ConsoleApplication app,
+  public static DeleteSubCommandHandler create(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
       OptionalRelationDefinition<?, ?> r) throws ArgumentException {
-    return new DeleteSubCommandHandler(app, parser, p, r, p.child(r));
+    return new DeleteSubCommandHandler(parser, p, r, p.child(r));
   }
 
   // The argument which should be used to force deletion.
@@ -139,12 +139,10 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
 
 
   // Private constructor.
-  private DeleteSubCommandHandler(ConsoleApplication app,
+  private DeleteSubCommandHandler(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
       RelationDefinition<?, ?> r, ManagedObjectPath<?, ?> c)
       throws ArgumentException {
-    super(app);
-
     this.path = p;
     this.relation = r;
 
@@ -171,6 +169,19 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
 
 
   /**
+   * Gets the relation definition associated with the type of
+   * component that this sub-command handles.
+   *
+   * @return Returns the relation definition associated with the type
+   *         of component that this sub-command handles.
+   */
+  public RelationDefinition<?, ?> getRelationDefinition() {
+    return relation;
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -184,19 +195,21 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
    * {@inheritDoc}
    */
   @Override
-  public int run() throws ArgumentException, ClientException {
+  public MenuResult<Integer> run(ConsoleApplication app,
+      ManagementContextFactory factory) throws ArgumentException,
+      ClientException, CLIException {
     // Get the naming argument values.
-    List<String> names = getNamingArgValues(namingArgs);
+    List<String> names = getNamingArgValues(app, namingArgs);
 
     // Delete the child managed object.
-    ManagedObject<?> parent = null;
+    ManagementContext context = factory.getManagementContext(app);
+    MenuResult<ManagedObject<?>> result;
     try {
-      parent = getManagedObject(path, names);
+      result = getManagedObject(app, context, path, names);
     } catch (AuthorizationException e) {
-      Message msg =
-          ERR_DSCFG_ERROR_DELETE_AUTHZ.get(relation.getUserFriendlyName());
-      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-          msg);
+      Message msg = ERR_DSCFG_ERROR_DELETE_AUTHZ.get(relation
+          .getUserFriendlyName());
+      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (DefinitionDecodingException e) {
       Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
       Message msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(ufn, ufn, ufn);
@@ -206,95 +219,124 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
       Message msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(ufn);
       throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
     } catch (CommunicationException e) {
-      Message msg = ERR_DSCFG_ERROR_DELETE_CE.get(
-          relation.getUserFriendlyName(), e.getMessage());
+      Message msg = ERR_DSCFG_ERROR_DELETE_CE.get(relation
+          .getUserFriendlyName(), e.getMessage());
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
     } catch (ConcurrentModificationException e) {
-      Message msg =
-          ERR_DSCFG_ERROR_DELETE_CME.get(relation.getUserFriendlyName());
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
-          msg);
+      Message msg = ERR_DSCFG_ERROR_DELETE_CME.get(relation
+          .getUserFriendlyName());
+      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (ManagedObjectNotFoundException e) {
       // Ignore the error if the deletion is being forced.
       if (!forceArgument.isPresent()) {
         Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
         Message msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(ufn);
         throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
+      } else {
+        return MenuResult.success(0);
       }
     }
 
-    if (parent != null) {
-      try {
-        if (relation instanceof InstantiableRelationDefinition) {
-          InstantiableRelationDefinition<?, ?> irelation =
-            (InstantiableRelationDefinition<?, ?>) relation;
-          String childName = names.get(names.size() - 1);
-          if (childName == null) {
-            childName = readChildName(parent, irelation, null);
-          }
-
-          if (confirmDeletion()) {
-            parent.removeChild(irelation, childName);
-          } else {
-            return 1;
-          }
-        } else if (relation instanceof OptionalRelationDefinition) {
-          OptionalRelationDefinition<?, ?> orelation =
-            (OptionalRelationDefinition<?, ?>) relation;
-
-          if (confirmDeletion()) {
-            parent.removeChild(orelation);
-          } else {
-            return 1;
-          }
-        }
-      } catch (AuthorizationException e) {
-        Message msg =
-            ERR_DSCFG_ERROR_DELETE_AUTHZ.get(relation.getUserFriendlyName());
-        throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-            msg);
-      } catch (OperationRejectedException e) {
-        Message msg = ERR_DSCFG_ERROR_DELETE_ORE.get(
-            relation.getUserFriendlyName(), e.getMessage());
-        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
-      } catch (ManagedObjectNotFoundException e) {
-        // Ignore the error if the deletion is being forced.
-        if (!forceArgument.isPresent()) {
-          Message msg =
-              ERR_DSCFG_ERROR_DELETE_MONFE.get(relation.getUserFriendlyName());
-          throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
-        }
-      } catch (ConcurrentModificationException e) {
-        Message msg =
-            ERR_DSCFG_ERROR_DELETE_CME.get(relation.getUserFriendlyName());
-        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
-      } catch (CommunicationException e) {
-        Message msg = ERR_DSCFG_ERROR_DELETE_CE.get(
-            relation.getUserFriendlyName(), e.getMessage());
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
-            msg);
+    if (result.isQuit()) {
+      if (!app.isMenuDrivenMode()) {
+        // User chose to cancel deletion.
+        Message msg = INFO_DSCFG_CONFIRM_DELETE_FAIL.get(relation
+            .getUserFriendlyName());
+        app.printVerboseMessage(msg);
       }
+      return MenuResult.quit();
+    } else if (result.isCancel()) {
+      // Must be menu driven, so no need for error message.
+      return MenuResult.cancel();
+    }
+
+    ManagedObject<?> parent = result.getValue();
+    try {
+      if (relation instanceof InstantiableRelationDefinition) {
+        InstantiableRelationDefinition<?, ?> irelation =
+          (InstantiableRelationDefinition<?, ?>) relation;
+        String childName = names.get(names.size() - 1);
+
+        if (childName == null) {
+          MenuResult<String> sresult =
+            readChildName(app, parent, irelation, null);
+
+          if (sresult.isQuit()) {
+            if (!app.isMenuDrivenMode()) {
+              // User chose to cancel deletion.
+              Message msg = INFO_DSCFG_CONFIRM_DELETE_FAIL.get(relation
+                  .getUserFriendlyName());
+              app.printVerboseMessage(msg);
+            }
+            return MenuResult.quit();
+          } else if (sresult.isCancel()) {
+            // Must be menu driven, so no need for error message.
+            return MenuResult.cancel();
+          } else {
+            childName = sresult.getValue();
+          }
+        }
+
+        if (confirmDeletion(app)) {
+          parent.removeChild(irelation, childName);
+        } else {
+          return MenuResult.cancel();
+        }
+      } else if (relation instanceof OptionalRelationDefinition) {
+        OptionalRelationDefinition<?, ?> orelation =
+          (OptionalRelationDefinition<?, ?>) relation;
+
+        if (confirmDeletion(app)) {
+          parent.removeChild(orelation);
+        } else {
+          return MenuResult.cancel();
+        }
+      }
+    } catch (AuthorizationException e) {
+      Message msg = ERR_DSCFG_ERROR_DELETE_AUTHZ.get(relation
+          .getUserFriendlyName());
+      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
+    } catch (OperationRejectedException e) {
+      Message msg = ERR_DSCFG_ERROR_DELETE_ORE.get(relation
+          .getUserFriendlyName(), e.getMessage());
+      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+    } catch (ManagedObjectNotFoundException e) {
+      // Ignore the error if the deletion is being forced.
+      if (!forceArgument.isPresent()) {
+        Message msg = ERR_DSCFG_ERROR_DELETE_MONFE.get(relation
+            .getUserFriendlyName());
+        throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
+      }
+    } catch (ConcurrentModificationException e) {
+      Message msg = ERR_DSCFG_ERROR_DELETE_CME.get(relation
+          .getUserFriendlyName());
+      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+    } catch (CommunicationException e) {
+      Message msg = ERR_DSCFG_ERROR_DELETE_CE.get(relation
+          .getUserFriendlyName(), e.getMessage());
+      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
     }
 
     // Output success message.
-    Message msg =
-        INFO_DSCFG_CONFIRM_DELETE_SUCCESS.get(relation.getUserFriendlyName());
-    getConsoleApplication().printVerboseMessage(msg);
+    Message msg = INFO_DSCFG_CONFIRM_DELETE_SUCCESS.get(relation
+        .getUserFriendlyName());
+    app.printVerboseMessage(msg);
 
-    return 0;
+    return MenuResult.success(0);
   }
 
 
 
   // Confirm deletion.
-  private boolean confirmDeletion() throws ArgumentException {
-    Message prompt =
-        INFO_DSCFG_CONFIRM_DELETE.get(relation.getUserFriendlyName());
-    if (!getConsoleApplication().confirmAction(prompt)) {
+  private boolean confirmDeletion(ConsoleApplication app) throws CLIException {
+    Message prompt = INFO_DSCFG_CONFIRM_DELETE.get(relation
+        .getUserFriendlyName());
+    app.println();
+    if (!app.confirmAction(prompt, false)) {
       // Output failure message.
-      Message msg =
-          INFO_DSCFG_CONFIRM_DELETE_FAIL.get(relation.getUserFriendlyName());
-      getConsoleApplication().printVerboseMessage(msg);
+      Message msg = INFO_DSCFG_CONFIRM_DELETE_FAIL.get(relation
+          .getUserFriendlyName());
+      app.printVerboseMessage(msg);
       return false;
     } else {
       return true;

@@ -32,6 +32,7 @@ import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.SubCommandArgumentParser;
+import org.opends.server.util.cli.ConsoleApplication;
 
 
 
