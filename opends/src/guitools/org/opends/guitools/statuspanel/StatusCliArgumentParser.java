@@ -34,6 +34,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
+import org.opends.server.tools.ToolConstants;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
@@ -43,7 +44,7 @@ import org.opends.server.util.args.BooleanArgument;
  * line.
  *
  */
-public class StatusCliParser extends SecureConnectionCliParser
+public class StatusCliArgumentParser extends SecureConnectionCliParser
 {
   private BooleanArgument noPromptArg;
 
@@ -55,7 +56,7 @@ public class StatusCliParser extends SecureConnectionCliParser
    *          be invoked to launch the program with which this
    *          argument parser is associated.
    */
-  public StatusCliParser(String mainClassName)
+  public StatusCliArgumentParser(String mainClassName)
   {
     super(mainClassName, INFO_STATUS_CLI_USAGE_DESCRIPTION.get(), false);
   }
@@ -78,9 +79,9 @@ public class StatusCliParser extends SecureConnectionCliParser
     defaultArgs.remove(hostNameArg);
     defaultArgs.remove(verboseArg);
     noPromptArg = new BooleanArgument(
-        NO_PROMPT_OPTION_LONG,
-        NO_PROMPT_OPTION_SHORT,
-        NO_PROMPT_OPTION_LONG,
+        ToolConstants.OPTION_LONG_NO_PROMPT,
+        ToolConstants.OPTION_SHORT_NO_PROMPT,
+        ToolConstants.OPTION_LONG_NO_PROMPT,
         INFO_DESCRIPTION_NO_PROMPT.get());
     defaultArgs.add(0, noPromptArg);
     initializeGlobalArguments(defaultArgs);
