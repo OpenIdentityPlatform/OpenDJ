@@ -69,7 +69,7 @@ import org.opends.server.util.args.SubCommandArgumentParser;
 
 /**
  * This is a commodity class that can be used to check the arguments required
- * to stablish a secure connection in the command line.  It can be used
+ * to establish a secure connection in the command line.  It can be used
  * to generate an ApplicationTrustManager object based on the options provided
  * by the user in the command line.
  *
