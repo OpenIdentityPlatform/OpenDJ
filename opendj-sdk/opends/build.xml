@@ -214,6 +214,9 @@
     <genmsg sourceProps="${msg.prop.dir}/core.properties"
             destJava="${msg.javagen.dir}/org/opends/messages/CoreMessages.java">
     </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/dsconfig.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/DSConfigMessages.java">
+    </genmsg>
     <genmsg sourceProps="${msg.prop.dir}/extension.properties"
             destJava="${msg.javagen.dir}/org/opends/messages/ExtensionMessages.java">
     </genmsg>

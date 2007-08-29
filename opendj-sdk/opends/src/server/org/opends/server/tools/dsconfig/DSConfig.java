@@ -25,12 +25,12 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
-import org.opends.messages.Message;
 
 
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.messages.DSConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -39,18 +39,21 @@ import java.io.OutputStream;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AttributeTypePropertyDefinition;
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.ClassPropertyDefinition;
+import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.PropertyException;
+import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.Tag;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
-import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.tools.ClientException;
@@ -62,6 +65,13 @@ import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.args.SubCommandArgumentParser;
+import org.opends.server.util.cli.CLIException;
+import org.opends.server.util.cli.ConsoleApplication;
+import org.opends.server.util.cli.Menu;
+import org.opends.server.util.cli.MenuBuilder;
+import org.opends.server.util.cli.MenuCallback;
+import org.opends.server.util.cli.MenuResult;
+import org.opends.server.util.cli.OutputStreamConsoleApplication;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TextTablePrinter;
 
@@ -72,6 +82,172 @@ import org.opends.server.util.table.TextTablePrinter;
  * administrators to configure the Directory Server.
  */
 public final class DSConfig extends ConsoleApplication {
+
+  /**
+   * A menu call-back which runs a sub-command interactively.
+   */
+  public class SubCommandHandlerMenuCallback implements MenuCallback<Integer> {
+
+    // The sub-command handler.
+    private final SubCommandHandler handler;
+
+
+
+    /**
+     * Creates a new sub-command handler call-back.
+     *
+     * @param handler
+     *          The sub-command handler.
+     */
+    public SubCommandHandlerMenuCallback(SubCommandHandler handler) {
+      this.handler = handler;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public MenuResult<Integer> invoke(ConsoleApplication app)
+        throws CLIException {
+      try {
+        MenuResult<Integer> result = handler.run(app, factory);
+
+        if (result.isQuit()) {
+          return result;
+        } else {
+          // Success or cancel.
+          app.println();
+          app.pressReturnToContinue();
+          return MenuResult.again();
+        }
+      } catch (ArgumentException e) {
+        app.println(e.getMessageObject());
+        return MenuResult.success(1);
+      } catch (ClientException e) {
+        app.println(e.getMessageObject());
+        return MenuResult.success(e.getExitCode());
+      }
+    }
+  }
+
+
+
+  /**
+   * The interactive mode sub-menu implementation.
+   */
+  public class SubMenuCallback implements MenuCallback<Integer> {
+
+    // The menu.
+    private final Menu<Integer> menu;
+
+
+
+    /**
+     * Creates a new sub-menu implementation.
+     *
+     * @param app
+     *          The console application.
+     * @param rd
+     *          The relation definition.
+     * @param ch
+     *          The optional create sub-command.
+     * @param dh
+     *          The optional delete sub-command.
+     * @param lh
+     *          The optional list sub-command.
+     * @param sh
+     *          The option set-prop sub-command.
+     */
+    public SubMenuCallback(ConsoleApplication app, RelationDefinition<?, ?> rd,
+        CreateSubCommandHandler<?, ?> ch, DeleteSubCommandHandler dh,
+        ListSubCommandHandler lh, SetPropSubCommandHandler sh) {
+      Message ufn = rd.getUserFriendlyName();
+
+      Message ufpn = null;
+      if (rd instanceof InstantiableRelationDefinition) {
+        InstantiableRelationDefinition<?, ?> ir =
+          (InstantiableRelationDefinition<?, ?>) rd;
+        ufpn = ir.getUserFriendlyPluralName();
+      }
+
+      MenuBuilder<Integer> builder = new MenuBuilder<Integer>(app);
+
+      builder.setTitle(INFO_DSCFG_HEADING_COMPONENT_MENU_TITLE.get(ufn));
+      builder.setPrompt(INFO_DSCFG_HEADING_COMPONENT_MENU_PROMPT.get());
+
+      if (lh != null) {
+        SubCommandHandlerMenuCallback callback =
+          new SubCommandHandlerMenuCallback(lh);
+        if (ufpn != null) {
+          builder.addNumberedOption(
+              INFO_DSCFG_OPTION_COMPONENT_MENU_LIST_PLURAL.get(ufpn), callback);
+        } else {
+          builder
+              .addNumberedOption(INFO_DSCFG_OPTION_COMPONENT_MENU_LIST_SINGULAR
+                  .get(ufn), callback);
+        }
+      }
+
+      if (ch != null) {
+        SubCommandHandlerMenuCallback callback =
+          new SubCommandHandlerMenuCallback(ch);
+        builder.addNumberedOption(INFO_DSCFG_OPTION_COMPONENT_MENU_CREATE
+            .get(ufn), callback);
+      }
+
+      if (sh != null) {
+        SubCommandHandlerMenuCallback callback =
+          new SubCommandHandlerMenuCallback(sh);
+        if (ufpn != null) {
+          builder
+              .addNumberedOption(INFO_DSCFG_OPTION_COMPONENT_MENU_MODIFY_PLURAL
+                  .get(ufn), callback);
+        } else {
+          builder.addNumberedOption(
+              INFO_DSCFG_OPTION_COMPONENT_MENU_MODIFY_SINGULAR.get(ufn),
+              callback);
+        }
+      }
+
+      if (dh != null) {
+        SubCommandHandlerMenuCallback callback =
+          new SubCommandHandlerMenuCallback(dh);
+        builder.addNumberedOption(INFO_DSCFG_OPTION_COMPONENT_MENU_DELETE
+            .get(ufn), callback);
+      }
+
+      builder.addBackOption(true);
+      builder.addQuitOption();
+
+      this.menu = builder.toMenu();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public final MenuResult<Integer> invoke(ConsoleApplication app)
+        throws CLIException {
+      try {
+        app.println();
+        app.println();
+
+        MenuResult<Integer> result = menu.run();
+
+        if (result.isCancel()) {
+          return MenuResult.again();
+        }
+
+        return result;
+      } catch (CLIException e) {
+        app.println(e.getMessageObject());
+        return MenuResult.success(1);
+      }
+    }
+
+  }
 
   /**
    * The tracer object for the debug logger.
@@ -126,7 +302,7 @@ public final class DSConfig extends ConsoleApplication {
         app.initializeClientEnvironment();
       } catch (InitializationException e) {
         // TODO: is this ok as an error message?
-        app.printMessage(e.getMessageObject());
+        app.println(e.getMessageObject());
         return 1;
       }
     }
@@ -147,9 +323,15 @@ public final class DSConfig extends ConsoleApplication {
   // already been initialized.
   private boolean globalArgumentsInitialized = false;
 
+  // The sub-command handler factory.
+  private SubCommandHandlerFactory handlerFactory = null;
+
   // Mapping of sub-commands to their implementations;
   private final Map<SubCommand, SubCommandHandler> handlers =
     new HashMap<SubCommand, SubCommandHandler>();
+
+  // Indicates whether or not a sub-command was provided.
+  private boolean hasSubCommand = true;
 
   // The argument which should be used to request non interactive
   // behavior.
@@ -167,10 +349,6 @@ public final class DSConfig extends ConsoleApplication {
 
   // The argument which should be used to request usage information.
   private BooleanArgument showUsageArgument;
-
-  // Flag indicating whether or not the sub-commands have
-  // already been initialized.
-  private boolean subCommandsInitialized = false;
 
   // The argument which should be used to request verbose output.
   private BooleanArgument verboseArgument;
@@ -240,6 +418,16 @@ public final class DSConfig extends ConsoleApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
+  public boolean isMenuDrivenMode() {
+    return !hasSubCommand;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isQuiet() {
     return quietArgument.isPresent();
   }
@@ -264,21 +452,11 @@ public final class DSConfig extends ConsoleApplication {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  public ManagementContext getManagementContext() throws ArgumentException,
-      ClientException {
-    return factory.getManagementContext(this);
-  }
-
-
-
   // Displays the provided message followed by a help usage reference.
   private void displayMessageAndUsageReference(Message message) {
-    printMessage(message);
-    printMessage(Message.EMPTY);
-    printMessage(parser.getHelpUsageReference());
+    println(message);
+    println();
+    println(parser.getHelpUsageReference());
   }
 
 
@@ -297,8 +475,8 @@ public final class DSConfig extends ConsoleApplication {
       quietArgument = new BooleanArgument(
           SecureConnectionCliParser.QUIET_OPTION_LONG,
           SecureConnectionCliParser.QUIET_OPTION_SHORT,
-          SecureConnectionCliParser.QUIET_OPTION_LONG,
-          INFO_DESCRIPTION_QUIET.get());
+          SecureConnectionCliParser.QUIET_OPTION_LONG, INFO_DESCRIPTION_QUIET
+              .get());
 
       scriptFriendlyArgument = new BooleanArgument("script-friendly", 's',
           "script-friendly", INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
@@ -310,8 +488,8 @@ public final class DSConfig extends ConsoleApplication {
           INFO_DESCRIPTION_NO_PROMPT.get());
 
       showUsageArgument = new BooleanArgument("showUsage", OPTION_SHORT_HELP,
-              OPTION_LONG_HELP,
-              INFO_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_SUMMARY.get());
+          OPTION_LONG_HELP, INFO_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_SUMMARY
+              .get());
 
       // Register the global arguments.
       parser.addGlobalArgument(showUsageArgument);
@@ -340,7 +518,9 @@ public final class DSConfig extends ConsoleApplication {
    *           If a sub-command could not be created.
    */
   private void initializeSubCommands() throws ArgumentException {
-    if (subCommandsInitialized == false) {
+    if (handlerFactory == null) {
+      handlerFactory = new SubCommandHandlerFactory(parser);
+
       Comparator<SubCommand> c = new Comparator<SubCommand>() {
 
         public int compare(SubCommand o1, SubCommand o2) {
@@ -348,12 +528,11 @@ public final class DSConfig extends ConsoleApplication {
         }
       };
 
-      SubCommandBuilder builder = new SubCommandBuilder();
       Map<Tag, SortedSet<SubCommand>> groups =
         new TreeMap<Tag, SortedSet<SubCommand>>();
       SortedSet<SubCommand> allSubCommands = new TreeSet<SubCommand>(c);
-      for (SubCommandHandler handler : builder.getSubCommandHandlers(this,
-          parser)) {
+      for (SubCommandHandler handler : handlerFactory
+          .getAllSubCommandHandlers()) {
         SubCommand sc = handler.getSubCommand();
 
         handlers.put(sc, handler);
@@ -391,8 +570,6 @@ public final class DSConfig extends ConsoleApplication {
 
       parser.addGlobalArgument(arg);
       parser.setUsageGroupArgument(arg, allSubCommands);
-
-      subCommandsInitialized = true;
     }
   }
 
@@ -415,7 +592,7 @@ public final class DSConfig extends ConsoleApplication {
       initializeSubCommands();
     } catch (ArgumentException e) {
       Message message = ERR_CANNOT_INITIALIZE_ARGS.get(e.getMessage());
-      printMessage(message);
+      println(message);
       return 1;
     }
 
@@ -434,26 +611,18 @@ public final class DSConfig extends ConsoleApplication {
       return 0;
     }
 
-    // Make sure that we have a sub-command.
-    if (parser.getSubCommand() == null) {
-      Message message = ERR_ERROR_PARSING_ARGS.get(
-              ERR_DSCFG_ERROR_MISSING_SUBCOMMAND.get());
-      displayMessageAndUsageReference(message);
-      return 1;
-    }
-
+    // Check for conflicting arguments.
     if (quietArgument.isPresent() && verboseArgument.isPresent()) {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
-              quietArgument.getLongIdentifier(),
-          verboseArgument.getLongIdentifier());
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(quietArgument
+          .getLongIdentifier(), verboseArgument.getLongIdentifier());
       displayMessageAndUsageReference(message);
       return 1;
     }
 
     if (quietArgument.isPresent() && !noPromptArgument.isPresent()) {
       Message message = ERR_DSCFG_ERROR_QUIET_AND_INTERACTIVE_INCOMPATIBLE.get(
-              quietArgument.getLongIdentifier(),
-          noPromptArgument.getLongIdentifier());
+          quietArgument.getLongIdentifier(), noPromptArgument
+              .getLongIdentifier());
       displayMessageAndUsageReference(message);
       return 1;
     }
@@ -469,28 +638,177 @@ public final class DSConfig extends ConsoleApplication {
     try {
       factory.validateGlobalArguments();
     } catch (ArgumentException e) {
-      printMessage(e.getMessageObject());
+      println(e.getMessageObject());
       return 1;
     }
 
-    // Retrieve the sub-command implementation and run it.
-    SubCommandHandler handler = handlers.get(parser.getSubCommand());
+    if (parser.getSubCommand() == null) {
+      hasSubCommand = false;
+
+      if (isInteractive()) {
+        // Top-level interactive mode.
+        return runInteractiveMode();
+      } else {
+        Message message = ERR_ERROR_PARSING_ARGS
+            .get(ERR_DSCFG_ERROR_MISSING_SUBCOMMAND.get());
+        displayMessageAndUsageReference(message);
+        return 1;
+      }
+    } else {
+      hasSubCommand = true;
+
+      // Retrieve the sub-command implementation and run it.
+      SubCommandHandler handler = handlers.get(parser.getSubCommand());
+      return runSubCommand(handler);
+    }
+  }
+
+
+
+  // Run the top-level interactive console.
+  private int runInteractiveMode() {
+    // In interactive mode, redirect all output to stdout.
+    ConsoleApplication app = new OutputStreamConsoleApplication(this);
+
+    // Build menu structure.
+    Comparator<RelationDefinition<?, ?>> c =
+      new Comparator<RelationDefinition<?, ?>>() {
+
+      public int compare(RelationDefinition<?, ?> rd1,
+          RelationDefinition<?, ?> rd2) {
+        String s1 = rd1.getUserFriendlyName().toString();
+        String s2 = rd2.getUserFriendlyName().toString();
+
+        return s1.compareToIgnoreCase(s2);
+      }
+
+    };
+
+    Set<RelationDefinition<?, ?>> relations;
+    Map<RelationDefinition<?, ?>, CreateSubCommandHandler<?, ?>> createHandlers;
+    Map<RelationDefinition<?, ?>, DeleteSubCommandHandler> deleteHandlers;
+    Map<RelationDefinition<?, ?>, ListSubCommandHandler> listHandlers;
+    Map<RelationDefinition<?, ?>, GetPropSubCommandHandler> getPropHandlers;
+    Map<RelationDefinition<?, ?>, SetPropSubCommandHandler> setPropHandlers;
+
+    relations = new TreeSet<RelationDefinition<?, ?>>(c);
+    createHandlers =
+      new HashMap<RelationDefinition<?, ?>, CreateSubCommandHandler<?, ?>>();
+    deleteHandlers =
+      new HashMap<RelationDefinition<?, ?>, DeleteSubCommandHandler>();
+    listHandlers =
+      new HashMap<RelationDefinition<?, ?>, ListSubCommandHandler>();
+    getPropHandlers =
+      new HashMap<RelationDefinition<?, ?>, GetPropSubCommandHandler>();
+    setPropHandlers =
+      new HashMap<RelationDefinition<?, ?>, SetPropSubCommandHandler>();
+
+    for (CreateSubCommandHandler<?, ?> ch : handlerFactory
+        .getCreateSubCommandHandlers()) {
+      relations.add(ch.getRelationDefinition());
+      createHandlers.put(ch.getRelationDefinition(), ch);
+    }
+
+    for (DeleteSubCommandHandler dh : handlerFactory
+        .getDeleteSubCommandHandlers()) {
+      relations.add(dh.getRelationDefinition());
+      deleteHandlers.put(dh.getRelationDefinition(), dh);
+    }
+
+    for (ListSubCommandHandler lh :
+      handlerFactory.getListSubCommandHandlers()) {
+      relations.add(lh.getRelationDefinition());
+      listHandlers.put(lh.getRelationDefinition(), lh);
+    }
+
+    for (GetPropSubCommandHandler gh : handlerFactory
+        .getGetPropSubCommandHandlers()) {
+      relations.add(gh.getRelationDefinition());
+      getPropHandlers.put(gh.getRelationDefinition(), gh);
+    }
+
+    for (SetPropSubCommandHandler sh : handlerFactory
+        .getSetPropSubCommandHandlers()) {
+      relations.add(sh.getRelationDefinition());
+      setPropHandlers.put(sh.getRelationDefinition(), sh);
+    }
+
+    // Main menu.
+    MenuBuilder<Integer> builder = new MenuBuilder<Integer>(app);
+
+    builder.setTitle(INFO_DSCFG_HEADING_MAIN_MENU_TITLE.get());
+    builder.setPrompt(INFO_DSCFG_HEADING_MAIN_MENU_PROMPT.get());
+    builder.setMultipleColumnThreshold(0);
+
+    for (RelationDefinition<?, ?> rd : relations) {
+      MenuCallback<Integer> callback = new SubMenuCallback(app, rd,
+          createHandlers.get(rd), deleteHandlers.get(rd), listHandlers.get(rd),
+          setPropHandlers.get(rd));
+      builder.addNumberedOption(rd.getUserFriendlyName(), callback);
+    }
+
+    builder.addQuitOption();
+
+    Menu<Integer> menu = builder.toMenu();
+
     try {
-      return handler.run();
+      // Force retrieval of management context.
+      factory.getManagementContext(app);
     } catch (ArgumentException e) {
-      printMessage(e.getMessageObject());
+      app.println(e.getMessageObject());
+      return 1;
+    } catch (ClientException e) {
+      app.println(e.getMessageObject());
+      return 1;
+    }
+
+    try {
+      app.println();
+      app.println();
+
+      MenuResult<Integer> result = menu.run();
+
+      if (result.isQuit()) {
+        return 0;
+      } else {
+        return result.getValue();
+      }
+    } catch (CLIException e) {
+      app.println(e.getMessageObject());
+      return 1;
+    }
+  }
+
+
+
+  // Run the provided sub-command handler.
+  private int runSubCommand(SubCommandHandler handler) {
+    try {
+      MenuResult<Integer> result = handler.run(this, factory);
+
+      if (result.isSuccess()) {
+        return result.getValue();
+      } else {
+        // User must have quit.
+        return 1;
+      }
+    } catch (ArgumentException e) {
+      println(e.getMessageObject());
+      return 1;
+    } catch (CLIException e) {
+      println(e.getMessageObject());
       return 1;
     } catch (ClientException e) {
       // If the client exception was caused by a decoding exception
       // then we should display the causes.
-      printMessage(e.getMessageObject());
+      println(e.getMessageObject());
 
       Throwable cause = e.getCause();
       if (cause instanceof ManagedObjectDecodingException) {
         ManagedObjectDecodingException de =
           (ManagedObjectDecodingException) cause;
 
-        printMessage(Message.EMPTY);
+        println();
         TableBuilder builder = new TableBuilder();
         for (PropertyException pe : de.getCauses()) {
           AbstractManagedObjectDefinition<?, ?> d = de
@@ -506,7 +824,7 @@ public final class DSConfig extends ConsoleApplication {
         printer.setDisplayHeadings(false);
         printer.setColumnWidth(1, 0);
         builder.print(printer);
-        printMessage(Message.EMPTY);
+        println();
       }
 
       return 1;
@@ -514,7 +832,7 @@ public final class DSConfig extends ConsoleApplication {
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      printMessage(Message.raw(StaticUtils.stackTraceToString(e)));
+      println(Message.raw(StaticUtils.stackTraceToString(e)));
       return 1;
     }
   }

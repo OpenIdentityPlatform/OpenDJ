@@ -22,22 +22,23 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
-package org.opends.server.tools.dsconfig;
-
-
 
 /**
- * An interface for displaying help interactively.
+ * Provides a high-level framework for implementing command-line
+ * tools.
+ * <p>
+ * The {@link ConsoleApplication} interface can be used as a basis for
+ * console based applications. It includes common utility methods for
+ * interacting with the console.
+ * <p>
+ * The {@link MenuBuilder} and associated classes and interfaces can
+ * be used to implement text based menu driven applications.
  */
-interface HelpCallback {
+@org.opends.server.types.PublicAPI(
+    stability = org.opends.server.types.StabilityLevel.PRIVATE)
+package org.opends.server.util.cli;
 
-  /**
-   * Displays help to the provided application console.
-   *
-   * @param app
-   *          The console application.
-   */
-  void display(ConsoleApplication app);
-}
+
+

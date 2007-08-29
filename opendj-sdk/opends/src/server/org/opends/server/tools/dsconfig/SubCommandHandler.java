@@ -25,11 +25,10 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
-import org.opends.messages.Message;
 
 
 
-import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.DSConfigMessages.*;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -42,6 +41,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
@@ -69,6 +69,11 @@ import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
+import org.opends.server.util.cli.CLIException;
+import org.opends.server.util.cli.ConsoleApplication;
+import org.opends.server.util.cli.Menu;
+import org.opends.server.util.cli.MenuBuilder;
+import org.opends.server.util.cli.MenuResult;
 import org.opends.server.util.table.TabSeparatedTablePrinter;
 import org.opends.server.util.table.TablePrinter;
 
@@ -77,7 +82,7 @@ import org.opends.server.util.table.TablePrinter;
 /**
  * An interface for sub-command implementations.
  */
-abstract class SubCommandHandler {
+abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
   /**
    * A path serializer which is used to retrieve a managed object
@@ -85,9 +90,8 @@ abstract class SubCommandHandler {
    */
   private class ManagedObjectFinder implements ManagedObjectPathSerializer {
 
-    // Any argument exception that was caught when attempting to find
-    // the managed object.
-    private ArgumentException ae;
+    // The console application.
+    private ConsoleApplication app;
 
     // The index of the next path argument to be retrieved.
     private int argIndex;
@@ -99,22 +103,22 @@ abstract class SubCommandHandler {
 
     private CommunicationException ce;
 
+    // Any CLI exception that was caught when attempting to find
+    // the managed object.
+    private CLIException clie;
+
     private ConcurrentModificationException cme;
 
     // Any operation exception that was caught when attempting to find
     // the managed object.
     private DefinitionDecodingException dde;
 
-    // Flag indicating whether or not an exception occurred during
-    // retrieval.
-    private boolean gotException;
-
-    // The last managed object retrieved.
-    private ManagedObject<?> managedObject;
-
     private ManagedObjectDecodingException mode;
 
     private ManagedObjectNotFoundException monfe;
+
+    // The current result.
+    private MenuResult<ManagedObject<?>> result;
 
 
 
@@ -125,7 +129,7 @@ abstract class SubCommandHandler {
         void appendManagedObjectPathElement(
         InstantiableRelationDefinition<? super C, ? super S> r,
         AbstractManagedObjectDefinition<C, S> d, String name) {
-      if (!gotException) {
+      if (result.isSuccess()) {
         // We should ignore the "template" name here and use a path
         // argument.
         String childName = args.get(argIndex++);
@@ -135,50 +139,61 @@ abstract class SubCommandHandler {
           // the user choose.
           if (childName == null) {
             try {
-              childName = readChildName(managedObject, r, d);
-            } catch (ArgumentException e) {
-              ae = e;
-              gotException = true;
+              MenuResult<String> sresult = readChildName(app,
+                  result.getValue(), r, d);
+
+              if (sresult.isCancel()) {
+                result = MenuResult.cancel();
+                return;
+              } else if (sresult.isQuit()) {
+                result = MenuResult.quit();
+                return;
+              } else {
+                childName = sresult.getValue();
+              }
+            } catch (CLIException e) {
+              clie = e;
+              result = MenuResult.quit();
               return;
             }
           } else if (childName.trim().length() == 0) {
             IllegalManagedObjectNameException e =
               new IllegalManagedObjectNameException(childName);
-            ae = ArgumentExceptionFactory
+            clie = ArgumentExceptionFactory
                 .adaptIllegalManagedObjectNameException(e, d);
-            gotException = true;
+            result = MenuResult.quit();
             return;
           }
 
-          ManagedObject<?> child = managedObject.getChild(r, childName);
+          ManagedObject<?> child = result.getValue().getChild(r, childName);
 
           // Check that child is a sub-type of the specified
           // definition.
           if (!child.getManagedObjectDefinition().isChildOf(d)) {
-            ae = ArgumentExceptionFactory.wrongManagedObjectType(r, child
+            clie = ArgumentExceptionFactory.wrongManagedObjectType(r, child
                 .getManagedObjectDefinition());
-            gotException = true;
+            result = MenuResult.quit();
           } else {
-            managedObject = child;
+            result = MenuResult.<ManagedObject<?>>success(child);
           }
         } catch (DefinitionDecodingException e) {
           dde = e;
-          gotException = true;
+          result = MenuResult.quit();
         } catch (ManagedObjectDecodingException e) {
           mode = e;
-          gotException = true;
+          result = MenuResult.quit();
         } catch (AuthorizationException e) {
           authze = e;
-          gotException = true;
+          result = MenuResult.quit();
         } catch (ManagedObjectNotFoundException e) {
           monfe = e;
-          gotException = true;
+          result = MenuResult.quit();
         } catch (ConcurrentModificationException e) {
           cme = e;
-          gotException = true;
+          result = MenuResult.quit();
         } catch (CommunicationException e) {
           ce = e;
-          gotException = true;
+          result = MenuResult.quit();
         }
       }
     }
@@ -192,37 +207,37 @@ abstract class SubCommandHandler {
         void appendManagedObjectPathElement(
         OptionalRelationDefinition<? super C, ? super S> r,
         AbstractManagedObjectDefinition<C, S> d) {
-      if (!gotException) {
+      if (result.isSuccess()) {
         try {
-          ManagedObject<?> child = managedObject.getChild(r);
+          ManagedObject<?> child = result.getValue().getChild(r);
 
           // Check that child is a sub-type of the specified
           // definition.
           if (!child.getManagedObjectDefinition().isChildOf(d)) {
-            ae = ArgumentExceptionFactory.wrongManagedObjectType(r, child
+            clie = ArgumentExceptionFactory.wrongManagedObjectType(r, child
                 .getManagedObjectDefinition());
-            gotException = true;
+            result = MenuResult.quit();
           } else {
-            managedObject = child;
+            result = MenuResult.<ManagedObject<?>>success(child);
           }
         } catch (DefinitionDecodingException e) {
           dde = e;
-          gotException = true;
+          result = MenuResult.quit();
         } catch (ManagedObjectDecodingException e) {
           mode = e;
-          gotException = true;
+          result = MenuResult.quit();
         } catch (AuthorizationException e) {
           authze = e;
-          gotException = true;
+          result = MenuResult.quit();
         } catch (ManagedObjectNotFoundException e) {
           monfe = e;
-          gotException = true;
+          result = MenuResult.quit();
         } catch (ConcurrentModificationException e) {
           cme = e;
-          gotException = true;
+          result = MenuResult.quit();
         } catch (CommunicationException e) {
           ce = e;
-          gotException = true;
+          result = MenuResult.quit();
         }
       }
     }
@@ -236,37 +251,37 @@ abstract class SubCommandHandler {
         void appendManagedObjectPathElement(
         SingletonRelationDefinition<? super C, ? super S> r,
         AbstractManagedObjectDefinition<C, S> d) {
-      if (!gotException) {
+      if (result.isSuccess()) {
         try {
-          ManagedObject<?> child = managedObject.getChild(r);
+          ManagedObject<?> child = result.getValue().getChild(r);
 
           // Check that child is a sub-type of the specified
           // definition.
           if (!child.getManagedObjectDefinition().isChildOf(d)) {
-            ae = ArgumentExceptionFactory.wrongManagedObjectType(r, child
+            clie = ArgumentExceptionFactory.wrongManagedObjectType(r, child
                 .getManagedObjectDefinition());
-            gotException = true;
+            result = MenuResult.quit();
           } else {
-            managedObject = child;
+            result = MenuResult.<ManagedObject<?>>success(child);
           }
         } catch (DefinitionDecodingException e) {
           dde = e;
-          gotException = true;
+          result = MenuResult.quit();
         } catch (ManagedObjectDecodingException e) {
           mode = e;
-          gotException = true;
+          result = MenuResult.quit();
         } catch (AuthorizationException e) {
           authze = e;
-          gotException = true;
+          result = MenuResult.quit();
         } catch (ManagedObjectNotFoundException e) {
           monfe = e;
-          gotException = true;
+          result = MenuResult.quit();
         } catch (ConcurrentModificationException e) {
           cme = e;
-          gotException = true;
+          result = MenuResult.quit();
         } catch (CommunicationException e) {
           ce = e;
-          gotException = true;
+          result = MenuResult.quit();
         }
       }
     }
@@ -276,14 +291,20 @@ abstract class SubCommandHandler {
     /**
      * Finds the named managed object.
      *
+     * @param app
+     *          The console application.
      * @param context
      *          The management context.
      * @param path
      *          The managed object path.
      * @param args
      *          The managed object path arguments.
-     * @return Returns the named managed object.
-     * @throws ArgumentException
+     * @return Returns a {@link MenuResult#success()} containing the
+     *         managed object referenced by the provided managed
+     *         object path, or {@link MenuResult#quit()}, or
+     *         {@link MenuResult#cancel()}, if the sub-command was
+     *         run interactively and the user chose to quit or cancel.
+     * @throws CLIException
      *           If one of the naming arguments referenced a managed
      *           object of the wrong type.
      * @throws DefinitionDecodingException
@@ -306,18 +327,19 @@ abstract class SubCommandHandler {
      *           If the client cannot contact the server due to an
      *           underlying communication problem.
      */
-    public ManagedObject<?> find(ManagementContext context,
-        ManagedObjectPath<?, ?> path, List<String> args)
-        throws ArgumentException, CommunicationException,
+    public MenuResult<ManagedObject<?>> find(ConsoleApplication app,
+        ManagementContext context, ManagedObjectPath<?, ?> path,
+        List<String> args) throws CLIException, CommunicationException,
         AuthorizationException, ConcurrentModificationException,
         DefinitionDecodingException, ManagedObjectDecodingException,
         ManagedObjectNotFoundException {
-      this.managedObject = context.getRootConfigurationManagedObject();
+      this.result = MenuResult.<ManagedObject<?>> success(context
+          .getRootConfigurationManagedObject());
+      this.app = app;
       this.args = args;
       this.argIndex = 0;
 
-      this.gotException = false;
-      this.ae = null;
+      this.clie = null;
       this.authze = null;
       this.ce = null;
       this.cme = null;
@@ -327,8 +349,10 @@ abstract class SubCommandHandler {
 
       path.serialize(this);
 
-      if (ae != null) {
-        throw ae;
+      if (result.isSuccess()) {
+        return result;
+      } else if (clie != null) {
+        throw clie;
       } else if (authze != null) {
         throw authze;
       } else if (ce != null) {
@@ -342,7 +366,8 @@ abstract class SubCommandHandler {
       } else if (monfe != null) {
         throw monfe;
       } else {
-        return managedObject;
+        // User requested termination interactively.
+        return result;
       }
     }
   }
@@ -500,6 +525,12 @@ abstract class SubCommandHandler {
   }
 
   /**
+   * The threshold above which choice menus should be displayed in
+   * multiple columns.
+   */
+  public static final int MULTI_COLUMN_THRESHOLD = 8;
+
+  /**
    * The value for the long option advanced.
    */
   private static final String OPTION_DSCFG_LONG_ADVANCED = "advanced";
@@ -552,9 +583,6 @@ abstract class SubCommandHandler {
   // The argument which should be used to request advanced mode.
   private BooleanArgument advancedModeArgument;
 
-  // The application instance.
-  private final ConsoleApplication app;
-
   // The argument which should be used to specify zero or more
   // property names.
   private StringArgument propertyArgument;
@@ -575,12 +603,41 @@ abstract class SubCommandHandler {
 
   /**
    * Create a new sub-command handler.
-   *
-   * @param app
-   *          The application instance.
    */
-  protected SubCommandHandler(ConsoleApplication app) {
-    this.app = app;
+  protected SubCommandHandler() {
+    // No implementation required.
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final int compareTo(SubCommandHandler o) {
+    String s1 = getSubCommand().getName();
+    String s2 = o.getSubCommand().getName();
+
+    return s1.compareTo(s2);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public final boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    } else if (obj instanceof SubCommandHandler) {
+      SubCommandHandler other = (SubCommandHandler) obj;
+
+      String s1 = getSubCommand().getName();
+      String s2 = other.getSubCommand().getName();
+      return s1.equals(s2);
+    } else {
+      return false;
+    }
   }
 
 
@@ -607,17 +664,38 @@ abstract class SubCommandHandler {
 
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public final int hashCode() {
+    return getSubCommand().getName().hashCode();
+  }
+
+
+
+  /**
    * Run this sub-command handler.
    *
-   * @return Returns zero if the sub-command completed successfully or
-   *         non-zero if it did not.
+   * @param app
+   *          The console application.
+   * @param factory
+   *          The management context factory.
+   * @return Returns a {@link MenuResult#success()} containing zero if
+   *         the sub-command completed successfully or non-zero if it
+   *         did not, or {@link MenuResult#quit()}, or
+   *         {@link MenuResult#cancel()}, if the sub-command was run
+   *         interactively and the user chose to quit or cancel.
    * @throws ArgumentException
    *           If an argument required by the sub-command could not be
    *           parsed successfully.
    * @throws ClientException
    *           If the management context could not be created.
+   * @throws CLIException
+   *           If a CLI exception occurred.
    */
-  public abstract int run() throws ArgumentException, ClientException;
+  public abstract MenuResult<Integer> run(ConsoleApplication app,
+      ManagementContextFactory factory) throws ArgumentException,
+      ClientException, CLIException;
 
 
 
@@ -702,26 +780,22 @@ abstract class SubCommandHandler {
 
 
   /**
-   * Gets the console application instance.
-   *
-   * @return Returns the console application instance.
-   */
-  protected final ConsoleApplication getConsoleApplication() {
-    return app;
-  }
-
-
-
-  /**
    * Get the managed object referenced by the provided managed object
    * path.
    *
+   * @param app
+   *          The console application.
+   * @param context
+   *          The management context.
    * @param path
    *          The managed object path.
    * @param args
    *          The list of managed object names required by the path.
-   * @return Returns the managed object referenced by the provided
-   *         managed object path.
+   * @return Returns a {@link MenuResult#success()} containing the
+   *         managed object referenced by the provided managed object
+   *         path, or {@link MenuResult#quit()}, or
+   *         {@link MenuResult#cancel()}, if the sub-command was run
+   *         interactively and the user chose to quit or cancel.
    * @throws DefinitionDecodingException
    *           If the managed object was found but its type could not
    *           be determined.
@@ -741,20 +815,21 @@ abstract class SubCommandHandler {
    * @throws CommunicationException
    *           If the client cannot contact the server due to an
    *           underlying communication problem.
-   * @throws ArgumentException
+   * @throws CLIException
    *           If one of the naming arguments referenced a managed
    *           object of the wrong type.
    * @throws ClientException
    *           If the management context could not be created.
    */
-  protected final ManagedObject<?> getManagedObject(
-      ManagedObjectPath<?, ?> path, List<String> args)
-      throws ArgumentException, AuthorizationException,
-      DefinitionDecodingException, ManagedObjectDecodingException,
-      CommunicationException, ConcurrentModificationException,
-      ManagedObjectNotFoundException, ClientException {
+  protected final MenuResult<ManagedObject<?>> getManagedObject(
+      ConsoleApplication app, ManagementContext context,
+      ManagedObjectPath<?, ?> path, List<String> args) throws CLIException,
+      AuthorizationException, DefinitionDecodingException,
+      ManagedObjectDecodingException, CommunicationException,
+      ConcurrentModificationException, ManagedObjectNotFoundException,
+      ClientException {
     ManagedObjectFinder finder = new ManagedObjectFinder();
-    return finder.find(app.getManagementContext(), path, args);
+    return finder.find(app, context, path, args);
   }
 
 
@@ -762,6 +837,8 @@ abstract class SubCommandHandler {
   /**
    * Gets the values of the naming arguments.
    *
+   * @param app
+   *          The console application.
    * @param namingArgs
    *          The naming arguments.
    * @return Returns the values of the naming arguments.
@@ -769,7 +846,7 @@ abstract class SubCommandHandler {
    *           If one of the naming arguments is missing and the
    *           application is non-interactive.
    */
-  protected final List<String> getNamingArgValues(
+  protected final List<String> getNamingArgValues(ConsoleApplication app,
       List<StringArgument> namingArgs) throws ArgumentException {
     ArrayList<String> values = new ArrayList<String>(namingArgs.size());
     for (StringArgument arg : namingArgs) {
@@ -902,14 +979,19 @@ abstract class SubCommandHandler {
    *          The type of child client configuration.
    * @param <S>
    *          The type of child server configuration.
+   * @param app
+   *          The console application.
    * @param parent
    *          The parent managed object.
    * @param r
    *          The relation between the parent and the children.
    * @param d
    *          The type of child managed object to choose from.
-   * @return Returns the name of the managed object that the user
-   *         selected.
+   * @return Returns a {@link MenuResult#success()} containing the
+   *         name of the managed object that the user selected, or
+   *         {@link MenuResult#quit()}, or
+   *         {@link MenuResult#cancel()}, if the sub-command was run
+   *         interactive and the user chose to quit or cancel.
    * @throws CommunicationException
    *           If the server cannot be contacted.
    * @throws ConcurrentModificationException
@@ -917,52 +999,62 @@ abstract class SubCommandHandler {
    * @throws AuthorizationException
    *           If the children cannot be listed due to an
    *           authorization failure.
-   * @throws ArgumentException
+   * @throws CLIException
    *           If the user input can be read from the console or if
    *           there are no children.
    */
   protected final <C extends ConfigurationClient, S extends Configuration>
-      String readChildName(ManagedObject<?> parent,
+      MenuResult<String> readChildName(
+      ConsoleApplication app, ManagedObject<?> parent,
       InstantiableRelationDefinition<C, S> r,
       AbstractManagedObjectDefinition<? extends C, ? extends S> d)
       throws AuthorizationException, ConcurrentModificationException,
-      CommunicationException, ArgumentException {
+      CommunicationException, CLIException {
     if (d == null) {
       d = r.getChildDefinition();
     }
 
+    app.println();
+    app.println();
     String[] children = parent.listChildren(r, d);
     switch (children.length) {
     case 0: {
       // No options available - abort.
       Message msg =
           ERR_DSCFG_ERROR_FINDER_NO_CHILDREN.get(d.getUserFriendlyPluralName());
-      throw new ArgumentException(msg);
+      throw new CLIException(msg);
     }
     case 1: {
       // Only one option available so confirm that the user wishes to
       // access it.
       Message msg = INFO_DSCFG_FINDER_PROMPT_SINGLE.get(
               d.getUserFriendlyName(), children[0]);
-      if (getConsoleApplication().confirmAction(msg)) {
-        return children[0];
+      if (app.confirmAction(msg, true)) {
+        return MenuResult.success(children[0]);
       } else {
-        msg = ERR_DSCFG_ERROR_FINDER_SINGLE_CHILD_REJECTED.get(
-            d.getUserFriendlyName());
-        throw new ArgumentException(msg);
+        return MenuResult.cancel();
       }
     }
     default: {
       // Display a menu.
+      MenuBuilder<String> builder = new MenuBuilder<String>(app);
+      builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
+      builder.setPrompt(INFO_DSCFG_FINDER_PROMPT_MANY.get(d
+          .getUserFriendlyName()));
+
       Arrays.sort(children, String.CASE_INSENSITIVE_ORDER);
-      ArrayList<Message> desc = new ArrayList<Message>();
-      for (String s : Arrays.asList(children)) {
-        desc.add(Message.raw(s));
+      for (String child : children) {
+        Message option = Message.raw("%s", child);
+        builder.addNumberedOption(option, MenuResult.success(child));
       }
-      Message prompt = INFO_DSCFG_FINDER_PROMPT_MANY.get(
-              d.getUserFriendlyName());
-      return getConsoleApplication().readChoice(
-              prompt, desc, Arrays.asList(children), null);
+
+      if (app.isMenuDrivenMode()) {
+        builder.addCancelOption(true);
+      }
+      builder.addQuitOption();
+
+      Menu<String> menu = builder.toMenu();
+      return menu.run();
     }
     }
   }
@@ -1062,4 +1154,7 @@ abstract class SubCommandHandler {
 
     subCommand.addArgument(unitTimeArgument);
   }
+
+
+
 }

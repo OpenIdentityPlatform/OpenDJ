@@ -25,11 +25,10 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
-import org.opends.messages.Message;
 
 
 
-import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.DSConfigMessages.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +37,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.IllegalPropertyValueStringException;
 import org.opends.server.admin.InstantiableRelationDefinition;
@@ -57,6 +57,7 @@ import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
+import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
@@ -65,6 +66,9 @@ import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.args.SubCommandArgumentParser;
+import org.opends.server.util.cli.CLIException;
+import org.opends.server.util.cli.ConsoleApplication;
+import org.opends.server.util.cli.MenuResult;
 
 
 
@@ -143,8 +147,6 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
    * Creates a new set-xxx-prop sub-command for an instantiable
    * relation.
    *
-   * @param app
-   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param path
@@ -155,10 +157,10 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static SetPropSubCommandHandler create(ConsoleApplication app,
+  public static SetPropSubCommandHandler create(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
       InstantiableRelationDefinition<?, ?> r) throws ArgumentException {
-    return new SetPropSubCommandHandler(app, parser, path.child(r, "DUMMY"), r);
+    return new SetPropSubCommandHandler(parser, path.child(r, "DUMMY"), r);
   }
 
 
@@ -166,8 +168,6 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
   /**
    * Creates a new set-xxx-prop sub-command for an optional relation.
    *
-   * @param app
-   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param path
@@ -178,10 +178,10 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static SetPropSubCommandHandler create(ConsoleApplication app,
+  public static SetPropSubCommandHandler create(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
       OptionalRelationDefinition<?, ?> r) throws ArgumentException {
-    return new SetPropSubCommandHandler(app, parser, path.child(r), r);
+    return new SetPropSubCommandHandler(parser, path.child(r), r);
   }
 
 
@@ -189,8 +189,6 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
   /**
    * Creates a new set-xxx-prop sub-command for a singleton relation.
    *
-   * @param app
-   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param path
@@ -201,10 +199,10 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static SetPropSubCommandHandler create(ConsoleApplication app,
+  public static SetPropSubCommandHandler create(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
       SingletonRelationDefinition<?, ?> r) throws ArgumentException {
-    return new SetPropSubCommandHandler(app, parser, path.child(r), r);
+    return new SetPropSubCommandHandler(parser, path.child(r), r);
   }
 
   // The sub-commands naming arguments.
@@ -235,17 +233,15 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
 
   // Private constructor.
-  private SetPropSubCommandHandler(ConsoleApplication app,
+  private SetPropSubCommandHandler(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
       RelationDefinition<?, ?> r) throws ArgumentException {
-    super(app);
-
     this.path = path;
 
     // Create the sub-command.
     String name = "set-" + r.getName() + "-prop";
-    Message description = INFO_DSCFG_DESCRIPTION_SUBCMD_SETPROP.get(
-      r.getChildDefinition().getUserFriendlyName());
+    Message description = INFO_DSCFG_DESCRIPTION_SUBCMD_SETPROP.get(r
+        .getChildDefinition().getUserFriendlyName());
     this.subCommand = new SubCommand(parser, name, false, 0, 0, null,
         description);
 
@@ -287,6 +283,19 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
 
   /**
+   * Gets the relation definition associated with the type of
+   * component that this sub-command handles.
+   *
+   * @return Returns the relation definition associated with the type
+   *         of component that this sub-command handles.
+   */
+  public RelationDefinition<?, ?> getRelationDefinition() {
+    return path.getRelationDefinition();
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -301,44 +310,52 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
    */
   @SuppressWarnings("unchecked")
   @Override
-  public int run()
-      throws ArgumentException, ClientException {
+  public MenuResult<Integer> run(ConsoleApplication app,
+      ManagementContextFactory factory) throws ArgumentException,
+      ClientException, CLIException {
     // Get the naming argument values.
-    List<String> names = getNamingArgValues(namingArgs);
+    List<String> names = getNamingArgValues(app, namingArgs);
 
-    ManagedObject<?> child;
+    // Get the targeted managed object.
+    Message ufn = path.getRelationDefinition().getUserFriendlyName();
+    ManagementContext context = factory.getManagementContext(app);
+    MenuResult<ManagedObject<?>> result;
     try {
-      child = getManagedObject(path, names);
+      result = getManagedObject(app, context, path, names);
     } catch (AuthorizationException e) {
-      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
       Message msg = ERR_DSCFG_ERROR_MODIFY_AUTHZ.get(ufn);
-      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-          msg);
+      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (DefinitionDecodingException e) {
-      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
       Message msg = ERR_DSCFG_ERROR_GET_CHILD_DDE.get(ufn, ufn, ufn);
       throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
     } catch (ManagedObjectDecodingException e) {
       // FIXME: should not abort here. Instead, display the errors (if
       // verbose) and apply the changes to the partial managed object.
-      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
       Message msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(ufn);
       throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
     } catch (CommunicationException e) {
-      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
       Message msg = ERR_DSCFG_ERROR_MODIFY_CE.get(ufn, e.getMessage());
       throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
     } catch (ConcurrentModificationException e) {
-      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
       Message msg = ERR_DSCFG_ERROR_MODIFY_CME.get(ufn);
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
-          msg);
+      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (ManagedObjectNotFoundException e) {
-      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
       Message msg = ERR_DSCFG_ERROR_GET_CHILD_MONFE.get(ufn);
       throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
     }
 
+    if (result.isQuit()) {
+      if (!app.isMenuDrivenMode()) {
+        // User chose to quit.
+        Message msg = INFO_DSCFG_CONFIRM_MODIFY_FAIL.get(ufn);
+        app.printVerboseMessage(msg);
+      }
+      return MenuResult.quit();
+    } else if (result.isCancel()) {
+      return MenuResult.cancel();
+    }
+
+    ManagedObject<?> child = result.getValue();
     ManagedObjectDefinition<?, ?> d = child.getManagedObjectDefinition();
     Map<String, ModificationType> lastModTypes =
       new HashMap<String, ModificationType>();
@@ -442,8 +459,8 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
         }
       } else {
         lastModTypes.put(propertyName, ModificationType.REMOVE);
-        modifyPropertyValues(child, pd, changes,
-            ModificationType.REMOVE, value);
+        modifyPropertyValues(child, pd, changes, ModificationType.REMOVE,
+            value);
       }
     }
 
@@ -495,20 +512,12 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
     }
 
     // Interactively set properties if applicable.
-    if (getConsoleApplication().isInteractive()) {
+    if (app.isInteractive()) {
       SortedSet<PropertyDefinition<?>> properties =
         new TreeSet<PropertyDefinition<?>>();
 
       for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
         if (pd.hasOption(PropertyOption.HIDDEN)) {
-          continue;
-        }
-
-        if (pd.hasOption(PropertyOption.READ_ONLY)) {
-          continue;
-        }
-
-        if (pd.hasOption(PropertyOption.MONITORING)) {
           continue;
         }
 
@@ -519,54 +528,47 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
         properties.add(pd);
       }
 
-      PropertyValueReader reader =
-        new PropertyValueReader(getConsoleApplication());
-      reader.readAll(child, properties);
+      PropertyValueEditor editor = new PropertyValueEditor(app);
+      MenuResult<Void> result2 = editor.edit(child, properties, true);
+      if (result2.isQuit()) {
+        if (!app.isMenuDrivenMode()) {
+          // User chose to cancel any changes.
+          Message msg = INFO_DSCFG_CONFIRM_MODIFY_FAIL.get(ufn);
+          app.printVerboseMessage(msg);
+        }
+        return MenuResult.quit();
+      } else if (result2.isCancel()) {
+        return MenuResult.cancel();
+      }
     }
 
     try {
-      // Confirm commit.
-      Message prompt = INFO_DSCFG_CONFIRM_MODIFY.get(d.getUserFriendlyName());
-      if (!getConsoleApplication().confirmAction(prompt)) {
-        // Output failure message.
-        Message msg =
-            INFO_DSCFG_CONFIRM_MODIFY_FAIL.get(d.getUserFriendlyName());
-        getConsoleApplication().printVerboseMessage(msg);
-        return 1;
-      }
-
       child.commit();
 
       // Output success message.
-      Message msg =
-          INFO_DSCFG_CONFIRM_MODIFY_SUCCESS.get(d.getUserFriendlyName());
-      getConsoleApplication().printVerboseMessage(msg);
+      Message msg = INFO_DSCFG_CONFIRM_MODIFY_SUCCESS.get(ufn);
+      app.printVerboseMessage(msg);
     } catch (MissingMandatoryPropertiesException e) {
       throw ArgumentExceptionFactory.adaptMissingMandatoryPropertiesException(
           e, d);
     } catch (AuthorizationException e) {
-      Message msg = ERR_DSCFG_ERROR_MODIFY_AUTHZ.get(d.getUserFriendlyName());
-      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-          msg);
+      Message msg = ERR_DSCFG_ERROR_MODIFY_AUTHZ.get(ufn);
+      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (ConcurrentModificationException e) {
-      Message msg = ERR_DSCFG_ERROR_MODIFY_CME.get(d.getUserFriendlyName());
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
-          msg);
+      Message msg = ERR_DSCFG_ERROR_MODIFY_CME.get(ufn);
+      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (OperationRejectedException e) {
-      Message msg = ERR_DSCFG_ERROR_MODIFY_ORE.get(
-          d.getUserFriendlyName(), e.getMessage());
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
-          msg);
+      Message msg = ERR_DSCFG_ERROR_MODIFY_ORE.get(ufn, e.getMessage());
+      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (CommunicationException e) {
-      Message msg = ERR_DSCFG_ERROR_MODIFY_CE.get(
-          d.getUserFriendlyName(), e.getMessage());
+      Message msg = ERR_DSCFG_ERROR_MODIFY_CE.get(ufn, e.getMessage());
       throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
     } catch (ManagedObjectAlreadyExistsException e) {
       // Should never happen.
       throw new IllegalStateException(e);
     }
 
-    return 0;
+    return MenuResult.success(0);
   }
 
 

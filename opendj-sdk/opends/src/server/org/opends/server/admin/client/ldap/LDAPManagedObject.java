@@ -675,6 +675,17 @@ final class LDAPManagedObject<T extends ConfigurationClient> implements
   /**
    * {@inheritDoc}
    */
+  public boolean isPropertyPresent(PropertyDefinition<?> pd)
+      throws IllegalArgumentException {
+    Property<?> p = properties.getProperty(pd);
+    return !p.isEmpty();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public <C extends ConfigurationClient, S extends Configuration>
   boolean hasChild(OptionalRelationDefinition<C, S> r)
       throws IllegalArgumentException, ConcurrentModificationException,

@@ -29,7 +29,12 @@ package org.opends.server.tools.dsconfig;
 
 
 import java.text.NumberFormat;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 
+import static org.opends.messages.DSConfigMessages.*;
+
+import org.opends.server.admin.BooleanPropertyDefinition;
 import org.opends.server.admin.DurationPropertyDefinition;
 import org.opends.server.admin.DurationUnit;
 import org.opends.server.admin.PropertyDefinition;
@@ -49,7 +54,7 @@ final class PropertyValuePrinter {
    * Perform property type specific print formatting.
    */
   private static class MyPropertyValueVisitor extends
-      PropertyValueVisitor<String, Void> {
+      PropertyValueVisitor<Message, Void> {
 
     // The requested size unit (null if the property's unit should be
     // used).
@@ -91,31 +96,13 @@ final class PropertyValuePrinter {
      * {@inheritDoc}
      */
     @Override
-    public String visitDuration(DurationPropertyDefinition d, Long v, Void p) {
-      if (d.getUpperLimit() == null && (v < 0 || v == Long.MAX_VALUE)) {
-        return "unlimited";
+    public Message visitBoolean(BooleanPropertyDefinition d, Boolean v,
+        Void p) {
+      if (v == false) {
+        return INFO_VALUE_FALSE.get();
+      } else {
+        return INFO_VALUE_TRUE.get();
       }
-
-      long ms = d.getBaseUnit().toMilliSeconds(v);
-
-      // Use human-readable string representation by default.
-      if (timeUnit == null && !isScriptFriendly && ms != 0) {
-        return DurationUnit.toString(ms);
-      }
-
-      // Use either the specified unit or the property definition's
-      // base unit.
-      DurationUnit unit = timeUnit;
-      if (unit == null) {
-        unit = d.getBaseUnit();
-      }
-
-      StringBuilder builder = new StringBuilder();
-      builder.append(numberFormat.format(unit.fromMilliSeconds(ms)));
-      builder.append(' ');
-      builder.append(unit.getShortName());
-
-      return builder.toString();
     }
 
 
@@ -124,9 +111,42 @@ final class PropertyValuePrinter {
      * {@inheritDoc}
      */
     @Override
-    public String visitSize(SizePropertyDefinition d, Long v, Void p) {
+    public Message visitDuration(DurationPropertyDefinition d, Long v, Void p) {
+      if (d.getUpperLimit() == null && (v < 0 || v == Long.MAX_VALUE)) {
+        return INFO_VALUE_UNLIMITED.get();
+      }
+
+      MessageBuilder builder = new MessageBuilder();
+      long ms = d.getBaseUnit().toMilliSeconds(v);
+
+      if (timeUnit == null && !isScriptFriendly && ms != 0) {
+        // Use human-readable string representation by default.
+        builder.append(DurationUnit.toString(ms));
+      } else {
+        // Use either the specified unit or the property definition's
+        // base unit.
+        DurationUnit unit = timeUnit;
+        if (unit == null) {
+          unit = d.getBaseUnit();
+        }
+
+        builder.append(numberFormat.format(unit.fromMilliSeconds(ms)));
+        builder.append(' ');
+        builder.append(unit.getShortName());
+      }
+
+      return builder.toMessage();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Message visitSize(SizePropertyDefinition d, Long v, Void p) {
       if (d.isAllowUnlimited() && v < 0) {
-        return "unlimited";
+        return INFO_VALUE_UNLIMITED.get();
       }
 
       SizeUnit unit = sizeUnit;
@@ -139,12 +159,12 @@ final class PropertyValuePrinter {
         }
       }
 
-      StringBuilder builder = new StringBuilder();
+      MessageBuilder builder = new MessageBuilder();
       builder.append(numberFormat.format(unit.fromBytes(v)));
       builder.append(' ');
       builder.append(unit.getShortName());
 
-      return builder.toString();
+      return builder.toMessage();
     }
 
 
@@ -153,18 +173,18 @@ final class PropertyValuePrinter {
      * {@inheritDoc}
      */
     @Override
-    public <T> String visitUnknown(PropertyDefinition<T> d, T v, Void p) {
+    public <T> Message visitUnknown(PropertyDefinition<T> d, T v, Void p) {
       // For all other property definition types the default encoding
       // will do.
       String s = d.encodeValue(v);
       if (isScriptFriendly) {
-        return s;
+        return Message.raw("%s", s);
       } else if (s.trim().length() == 0 || s.contains(",")) {
         // Quote empty strings or strings containing commas
         // non-scripting mode.
-        return "\"" + s + "\"";
+        return Message.raw("\"%s\"", s);
       } else {
-        return s;
+        return Message.raw("%s", s);
       }
     }
 
@@ -210,7 +230,7 @@ final class PropertyValuePrinter {
    *         encoded according to the rules of this property value
    *         printer.
    */
-  public <T> String print(PropertyDefinition<T> pd, T value) {
+  public <T> Message print(PropertyDefinition<T> pd, T value) {
     return pd.accept(pimpl, value, null);
   }
 }

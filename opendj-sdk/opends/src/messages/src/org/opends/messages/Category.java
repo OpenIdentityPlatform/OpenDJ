@@ -140,6 +140,12 @@ public enum Category {
   ADMIN_TOOL(0x01100000),
 
   /**
+   * The category used for messages associated with the dsconfig
+   * administration tool.
+   */
+  DSCONFIG(0x01200000),
+
+  /**
    * The category that will be used for messages associated with
    * third-party (including user-defined) modules.
    */

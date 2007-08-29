@@ -28,7 +28,7 @@ package org.opends.server.admin.client.cli;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.AdminMessages.*;
-import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.DSConfigMessages.*;
 import org.opends.messages.Message;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;

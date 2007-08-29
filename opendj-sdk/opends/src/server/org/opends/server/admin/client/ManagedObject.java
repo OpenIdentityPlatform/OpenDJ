@@ -443,6 +443,25 @@ public interface ManagedObject<T extends ConfigurationClient> extends
 
 
   /**
+   * Determines whether or not the specified property is set. If the
+   * property is unset, then any default behavior associated with the
+   * property applies.
+   *
+   * @param pd
+   *          The property definition.
+   * @return Returns <code>true</code> if the property has been set,
+   *         or <code>false</code> if it is unset and any default
+   *         behavior associated with the property applies.
+   * @throws IllegalArgumentException
+   *           If the property definition is not associated with this
+   *           managed object's definition.
+   */
+  boolean isPropertyPresent(PropertyDefinition<?> pd)
+      throws IllegalArgumentException;
+
+
+
+  /**
    * Determines whether or not the optional managed object associated
    * with the specified optional relations exists.
    *
