@@ -1308,7 +1308,7 @@
         dsconfigCmd=''
         dsBinPath='%s/%s' % (dsPath,fileFolder)
         dsconfigCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
-        dsconfigParams = 'create-je-index -h %s -p %s -D "%s" -w %s --backend-name %s --index-name %s --set index-type:%s' % (host,port,rootDN,rootPwd,backendID, indexAttribute, ' --set index-type:'.join(indexTypes))
+        dsconfigParams = 'create-je-index -n -h %s -p %s -D "%s" -w %s --backend-name %s --index-name %s --set index-type:%s' % (host,port,rootDN,rootPwd,backendID, indexAttribute, ' --set index-type:'.join(indexTypes))
       </script>
       
       <call function="'_dsconfigCommonArgs'" />
@@ -1439,7 +1439,7 @@
         operationArguments = indexProperty
         if indexPropertyValue:
           operationArguments = '%s:%s' % (indexProperty, indexPropertyValue)
-        dsconfigParams = 'set-je-index-prop -h %s -p %s -D "%s" -w %s --backend-name %s --index-name %s --%s %s' % ( host, port, rootDN, rootPwd, backendID, indexAttribute, operation, operationArguments )
+        dsconfigParams = 'set-je-index-prop -n -h %s -p %s -D "%s" -w %s --backend-name %s --index-name %s --%s %s' % ( host, port, rootDN, rootPwd, backendID, indexAttribute, operation, operationArguments )
       </script>
       <call function="'_dsconfigCommonArgs'" />
       <call function="'runCommand'">
@@ -1537,7 +1537,7 @@
         dsconfigCmd=''
         dsBinPath='%s/%s' % (dsPath,fileFolder)
         dsconfigCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
-        dsconfigParams = 'delete-je-index -h %s -p %s -D "%s" -w %s --backend-name %s --index-name %s' % (host,port,rootDN,rootPwd,backendID, indexAttribute)
+        dsconfigParams = 'delete-je-index -n -h %s -p %s -D "%s" -w %s --backend-name %s --index-name %s' % (host,port,rootDN,rootPwd,backendID, indexAttribute)
       </script>
       <call function="'_dsconfigCommonArgs'" />
       <call function="'runCommand'">
