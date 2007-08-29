@@ -466,6 +466,18 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="customKeyMgr" type="optional" default="''">
+        <function-arg-description>
+          Name for a new key manager
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="customTrustMgr" type="optional" default="''">
+        <function-arg-description>
+          Name for a new trust manager
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
       <function-arg-def name="extraParams" type="optional">
         <function-arg-description>
           Optional extra parameters for specific test cases
@@ -474,31 +486,66 @@
       </function-arg-def>
     </function-map-args>
     <sequence>
-      <!--- configure Key Manager Provider -->
-      <message>
+    
+    <!--- configure Key Manager Provider -->
+    <message>
         'Configure Key Manager Provider'
-      </message>
+    </message>
       
+    <if expr="len(customKeyMgr.strip()) != 0">
       <call function="'dsconfig'">
         { 'location'       : location ,
           'dsPath'         : dsPath ,
           'dsInstanceHost' : dsInstanceHost ,
           'dsInstancePort' : dsInstancePort ,
-          'dsInstanceDn'   :  dsInstanceDn ,
+          'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
-          'subcommand'     :  'set-key-manager-prop' ,
+          'subcommand'     : 'create-key-manager' ,
           'objectType'     : 'manager-name' ,
-          'objectName'     :  keystoreType,
-          'optionsString'  :  '--set key-store-file:config/keystore --reset key-store-pin-file --set key-store-pin:%s --set enabled:true' % keystorePin,
+          'objectName'     :  customKeyMgr ,
+          'optionsString'  :  '--type file-based --set enabled:true --set key-store-file:config/keystore --set key-store-pin:%s --set key-store-type:JKS' % keystorePin,
           'expectedRC'     : 0 
         }
       </call>
+      <else>
+      <call function="'dsconfig'">
+        { 'location'       : location ,
+          'dsPath'         : dsPath ,
+          'dsInstanceHost' : dsInstanceHost ,
+          'dsInstancePort' : dsInstancePort ,
+          'dsInstanceDn'   : dsInstanceDn ,
+          'dsInstancePswd' : dsInstancePswd ,
+          'subcommand'     : 'set-key-manager-prop' ,
+          'objectType'     : 'manager-name' ,
+          'objectName'     : keystoreType,
+          'optionsString'  : '--set key-store-file:config/keystore --reset key-store-pin-file --set key-store-pin:%s --set enabled:true' % keystorePin,
+          'expectedRC'     : 0 
+        }
+      </call>
+      </else>
+    </if>        
       
-      <!--- configure Trust Manager Provider -->
-      <message>
+    <!--- configure Trust Manager Provider -->
+    <message>
          'Configure Trust Manager Provider'
-      </message>
+    </message>
       
+    <if expr="len(customTrustMgr.strip()) != 0">
+      <call function="'dsconfig'">
+        { 'location'       : location ,
+          'dsPath'         : dsPath ,
+          'dsInstanceHost' : dsInstanceHost ,
+          'dsInstancePort' : dsInstancePort ,
+          'dsInstanceDn'   : dsInstanceDn ,
+          'dsInstancePswd' : dsInstancePswd ,
+          'subcommand'     : 'create-trust-manager' ,
+          'objectType'     : 'manager-name' ,
+          'objectName'     :  customTrustMgr ,
+          'optionsString'  :  '--type generic --set enabled:true --set java-implementation-class:org.opends.server.extensions.BlindTrustManagerProvider' ,
+          'expectedRC'     : 0 
+        }
+      </call>
+      <else>
       <call function="'dsconfig'">
         { 'location'       : location ,
           'dsPath'         : dsPath ,
@@ -513,7 +560,10 @@
           'expectedRC'     : 0
         }
       </call>
+      </else>
+    </if>        
       
+    
       <!--- Enable LDAPS Connection Handler -->
       <message>
        'Enabling LDAPS Connection Handler - Keystore type'
@@ -521,8 +571,14 @@
       
       <script>
         option1='--set ssl-cert-nickname:%s' % certAlias
-        option2='--set trust-manager-provider-dn:"cn=Blind Trust,cn=Trust Manager Providers,cn=config"' 
-        option3='--set key-manager-provider-dn:"cn=%s,cn=Key Manager Providers,cn=config"' % (keystoreType)
+        if customTrustMgr:
+          option2='--set trust-manager-provider-dn:"cn=%s,cn=Trust Manager Providers,cn=config"' % (customTrustMgr)
+        else:
+          option2='--set trust-manager-provider-dn:"cn=Blind Trust,cn=Trust Manager Providers,cn=config"'
+        if customKeyMgr:
+          option3='--set key-manager-provider-dn:"cn=%s,cn=Key Manager Providers,cn=config"' % (customKeyMgr)
+        else:
+          option3='--set key-manager-provider-dn:"cn=%s,cn=Key Manager Providers,cn=config"' % (keystoreType)
         option4='--set listen-port:%s' % DIRECTORY_INSTANCE_SSL_PORT
         option5='--set enabled:true' 
         optionsString='%s %s %s %s %s' % (option1,option2,option3,option4,option5)     
@@ -907,6 +963,18 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="customKeyMgr" type="optional" default="''">
+        <function-arg-description>
+          Name for a new key manager
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="customTrustMgr" type="optional" default="''">
+        <function-arg-description>
+          Name for a new trust manager
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
       <function-arg-def name="extraParams" type="optional">
         <function-arg-description>
           Optional extra parameters for specific test cases
@@ -925,12 +993,12 @@
           'dsPath'         : dsPath ,
           'dsInstanceHost' : dsInstanceHost,
           'dsInstancePort' : dsInstancePort ,
-          'dsInstanceDn'   :  dsInstanceDn ,
+          'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
-          'subcommand'     :  'set-connection-handler-prop' ,
+          'subcommand'     : 'set-connection-handler-prop' ,
           'objectType'     : 'handler-name' ,
           'objectName'     : 'LDAPS Connection Handler',
-          'optionsString'  :  '--set enabled:false',
+          'optionsString'  : '--set enabled:false --reset key-manager-provider-dn --reset trust-manager-provider-dn --reset ssl-cert-nickname',
           'expectedRC'     : 0 
         }
       </call>
@@ -939,12 +1007,27 @@
       <message>
         'Disabling SSL Trust Manager Provider'
       </message>
-      <call function="'dsconfig'">
+      <if expr="len(customTrustMgr.strip()) != 0">
+        <call function="'dsconfig'">
+        { 'location'       : location ,
+          'dsPath'         : dsPath ,
+          'dsInstanceHost' : dsInstanceHost ,
+          'dsInstancePort' : dsInstancePort ,
+          'dsInstanceDn'   : dsInstanceDn ,
+          'dsInstancePswd' : dsInstancePswd ,
+          'subcommand'     : 'delete-trust-manager' ,
+          'objectType'     : 'manager-name' ,
+          'objectName'     :  customTrustMgr ,
+          'expectedRC'     : 0 
+        }
+        </call>
+        <else>
+        <call function="'dsconfig'">
         { 'location'       : location,
           'dsPath'         : dsPath,
           'dsInstanceHost' : dsInstanceHost,
           'dsInstancePort' : dsInstancePort,
-          'dsInstanceDn'   :  dsInstanceDn,
+          'dsInstanceDn'   : dsInstanceDn,
           'dsInstancePswd' : dsInstancePswd,
           'subcommand'     : 'set-trust-manager-prop',
           'objectType'     : 'manager-name',
@@ -953,12 +1036,30 @@
           'expectedRC'     : 0
         }
       </call>
-      <!--- Disable Key Manager Provider -->
+      </else>
+    </if>
+    
+    <!--- Disable Key Manager Provider -->
       <message>
         'Disabling Key Manager Provider'
       </message>
       
-      <call function="'dsconfig'">
+      <if expr="len(customKeyMgr.strip()) != 0">
+        <call function="'dsconfig'">
+        { 'location'       : location ,
+          'dsPath'         : dsPath ,
+          'dsInstanceHost' : dsInstanceHost ,
+          'dsInstancePort' : dsInstancePort ,
+          'dsInstanceDn'   : dsInstanceDn ,
+          'dsInstancePswd' : dsInstancePswd ,
+          'subcommand'     : 'delete-key-manager' ,
+          'objectType'     : 'manager-name' ,
+          'objectName'     :  customKeyMgr ,
+          'expectedRC'     : 0 
+        }
+        </call>
+        <else>
+        <call function="'dsconfig'">
         { 'location'       : location,
           'dsPath'         : dsPath,
           'dsInstanceHost' : dsInstanceHost ,
@@ -971,7 +1072,9 @@
           'optionsString'  : '--set enabled:false',
           'expectedRC'     : 0 
         }
-      </call>
+        </call>
+        </else>
+      </if>
     </sequence>
   </function>
   
