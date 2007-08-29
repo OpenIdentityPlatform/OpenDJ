@@ -138,7 +138,10 @@ public class CreateRCScript
          new ArgumentParser(CreateRCScript.class.getName(), description, false);
 
     BooleanArgument showUsage  = null;
+    StringArgument  javaArgs   = null;
+    StringArgument  javaHome   = null;
     StringArgument  outputFile = null;
+    StringArgument  userName   = null;
 
     try
     {
@@ -146,6 +149,24 @@ public class CreateRCScript
                                       false, true, "{path}", null, null,
                                       INFO_CREATERC_OUTFILE_DESCRIPTION.get());
       argParser.addArgument(outputFile);
+
+
+      userName = new StringArgument("username", 'u', "userName", false, false,
+                                    true, "{username}", null, null,
+                                    INFO_CREATERC_USER_DESCRIPTION.get());
+      argParser.addArgument(userName);
+
+
+      javaHome = new StringArgument("javahome", 'j', "javaHome", false, false,
+                                    true, "{path}", null, null,
+                                    INFO_CREATERC_JAVA_HOME_DESCRIPTION.get());
+      argParser.addArgument(javaHome);
+
+
+      javaArgs = new StringArgument("javaargs", 'J', "javaArgs", false, false,
+                                    true, "{args}", null,null,
+                                    INFO_CREATERC_JAVA_ARGS_DESCRIPTION.get());
+      argParser.addArgument(javaArgs);
 
 
       showUsage = new BooleanArgument("help", 'H', "help",
@@ -169,17 +190,40 @@ public class CreateRCScript
       return 1;
     }
 
-    if (showUsage.isPresent())
+    if (argParser.usageOrVersionDisplayed())
     {
       return 0;
     }
 
 
     // Determine the path to the Java installation that should be used.
-    String javaHomeDir = System.getenv("JAVA_HOME");
-    if (javaHomeDir == null)
+    String javaHomeDir;
+    if (javaHome.isPresent())
     {
-      javaHomeDir = System.getProperty("java.home");
+      File f = new File(javaHome.getValue());
+      if (! (f.exists() && f.isDirectory()))
+      {
+        err.println(ERR_CREATERC_JAVA_HOME_DOESNT_EXIST.get(
+                         javaHome.getValue()).toString());
+        return 1;
+      }
+
+      javaHomeDir = f.getAbsolutePath();
+    }
+    else
+    {
+      javaHomeDir = System.getenv("JAVA_HOME");
+      if (javaHomeDir == null)
+      {
+        javaHomeDir = System.getProperty("java.home");
+      }
+    }
+
+
+    String suString = "";
+    if (userName.isPresent())
+    {
+      suString = "/bin/su " + userName.getValue() + " ";
     }
 
 
@@ -201,27 +245,36 @@ public class CreateRCScript
       w.println();
 
       w.println("# Set the path to the OpenDS instance to manage");
-      w.println("INSTANCE_ROOT=" + serverRoot.getAbsolutePath());
+      w.println("INSTANCE_ROOT=\"" + serverRoot.getAbsolutePath() + "\"");
       w.println("export INSTANCE_ROOT");
       w.println();
 
       w.println("# Specify the path to the Java installation to use");
-      w.println("JAVA_HOME=" + javaHomeDir);
+      w.println("JAVA_HOME=\"" + javaHomeDir + "\"");
       w.println("export JAVA_HOME");
       w.println();
+
+      if (javaArgs.isPresent())
+      {
+        w.println("# Specify arguments that should be provided to the JVM");
+        w.println("JAVA_ARGS=\"" + javaArgs.getValue() + "\"");
+        w.println("export JAVA_ARGS");
+        w.println();
+      }
 
       w.println("# Determine what action should be performed on the server");
       w.println("case \"${1}\" in");
       w.println("start)");
-      w.println("  ${INSTANCE_ROOT}/bin/start-ds");
+      w.println("  " + suString + "\"${INSTANCE_ROOT}/bin/start-ds\" --quiet");
       w.println("  exit ${?}");
       w.println("  ;;");
       w.println("stop)");
-      w.println("  ${INSTANCE_ROOT}/bin/stop-ds");
+      w.println("  " + suString + "\"${INSTANCE_ROOT}/bin/stop-ds\" --quiet");
       w.println("  exit ${?}");
       w.println("  ;;");
       w.println("restart)");
-      w.println("  ${INSTANCE_ROOT}/bin/stop-ds --restart");
+      w.println("  " + suString + "\"${INSTANCE_ROOT}/bin/stop-ds\" " +
+                "--restart --quiet");
       w.println("  exit ${?}");
       w.println("  ;;");
       w.println("*)");

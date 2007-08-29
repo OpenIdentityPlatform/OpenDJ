@@ -119,6 +119,15 @@ public class StopDS
    * The server must be restarted as a window service.
    */
   private static int RESTART_AS_WINDOW_SERVICE = 104;
+  /**
+   * The server must be started and it should use quiet mode.
+   */
+  private static int START_SERVER_QUIET = 105;
+  /**
+   * The server must be restarted using system calls and it should use quiet
+   * mode.
+   */
+  private static int RESTART_USING_SYSTEM_CALL_QUIET = 106;
 
   /**
    * Invokes the <CODE>stopDS</CODE> method, passing it the provided command
@@ -199,6 +208,7 @@ public class StopDS
     ArgumentParser    argParser = new ArgumentParser(CLASS_NAME,
                                                      toolDescription, false);
     BooleanArgument   checkStoppability;
+    BooleanArgument   quietMode;
     BooleanArgument   windowsNetStop;
     BooleanArgument   restart;
     BooleanArgument   showUsage;
@@ -377,6 +387,11 @@ public class StopDS
                                   INFO_STOPDS_DESCRIPTION_TSPWFILE.get());
       argParser.addArgument(trustStorePWFile);
 
+      quietMode = new BooleanArgument("quiet", OPTION_SHORT_QUIET,
+                                      OPTION_LONG_QUIET,
+                                      INFO_DESCRIPTION_QUIET.get());
+      argParser.addArgument(quietMode);
+
       showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
                                       OPTION_LONG_HELP,
                                       INFO_STOPDS_DESCRIPTION_SHOWUSAGE.get());
@@ -414,9 +429,14 @@ public class StopDS
       return LDAPResultCode.SUCCESS;
     }
 
+    if (quietMode.isPresent())
+    {
+      out = NullOutputStream.printStream();
+    }
+
     if (checkStoppability.isPresent())
     {
-      System.exit(checkStoppability(argParser));
+      System.exit(checkStoppability(argParser, out, err));
     }
 
     // If both a bind password and bind password file were provided, then return
@@ -785,13 +805,23 @@ public class StopDS
    * of the server.  This basically tells the invoker what must be done based
    * on the different parameters passed.
    * @param argParser the ArgumentParser with the arguments already parsed.
+   * @param out the print stream to use for standard output.
+   * @param err the print stream to use for standard error.
    * @return the error code that we return when we are checking the stoppability
    * of the server.
    */
-  private static int checkStoppability(ArgumentParser argParser)
+  private static int checkStoppability(ArgumentParser argParser,
+                                       PrintStream out, PrintStream err)
   {
     int returnValue;
     boolean isServerRunning;
+
+    boolean quietMode = false;
+    Argument quietArg = argParser.getArgumentForLongID("quiet");
+    if ((quietArg != null) && quietArg.isPresent())
+    {
+      quietMode = true;
+    }
 
     BooleanArgument restart =
       (BooleanArgument)argParser.getArgumentForLongID("restart");
@@ -806,6 +836,7 @@ public class StopDS
     for (Argument arg: list)
     {
       if (!"restart".equals(arg.getName()) &&
+          !"quiet".equals(arg.getName()) &&
           !"showusage".equals(arg.getName()) &&
           !"checkstoppability".equals(arg.getName()) &&
           !"windowsnetstop".equals(arg.getName()))
@@ -830,7 +861,7 @@ public class StopDS
           // The server is not running: write a message informing of that
           // in the standard out (this is not an error message).
           Message message = INFO_STOPDS_SERVER_ALREADY_STOPPED.get();
-          System.out.println(message);
+          out.println(message);
           LockFileManager.releaseLock(lockFile, failureReason);
           isServerRunning = false;
         }
@@ -864,7 +895,14 @@ public class StopDS
         }
         else if (restartPresent)
         {
-          returnValue = START_SERVER;
+          if (quietMode)
+          {
+            returnValue = START_SERVER_QUIET;
+          }
+          else
+          {
+            returnValue = START_SERVER;
+          }
         }
         else
         {
@@ -882,7 +920,14 @@ public class StopDS
             // batch file actually stops the server.
             if (restartPresent)
             {
-              returnValue = RESTART_USING_SYSTEM_CALL;
+              if (quietMode)
+              {
+                returnValue = RESTART_USING_SYSTEM_CALL_QUIET;
+              }
+              else
+              {
+                returnValue = RESTART_USING_SYSTEM_CALL;
+              }
             }
             else
             {
@@ -902,7 +947,7 @@ public class StopDS
             // Display a message informing that we are going to the server.
 
             Message message = INFO_STOPDS_GOING_TO_STOP.get();
-            System.out.println(message);
+            out.println(message);
           }
         }
         else
@@ -910,11 +955,18 @@ public class StopDS
           // Display a message informing that we are going to the server.
 
           Message message = INFO_STOPDS_GOING_TO_STOP.get();
-          System.out.println(message);
+          out.println(message);
 
           if (restartPresent)
           {
-            returnValue = RESTART_USING_SYSTEM_CALL;
+            if (quietMode)
+            {
+              returnValue = RESTART_USING_SYSTEM_CALL_QUIET;
+            }
+            else
+            {
+              returnValue = RESTART_USING_SYSTEM_CALL;
+            }
           }
           else
           {

@@ -132,6 +132,7 @@ STOPPED=1
 EXIT_CODE=1
 MUST_START_USING_SYSTEM_CALL=1
 MUST_STOP_USING_SYSTEM_CALL=1
+QUIET_MODE=1
 
 if test ${EC} -eq 98
 #
@@ -140,13 +141,17 @@ if test ${EC} -eq 98
 then
   STOPPED=0
 else
-  if test ${EC} -eq 99
+  if test ${EC} -eq 99 -o ${EC} -eq 105
   #
   # Already stopped and must start locally.
   #
   then
     STOPPED=0
     MUST_START_USING_SYSTEM_CALL=0
+    if test ${EC} -eq 105
+    then
+      QUIET_MODE=0
+    fi
   else
     if test ${EC} -eq 100
     then
@@ -155,13 +160,17 @@ else
       #
       MUST_STOP_USING_SYSTEM_CALL=0
     else
-      if test ${EC} -eq 101
+      if test ${EC} -eq 101 -o ${EC} -eq 106
       then
         #
         # Restart using system call
         #
         MUST_STOP_USING_SYSTEM_CALL=0
         MUST_START_USING_SYSTEM_CALL=0
+        if test ${EC} -eq 106
+        then
+          QUIET_MODE=0
+        fi
       else
         if test ${EC} -ne 102
         then
@@ -212,9 +221,16 @@ if test ${MUST_START_USING_SYSTEM_CALL} -eq 0
 then
   if test ${STOPPED} -eq 0
   then
-    "${INSTANCE_ROOT}/bin/start-ds"
-    EXIT_CODE=${?}
-    exit ${EXIT_CODE}
+    if test ${QUIET_MODE} -eq 0
+    then
+      "${INSTANCE_ROOT}/bin/start-ds" --quiet
+      EXIT_CODE=${?}
+      exit ${EXIT_CODE}
+    else
+      "${INSTANCE_ROOT}/bin/start-ds"
+      EXIT_CODE=${?}
+      exit ${EXIT_CODE}
+    fi
   fi
 #
 # The user does not want to start the server locally and it is already stopped.

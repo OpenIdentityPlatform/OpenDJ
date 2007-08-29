@@ -139,7 +139,7 @@ ${JAVA_BIN} ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
             --configClass org.opends.server.extensions.ConfigFileHandler \
             --configFile "${CONFIG_FILE}" --checkStartability "${@}"
 EC=${?}
-if test ${EC} -eq 99
+if test ${EC} -eq 99 -o ${EC} -eq 103
 then
   #
   # run detach
@@ -150,8 +150,14 @@ then
        --configClass org.opends.server.extensions.ConfigFileHandler \
        --configFile "${CONFIG_FILE}" "${@}" > "${LOG_FILE}" 2>&1 &
   echo $! > "${PID_FILE}"
-  "${JAVA_BIN}" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete \
-       --targetFile "${STARTING_FILE}" --logFile "${LOG_FILE}"
+  if test ${EC} -eq 99
+  then
+    "${JAVA_BIN}" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete \
+         --targetFile "${STARTING_FILE}" --logFile "${LOG_FILE}"
+  else
+    "${JAVA_BIN}" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete \
+         --targetFile "${STARTING_FILE}"
+  fi
   exit ${?}
 else
   if test ${EC} -eq 100
