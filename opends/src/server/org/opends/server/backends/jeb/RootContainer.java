@@ -498,6 +498,8 @@ public class RootContainer
       env.close();
       env = null;
     }
+
+    config.removeJEChangeListener(this);
   }
 
   /**
