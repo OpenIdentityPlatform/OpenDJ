@@ -44,13 +44,10 @@ public final class CSVTablePrinter extends TablePrinter {
   /**
    * Table serializer implementation.
    */
-  private static final class Serializer extends TableSerializer {
+  private final class Serializer extends TableSerializer {
 
     // The current column being output.
     private int column = 0;
-
-    // Indicates whether or not the headings should be output.
-    private final boolean displayHeadings;
 
     // Counts the number of separators that should be output the next
     // time a non-empty cell is displayed. The comma separators are
@@ -58,15 +55,11 @@ public final class CSVTablePrinter extends TablePrinter {
     // unnecessary trailing separators.
     private int requiredSeparators = 0;
 
-    // The output destination.
-    private final PrintWriter writer;
-
 
 
     // Private constructor.
-    private Serializer(PrintWriter writer, boolean displayHeadings) {
-      this.writer = writer;
-      this.displayHeadings = displayHeadings;
+    private Serializer() {
+      // No implementation required.
     }
 
 
@@ -247,7 +240,7 @@ public final class CSVTablePrinter extends TablePrinter {
    */
   @Override
   protected TableSerializer getSerializer() {
-    return new Serializer(writer, displayHeadings);
+    return new Serializer();
   }
 
 }

@@ -337,7 +337,7 @@ public final class TableBuilder {
 
     Collections.sort(sortedRows, comparator);
 
-    // Now ouput the table.
+    // Now output the table.
     serializer.startTable(height, width);
     for (int i = 0; i < width; i++) {
       serializer.addColumn(columnWidths.get(i));

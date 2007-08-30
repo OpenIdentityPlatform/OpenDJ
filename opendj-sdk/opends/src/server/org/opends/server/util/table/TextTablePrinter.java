@@ -51,14 +51,10 @@ public final class TextTablePrinter extends TablePrinter {
   /**
    * Table serializer implementation.
    */
-  private static final class Serializer extends TableSerializer {
+  private final class Serializer extends TableSerializer {
 
     // The current column being output.
     private int column = 0;
-
-    // The string which should be used to separate one column
-    // from the next (not including padding).
-    private final String columnSeparator;
 
     // The real column widths taking into account size constraints but
     // not including padding or separators.
@@ -67,43 +63,22 @@ public final class TextTablePrinter extends TablePrinter {
     // The cells in the current row.
     private final List<String> currentRow = new ArrayList<String>();
 
-    // Indicates whether or not the headings should be output.
-    private final boolean displayHeadings;
-
-    // Table indicating whether or not a column is fixed width.
-    private final Map<Integer, Integer> fixedColumns;
-
-    // The character which should be used to separate the table
-    // heading row from the rows beneath.
-    private final char headingSeparator;
-
-    // The padding which will be used to separate a cell's
-    // contents from its adjacent column separators.
-    private final int padding;
-
     // Width of the table in columns.
     private int totalColumns = 0;
 
-    // Total permitted width for the table which expandable columns
-    // can use up.
-    private final int totalWidth;
-
-    // The output writer.
-    private final PrintWriter writer;
+    // The padding to use for indenting the table.
+    private final String indentPadding;
 
 
 
     // Private constructor.
-    private Serializer(PrintWriter writer, String columnSeparator,
-        Map<Integer, Integer> fixedColumns, boolean displayHeadings,
-        char headingSeparator, int padding, int totalWidth) {
-      this.writer = writer;
-      this.columnSeparator = columnSeparator;
-      this.fixedColumns = new HashMap<Integer, Integer>(fixedColumns);
-      this.displayHeadings = displayHeadings;
-      this.headingSeparator = headingSeparator;
-      this.padding = padding;
-      this.totalWidth = totalWidth;
+    private Serializer() {
+      // Compute the indentation padding.
+      StringBuilder builder = new StringBuilder();
+      for (int i = 0; i < indentWidth; i++) {
+        builder.append(' ');
+      }
+      this.indentPadding = builder.toString();
     }
 
 
@@ -151,7 +126,7 @@ public final class TextTablePrinter extends TablePrinter {
         endRow();
 
         // Print the header separator.
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder(indentPadding);
         for (int i = 0; i < totalColumns; i++) {
           int width = columnWidths.get(i);
           if (totalColumns > 1) {
@@ -184,6 +159,7 @@ public final class TextTablePrinter extends TablePrinter {
     public void endRow() {
       boolean isRemainingText;
       do {
+        StringBuilder builder = new StringBuilder(indentPadding);
         isRemainingText = false;
         for (int i = 0; i < currentRow.size(); i++) {
           int width = columnWidths.get(i);
@@ -203,10 +179,15 @@ public final class TextTablePrinter extends TablePrinter {
             int endIndex = contents.lastIndexOf(' ', width);
             if (endIndex == -1) {
               // Problem - we have a word which is too big to fit in
-              // the
-              // cell.
-              head = contents.substring(0, width);
-              tail = contents.substring(width);
+              // the cell. Display the word as it is (this will push
+              // subsequent columns to the right).
+              endIndex = contents.indexOf(' ');
+              if (endIndex == -1) {
+                head = contents;
+              } else {
+                head = contents.substring(0, endIndex);
+                tail = contents.substring(endIndex + 1);
+              }
             } else {
               head = contents.substring(0, endIndex);
               tail = contents.substring(endIndex + 1);
@@ -216,8 +197,7 @@ public final class TextTablePrinter extends TablePrinter {
             head = contents;
           }
 
-          // Display this line.
-          StringBuilder builder = new StringBuilder();
+          // Add this cell's contents to the current line.
           if (i > 0) {
             // Add right padding for previous cell.
             for (int j = 0; j < padding; j++) {
@@ -241,15 +221,16 @@ public final class TextTablePrinter extends TablePrinter {
             builder.append(' ');
           }
 
-          writer.print(builder.toString());
-
           // Update the row contents.
           currentRow.set(i, tail);
           if (tail != null) {
             isRemainingText = true;
           }
         }
-        writer.println();
+
+        // Output the line.
+        writer.println(builder.toString());
+
       } while (isRemainingText);
     }
 
@@ -293,7 +274,7 @@ public final class TextTablePrinter extends TablePrinter {
     private void determineColumnWidths() {
       // First calculate the minimum width so that we know how much
       // expandable columns can expand.
-      int minWidth = 0;
+      int minWidth = indentWidth;
       int expandableColumnSize = 0;
 
       for (int i = 0; i < totalColumns; i++) {
@@ -374,6 +355,9 @@ public final class TextTablePrinter extends TablePrinter {
   private final Map<Integer, Integer> fixedColumns =
     new HashMap<Integer, Integer>();
 
+  // The number of characters the table should be indented.
+  private int indentWidth = 0;
+
   // The character which should be used to separate the table
   // heading row from the rows beneath.
   private char headingSeparator = DEFAULT_HEADING_SEPARATOR;
@@ -434,7 +418,7 @@ public final class TextTablePrinter extends TablePrinter {
    * @param columnSeparator
    *          The column separator.
    */
-  public final void setColumnSeparator(String columnSeparator) {
+  public void setColumnSeparator(String columnSeparator) {
     this.columnSeparator = columnSeparator;
   }
 
@@ -451,9 +435,9 @@ public final class TextTablePrinter extends TablePrinter {
    *          separators or padding), or <code>0</code> to indicate
    *          that this column should be expandable.
    * @throws IllegalArgumentException
-   *           If column is less than 0 .
+   *           If column is less than 0.
    */
-  public final void setColumnWidth(int column, int width)
+  public void setColumnWidth(int column, int width)
       throws IllegalArgumentException {
     if (column < 0) {
       throw new IllegalArgumentException("Negative column " + column);
@@ -475,7 +459,7 @@ public final class TextTablePrinter extends TablePrinter {
    *          <code>true</code> if column headings should be
    *          displayed.
    */
-  public final void setDisplayHeadings(boolean displayHeadings) {
+  public void setDisplayHeadings(boolean displayHeadings) {
     this.displayHeadings = displayHeadings;
   }
 
@@ -488,8 +472,28 @@ public final class TextTablePrinter extends TablePrinter {
    * @param headingSeparator
    *          The heading separator.
    */
-  public final void setHeadingSeparator(char headingSeparator) {
+  public void setHeadingSeparator(char headingSeparator) {
     this.headingSeparator = headingSeparator;
+  }
+
+
+
+  /**
+   * Sets the amount of characters that the table should be indented.
+   * By default the table is not indented.
+   *
+   * @param indentWidth
+   *          The number of characters the table should be indented.
+   * @throws IllegalArgumentException
+   *           If indentWidth is less than 0.
+   */
+  public void setIndentWidth(int indentWidth) throws IllegalArgumentException {
+    if (indentWidth < 0) {
+      throw new IllegalArgumentException("Negative indentation width "
+          + indentWidth);
+    }
+
+    this.indentWidth = indentWidth;
   }
 
 
@@ -501,7 +505,7 @@ public final class TextTablePrinter extends TablePrinter {
    * @param padding
    *          The padding.
    */
-  public final void setPadding(int padding) {
+  public void setPadding(int padding) {
     this.padding = padding;
   }
 
@@ -514,7 +518,7 @@ public final class TextTablePrinter extends TablePrinter {
    * @param totalWidth
    *          The total width.
    */
-  public final void setTotalWidth(int totalWidth) {
+  public void setTotalWidth(int totalWidth) {
     this.totalWidth = totalWidth;
   }
 
@@ -525,7 +529,6 @@ public final class TextTablePrinter extends TablePrinter {
    */
   @Override
   protected TableSerializer getSerializer() {
-    return new Serializer(writer, columnSeparator, fixedColumns,
-        displayHeadings, headingSeparator, padding, totalWidth);
+    return new Serializer();
   }
 }
