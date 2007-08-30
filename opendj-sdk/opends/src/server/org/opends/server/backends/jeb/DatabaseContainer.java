@@ -28,8 +28,6 @@ package org.opends.server.backends.jeb;
 
 import com.sleepycat.je.*;
 
-import java.util.concurrent.CopyOnWriteArrayList;
-
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
@@ -66,16 +64,10 @@ public abstract class DatabaseContainer
   private Environment env;
 
   /**
-   * A list of JE database handles opened through this database
+   * A JE database handle opened through this database
    * container.
    */
-  private CopyOnWriteArrayList<Database> databases;
-
-  /**
-   * A cached per-thread JE database handle.
-   */
-  private ThreadLocal<Database> threadLocalDatabase =
-      new ThreadLocal<Database>();
+  private Database database;
 
   /**
    * Create a new DatabaseContainer object.
@@ -91,7 +83,6 @@ public abstract class DatabaseContainer
   {
     this.env = env;
     this.entryContainer = entryContainer;
-    this.databases = new CopyOnWriteArrayList<Database>();
     this.name = name;
   }
 
@@ -99,20 +90,12 @@ public abstract class DatabaseContainer
    * Opens a JE database in this database container. If the provided
    * database configuration is transactional, a transaction will be
    * created and used to perform the open.
-   * <p>
-   * Note that a database can be opened multiple times and will result in
-   * multiple unique handles to the database.  This is used for example to
-   * give each server thread its own database handle to eliminate contention
-   * that could occur on a single handle.
    *
-   * @return A new JE database handle.
-   * @throws DatabaseException If an error occurs while attempting to open the
-   * database.
+   * @throws DatabaseException if a JE database error occurs while
+   * openning the index.
    */
-  private Database openDatabase() throws DatabaseException
+  public void open() throws DatabaseException
   {
-    Database database;
-
     if (dbConfig.getTransactional())
     {
       // Open the database under a transaction.
@@ -144,31 +127,6 @@ public abstract class DatabaseContainer
                             database.getDatabaseName(), database.count());
       }
     }
-
-    return database;
-  }
-
-  private Database getDatabase() throws DatabaseException
-  {
-    Database database = threadLocalDatabase.get();
-    if (database == null)
-    {
-      database = openDatabase();
-      databases.add(database);
-      threadLocalDatabase.set(database);
-    }
-    return database;
-  }
-
-  /**
-   * Open the database container.
-   *
-   * @throws DatabaseException if a JE database error occurs while
-   * openning the index.
-   */
-  public void open() throws DatabaseException
-  {
-    getDatabase();
   }
 
   /**
@@ -188,25 +146,17 @@ public abstract class DatabaseContainer
    */
   synchronized void close() throws DatabaseException
   {
-    // Close each database handle that has been opened.
-    for (Database database : databases)
+    if(dbConfig.getDeferredWrite())
     {
-      if (database.getConfig().getDeferredWrite())
-      {
-        database.sync();
-      }
-
-      database.close();
+      database.sync();
     }
+    database.close();
+    database = null;
 
     if(debugEnabled())
     {
-      TRACER.debugInfo("Closed database %s (%d handles)", name,
-                       databases.size());
+      TRACER.debugInfo("Closed database %s", name);
     }
-
-    databases.clear();
-    threadLocalDatabase = new ThreadLocal<Database>();
   }
 
   /**
@@ -222,7 +172,6 @@ public abstract class DatabaseContainer
                                 DatabaseEntry data)
       throws DatabaseException
   {
-    Database database = getDatabase();
     OperationStatus status = database.put(txn, key, data);
     if (debugEnabled())
     {
@@ -248,7 +197,6 @@ public abstract class DatabaseContainer
                                  LockMode lockMode)
       throws DatabaseException
   {
-    Database database = getDatabase();
     OperationStatus status = database.get(txn, key, data, lockMode);
     if (debugEnabled())
     {
@@ -271,7 +219,6 @@ public abstract class DatabaseContainer
                                    DatabaseEntry key, DatabaseEntry data)
       throws DatabaseException
   {
-    Database database = getDatabase();
     OperationStatus status = database.putNoOverwrite(txn, key, data);
     if (debugEnabled())
     {
@@ -293,7 +240,6 @@ public abstract class DatabaseContainer
                                    DatabaseEntry key)
       throws DatabaseException
   {
-    Database database = getDatabase();
     OperationStatus status = database.delete(txn, key);
     if (debugEnabled())
     {
@@ -315,7 +261,6 @@ public abstract class DatabaseContainer
   public Cursor openCursor(Transaction txn, CursorConfig cursorConfig)
        throws DatabaseException
   {
-    Database database = getDatabase();
     return database.openCursor(txn, cursorConfig);
   }
 
@@ -327,7 +272,6 @@ public abstract class DatabaseContainer
    */
   public long getRecordCount() throws DatabaseException
   {
-    Database database = getDatabase();
     long count = database.count();
     if (debugEnabled())
     {
@@ -367,7 +311,7 @@ public abstract class DatabaseContainer
   public PreloadStats preload(PreloadConfig config)
       throws DatabaseException
   {
-    return getDatabase().preload(config);
+    return database.preload(config);
   }
 
   /**
