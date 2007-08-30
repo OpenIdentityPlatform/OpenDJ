@@ -914,6 +914,11 @@
            filemode="755" dirmode="755" />
     </zip>
     <property name="package.built" value="true"/>
+    <!-- print a time stamp in Unix 'date' format -->
+    <tstamp>
+      <format property="package.built.ts" pattern="EEE MMM dd HH:mm:ss zzz yyyy" />
+    </tstamp>
+    <echo message="Package Built: ${package.built.ts}"/>
   </target>
 
 
