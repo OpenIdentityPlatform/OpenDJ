@@ -51,6 +51,7 @@ import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ADSContext.AdministratorProperty;
 import org.opends.admin.ads.ADSContextException.ErrorType;
 import org.opends.server.tools.dsconfig.ArgumentExceptionFactory;
+import org.opends.server.types.Privilege;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
@@ -365,7 +366,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       AdministratorProperty prop = AdministratorProperty.UID;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          prop.getAttributeName(), false, false, true, "", null, null, null);
+          attName, false, false, true, "", null, null, null);
       userAdminProperties.put(prop, arg);
     }
 
@@ -377,7 +378,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       AdministratorProperty prop = AdministratorProperty.PASSWORD;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          prop.getAttributeName(), false, false, true, "", null, null, null);
+          attName, false, false, true, "", null, null, null);
       userAdminProperties.put(prop, arg);
     }
 
@@ -388,7 +389,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       AdministratorProperty prop = AdministratorProperty.DESCRIPTION;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          prop.getAttributeName(), false, false, true, "", null, null, null);
+          attName, false, false, true, "", null, null, null);
       userAdminProperties.put(prop, arg);
     }
 
@@ -399,9 +400,20 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       AdministratorProperty prop = AdministratorProperty.ADMINISTRATOR_DN;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          prop.getAttributeName(), false, false, true, "", null, null, null);
+          attName, false, false, true, "", null, null, null);
       userAdminProperties.put(prop, arg);
       readonlyadminUserProperties.add(prop);
+    }
+
+    /**
+     * The PRIVILEGE associated to the user.
+     */
+    {
+      AdministratorProperty prop = AdministratorProperty.PRIVILEGE;
+      String attName = prop.getAttributeName();
+      StringArgument arg = new StringArgument(attName, null,
+          attName, true, true, true, "", "root", null, null);
+      userAdminProperties.put(prop, arg);
     }
   }
 
@@ -667,6 +679,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
   {
     HashMap<AdministratorProperty, Object> map =
       new HashMap<AdministratorProperty, Object>();
+    boolean rootPrivileges = false ;
     for (String m : propertySetArgument.getValues())
     {
       // Parse the property "property:value".
@@ -714,10 +727,61 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
             ERR_CLI_ERROR_INVALID_PROPERTY_VALUE.get(propertyName, value);
         throw new ArgumentException(message);
       }
-      userAdminProperties.get(adminUserProperty).addValue(value);
+      if (adminUserProperty.equals(AdministratorProperty.PRIVILEGE))
+      {
+        // Check if 'root' privilege is requested, or
+        // if it's a valid privilege
+        if (value.equals(arg.getDefaultValue()))
+        {
+          rootPrivileges = true ;
+        }
+        else
+        {
+          String valueToCheck = value ;
+          if (value.startsWith("-"))
+          {
+            valueToCheck = value.substring(1);
+          }
+          if (Privilege.privilegeForName(valueToCheck) == null)
+          {
+            Message message = ERR_CLI_ERROR_INVALID_PROPERTY_VALUE.get(
+                AdministratorProperty.PRIVILEGE.getAttributeName(),
+                valueToCheck);
+            throw new ArgumentException(message);
+          }
+        }
+      }
+
+      // Add the value to the argument.
+      arg.addValue(value);
 
       // add to the map.
-      map.put(adminUserProperty, value);
+      if (arg.isMultiValued())
+      {
+        map.put(adminUserProperty, arg.getValues());
+      }
+      else
+      {
+        map.put(adminUserProperty, value);
+      }
+    }
+
+    // If privileges was not provided by the user, set the default value
+    if (! map.containsKey(AdministratorProperty.PRIVILEGE))
+    {
+      rootPrivileges = true ;
+    }
+
+    // If we have root privilege, translate it to the corresponding
+    // list of privileges associated to 'root' user.
+    if (rootPrivileges)
+    {
+      LinkedList<String> privilegesList = new LinkedList<String>();
+      for (Privilege p : Privilege.getDefaultRootPrivileges())
+      {
+        privilegesList.add(p.getName());
+      }
+      map.put(AdministratorProperty.PRIVILEGE,privilegesList);
     }
 
     // Check that all mandatory props are set.
