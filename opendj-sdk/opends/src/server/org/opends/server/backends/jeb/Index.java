@@ -187,44 +187,57 @@ public class Index extends DatabaseContainer
     DatabaseEntry entryIDData = entryID.getDatabaseEntry();
     DatabaseEntry data = new DatabaseEntry();
     boolean success = true;
+    boolean done = false;
 
-    status = read(txn, key, data, lockMode);
-
-    if (status == OperationStatus.SUCCESS)
+    while(!done)
     {
-      EntryIDSet entryIDList =
-           new EntryIDSet(key.getData(), data.getData());
-      if (entryIDList.isDefined())
+      status = read(txn, key, data, lockMode);
+
+      if (status == OperationStatus.SUCCESS)
       {
-        if (indexEntryLimit > 0 && entryIDList.size() >= indexEntryLimit)
+        EntryIDSet entryIDList =
+            new EntryIDSet(key.getData(), data.getData());
+        if (entryIDList.isDefined())
         {
-          entryIDList = new EntryIDSet(entryIDList.size());
-          entryLimitExceededCount++;
-
-          if(debugEnabled())
+          if (indexEntryLimit > 0 && entryIDList.size() >= indexEntryLimit)
           {
-            StringBuilder builder = new StringBuilder();
-            StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-            TRACER.debugInfo("Index entry exceeded in index %s. " +
-                "Limit: %d. ID list size: %d.\nKey:",
-                             name, indexEntryLimit, entryIDList.size(),
-                             builder);
+            entryIDList = new EntryIDSet(entryIDList.size());
+            entryLimitExceededCount++;
 
+            if(debugEnabled())
+            {
+              StringBuilder builder = new StringBuilder();
+              StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
+              TRACER.debugInfo("Index entry exceeded in index %s. " +
+                  "Limit: %d. ID list size: %d.\nKey:",
+                               name, indexEntryLimit, entryIDList.size(),
+                               builder);
+
+            }
           }
         }
+
+        success = entryIDList.add(entryID);
+
+        byte[] after = entryIDList.toDatabase();
+        data.setData(after);
+        put(txn, key, data);
+        done = true;
       }
-
-      success = entryIDList.add(entryID);
-
-      byte[] after = entryIDList.toDatabase();
-      data.setData(after);
-      put(txn, key, data);
-    }
-    else
-    {
-      if(rebuildRunning || trusted)
+      else
       {
-        put(txn, key, entryIDData);
+        if(rebuildRunning || trusted)
+        {
+          status = insert(txn, key, entryIDData);
+          if(status == OperationStatus.SUCCESS)
+          {
+            done = true;
+          }
+        }
+        else
+        {
+          done = true;
+        }
       }
     }
 
