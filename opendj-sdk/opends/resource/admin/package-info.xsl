@@ -48,7 +48,7 @@
           <xsl:with-param name="content"
             select="concat('Provides introspection interfaces for the ',
                            normalize-space(adm:package/adm:synopsis),
-                           ' This package provides programmatic access to ',
+                           ' This package provides access to meta-',
                            'information about the managed objects, their ',
                            'properties, their relationships with other ',
                            'managed objects, and their inheritance model.')" />
@@ -88,6 +88,11 @@
       </xsl:otherwise>
     </xsl:choose>
     <xsl:value-of select="' */&#xa;'" />
+    <xsl:value-of select="concat('@org.opends.server.types.PublicAPI(&#xa;',
+                                 '    stability=org.opends.server.types.StabilityLevel.VOLATILE,&#xa;',
+                                 '    mayInstantiate=false,&#xa;',
+                                 '    mayExtend=false,&#xa;',
+                                 '    mayInvoke=true)&#xa;')"/>
     <xsl:value-of
       select="concat('package ', adm:package/@name, '.', $type, ';&#xa;')" />
   </xsl:template>
