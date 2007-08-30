@@ -613,7 +613,7 @@
           if len(issuesList)==0:
             _status='FAIL'
           else:
-            _status='KNOWN ISSUES (%s)' % ','.join(issuesList)
+            _status='KNOWN ISSUES %s' % str(issuesList)
       </script>
       <message level="'status'">'## Test Verdict: %s ##' % _status</message>
       <call function="'testCase_EndBanner'" />
@@ -633,9 +633,10 @@
             self.log='%s/test.log'      % TMPDIR
             self.errors='%s/error.log'   % TMPDIR
             self.access='%s/access.log' % TMPDIR
-            open(self.log,'w').write('')
-            open(self.errors,'w').write('')
-            open(self.access,'w').write('')
+            for f in [self.log,self.errors,self.access]:
+              fh=open(f,'w')
+              fh.write('')
+              fh.close()
             self.group=group
             self.suite=suite
             self.fullname=fullname
@@ -674,15 +675,33 @@
             for issue in self.issues:
               xml += '          &lt;issue&gt;%s&lt;/issue&gt;%s'   % (issue,newLine)
             xml += '        &lt;/issues&gt;%s'                     % newLine
-            xml += '        &lt;log&gt;\n&lt;![CDATA[%s'           % newLine
-            xml += open(self.log).read()
-            xml += '        ]]&gt;&lt;/log&gt;%s'                  % newLine
-            xml += '        &lt;error&gt;\n&lt;![CDATA[%s'         % newLine
-            xml += open(self.errors).read()
-            xml += '        ]]&gt;&lt;/error&gt;%s'                % newLine
-            xml += '        &lt;access&gt;\n&lt;![CDATA[%s'        % newLine
-            xml += open(self.access).read()
-            xml += '        ]]&gt;&lt;/access&gt;%s'               % newLine
+            xml += '        &lt;log&gt;%s'                         % newLine
+            xml += '          &lt;![CDATA[%s'                      % newLine
+            if self.result!='pass':
+              # TODO: wrap with try catch to get IOError without stopping the tests
+              fh=open(self.log)
+              xml += fh.read()
+              fh.close()
+            xml += '          ]]&gt;%s'                            % newLine
+            xml += '        &lt;/log&gt;%s'                        % newLine
+            xml += '        &lt;error&gt;%s'                       % newLine
+            xml += '          &lt;![CDATA[%s'                      % newLine
+            if self.result!='pass':
+              # TODO: wrap with try catch to get IOError without stopping the tests
+              fh=open(self.errors)
+              xml += fh.read()
+              fh.close()
+            xml += '          ]]&gt;%s'                            % newLine
+            xml += '        &lt;/error&gt;%s'                      % newLine
+            xml += '        &lt;access&gt;%s'                      % newLine
+            xml += '          &lt;![CDATA[%s'                      % newLine
+            if self.result!='pass':
+              # TODO: wrap with try catch to get IOError without stopping the tests
+              fh=open(self.access)
+              xml += fh.read()
+              fh.close()
+            xml += '          ]]&gt;%s'                            % newLine
+            xml += '        &lt;/access&gt;%s'                     % newLine
             xml += '      &lt;/test&gt;%s'                         % newLine
             return xml
           
