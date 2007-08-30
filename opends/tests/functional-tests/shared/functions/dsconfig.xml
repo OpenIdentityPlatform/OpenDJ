@@ -189,6 +189,13 @@
         STAXCode=RC
         STAXReason=STAXResult
       </script>
+      <if expr="expectedRC != 'noCheck'">
+        <call function="'checktestRC'">
+          { 'returncode' : STAXCode ,
+            'result'     : STAXReason ,
+            'expected'   : expectedRC }
+        </call>
+      </if>        
       <return>
         STAXReason
       </return>
