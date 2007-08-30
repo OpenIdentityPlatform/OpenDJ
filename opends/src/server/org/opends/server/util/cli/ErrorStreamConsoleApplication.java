@@ -58,6 +58,16 @@ public class ErrorStreamConsoleApplication extends ConsoleApplication {
    * {@inheritDoc}
    */
   @Override
+  public boolean isAdvancedMode() {
+    return app.isAdvancedMode();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public boolean isInteractive() {
     return app.isInteractive();
   }

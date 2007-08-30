@@ -173,8 +173,6 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
     // Register common arguments.
     registerPropertyNameArgument(this.subCommand);
-    registerAdvancedModeArgument(this.subCommand,
-        INFO_DSCFG_DESCRIPTION_ADVANCED_GET.get(r.getUserFriendlyName()));
     registerRecordModeArgument(this.subCommand);
     registerUnitSizeArgument(this.subCommand);
     registerUnitTimeArgument(this.subCommand);
@@ -282,7 +280,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
         continue;
       }
 
-      if (!isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
+      if (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
         continue;
       }
 

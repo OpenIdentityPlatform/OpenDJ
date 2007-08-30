@@ -249,6 +249,16 @@ public abstract class ConsoleApplication {
 
 
   /**
+   * Indicates whether or not the user has requested advanced mode.
+   *
+   * @return Returns <code>true</code> if the user has requested
+   *         advanced mode.
+   */
+  public abstract boolean isAdvancedMode();
+
+
+
+  /**
    * Indicates whether or not the user has requested interactive
    * behavior.
    *

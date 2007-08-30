@@ -411,10 +411,6 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     // Create the naming arguments.
     this.namingArgs = createNamingArgs(subCommand, c, true);
 
-    // Register common arguments.
-    registerAdvancedModeArgument(this.subCommand,
-        INFO_DSCFG_DESCRIPTION_ADVANCED_SET.get());
-
     // Create the --property argument which is used to specify
     // property values.
     this.propertySetArgument = new StringArgument(OPTION_DSCFG_LONG_SET,
@@ -657,7 +653,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
             continue;
           }
 
-          if (!isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
+          if (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
             continue;
           }
 
