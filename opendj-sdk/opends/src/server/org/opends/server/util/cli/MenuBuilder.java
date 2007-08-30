@@ -268,9 +268,9 @@ public final class MenuBuilder<T> {
             new TextTablePrinter(app.getErrorStream());
           cprinter.setDisplayHeadings(false);
           int sz = String.valueOf(nbuilder.getTableHeight()).length() + 1;
-          cprinter.setColumnWidth(0, 2);
-          cprinter.setColumnWidth(1, sz);
-          cprinter.setColumnWidth(2, 0);
+          cprinter.setIndentWidth(4);
+          cprinter.setColumnWidth(0, sz);
+          cprinter.setColumnWidth(1, 0);
           cbuilder.print(cprinter);
           app.println();
         }
@@ -703,7 +703,6 @@ public final class MenuBuilder<T> {
     // Create optional column headers.
     if (!columnHeadings.isEmpty()) {
       nbuilder.appendHeading();
-      nbuilder.appendHeading();
       for (Message heading : columnHeadings) {
         if (heading != null) {
           nbuilder.appendHeading(heading);
@@ -740,7 +739,6 @@ public final class MenuBuilder<T> {
 
     for (int i = 0, j = rows; i < rows; i++, j++) {
       nbuilder.startRow();
-      nbuilder.appendCell();
       nbuilder.appendCell(INFO_MENU_NUMERIC_OPTION.get(i + 1));
 
       for (Message field : numericFields.get(i)) {
@@ -776,7 +774,6 @@ public final class MenuBuilder<T> {
       Message option = INFO_MENU_CHAR_OPTION.get(c);
 
       cbuilder.startRow();
-      cbuilder.appendCell();
       cbuilder.appendCell(option);
       cbuilder.appendCell(charSynopsis.get(i));
 
@@ -792,21 +789,21 @@ public final class MenuBuilder<T> {
       printer.setDisplayHeadings(true);
     }
 
-    printer.setColumnWidth(0, 2);
+    printer.setIndentWidth(4);
     if (columnWidths.isEmpty()) {
-      printer.setColumnWidth(2, 0);
+      printer.setColumnWidth(1, 0);
       if (useMultipleColumns) {
-        printer.setColumnWidth(4, 0);
+        printer.setColumnWidth(3, 0);
       }
     } else {
       for (int i = 0; i < columnWidths.size(); i++) {
         Integer j = columnWidths.get(i);
         if (j != null) {
           // Skip the option key column.
-          printer.setColumnWidth(i + 2, j);
+          printer.setColumnWidth(i + 1, j);
 
           if (useMultipleColumns) {
-            printer.setColumnWidth(i + 3 + columnWidths.size(), j);
+            printer.setColumnWidth(i + 2 + columnWidths.size(), j);
           }
         }
       }
