@@ -55,7 +55,7 @@
              -->
             <call function="setupStep" />
           </iterate>
-          <iterate in="['sample_test','knownIssue_test','passing_test','failing_test']" var="testStep">
+          <iterate in="['sample_test','knownIssue_test','passing_test','inconclusive_test','failing_test']" var="testStep">
             <!-- the sequence tag is superfluous here since there is only a 
                  single instruction to execute within the iterate block 
              -->
@@ -104,12 +104,12 @@
       #@TestPostamble             none
       #@TestResult                Success if OpenDS returns 0
     -->
-    <block name="'sample_test'">
+    <block name="STAXCurrentFunction">
       <sequence>
         <script>
           CurrentTestPath['suite']= 'search'
         </script>
-        <testcase name="getTestCaseName(STAXCurrentBlock)">
+        <testcase name="getTestCaseName(STAXCurrentFunction)">
           <sequence>
             <call function="'testCase_Preamble'" />
             <call function="'SearchObject'">
@@ -141,12 +141,12 @@
       #@TestPostamble             none
       #@TestResult                Success if OpenDS returns 0
     -->
-    <block name="'knownIssue_test'">
+    <block name="STAXCurrentFunction">
       <sequence>
         <script>
           CurrentTestPath['suite']= 'search'
         </script>
-        <testcase name="getTestCaseName(STAXCurrentBlock)">
+        <testcase name="getTestCaseName(STAXCurrentFunction)">
           <sequence>
             <call function="'testCase_Preamble'" />
             <!-- search for an entry that does not exist -->
@@ -156,7 +156,7 @@
               'dsInstanceDn'     : DIRECTORY_INSTANCE_DN   ,
               'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
               'dsBaseDN'         : DIRECTORY_INSTANCE_SFX  ,
-              'dsFilter'         : 'uid=wronguid'         }
+              'dsFilter'         : 'wrongfilter'         }
             </call>
             <script>
               knownIssue(828)
@@ -182,12 +182,12 @@
       #@TestPostamble             none
       #@TestResult                Success if OpenDS returns 0
     -->
-    <block name="'failing_test'">
+    <block name="STAXCurrentFunction">
       <sequence>
         <script>
           CurrentTestPath['suite']= 'dummy'
         </script>
-        <testcase name="getTestCaseName(STAXCurrentBlock)">
+        <testcase name="getTestCaseName(STAXCurrentFunction)">
           <sequence>
             <call function="'testCase_Preamble'" />
             <tcstatus result="'fail'" />
@@ -198,6 +198,34 @@
     </block>
   </function>
 
+  <!-- the dummy inconclusive test -->
+  <function name="inconclusive_test">
+    <!---
+      Place test-specific test information here.
+      The tag, TestMarker, must be the same as the tag, TestSuiteName.
+      #@TestMarker                Sample
+      #@TestName                  passing_test
+      #@TestIssue                 xyz
+      #@TestPurpose               Illustrate how to issue a query on OpenDS
+      #@TestPreamble              none
+      #@TestStep                  Fetch all the entries in the server
+      #@TestPostamble             none
+      #@TestResult                Success if OpenDS returns 0
+    -->
+    <block name="STAXCurrentFunction">
+      <sequence>
+        <script>
+          CurrentTestPath['suite']= 'dummy'
+        </script>
+        <testcase name="getTestCaseName(STAXCurrentFunction)">
+          <sequence>
+            <call function="'testCase_Preamble'" />
+            <call function="'testCase_Postamble'" />
+          </sequence>
+        </testcase>
+      </sequence>
+    </block>
+  </function>
   <!-- the dummy passing test -->
   <function name="passing_test">
     <!---
@@ -212,12 +240,12 @@
       #@TestPostamble             none
       #@TestResult                Success if OpenDS returns 0
     -->
-    <block name="'passing_test'">
+    <block name="STAXCurrentFunction">
       <sequence>
         <script>
           CurrentTestPath['suite']= 'dummy'
         </script>
-        <testcase name="getTestCaseName(STAXCurrentBlock)">
+        <testcase name="getTestCaseName(STAXCurrentFunction)">
           <sequence>
             <call function="'testCase_Preamble'" />
             <tcstatus result="'pass'" />
