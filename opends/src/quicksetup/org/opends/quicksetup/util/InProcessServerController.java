@@ -47,6 +47,9 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.RawAttribute;
+import org.opends.server.types.SearchScope;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchResultEntry;
 import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.api.AccessLogPublisher;
@@ -55,6 +58,7 @@ import org.opends.server.util.ModifyChangeRecordEntry;
 import org.opends.server.util.ChangeRecordEntry;
 import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.DirectoryServer;
@@ -66,6 +70,7 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.io.IOException;
 
 /**
@@ -431,13 +436,46 @@ public class InProcessServerController {
         if (rc.equals(ResultCode.SUCCESS)) {
           LOG.log(Level.INFO, "processed server add " + addOp.getEntryDN());
         } else {
-          // report the error to the user
-          MessageBuilder error = addOp.getErrorMessage();
-          throw new ApplicationException(
-              ApplicationReturnCode.ReturnCode.IMPORT_ERROR,
-                  INFO_ERROR_APPLY_LDIF_ADD.get(dnByteString.toString(),
-                          error != null ? error.toString() : ""),
-                  null);
+          boolean ignore = false;
+
+          if (rc.equals(ResultCode.ENTRY_ALREADY_EXISTS)) {
+
+            // The entry already exists.  Compare the attributes with the
+            // existing entry to see if we can ignore this add.
+            try {
+              InternalSearchOperation searchOp =
+                      cc.processSearch(
+                              cre.getDN(),
+                              SearchScope.BASE_OBJECT,
+                              SearchFilter.createFilterFromString(
+                                      "objectclass=*"));
+              LinkedList<SearchResultEntry> se = searchOp.getSearchEntries();
+              if (se.size() > 0) {
+                SearchResultEntry e = se.get(0);
+                List<Attribute> eAttrs = new ArrayList<Attribute>();
+                eAttrs.addAll(e.getAttributes());
+                eAttrs.add(e.getObjectClassAttribute());
+                if (compareUserAttrs(attrs, eAttrs)) {
+                  LOG.log(Level.INFO, "Ignoring failure to add " +
+                          dnByteString + " since the existing entry's " +
+                          "attributes are identical");
+                  ignore = true;
+                }
+              }
+            } catch (Exception  e) {
+              LOG.log(Level.INFO, "Error attempting to compare rejected add " +
+                      "entry with existing entry", e);
+            }
+          }
+
+          if (!ignore) {
+            MessageBuilder error = addOp.getErrorMessage();
+            throw new ApplicationException(
+                    ApplicationReturnCode.ReturnCode.IMPORT_ERROR,
+                    INFO_ERROR_APPLY_LDIF_ADD.get(dnByteString.toString(),
+                            error != null ? error.toString() : ""),
+                    null);
+          }
         }
         break;
       case DELETE:
@@ -508,6 +546,56 @@ public class InProcessServerController {
     DebugLogger.removeDebugLogPublisher(startupDebugPublisher);
     ErrorLogger.removeErrorLogPublisher(startupErrorPublisher);
     AccessLogger.removeAccessLogPublisher(startupAccessPublisher);
+  }
+
+  /**
+   * Compares two lists of attributes for equality.  Any non-user attributes
+   * are ignored during comparison.
+   * @param l1 list of attributes
+   * @param l2 list of attributes
+   * @return boolean where true means the lists are equal
+   */
+  private boolean compareUserAttrs(List<Attribute> l1, List<Attribute> l2) {
+    return compareUserAttrsInternal(l1, l2) && compareUserAttrsInternal(l2, l1);
+  }
+
+  /**
+   * Determines if all the user attributes in one list are present in another
+   * list.
+   * @param l1 list of attributes
+   * @param l2 list of attributes
+   * @return boolean where true means the lists are equal
+   */
+  private boolean compareUserAttrsInternal(List<Attribute> l1,
+                                           List<Attribute> l2) {
+    for (Attribute l1Attr : l1) {
+      if (l1Attr.getAttributeType().isOperational()) {
+        continue;
+      }
+
+      // Locate the attribute in l2
+      Attribute l2Attr = null;
+      String name = l1Attr.getName();
+      if (name != null) {
+        for (Attribute tmpl2Attr : l2) {
+          if (name.equals(tmpl2Attr.getName())) {
+            l2Attr = tmpl2Attr;
+            break;
+          }
+        }
+
+        // If we found one them compare it
+        if (l2Attr == null ||
+                (!l2Attr.getAttributeType().isOperational() &&
+                 !l1Attr.equals(l2Attr))) {
+            return false;
+        }
+
+      } else {
+        return false;
+      }
+    }
+    return true;
   }
 
 }
