@@ -454,27 +454,32 @@
       </message>
       
       <script>
-        from java.io import FileInputStream
-        from java.io import FileOutputStream
-        from java.io import ByteArrayOutputStream
-        
-        from javax.xml.transform import TransformerFactory
-        from javax.xml.transform.stream import StreamSource
-        from javax.xml.transform.stream import StreamResult
-        
-        xslSource = StreamSource(FileInputStream("%s" % xslfile))
-        xslTemplate = TransformerFactory.newInstance().newTemplates(xslSource)
-        transformer = xslTemplate.newTransformer()
-        
-        source = StreamSource(FileInputStream("%s" % xmlfile))
-        result = StreamResult(FileOutputStream("%s" % htmlfile))
-        # the original report
-        transformer.transform(source, result)
-        
-        #the new report transformation
-        TransformerFactory.newInstance().newTemplates(StreamSource(FileInputStream("%s/xsl/my-report.xsl" % TESTS_SHARED_DIR))).newTransformer().transform(StreamSource(FileInputStream("%s/tests-log.xml" % TMPDIR)), StreamResult(FileOutputStream("%s/my-report.html" % TMPDIR)))      
+        _message=''
+        try:
+          from java.io import FileInputStream
+          from java.io import FileOutputStream
+          from java.io import ByteArrayOutputStream
+          
+          from javax.xml.transform import TransformerFactory
+          from javax.xml.transform.stream import StreamSource
+          from javax.xml.transform.stream import StreamResult
+          
+          xslSource = StreamSource(FileInputStream("%s" % xslfile))
+          xslTemplate = TransformerFactory.newInstance().newTemplates(xslSource)
+          transformer = xslTemplate.newTransformer()
+          
+          source = StreamSource(FileInputStream("%s" % xmlfile))
+          result = StreamResult(FileOutputStream("%s" % htmlfile))
+          # the original report
+          transformer.transform(source, result)
+          
+          #the new report transformation
+          TransformerFactory.newInstance().newTemplates(StreamSource(FileInputStream("%s/xsl/my-report.xsl" % TESTS_SHARED_DIR))).newTransformer().transform(StreamSource(FileInputStream("%s/tests-log.xml" % TMPDIR)), StreamResult(FileOutputStream("%s/my-report.html" % TMPDIR)))
+          _message='Generated drill-down HTML report'
+        except:
+          _message='Could not generate drill-down HTML report'
       </script>
-      
+      <message>_message</message>
       <if expr="SEND_MAIL_AFTER_TEST_RUN == 'TRUE'">
         <sequence>
           <message>
