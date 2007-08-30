@@ -33,11 +33,14 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
+import javax.naming.directory.Attribute;
+import javax.naming.directory.BasicAttribute;
+import javax.naming.directory.BasicAttributes;
+import javax.naming.directory.DirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
@@ -119,10 +122,13 @@ public class ServerDescriptor
     /**
      * The associated value is an Integer.
      */
-    REPLICATION_SERVER_ID
+    REPLICATION_SERVER_ID,
+    /**
+     * The instance key-pair public-key certificate. The associated value is a
+     * byte[] (ds-cfg-public-key-certificate;binary).
+     */
+    INSTANCE_PUBLIC_KEY_CERTIFICATE
   }
-  private static final Logger LOG =
-    Logger.getLogger(ServerDescriptor.class.getName());
 
   private ServerDescriptor()
   {
@@ -353,12 +359,10 @@ public class ServerDescriptor
           ServerProperty.LDAP_PORT, ServerProperty.LDAPS_PORT,
           ServerProperty.LDAP_ENABLED, ServerProperty.LDAPS_ENABLED
       };
-      for (int i=0; i<props.length; i++)
-      {
-        ArrayList s = (ArrayList)serverProperties.get(props[i]);
-        for (Object o : s)
-        {
-          buf.append(":"+o);
+      for (ServerProperty prop : props) {
+        ArrayList s = (ArrayList) serverProperties.get(prop);
+        for (Object o : s) {
+          buf.append(":").append(o);
         }
       }
     }
@@ -382,6 +386,18 @@ public class ServerDescriptor
       }
     }
     return buf.toString();
+  }
+
+  /**
+   * Returns the instance-key public-key certificate retrieved from the
+   * truststore backend of the instance referenced through this descriptor.
+   *
+   * @return The public-key certificate of the instance.
+   */
+  public byte[] getInstancePublicKeyCertificate()
+  {
+    return((byte[])
+          serverProperties.get(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE));
   }
 
   /**
@@ -466,6 +482,8 @@ public class ServerDescriptor
       }
     }
     adsProperties.put(ADSContext.ServerProperty.ID, getHostPort(true));
+    adsProperties.put(ADSContext.ServerProperty.INSTANCE_KEY_CERT,
+                      getInstancePublicKeyCertificate());
   }
 
   /**
@@ -502,6 +520,7 @@ public class ServerDescriptor
     updateJmxConfiguration(desc, ctx);
     updateReplicas(desc, ctx);
     updateReplication(desc, ctx);
+    updatePublicKeyCertificate(desc, ctx);
 
     desc.serverProperties.put(ServerProperty.HOST_NAME,
         ConnectionUtils.getHostName(ctx));
@@ -799,6 +818,68 @@ public class ServerDescriptor
     {
     }
   }
+
+  /**
+   * Updates the instance key public-key certificate value of this context from
+   * the local truststore of the instance bound by this context. Any current
+   * value of the certificate is overwritten. The intent of this method is to
+   * retrieve the instance-key public-key certificate when this context is bound
+   * to an instance, and cache it for later use in registering the instance into
+   * ADS.
+   *
+   * @param desc The map to update with the instance key-pair public-key
+   * certificate.
+   * @param ctx The bound server instance.
+   *
+   * @throws NamingException if unable to retrieve certificate from bound
+   * instance.
+   */
+  private static void updatePublicKeyCertificate(ServerDescriptor desc,
+      InitialLdapContext ctx) throws NamingException
+  {
+    /* TODO: this DN is declared in some core constants file. Create a constants
+       file for the installer and import it into the core. */
+    final String dnStr = "ds-cfg-key-id=ads-certificate,cn=ads-truststore";
+    final LdapName dn = new LdapName(dnStr);
+    byte[] localInstanceKeyCertificate = null;
+    for (int i = 0; null == localInstanceKeyCertificate && i < 2 ; ++i ) {
+      /* If the entry does not exist in the instance's truststore backend, add
+         it (which induces the CryptoManager to create the public-key
+         certificate attribute), then repeat the search. */
+      try {
+        final SearchControls sc = new SearchControls();
+        sc.setSearchScope(SearchControls.OBJECT_SCOPE);
+        final String attrIDs[] = { "ds-cfg-public-key-certificate;binary" };
+        sc.setReturningAttributes(attrIDs);
+        final SearchResult certEntry
+           = ctx.search(dn, "(objectclass=*)", sc).next();
+        final Attribute certAttr = certEntry.getAttributes().get(
+                                        "ds-cfg-public-key-certificate;binary");
+        if (null != certAttr) {
+          localInstanceKeyCertificate = (byte[])certAttr.get();
+        }
+      }
+      catch (NameNotFoundException x) {
+        if (0 == i) {
+          /* Poke CryptoManager to initialize truststore. Note the special
+             attribute in the request. */
+          final BasicAttributes attrs = new BasicAttributes();
+          final Attribute oc = new BasicAttribute("objectclass");
+          oc.add("top");
+          oc.add("ds-cfg-self-signed-cert-request");
+          attrs.put(oc);
+          DirContext pokeCtx = ctx.createSubcontext(dn, attrs);
+          pokeCtx.close();
+        }
+        else {
+          throw x;
+        }
+      }
+    }
+    desc.serverProperties.put(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE,
+            localInstanceKeyCertificate);
+  }
+
 
   /**
    * Returns the number of entries in a given backend using the provided

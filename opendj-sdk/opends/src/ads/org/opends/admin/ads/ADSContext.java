@@ -80,7 +80,12 @@ public class ADSContext
     /**
      * Boolean syntax.
      */
-    BOOLEAN
+    BOOLEAN,
+
+    /**
+     * Certificate;binary syntax.
+     */
+    CERTIFICATE_BINARY
   }
 
   /**
@@ -156,7 +161,18 @@ public class ADSContext
     /**
      * The groups to which this server belongs.
      */
-    GROUPS("memberofgroups",ADSPropertySyntax.STRING);
+    GROUPS("memberofgroups",ADSPropertySyntax.STRING),
+    /**
+     * The unique name of the instance key public-key certificate.
+     */
+    INSTANCE_KEY_ID("ds-cfg-key-id", ADSPropertySyntax.STRING),
+    /**
+     * The instance key-pair public-key certificate. Note: This attribute
+     * belongs to an instance key entry, separate from the server entry and
+     * named by the ds-cfg-key-id attribute from the server entry.
+     */
+    INSTANCE_KEY_CERT("ds-cfg-public-key-certificate"/*;binary*/,
+            ADSPropertySyntax.CERTIFICATE_BINARY);
 
     private String attrName;
     private ADSPropertySyntax attSyntax;
@@ -393,9 +409,44 @@ public class ADSContext
   {
     LdapName dn = makeDNFromServerProperties(serverProperties);
     BasicAttributes attrs = makeAttrsFromServerProperties(serverProperties);
+
+    /* Instance key-pair public-key certificate: generate a key-id attribute
+       for the server entry, then an instance key entry for the key. */
+    LdapName keyDn = null;
+    BasicAttributes keyAttrs = null;
+    if (serverProperties.containsKey(ServerProperty.INSTANCE_KEY_CERT))
+    {
+      String keyID
+              = (String)serverProperties.get(ServerProperty.INSTANCE_KEY_ID);
+      if (null == keyID)
+      {
+        keyID = java.util.UUID.randomUUID().toString();
+      }
+      attrs.put(new BasicAttribute(
+                       ServerProperty.INSTANCE_KEY_ID.getAttributeName(),
+                       keyID));
+
+      String rdnStr = Rdn.escapeValue(keyID);
+      keyDn = nameFromDN(ServerProperty.INSTANCE_KEY_ID.getAttributeName()
+                          + "=" + rdnStr + "," + getInstanceKeysContainerDN());
+      keyAttrs = new BasicAttributes();
+      Attribute oc = new BasicAttribute("objectclass");
+      oc.add("top");
+      oc.add("ds-cfg-instance-key-OID");
+      keyAttrs.put(oc);
+      keyAttrs.put(new BasicAttribute(
+                          ServerProperty.INSTANCE_KEY_ID.getAttributeName(),
+                          rdnStr));
+      keyAttrs.put(new BasicAttribute(
+              ServerProperty.INSTANCE_KEY_CERT.getAttributeName() + ";binary",
+              serverProperties.get(ServerProperty.INSTANCE_KEY_CERT)));
+    }
+
     try
     {
       DirContext ctx = dirContext.createSubcontext(dn, attrs);
+      ctx.close();
+      ctx = dirContext.createSubcontext(keyDn, keyAttrs);
       ctx.close();
     }
     catch (NameAlreadyBoundException x)
@@ -1303,14 +1354,17 @@ public class ADSContext
 
     switch(property)
     {
-    case GROUPS:
-      result = new BasicAttribute(ServerProperty.GROUPS.getAttributeName());
+      case INSTANCE_KEY_CERT:
+        result = null;  // used in separate instance key entry
+        break;
+      case GROUPS:
+        result = new BasicAttribute(ServerProperty.GROUPS.getAttributeName());
         for (Object o : ((Set) value)) {
             result.add(o);
         }
         break;
-    default:
-      result = new BasicAttribute(property.getAttributeName(), value);
+      default:
+        result = new BasicAttribute(property.getAttributeName(), value);
     }
     return result;
   }
@@ -1873,8 +1927,6 @@ public class ADSContext
     }
     helper.createAdministrationSuffix(getDirContext(), ben,
         getDbName(), getImportTemp());
-
-    retrieveLocalInstanceKeyCertificate();
   }
 
   /**
@@ -1907,150 +1959,6 @@ public class ADSContext
   /*
      *** CryptoManager related types, fields, and methods. ***
    */
-
-  /**
-   * The enumeration consisting of properties of the instance-key public-key
-   * certificate entries in ADS.
-   */
-  public enum InstanceKeyProperty
-  {
-    /**
-     * The unique name of the instance key public-key certificate.
-     */
-    KEY_ID("ds-cfg-key-id",ADSPropertySyntax.STRING),
-
-    /**
-     * The public-key certificate of the instance key.
-     */
-    KEY_CERT("ds-cfg-public-key-certificate;binary",ADSPropertySyntax.STRING);
-
-    private String attrName;
-    private ADSPropertySyntax attrSyntax;
-
-    /**
-     * Private constructor.
-     * @param n the name of the attribute.
-     * @param s the name of the syntax.
-     */
-    private InstanceKeyProperty(String n, ADSPropertySyntax s)
-    {
-      attrName = n;
-      attrSyntax = s ;
-    }
-
-    /**
-     * Returns the attribute name.
-     * @return the attribute name.
-     */
-    public String getAttributeName()
-    {
-      return attrName;
-    }
-
-    /**
-     * Returns the attribute syntax.
-     * @return the attribute syntax.
-     */
-    public ADSPropertySyntax getAttributeSyntax()
-    {
-      return attrSyntax;
-    }
-  }
-
-  /*
-   * The instance-key public-key certificate from the local truststore of the
-   * instance bound by this context.
-   */
-  private byte[] localInstanceKeyCertificate = null;
-
-  /**
-   * Updates the instance key public-key certificate value of this context from
-   * the local truststore of the instance bound by this context. Any current
-   * value of the certificate is overwritten. The intent of this method is to
-   * retrieve the instance-key public-key certificate when this context is bound
-   * to an instance, and cache it for later use in registering the instance into
-   * ADS.
-   *
-   * @throws ADSContextException if unable to retrieve certificate from bound
-   * instance.
-   */
-  private void retrieveLocalInstanceKeyCertificate() throws ADSContextException
-  {
-    if( ! isExistingEntry(nameFromDN("cn=ads-truststore")))
-    {
-      return; /* TODO: Once Andy commits the truststore backend, this case is
-                 an exceptional condition and will be caught below (i.e., remove
-                 this code). */
-    }
-
-    /* TODO: this DN is declared in some core constants file. Create a constants
-       file for the installer and import it into the core. */
-    final String dnStr = "ds-cfg-key-id=ads-certificate,cn=ads-truststore";
-    localInstanceKeyCertificate = null;
-    for (int i = 0; null == localInstanceKeyCertificate && i < 2 ; ++i ) {
-      /* If the entry does not exist in the instance's truststore backend, add
-         it (which induces the CryptoManager to create the public-key
-         certificate attribute), then repeat the search. */
-      try {
-        final SearchControls sc = new SearchControls();
-        sc.setSearchScope(SearchControls.OBJECT_SCOPE);
-        final String attrIDs[] = { "ds-cfg-public-key-certificate;binary" };
-        sc.setReturningAttributes(attrIDs);
-        final SearchResult adsCertEntry
-           = dirContext.search(nameFromDN(dnStr), "(objectclass=*)", sc).next();
-        final Attribute certAttr = adsCertEntry.getAttributes().get(
-                                        "ds-cfg-public-key-certificate;binary");
-        if (null != certAttr) {
-          localInstanceKeyCertificate = (byte[])certAttr.get();
-        }
-      }
-      catch (NameNotFoundException x) {
-        if (0 == i) {
-          /* Poke CryptoManager to initialize truststore. Note that createEntry
-             wraps any JNDI exception with an ADSException. */
-          final BasicAttributes attrs = new BasicAttributes();
-          final Attribute oc = new BasicAttribute("objectclass");
-          oc.add("top");
-          oc.add("ds-cfg-self-signed-cert-request");
-          attrs.put(oc);
-          createEntry(dnStr, attrs);
-        }
-        else {
-          throw new ADSContextException(
-                  ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
-        }
-      }
-      catch (NoPermissionException x) {
-        throw new ADSContextException(
-                ADSContextException.ErrorType.ACCESS_PERMISSION, x);
-      }
-      catch (javax.naming.NamingException x) {
-        throw new ADSContextException(
-                ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
-      }
-    }
-
-    if (null == localInstanceKeyCertificate) {
-      throw new ADSContextException(
-              ADSContextException.ErrorType.ERROR_UNEXPECTED);
-    }
-  }
-
-  /**
-   * Returns the instance-key public-key certificate directly from the
-   * truststore backend of the instance referenced through this context.
-   *
-   * @return The public-key certificate of the instance.
-   *
-   * @throws ADSContextException if public-key certificate cannot be retrieved.
-   */
-  public byte[] getLocalInstanceKeyCertificate() throws ADSContextException
-  {
-    if (null == localInstanceKeyCertificate) {
-      retrieveLocalInstanceKeyCertificate();
-    }
-    return localInstanceKeyCertificate;
-  }
 
   /**
    * Returns the parent entry of the server key entries in ADS.
