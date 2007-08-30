@@ -826,15 +826,16 @@ public class ReplicationDomain extends DirectoryThread
               }
               catch(DirectoryException de)
               {
-                // Return an error message to notify the sender
-                ErrorMessage errorMsg =
-                  new ErrorMessage(importMsg.getsenderID(),
-                                   de.getMessageObject());
                 MessageBuilder mb = new MessageBuilder();
                 mb.append(de.getMessageObject());
                 mb.append("Backend ID: ");
                 mb.append(backend.getBackendID());
                 log(mb.toMessage());
+
+                // Return an error message to notify the sender
+                ErrorMessage errorMsg =
+                  new ErrorMessage(importMsg.getsenderID(),
+                                   de.getMessageObject());
                 broker.publish(errorMsg);
               }
             }
@@ -2745,8 +2746,11 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     catch(Exception e)
     {
-      throw new DirectoryException(ResultCode.OTHER,
-              Message.raw(e.getLocalizedMessage()));
+      DirectoryException de =
+        new DirectoryException(
+            ResultCode.OTHER, Message.raw(e.getLocalizedMessage()));
+      ieContext.exception = de;
+      throw (de);
     }
     finally
     {
