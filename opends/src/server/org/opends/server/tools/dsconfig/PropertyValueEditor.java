@@ -1582,7 +1582,6 @@ public final class PropertyValueEditor {
     List<T> vl = new ArrayList<T>(values);
     for (int i = 0, j = rows; i < rows; i++, j++) {
       builder.startRow();
-      builder.appendCell();
       builder.appendCell(INFO_EDITOR_OPTION_VALUES.get(i + 1));
       builder.appendCell(valuePrinter.print(pd, vl.get(i)));
 
@@ -1595,11 +1594,11 @@ public final class PropertyValueEditor {
 
     TextTablePrinter printer = new TextTablePrinter(app.getErrorStream());
     printer.setDisplayHeadings(false);
-    printer.setColumnWidth(0, 2);
-    printer.setColumnWidth(2, 0);
+    printer.setIndentWidth(4);
+    printer.setColumnWidth(1, 0);
     if (useMultipleColumns) {
-      printer.setColumnWidth(3, 2);
-      printer.setColumnWidth(5, 0);
+      printer.setColumnWidth(2, 2);
+      printer.setColumnWidth(4, 0);
     }
     builder.print(printer);
   }
