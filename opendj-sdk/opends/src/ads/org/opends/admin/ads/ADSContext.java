@@ -27,6 +27,8 @@
 
 package org.opends.admin.ads;
 
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
@@ -318,7 +320,11 @@ public class ADSContext
     /**
      * The DN of the administrator.
      */
-    ADMINISTRATOR_DN("administrator dn",ADSPropertySyntax.STRING);
+    ADMINISTRATOR_DN("administrator dn",ADSPropertySyntax.STRING),
+    /**
+     * The administrator privilege.
+     */
+    PRIVILEGE("privilege",ADSPropertySyntax.STRING);
 
     private String attrName;
     private ADSPropertySyntax attrSyntax;
@@ -911,6 +917,9 @@ public class ADSContext
       SearchControls sc = new SearchControls();
 
       sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
+      String[] attList = { "cn", "userpassword", "ds-privilege-name",
+          "description" };
+      sc.setReturningAttributes(attList);
       ne = dirContext.search(getAdministratorContainerDN(), "(objectclass=*)",
           sc);
       while (ne.hasMore())
@@ -1017,7 +1026,7 @@ public class ADSContext
     LdapName dnCentralAdmin =
       makeDNFromAdministratorProperties(adminProperties);
     BasicAttributes attrs = makeAttrsFromAdministratorProperties(
-        adminProperties, true);
+        adminProperties, true, null);
 
     try
     {
@@ -1107,11 +1116,29 @@ public class ADSContext
         adminProperties.put(AdministratorProperty.UID,newAdminUserId);
       }
 
+      // if modification includes 'privilege', we have to get first the
+      // current privileges list.
+      NamingEnumeration currentPrivileges = null;
+      if (adminProperties.containsKey(AdministratorProperty.PRIVILEGE))
+      {
+        SearchControls sc = new SearchControls();
+        sc.setSearchScope(SearchControls.OBJECT_SCOPE);
+        String[] attList = {"ds-privilege-name"};
+        sc.setReturningAttributes(attList);
+        NamingEnumeration ne = dirContext.search(
+            dnCentralAdmin, "(objectclass=*)", sc);
+        SearchResult sr = (SearchResult)ne.next();
+
+        currentPrivileges = sr.getAttributes().get("ds-privilege-name")
+            .getAll();
+      }
+
       // Replace properties, if needed.
       if (adminProperties.size() > 1)
       {
         BasicAttributes attrs =
-          makeAttrsFromAdministratorProperties(adminProperties, false);
+          makeAttrsFromAdministratorProperties(
+              adminProperties, false, currentPrivileges);
         dirContext.modifyAttributes(dnCentralAdmin,
             DirContext.REPLACE_ATTRIBUTE, attrs);
       }
@@ -1267,12 +1294,13 @@ public class ADSContext
    * @param adminProperties the administrator properties.
    * @param passwordRequired Indicates if the properties should include
    * the password.
+   * @param currentPrivileges The current privilege list or null.
    * @return the attributes for the given administrator properties.
    * @throws ADSContextException if something goes wrong.
    */
   private static BasicAttributes makeAttrsFromAdministratorProperties(
       Map<AdministratorProperty, Object> adminProperties,
-      boolean passwordRequired)
+      boolean passwordRequired, NamingEnumeration currentPrivileges)
   throws ADSContextException
   {
     BasicAttributes attrs = new BasicAttributes();
@@ -1290,6 +1318,51 @@ public class ADSContext
       attrs.put("description", adminProperties
           .get(AdministratorProperty.DESCRIPTION));
     }
+    Attribute privilegeAtt;
+    if (adminProperties.containsKey(AdministratorProperty.PRIVILEGE))
+    {
+      // We assume that privilege strings provided in
+      // AdministratorProperty.PRIVILEGE
+      // are valid privileges represented as a LinkedList of string.
+      privilegeAtt = new BasicAttribute("ds-privilege-name");
+      if (currentPrivileges != null)
+      {
+        while (currentPrivileges.hasMoreElements())
+        {
+          privilegeAtt.add(currentPrivileges.nextElement().toString());
+        }
+      }
+
+      LinkedList privileges = (LinkedList)
+        adminProperties.get(AdministratorProperty.PRIVILEGE);
+      for( Object o : privileges)
+      {
+        String p = o.toString() ;
+        if (p.startsWith("-"))
+        {
+          privilegeAtt.remove(p.substring(1));
+        }
+        else
+        {
+          privilegeAtt.add(p.toString());
+        }
+      }
+    }
+    else
+    {
+      privilegeAtt = addRootPrivileges();
+    }
+    attrs.put(privilegeAtt);
+    return attrs;
+  }
+
+
+  /**
+   * Builds an attribute which contains 'root' privileges.
+   * @return The attribute which contains 'root' privileges.
+   */
+  private static Attribute addRootPrivileges()
+  {
     Attribute privilege = new BasicAttribute("ds-privilege-name");
     privilege.add("bypass-acl");
     privilege.add("modify-acl");
@@ -1307,8 +1380,7 @@ public class ADSContext
     privilege.add("update-schema");
     privilege.add("privilege-change");
     privilege.add("unindexed-search");
-    attrs.put(privilege);
-    return attrs;
+    return privilege;
   }
 
   /**
@@ -1603,6 +1675,16 @@ public class ADSContext
         {
           value = attr.get(0);
           result.put(AdministratorProperty.DESCRIPTION, value);
+        }
+        else if (attrID.equalsIgnoreCase("ds-privilege-name"))
+        {
+          LinkedHashSet<String> privileges = new LinkedHashSet<String>();
+          NamingEnumeration attValueList = attr.getAll();
+          while (attValueList.hasMoreElements())
+          {
+            privileges.add(attValueList.next().toString());
+          }
+          result.put(AdministratorProperty.PRIVILEGE, privileges);
         }
       }
     }
