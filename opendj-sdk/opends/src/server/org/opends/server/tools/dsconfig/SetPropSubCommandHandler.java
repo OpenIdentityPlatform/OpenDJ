@@ -248,10 +248,6 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
     // Create the naming arguments.
     this.namingArgs = createNamingArgs(subCommand, path, false);
 
-    // Register common arguments.
-    registerAdvancedModeArgument(this.subCommand,
-        INFO_DSCFG_DESCRIPTION_ADVANCED_SET.get());
-
     // Create the --set argument.
     this.propertySetArgument = new StringArgument(OPTION_DSCFG_LONG_SET,
         OPTION_DSCFG_SHORT_SET, OPTION_DSCFG_LONG_SET, false, true, true,
@@ -521,7 +517,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
           continue;
         }
 
-        if (!isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
+        if (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
           continue;
         }
 

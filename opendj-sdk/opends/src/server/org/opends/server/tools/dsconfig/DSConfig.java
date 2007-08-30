@@ -249,6 +249,16 @@ public final class DSConfig extends ConsoleApplication {
   }
 
   /**
+   * The value for the long option advanced.
+   */
+  private static final String OPTION_DSCFG_LONG_ADVANCED = "advanced";
+
+  /**
+   * The value for the short option advanced.
+   */
+  private static final Character OPTION_DSCFG_SHORT_ADVANCED = null;
+
+  /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
@@ -309,6 +319,9 @@ public final class DSConfig extends ConsoleApplication {
     // Run the application.
     return app.run(args);
   }
+
+  // The argument which should be used to request advanced mode.
+  private BooleanArgument advancedModeArgument;
 
   // Flag indicating whether or not the application environment has
   // already been initialized.
@@ -408,6 +421,15 @@ public final class DSConfig extends ConsoleApplication {
   /**
    * {@inheritDoc}
    */
+  public boolean isAdvancedMode() {
+    return advancedModeArgument.isPresent();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isInteractive() {
     return !noPromptArgument.isPresent();
   }
@@ -486,6 +508,10 @@ public final class DSConfig extends ConsoleApplication {
           OPTION_LONG_NO_PROMPT,
           INFO_DESCRIPTION_NO_PROMPT.get());
 
+      advancedModeArgument = new BooleanArgument(OPTION_DSCFG_LONG_ADVANCED,
+          OPTION_DSCFG_SHORT_ADVANCED, OPTION_DSCFG_LONG_ADVANCED,
+          INFO_DSCFG_DESCRIPTION_ADVANCED.get());
+
       showUsageArgument = new BooleanArgument("showUsage", OPTION_SHORT_HELP,
           OPTION_LONG_HELP, INFO_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_SUMMARY
               .get());
@@ -497,6 +523,7 @@ public final class DSConfig extends ConsoleApplication {
       parser.addGlobalArgument(quietArgument);
       parser.addGlobalArgument(scriptFriendlyArgument);
       parser.addGlobalArgument(noPromptArgument);
+      parser.addGlobalArgument(advancedModeArgument);
 
       // Register any global arguments required by the management
       // context factory.

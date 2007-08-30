@@ -531,11 +531,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
   public static final int MULTI_COLUMN_THRESHOLD = 8;
 
   /**
-   * The value for the long option advanced.
-   */
-  private static final String OPTION_DSCFG_LONG_ADVANCED = "advanced";
-
-  /**
    * The value for the long option property.
    */
   private static final String OPTION_DSCFG_LONG_PROPERTY = "property";
@@ -556,11 +551,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
   private static final String OPTION_DSCFG_LONG_UNIT_TIME = "unit-time";
 
   /**
-   * The value for the short option advanced.
-   */
-  private static final Character OPTION_DSCFG_SHORT_ADVANCED = null;
-
-  /**
    * The value for the short option property.
    */
   private static final Character OPTION_DSCFG_SHORT_PROPERTY = null;
@@ -579,9 +569,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
    * The value for the short option unit-time.
    */
   private static final char OPTION_DSCFG_SHORT_UNIT_TIME = 'M';
-
-  // The argument which should be used to request advanced mode.
-  private BooleanArgument advancedModeArgument;
 
   // The argument which should be used to specify zero or more
   // property names.
@@ -935,22 +922,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
 
   /**
-   * Determines whether the user requested advanced mode.
-   *
-   * @return Returns <code>true</code> if the user requested
-   *         advanced mode.
-   */
-  protected final boolean isAdvancedMode() {
-    if (advancedModeArgument != null) {
-      return advancedModeArgument.isPresent();
-    } else {
-      return false;
-    }
-  }
-
-
-
-  /**
    * Determines whether the user requested record-mode.
    *
    * @return Returns <code>true</code> if the user requested
@@ -1057,28 +1028,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
       return menu.run();
     }
     }
-  }
-
-
-
-  /**
-   * Registers the advanced mode argument with the sub-command.
-   *
-   * @param subCommand
-   *          The sub-command.
-   * @param description
-   *          The usage description message to be used for the
-   *          argument.
-   * @throws ArgumentException
-   *           If the advanced mode argument could not be registered.
-   */
-  protected final void registerAdvancedModeArgument(SubCommand subCommand,
-                                                    Message description)
-          throws ArgumentException
-  {
-    this.advancedModeArgument = new BooleanArgument(OPTION_DSCFG_LONG_ADVANCED,
-        OPTION_DSCFG_SHORT_ADVANCED, OPTION_DSCFG_LONG_ADVANCED, description);
-    subCommand.addArgument(advancedModeArgument);
   }
 
 

@@ -726,8 +726,6 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     subCommand.addArgument(inheritedModeArgument);
 
     // Register common arguments.
-    registerAdvancedModeArgument(this.subCommand,
-        INFO_DSCFG_DESCRIPTION_ADVANCED_HELP.get());
     registerPropertyNameArgument(this.subCommand);
 
     this.categoryMap =
@@ -983,7 +981,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
             continue;
           }
 
-          if (!isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
+          if (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
             continue;
           }
 
@@ -1087,7 +1085,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
             continue;
           }
 
-          if (!isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
+          if (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
             continue;
           }
 
