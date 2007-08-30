@@ -303,14 +303,18 @@ public class GenerateMessageFile extends Task {
     }
 
     /**
-     * Gets the comments that will appear above the messages declaration
+     * Gets the javadoc comments that will appear above the messages declaration
      * in the messages file.
      * @return String comment
      */
     public String getComment() {
       StringBuilder sb = new StringBuilder();
       sb.append(indent(1)).append("/**").append(EOL);
-      String ws = wrapText(formatString, 70);
+
+      // Unwrapped so that you can search through the descriptor
+      // file for a message and not have to worry about line breaks
+      String ws = formatString; // wrapText(formatString, 70);
+
       String[] sa = ws.split(EOL);
       for (String s : sa) {
         sb.append(indent(1)).append(" * ").append(s).append(EOL);
