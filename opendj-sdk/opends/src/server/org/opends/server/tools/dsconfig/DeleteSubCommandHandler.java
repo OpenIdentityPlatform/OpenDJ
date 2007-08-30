@@ -329,18 +329,20 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
 
   // Confirm deletion.
   private boolean confirmDeletion(ConsoleApplication app) throws CLIException {
-    Message prompt = INFO_DSCFG_CONFIRM_DELETE.get(relation
-        .getUserFriendlyName());
-    app.println();
-    if (!app.confirmAction(prompt, false)) {
-      // Output failure message.
-      Message msg = INFO_DSCFG_CONFIRM_DELETE_FAIL.get(relation
+    if (app.isInteractive()) {
+      Message prompt = INFO_DSCFG_CONFIRM_DELETE.get(relation
           .getUserFriendlyName());
-      app.printVerboseMessage(msg);
-      return false;
-    } else {
-      return true;
+      app.println();
+      if (!app.confirmAction(prompt, false)) {
+        // Output failure message.
+        Message msg = INFO_DSCFG_CONFIRM_DELETE_FAIL.get(relation
+            .getUserFriendlyName());
+        app.printVerboseMessage(msg);
+        return false;
+      }
     }
+
+    return true;
   }
 
 }

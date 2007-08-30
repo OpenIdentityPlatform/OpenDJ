@@ -619,7 +619,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * Tests cache persistence with consistent backend.
    */
-  @Test(enabled=false, groups = "slow")
+  @Test(groups = "slow")
   @SuppressWarnings("unchecked")
   public void testCachePersistence()
          throws Exception
@@ -672,7 +672,7 @@ public class FileSystemEntryCacheTestCase
   /**
    * Tests cache persistence with inconsistent backend.
    */
-  @Test(enabled=false, groups = "slow")
+  @Test(groups = "slow")
   @SuppressWarnings("unchecked")
   public void testCachePersistenceInconsistent()
          throws Exception
