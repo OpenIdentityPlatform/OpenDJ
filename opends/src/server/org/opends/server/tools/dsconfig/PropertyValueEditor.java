@@ -1769,10 +1769,10 @@ public final class PropertyValueEditor {
    *          Flag indicating whether or not the managed object is
    *          being created. If it is then read-only properties will
    *          be modifiable.
-   * @return Returns {@link MenuResult#success()} if the changes made
+   * @return Returns {@code MenuResult.success()} if the changes made
    *         to the managed object should be applied, or
-   *         {@link MenuResult#cancel()} if the user to chose to
-   *         cancel any changes, or {@link MenuResult#quit()} if the
+   *         {@code MenuResult.cancel()} if the user to chose to
+   *         cancel any changes, or {@code MenuResult.quit()} if the
    *         user chose to quit the application.
    * @throws CLIException
    *           If the user input could not be retrieved for some

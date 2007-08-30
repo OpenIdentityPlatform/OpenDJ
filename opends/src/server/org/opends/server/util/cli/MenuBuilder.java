@@ -393,7 +393,7 @@ public final class MenuBuilder<T> {
 
   /**
    * Creates a "back" menu option. When invoked, this option will
-   * return a {@link MenuResult#cancel()} result.
+   * return a {@code MenuResult.cancel()} result.
    *
    * @param isDefault
    *          Indicates whether this option should be made the menu
@@ -412,7 +412,7 @@ public final class MenuBuilder<T> {
 
   /**
    * Creates a "cancel" menu option. When invoked, this option will
-   * return a {@link MenuResult#cancel()} result.
+   * return a {@code MenuResult.cancel()} result.
    *
    * @param isDefault
    *          Indicates whether this option should be made the menu
@@ -547,7 +547,7 @@ public final class MenuBuilder<T> {
 
   /**
    * Creates a "quit" menu option. When invoked, this option will
-   * return a {@link MenuResult#quit()} result.
+   * return a {@code MenuResult.quit()} result.
    */
   public void addQuitOption() {
     addCharOption(INFO_MENU_OPTION_QUIT_KEY.get(), INFO_MENU_OPTION_QUIT.get(),
