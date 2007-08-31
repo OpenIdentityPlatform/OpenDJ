@@ -135,9 +135,16 @@ do
   CLASSPATH=${CLASSPATH}:${JAR}
 done
 export CLASSPATH
+
+# Run the build extractor first.  An exit code of 99 from the extractor
+# means that this is indeed an upgrade (as opposed to a reversion) and
+# that the upgrade should continue.  An exit code of 98 means that this
+# operation is a reversion.  An exit code of 50 means that the usage
+# statement was printed and there is nothing else to do
+
 "${JAVA_BIN}" org.opends.quicksetup.upgrader.BuildExtractor "${@}"
 RETURN_CODE=$?
-if test ${RETURN_CODE} -eq 0
+if test ${RETURN_CODE} -eq 99
 then
   # Configure the appropriate CLASSPATH.
   # Unlike BuildExtractor, the Upgrader uses
@@ -149,10 +156,34 @@ then
   done
   # Launch the upgrade process.
   "${JAVA_BIN}" org.opends.quicksetup.upgrader.UpgradeLauncher "${@}"
+elif test ${RETURN_CODE} -eq 98
+then
+  # Copy jars to a temporary place from which to run the reverter
+  # in order to avoid potential file lock issues.
+  mkdir -p tmp/revert
+  cp -R lib tmp/revert
+  if test ${?} -ne 0
+  then
+    echo "ERROR:  Failed to initialize reversion."
+    exit 101
+  else
+    CLASSPATH=${INSTANCE_ROOT}/tmp/revert/classes
+    for JAR in ${INSTANCE_ROOT}/tmp/revert/lib/*.jar
+    do
+      CLASSPATH=${JAR}:${CLASSPATH}
+    done
+    # Launch the upgrade process.
+    "${JAVA_BIN}" org.opends.quicksetup.upgrader.ReversionLauncher "${@}"
+  fi
 elif test ${RETURN_CODE} -eq 50
 then
   # Version info was on requested
   exit 0
+elif test ${RETURN_CODE} -eq 0
+then
+  # Usage printed
+  exit 0
 else
+  # Some unknown return code returned
   exit 101
 fi

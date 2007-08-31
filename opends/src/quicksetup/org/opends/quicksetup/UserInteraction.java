@@ -106,4 +106,13 @@ public interface UserInteraction {
    */
   String createUnorderedList(List list);
 
+  /**
+   * Promt the user for a string.
+   * @param prompt for string
+   * @param title of prompt dialog
+   * @param defaultValue for default
+   * @return String typed by user
+   */
+  String promptForString(Message prompt, Message title, String defaultValue);
+
 }

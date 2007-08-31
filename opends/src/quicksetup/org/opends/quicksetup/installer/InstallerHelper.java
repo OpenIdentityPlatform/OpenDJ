@@ -40,7 +40,7 @@ import java.util.logging.Logger;
 import javax.naming.ldap.InitialLdapContext;
 
 import org.opends.quicksetup.ApplicationException;
-import org.opends.quicksetup.ApplicationReturnCode;
+import org.opends.quicksetup.ReturnCode;
 import static org.opends.quicksetup.util.Utils.*;
 import org.opends.server.admin.DefaultBehaviorException;
 import org.opends.server.admin.ManagedObjectNotFoundException;
@@ -133,7 +133,7 @@ public class InstallerHelper {
         break;
       default:
         throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.WINDOWS_SERVICE_ERROR,
+            ReturnCode.WINDOWS_SERVICE_ERROR,
                 errorMessage, null);
     }
   }
@@ -148,7 +148,7 @@ public class InstallerHelper {
     if (code == ConfigureWindowsService.SERVICE_DISABLE_ERROR) {
       throw new ApplicationException(
           // TODO: fix this message's format string
-          ApplicationReturnCode.ReturnCode.WINDOWS_SERVICE_ERROR,
+          ReturnCode.WINDOWS_SERVICE_ERROR,
               INFO_ERROR_DISABLING_WINDOWS_SERVICE.get(""), null);
     }
   }
@@ -172,7 +172,7 @@ public class InstallerHelper {
       Message failedMsg =
               getThrowableMsg(INFO_ERROR_CREATING_TEMP_FILE.get(), ioe);
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+          ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
           failedMsg, ioe);
     }
 
@@ -190,19 +190,19 @@ public class InstallerHelper {
       writer.close();
     } catch (DirectoryException de) {
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+          ReturnCode.CONFIGURATION_ERROR,
               getThrowableMsg(INFO_ERROR_IMPORTING_LDIF.get(), de), de);
     } catch (LDIFException le) {
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+          ReturnCode.CONFIGURATION_ERROR,
               getThrowableMsg(INFO_ERROR_IMPORTING_LDIF.get(), le), le);
     } catch (IOException ioe) {
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+          ReturnCode.CONFIGURATION_ERROR,
               getThrowableMsg(INFO_ERROR_IMPORTING_LDIF.get(), ioe), ioe);
     } catch (Throwable t) {
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.BUG, getThrowableMsg(
+          ReturnCode.BUG, getThrowableMsg(
               INFO_BUG_MSG.get(), t), t);
     }
     return ldifFile;
@@ -398,7 +398,7 @@ public class InstallerHelper {
       Message errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
               serverDisplay, t.toString());
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR, errorMessage,
+          ReturnCode.CONFIGURATION_ERROR, errorMessage,
           t);
     }
   }
@@ -502,7 +502,7 @@ public class InstallerHelper {
       Message errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
               serverDisplay, t.toString());
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR, errorMessage,
+          ReturnCode.CONFIGURATION_ERROR, errorMessage,
           t);
     }
   }

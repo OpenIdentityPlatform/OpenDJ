@@ -30,10 +30,10 @@ package org.opends.quicksetup;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
-import org.opends.quicksetup.ApplicationReturnCode.ReturnCode;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.server.util.StaticUtils;
+import org.opends.messages.Message;
 
 /**
  * This enum contains the different type of ApplicationException that we can
@@ -91,10 +91,13 @@ public class QuickSetupCli {
           cliApp.addProgressUpdateListener(
                   new ProgressUpdateListener() {
                     public void progressUpdate(ProgressUpdateEvent ev) {
-                      System.out.print(
-                              org.opends.server.util.StaticUtils.wrapText(
-                                      ev.getNewLogs(),
-                                      Utils.getCommandLineMaxLineWidth()));
+                      Message newLogs = ev.getNewLogs();
+                      if (newLogs != null) {
+                        System.out.print(
+                                StaticUtils.wrapText(
+                                        newLogs,
+                                        Utils.getCommandLineMaxLineWidth()));
+                      }
                     }
                   });
         }
@@ -107,21 +110,23 @@ public class QuickSetupCli {
             // do nothing;
           }
         }
-
-        ApplicationException ue = cliApp.getRunError();
-        if (ue != null)
-        {
-          returnValue = ue.getType();
-        }
-        else
-        {
-          returnValue = ApplicationReturnCode.ReturnCode.SUCCESSFUL;
+        returnValue = cliApp.getReturnCode();
+        if (returnValue == null) {
+          ApplicationException ue = cliApp.getRunError();
+          if (ue != null)
+          {
+            returnValue = ue.getType();
+          }
+          else
+          {
+            returnValue = ReturnCode.SUCCESSFUL;
+          }
         }
       }
-      else
-      {
+    else
+    {
         // User cancelled installation.
-        returnValue = ApplicationReturnCode.ReturnCode.CANCELLED;
+        returnValue = ReturnCode.CANCELLED;
       }
     }
     catch (UserDataException uude)

@@ -52,6 +52,7 @@ import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.Set;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
@@ -154,6 +155,47 @@ public abstract class CliApplicationHelper {
   }
 
   /**
+   * Interactively prompts (on standard output) the user to provide select
+   * one option from a set of options.
+   *
+   * @param  prompt        The prompt to present to the user.
+   * @param  defaultOption The default value returned if the user clicks enter.
+   * @param  options       The valid values that can be accepted as user input.
+   *
+   * @return index of options that was chosen or -1 if none where chosen
+   */
+  public int promptOptions(Message prompt,
+                           Message defaultOption,
+                           Message[] options) {
+    Message choiceDefault = null;
+    List<Message> choiceList = new ArrayList<Message>();
+    MessageBuilder mb = new MessageBuilder(prompt);
+    for (int i = 0; i < options.length; i++) {
+      Message choice = Message.raw(Integer.toString(i + 1));
+      choiceList.add(choice);
+      if (options[i].equals(defaultOption)) {
+        choiceDefault = choice;
+      }
+      mb.append("\n");
+      mb.append(choice);
+      mb.append(". ");
+      mb.append(options[i]);
+    }
+    int ret = -1;
+    Message resp = promptConfirm(mb.toMessage(), choiceDefault,
+            choiceList.toArray(new Message[0]));
+    if (resp != null) {
+      for (int i = 0; i < choiceList.size(); i++) {
+        if (resp.equals(choiceList.get(i))) {
+          ret = i;
+          break;
+        }
+      }
+    }
+    return ret;
+  }
+
+  /**
    * Interactively prompts (on standard output) the user to provide a string
    * value.  Any non-empty string will be allowed (the empty string will
    * indicate that the default should be used, if there is one).
@@ -166,7 +208,7 @@ public abstract class CliApplicationHelper {
    *
    * @return  The string value read from the user.
    */
-  protected String promptForString(Message prompt, String defaultValue) {
+  public String promptForString(Message prompt, String defaultValue) {
     String wrappedPrompt = StaticUtils.wrapText(prompt,
             Utils.getCommandLineMaxLineWidth());
 
@@ -391,6 +433,8 @@ public abstract class CliApplicationHelper {
   }
 
   /**
+<<<<<<< .mine
+=======
    * Returns <CODE>true</CODE> if this is a quiet session and
    * <CODE>false</CODE> otherwise.  This method relies on the a previous
    * call to createArgumentParser having been made and the parser

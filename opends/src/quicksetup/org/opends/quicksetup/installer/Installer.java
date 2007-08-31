@@ -728,7 +728,7 @@ public abstract class Installer extends GuiApplication {
       Message failedMsg = getThrowableMsg(
               INFO_ERROR_CREATING_TEMP_FILE.get(), ioe);
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+          ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
           failedMsg, ioe);
     }
   }
@@ -851,13 +851,13 @@ public abstract class Installer extends GuiApplication {
       if (result != 0)
       {
         throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+            ReturnCode.CONFIGURATION_ERROR,
             INFO_ERROR_CONFIGURING.get(), null);
       }
     } catch (Throwable t)
     {
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+          ReturnCode.CONFIGURATION_ERROR,
           getThrowableMsg(INFO_ERROR_CONFIGURING.get(), t), t);
     }
 
@@ -964,7 +964,7 @@ public abstract class Installer extends GuiApplication {
     catch (Throwable t)
     {
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+          ReturnCode.CONFIGURATION_ERROR,
           getThrowableMsg(INFO_ERROR_CONFIGURING_CERTIFICATE.get(),
                   t), t);
     }
@@ -1011,13 +1011,13 @@ public abstract class Installer extends GuiApplication {
       if (result != 0)
       {
         throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+            ReturnCode.CONFIGURATION_ERROR,
             INFO_ERROR_CREATING_BASE_ENTRY.get(), null);
       }
     } catch (Throwable t)
     {
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+          ReturnCode.CONFIGURATION_ERROR,
           getThrowableMsg(INFO_ERROR_CREATING_BASE_ENTRY.get(), t), t);
     }
     finally
@@ -1062,13 +1062,13 @@ public abstract class Installer extends GuiApplication {
       if (result != 0)
       {
         throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+            ReturnCode.CONFIGURATION_ERROR,
             INFO_ERROR_IMPORTING_LDIF.get(), null);
       }
     } catch (Throwable t)
     {
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+          ReturnCode.CONFIGURATION_ERROR,
           getThrowableMsg(INFO_ERROR_IMPORTING_LDIF.get(), t), t);
     }
   }
@@ -1112,14 +1112,14 @@ public abstract class Installer extends GuiApplication {
       if (result != 0)
       {
         throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+            ReturnCode.CONFIGURATION_ERROR,
             INFO_ERROR_IMPORT_LDIF_TOOL_RETURN_CODE.get(
                     Integer.toString(result)), null);
       }
     } catch (Throwable t)
     {
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+          ReturnCode.CONFIGURATION_ERROR,
           getThrowableMsg(INFO_ERROR_IMPORT_AUTOMATICALLY_GENERATED.get(
                   listToString(argList, " "), t.getLocalizedMessage()), t), t);
     }
@@ -1367,7 +1367,7 @@ public abstract class Installer extends GuiApplication {
       Message failedMsg = getThrowableMsg(
               INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne);
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR, failedMsg, ne);
+          ReturnCode.CONFIGURATION_ERROR, failedMsg, ne);
     }
     finally
     {
@@ -1564,7 +1564,7 @@ public abstract class Installer extends GuiApplication {
       setCurrentProgressStep(InstallProgressStep.CANCELING);
       notifyListeners(null);
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.CANCELLED,
+          ReturnCode.CANCELLED,
             INFO_UPGRADE_CANCELED.get(), null);
     }
   }
@@ -1709,7 +1709,7 @@ public abstract class Installer extends GuiApplication {
       {
       }
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR, failedMsg, t);
+          ReturnCode.CONFIGURATION_ERROR, failedMsg, t);
     }
 
     Set<SuffixDescriptor> suffixes =
@@ -1737,7 +1737,7 @@ public abstract class Installer extends GuiApplication {
       catch (NamingException ne)
       {
         throw new ApplicationException(
-                ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+                ReturnCode.CONFIGURATION_ERROR,
                 INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
                         server.getHostPort(true),
                         ne.getLocalizedMessage()), ne);
@@ -1784,7 +1784,7 @@ public abstract class Installer extends GuiApplication {
           catch (NamingException ne)
           {
             throw new ApplicationException(
-                ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+                ReturnCode.CONFIGURATION_ERROR,
                 INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
                         server.getHostPort(true),
                         ne.getLocalizedMessage()), ne);
@@ -1820,7 +1820,7 @@ public abstract class Installer extends GuiApplication {
             if (nTries == 1)
             {
               throw new ApplicationException(
-                  ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
+                  ReturnCode.APPLICATION_ERROR,
                   pnfe.getMessageObject(), null);
             }
             try
@@ -1985,7 +1985,7 @@ public abstract class Installer extends GuiApplication {
       if (remoteServer)
       {
         throw new ApplicationException(
-                ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+                ReturnCode.CONFIGURATION_ERROR,
                 INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(
                         getHostDisplay(auth)), ne);
       }
@@ -1995,7 +1995,7 @@ public abstract class Installer extends GuiApplication {
         Message failedMsg = getThrowableMsg(
                 INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne);
         throw new ApplicationException(
-                ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+                ReturnCode.CONFIGURATION_ERROR,
                 failedMsg, ne);
       }
     }
@@ -2004,21 +2004,21 @@ public abstract class Installer extends GuiApplication {
       if (remoteServer)
       {
         throw new ApplicationException(
-                ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+                ReturnCode.CONFIGURATION_ERROR,
                 INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
                         getHostDisplay(auth), ne.getLocalizedMessage()), ne);
       }
       else
       {
         throw new ApplicationException(
-                ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+                ReturnCode.CONFIGURATION_ERROR,
                 getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne), ne);
       }
     }
     catch (ADSContextException ace)
     {
       throw new ApplicationException(
-              ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+              ReturnCode.CONFIGURATION_ERROR,
               ((remoteServer)
                       ? INFO_REMOTE_ADS_EXCEPTION.get(
                       getHostDisplay(auth), ace.getReason())
@@ -3669,7 +3669,7 @@ public abstract class Installer extends GuiApplication {
       {
         LOG.log(Level.SEVERE, "Error creating task "+attrs, ne);
         throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
+            ReturnCode.APPLICATION_ERROR,
                 getThrowableMsg(INFO_ERROR_LAUNCHING_INITIALIZATION.get(
                         sourceServerDisplay
                 ), ne), ne);
@@ -3822,7 +3822,7 @@ public abstract class Installer extends GuiApplication {
               helper.isStoppedByError(state))
           {
             ApplicationException ae = new ApplicationException(
-                ApplicationReturnCode.ReturnCode.APPLICATION_ERROR, errorMsg,
+                ReturnCode.APPLICATION_ERROR, errorMsg,
                 null);
             if ((lastLogMsg == null) ||
                 helper.isPeersNotFoundError(lastLogMsg))
@@ -3851,7 +3851,7 @@ public abstract class Installer extends GuiApplication {
       catch (NamingException ne)
       {
         throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
+            ReturnCode.APPLICATION_ERROR,
                 getThrowableMsg(INFO_ERROR_POOLING_INITIALIZATION.get(
                         sourceServerDisplay),
                         ne), ne);

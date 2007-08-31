@@ -45,7 +45,9 @@ enum ReversionProgressStep implements ProgressStep {
 
   REVERTING_FILESYSTEM(INFO_SUMMARY_REVERT_REVERTING_COMPONENTS.get(), 60),
 
-  VERIFYING(INFO_SUMMARY_REVERT_VERIFYING.get(), 80),
+  VERIFYING(INFO_SUMMARY_REVERT_VERIFYING.get(), 70),
+
+  STARTING_SERVER(INFO_SUMMARY_STARTING.get(), 80),
 
   RECORDING_HISTORY(INFO_SUMMARY_REVERT_HISTORY.get(), 90),
 
@@ -65,7 +67,7 @@ enum ReversionProgressStep implements ProgressStep {
   private Message summaryMsg;
   private int progress;
 
-  private ReversionProgressStep(Message summaryMsgKey, int progress) {
+  private ReversionProgressStep(Message summaryMsg, int progress) {
     this.summaryMsg = summaryMsg;
     this.progress = progress;
   }

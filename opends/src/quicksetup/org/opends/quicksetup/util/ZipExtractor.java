@@ -32,7 +32,7 @@ import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Application;
-import org.opends.quicksetup.ApplicationReturnCode;
+import org.opends.quicksetup.ReturnCode;
 
 import java.io.*;
 import java.util.zip.ZipInputStream;
@@ -210,7 +210,7 @@ public class ZipExtractor {
                             INFO_ERROR_COPYING.get(entry.getName()), ioe);
 
             throw new ApplicationException(
-                ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+                ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
                     errorMsg, ioe);
           }
         }
@@ -246,7 +246,7 @@ public class ZipExtractor {
               Utils.getThrowableMsg(
                       INFO_ERROR_ZIP_STREAM.get(zipFileName), ioe);
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+          ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
           errorMsg, ioe);
     }
   }

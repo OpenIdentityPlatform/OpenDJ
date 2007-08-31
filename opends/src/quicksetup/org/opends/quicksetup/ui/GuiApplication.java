@@ -569,7 +569,7 @@ public abstract class GuiApplication extends Application {
               (t.getMessage() == null) ? t.toString() : t.getMessage());
       LOG.log(Level.INFO, msg.toString(), t);
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.IMPORT_ERROR, msg, t);
+          ReturnCode.IMPORT_ERROR, msg, t);
     }
   }
 
@@ -578,7 +578,7 @@ public abstract class GuiApplication extends Application {
    */
   public UserInteraction userInteraction() {
     UserInteraction ui = null;
-    if (!getUserData().isQuiet()) {
+    if (!getUserData().isInteractive()) {
       if (Utils.isCli()) {
         ui = new CliUserInteraction();
       } else {

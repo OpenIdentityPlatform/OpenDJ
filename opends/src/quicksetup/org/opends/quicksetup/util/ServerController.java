@@ -209,7 +209,7 @@ public class ServerController {
           * not be stopped.
           */
           throw new ApplicationException(
-              ApplicationReturnCode.ReturnCode.STOP_ERROR,
+              ReturnCode.STOP_ERROR,
                   INFO_ERROR_STOPPING_SERVER_CODE.get(
                           String.valueOf(returnValue)),
                   null);
@@ -223,7 +223,7 @@ public class ServerController {
 
       } catch (Exception e) {
         throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.STOP_ERROR, getThrowableMsg(
+            ReturnCode.STOP_ERROR, getThrowableMsg(
                 INFO_ERROR_STOPPING_SERVER.get(), e), e);
       }
     } finally {
@@ -442,7 +442,7 @@ public class ServerController {
           if (Utils.isWindows())
           {
             throw new ApplicationException(
-                ApplicationReturnCode.ReturnCode.START_ERROR,
+                ReturnCode.START_ERROR,
                     INFO_ERROR_STARTING_SERVER_IN_WINDOWS.get(
                             String.valueOf(port)),
                     null);
@@ -450,7 +450,7 @@ public class ServerController {
           else
           {
             throw new ApplicationException(
-                ApplicationReturnCode.ReturnCode.START_ERROR,
+                ReturnCode.START_ERROR,
                     INFO_ERROR_STARTING_SERVER_IN_UNIX.get(
                             String.valueOf(port)),
                     null);
@@ -461,7 +461,7 @@ public class ServerController {
     } catch (IOException ioe)
     {
       throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.START_ERROR,
+            ReturnCode.START_ERROR,
               getThrowableMsg(INFO_ERROR_STARTING_SERVER.get(), ioe), ioe);
     }
   } finally {
@@ -625,7 +625,7 @@ public class ServerController {
           } catch (Throwable t)
           {
             ex = new ApplicationException(
-                ApplicationReturnCode.ReturnCode.START_ERROR,
+                ReturnCode.START_ERROR,
                 getThrowableMsg(errorTag, t), t);
 
           }

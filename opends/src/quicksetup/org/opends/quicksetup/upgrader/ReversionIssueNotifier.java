@@ -22,36 +22,35 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader;
 
+import org.opends.quicksetup.UserInteraction;
+import org.opends.quicksetup.BuildInformation;
+import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.ReturnCode;
+import org.opends.quicksetup.Constants;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-
-import org.opends.quicksetup.ReturnCode;
-import org.opends.quicksetup.BuildInformation;
-import org.opends.quicksetup.UserInteraction;
-import org.opends.quicksetup.ApplicationException;
-import org.opends.quicksetup.Constants;
-import org.opends.server.util.VersionCompatibilityIssue;
 import static org.opends.messages.QuickSetupMessages.*;
+import org.opends.server.util.VersionCompatibilityIssue;
 import static org.opends.server.util.VersionCompatibilityIssue.*;
 
-import java.util.Set;
-import java.util.List;
 import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.List;
+import java.util.Set;
 
 /**
- * {@link org.opends.quicksetup.upgrader.VersionIssueNotifier} specific
+ * {@link VersionIssueNotifier} specific
  * to upgrade tools.
  */
-public class UpgradeIssueNotifier extends VersionIssueNotifier {
+public class ReversionIssueNotifier extends VersionIssueNotifier {
 
   static private final Logger LOG =
-          Logger.getLogger(UpgradeIssueNotifier.class.getName());
+          Logger.getLogger(ReversionIssueNotifier.class.getName());
 
   /**
    * Creates a new instance that can analyze a hypothetical upgrade/reversion
@@ -60,7 +59,7 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
    * @param current BuildInformation representing the current version
    * @param neu BuildInformation representing the proposed next version
    */
-  public UpgradeIssueNotifier(UserInteraction ui,
+  public ReversionIssueNotifier(UserInteraction ui,
                        BuildInformation current,
                        BuildInformation neu) {
     super(ui, current, neu);
@@ -70,27 +69,26 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
    * {@inheritDoc}
    */
   public void notifyUser() throws ApplicationException {
-    String[] args = { currentBuildInfo.toString(), newBuildInfo.toString() };
     Message cont = INFO_ORACLE_ACTION_PROMPT_CONTINUE.get();
     Message cancel = INFO_ORACLE_ACTION_PROMPT_CANCEL.get();
     if (hasIssues()) {
       List<Directive> issues = getIssues();
       if (!isSupported()) {
         if (issues != null) {
-          for (VersionIssueNotifier.Directive directive : issues) {
-            LOG.log(Level.INFO, "Unsupported upgrade details: " +
+          for (Directive directive : issues) {
+            LOG.log(Level.INFO, "Unsupported reversion details: " +
                     directive.getMessage());
           }
         }
         throw new ApplicationException(
             ReturnCode.APPLICATION_ERROR,
-                INFO_UPGRADE_ORACLE_UNSUPPORTED.get(
+                INFO_REVERSION_ORACLE_UNSUPPORTED.get(
                         currentBuildInfo.toString(),
                         newBuildInfo.toString()),
                 null);
       } else {
         if (ui != null) {
-          for (VersionIssueNotifier.Directive directive : issues) {
+          for (Directive directive : issues) {
             Message title;
             Message summary;
             Message details;
@@ -99,7 +97,7 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
             switch (directive.getType()) {
               case ACTION:
                 title = INFO_GENERAL_ACTION_REQUIRED.get();
-                summary = INFO_UPGRADE_ORACLE_ACTION.get();
+                summary = INFO_REVERSION_ORACLE_ACTION.get();
                 details = new MessageBuilder(directive.getMessage())
                         .append(Constants.HTML_LINE_BREAK)
                         .append(Constants.HTML_LINE_BREAK)
@@ -110,7 +108,7 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
                 break;
               case INFO:
                 title = INFO_GENERAL_INFO.get();
-                summary = INFO_UPGRADE_ORACLE_INFO.get();
+                summary = INFO_REVERSION_ORACLE_INFO.get();
                 details = new MessageBuilder(directive.getMessage())
                         .append(Constants.HTML_LINE_BREAK)
                         .append(Constants.HTML_LINE_BREAK)
@@ -121,7 +119,7 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
                 break;
               case WARNING:
                 title = INFO_GENERAL_WARNING.get();
-                summary = INFO_UPGRADE_ORACLE_WARNING.get();
+                summary = INFO_REVERSION_ORACLE_WARNING.get();
                 details = new MessageBuilder(directive.getMessage())
                         .append(Constants.HTML_LINE_BREAK)
                         .append(Constants.HTML_LINE_BREAK)
@@ -148,7 +146,7 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
                     defaultAction))) {
               throw new ApplicationException(
                   ReturnCode.CANCELLED,
-                      INFO_UPGRADE_CANCELED.get(), null);
+                      INFO_REVERSION_CANCELED.get(), null);
             }
           }
         } else {
@@ -173,7 +171,7 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
 
     // If the import/export effect is present, append the detailed
     // instructions.
-    if (effects.contains(Effect.UPGRADE_DATA_EXPORT_AND_REIMPORT_REQUIRED)) {
+    if (effects.contains(Effect.REVERSION_DATA_EXPORT_AND_REIMPORT_REQUIRED)) {
       msg = new MessageBuilder(msg)
               .append(Constants.HTML_LINE_BREAK)
               .append(ui.createUnorderedList(getExportImportInstructions()))
@@ -191,9 +189,9 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
       Set<VersionCompatibilityIssue.Effect> effects = cause.getEffects();
       isAction =
               effects.contains(
-                      Effect.UPGRADE_DATA_EXPORT_AND_REIMPORT_REQUIRED) ||
+                      Effect.REVERSION_DATA_EXPORT_AND_REIMPORT_REQUIRED) ||
                       (effects.contains(
-                              Effect.UPGRADE_MANUAL_ACTION_REQUIRED) &&
+                              Effect.REVERSION_MANUAL_ACTION_REQUIRED) &&
                               cause.getLocalizedUpgradeMessage() != null);
     }
     return isAction;
@@ -206,7 +204,7 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
     boolean isWarning = false;
     if (cause != null && !isActionRequired(cause)) {
       Set<VersionCompatibilityIssue.Effect> effects = cause.getEffects();
-      isWarning = effects.contains(Effect.UPGRADE_SHOW_WARNING_MESSAGE) &&
+      isWarning = effects.contains(Effect.REVERSION_SHOW_WARNING_MESSAGE) &&
               cause.getLocalizedUpgradeMessage() != null;
     }
     return isWarning;
@@ -221,7 +219,7 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
       Set<VersionCompatibilityIssue.Effect> effects = cause.getEffects();
       for (VersionCompatibilityIssue.Effect effect : effects) {
         switch (effect) {
-          case UPGRADE_NOT_POSSIBLE:
+          case REVERSION_NOT_POSSIBLE:
             isUnsupported = true; break;
           default:
             // assume not an tion;

@@ -36,9 +36,14 @@ import java.io.File;
  */
 public class UpgradeUserData extends UserData {
 
-  File installPackage;
+  /** Describes upgrade operation type. */
+  public enum Operation { UPGRADE, REVERSION };
 
-  Build buildToDownload;
+  private File installPackage;
+
+  private Build buildToDownload;
+
+  private Operation operation;
 
   /**
    * Gets the OpenDS package (.zip) file whose contents will
@@ -85,6 +90,22 @@ public class UpgradeUserData extends UserData {
   public boolean getPerformDatabaseBackup() {
     // It would be nice to make this an option (see issue 1740)
     return false;
+  }
+
+  /**
+   * Sets the operation the user would like to perform.
+   * @param operation upgrade or reversion
+   */
+  public void setOperation(Operation operation) {
+    this.operation = operation;
+  }
+
+  /**
+   * Gets the operation the user would like to perform.
+   * @return operation upgrade or reversion
+   */
+  public Operation getOperation() {
+    return this.operation;
   }
 
 }

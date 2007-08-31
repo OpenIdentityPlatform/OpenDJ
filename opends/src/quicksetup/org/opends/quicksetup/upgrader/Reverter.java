@@ -31,7 +31,7 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.QuickSetupMessages.*;
 
-import org.opends.quicksetup.ApplicationReturnCode;
+import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.UserDataException;
@@ -45,6 +45,7 @@ import org.opends.quicksetup.BuildInformation;
 import org.opends.quicksetup.Application;
 import org.opends.quicksetup.HistoricalRecord;
 import org.opends.quicksetup.UserInteraction;
+import org.opends.quicksetup.CliUserInteraction;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
@@ -59,8 +60,12 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.EnumSet;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.text.DateFormat;
 
 /**
  * Reverts an installation from its current version to a prior version.
@@ -74,27 +79,141 @@ public class Reverter extends Application implements CliApplication {
           ReversionProgressStep.NOT_STARTED;
 
   private ReverterUserData userData;
-  private ProgressMessageFormatter formatter;
   private ProgressUpdateListenerDelegate listenerDelegate;
   private ApplicationException runError;
   private ApplicationException runWarning;
   private Installation installation;
+  private Installation archiveInstallation;
   private File tempBackupDir;
   private long historicalOperationId;
   private BuildInformation fromBuildInfo;
-  private BuildInformation toBuildInfo;
+  private BuildInformation archiveBuildInfo;
   private boolean abort = false;
+  private boolean restartServer = false;
 
   /**
    * {@inheritDoc}
    */
   public UserData createUserData(Launcher launcher) throws UserDataException {
     ReverterUserData ud = null;
-    if (launcher instanceof ReversionLauncher) {
+
+    if (launcher instanceof UpgradeLauncher) {
       ud = new ReverterUserData();
-      ReversionLauncher rl = (ReversionLauncher)launcher;
+      UpgradeLauncher rl = (UpgradeLauncher)launcher;
       File filesDir = null;
-      if (rl.useMostRecentUpgrade()) {
+      if (rl.isInteractive()) {
+        if (rl.isNoPrompt()) {
+          StringBuilder sb = new StringBuilder()
+                  .append("-")
+                  .append(UpgradeLauncher.REVERT_ARCHIVE_OPTION_SHORT)
+                  .append("/--")
+                  .append(ReversionLauncher.REVERT_ARCHIVE_OPTION_LONG)
+                  .append(", -")
+                  .append(ReversionLauncher.REVERT_MOST_RECENT_OPTION_SHORT)
+                  .append("/--")
+                  .append(ReversionLauncher.REVERT_MOST_RECENT_OPTION_LONG);
+          throw new UserDataException(null,
+                  INFO_REVERT_ERROR_NO_DIR.get(sb.toString()));
+        } else {
+          CliUserInteraction ui = new CliUserInteraction();
+          Message[] options = new Message[] {
+                  INFO_REVERSION_TYPE_PROMPT_RECENT.get(),
+                  INFO_REVERSION_TYPE_PROMPT_FILE.get()};
+          if (options[0].equals(ui.confirm(
+                  INFO_REVERT_CONFIRM_TITLE.get(),
+                  INFO_REVERSION_TYPE_PROMPT.get(),
+                  INFO_REVERT_CONFIRM_TITLE.get(),
+                  UserInteraction.MessageType.QUESTION,
+                  options, options[0])))
+          {
+            ud.setRevertMostRecent(true);
+          } else {
+            ud.setRevertMostRecent(false);
+
+            // Present a list of reversion archive choices to the user.
+            // In the future perhaps we might also allow them to type
+            // freehand.
+            File historyDir = getInstallation().getHistoryDirectory();
+            if (historyDir != null && historyDir.exists()) {
+
+              // Print a wait message, this could take a while
+              System.out.println(INFO_REVERSION_DIR_WAIT.get());
+
+              String[] historyChildren = historyDir.list();
+              Arrays.sort(historyChildren);
+              List<File> raDirList = new ArrayList<File>();
+              for (int i = historyChildren.length - 1; i >=0; i--) {
+                File raDirCandidate = new File(historyDir, historyChildren[i]);
+                if (isReversionFilesDirectory(raDirCandidate)) {
+                  raDirList.add(raDirCandidate);
+                }
+              }
+              File[] raDirs = raDirList.toArray(new File[raDirList.size()]);
+              List<Message> raDirChoiceList = new ArrayList<Message>();
+              for (File raDir : raDirs) {
+                String name = raDir.getName();
+                Message buildInfo = INFO_UPGRADE_BUILD_ID_UNKNOWN.get();
+                Message date = INFO_GENERAL_UNKNOWN.get();
+                try {
+                  Installation i =
+                          new Installation(appendFilesDirIfNeccessary(raDir));
+                  BuildInformation bi = i.getBuildInformation();
+                  buildInfo = Message.raw(bi.toString());
+                } catch (Exception e) {
+                  LOG.log(Level.INFO,
+                          "Error determining archive version for " + name);
+                }
+
+                try {
+                  Date d = new Date(Long.valueOf(name));
+                  DateFormat df = DateFormat.getInstance();
+                  date = Message.raw(df.format(d));
+                } catch (Exception e) {
+                  LOG.log(Level.INFO, "Error converting reversion archive " +
+                          "name " + name + " to date helper");
+                }
+                MessageBuilder mb = new MessageBuilder(name);
+                mb.append(" (");
+                mb.append(INFO_REVERSION_DIR_FROM_UPGRADE.get(buildInfo, date));
+                mb.append(")");
+                raDirChoiceList.add(mb.toMessage());
+              }
+              Message[] raDirChoices =
+                      raDirChoiceList.toArray(new Message[0]);
+              if (raDirChoices.length > 0) {
+                int resp = ui.promptOptions(
+                        INFO_REVERSION_DIR_PROMPT.get(),
+                        raDirChoices[0],
+                        raDirChoices);
+                File raDir = raDirs[resp];
+                raDir = appendFilesDirIfNeccessary(raDir);
+                try {
+                  ud.setReversionArchiveDirectory(
+                          validateReversionArchiveDirectory(raDir));
+                } catch (UserDataException ude) {
+                  System.err.println(ude.getMessageObject());
+                }
+              } else {
+                LOG.log(Level.INFO, "No archives in history dir");
+                throw new UserDataException(null,
+                        INFO_REVERT_ERROR_NO_HISTORY_DIR.get());
+              }
+            } else {
+              LOG.log(Level.INFO, "History dir does not exist");
+              throw new UserDataException(null,
+                      INFO_REVERT_ERROR_NO_HISTORY_DIR.get());
+            }
+          }
+        }
+      } else if (rl.isRevertMostRecent()) {
+        ud.setRevertMostRecent(true);
+      } else {
+        filesDir = rl.getReversionArchiveDirectory();
+        filesDir = appendFilesDirIfNeccessary(filesDir);
+        ud.setReversionArchiveDirectory(
+                validateReversionArchiveDirectory(filesDir));
+      }
+      if (ud.isRevertMostRecent()) {
         Installation install = getInstallation();
         File historyDir = install.getHistoryDirectory();
         if (historyDir.exists()) {
@@ -115,8 +234,8 @@ public class Reverter extends Application implements CliApplication {
             for (String childName : childNames) {
               File b = new File(historyDir, childName);
               File d = new File(b, Installation.HISTORY_BACKUP_FILES_DIR_NAME);
-              if (isFilesDirectory(d)) {
-                filesDir = d;
+              if (isReversionFilesDirectory(d)) {
+                ud.setReversionArchiveDirectory(d);
                 break;
               }
             }
@@ -129,33 +248,9 @@ public class Reverter extends Application implements CliApplication {
           throw new UserDataException(null,
                   INFO_REVERT_ERROR_NO_HISTORY_DIR.get());
         }
-      } else {
-        filesDir = rl.getFilesDirectory();
-
-        if (filesDir != null) {
-          // Automatically append the 'filesDir' subdirectory if necessary
-          if (!filesDir.getName().
-                  endsWith(Installation.HISTORY_BACKUP_FILES_DIR_NAME)) {
-            filesDir = new File(filesDir,
-                    Installation.HISTORY_BACKUP_FILES_DIR_NAME);
-          }
-        } else {
-          StringBuilder sb = new StringBuilder()
-                  .append("-")
-                  .append(ReversionLauncher.DIRECTORY_OPTION_SHORT)
-                  .append("/--")
-                  .append(ReversionLauncher.DIRECTORY_OPTION_LONG)
-                  .append(", -")
-                  .append(ReversionLauncher.MOST_RECENT_OPTION_SHORT)
-                  .append("/--")
-                  .append(ReversionLauncher.MOST_RECENT_OPTION_LONG);
-          throw new UserDataException(null,
-                  INFO_REVERT_ERROR_NO_DIR.get(sb.toString()));
-        }
       }
-      if (validateFilesDirectory(filesDir)) {
-        ud.setFilesDirectory(filesDir);
-      }
+      ud.setQuiet(rl.isQuiet());
+      ud.setInteractive(!rl.isNoPrompt());
     }
     return ud;
   }
@@ -189,6 +284,13 @@ public class Reverter extends Application implements CliApplication {
    */
   public ApplicationException getRunError() {
     return this.runError;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public ReturnCode getReturnCode() {
+    return null;
   }
 
   /**
@@ -324,44 +426,95 @@ public class Reverter extends Application implements CliApplication {
   public void run() {
 
     try {
-      initialize();
 
+      // Get the user to confirm if possible
       UserInteraction ui = userInteraction();
       if (ui != null) {
         Message cont = INFO_CONTINUE_BUTTON_LABEL.get();
         Message cancel = INFO_CANCEL_BUTTON_LABEL.get();
 
-        String toBuildString = null;
-        BuildInformation toBi = getToBuildInformation();
+        String toBuildString;
+        BuildInformation toBi = getArchiveBuildInformation();
         if (toBi != null) {
           toBuildString = toBi.toString();
         } else {
           toBuildString = INFO_UPGRADE_BUILD_ID_UNKNOWN.get().toString();
         }
-        if (cancel.equals(ui.confirm( // TODO: i18n
-                Message.raw("Confirm Reversion"),
-                Message.raw("This installation will be reverted to version " +
-                        toBuildString +
-                        " using the files in " + getFilesDirectory() + "."),
-                Message.raw("Confirm"),
+        if (cancel.equals(ui.confirm(
+                INFO_REVERT_CONFIRM_TITLE.get(),
+                INFO_REVERT_CONFIRM_PROMPT.get(
+                        toBuildString,
+                        Utils.getPath(getReversionFilesDirectory())),
+                INFO_REVERT_CONFIRM_TITLE.get(),
                 UserInteraction.MessageType.WARNING,
                 new Message[] { cont, cancel },
                 cont))) {
           throw new ApplicationException(
-              ApplicationReturnCode.ReturnCode.CANCELLED,
+              ReturnCode.CANCELLED,
               INFO_REVERSION_CANCELED.get(), null);
         }
       }
 
-      stopServer();
-      revertFiles();
+      // Stop the server if necessary.  Task note as to whether the server
+      // is running since we will leave it in that state when we are done.
+      Installation installation = getInstallation();
+      Status status = installation.getStatus();
+      ServerController sc = new ServerController(installation);
+      if (status.isServerRunning()) {
+        restartServer = true;
+        sc = new ServerController(installation);
+        try {
+          setCurrentProgressStep(ReversionProgressStep.STOPPING_SERVER);
+          LOG.log(Level.INFO, "Stopping server");
+          sc.stopServer(true);
+          notifyListeners(getFormattedDoneWithLineBreak());
+        } catch (ApplicationException ae) {
+          notifyListeners(getFormattedErrorWithLineBreak());
+        }
+      }
+
+      try {
+        setCurrentProgressStep(ReversionProgressStep.INITIALIZING);
+        initialize();
+        notifyListeners(getFormattedDoneWithLineBreak());
+      } catch (ApplicationException ae) {
+        LOG.log(Level.INFO, "Error initializing reversion", ae);
+        notifyListeners(getFormattedErrorWithLineBreak());
+        throw ae;
+      }
+
+      try {
+        LOG.log(Level.INFO, "Reverting components");
+        setCurrentProgressStep(ReversionProgressStep.REVERTING_FILESYSTEM);
+        revertComponents();
+        LOG.log(Level.INFO, "Finished reverting components");
+        notifyListeners(getFormattedDoneWithLineBreak());
+      } catch (ApplicationException ae) {
+        LOG.log(Level.INFO, "Error reverting components", ae);
+        notifyListeners(getFormattedErrorWithLineBreak());
+        throw ae;
+      }
+
+      if (restartServer) {
+        try {
+          LOG.log(Level.INFO, "Restarting server");
+          setCurrentProgressStep(ReversionProgressStep.STARTING_SERVER);
+          sc.startServer();
+          notifyListeners(getFormattedDoneWithLineBreak());
+        } catch (ApplicationException ae) {
+          notifyListeners(getFormattedErrorWithLineBreak());
+        }
+      }
+
     } catch (Throwable e) {
       if (!(e instanceof ApplicationException)) {
         runError = new ApplicationException(
-            ApplicationReturnCode.ReturnCode.BUG,
+            ReturnCode.BUG,
                 Message.raw(e.getLocalizedMessage()), e);
       } else {
         runError = (ApplicationException)e;
+        abort = ReturnCode.CANCELLED.equals(
+                ((ApplicationException)e).getType());
       }
     } finally {
       end();
@@ -379,25 +532,13 @@ public class Reverter extends Application implements CliApplication {
     this.historicalOperationId =
       writeInitialHistoricalRecord(
               getFromBuildInformation(),
-              getToBuildInformation());
+              getArchiveBuildInformation());
+    insureRevertability();
+    backupCurrentInstallation();
   }
 
-  private void stopServer() throws ApplicationException {
-    Installation installation = getInstallation();
-    Status status = installation.getStatus();
-    if (status.isServerRunning()) {
-      setCurrentProgressStep(ReversionProgressStep.STOPPING_SERVER);
-      ServerController sc = new ServerController(installation);
-      sc.stopServer(true);
-    }
-  }
-
-  private void revertFiles() throws ApplicationException {
-    backupFilesytem();
-    revertComponents();
-  }
-
-  private void backupFilesytem() throws ApplicationException {
+  private void backupCurrentInstallation() throws ApplicationException {
+    LOG.log(Level.INFO, "Backing up filesystem");
     try {
       File filesBackupDirectory = getTempBackupDirectory();
       FileManager fm = new FileManager();
@@ -408,11 +549,14 @@ public class Reverter extends Application implements CliApplication {
         //fm.copyRecursively(f, filesBackupDirectory,
         fm.move(f, filesBackupDirectory, filter);
       }
+      LOG.log(Level.INFO, "Finished backing up filesystem");
     } catch (ApplicationException ae) {
+      LOG.log(Level.INFO, "Error backing up filesystem", ae);
       throw ae;
     } catch (Exception e) {
+      LOG.log(Level.INFO, "Error backing up filesystem", e);
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+          ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
               INFO_ERROR_BACKUP_FILESYSTEM.get(),
               e);
     }
@@ -420,7 +564,7 @@ public class Reverter extends Application implements CliApplication {
 
   private void revertComponents() throws ApplicationException {
     try {
-      File stageDir = getFilesDirectory();
+      File stageDir = getReversionFilesDirectory();
       Installation installation = getInstallation();
       File root = installation.getRootDirectory();
       FileManager fm = new FileManager();
@@ -434,7 +578,7 @@ public class Reverter extends Application implements CliApplication {
       // The bits should now be of the new version.  Have
       // the installation update the build information so
       // that it is correct.
-      LOG.log(Level.INFO, "reverted bits to " +
+      LOG.log(Level.INFO, "Reverted bits to " +
               installation.getBuildInformation(false));
 
     } catch (IOException e) {
@@ -443,12 +587,12 @@ public class Reverter extends Application implements CliApplication {
     }
   }
 
-  private File getFilesDirectory()
+  private File getReversionFilesDirectory()
           throws ApplicationException, IOException {
-    return userData.getFilesDirectory();
+    return userData.getReversionArchiveDirectory();
   }
 
-  private boolean validateFilesDirectory(File filesDir)
+  private File validateReversionArchiveDirectory(File filesDir)
           throws UserDataException
   {
     if (filesDir == null) {
@@ -457,16 +601,17 @@ public class Reverter extends Application implements CliApplication {
     } else if (!filesDir.isDirectory()) {
       throw new UserDataException(null,
               INFO_REVERT_ERROR_NOT_DIR_FILES_DIR.get());
-    } else if (!isFilesDirectory(filesDir)) {
+    } else if (!isReversionFilesDirectory(filesDir)) {
       throw new UserDataException(null,
               INFO_REVERT_ERROR_NOT_DIR_FILES_DIR.get());
     }
-    return true;
+    return filesDir;
   }
 
-  private boolean isFilesDirectory(File filesDir) {
+  private boolean isReversionFilesDirectory(File filesDir) {
+    filesDir = appendFilesDirIfNeccessary(filesDir);
     boolean isFilesDir = false;
-    if (filesDir != null && filesDir.isDirectory()) {
+    if (filesDir != null && filesDir.exists() && filesDir.isDirectory()) {
       String[] children = filesDir.list();
       Set<String> cs = new HashSet<String>(Arrays.asList(children));
 
@@ -483,6 +628,15 @@ public class Reverter extends Application implements CliApplication {
       String note = null;
       if (runError == null && !abort) {
         status = HistoricalRecord.Status.SUCCESS;
+
+        // Since everything went OK, delete the archive
+        LOG.log(Level.INFO, "Cleaning up after reversion");
+        setCurrentProgressStep(ReversionProgressStep.CLEANUP);
+        deleteArchive();
+        deleteBackup();
+        notifyListeners(getFormattedDoneWithLineBreak());
+        LOG.log(Level.INFO, "Clean up complete");
+
       } else {
         if (abort) {
           status = HistoricalRecord.Status.CANCEL;
@@ -492,32 +646,29 @@ public class Reverter extends Application implements CliApplication {
         }
 
         // Abort the reversion and put things back like we found it
-        LOG.log(Level.INFO, "canceling reversion");
+        LOG.log(Level.INFO, "Canceling reversion");
         ProgressStep lastProgressStep = currentProgressStep;
         setCurrentProgressStep(ReversionProgressStep.ABORT);
         abort(lastProgressStep);
         notifyListeners(getFormattedDoneWithLineBreak());
-        LOG.log(Level.INFO, "cancelation complete");
+        LOG.log(Level.INFO, "Cancelation complete");
       }
 
-      LOG.log(Level.INFO, "cleaning up after reversion");
-      setCurrentProgressStep(ReversionProgressStep.CLEANUP);
-      cleanup();
-      notifyListeners(getFormattedDoneWithLineBreak());
-      LOG.log(Level.INFO, "clean up complete");
-
+      // Remove the lib directory temporarily created by the
+      // launch script with which the program is running
+      deleteReversionLib();
 
       // Write a record in the log file indicating success/failure
-      LOG.log(Level.INFO, "recording history");
+      LOG.log(Level.INFO, "Recording history");
       setCurrentProgressStep(ReversionProgressStep.RECORDING_HISTORY);
       writeHistoricalRecord(historicalOperationId,
               getFromBuildInformation(),
-              getToBuildInformation(),
+              getArchiveBuildInformation(),
               status,
               note);
 
       notifyListeners(getFormattedDoneWithLineBreak());
-      LOG.log(Level.INFO, "history recorded");
+      LOG.log(Level.INFO, "History recorded");
       notifyListeners(
               new MessageBuilder(
                 INFO_GENERAL_SEE_FOR_HISTORY.get(
@@ -525,7 +676,7 @@ public class Reverter extends Application implements CliApplication {
               .append(getLineBreak()).toMessage());
     } catch (ApplicationException e) {
       notifyListeners(getFormattedDoneWithLineBreak());
-      LOG.log(Level.INFO, "Error cleaning up after upgrade.", e);
+      LOG.log(Level.INFO, "Error cleaning up after reversion.", e);
     }
 
     // Decide final status based on presense of error
@@ -538,16 +689,16 @@ public class Reverter extends Application implements CliApplication {
     // processing messages has finished.  Need to resolve these
     // issues.
     if (abort) {
-      LOG.log(Level.INFO, "upgrade canceled by user");
+      LOG.log(Level.INFO, "reversion canceled by user");
       setCurrentProgressStep(ReversionProgressStep.FINISHED_CANCELED);
     } else if (runError != null) {
-      LOG.log(Level.INFO, "upgrade completed with errors", runError);
+      LOG.log(Level.INFO, "reversion completed with errors", runError);
       notifyListeners(getFormattedErrorWithLineBreak(runError,true));
       notifyListeners(getLineBreak());
       setCurrentProgressStep(ReversionProgressStep.FINISHED_WITH_ERRORS);
       notifyListeners(getLineBreak());
     } else if (runWarning != null) {
-      LOG.log(Level.INFO, "upgrade completed with warnings");
+      LOG.log(Level.INFO, "reversion completed with warnings");
       Message warningText = runWarning.getMessageObject();
 
       // By design, the warnings are written as errors to the details section
@@ -615,12 +766,6 @@ public class Reverter extends Application implements CliApplication {
           fm.deleteRecursively(backupDirectory);
         }
 
-        // Restart the server after putting the files
-        // back like we found them.
-        ServerController sc = new ServerController(getInstallation());
-        sc.stopServer(true);
-        sc.startServer(true);
-
       } catch (IOException e) {
         LOG.log(Level.INFO, "Error getting backup directory", e);
       }
@@ -628,8 +773,45 @@ public class Reverter extends Application implements CliApplication {
 
   }
 
-  private void cleanup() {
-    // TODO:
+  /**
+   * Deletes the archived backup to which we reverted.
+   */
+  private void deleteArchive() {
+    FileManager fm = new FileManager();
+    try {
+      fm.deleteRecursively(getReversionFilesDirectory());
+    } catch (Exception e) {
+      // ignore; this is best effort
+    }
+  }
+
+  /**
+   * Deletes the backup of the current installation.
+   */
+  private void deleteBackup() {
+    FileManager fm = new FileManager();
+    try {
+      fm.deleteRecursively(getTempBackupDirectory());
+    } catch (Exception e) {
+      // ignore; this is best effort
+    }
+  }
+
+  /**
+   * Delete the library with which this reversion is currently
+   * running.
+   */
+  private void deleteReversionLib() {
+    FileManager fm = new FileManager();
+    try {
+      File tmpDir = getInstallation().getTemporaryDirectory();
+      File revertLibDir = new File(tmpDir, "revert");
+      fm.deleteRecursively(
+              revertLibDir, null,
+              FileManager.DeletionPolicy.DELETE_ON_EXIT);
+    } catch (Exception e) {
+      // ignore; this is best effort
+    }
   }
 
   /**
@@ -638,6 +820,8 @@ public class Reverter extends Application implements CliApplication {
    * is a problem with this reversion in which case they can be restored.
    *
    * @return File directory where the unreverted bits will be stored.
+   * @throws java.io.IOException if something goes wrong
+   * @throws org.opends.quicksetup.ApplicationException if something goes wrong
    */
   private File getTempBackupDirectory()
           throws IOException, ApplicationException
@@ -670,20 +854,29 @@ public class Reverter extends Application implements CliApplication {
     return fromBuildInfo;
   }
 
-  private BuildInformation getToBuildInformation() {
-    if (toBuildInfo == null) {
+  private BuildInformation getArchiveBuildInformation() {
+    if (archiveBuildInfo == null) {
       if (currentProgressStep.ordinal() >
               ReversionProgressStep.REVERTING_FILESYSTEM.ordinal()) {
         try {
-          toBuildInfo = installation.getBuildInformation(false);
+          archiveBuildInfo = installation.getBuildInformation(false);
         } catch (ApplicationException e) {
-          LOG.log(Level.INFO, "Failed to obtain 'from' build information", e);
+          LOG.log(Level.INFO, "Failed to obtain archived build information " +
+                  "from reverted files", e);
         }
       } else {
-        // TODO: try to determine build info from backed up bits
+
+        Installation archiveInstall = null;
+        try {
+          archiveInstall = getArchiveInstallation();
+          archiveBuildInfo = archiveInstall.getBuildInformation();
+        } catch (Exception e) {
+          LOG.log(Level.INFO, "Failed to obtain archived build information " +
+                  "from archived files", e);
+        }
       }
     }
-    return toBuildInfo;
+    return archiveBuildInfo;
   }
 
   private Message getFinalSuccessMessage() {
@@ -706,5 +899,75 @@ public class Reverter extends Application implements CliApplication {
     return txt;
   }
 
+  /**
+   * Given the current information, determines whether or not
+   * a reversion from the current version to the archived version
+   * is possible.  Reversion may not be possible due to 'flag
+   * day' types of changes to the codebase.
+   * @throws org.opends.quicksetup.ApplicationException if revertability
+   *         cannot be insured.
+   */
+  private void insureRevertability() throws ApplicationException {
+    BuildInformation currentVersion;
+    BuildInformation newVersion;
+    try {
+      currentVersion = getInstallation().getBuildInformation();
+    } catch (ApplicationException e) {
+      LOG.log(Level.INFO, "Error getting build information for " +
+              "current installation", e);
+      throw ApplicationException.createFileSystemException(
+              INFO_ERROR_DETERMINING_CURRENT_BUILD.get(), e);
+    }
+
+    try {
+      Installation revInstallation = getArchiveInstallation();
+      newVersion = revInstallation.getBuildInformation();
+    } catch (ApplicationException ae) {
+      throw ae;
+    } catch (Exception e) {
+      LOG.log(Level.INFO, "Error getting build information for " +
+              "staged installation", e);
+      throw ApplicationException.createFileSystemException(
+              INFO_ERROR_DETERMINING_REVERSION_BUILD.get(), e);
+    }
+
+    if (currentVersion != null && newVersion != null) {
+      ReversionIssueNotifier uo = new ReversionIssueNotifier(
+              userInteraction(), currentVersion, newVersion);
+      uo.notifyUser();
+      if (uo.noServerStartFollowingOperation()) {
+        // Some issue dicatates that we don't try and restart the server
+        // after this operation.  It may be that the databases are no
+        // longer readable after the reversion or something equally earth
+        // shattering.
+        getUserData().setStartServer(false);
+      }
+    } else {
+      LOG.log(Level.INFO, "Did not run reversion issue notifier due to " +
+              "incomplete build information");
+    }
+  }
+
+  private Installation getArchiveInstallation()
+          throws ApplicationException, IOException
+  {
+    if (archiveInstallation == null) {
+      File revFiles = getReversionFilesDirectory();
+      archiveInstallation = new Installation(revFiles);
+    }
+    return archiveInstallation;
+  }
+
+  private File appendFilesDirIfNeccessary(File archiveDir) {
+    if (archiveDir != null) {
+      // Automatically append the 'filesDir' subdirectory if necessary
+      if (!archiveDir.getName().
+              endsWith(Installation.HISTORY_BACKUP_FILES_DIR_NAME)) {
+        archiveDir = new File(archiveDir,
+                Installation.HISTORY_BACKUP_FILES_DIR_NAME);
+      }
+    }
+    return archiveDir;
+  }
 
 }

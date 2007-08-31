@@ -39,7 +39,7 @@ import javax.jnlp.UnavailableServiceException;
 
 
 import org.opends.quicksetup.ApplicationException;
-import org.opends.quicksetup.ApplicationReturnCode;
+import org.opends.quicksetup.ReturnCode;
 import org.opends.server.util.SetupUtils;
 
 import static org.opends.quicksetup.util.Utils.*;
@@ -138,7 +138,7 @@ public class WebStartDownloader implements DownloadServiceListener {
         {
           // This is a bug
           ex =
-              new ApplicationException(ApplicationReturnCode.ReturnCode.BUG,
+              new ApplicationException(ReturnCode.BUG,
                       getThrowableMsg(INFO_BUG_MSG.get(),mfe), mfe);
         } catch (IOException ioe)
         {
@@ -154,14 +154,14 @@ public class WebStartDownloader implements DownloadServiceListener {
           }
           ex =
               new ApplicationException(
-              ApplicationReturnCode.ReturnCode.DOWNLOAD_ERROR,
+              ReturnCode.DOWNLOAD_ERROR,
               getThrowableMsg(
                       INFO_DOWNLOADING_ERROR.get(buf.toString()), ioe), ioe);
         } catch (Throwable t)
         {
           // This is a bug
           ex =
-              new ApplicationException(ApplicationReturnCode.ReturnCode.BUG,
+              new ApplicationException(ReturnCode.BUG,
                       getThrowableMsg(INFO_BUG_MSG.get(), t), t);
         }
       }
@@ -366,7 +366,7 @@ public class WebStartDownloader implements DownloadServiceListener {
   {
     ex =
         new ApplicationException(
-        ApplicationReturnCode.ReturnCode.DOWNLOAD_ERROR,
+        ReturnCode.DOWNLOAD_ERROR,
                 INFO_DOWNLOADING_ERROR.get(url.toString()), null);
   }
 

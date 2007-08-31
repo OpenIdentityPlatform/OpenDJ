@@ -37,7 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.opends.quicksetup.ApplicationException;
-import org.opends.quicksetup.ApplicationReturnCode;
+import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.installer.Installer;
@@ -211,7 +211,7 @@ public class WebStartInstaller extends Installer {
 
     } catch (ApplicationException ex)
     {
-      if (ApplicationReturnCode.ReturnCode.CANCELLED.equals(ex.getType())) {
+      if (ReturnCode.CANCELLED.equals(ex.getType())) {
         uninstall();
         setCurrentProgressStep(InstallProgressStep.FINISHED_CANCELED);
         notifyListeners(null);
@@ -250,7 +250,7 @@ public class WebStartInstaller extends Installer {
       updateSummaryWithServerState(hmSummary);
       setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
       ApplicationException ex = new ApplicationException(
-          ApplicationReturnCode.ReturnCode.BUG,
+          ReturnCode.BUG,
           Utils.getThrowableMsg(INFO_BUG_MSG.get(), t), t);
       Message msg = getFormattedError(ex, true);
       notifyListeners(msg);
@@ -407,7 +407,7 @@ public class WebStartInstaller extends Installer {
     if (in == null)
     {
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.DOWNLOAD_ERROR,
+          ReturnCode.DOWNLOAD_ERROR,
               INFO_ERROR_ZIPINPUTSTREAMNULL.get(zipName), null);
     }
 
@@ -431,14 +431,14 @@ public class WebStartInstaller extends Installer {
         if (!Utils.createDirectory(parent))
         {
           throw new ApplicationException(
-              ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+              ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
               INFO_ERROR_COULD_NOT_CREATE_PARENT_DIR.get(parent), null);
         }
       }
       catch (IOException ioe)
       {
         throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+            ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
             INFO_ERROR_COULD_NOT_CREATE_PARENT_DIR.get(parent),
             ioe);
       }

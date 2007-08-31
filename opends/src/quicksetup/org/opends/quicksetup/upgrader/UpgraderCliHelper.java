@@ -27,16 +27,9 @@
 
 package org.opends.quicksetup.upgrader;
 
-import org.opends.messages.Message;
-import static org.opends.messages.QuickSetupMessages.*;
-
 import org.opends.quicksetup.CliApplicationHelper;
 import org.opends.quicksetup.UserDataException;
-import org.opends.server.util.args.ArgumentParser;
-import org.opends.server.util.args.StringArgument;
-import org.opends.server.util.args.ArgumentException;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -47,14 +40,17 @@ public class UpgraderCliHelper extends CliApplicationHelper {
   static private final Logger LOG =
           Logger.getLogger(UpgraderCliHelper.class.getName());
 
-  StringArgument localInstallPackFileNameArg = null;
+  /** Launcher for this CLI invocation. */
+  protected UpgradeLauncher launcher;
 
   /**
-   * Default constructor.
+   * Creates a parameterized instance.
+   * @param launcher for this CLI
    */
-  public UpgraderCliHelper()
+  public UpgraderCliHelper(UpgradeLauncher launcher)
   {
     super(System.out, System.err, System.in);
+    this.launcher = launcher;
   }
 
   /**
@@ -66,47 +62,14 @@ public class UpgraderCliHelper extends CliApplicationHelper {
    */
   public UpgradeUserData createUserData(String[] args)
     throws UserDataException {
+    // It is assumed that if we got here that the build
+    // exptractor took care of extracting the file and
+    // putting it in tmp/upgrade for us.  So there's
+    // not too much to do at this point.
     UpgradeUserData uud = new UpgradeUserData();
-    ArgumentParser ap = createArgumentParser();
-    try {
-      ap.parseArguments(args);
-      uud.setQuiet(isQuiet());
-      uud.setInteractive(isInteractive());
-
-      // There is no need to check/validate the file argument
-      // since this is done by the BuildExtractor
-
-    } catch (ArgumentException e) {
-      throw new UserDataException(null, INFO_ERROR_PARSING_OPTIONS.get());
-    }
+    uud.setQuiet(launcher.isQuiet());
+    uud.setInteractive(!launcher.isNoPrompt());
     return uud;
   }
-
-  private ArgumentParser createArgumentParser() {
-
-    // TODO: get rid of this method and user launcher.getArgumentParser
-
-    Message toolDescription = INFO_UPGRADE_LAUNCHER_DESCRIPTION.get();
-    ArgumentParser argParser = createArgumentParser(
-            "org.opends.quicksetup.upgrader.Upgrader",
-            toolDescription,
-            false);
-
-    // Initialize all the app specific command-line argument types
-    // and register them with the parser.
-    try {
-      localInstallPackFileNameArg =
-              new StringArgument("install package file",
-                      UpgradeLauncher.FILE_OPTION_SHORT,
-                      UpgradeLauncher.FILE_OPTION_LONG,
-                      false, true, "{install package file}", null);
-      argParser.addArgument(localInstallPackFileNameArg);
-    } catch (ArgumentException e) {
-      LOG.log(Level.INFO, "error", e);
-    }
-
-    return argParser;
-  }
-
 
 }

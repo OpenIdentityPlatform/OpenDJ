@@ -29,7 +29,6 @@ package org.opends.quicksetup;
 import org.opends.messages.Message;
 
 import org.opends.server.types.OpenDsException;
-import static org.opends.quicksetup.ApplicationReturnCode.ReturnCode;
 
 /**
  * This exception is used to encapsulate all the error that we might have

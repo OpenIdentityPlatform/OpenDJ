@@ -100,6 +100,46 @@ public abstract class Launcher {
   }
 
   /**
+   * Indicates whether or not the launcher should print a usage
+   * statement based on the content of the arguments passed into
+   * the constructor.
+   * @return boolean where true indicates usage should be printed
+   */
+  protected boolean isQuiet() {
+    boolean printUsage = false;
+    if ((args != null) && (args.length > 0)) {
+      for (String arg : args) {
+        if (arg.equals("-?") ||
+          arg.equalsIgnoreCase("-Q") ||
+          arg.equalsIgnoreCase("--quiet")) {
+          printUsage = true;
+        }
+      }
+    }
+    return printUsage;
+  }
+
+  /**
+   * Indicates whether or not the launcher should print a usage
+   * statement based on the content of the arguments passed into
+   * the constructor.
+   * @return boolean where true indicates usage should be printed
+   */
+  protected boolean isNoPrompt() {
+    boolean printUsage = false;
+    if ((args != null) && (args.length > 0)) {
+      for (String arg : args) {
+        if (arg.equals("-?") ||
+          arg.equalsIgnoreCase("-n") ||
+          arg.equalsIgnoreCase("--no-prompt")) {
+          printUsage = true;
+        }
+      }
+    }
+    return printUsage;
+  }
+
+  /**
    * Indicates whether or not the launcher should print a version
    * statement based on the content of the arguments passed into
    * the constructor.
@@ -249,12 +289,11 @@ public abstract class Launcher {
   {
     System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
     QuickSetupCli cli = new QuickSetupCli(cliApp, this);
-    ApplicationReturnCode.ReturnCode returnValue = cli.run();
-    if (returnValue.equals(ApplicationReturnCode.ReturnCode.USER_DATA_ERROR))
+    ReturnCode returnValue = cli.run();
+    if (returnValue.equals(ReturnCode.USER_DATA_ERROR))
     {
       printUsage(true);
-      System.exit(ApplicationReturnCode.ReturnCode.USER_DATA_ERROR
-          .getReturnCode());
+      System.exit(ReturnCode.USER_DATA_ERROR.getReturnCode());
     }
     return returnValue.getReturnCode();
   }
@@ -317,15 +356,19 @@ public abstract class Launcher {
    * The main method which is called by the command lines.
    */
   public void launch() {
-    if (shouldPrintVersion())
-    {
-      printVersion();
-      System.exit(ApplicationReturnCode.ReturnCode.PRINT_VERSION
-          .getReturnCode());
+    if (shouldPrintVersion()) {
+      ArgumentParser parser = getArgumentParser();
+      if (parser == null || !parser.usageOrVersionDisplayed()) {
+        printVersion();
+      }
+      System.exit(ReturnCode.PRINT_VERSION.getReturnCode());
     }
     else if (shouldPrintUsage()) {
-      printUsage(false);
-      System.exit(ApplicationReturnCode.ReturnCode.SUCCESSFUL.getReturnCode());
+      ArgumentParser parser = getArgumentParser();
+      if (parser == null || !parser.usageOrVersionDisplayed()) {
+        printUsage(false);
+      }
+      System.exit(ReturnCode.SUCCESSFUL.getReturnCode());
     } else if (isCli()) {
       CliApplication cliApp = createCliApplication();
       int exitCode = launchCli(cliApp);

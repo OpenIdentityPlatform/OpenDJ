@@ -29,7 +29,7 @@ package org.opends.quicksetup.util;
 
 import org.opends.messages.Message;
 
-import org.opends.quicksetup.ApplicationReturnCode;
+import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ApplicationException;
 
@@ -90,7 +90,7 @@ public class ServerHealthChecker {
         throw (ApplicationException)e;
       } else {
         throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
+            ReturnCode.APPLICATION_ERROR,
                 INFO_ERROR_SERVER_HEALTH_CHECK_FAILURE.get(), e);
       }
     } finally {

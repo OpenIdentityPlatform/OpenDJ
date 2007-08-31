@@ -72,4 +72,10 @@ public interface CliApplication extends ProgressNotifier, Runnable {
    */
   ApplicationException getRunError();
 
+  /**
+   * Gets the return code to return to the console.
+   * @return return code to return;  if null the return code indicated in the
+   *         error returned by <code>getRunError</code> will be used.
+   */
+  ReturnCode getReturnCode();
 }
