@@ -8348,7 +8348,11 @@ public class DirectoryServer
     }
 
     // Finalize the entry cache.
-    DirectoryServer.getEntryCache().finalizeEntryCache();
+    EntryCache ec = DirectoryServer.getEntryCache();
+    if (ec != null)
+    {
+      ec.finalizeEntryCache();
+    }
 
     // Release the exclusive lock for the Directory Server process.
     String lockFile = LockFileManager.getServerLockFileName();
