@@ -415,45 +415,13 @@ public class ADSContext
   {
     LdapName dn = makeDNFromServerProperties(serverProperties);
     BasicAttributes attrs = makeAttrsFromServerProperties(serverProperties);
-
-    /* Instance key-pair public-key certificate: generate a key-id attribute
-       for the server entry, then an instance key entry for the key. */
-    LdapName keyDn = null;
-    BasicAttributes keyAttrs = null;
-    if (serverProperties.containsKey(ServerProperty.INSTANCE_KEY_CERT))
-    {
-      String keyID
-              = (String)serverProperties.get(ServerProperty.INSTANCE_KEY_ID);
-      if (null == keyID)
-      {
-        keyID = java.util.UUID.randomUUID().toString();
-      }
-      attrs.put(new BasicAttribute(
-                       ServerProperty.INSTANCE_KEY_ID.getAttributeName(),
-                       keyID));
-
-      String rdnStr = Rdn.escapeValue(keyID);
-      keyDn = nameFromDN(ServerProperty.INSTANCE_KEY_ID.getAttributeName()
-                          + "=" + rdnStr + "," + getInstanceKeysContainerDN());
-      keyAttrs = new BasicAttributes();
-      Attribute oc = new BasicAttribute("objectclass");
-      oc.add("top");
-      oc.add("ds-cfg-instance-key-OID");
-      keyAttrs.put(oc);
-      keyAttrs.put(new BasicAttribute(
-                          ServerProperty.INSTANCE_KEY_ID.getAttributeName(),
-                          rdnStr));
-      keyAttrs.put(new BasicAttribute(
-              ServerProperty.INSTANCE_KEY_CERT.getAttributeName() + ";binary",
-              serverProperties.get(ServerProperty.INSTANCE_KEY_CERT)));
-    }
-
     try
     {
-      DirContext ctx = dirContext.createSubcontext(dn, attrs);
-      ctx.close();
-      ctx = dirContext.createSubcontext(keyDn, keyAttrs);
-      ctx.close();
+      dirContext.createSubcontext(dn, attrs).close();
+      if (serverProperties.containsKey(ServerProperty.INSTANCE_KEY_CERT))
+      {
+        registerInstanceKeyCertificate(serverProperties, dn);
+      }
     }
     catch (NameAlreadyBoundException x)
     {
@@ -494,6 +462,10 @@ public class ADSContext
       BasicAttributes attrs = makeAttrsFromServerProperties(serverProperties);
       dirContext.modifyAttributes(dn, InitialLdapContext.REPLACE_ATTRIBUTE,
           attrs);
+      if (serverProperties.containsKey(ServerProperty.INSTANCE_KEY_CERT))
+      {
+        registerInstanceKeyCertificate(serverProperties, dn);
+      }
     }
     catch (NameNotFoundException x)
     {
@@ -508,7 +480,9 @@ public class ADSContext
   }
 
   /**
-   * Method called to unregister a server in the ADS.
+   * Method called to unregister a server in the ADS. Note that the server's
+   * instance key-pair public-key certificate entry (created in registerServer)
+   * is left untouched.
    * @param serverProperties the properties of the server.
    * @throws ADSContextException if the server could not be unregistered.
    */
@@ -1344,7 +1318,7 @@ public class ADSContext
         }
         else
         {
-          privilegeAtt.add(p.toString());
+          privilegeAtt.add(p);
         }
       }
     }
@@ -2049,5 +2023,79 @@ public class ADSContext
   private static String getInstanceKeysContainerDN()
   {
     return "cn=instance keys," + getAdministrationSuffixDN();
+  }
+
+
+  /**
+   Register instance key-pair public-key certificate provided in
+   serverProperties: generate a key-id attribute if one is not provided (as
+   expected); add an instance key public-key certificate entry for the key
+   certificate; and associate the certificate entry with the server entry via
+   the key ID attribute.
+   @param serverProperties Properties of the server being registered to which
+   the instance key entry belongs.
+   @param serverEntryDn The server's ADS entry DN.
+   @throws NamingException In case some JNDI operation fails.
+   */
+  private void registerInstanceKeyCertificate(
+          Map<ServerProperty, Object> serverProperties,
+          LdapName serverEntryDn) throws NamingException
+  {
+    assert serverProperties.containsKey(ServerProperty.INSTANCE_KEY_CERT);
+    if (! serverProperties.containsKey(ServerProperty.INSTANCE_KEY_CERT)) {
+      return;
+    }
+
+    /* the key ID might be supplied in serverProperties (although, I am unaware
+       of any such case). */
+    String keyID = (String)serverProperties.get(ServerProperty.INSTANCE_KEY_ID);
+
+    /* these attributes are used both to search for an existing certificate
+       entry and, if one does not exist, add a new certificate entry */
+    final BasicAttributes keyAttrs = new BasicAttributes();
+    final Attribute oc = new BasicAttribute("objectclass");
+    oc.add("top"); oc.add("ds-cfg-instance-key");
+    keyAttrs.put(oc);
+    if (null != keyID) {
+      keyAttrs.put(new BasicAttribute(
+              ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID));
+    }
+    keyAttrs.put(new BasicAttribute(
+            ServerProperty.INSTANCE_KEY_CERT.getAttributeName() + ";binary",
+            serverProperties.get(ServerProperty.INSTANCE_KEY_CERT)));
+
+    /* search for public-key certificate entry in ADS DIT */
+    final String attrIDs[] = { "ds-cfg-key-id" };
+    final NamingEnumeration<SearchResult> results
+           = dirContext.search(getInstanceKeysContainerDN(), keyAttrs, attrIDs);
+    if (results.hasMore()) {
+      final Attribute keyIdAttr
+              = results.next().getAttributes().get(attrIDs[0]);
+      if (null != keyIdAttr) {
+        /* attribute ds-cfg-key-id is the entry is a MUST in the schema */
+        keyID = (String)keyIdAttr.get();
+      }
+    }
+    else {
+      /* create key ID, if it was not supplied in serverProperties */
+      if (null == keyID) {
+        keyID = java.util.UUID.randomUUID().toString();
+        keyAttrs.put(new BasicAttribute(
+                ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID));
+      }
+
+      /* add public-key certificate entry */
+      final LdapName keyDn = new LdapName((new StringBuilder())
+              .append(ServerProperty.INSTANCE_KEY_ID.getAttributeName())
+              .append("=").append(Rdn.escapeValue(keyID)).append(",")
+              .append(getInstanceKeysContainerDN()).toString());
+      dirContext.createSubcontext(keyDn, keyAttrs).close();
+    }
+
+    /* associate server entry with certificate entry via key ID attribute */
+    dirContext.modifyAttributes(serverEntryDn,
+            InitialLdapContext.REPLACE_ATTRIBUTE,
+            (new BasicAttributes(
+                   ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID)));
   }
 }
