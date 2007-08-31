@@ -34,7 +34,7 @@ import org.opends.server.admin.std.client.RootCfgClient;
 
 
 /**
- * Management connection context.
+ * Client management connection context.
  */
 public abstract class ManagementContext {
 
@@ -48,20 +48,8 @@ public abstract class ManagementContext {
 
 
   /**
-   * Get the root configuration managed object associated with this
+   * Gets the root configuration client associated with this
    * management context.
-   *
-   * @return Returns the root configuration managed object associated
-   *         with this management context.
-   */
-  public abstract ManagedObject<RootCfgClient>
-      getRootConfigurationManagedObject();
-
-
-
-  /**
-   * Get the root configuration client associated with this management
-   * context.
    *
    * @return Returns the root configuration client associated with
    *         this management context.
@@ -69,5 +57,17 @@ public abstract class ManagementContext {
   public final RootCfgClient getRootConfiguration() {
     return getRootConfigurationManagedObject().getConfiguration();
   }
+
+
+
+  /**
+   * Gets the root configuration managed object associated with this
+   * management context.
+   *
+   * @return Returns the root configuration managed object associated
+   *         with this management context.
+   */
+  public abstract
+  ManagedObject<RootCfgClient> getRootConfigurationManagedObject();
 
 }

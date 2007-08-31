@@ -25,12 +25,15 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.server.admin.client;
+package org.opends.server.admin.client.spi;
 
 import static org.testng.Assert.*;
 import org.testng.annotations.*;
 import org.opends.server.admin.*;
 import org.opends.server.admin.Configuration;
+import org.opends.server.admin.client.ManagedObject;
+import org.opends.server.admin.client.spi.Property;
+import org.opends.server.admin.client.spi.PropertySet;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 

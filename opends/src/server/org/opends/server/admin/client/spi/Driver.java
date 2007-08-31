@@ -1,0 +1,701 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
+ */
+
+package org.opends.server.admin.client.spi;
+
+
+
+import static org.opends.server.util.StaticUtils.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
+
+import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
+import org.opends.server.admin.AbstractManagedObjectDefinition;
+import org.opends.server.admin.AliasDefaultBehaviorProvider;
+import org.opends.server.admin.Configuration;
+import org.opends.server.admin.ConfigurationClient;
+import org.opends.server.admin.DefaultBehaviorException;
+import org.opends.server.admin.DefaultBehaviorProviderVisitor;
+import org.opends.server.admin.DefinedDefaultBehaviorProvider;
+import org.opends.server.admin.DefinitionDecodingException;
+import org.opends.server.admin.IllegalPropertyValueStringException;
+import org.opends.server.admin.InstantiableRelationDefinition;
+import org.opends.server.admin.ManagedObjectNotFoundException;
+import org.opends.server.admin.ManagedObjectPath;
+import org.opends.server.admin.OptionalRelationDefinition;
+import org.opends.server.admin.PropertyDefinition;
+import org.opends.server.admin.PropertyException;
+import org.opends.server.admin.PropertyIsSingleValuedException;
+import org.opends.server.admin.PropertyNotFoundException;
+import org.opends.server.admin.PropertyOption;
+import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
+import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
+import org.opends.server.admin.DefinitionDecodingException.Reason;
+import org.opends.server.admin.client.AuthorizationException;
+import org.opends.server.admin.client.CommunicationException;
+import org.opends.server.admin.client.ManagedObject;
+import org.opends.server.admin.client.ManagedObjectDecodingException;
+import org.opends.server.admin.client.OperationRejectedException;
+
+
+
+/**
+ * An abstract management connection context driver which should form
+ * the basis of driver implementations.
+ */
+public abstract class Driver {
+
+  /**
+   * A default behavior visitor used for retrieving the default values
+   * of a property.
+   *
+   * @param <T>
+   *          The type of the property.
+   */
+  private class DefaultValueFinder<T> implements
+      DefaultBehaviorProviderVisitor<T, Collection<T>, Void> {
+
+    // Any exception that occurred whilst retrieving inherited default
+    // values.
+    private DefaultBehaviorException exception = null;
+
+    // The path of the managed object containing the first property.
+    private final ManagedObjectPath<?, ?> firstPath;
+
+    // Indicates whether the managed object has been created yet.
+    private final boolean isCreate;
+
+    // The path of the managed object containing the next property.
+    private ManagedObjectPath<?, ?> nextPath = null;
+
+    // The next property whose default values were required.
+    private PropertyDefinition<T> nextProperty = null;
+
+
+
+    // Private constructor.
+    private DefaultValueFinder(ManagedObjectPath<?, ?> p, boolean isCreate) {
+      this.firstPath = p;
+      this.isCreate = isCreate;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Collection<T> visitAbsoluteInherited(
+        AbsoluteInheritedDefaultBehaviorProvider<T> d, Void p) {
+      try {
+        return getInheritedProperty(d.getManagedObjectPath(), d
+            .getManagedObjectDefinition(), d.getPropertyName());
+      } catch (DefaultBehaviorException e) {
+        exception = e;
+        return Collections.emptySet();
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Collection<T> visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
+      return Collections.emptySet();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Collection<T> visitDefined(DefinedDefaultBehaviorProvider<T> d,
+        Void p) {
+      Collection<String> stringValues = d.getDefaultValues();
+      List<T> values = new ArrayList<T>(stringValues.size());
+
+      for (String stringValue : stringValues) {
+        try {
+          values.add(nextProperty.decodeValue(stringValue));
+        } catch (IllegalPropertyValueStringException e) {
+          exception = new DefaultBehaviorException(nextProperty, e);
+          break;
+        }
+      }
+
+      return values;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Collection<T> visitRelativeInherited(
+        RelativeInheritedDefaultBehaviorProvider<T> d, Void p) {
+      try {
+        return getInheritedProperty(d.getManagedObjectPath(nextPath), d
+            .getManagedObjectDefinition(), d.getPropertyName());
+      } catch (DefaultBehaviorException e) {
+        exception = e;
+        return Collections.emptySet();
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Collection<T> visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
+        Void p) {
+      return Collections.emptySet();
+    }
+
+
+
+    // Find the default values for the next path/property.
+    private Collection<T> find(ManagedObjectPath<?, ?> p,
+        PropertyDefinition<T> pd) throws DefaultBehaviorException {
+      this.nextPath = p;
+      this.nextProperty = pd;
+
+      Collection<T> values = nextProperty.getDefaultBehaviorProvider().accept(
+          this, null);
+
+      if (exception != null) {
+        throw exception;
+      }
+
+      if (values.size() > 1 && !pd.hasOption(PropertyOption.MULTI_VALUED)) {
+        throw new DefaultBehaviorException(pd,
+            new PropertyIsSingleValuedException(pd));
+      }
+
+      return values;
+    }
+
+
+
+    // Get an inherited property value.
+    @SuppressWarnings("unchecked")
+    private Collection<T> getInheritedProperty(ManagedObjectPath target,
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName)
+        throws DefaultBehaviorException {
+      // First check that the requested type of managed object
+      // corresponds to the path.
+      AbstractManagedObjectDefinition<?, ?> supr = target
+          .getManagedObjectDefinition();
+      if (!supr.isParentOf(d)) {
+        throw new DefaultBehaviorException(nextProperty,
+            new DefinitionDecodingException(Reason.WRONG_TYPE_INFORMATION));
+      }
+
+      // Save the current property in case of recursion.
+      PropertyDefinition<T> pd1 = nextProperty;
+
+      try {
+        // Determine the requested property definition.
+        PropertyDefinition<T> pd2;
+        try {
+          // FIXME: we use the definition taken from the default
+          // behavior here when we should really use the exact
+          // definition of the component being created.
+          PropertyDefinition<?> pdTmp = d.getPropertyDefinition(propertyName);
+          pd2 = pd1.getClass().cast(pdTmp);
+        } catch (IllegalArgumentException e) {
+          throw new PropertyNotFoundException(propertyName);
+        } catch (ClassCastException e) {
+          // FIXME: would be nice to throw a better exception here.
+          throw new PropertyNotFoundException(propertyName);
+        }
+
+        // If the path relates to the current managed object and the
+        // managed object is in the process of being created it won't
+        // exist, so we should just use the default values of the
+        // referenced property.
+        if (isCreate && firstPath.equals(target)) {
+          // Recursively retrieve this property's default values.
+          Collection<T> tmp = find(target, pd2);
+          Collection<T> values = new ArrayList<T>(tmp.size());
+          for (T value : tmp) {
+            pd1.validateValue(value);
+            values.add(value);
+          }
+          return values;
+        } else {
+          return getPropertyValues(target, pd2);
+        }
+      } catch (DefaultBehaviorException e) {
+        // Wrap any errors due to recursion.
+        throw new DefaultBehaviorException(pd1, e);
+      } catch (DefinitionDecodingException e) {
+        throw new DefaultBehaviorException(pd1, e);
+      } catch (PropertyNotFoundException e) {
+        throw new DefaultBehaviorException(pd1, e);
+      } catch (AuthorizationException e) {
+        throw new DefaultBehaviorException(pd1, e);
+      } catch (ManagedObjectNotFoundException e) {
+        throw new DefaultBehaviorException(pd1, e);
+      } catch (CommunicationException e) {
+        throw new DefaultBehaviorException(pd1, e);
+      } catch (PropertyException e) {
+        throw new DefaultBehaviorException(pd1, e);
+      }
+    }
+  };
+
+
+
+  /**
+   * Creates a new abstract management context.
+   */
+  protected Driver() {
+    // No implementation required.
+  }
+
+
+
+  /**
+   * Deletes the named instantiable child managed object from the
+   * named parent managed object.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          relation definition refers to.
+   * @param parent
+   *          The path of the parent managed object.
+   * @param rd
+   *          The instantiable relation definition.
+   * @param name
+   *          The name of the child managed object to be removed.
+   * @return Returns <code>true</code> if the named instantiable
+   *         child managed object was found, or <code>false</code>
+   *         if it was not found.
+   * @throws IllegalArgumentException
+   *           If the relation definition is not associated with the
+   *           parent managed object's definition.
+   * @throws ManagedObjectNotFoundException
+   *           If the parent managed object could not be found.
+   * @throws OperationRejectedException
+   *           If the server refuses to remove the child managed
+   *           object due to some server-side constraint which cannot
+   *           be satisfied (for example, if it is referenced by
+   *           another managed object).
+   * @throws AuthorizationException
+   *           If the server refuses to make the list the managed
+   *           objects because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
+   */
+  public abstract <C extends ConfigurationClient, S extends Configuration>
+  boolean deleteManagedObject(
+      ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
+      String name) throws IllegalArgumentException,
+      ManagedObjectNotFoundException, OperationRejectedException,
+      AuthorizationException, CommunicationException;
+
+
+
+  /**
+   * Deletes the optional child managed object from the named parent
+   * managed object.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          relation definition refers to.
+   * @param parent
+   *          The path of the parent managed object.
+   * @param rd
+   *          The optional relation definition.
+   * @return Returns <code>true</code> if the optional child managed
+   *         object was found, or <code>false</code> if it was not
+   *         found.
+   * @throws IllegalArgumentException
+   *           If the relation definition is not associated with the
+   *           parent managed object's definition.
+   * @throws ManagedObjectNotFoundException
+   *           If the parent managed object could not be found.
+   * @throws OperationRejectedException
+   *           If the server refuses to remove the child managed
+   *           object due to some server-side constraint which cannot
+   *           be satisfied (for example, if it is referenced by
+   *           another managed object).
+   * @throws AuthorizationException
+   *           If the server refuses to make the list the managed
+   *           objects because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
+   */
+  public abstract <C extends ConfigurationClient, S extends Configuration>
+  boolean deleteManagedObject(
+      ManagedObjectPath<?, ?> parent, OptionalRelationDefinition<C, S> rd)
+      throws IllegalArgumentException, ManagedObjectNotFoundException,
+      OperationRejectedException, AuthorizationException,
+      CommunicationException;
+
+
+
+  /**
+   * Gets the named managed object.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          path definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          path definition refers to.
+   * @param path
+   *          The path of the managed object.
+   * @return Returns the named managed object.
+   * @throws DefinitionDecodingException
+   *           If the managed object was found but its type could not
+   *           be determined.
+   * @throws ManagedObjectDecodingException
+   *           If the managed object was found but one or more of its
+   *           properties could not be decoded.
+   * @throws ManagedObjectNotFoundException
+   *           If the requested managed object could not be found on
+   *           the server.
+   * @throws AuthorizationException
+   *           If the server refuses to retrieve the managed object
+   *           because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
+   */
+  public abstract <C extends ConfigurationClient, S extends Configuration>
+  ManagedObject<? extends C> getManagedObject(
+      ManagedObjectPath<C, S> path) throws DefinitionDecodingException,
+      ManagedObjectDecodingException, ManagedObjectNotFoundException,
+      AuthorizationException, CommunicationException;
+
+
+
+  /**
+   * Gets the effective value of a property in the named managed
+   * object.
+   *
+   * @param <PD>
+   *          The type of the property to be retrieved.
+   * @param path
+   *          The path of the managed object containing the property.
+   * @param pd
+   *          The property to be retrieved.
+   * @return Returns the property's effective value, or
+   *         <code>null</code> if there are no values defined.
+   * @throws IllegalArgumentException
+   *           If the property definition is not associated with the
+   *           referenced managed object's definition.
+   * @throws DefinitionDecodingException
+   *           If the managed object was found but its type could not
+   *           be determined.
+   * @throws PropertyException
+   *           If the managed object was found but the requested
+   *           property could not be decoded.
+   * @throws ManagedObjectNotFoundException
+   *           If the requested managed object could not be found on
+   *           the server.
+   * @throws AuthorizationException
+   *           If the server refuses to retrieve the managed object
+   *           because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
+   */
+  public final <PD> PD getPropertyValue(ManagedObjectPath<?, ?> path,
+      PropertyDefinition<PD> pd) throws IllegalArgumentException,
+      DefinitionDecodingException, AuthorizationException,
+      ManagedObjectNotFoundException, CommunicationException,
+      PropertyException {
+    Set<PD> values = getPropertyValues(path, pd);
+    if (values.isEmpty()) {
+      return null;
+    } else {
+      return values.iterator().next();
+    }
+  }
+
+
+
+  /**
+   * Gets the effective values of a property in the named managed
+   * object.
+   * <p>
+   * Implementations MUST NOT not use
+   * {@link #getManagedObject(ManagedObjectPath)} to read the
+   * referenced managed object in its entirety. Specifically,
+   * implementations MUST only attempt to resolve the default values
+   * for the requested property and its dependencies (if it uses
+   * inherited defaults). This is to avoid infinite recursion where a
+   * managed object contains a property which inherits default values
+   * from another property in the same managed object.
+   *
+   * @param <PD>
+   *          The type of the property to be retrieved.
+   * @param path
+   *          The path of the managed object containing the property.
+   * @param pd
+   *          The property to be retrieved.
+   * @return Returns the property's effective values, or an empty set
+   *         if there are no values defined.
+   * @throws IllegalArgumentException
+   *           If the property definition is not associated with the
+   *           referenced managed object's definition.
+   * @throws DefinitionDecodingException
+   *           If the managed object was found but its type could not
+   *           be determined.
+   * @throws PropertyException
+   *           If the managed object was found but the requested
+   *           property could not be decoded.
+   * @throws ManagedObjectNotFoundException
+   *           If the requested managed object could not be found on
+   *           the server.
+   * @throws AuthorizationException
+   *           If the server refuses to retrieve the managed object
+   *           because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
+   */
+  public abstract <PD> SortedSet<PD> getPropertyValues(
+      ManagedObjectPath<?, ?> path, PropertyDefinition<PD> pd)
+      throws IllegalArgumentException, DefinitionDecodingException,
+      AuthorizationException, ManagedObjectNotFoundException,
+      CommunicationException, PropertyException;
+
+
+
+  /**
+   * Determines whether or not the named parent managed object has the
+   * named instantiable child managed object.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          relation definition refers to.
+   * @param parent
+   *          The path of the parent managed object.
+   * @param rd
+   *          The instantiable relation definition.
+   * @param name
+   *          The name of the child managed object.
+   * @return Returns <code>true</code> if the named instantiable
+   *         child managed object exists, <code>false</code>
+   *         otherwise.
+   * @throws IllegalArgumentException
+   *           If the relation definition is not associated with the
+   *           parent managed object's definition.
+   * @throws ManagedObjectNotFoundException
+   *           If the parent managed object could not be found.
+   * @throws AuthorizationException
+   *           If the server refuses to make the determination because
+   *           the client does not have the correct privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
+   */
+  public final <C extends ConfigurationClient, S extends Configuration>
+  boolean hasManagedObject(
+      ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
+      String name) throws IllegalArgumentException,
+      ManagedObjectNotFoundException, AuthorizationException,
+      CommunicationException {
+    // FIXME: use naming properties for comparison where available.
+    String[] children = listManagedObjects(parent, rd);
+    String nname = toLowerCase(name.trim().replaceAll(" +", " "));
+    for (String child : children) {
+      if (nname.equals(toLowerCase(child.trim().replaceAll(" +", " ")))) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+
+
+  /**
+   * Determines whether or not the named parent managed object has an
+   * optional child managed object.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          relation definition refers to.
+   * @param parent
+   *          The path of the parent managed object.
+   * @param rd
+   *          The optional relation definition.
+   * @return Returns <code>true</code> if the optional child managed
+   *         object exists, <code>false</code> otherwise.
+   * @throws IllegalArgumentException
+   *           If the relation definition is not associated with the
+   *           parent managed object's definition.
+   * @throws ManagedObjectNotFoundException
+   *           If the parent managed object could not be found.
+   * @throws AuthorizationException
+   *           If the server refuses to make the determination because
+   *           the client does not have the correct privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
+   */
+  public abstract <C extends ConfigurationClient, S extends Configuration>
+  boolean hasManagedObject(
+      ManagedObjectPath<?, ?> parent, OptionalRelationDefinition<C, S> rd)
+      throws IllegalArgumentException, ManagedObjectNotFoundException,
+      AuthorizationException, CommunicationException;
+
+
+
+  /**
+   * Lists the child managed objects of the named parent managed
+   * object.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          relation definition refers to.
+   * @param parent
+   *          The path of the parent managed object.
+   * @param rd
+   *          The instantiable relation definition.
+   * @return Returns the names of the child managed objects.
+   * @throws IllegalArgumentException
+   *           If the relation definition is not associated with the
+   *           parent managed object's definition.
+   * @throws ManagedObjectNotFoundException
+   *           If the parent managed object could not be found.
+   * @throws AuthorizationException
+   *           If the server refuses to list the managed objects
+   *           because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
+   */
+  public final <C extends ConfigurationClient, S extends Configuration>
+  String[] listManagedObjects(
+      ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd)
+      throws IllegalArgumentException, ManagedObjectNotFoundException,
+      AuthorizationException, CommunicationException {
+    return listManagedObjects(parent, rd, rd.getChildDefinition());
+  }
+
+
+
+  /**
+   * Lists the child managed objects of the named parent managed
+   * object which are a sub-type of the specified managed object
+   * definition.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          relation definition refers to.
+   * @param parent
+   *          The path of the parent managed object.
+   * @param rd
+   *          The instantiable relation definition.
+   * @param d
+   *          The managed object definition.
+   * @return Returns the names of the child managed objects which are
+   *         a sub-type of the specified managed object definition.
+   * @throws IllegalArgumentException
+   *           If the relation definition is not associated with the
+   *           parent managed object's definition.
+   * @throws ManagedObjectNotFoundException
+   *           If the parent managed object could not be found.
+   * @throws AuthorizationException
+   *           If the server refuses to list the managed objects
+   *           because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
+   */
+  public abstract <C extends ConfigurationClient, S extends Configuration>
+  String[] listManagedObjects(
+      ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
+      AbstractManagedObjectDefinition<? extends C, ? extends S> d)
+      throws IllegalArgumentException, ManagedObjectNotFoundException,
+      AuthorizationException, CommunicationException;
+
+
+
+  /**
+   * Gets the default values for the specified property.
+   *
+   * @param <PD>
+   *          The type of the property.
+   * @param p
+   *          The managed object path of the current managed object.
+   * @param pd
+   *          The property definition.
+   * @param isCreate
+   *          Indicates whether the managed object has been created
+   *          yet.
+   * @return Returns the default values for the specified property.
+   * @throws DefaultBehaviorException
+   *           If the default values could not be retrieved or decoded
+   *           properly.
+   */
+  protected final <PD> Collection<PD> findDefaultValues(
+      ManagedObjectPath<?, ?> p, PropertyDefinition<PD> pd, boolean isCreate)
+      throws DefaultBehaviorException {
+    DefaultValueFinder<PD> v = new DefaultValueFinder<PD>(p, isCreate);
+    return v.find(p, pd);
+  }
+
+}
