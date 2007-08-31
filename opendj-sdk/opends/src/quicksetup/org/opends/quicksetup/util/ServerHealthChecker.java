@@ -28,12 +28,12 @@
 package org.opends.quicksetup.util;
 
 import org.opends.messages.Message;
+import org.opends.messages.Severity;
 
 import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ApplicationException;
 
-import org.opends.server.util.ServerConstants;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import java.util.List;
@@ -56,9 +56,9 @@ public class ServerHealthChecker {
   static private final String UNHEALTHY_SERVER_LOG_REGEX =
     new StringBuilder()
     .append(".*(")
-    .append(ServerConstants.ERROR_SEVERITY_FATAL)
+    .append(Severity.FATAL_ERROR.name())
     .append("|")
-    .append(ServerConstants.ERROR_SEVERITY_SEVERE_ERROR)
+    .append(Severity.SEVERE_ERROR.name())
     .append(")+.*").toString();
 
 

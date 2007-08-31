@@ -371,7 +371,8 @@ public class ReplicationBroker implements InternalSearchListener
           }
           catch (Exception e)
           {
-            Message message = NOTE_EXCEPTION_STARTING_SESSION.get();
+            Message message =
+                    ERR_EXCEPTION_STARTING_SESSION.get(e.getMessage());
             logError(message);
           }
           finally
@@ -497,7 +498,7 @@ public class ReplicationBroker implements InternalSearchListener
       } catch (Exception e)
       {
         MessageBuilder mb = new MessageBuilder();
-        mb.append(NOTE_EXCEPTION_STARTING_SESSION.get());
+        mb.append(ERR_EXCEPTION_STARTING_SESSION.get(e.getMessage()));
         mb.append(stackTraceToSingleLineString(e));
         logError(mb.toMessage());
       }
