@@ -40,7 +40,6 @@ import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
-import javax.naming.directory.DirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
@@ -841,8 +840,7 @@ public class ServerDescriptor
        file for the installer and import it into the core. */
     final String dnStr = "ds-cfg-key-id=ads-certificate,cn=ads-truststore";
     final LdapName dn = new LdapName(dnStr);
-    byte[] localInstanceKeyCertificate = null;
-    for (int i = 0; null == localInstanceKeyCertificate && i < 2 ; ++i ) {
+    for (int i = 0; i < 2 ; ++i) {
       /* If the entry does not exist in the instance's truststore backend, add
          it (which induces the CryptoManager to create the public-key
          certificate attribute), then repeat the search. */
@@ -852,12 +850,15 @@ public class ServerDescriptor
         final String attrIDs[] = { "ds-cfg-public-key-certificate;binary" };
         sc.setReturningAttributes(attrIDs);
         final SearchResult certEntry
-           = ctx.search(dn, "(objectclass=*)", sc).next();
-        final Attribute certAttr = certEntry.getAttributes().get(
-                                        "ds-cfg-public-key-certificate;binary");
+           = ctx.search(dn, "(objectclass=ds-cfg-instance-key)", sc).next();
+        final Attribute certAttr = certEntry.getAttributes().get(attrIDs[0]);
         if (null != certAttr) {
-          localInstanceKeyCertificate = (byte[])certAttr.get();
+          /* attribute ds-cfg-public-key-certificate is a MUST in the schema */
+          desc.serverProperties.put(
+                  ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE,
+                  certAttr.get());
         }
+        break;
       }
       catch (NameNotFoundException x) {
         if (0 == i) {
@@ -868,16 +869,13 @@ public class ServerDescriptor
           oc.add("top");
           oc.add("ds-cfg-self-signed-cert-request");
           attrs.put(oc);
-          DirContext pokeCtx = ctx.createSubcontext(dn, attrs);
-          pokeCtx.close();
+          ctx.createSubcontext(dn, attrs).close();
         }
         else {
           throw x;
         }
       }
     }
-    desc.serverProperties.put(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE,
-            localInstanceKeyCertificate);
   }
 
 
