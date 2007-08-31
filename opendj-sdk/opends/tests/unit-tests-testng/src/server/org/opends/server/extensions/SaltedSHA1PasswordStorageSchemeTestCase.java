@@ -31,8 +31,8 @@ package org.opends.server.extensions;
 import org.testng.annotations.Test;
 
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.PasswordStorageSchemeCfgDefn;
-import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
+import org.opends.server.admin.std.meta.SaltedSHA1PasswordStorageSchemeCfgDefn;
+import org.opends.server.admin.std.server.SaltedSHA1PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.UserPasswordSyntax;
@@ -74,9 +74,9 @@ public class SaltedSHA1PasswordStorageSchemeTestCase
     SaltedSHA1PasswordStorageScheme scheme =
          new SaltedSHA1PasswordStorageScheme();
 
-    PasswordStorageSchemeCfg configuration =
+    SaltedSHA1PasswordStorageSchemeCfg configuration =
       AdminTestCaseUtils.getConfiguration(
-          PasswordStorageSchemeCfgDefn.getInstance(),
+          SaltedSHA1PasswordStorageSchemeCfgDefn.getInstance(),
           configEntry.getEntry()
           );
 
@@ -100,9 +100,9 @@ public class SaltedSHA1PasswordStorageSchemeTestCase
     SaltedSHA1PasswordStorageScheme scheme =
          new SaltedSHA1PasswordStorageScheme();
 
-    PasswordStorageSchemeCfg configuration =
+    SaltedSHA1PasswordStorageSchemeCfg configuration =
       AdminTestCaseUtils.getConfiguration(
-          PasswordStorageSchemeCfgDefn.getInstance(),
+          SaltedSHA1PasswordStorageSchemeCfgDefn.getInstance(),
           configEntry.getEntry()
           );
 

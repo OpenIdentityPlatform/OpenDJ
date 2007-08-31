@@ -25,15 +25,16 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins;
-import org.opends.messages.Message;
 
 
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
+import org.opends.server.admin.std.server.LDAPAttributeDescriptionListPluginCfg;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
@@ -62,13 +63,21 @@ import static org.opends.server.util.StaticUtils.*;
  * object class identifier from an attribute descriptions.
  */
 public final class LDAPADListPlugin
-       extends DirectoryServerPlugin<PluginCfg>
-       implements ConfigurationChangeListener<PluginCfg>
+       extends DirectoryServerPlugin<LDAPAttributeDescriptionListPluginCfg>
+       implements ConfigurationChangeListener<
+                       LDAPAttributeDescriptionListPluginCfg>
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
+
+
+
+  // The current configuration for this plugin.
+  private LDAPAttributeDescriptionListPluginCfg currentConfig;
+
+
 
   /**
    * Creates a new instance of this Directory Server plugin.  Every plugin must
@@ -79,7 +88,6 @@ public final class LDAPADListPlugin
   public LDAPADListPlugin()
   {
     super();
-
   }
 
 
@@ -89,10 +97,11 @@ public final class LDAPADListPlugin
    */
   @Override()
   public final void initializePlugin(Set<PluginType> pluginTypes,
-                                     PluginCfg configuration)
+                         LDAPAttributeDescriptionListPluginCfg configuration)
          throws ConfigException
   {
-    configuration.addChangeListener(this);
+    currentConfig = configuration;
+    configuration.addLDAPAttributeDescriptionListChangeListener(this);
 
     // The set of plugin types must contain only the pre-parse search element.
     if (pluginTypes.isEmpty())
@@ -117,6 +126,17 @@ public final class LDAPADListPlugin
 
     // Register the appropriate supported feature with the Directory Server.
     DirectoryConfig.registerSupportedFeature(OID_LDAP_ADLIST_FEATURE);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void finalizePlugin()
+  {
+    currentConfig.removeLDAPAttributeDescriptionListChangeListener(this);
   }
 
 
@@ -199,7 +219,9 @@ public final class LDAPADListPlugin
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<Message> unacceptableReasons)
   {
-    return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
+    LDAPAttributeDescriptionListPluginCfg cfg =
+         (LDAPAttributeDescriptionListPluginCfg) configuration;
+    return isConfigurationChangeAcceptable(cfg, unacceptableReasons);
   }
 
 
@@ -207,7 +229,8 @@ public final class LDAPADListPlugin
   /**
    * {@inheritDoc}
    */
-  public boolean isConfigurationChangeAcceptable(PluginCfg configuration,
+  public boolean isConfigurationChangeAcceptable(
+                      LDAPAttributeDescriptionListPluginCfg configuration,
                       List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
@@ -239,9 +262,11 @@ public final class LDAPADListPlugin
   /**
    * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationChange(PluginCfg configuration)
+  public ConfigChangeResult applyConfigurationChange(
+                                 LDAPAttributeDescriptionListPluginCfg
+                                      configuration)
   {
-    // No implementation is required.
+    currentConfig = configuration;
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 }

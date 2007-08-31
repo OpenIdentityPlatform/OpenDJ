@@ -34,7 +34,7 @@ import java.util.LinkedHashSet;
 import java.util.TreeMap;
 
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
-import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.admin.std.server.ClientConnectionMonitorProviderCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.MonitorProvider;
@@ -47,7 +47,6 @@ import org.opends.server.types.InitializationException;
 
 
 
-
 /**
  * This class defines a Directory Server monitor provider that can be used to
  * obtain information about the client connections established to the server.
@@ -55,7 +54,7 @@ import org.opends.server.types.InitializationException;
  * it may not be entirely consistent, especially for active connections.
  */
 public class ClientConnectionMonitorProvider
-       extends MonitorProvider<MonitorProviderCfg>
+       extends MonitorProvider<ClientConnectionMonitorProviderCfg>
 {
   /**
    * Creates an instance of this monitor provider.
@@ -72,7 +71,8 @@ public class ClientConnectionMonitorProvider
   /**
    * {@inheritDoc}
    */
-  public void initializeMonitorProvider(MonitorProviderCfg configuration)
+  public void initializeMonitorProvider(
+                   ClientConnectionMonitorProviderCfg configuration)
          throws ConfigException, InitializationException
   {
     // No initialization is required.

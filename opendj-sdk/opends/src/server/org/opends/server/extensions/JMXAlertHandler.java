@@ -51,6 +51,7 @@ import javax.management.ObjectName;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.AlertHandlerCfg;
+import org.opends.server.admin.std.server.JMXAlertHandlerCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
 import org.opends.server.api.DirectoryServerMBean;
@@ -78,8 +79,8 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public class JMXAlertHandler
        extends NotificationBroadcasterSupport
-       implements AlertHandler<AlertHandlerCfg>,
-                  ConfigurationChangeListener<AlertHandlerCfg>, DynamicMBean,
+       implements AlertHandler<JMXAlertHandlerCfg>,
+                  ConfigurationChangeListener<JMXAlertHandlerCfg>, DynamicMBean,
                   DirectoryServerMBean
 {
   /**
@@ -125,7 +126,7 @@ public class JMXAlertHandler
   /**
    * {@inheritDoc}
    */
-  public void initializeAlertHandler(AlertHandlerCfg configuration)
+  public void initializeAlertHandler(JMXAlertHandlerCfg configuration)
        throws ConfigException, InitializationException
   {
     sequenceNumber = new AtomicLong(1);
@@ -168,7 +169,7 @@ public class JMXAlertHandler
 
     if (configuration != null)
     {
-      configuration.addChangeListener(this);
+      configuration.addJMXChangeListener(this);
       currentConfig = configuration;
     }
   }
@@ -191,7 +192,8 @@ public class JMXAlertHandler
   public boolean isConfigurationAcceptable(AlertHandlerCfg configuration,
                                            List<Message> unacceptableReasons)
   {
-    return true;
+    JMXAlertHandlerCfg cfg = (JMXAlertHandlerCfg) configuration;
+    return isConfigurationChangeAcceptable(cfg, unacceptableReasons);
   }
 
 
@@ -401,7 +403,8 @@ public class JMXAlertHandler
   /**
    * {@inheritDoc}
    */
-  public boolean isConfigurationChangeAcceptable(AlertHandlerCfg configuration,
+  public boolean isConfigurationChangeAcceptable(
+                      JMXAlertHandlerCfg configuration,
                       List<Message> unacceptableReasons)
   {
     return true;
@@ -413,7 +416,7 @@ public class JMXAlertHandler
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationChange(
-                                        AlertHandlerCfg configuration)
+                                        JMXAlertHandlerCfg configuration)
   {
     currentConfig = configuration;
 

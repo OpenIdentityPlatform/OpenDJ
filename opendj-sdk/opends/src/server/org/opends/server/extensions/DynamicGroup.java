@@ -25,7 +25,6 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
 
 
 
@@ -35,9 +34,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.server.admin.std.server.GroupImplementationCfg;
+import org.opends.messages.Message;
+import org.opends.server.admin.std.server.DynamicGroupImplementationCfg;
 import org.opends.server.api.Group;
 import org.opends.server.config.ConfigException;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -53,11 +55,9 @@ import org.opends.server.types.ObjectClass;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.loggers.ErrorLogger;
-import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.Validator.*;
 
@@ -71,7 +71,7 @@ import static org.opends.server.util.Validator.*;
  * specifying the membership criteria.
  */
 public class DynamicGroup
-       extends Group<GroupImplementationCfg>
+       extends Group<DynamicGroupImplementationCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -125,7 +125,7 @@ public class DynamicGroup
    */
   @Override()
   public void initializeGroupImplementation(
-                   GroupImplementationCfg configuration)
+                   DynamicGroupImplementationCfg configuration)
          throws ConfigException, InitializationException
   {
     // No additional initialization is required.

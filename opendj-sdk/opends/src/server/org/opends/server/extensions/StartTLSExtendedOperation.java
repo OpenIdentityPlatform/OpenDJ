@@ -25,29 +25,29 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+
+
+
 import org.opends.messages.MessageBuilder;
-
-
+import org.opends.server.admin.std.server.StartTLSExtendedOperationHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
-
-
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
+
 
 
 /**
@@ -57,13 +57,12 @@ import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
  * client.
  */
 public class StartTLSExtendedOperation
-       extends ExtendedOperationHandler<ExtendedOperationHandlerCfg>
+       extends ExtendedOperationHandler<StartTLSExtendedOperationHandlerCfg>
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-
 
 
 
@@ -75,7 +74,6 @@ public class StartTLSExtendedOperation
   public StartTLSExtendedOperation()
   {
     super();
-
   }
 
 
@@ -96,8 +94,8 @@ public class StartTLSExtendedOperation
    *                                   configuration.
    */
   public void initializeExtendedOperationHandler(
-       ExtendedOperationHandlerCfg config)
-       throws ConfigException, InitializationException
+                   StartTLSExtendedOperationHandlerCfg config)
+         throws ConfigException, InitializationException
   {
     // FIXME -- Are there any configurable options that we should support?
     DirectoryServer.registerSupportedExtension(OID_START_TLS_REQUEST, this);

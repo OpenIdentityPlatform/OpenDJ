@@ -38,8 +38,8 @@ import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.PluginCfgDefn;
-import org.opends.server.admin.std.server.PluginCfg;
+import org.opends.server.admin.std.meta.LastModPluginCfgDefn;
+import org.opends.server.admin.std.server.LastModPluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
@@ -100,6 +100,7 @@ public class LastModPluginTestCase
          "dn: cn=LastMod,cn=Plugins,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-plugin",
+         "objectClass: ds-cfg-lastmod-plugin",
          "cn: LastMod",
          "ds-cfg-plugin-class: org.opends.server.plugins.LastModPlugin",
          "ds-cfg-plugin-enabled: true",
@@ -110,6 +111,7 @@ public class LastModPluginTestCase
          "dn: cn=LastMod,cn=Plugins,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-plugin",
+         "objectClass: ds-cfg-lastmod-plugin",
          "cn: LastMod",
          "ds-cfg-plugin-class: org.opends.server.plugins.LastModPlugin",
          "ds-cfg-plugin-enabled: true",
@@ -118,6 +120,7 @@ public class LastModPluginTestCase
          "dn: cn=LastMod,cn=Plugins,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-plugin",
+         "objectClass: ds-cfg-lastmod-plugin",
          "cn: LastMod",
          "ds-cfg-plugin-class: org.opends.server.plugins.LastModPlugin",
          "ds-cfg-plugin-enabled: true",
@@ -126,6 +129,7 @@ public class LastModPluginTestCase
          "dn: cn=LastMod,cn=Plugins,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-plugin",
+         "objectClass: ds-cfg-lastmod-plugin",
          "cn: LastMod",
          "ds-cfg-plugin-class: org.opends.server.plugins.LastModPlugin",
          "ds-cfg-plugin-enabled: true",
@@ -164,9 +168,9 @@ public class LastModPluginTestCase
     }
 
 
-    PluginCfg configuration =
+    LastModPluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(
-              PluginCfgDefn.getInstance(), e);
+              LastModPluginCfgDefn.getInstance(), e);
 
     LastModPlugin plugin = new LastModPlugin();
     plugin.initializePlugin(pluginTypes, configuration);
@@ -213,9 +217,9 @@ public class LastModPluginTestCase
     }
 
 
-    PluginCfg configuration =
+    LastModPluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(
-              PluginCfgDefn.getInstance(), e);
+              LastModPluginCfgDefn.getInstance(), e);
 
     LastModPlugin plugin = new LastModPlugin();
     plugin.initializePlugin(pluginTypes, configuration);
@@ -254,6 +258,7 @@ public class LastModPluginTestCase
            "dn: cn=LastMod,cn=Plugins,cn=config",
            "objectClass: top",
            "objectClass: ds-cfg-plugin",
+           "objectClass: ds-cfg-lastmod-plugin",
            "cn: LastMod",
            "ds-cfg-plugin-class: org.opends.server.plugins.LastModPlugin",
            "ds-cfg-plugin-enabled: true",
@@ -295,9 +300,9 @@ public class LastModPluginTestCase
     }
 
 
-    PluginCfg configuration =
+    LastModPluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(
-              PluginCfgDefn.getInstance(), e);
+              LastModPluginCfgDefn.getInstance(), e);
 
     LastModPlugin plugin = new LastModPlugin();
     plugin.initializePlugin(pluginTypes, configuration);

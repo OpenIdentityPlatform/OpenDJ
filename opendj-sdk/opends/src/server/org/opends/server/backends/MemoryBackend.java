@@ -25,11 +25,14 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
-import org.opends.messages.Message;
+
 
 
 import java.util.*;
 
+import org.opends.messages.Message;
+import org.opends.server.admin.Configuration;
+import org.opends.server.admin.std.server.MemoryBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
@@ -38,19 +41,34 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.ConditionResult;
+import org.opends.server.types.Control;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
+import org.opends.server.types.RestoreConfig;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchScope;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.Validator;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.*;
+
 import static org.opends.messages.BackendMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.admin.std.server.BackendCfg;
-import org.opends.server.admin.Configuration;
+
 
 
 /**
@@ -143,8 +161,8 @@ public class MemoryBackend
   {
     if (config != null)
     {
-      Validator.ensureTrue(config instanceof BackendCfg);
-      BackendCfg cfg = (BackendCfg)config;
+      Validator.ensureTrue(config instanceof MemoryBackendCfg);
+      MemoryBackendCfg cfg = (MemoryBackendCfg)config;
       DN[] baseDNs = new DN[cfg.getBackendBaseDN().size()];
       cfg.getBackendBaseDN().toArray(baseDNs);
       setBaseDNs(baseDNs);

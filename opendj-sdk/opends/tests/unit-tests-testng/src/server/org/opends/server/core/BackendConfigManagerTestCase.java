@@ -726,6 +726,7 @@ public class BackendConfigManagerTestCase
     lines.add("dn: ds-cfg-backend-id=" + backendID + ",cn=Backends,cn=config");
     lines.add("objectClass: top");
     lines.add("objectClass: ds-cfg-backend");
+    lines.add("objectClass: ds-cfg-memory-backend");
     lines.add("ds-cfg-backend-id: " + backendID);
     lines.add("ds-cfg-backend-class: org.opends.server.backends.MemoryBackend");
     lines.add("ds-cfg-backend-enabled: " + String.valueOf(enabled));

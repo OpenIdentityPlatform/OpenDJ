@@ -28,7 +28,8 @@ package org.opends.server.extensions;
 
 
 
-import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
+import org.opends.server.admin.std.server.
+            GetConnectionIdExtendedOperationHandlerCfg;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -48,7 +49,8 @@ import static org.opends.server.util.ServerConstants.*;
  * used to get the connection ID of the associated client connection.
  */
 public class GetConnectionIDExtendedOperation
-       extends ExtendedOperationHandler<ExtendedOperationHandlerCfg>
+       extends ExtendedOperationHandler<
+                    GetConnectionIdExtendedOperationHandlerCfg>
 {
   /**
    * Create an instance of this "Get Connection ID" extended operation.  All
@@ -66,8 +68,8 @@ public class GetConnectionIDExtendedOperation
    * {@inheritDoc}
    */
   public void initializeExtendedOperationHandler(
-       ExtendedOperationHandlerCfg config)
-       throws ConfigException, InitializationException
+                   GetConnectionIdExtendedOperationHandlerCfg config)
+         throws ConfigException, InitializationException
   {
     // No special configuration is required.
 

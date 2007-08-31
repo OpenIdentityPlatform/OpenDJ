@@ -25,23 +25,22 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+
+
+
 import org.opends.messages.MessageBuilder;
-
-
-import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
+import org.opends.server.admin.std.server.AnonymousSASLMechanismHandlerCfg;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
-
-
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -55,7 +54,7 @@ import static org.opends.server.util.ServerConstants.*;
  * then that trace information will be written to the server error log.
  */
 public class AnonymousSASLMechanismHandler
-       extends SASLMechanismHandler<SASLMechanismHandlerCfg>
+       extends SASLMechanismHandler<AnonymousSASLMechanismHandlerCfg>
 {
   /**
    * Creates a new instance of this SASL mechanism handler.  No initialization
@@ -73,7 +72,7 @@ public class AnonymousSASLMechanismHandler
    * {@inheritDoc}
    */
   @Override()
-  public void initializeSASLMechanismHandler(SASLMechanismHandlerCfg
+  public void initializeSASLMechanismHandler(AnonymousSASLMechanismHandlerCfg
                                                   configuration)
          throws ConfigException, InitializationException
   {

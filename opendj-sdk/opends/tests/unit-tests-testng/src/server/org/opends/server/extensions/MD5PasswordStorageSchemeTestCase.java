@@ -29,8 +29,8 @@ package org.opends.server.extensions;
 
 
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.PasswordStorageSchemeCfgDefn;
-import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
+import org.opends.server.admin.std.meta.MD5PasswordStorageSchemeCfgDefn;
+import org.opends.server.admin.std.server.MD5PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 
 
@@ -66,9 +66,9 @@ public class MD5PasswordStorageSchemeTestCase
   {
     MD5PasswordStorageScheme scheme = new MD5PasswordStorageScheme();
 
-    PasswordStorageSchemeCfg configuration =
+    MD5PasswordStorageSchemeCfg configuration =
       AdminTestCaseUtils.getConfiguration(
-          PasswordStorageSchemeCfgDefn.getInstance(),
+          MD5PasswordStorageSchemeCfgDefn.getInstance(),
           configEntry.getEntry()
           );
 

@@ -25,28 +25,37 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+
+
+
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
 import org.opends.messages.Message;
-
-
-
-import java.util.*;
-
 import org.opends.server.admin.std.server.GroupImplementationCfg;
+import org.opends.server.admin.std.server.StaticGroupImplementationCfg;
 import org.opends.server.api.Group;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.config.ConfigException;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Control;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.MemberList;
+import org.opends.server.types.MembershipException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ObjectClass;
@@ -54,11 +63,8 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 
-import org.opends.server.types.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.loggers.ErrorLogger;
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.Validator.*;
 
@@ -73,7 +79,7 @@ import static org.opends.server.util.Validator.*;
  * stores the member list in the {@code uniqueMember} attribute.
  */
 public class StaticGroup
-       extends Group<GroupImplementationCfg>
+       extends Group<StaticGroupImplementationCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -96,6 +102,8 @@ public class StaticGroup
   //refreshed.
   private long nestedGroupRefreshToken =
                               DirectoryServer.getGroupManager().refreshToken();
+
+
 
   /**
    * Creates a new, uninitialized static group instance.  This is intended for
@@ -141,7 +149,7 @@ public class StaticGroup
    */
   @Override()
   public void initializeGroupImplementation(
-                   GroupImplementationCfg configuration)
+                   StaticGroupImplementationCfg configuration)
          throws ConfigException, InitializationException
   {
     // No additional initialization is required.

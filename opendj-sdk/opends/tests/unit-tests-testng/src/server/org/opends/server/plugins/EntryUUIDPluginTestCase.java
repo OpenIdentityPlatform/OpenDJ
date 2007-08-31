@@ -40,8 +40,8 @@ import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.PluginCfgDefn;
-import org.opends.server.admin.std.server.PluginCfg;
+import org.opends.server.admin.std.meta.EntryUUIDPluginCfgDefn;
+import org.opends.server.admin.std.server.EntryUUIDPluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
@@ -101,6 +101,7 @@ public class EntryUUIDPluginTestCase
          "dn: cn=Entry UUID,cn=Plugins,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-plugin",
+         "objectClass: ds-cfg-entryuuid-plugin",
          "cn: Entry UUID",
          "ds-cfg-plugin-class: org.opends.server.plugins.EntryUUIDPlugin",
          "ds-cfg-plugin-enabled: true",
@@ -110,6 +111,7 @@ public class EntryUUIDPluginTestCase
          "dn: cn=Entry UUID,cn=Plugins,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-plugin",
+         "objectClass: ds-cfg-entryuuid-plugin",
          "cn: Entry UUID",
          "ds-cfg-plugin-class: org.opends.server.plugins.EntryUUIDPlugin",
          "ds-cfg-plugin-enabled: true",
@@ -118,6 +120,7 @@ public class EntryUUIDPluginTestCase
          "dn: cn=Entry UUID,cn=Plugins,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-plugin",
+         "objectClass: ds-cfg-entryuuid-plugin",
          "cn: Entry UUID",
          "ds-cfg-plugin-class: org.opends.server.plugins.EntryUUIDPlugin",
          "ds-cfg-plugin-enabled: true",
@@ -156,9 +159,9 @@ public class EntryUUIDPluginTestCase
     }
 
 
-    PluginCfg configuration =
+    EntryUUIDPluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(
-              PluginCfgDefn.getInstance(), e);
+              EntryUUIDPluginCfgDefn.getInstance(), e);
 
     EntryUUIDPlugin plugin = new EntryUUIDPlugin();
     plugin.initializePlugin(pluginTypes, configuration);
@@ -195,9 +198,9 @@ public class EntryUUIDPluginTestCase
     }
 
 
-    PluginCfg configuration =
+    EntryUUIDPluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(
-              PluginCfgDefn.getInstance(), e);
+              EntryUUIDPluginCfgDefn.getInstance(), e);
 
     EntryUUIDPlugin plugin = new EntryUUIDPlugin();
     plugin.initializePlugin(pluginTypes, configuration);
@@ -232,6 +235,7 @@ public class EntryUUIDPluginTestCase
            "dn: cn=Entry UUID,cn=Plugins,cn=config",
            "objectClass: top",
            "objectClass: ds-cfg-plugin",
+           "objectClass: ds-cfg-entryuuid-plugin",
            "cn: Entry UUID",
            "ds-cfg-plugin-class: org.opends.server.plugins.EntryUUIDPlugin",
            "ds-cfg-plugin-enabled: true",
@@ -273,9 +277,9 @@ public class EntryUUIDPluginTestCase
     }
 
 
-    PluginCfg configuration =
+    EntryUUIDPluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(
-              PluginCfgDefn.getInstance(), e);
+              EntryUUIDPluginCfgDefn.getInstance(), e);
 
     EntryUUIDPlugin plugin = new EntryUUIDPlugin();
     plugin.initializePlugin(pluginTypes, configuration);

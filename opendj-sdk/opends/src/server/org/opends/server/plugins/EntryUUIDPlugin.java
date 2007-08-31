@@ -25,7 +25,6 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins;
-import org.opends.messages.Message;
 
 
 
@@ -37,8 +36,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
+import org.opends.server.admin.std.server.EntryUUIDPluginCfg;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.LDIFPluginResult;
@@ -58,7 +59,6 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.operation.PreOperationAddOperation;
 
 import static org.opends.messages.PluginMessages.*;
-
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -73,8 +73,8 @@ import static org.opends.server.util.StaticUtils.*;
  * will have identical entryUUID values.
  */
 public final class EntryUUIDPlugin
-       extends DirectoryServerPlugin<PluginCfg>
-       implements ConfigurationChangeListener<PluginCfg>
+       extends DirectoryServerPlugin<EntryUUIDPluginCfg>
+       implements ConfigurationChangeListener<EntryUUIDPluginCfg>
 {
   /**
    * The name of the entryUUID attribute type.
@@ -85,6 +85,9 @@ public final class EntryUUIDPlugin
 
   // The attribute type for the "entryUUID" attribute.
   private final AttributeType entryUUIDType;
+
+  // The current configuration for this plugin.
+  private EntryUUIDPluginCfg currentConfig;
 
 
 
@@ -101,8 +104,7 @@ public final class EntryUUIDPlugin
 
     // Get the entryUUID attribute type.  This needs to be done in the
     // constructor in order to make the associated variables "final".
-    AttributeType at = DirectoryConfig.getAttributeType(ENTRYUUID,
-                                                        false);
+    AttributeType at = DirectoryConfig.getAttributeType(ENTRYUUID, false);
     if (at == null)
     {
       String definition =
@@ -128,10 +130,11 @@ public final class EntryUUIDPlugin
    */
   @Override()
   public final void initializePlugin(Set<PluginType> pluginTypes,
-                                     PluginCfg configuration)
+                                     EntryUUIDPluginCfg configuration)
          throws ConfigException
   {
-    configuration.addChangeListener(this);
+    currentConfig = configuration;
+    configuration.addEntryUUIDChangeListener(this);
 
     // Make sure that the plugin has been enabled for the appropriate types.
     for (PluginType t : pluginTypes)
@@ -150,6 +153,17 @@ public final class EntryUUIDPlugin
           throw new ConfigException(message);
       }
     }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void finalizePlugin()
+  {
+    currentConfig.removeEntryUUIDChangeListener(this);
   }
 
 
@@ -237,7 +251,8 @@ public final class EntryUUIDPlugin
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<Message> unacceptableReasons)
   {
-    return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
+    EntryUUIDPluginCfg cfg = (EntryUUIDPluginCfg) configuration;
+    return isConfigurationChangeAcceptable(cfg, unacceptableReasons);
   }
 
 
@@ -245,7 +260,8 @@ public final class EntryUUIDPlugin
   /**
    * {@inheritDoc}
    */
-  public boolean isConfigurationChangeAcceptable(PluginCfg configuration,
+  public boolean isConfigurationChangeAcceptable(
+                      EntryUUIDPluginCfg configuration,
                       List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
@@ -278,9 +294,10 @@ public final class EntryUUIDPlugin
   /**
    * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationChange(PluginCfg configuration)
+  public ConfigChangeResult applyConfigurationChange(
+                                 EntryUUIDPluginCfg configuration)
   {
-    // No implementation is required.
+    currentConfig = configuration;
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 }

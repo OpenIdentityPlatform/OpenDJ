@@ -25,7 +25,6 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
 
 
 
@@ -34,23 +33,24 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
+import org.opends.messages.Message;
+import org.opends.server.admin.std.server.SaltedMD5PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringFactory;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.Base64;
 
-import static org.opends.server.extensions.ExtensionsConstants.*;
-import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.loggers.ErrorLogger;
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.extensions.ExtensionsConstants.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -67,7 +67,7 @@ import static org.opends.server.util.StaticUtils.*;
  * appended to the hash, and then the entire value is base64-encoded.
  */
 public class SaltedMD5PasswordStorageScheme
-       extends PasswordStorageScheme <PasswordStorageSchemeCfg>
+       extends PasswordStorageScheme<SaltedMD5PasswordStorageSchemeCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -119,9 +119,8 @@ public class SaltedMD5PasswordStorageScheme
    */
   @Override()
   public void initializePasswordStorageScheme(
-      PasswordStorageSchemeCfg configuration
-      )
-      throws ConfigException, InitializationException
+                   SaltedMD5PasswordStorageSchemeCfg configuration)
+         throws ConfigException, InitializationException
   {
     try
     {

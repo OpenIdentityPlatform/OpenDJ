@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.admin.std.server.StackTraceMonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -45,14 +45,13 @@ import org.opends.server.types.InitializationException;
 
 
 
-
 /**
  * This class defines a Directory Server monitor provider that can be used to
  * obtain a stack trace from all server threads that are currently defined in
  * the JVM.
  */
 public class StackTraceMonitorProvider
-       extends MonitorProvider<MonitorProviderCfg>
+       extends MonitorProvider<StackTraceMonitorProviderCfg>
 {
   /**
    * Initializes this monitor provider.
@@ -69,7 +68,8 @@ public class StackTraceMonitorProvider
   /**
    * {@inheritDoc}
    */
-  public void initializeMonitorProvider(MonitorProviderCfg configuration)
+  public void initializeMonitorProvider(
+                   StackTraceMonitorProviderCfg configuration)
          throws ConfigException, InitializationException
   {
     // No initialization is required.

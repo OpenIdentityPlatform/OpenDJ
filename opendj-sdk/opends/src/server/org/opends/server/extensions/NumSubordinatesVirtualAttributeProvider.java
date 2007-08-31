@@ -22,25 +22,39 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
-import org.opends.server.admin.std.server.VirtualAttributeCfg;
-import org.opends.server.api.VirtualAttributeProvider;
-import org.opends.server.api.Backend;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import org.opends.server.config.ConfigException;
-import org.opends.server.types.*;
-import org.opends.server.core.SearchOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.messages.Message;
-import static org.opends.messages.ExtensionMessages.*;
+
 
 import java.util.LinkedHashSet;
 import java.util.List;
+
+import org.opends.messages.Message;
+import org.opends.server.admin.std.server.NumSubordinatesVirtualAttributeCfg;
+import org.opends.server.api.VirtualAttributeProvider;
+import org.opends.server.api.Backend;
+import org.opends.server.config.ConfigException;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.SearchOperation;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringFactory;
+import org.opends.server.types.ConditionResult;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.VirtualAttributeRule;
+
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+
+
 
 /**
  * This class implements a virtual attribute provider that is meant to serve the
@@ -48,7 +62,7 @@ import java.util.List;
  * draft-ietf-boreham-numsubordinates.
  */
 public class NumSubordinatesVirtualAttributeProvider
-    extends VirtualAttributeProvider<VirtualAttributeCfg>
+    extends VirtualAttributeProvider<NumSubordinatesVirtualAttributeCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -73,7 +87,7 @@ public class NumSubordinatesVirtualAttributeProvider
    */
   @Override()
   public void initializeVirtualAttributeProvider(
-                            VirtualAttributeCfg configuration)
+                            NumSubordinatesVirtualAttributeCfg configuration)
          throws ConfigException, InitializationException
   {
     // No initialization is required.
@@ -248,3 +262,4 @@ public class NumSubordinatesVirtualAttributeProvider
     searchOperation.appendErrorMessage(message);
   }
 }
+

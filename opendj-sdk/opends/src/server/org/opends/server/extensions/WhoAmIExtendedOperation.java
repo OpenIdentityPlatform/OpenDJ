@@ -25,7 +25,6 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
 
 
 
@@ -33,7 +32,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
+import org.opends.messages.Message;
+import org.opends.server.admin.std.server.WhoAmIExtendedOperationHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
@@ -63,7 +63,7 @@ import static org.opends.server.util.ServerConstants.*;
  * It simply returns the authorized ID of the currently-authenticated user.
  */
 public class WhoAmIExtendedOperation
-       extends ExtendedOperationHandler<ExtendedOperationHandlerCfg>
+       extends ExtendedOperationHandler<WhoAmIExtendedOperationHandlerCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -100,8 +100,8 @@ public class WhoAmIExtendedOperation
    *                                   configuration.
    */
   public void initializeExtendedOperationHandler(
-       ExtendedOperationHandlerCfg config)
-       throws ConfigException, InitializationException
+                   WhoAmIExtendedOperationHandlerCfg config)
+         throws ConfigException, InitializationException
   {
     // No special configuration is required.
 

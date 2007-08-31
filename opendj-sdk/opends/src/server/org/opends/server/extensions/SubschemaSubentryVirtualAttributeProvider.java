@@ -25,18 +25,19 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
 
 
 
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import org.opends.server.admin.std.server.VirtualAttributeCfg;
+import org.opends.messages.Message;
+import org.opends.server.admin.std.server.SubschemaSubentryVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
@@ -46,7 +47,6 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -57,12 +57,14 @@ import static org.opends.server.util.ServerConstants.*;
  * subschemaSubentry operational attribute as described in RFC 4512.
  */
 public class SubschemaSubentryVirtualAttributeProvider
-       extends VirtualAttributeProvider<VirtualAttributeCfg>
+       extends VirtualAttributeProvider<SubschemaSubentryVirtualAttributeCfg>
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
+
+
 
   /**
    * Creates a new instance of this subschemaSubentry virtual attribute
@@ -83,7 +85,7 @@ public class SubschemaSubentryVirtualAttributeProvider
    */
   @Override()
   public void initializeVirtualAttributeProvider(
-                            VirtualAttributeCfg configuration)
+                            SubschemaSubentryVirtualAttributeCfg configuration)
          throws ConfigException, InitializationException
   {
     // No initialization is required.

@@ -25,29 +25,31 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+
+
+
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-
-
+import org.opends.server.admin.std.server.CancelExtendedOperationHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
+
 
 
 /**
@@ -58,13 +60,12 @@ import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
  * successful the abandoned operation won't get one either).
  */
 public class CancelExtendedOperation
-       extends ExtendedOperationHandler<ExtendedOperationHandlerCfg>
+       extends ExtendedOperationHandler<CancelExtendedOperationHandlerCfg>
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-
 
 
 
@@ -76,7 +77,6 @@ public class CancelExtendedOperation
   public CancelExtendedOperation()
   {
     super();
-
   }
 
 
@@ -97,8 +97,8 @@ public class CancelExtendedOperation
    *                                   configuration.
    */
   public void initializeExtendedOperationHandler(
-       ExtendedOperationHandlerCfg config)
-       throws ConfigException, InitializationException
+                   CancelExtendedOperationHandlerCfg config)
+         throws ConfigException, InitializationException
   {
     // No special configuration is required.
 

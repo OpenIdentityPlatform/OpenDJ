@@ -32,12 +32,11 @@ import java.security.cert.X509Certificate;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import org.opends.server.admin.std.server.TrustManagerCfg;
+import org.opends.server.admin.std.server.BlindTrustManagerCfg;
 import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-
 
 
 
@@ -50,12 +49,9 @@ import org.opends.server.types.InitializationException;
  * trustworthy.
  */
 public class BlindTrustManagerProvider
-       extends TrustManagerProvider<TrustManagerCfg>
+       extends TrustManagerProvider<BlindTrustManagerCfg>
        implements X509TrustManager
 {
-
-
-
   /**
    * Creates a new instance of this blind trust manager provider.  The
    * <CODE>initializeTrustManagerProvider</CODE> method must be called on the
@@ -72,7 +68,7 @@ public class BlindTrustManagerProvider
    * {@inheritDoc}
    */
   @Override()
-  public void initializeTrustManagerProvider(TrustManagerCfg configuration)
+  public void initializeTrustManagerProvider(BlindTrustManagerCfg configuration)
          throws ConfigException, InitializationException
   {
     // No implementation is required.

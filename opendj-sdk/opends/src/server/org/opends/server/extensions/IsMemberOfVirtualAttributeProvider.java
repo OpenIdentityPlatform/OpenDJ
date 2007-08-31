@@ -32,12 +32,13 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import org.opends.server.admin.std.server.VirtualAttributeCfg;
+import org.opends.server.admin.std.server.IsMemberOfVirtualAttributeCfg;
 import org.opends.server.api.Group;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
@@ -53,7 +54,6 @@ import org.opends.server.types.SearchScope;
 import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -64,7 +64,7 @@ import static org.opends.server.util.ServerConstants.*;
  * list of all groups in which the specified user is a member.
  */
 public class IsMemberOfVirtualAttributeProvider
-       extends VirtualAttributeProvider<VirtualAttributeCfg>
+       extends VirtualAttributeProvider<IsMemberOfVirtualAttributeCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -89,7 +89,7 @@ public class IsMemberOfVirtualAttributeProvider
    */
   @Override()
   public void initializeVirtualAttributeProvider(
-                            VirtualAttributeCfg configuration)
+                            IsMemberOfVirtualAttributeCfg configuration)
          throws ConfigException, InitializationException
   {
     // No initialization is required.

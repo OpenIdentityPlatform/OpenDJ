@@ -25,7 +25,6 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
-import org.opends.messages.Message;
 
 
 
@@ -36,6 +35,10 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import org.opends.messages.Message;
+import org.opends.server.admin.Configuration;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.MonitorBackendCfg;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
@@ -47,23 +50,42 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.ConditionResult;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.RDN;
+import org.opends.server.types.RestoreConfig;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchScope;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 import org.opends.server.util.Validator;
 
+
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.BackendCfg;
-import org.opends.server.admin.Configuration;
+
 
 
 /**
@@ -74,7 +96,7 @@ import org.opends.server.admin.Configuration;
  */
 public class MonitorBackend
        extends Backend
-       implements ConfigurationChangeListener<BackendCfg>
+       implements ConfigurationChangeListener<MonitorBackendCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -93,7 +115,7 @@ public class MonitorBackend
   private DN configEntryDN;
 
   // The current configuration state.
-  private BackendCfg currentConfig;
+  private MonitorBackendCfg currentConfig;
 
   // The DN for the base monitor entry.
   private DN baseMonitorDN;
@@ -128,9 +150,9 @@ public class MonitorBackend
   public void configureBackend(Configuration config) throws ConfigException
   {
     Validator.ensureNotNull(config);
-    Validator.ensureTrue(config instanceof BackendCfg);
+    Validator.ensureTrue(config instanceof MonitorBackendCfg);
 
-    BackendCfg cfg = (BackendCfg)config;
+    MonitorBackendCfg cfg = (MonitorBackendCfg)config;
     ConfigEntry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
 
 
@@ -219,7 +241,7 @@ public class MonitorBackend
          throws ConfigException, InitializationException
   {
     // Register with the Directory Server as a configurable component.
-    currentConfig.addChangeListener(this);
+    currentConfig.addMonitorChangeListener(this);
 
 
     // Register the monitor base as a private suffix.
@@ -255,7 +277,7 @@ public class MonitorBackend
    */
   public void finalizeBackend()
   {
-    currentConfig.removeChangeListener(this);
+    currentConfig.removeMonitorChangeListener(this);
 
     try
     {
@@ -1270,7 +1292,7 @@ public class MonitorBackend
    *          configuration for this component, or <CODE>false</CODE> if not.
    */
   public boolean isConfigurationChangeAcceptable(
-       BackendCfg backendCfg,
+       MonitorBackendCfg backendCfg,
        List<Message> unacceptableReasons)
   {
     // We'll pretty much accept anything here as long as it isn't one of our
@@ -1283,7 +1305,8 @@ public class MonitorBackend
   /**
    * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationChange(BackendCfg backendCfg)
+  public ConfigChangeResult applyConfigurationChange(
+                                 MonitorBackendCfg backendCfg)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;

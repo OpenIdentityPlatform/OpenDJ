@@ -29,8 +29,8 @@ package org.opends.server.extensions;
 
 
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.PasswordStorageSchemeCfgDefn;
-import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
+import org.opends.server.admin.std.meta.SHA1PasswordStorageSchemeCfgDefn;
+import org.opends.server.admin.std.server.SHA1PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 
 
@@ -66,9 +66,9 @@ public class SHA1PasswordStorageSchemeTestCase
   {
     SHA1PasswordStorageScheme scheme = new SHA1PasswordStorageScheme();
 
-    PasswordStorageSchemeCfg configuration =
+    SHA1PasswordStorageSchemeCfg configuration =
       AdminTestCaseUtils.getConfiguration(
-          PasswordStorageSchemeCfgDefn.getInstance(),
+          SHA1PasswordStorageSchemeCfgDefn.getInstance(),
           configEntry.getEntry()
           );
 
