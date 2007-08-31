@@ -1319,7 +1319,9 @@ public class DBTest
               try
               {
                 formatedData = System.getProperty("line.separator") +
-                    JebFormat.entryFromDatabase(data.getData()).toLDIFString();
+                    JebFormat.entryFromDatabase(data.getData(),
+                         ec.getRootContainer().getCompressedSchema()).
+                              toLDIFString();
                 dataLabel = INFO_LABEL_DBTEST_ENTRY.get();
               }
               catch(Exception e)

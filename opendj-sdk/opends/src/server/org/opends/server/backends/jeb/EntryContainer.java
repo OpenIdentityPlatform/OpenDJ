@@ -483,7 +483,8 @@ public class EntryContainer
     {
       DataConfig entryDataConfig =
           new DataConfig(config.isBackendEntriesCompressed(),
-                         config.isBackendCompactEncoding());
+                         config.isBackendCompactEncoding(),
+                         rootContainer.getCompressedSchema());
 
       id2entry = new ID2Entry(databasePrefix + "_" + ID2ENTRY_DATABASE_NAME,
                               entryDataConfig, env, this);
@@ -562,6 +563,18 @@ public class EntryContainer
     config.removeJEIndexDeleteListener(attributeJEIndexCfgManager);
     config.removeVLVJEIndexDeleteListener(vlvJEIndexCfgManager);
     config.removeVLVJEIndexDeleteListener(vlvJEIndexCfgManager);
+  }
+
+  /**
+   * Retrieves a reference to the root container in which this entry container
+   * exists.
+   *
+   * @return  A reference to the root container in which this entry container
+   *          exists.
+   */
+  public RootContainer getRootContainer()
+  {
+    return rootContainer;
   }
 
   /**
@@ -4270,7 +4283,8 @@ public class EntryContainer
 
     DataConfig entryDataConfig =
         new DataConfig(cfg.isBackendEntriesCompressed(),
-                       cfg.isBackendCompactEncoding());
+                       cfg.isBackendCompactEncoding(),
+                       rootContainer.getCompressedSchema());
     id2entry.setDataConfig(entryDataConfig);
 
     this.config = cfg;

@@ -389,7 +389,8 @@ public class IndexRebuildThread extends DirectoryThread
         try
         {
           EntryID entryID = new EntryID(key);
-          Entry entry = JebFormat.entryFromDatabase(data.getData());
+          Entry entry = JebFormat.entryFromDatabase(data.getData(),
+                             ec.getRootContainer().getCompressedSchema());
 
           // Insert into dn2id.
           if (dn2id.insert(txn, entry.getDN(), entryID))
@@ -471,7 +472,8 @@ public class IndexRebuildThread extends DirectoryThread
         try
         {
           EntryID entryID = new EntryID(key);
-          Entry entry = JebFormat.entryFromDatabase(data.getData());
+          Entry entry = JebFormat.entryFromDatabase(data.getData(),
+                             ec.getRootContainer().getCompressedSchema());
 
           // Insert into dn2uri.
           if (dn2uri.addEntry(txn, entry))
@@ -556,7 +558,8 @@ public class IndexRebuildThread extends DirectoryThread
         try
         {
           EntryID entryID = new EntryID(key);
-          Entry entry = JebFormat.entryFromDatabase(data.getData());
+          Entry entry = JebFormat.entryFromDatabase(data.getData(),
+                             ec.getRootContainer().getCompressedSchema());
 
           // Check that the parent entry exists.
           DN parentDN = ec.getParentWithinBase(entry.getDN());
@@ -668,7 +671,8 @@ public class IndexRebuildThread extends DirectoryThread
         try
         {
           EntryID entryID = new EntryID(key);
-          Entry entry = JebFormat.entryFromDatabase(data.getData());
+          Entry entry = JebFormat.entryFromDatabase(data.getData(),
+                             ec.getRootContainer().getCompressedSchema());
 
           // Check that the parent entry exists.
           DN parentDN = ec.getParentWithinBase(entry.getDN());
@@ -805,7 +809,8 @@ public class IndexRebuildThread extends DirectoryThread
         try
         {
           EntryID entryID = new EntryID(key);
-          Entry entry = JebFormat.entryFromDatabase(data.getData());
+          Entry entry = JebFormat.entryFromDatabase(data.getData(),
+                             ec.getRootContainer().getCompressedSchema());
 
           // Insert into attribute indexType.
           if(index.addEntry(txn, entryID, entry))
@@ -882,7 +887,8 @@ public class IndexRebuildThread extends DirectoryThread
         try
         {
           EntryID entryID = new EntryID(key);
-          Entry entry = JebFormat.entryFromDatabase(data.getData());
+          Entry entry = JebFormat.entryFromDatabase(data.getData(),
+                             ec.getRootContainer().getCompressedSchema());
 
           // Insert into attribute indexType.
           if(vlvIndex.addEntry(txn, entryID, entry))
@@ -967,7 +973,8 @@ public class IndexRebuildThread extends DirectoryThread
         try
         {
           EntryID entryID = new EntryID(key);
-          Entry entry = JebFormat.entryFromDatabase(data.getData());
+          Entry entry = JebFormat.entryFromDatabase(data.getData(),
+                             ec.getRootContainer().getCompressedSchema());
 
           // Insert into attribute indexType.
           if(index.addEntry(txn, entryID, entry))

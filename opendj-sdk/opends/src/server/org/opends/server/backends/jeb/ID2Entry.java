@@ -242,7 +242,8 @@ public class ID2Entry extends DatabaseContainer
       case JebFormat.FORMAT_VERSION :
         try
         {
-          entry = JebFormat.entryFromDatabase(entryBytes);
+          entry = JebFormat.entryFromDatabase(entryBytes,
+                       entryContainer.getRootContainer().getCompressedSchema());
         }
         catch (Exception e)
         {

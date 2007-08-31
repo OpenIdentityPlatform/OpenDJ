@@ -207,7 +207,8 @@ public class TestJebFormat extends JebTestCase {
     while ((entryBefore = reader.readEntry(false)) != null) {
       byte[] bytes = JebFormat.entryToDatabase(entryBefore);
 
-      entryAfter = JebFormat.entryFromDatabase(bytes);
+      entryAfter = JebFormat.entryFromDatabase(bytes,
+                        DirectoryServer.getDefaultCompressedSchema());
 
       // check DN and number of attributes
       assertEquals(entryBefore.getAttributes().size(), entryAfter
@@ -329,14 +330,15 @@ public class TestJebFormat extends JebTestCase {
     Entry entryBefore, entryAfterGeneric, entryAfterV2;
     while ((entryBefore = reader.readEntry(false)) != null) {
       byte[] entryBytes = entryBefore.encodeV2(config);
-      entryAfterGeneric = Entry.decode(entryBytes);
+      entryAfterGeneric = Entry.decode(entryBytes,
+                                       config.getCompressedSchema());
       if (config.excludeDN())
       {
         entryAfterGeneric.setDN(entryBefore.getDN());
       }
       assertEquals(entryBefore, entryAfterGeneric);
 
-      entryAfterV2 = Entry.decodeV2(entryBytes);
+      entryAfterV2 = Entry.decodeV2(entryBytes, config.getCompressedSchema());
       if (config.excludeDN())
       {
         entryAfterV2.setDN(entryBefore.getDN());

@@ -443,7 +443,8 @@ public class TestVerifyJob extends JebTestCase
       DatabaseEntry key= new DatabaseEntry(shortBytes);
       Entry testEntry=bldStatEntry(junkDN);
       byte []entryBytes =
-           JebFormat.entryToDatabase(testEntry, new DataConfig(false, false));
+           JebFormat.entryToDatabase(testEntry,
+                                     new DataConfig(false, false, null));
       DatabaseEntry data= new DatabaseEntry(entryBytes);
       assertTrue(id2entry.putRaw(txn, key, data));
 
@@ -773,7 +774,8 @@ public class TestVerifyJob extends JebTestCase
     DatabaseEntry key= new EntryID(id).getDatabaseEntry();
     Entry testEntry=bldStatEntry(dn);
     byte []entryBytes =
-         JebFormat.entryToDatabase(testEntry, new DataConfig(false, false));
+         JebFormat.entryToDatabase(testEntry,
+                                   new DataConfig(false, false, null));
     if(trashFormat)
       entryBytes[0] = 0x67;
     DatabaseEntry data= new DatabaseEntry(entryBytes);

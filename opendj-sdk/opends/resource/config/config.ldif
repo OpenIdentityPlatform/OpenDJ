@@ -182,7 +182,7 @@ ds-cfg-backend-import-pass-size: 0
 ds-cfg-backend-import-thread-count: 8
 ds-cfg-backend-entries-compressed: false
 ds-cfg-backend-deadlock-retry-limit: 10
-ds-cfg-backend-compact-encoding: false
+ds-cfg-backend-compact-encoding: true
 ds-cfg-database-cache-percent: 10
 ds-cfg-database-cache-size: 0 megabytes
 ds-cfg-database-txn-no-sync: false

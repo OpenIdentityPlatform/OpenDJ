@@ -105,6 +105,13 @@ public class RootContainer
   private AtomicLong nextid = new AtomicLong(1);
 
   /**
+   * The compressed schema manager for this backend.
+   */
+  private JECompressedSchema compressedSchema;
+
+
+
+  /**
    * Creates a new RootContainer object. Each root container represents a JE
    * environment.
    *
@@ -119,6 +126,7 @@ public class RootContainer
     this.entryContainers = new ConcurrentHashMap<DN, EntryContainer>();
     this.backend = backend;
     this.config = config;
+    this.compressedSchema = null;
 
     config.addJEChangeListener(this);
   }
@@ -217,6 +225,7 @@ public class RootContainer
       TRACER.debugInfo("Free memory in heap: %d bytes", heapFreeSize);
     }
 
+    compressedSchema = new JECompressedSchema(env);
     openAndRegisterEntryContainers(config.getBackendBaseDN());
   }
 
@@ -319,6 +328,16 @@ public class RootContainer
   {
     return entryContainers.remove(baseDN);
 
+  }
+
+  /**
+   * Retrieves the compressed schema manager for this backend.
+   *
+   * @return  The compressed schema manager for this backend.
+   */
+  public JECompressedSchema getCompressedSchema()
+  {
+    return compressedSchema;
   }
 
   /**
@@ -492,6 +511,8 @@ public class RootContainer
         ec.exclusiveLock.unlock();
       }
     }
+
+    compressedSchema.close();
 
     if (env != null)
     {

@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.api.AttributeValueDecoder;
+import org.opends.server.api.CompressedSchema;
 import org.opends.server.api.ProtocolElement;
 import org.opends.server.api.plugin.LDIFPluginResult;
 import org.opends.server.core.DirectoryServer;
@@ -4394,12 +4395,36 @@ public class Entry
   public static Entry decode(byte[] entryBytes)
          throws DirectoryException
   {
+    return decode(entryBytes,
+                  DirectoryServer.getDefaultCompressedSchema());
+  }
+
+
+
+  /**
+   * Decodes the provided byte array as an entry.
+   *
+   * @param  entryBytes        The byte array containing the data to
+   *                           be decoded.
+   * @param  compressedSchema  The compressed schema manager to use
+   *                           when decoding tokenized schema
+   *                           elements.
+   *
+   * @return  The decoded entry.
+   *
+   * @throws  DirectoryException  If the provided byte array cannot be
+   *                              decoded as an entry.
+   */
+  public static Entry decode(byte[] entryBytes,
+                             CompressedSchema compressedSchema)
+         throws DirectoryException
+  {
     switch(entryBytes[0])
     {
       case 0x01:
         return decodeV1(entryBytes);
       case 0x02:
-        return decodeV2(entryBytes);
+        return decodeV2(entryBytes, compressedSchema);
       default:
         Message message = ERR_ENTRY_DECODE_UNRECOGNIZED_VERSION.get(
             byteToHex(entryBytes[0]));
@@ -4781,15 +4806,19 @@ public class Entry
    * Decodes the provided byte array as an entry using the V2
    * encoding.
    *
-   * @param  entryBytes  The byte array containing the data to be
-   *                     decoded.
+   * @param  entryBytes        The byte array containing the data to
+   *                           be decoded.
+   * @param  compressedSchema  The compressed schema manager to use
+   *                           when decoding tokenized schema
+   *                           elements.
    *
    * @return  The decoded entry.
    *
    * @throws  DirectoryException  If the provided byte array cannot be
    *                              decoded as an entry.
    */
-  public static Entry decodeV2(byte[] entryBytes)
+  public static Entry decodeV2(byte[] entryBytes,
+                               CompressedSchema compressedSchema)
          throws DirectoryException
   {
     try
@@ -4824,7 +4853,8 @@ public class Entry
 
       // Next is the encoded configuration itself.
       EntryEncodeConfig config =
-           EntryEncodeConfig.decode(entryBytes, pos, configLength);
+           EntryEncodeConfig.decode(entryBytes, pos, configLength,
+                                    compressedSchema);
       pos += configLength;
 
 
