@@ -267,7 +267,7 @@
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          No rentation policy is used and log files will never be cleaned.
+          No retention policy is used and log files will never be cleaned.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
