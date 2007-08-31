@@ -650,10 +650,13 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
           throw new ADSContextException (ErrorType.NOT_YET_REGISTERED) ;
         }
         Set groupList = (Set) serverProperties.get(ServerProperty.GROUPS);
-        for (Object groupId : groupList.toArray())
+        if (groupList != null)
         {
-          DsFrameworkCliServerGroup.removeServerFromGroup(adsCtx,
-              (String) groupId, serverId);
+          for (Object groupId : groupList.toArray())
+          {
+            DsFrameworkCliServerGroup.removeServerFromGroup(adsCtx,
+                (String) groupId, serverId);
+          }
         }
 
         // unregister the server
