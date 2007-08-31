@@ -34,7 +34,7 @@
  * concerns across server code base at weave time during the build process. If
  * the weaving step is skipped, the debug logging framework is disabled.
  * The AspectJ aspect defined in the Tracer class is used to automatically trace
- * method entry and exit events and generate the appropreate debug messages. It
+ * method entry and exit events and generate the appropriate debug messages. It
  * also keeps track of the source location of debug message calls so information
  * about the class, method, line number, and threads are automatically included
  * in the debug message.
