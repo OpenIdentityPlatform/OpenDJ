@@ -85,7 +85,7 @@ public final class DSConfig extends ConsoleApplication {
   /**
    * A menu call-back which runs a sub-command interactively.
    */
-  public class SubCommandHandlerMenuCallback implements MenuCallback<Integer> {
+  private class SubCommandHandlerMenuCallback implements MenuCallback<Integer> {
 
     // The sub-command handler.
     private final SubCommandHandler handler;
@@ -135,7 +135,7 @@ public final class DSConfig extends ConsoleApplication {
   /**
    * The interactive mode sub-menu implementation.
    */
-  public class SubMenuCallback implements MenuCallback<Integer> {
+  private class SubMenuCallback implements MenuCallback<Integer> {
 
     // The menu.
     private final Menu<Integer> menu;
@@ -380,7 +380,7 @@ public final class DSConfig extends ConsoleApplication {
    *          The factory which this application instance should use
    *          for obtaining management contexts.
    */
-  public DSConfig(InputStream in, OutputStream out, OutputStream err,
+  private DSConfig(InputStream in, OutputStream out, OutputStream err,
       ManagementContextFactory factory) {
     super(in, out, err);
 
@@ -399,7 +399,7 @@ public final class DSConfig extends ConsoleApplication {
    * @throws InitializationException
    *           If the core APIs could not be initialized.
    */
-  public void initializeClientEnvironment() throws InitializationException {
+  private void initializeClientEnvironment() throws InitializationException {
     if (environmentInitialized == false) {
       EmbeddedUtils.initializeForClientUse();
 

@@ -78,7 +78,7 @@ import org.opends.server.util.table.TextTablePrinter;
 /**
  * Common methods used for interactively editing properties.
  */
-public final class PropertyValueEditor {
+final class PropertyValueEditor {
 
   /**
    * A help call-back which displays a description and summary of a

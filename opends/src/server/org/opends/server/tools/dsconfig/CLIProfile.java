@@ -41,7 +41,7 @@ import org.opends.server.admin.RelationDefinition;
 /**
  * This class is used to access CLI profile annotations.
  */
-public class CLIProfile {
+class CLIProfile {
 
   // The singleton instance.
   private static final CLIProfile INSTANCE = new CLIProfile();
