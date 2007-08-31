@@ -216,7 +216,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends
 
 
   /**
-   * Retrieve an instantiable child managed object.
+   * Retrieves an instantiable child managed object.
    *
    * @param <C>
    *          The requested type of the child managed object
@@ -262,7 +262,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends
 
 
   /**
-   * Retrieve an optional child managed object.
+   * Retrieves an optional child managed object.
    *
    * @param <C>
    *          The requested type of the child managed object
@@ -306,7 +306,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends
 
 
   /**
-   * Retrieve a singleton child managed object.
+   * Retrieves a singleton child managed object.
    *
    * @param <C>
    *          The requested type of the child managed object
@@ -362,7 +362,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends
 
 
   /**
-   * Get the definition associated with this managed object.
+   * Gets the definition associated with this managed object.
    *
    * @return Returns the definition associated with this managed
    *         object.
@@ -373,7 +373,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends
 
 
   /**
-   * Get the path of this managed object.
+   * Gets the path of this managed object.
    *
    * @return Returns the path of this managed object.
    */
@@ -382,30 +382,31 @@ public interface ManagedObject<T extends ConfigurationClient> extends
 
 
   /**
-   * Get the default values of the specified property.
+   * Gets a mutable copy of the set of default values for the
+   * specified property.
    *
-   * @param <P>
+   * @param <PD>
    *          The type of the property to be retrieved.
    * @param pd
    *          The property to be retrieved.
-   * @return Returns the property's default values, or an empty set
-   *         if there are no default values defined.
+   * @return Returns the property's default values, or an empty set if
+   *         there are no default values defined.
    * @throws IllegalArgumentException
    *           If the property definition is not associated with this
    *           managed object's definition.
    */
-  <P> SortedSet<P> getPropertyDefaultValues(PropertyDefinition<P> pd)
+  <PD> SortedSet<PD> getPropertyDefaultValues(PropertyDefinition<PD> pd)
       throws IllegalArgumentException;
 
 
 
   /**
-   * Get the effective value of the specified property.
+   * Gets the effective value of the specified property.
    * <p>
    * See the class description for more information about how the
    * effective property value is derived.
    *
-   * @param <P>
+   * @param <PD>
    *          The type of the property to be retrieved.
    * @param pd
    *          The property to be retrieved.
@@ -416,18 +417,19 @@ public interface ManagedObject<T extends ConfigurationClient> extends
    *           If the property definition is not associated with this
    *           managed object's definition.
    */
-  <P> P getPropertyValue(PropertyDefinition<P> pd)
+  <PD> PD getPropertyValue(PropertyDefinition<PD> pd)
       throws IllegalArgumentException;
 
 
 
   /**
-   * Get the effective values of the specified property.
+   * Gets a mutable copy of the set of effective values for the
+   * specified property.
    * <p>
    * See the class description for more information about how the
    * effective property values are derived.
    *
-   * @param <P>
+   * @param <PD>
    *          The type of the property to be retrieved.
    * @param pd
    *          The property to be retrieved.
@@ -437,7 +439,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends
    *           If the property definition is not associated with this
    *           managed object's definition.
    */
-  <P> SortedSet<P> getPropertyValues(PropertyDefinition<P> pd)
+  <PD> SortedSet<PD> getPropertyValues(PropertyDefinition<PD> pd)
       throws IllegalArgumentException;
 
 
@@ -653,12 +655,12 @@ public interface ManagedObject<T extends ConfigurationClient> extends
 
 
   /**
-   * Set a new pending value for the specified property.
+   * Sets a new pending value for the specified property.
    * <p>
    * See the class description for more information regarding pending
    * values.
    *
-   * @param <P>
+   * @param <PD>
    *          The type of the property to be modified.
    * @param pd
    *          The property to be modified.
@@ -678,19 +680,19 @@ public interface ManagedObject<T extends ConfigurationClient> extends
    *           If the specified property definition is not associated
    *           with this managed object.
    */
-  <P> void setPropertyValue(PropertyDefinition<P> pd, P value)
+  <PD> void setPropertyValue(PropertyDefinition<PD> pd, PD value)
       throws IllegalPropertyValueException, PropertyIsReadOnlyException,
       PropertyIsMandatoryException, IllegalArgumentException;
 
 
 
   /**
-   * Set a new pending values for the specified property.
+   * Sets a new pending values for the specified property.
    * <p>
    * See the class description for more information regarding pending
    * values.
    *
-   * @param <P>
+   * @param <PD>
    *          The type of the property to be modified.
    * @param pd
    *          The property to be modified.
@@ -714,7 +716,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends
    *           If the specified property definition is not associated
    *           with this managed object.
    */
-  <P> void setPropertyValues(PropertyDefinition<P> pd, Collection<P> values)
+  <PD> void setPropertyValues(PropertyDefinition<PD> pd, Collection<PD> values)
       throws IllegalPropertyValueException, PropertyIsSingleValuedException,
       PropertyIsReadOnlyException, PropertyIsMandatoryException,
       IllegalArgumentException;

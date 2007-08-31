@@ -25,7 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.server.admin.client;
+package org.opends.server.admin.client.spi;
 
 
 
@@ -33,7 +33,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -42,7 +41,6 @@ import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyIsMandatoryException;
 import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyOption;
-import org.opends.server.admin.PropertyProvider;
 
 
 
@@ -50,7 +48,7 @@ import org.opends.server.admin.PropertyProvider;
  * A set of properties. Instances of this class can be used as the
  * core of a managed object implementation.
  */
-public final class PropertySet implements PropertyProvider {
+public final class PropertySet {
 
   /**
    * Internal property implementation.
@@ -255,17 +253,6 @@ public final class PropertySet implements PropertyProvider {
 
 
   /**
-   * Makes all pending values active.
-   */
-  public void commit() {
-    for (MyProperty<?> p : properties.values()) {
-      p.commit();
-    }
-  }
-
-
-
-  /**
    * Get the property associated with the specified property
    * definition.
    *
@@ -292,88 +279,34 @@ public final class PropertySet implements PropertyProvider {
 
 
   /**
-   * Get the effective value of the specified property.
-   * <p>
-   * See the class description for more information about how the
-   * effective property value is derived.
-   *
-   * @param <T>
-   *          The type of the property to be retrieved.
-   * @param d
-   *          The property to be retrieved.
-   * @return Returns the property's effective value, or
-   *         <code>null</code> if there is no effective value
-   *         defined.
-   * @throws IllegalArgumentException
-   *           If the property definition is not associated with this
-   *           managed object's definition.
+   * {@inheritDoc}
    */
-  public <T> T getPropertyValue(PropertyDefinition<T> d)
-      throws IllegalArgumentException {
-    Set<T> values = getPropertyValues(d);
-    if (values.isEmpty()) {
-      return null;
-    } else {
-      return values.iterator().next();
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append('{');
+    for (Map.Entry<PropertyDefinition<?>, MyProperty<?>> entry : properties
+        .entrySet()) {
+      builder.append(entry.getKey().getName());
+      builder.append('=');
+      builder.append(entry.getValue().toString());
+      builder.append(' ');
     }
+    builder.append('}');
+    return builder.toString();
   }
 
 
 
-  /**
-   * Get the effective values of the specified property.
-   * <p>
-   * See the class description for more information about how the
-   * effective property values are derived.
-   *
-   * @param <T>
-   *          The type of the property to be retrieved.
-   * @param d
-   *          The property to be retrieved.
-   * @return Returns the property's effective values, or an empty set
-   *         if there are no effective values defined.
-   * @throws IllegalArgumentException
-   *           If the property definition is not associated with this
-   *           managed object's definition.
-   */
-  public <T> SortedSet<T> getPropertyValues(PropertyDefinition<T> d)
-      throws IllegalArgumentException {
-    Property<T> property = getProperty(d);
-    return new TreeSet<T>(property.getEffectiveValues());
-  }
 
 
 
   /**
-   * Set a new pending value for the specified property.
-   * <p>
-   * See the class description for more information regarding pending
-   * values.
-   *
-   * @param <T>
-   *          The type of the property to be modified.
-   * @param d
-   *          The property to be modified.
-   * @param value
-   *          The new pending value for the property, or
-   *          <code>null</code> if the property should be reset to
-   *          its default behavior.
-   * @throws IllegalPropertyValueException
-   *           If the new pending value is deemed to be invalid
-   *           according to the property definition.
-   * @throws PropertyIsMandatoryException
-   *           If an attempt was made to remove a mandatory property.
-   * @throws IllegalArgumentException
-   *           If the specified property definition is not associated
-   *           with this managed object.
+   * Makes all pending values active.
    */
-  public <T> void setPropertyValue(PropertyDefinition<T> d, T value)
-      throws IllegalPropertyValueException, PropertyIsMandatoryException,
-      IllegalArgumentException {
-    if (value == null) {
-      setPropertyValues(d, Collections.<T> emptySet());
-    } else {
-      setPropertyValues(d, Collections.singleton(value));
+  void commit() {
+    for (MyProperty<?> p : properties.values()) {
+      p.commit();
     }
   }
 
@@ -406,7 +339,7 @@ public final class PropertySet implements PropertyProvider {
    *           If the specified property definition is not associated
    *           with this managed object.
    */
-  public <T> void setPropertyValues(PropertyDefinition<T> d,
+  <T> void setPropertyValues(PropertyDefinition<T> d,
       Collection<T> values) throws IllegalPropertyValueException,
       PropertyIsSingleValuedException, PropertyIsMandatoryException,
       IllegalArgumentException {
@@ -434,25 +367,5 @@ public final class PropertySet implements PropertyProvider {
 
     // Update the property.
     property.setPendingValues(values);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String toString() {
-    StringBuilder builder = new StringBuilder();
-    builder.append('{');
-    for (Map.Entry<PropertyDefinition<?>, MyProperty<?>> entry : properties
-        .entrySet()) {
-      builder.append(entry.getKey().getName());
-      builder.append('=');
-      builder.append(entry.getValue().toString());
-      builder.append(' ');
-    }
-    builder.append('}');
-    return builder.toString();
   }
 }

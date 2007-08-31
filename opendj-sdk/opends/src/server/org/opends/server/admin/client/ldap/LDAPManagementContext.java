@@ -55,20 +55,15 @@ public final class LDAPManagementContext extends ManagementContext {
     return new LDAPManagementContext(connection, LDAPProfile.getInstance());
   }
 
-  // The LDAP connection.
-  private final LDAPConnection connection;
-
-  // The LDAP profile which should be used to construct LDAP requests
-  // and decode LDAP responses.
-  private final LDAPProfile profile;
+  // The LDAP management context driver.
+  private final LDAPDriver driver;
 
 
 
   // Private constructor.
   private LDAPManagementContext(LDAPConnection connection,
       LDAPProfile profile) {
-    this.connection = connection;
-    this.profile = profile;
+    this.driver = new LDAPDriver(connection, profile);
   }
 
 
@@ -77,31 +72,6 @@ public final class LDAPManagementContext extends ManagementContext {
    * {@inheritDoc}
    */
   public ManagedObject<RootCfgClient> getRootConfigurationManagedObject() {
-    return LDAPManagedObject.getRootManagedObject(this);
-  }
-
-
-
-  /**
-   * Gets the LDAP connection used for interacting with the server.
-   *
-   * @return Returns the LDAP connection used for interacting with the
-   *         server.
-   */
-  LDAPConnection getLDAPConnection() {
-    return connection;
-  }
-
-
-
-  /**
-   * Gets the LDAP profile which should be used to construct LDAP
-   * requests and decode LDAP responses.
-   *
-   * @return Returns the LDAP profile which should be used to
-   *         construct LDAP requests and decode LDAP responses.
-   */
-  LDAPProfile getLDAPProfile() {
-    return profile;
+    return LDAPManagedObject.getRootManagedObject(driver);
   }
 }

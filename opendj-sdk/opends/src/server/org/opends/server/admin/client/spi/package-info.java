@@ -28,12 +28,12 @@
 
 
 /**
- * Common client-side administration classes.
+ * Client side driver implementation interfaces.
  * <p>
- * This package contains classes which client applications are
- * expected to use.
+ * This package contains classes which client-side driver
+ * implementations are expected to use.
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.PRIVATE)
-package org.opends.server.admin.client;
+package org.opends.server.admin.client.spi;
 
