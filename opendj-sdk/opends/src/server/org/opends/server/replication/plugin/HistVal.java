@@ -99,8 +99,13 @@ public class HistVal
       attrString = optionsToken[0];
     }
     else
+    {
       attrString = token[0];
+    }
+
     attrType = DirectoryServer.getSchema().getAttributeType(attrString);
+    if (attrType == null)
+      attrType = DirectoryServer.getDefaultAttributeType(attrString);
 
     cn = new ChangeNumber(token[1]);
     histKey = HistKey.decodeKey(token[2]);
