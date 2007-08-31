@@ -25,25 +25,28 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+
+
+
 import org.opends.messages.Message;
-
-
-
-import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
+import org.opends.server.admin.std.server.Base64PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringFactory;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.Base64;
 
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
-import static org.opends.messages.ExtensionMessages.*;
+
+
+
 /**
  * This class defines a Directory Server password storage scheme that will store
  * the values in base64-encoded form.  This is a reversible algorithm that
@@ -51,13 +54,12 @@ import static org.opends.messages.ExtensionMessages.*;
  * value from the casual observer.
  */
 public class Base64PasswordStorageScheme
-       extends PasswordStorageScheme <PasswordStorageSchemeCfg>
+       extends PasswordStorageScheme<Base64PasswordStorageSchemeCfg>
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-
 
 
 
@@ -69,7 +71,6 @@ public class Base64PasswordStorageScheme
   public Base64PasswordStorageScheme()
   {
     super();
-
   }
 
 
@@ -79,9 +80,8 @@ public class Base64PasswordStorageScheme
    */
   @Override()
   public void initializePasswordStorageScheme(
-      PasswordStorageSchemeCfg configuration
-      )
-      throws ConfigException, InitializationException
+                   Base64PasswordStorageSchemeCfg configuration)
+         throws ConfigException, InitializationException
   {
     // No initialization is required.
   }

@@ -39,8 +39,9 @@ import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.PluginCfgDefn;
-import org.opends.server.admin.std.server.PluginCfg;
+import org.opends.server.admin.std.meta.
+            LDAPAttributeDescriptionListPluginCfgDefn;
+import org.opends.server.admin.std.server.LDAPAttributeDescriptionListPluginCfg;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -94,6 +95,7 @@ public class LDAPADListPluginTestCase
          "dn: cn=LDAP Attribute Description List,cn=Plugins,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-plugin",
+         "objectClass: ds-cfg-ldap-ad-list-plugin",
          "cn: LDAP Attribute Description List",
          "ds-cfg-plugin-class: org.opends.server.plugins.LDAPADListPlugin",
          "ds-cfg-plugin-enabled: true",
@@ -132,9 +134,9 @@ public class LDAPADListPluginTestCase
     }
 
 
-    PluginCfg configuration =
+    LDAPAttributeDescriptionListPluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(
-              PluginCfgDefn.getInstance(), e);
+              LDAPAttributeDescriptionListPluginCfgDefn.getInstance(), e);
 
     LDAPADListPlugin plugin = new LDAPADListPlugin();
     plugin.initializePlugin(pluginTypes, configuration);
@@ -157,6 +159,7 @@ public class LDAPADListPluginTestCase
          "dn: cn=LDAP Attribute Description List,cn=Plugins,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-plugin",
+         "objectClass: ds-cfg-ldap-ad-list-plugin",
          "cn: LDAP Attribute Description List",
          "ds-cfg-plugin-class: org.opends.server.plugins.LDAPADListPlugin",
          "ds-cfg-plugin-enabled: true");
@@ -173,6 +176,7 @@ public class LDAPADListPluginTestCase
            "dn: cn=LDAP Attribute Description List,cn=Plugins,cn=config",
            "objectClass: top",
            "objectClass: ds-cfg-plugin",
+           "objectClass: ds-cfg-ldap-ad-list-plugin",
            "cn: LDAP Attribute Description List",
            "ds-cfg-plugin-class: org.opends.server.plugins.LDAPADListPlugin",
            "ds-cfg-plugin-enabled: true",
@@ -217,9 +221,9 @@ public class LDAPADListPluginTestCase
     }
 
 
-    PluginCfg configuration =
+    LDAPAttributeDescriptionListPluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(
-              PluginCfgDefn.getInstance(), e);
+              LDAPAttributeDescriptionListPluginCfgDefn.getInstance(), e);
 
     LDAPADListPlugin plugin = new LDAPADListPlugin();
     plugin.initializePlugin(pluginTypes, configuration);

@@ -32,19 +32,19 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
-import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.admin.std.server.SystemInfoMonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 
 
 
@@ -54,13 +54,12 @@ import org.opends.server.types.DebugLogLevel;
  * Server is running.
  */
 public class SystemInfoMonitorProvider
-       extends MonitorProvider<MonitorProviderCfg>
+       extends MonitorProvider<SystemInfoMonitorProviderCfg>
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-
 
 
 
@@ -79,7 +78,8 @@ public class SystemInfoMonitorProvider
   /**
    * {@inheritDoc}
    */
-  public void initializeMonitorProvider(MonitorProviderCfg configuration)
+  public void initializeMonitorProvider(
+                   SystemInfoMonitorProviderCfg configuration)
          throws ConfigException, InitializationException
   {
     // No initialization is required.

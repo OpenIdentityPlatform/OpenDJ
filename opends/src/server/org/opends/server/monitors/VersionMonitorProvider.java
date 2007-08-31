@@ -31,20 +31,20 @@ package org.opends.server.monitors;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
-import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.admin.std.server.VersionMonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.DynamicConstants;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 
 
 
@@ -53,7 +53,7 @@ import org.opends.server.types.DebugLogLevel;
  * information.
  */
 public class VersionMonitorProvider
-       extends MonitorProvider<MonitorProviderCfg>
+       extends MonitorProvider<VersionMonitorProviderCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -160,7 +160,7 @@ public class VersionMonitorProvider
   /**
    * {@inheritDoc}
    */
-  public void initializeMonitorProvider(MonitorProviderCfg configuration)
+  public void initializeMonitorProvider(VersionMonitorProviderCfg configuration)
          throws ConfigException, InitializationException
   {
     // No initialization is required.

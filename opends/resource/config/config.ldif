@@ -151,6 +151,7 @@ cn: Alert Handlers
 dn: cn=JMX Alert Handler,cn=Alert Handlers,cn=config
 objectClass: top
 objectClass: ds-cfg-alert-handler
+objectClass: ds-cfg-jmx-alert-handler
 cn: JMX Alert Handler
 ds-cfg-alert-handler-class: org.opends.server.extensions.JMXAlertHandler
 ds-cfg-alert-handler-enabled: false
@@ -305,6 +306,7 @@ ds-cfg-backup-directory: bak
 dn: ds-cfg-backend-id=config,cn=Backends,cn=config
 objectClass: top
 objectClass: ds-cfg-backend
+objectClass: ds-cfg-config-file-handler-backend
 ds-cfg-backend-enabled: true
 ds-cfg-backend-class: org.opends.server.extensions.ConfigFileHandler
 ds-cfg-backend-id: config
@@ -327,6 +329,7 @@ ds-cfg-trust-store-pin-file: config/ads-truststore.pin
 dn: ds-cfg-backend-id=monitor,cn=Backends,cn=config
 objectClass: top
 objectClass: ds-cfg-backend
+objectClass: ds-cfg-monitor-backend
 ds-cfg-backend-enabled: true
 ds-cfg-backend-class: org.opends.server.backends.MonitorBackend
 ds-cfg-backend-id: monitor
@@ -364,6 +367,7 @@ cn: Certificate Mappers
 dn: cn=Subject Equals DN,cn=Certificate Mappers,cn=config
 objectClass: top
 objectClass: ds-cfg-certificate-mapper
+objectClass: ds-cfg-subject-equals-dn-certificate-mapper
 cn: Subject Equals DN
 ds-cfg-certificate-mapper-class: org.opends.server.extensions.SubjectEqualsDNCertificateMapper
 ds-cfg-certificate-mapper-enabled: true
@@ -477,6 +481,7 @@ cn: Extended Operations
 dn: cn=Cancel,cn=Extended Operations,cn=config
 objectClass: top
 objectClass: ds-cfg-extended-operation-handler
+objectClass: ds-cfg-cancel-extended-operation-handler
 cn: Cancel
 ds-cfg-extended-operation-handler-class: org.opends.server.extensions.CancelExtendedOperation
 ds-cfg-extended-operation-handler-enabled: true
@@ -484,6 +489,7 @@ ds-cfg-extended-operation-handler-enabled: true
 dn: cn=Get Connection ID,cn=Extended Operations,cn=config
 objectClass: top
 objectClass: ds-cfg-extended-operation-handler
+objectClass: ds-cfg-get-connection-id-extended-operation-handler
 cn: Cancel
 ds-cfg-extended-operation-handler-class: org.opends.server.extensions.GetConnectionIDExtendedOperation
 ds-cfg-extended-operation-handler-enabled: true
@@ -499,7 +505,8 @@ ds-cfg-identity-mapper-dn: cn=Exact Match,cn=Identity Mappers,cn=config
 
 dn: cn=Password Policy State,cn=Extended Operations,cn=config
 objectClass: top
-objectCLass: ds-cfg-extended-operation-handler
+objectClass: ds-cfg-extended-operation-handler
+objectClass: ds-cfg-password-policy-state-extended-operation-handler
 cn: Password Policy State
 ds-cfg-extended-operation-handler-class: org.opends.server.extensions.PasswordPolicyStateExtendedOperation
 ds-cfg-extended-operation-handler-enabled: true
@@ -507,6 +514,7 @@ ds-cfg-extended-operation-handler-enabled: true
 dn: cn=StartTLS,cn=Extended Operations,cn=config
 objectClass: top
 objectClass: ds-cfg-extended-operation-handler
+objectClass: ds-cfg-starttls-extended-operation-handler
 cn: StartTLS
 ds-cfg-extended-operation-handler-class: org.opends.server.extensions.StartTLSExtendedOperation
 ds-cfg-extended-operation-handler-enabled: true
@@ -514,6 +522,7 @@ ds-cfg-extended-operation-handler-enabled: true
 dn: cn=Who Am I,cn=Extended Operations,cn=config
 objectClass: top
 objectClass: ds-cfg-extended-operation-handler
+objectClass: ds-cfg-who-am-i-extended-operation-handler
 cn: Who Am I
 ds-cfg-extended-operation-handler-class: org.opends.server.extensions.WhoAmIExtendedOperation
 ds-cfg-extended-operation-handler-enabled: true
@@ -526,6 +535,7 @@ cn: Group Implementations
 dn: cn=Dynamic,cn=Group Implementations,cn=config
 objectClass: top
 objectClass: ds-cfg-group-implementation
+objectClass: ds-cfg-dynamic-group-implementation
 cn: Dynamic
 ds-cfg-group-implementation-class: org.opends.server.extensions.DynamicGroup
 ds-cfg-group-implementation-enabled: true
@@ -533,6 +543,7 @@ ds-cfg-group-implementation-enabled: true
 dn: cn=Static,cn=Group Implementations,cn=config
 objectClass: top
 objectClass: ds-cfg-group-implementation
+objectClass: ds-cfg-static-group-implementation
 cn: Static
 ds-cfg-group-implementation-class: org.opends.server.extensions.StaticGroup
 ds-cfg-group-implementation-enabled: true
@@ -540,6 +551,7 @@ ds-cfg-group-implementation-enabled: true
 dn: cn=Virtual Static,cn=Group Implementations,cn=config
 objectClass: top
 objectClass: ds-cfg-group-implementation
+objectClass: ds-cfg-virtual-static-group-implementation
 cn: Virtual Static
 ds-cfg-group-implementation-class: org.opends.server.extensions.VirtualStaticGroup
 ds-cfg-group-implementation-enabled: true
@@ -1124,6 +1136,7 @@ cn: Monitor Providers
 dn: cn=Client Connections,cn=Monitor Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-monitor-provider
+objectClass: ds-cfg-client-connection-monitor-provider
 cn: Client Connections
 ds-cfg-monitor-provider-class: org.opends.server.monitors.ClientConnectionMonitorProvider
 ds-cfg-monitor-provider-enabled: true
@@ -1131,6 +1144,7 @@ ds-cfg-monitor-provider-enabled: true
 dn: cn=JVM Stack Trace,cn=Monitor Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-monitor-provider
+objectClass: ds-cfg-stack-trace-monitor-provider
 cn: JVM Stack Trace
 ds-cfg-monitor-provider-class: org.opends.server.monitors.StackTraceMonitorProvider
 ds-cfg-monitor-provider-enabled: true
@@ -1138,6 +1152,7 @@ ds-cfg-monitor-provider-enabled: true
 dn: cn=System Info,cn=Monitor Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-monitor-provider
+objectClass: ds-cfg-system-info-monitor-provider
 cn: System Info
 ds-cfg-monitor-provider-class: org.opends.server.monitors.SystemInfoMonitorProvider
 ds-cfg-monitor-provider-enabled: true
@@ -1145,6 +1160,7 @@ ds-cfg-monitor-provider-enabled: true
 dn: cn=Version,cn=Monitor Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-monitor-provider
+objectClass: ds-cfg-version-monitor-provider
 cn: Version
 ds-cfg-monitor-provider-class: org.opends.server.monitors.VersionMonitorProvider
 ds-cfg-monitor-provider-enabled: true
@@ -1239,6 +1255,7 @@ cn: Password Storage Schemes
 dn: cn=Base64,cn=Password Storage Schemes,cn=config
 objectClass: top
 objectClass: ds-cfg-password-storage-scheme
+objectClass: ds-cfg-base64-password-storage-scheme
 cn: Base64
 ds-cfg-password-storage-scheme-class: org.opends.server.extensions.Base64PasswordStorageScheme
 ds-cfg-password-storage-scheme-enabled: true
@@ -1246,13 +1263,23 @@ ds-cfg-password-storage-scheme-enabled: true
 dn: cn=Clear,cn=Password Storage Schemes,cn=config
 objectClass: top
 objectClass: ds-cfg-password-storage-scheme
+objectClass: ds-cfg-clear-password-storage-scheme
 cn: Clear
 ds-cfg-password-storage-scheme-class: org.opends.server.extensions.ClearPasswordStorageScheme
+ds-cfg-password-storage-scheme-enabled: true
+
+dn: cn=CRYPT,cn=Password Storage Schemes,cn=config
+objectClass: top
+objectClass: ds-cfg-password-storage-scheme
+objectClass: ds-cfg-crypt-password-storage-scheme
+cn: CRYPT
+ds-cfg-password-storage-scheme-class: org.opends.server.extensions.CryptPasswordStorageScheme
 ds-cfg-password-storage-scheme-enabled: true
 
 dn: cn=MD5,cn=Password Storage Schemes,cn=config
 objectClass: top
 objectClass: ds-cfg-password-storage-scheme
+objectClass: ds-cfg-md5-password-storage-scheme
 cn: MD5
 ds-cfg-password-storage-scheme-class: org.opends.server.extensions.MD5PasswordStorageScheme
 ds-cfg-password-storage-scheme-enabled: true
@@ -1260,6 +1287,7 @@ ds-cfg-password-storage-scheme-enabled: true
 dn: cn=Salted MD5,cn=Password Storage Schemes,cn=config
 objectClass: top
 objectClass: ds-cfg-password-storage-scheme
+objectClass: ds-cfg-salted-md5-password-storage-scheme
 cn: Salted MD5
 ds-cfg-password-storage-scheme-class: org.opends.server.extensions.SaltedMD5PasswordStorageScheme
 ds-cfg-password-storage-scheme-enabled: true
@@ -1267,6 +1295,7 @@ ds-cfg-password-storage-scheme-enabled: true
 dn: cn=Salted SHA-1,cn=Password Storage Schemes,cn=config
 objectClass: top
 objectClass: ds-cfg-password-storage-scheme
+objectClass: ds-cfg-salted-sha1-password-storage-scheme
 cn: Salted SHA-1
 ds-cfg-password-storage-scheme-class: org.opends.server.extensions.SaltedSHA1PasswordStorageScheme
 ds-cfg-password-storage-scheme-enabled: true
@@ -1274,6 +1303,7 @@ ds-cfg-password-storage-scheme-enabled: true
 dn: cn=Salted SHA-256,cn=Password Storage Schemes,cn=config
 objectClass: top
 objectClass: ds-cfg-password-storage-scheme
+objectClass: ds-cfg-salted-sha256-password-storage-scheme
 cn: Salted SHA-256
 ds-cfg-password-storage-scheme-class: org.opends.server.extensions.SaltedSHA256PasswordStorageScheme
 ds-cfg-password-storage-scheme-enabled: true
@@ -1281,6 +1311,7 @@ ds-cfg-password-storage-scheme-enabled: true
 dn: cn=Salted SHA-384,cn=Password Storage Schemes,cn=config
 objectClass: top
 objectClass: ds-cfg-password-storage-scheme
+objectClass: ds-cfg-salted-sha384-password-storage-scheme
 cn: Salted SHA-384
 ds-cfg-password-storage-scheme-class: org.opends.server.extensions.SaltedSHA384PasswordStorageScheme
 ds-cfg-password-storage-scheme-enabled: true
@@ -1288,6 +1319,7 @@ ds-cfg-password-storage-scheme-enabled: true
 dn: cn=Salted SHA-512,cn=Password Storage Schemes,cn=config
 objectClass: top
 objectClass: ds-cfg-password-storage-scheme
+objectClass: ds-cfg-salted-sha512-password-storage-scheme
 cn: Salted SHA-512
 ds-cfg-password-storage-scheme-class: org.opends.server.extensions.SaltedSHA512PasswordStorageScheme
 ds-cfg-password-storage-scheme-enabled: true
@@ -1295,15 +1327,9 @@ ds-cfg-password-storage-scheme-enabled: true
 dn: cn=SHA-1,cn=Password Storage Schemes,cn=config
 objectClass: top
 objectClass: ds-cfg-password-storage-scheme
+objectClass: ds-cfg-sha1-password-storage-scheme
 cn: SHA-1
 ds-cfg-password-storage-scheme-class: org.opends.server.extensions.SHA1PasswordStorageScheme
-ds-cfg-password-storage-scheme-enabled: true
-
-dn: cn=CRYPT,cn=Password Storage Schemes,cn=config
-objectClass: top
-objectClass: ds-cfg-password-storage-scheme
-cn: CRYPT
-ds-cfg-password-storage-scheme-class: org.opends.server.extensions.CryptPasswordStorageScheme
 ds-cfg-password-storage-scheme-enabled: true
 
 dn: cn=Password Validators,cn=config
@@ -1392,6 +1418,7 @@ cn: Plugins
 dn: cn=Entry UUID,cn=Plugins,cn=config
 objectClass: top
 objectClass: ds-cfg-plugin
+objectClass: ds-cfg-entryuuid-plugin
 cn: Entry UUID
 ds-cfg-plugin-class: org.opends.server.plugins.EntryUUIDPlugin
 ds-cfg-plugin-enabled: true
@@ -1401,6 +1428,7 @@ ds-cfg-plugin-type: preOperationAdd
 dn: cn=LastMod,cn=Plugins,cn=config
 objectClass: top
 objectClass: ds-cfg-plugin
+objectClass: ds-cfg-lastmod-plugin
 cn: LastMod
 ds-cfg-plugin-class: org.opends.server.plugins.LastModPlugin
 ds-cfg-plugin-enabled: true
@@ -1411,6 +1439,7 @@ ds-cfg-plugin-type: preOperationModifyDN
 dn: cn=LDAP Attribute Description List,cn=Plugins,cn=config
 objectClass: top
 objectClass: ds-cfg-plugin
+objectClass: ds-cfg-ldap-ad-list-plugin
 cn: LDAP Attribute Description List
 ds-cfg-plugin-class: org.opends.server.plugins.LDAPADListPlugin
 ds-cfg-plugin-enabled: true
@@ -1437,7 +1466,7 @@ ds-cfg-enable-profiling-on-startup: false
 ds-cfg-profile-directory: logs
 ds-cfg-profile-sample-interval: 10 milliseconds
 
-dn: cn=UID Unique Attribute ,cn=Plugins,cn=config
+dn: cn=UID Unique Attribute,cn=Plugins,cn=config
 objectClass: top
 objectClass: ds-cfg-plugin
 objectClass: ds-cfg-unique-attribute-plugin
@@ -1501,6 +1530,7 @@ cn: SASL Mechanisms
 dn: cn=ANONYMOUS,cn=SASL Mechanisms,cn=config
 objectClass: top
 objectClass: ds-cfg-sasl-mechanism-handler
+objectClass: ds-cfg-anonymous-sasl-mechanism-handler
 cn: ANONYMOUS
 ds-cfg-sasl-mechanism-handler-class: org.opends.server.extensions.AnonymousSASLMechanismHandler
 ds-cfg-sasl-mechanism-handler-enabled: false
@@ -1557,6 +1587,19 @@ dn: cn=Synchronization Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-branch
 cn: Synchronization Providers
+
+dn: cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-synchronization-provider
+objectClass: ds-cfg-multimaster-synchronization-provider
+cn: Multimaster Synchronization
+ds-cfg-synchronization-provider-enabled: true
+ds-cfg-synchronization-provider-class: org.opends.server.replication.plugin.MultimasterReplication
+
+dn: cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-branch
+cn: domains
 
 dn: cn=Syntaxes,cn=config
 objectClass: top
@@ -1945,6 +1988,7 @@ cn: Virtual Attributes
 dn: cn=entryDN,cn=Virtual Attributes,cn=config
 objectClass: top
 objectClass: ds-cfg-virtual-attribute
+objectClass: ds-cfg-entrydn-virtual-attribute
 cn: entryDN
 ds-cfg-virtual-attribute-class: org.opends.server.extensions.EntryDNVirtualAttributeProvider
 ds-cfg-virtual-attribute-enabled: true
@@ -1954,15 +1998,27 @@ ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real
 dn: cn=entryUUID,cn=Virtual Attributes,cn=config
 objectClass: top
 objectClass: ds-cfg-virtual-attribute
+objectClass: ds-cfg-entryuuid-virtual-attribute
 cn: entryUUIUD
 ds-cfg-virtual-attribute-class: org.opends.server.extensions.EntryUUIDVirtualAttributeProvider
 ds-cfg-virtual-attribute-enabled: true
 ds-cfg-virtual-attribute-type: entryUUID
 ds-cfg-virtual-attribute-conflict-behavior: real-overrides-virtual
 
+dn: cn=hasSubordinates,cn=Virtual Attributes,cn=config
+objectClass: top
+objectClass: ds-cfg-virtual-attribute
+objectClass: ds-cfg-hassubordinates-virtual-attribute
+cn: hasSubordinates
+ds-cfg-virtual-attribute-class: org.opends.server.extensions.HasSubordinatesVirtualAttributeProvider
+ds-cfg-virtual-attribute-enabled: true
+ds-cfg-virtual-attribute-type: hasSubordinates
+ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real
+
 dn: cn=isMemberOf,cn=Virtual Attributes,cn=config
 objectClass: top
 objectClass: ds-cfg-virtual-attribute
+objectClass: ds-cfg-ismemberof-virtual-attribute
 cn: isMemberOf
 ds-cfg-virtual-attribute-class: org.opends.server.extensions.IsMemberOfVirtualAttributeProvider
 ds-cfg-virtual-attribute-enabled: true
@@ -1970,9 +2026,20 @@ ds-cfg-virtual-attribute-type: isMemberOf
 ds-cfg-virtual-attribute-filter: (objectClass=person)
 ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real
 
+dn: cn=numSubordinates,cn=Virtual Attributes,cn=config
+objectClass: top
+objectClass: ds-cfg-virtual-attribute
+objectClass: ds-cfg-numsubordinates-virtual-attribute
+cn: numSubordinates
+ds-cfg-virtual-attribute-class: org.opends.server.extensions.NumSubordinatesVirtualAttributeProvider
+ds-cfg-virtual-attribute-enabled: true
+ds-cfg-virtual-attribute-type: numSubordinates
+ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real
+
 dn: cn=subschemaSubentry,cn=Virtual Attributes,cn=config
 objectClass: top
 objectClass: ds-cfg-virtual-attribute
+objectClass: ds-cfg-subschemasubentry-virtual-attribute
 cn: subschemaSubentry
 ds-cfg-virtual-attribute-class: org.opends.server.extensions.SubschemaSubentryVirtualAttributeProvider
 ds-cfg-virtual-attribute-enabled: true
@@ -2003,24 +2070,6 @@ ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real
 ds-cfg-virtual-attribute-filter: (&(objectClass=groupOfUniqueNames)(objectClass=ds-virtual-static-group))
 ds-cfg-allow-retrieving-membership: false
 
-dn: cn=numSubordinates,cn=Virtual Attributes,cn=config
-objectClass: top
-objectClass: ds-cfg-virtual-attribute
-cn: numSubordinates
-ds-cfg-virtual-attribute-class: org.opends.server.extensions.NumSubordinatesVirtualAttributeProvider
-ds-cfg-virtual-attribute-enabled: true
-ds-cfg-virtual-attribute-type: numSubordinates
-ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real
-
-dn: cn=hasSubordinates,cn=Virtual Attributes,cn=config
-objectClass: top
-objectClass: ds-cfg-virtual-attribute
-cn: hasSubordinates
-ds-cfg-virtual-attribute-class: org.opends.server.extensions.HasSubordinatesVirtualAttributeProvider
-ds-cfg-virtual-attribute-enabled: true
-ds-cfg-virtual-attribute-type: hasSubordinates
-ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real
-
 dn: cn=Work Queue,cn=config
 objectClass: top
 objectClass: ds-cfg-work-queue
@@ -2030,15 +2079,3 @@ ds-cfg-work-queue-class: org.opends.server.extensions.TraditionalWorkQueue
 ds-cfg-num-worker-threads: 24
 ds-cfg-max-work-queue-capacity: 0
 
-dn: cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
-objectClass: top
-objectClass: ds-cfg-synchronization-provider
-objectClass: ds-cfg-multimaster-synchronization-provider
-cn: Multimaster Synchronization
-ds-cfg-synchronization-provider-enabled: true
-ds-cfg-synchronization-provider-class: org.opends.server.replication.plugin.MultimasterReplication
-
-dn: cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
-objectClass: top
-objectClass: ds-cfg-branch
-cn: domains

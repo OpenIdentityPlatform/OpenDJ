@@ -32,11 +32,12 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import org.opends.server.admin.std.server.VirtualAttributeCfg;
+import org.opends.server.admin.std.server.EntryDNVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
@@ -51,7 +52,6 @@ import org.opends.server.types.SearchScope;
 import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -61,7 +61,7 @@ import static org.opends.server.util.ServerConstants.*;
  * entryDN operational attribute as described in draft-zeilenga-ldap-entrydn.
  */
 public class EntryDNVirtualAttributeProvider
-       extends VirtualAttributeProvider<VirtualAttributeCfg>
+       extends VirtualAttributeProvider<EntryDNVirtualAttributeCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -86,7 +86,7 @@ public class EntryDNVirtualAttributeProvider
    */
   @Override()
   public void initializeVirtualAttributeProvider(
-                            VirtualAttributeCfg configuration)
+                            EntryDNVirtualAttributeCfg configuration)
          throws ConfigException, InitializationException
   {
     // No initialization is required.

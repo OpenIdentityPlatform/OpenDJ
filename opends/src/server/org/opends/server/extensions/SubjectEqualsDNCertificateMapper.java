@@ -25,7 +25,6 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
 
 
 
@@ -34,10 +33,13 @@ import java.security.cert.X509Certificate;
 import javax.security.auth.x500.X500Principal;
 import java.util.concurrent.locks.Lock;
 
-import org.opends.server.admin.std.server.CertificateMapperCfg;
+import org.opends.messages.Message;
+import org.opends.server.admin.std.server.SubjectEqualsDNCertificateMapperCfg;
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -46,8 +48,6 @@ import org.opends.server.types.LockManager;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -59,7 +59,7 @@ import static org.opends.server.util.StaticUtils.*;
  * exactly matches the DN of a user in the Directory Server.
  */
 public class SubjectEqualsDNCertificateMapper
-       extends CertificateMapper<CertificateMapperCfg>
+       extends CertificateMapper<SubjectEqualsDNCertificateMapperCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -82,7 +82,7 @@ public class SubjectEqualsDNCertificateMapper
   /**
    * {@inheritDoc}
    */
-  public void initializeCertificateMapper(CertificateMapperCfg
+  public void initializeCertificateMapper(SubjectEqualsDNCertificateMapperCfg
                                                configuration)
          throws ConfigException, InitializationException
   {

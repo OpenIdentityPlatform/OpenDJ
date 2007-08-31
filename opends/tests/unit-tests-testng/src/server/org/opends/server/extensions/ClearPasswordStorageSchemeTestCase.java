@@ -29,8 +29,8 @@ package org.opends.server.extensions;
 
 
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.PasswordStorageSchemeCfgDefn;
-import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
+import org.opends.server.admin.std.meta.ClearPasswordStorageSchemeCfgDefn;
+import org.opends.server.admin.std.server.ClearPasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 
 
@@ -66,9 +66,9 @@ public class ClearPasswordStorageSchemeTestCase
   {
     ClearPasswordStorageScheme scheme = new ClearPasswordStorageScheme();
 
-    PasswordStorageSchemeCfg configuration =
+    ClearPasswordStorageSchemeCfg configuration =
       AdminTestCaseUtils.getConfiguration(
-          PasswordStorageSchemeCfgDefn.getInstance(),
+          ClearPasswordStorageSchemeCfgDefn.getInstance(),
           configEntry.getEntry()
           );
 

@@ -25,18 +25,15 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
 
 
-
-import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.opends.messages.Message;
+import org.opends.server.admin.std.server.CryptPasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -46,7 +43,11 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.Crypt;
-import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
+
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.extensions.ExtensionsConstants.*;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+
 
 
 /**
@@ -58,7 +59,7 @@ import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
  * vulnerable to dictionary attacks than schemes with larger salts.
  */
 public class CryptPasswordStorageScheme
-       extends PasswordStorageScheme
+       extends PasswordStorageScheme<CryptPasswordStorageSchemeCfg>
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
@@ -78,6 +79,8 @@ public class CryptPasswordStorageScheme
   private final ReentrantLock saltLock = new ReentrantLock();
   private final Crypt crypt = new Crypt();
 
+
+
   /**
    * Creates a new instance of this password storage scheme.  Note that no
    * initialization should be performed here, as all initialization should be
@@ -94,8 +97,8 @@ public class CryptPasswordStorageScheme
    */
   @Override()
   public void initializePasswordStorageScheme(
-          PasswordStorageSchemeCfg configuration)
-          throws ConfigException, InitializationException {
+                   CryptPasswordStorageSchemeCfg configuration)
+         throws ConfigException, InitializationException {
     // Nothing to configure
   }
 
@@ -307,3 +310,4 @@ public class CryptPasswordStorageScheme
     return false;
   }
 }
+

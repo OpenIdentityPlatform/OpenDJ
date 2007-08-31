@@ -29,10 +29,8 @@ package org.opends.server.extensions;
 
 
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.ErrorLogAccountStatusNotificationHandlerCfgDefn;
-import org.opends.server.admin.std.meta.PasswordStorageSchemeCfgDefn;
-import org.opends.server.admin.std.server.ErrorLogAccountStatusNotificationHandlerCfg;
-import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
+import org.opends.server.admin.std.meta.SaltedMD5PasswordStorageSchemeCfgDefn;
+import org.opends.server.admin.std.server.SaltedMD5PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 
 
@@ -69,9 +67,9 @@ public class SaltedMD5PasswordStorageSchemeTestCase
     SaltedMD5PasswordStorageScheme scheme =
          new SaltedMD5PasswordStorageScheme();
 
-    PasswordStorageSchemeCfg configuration =
+    SaltedMD5PasswordStorageSchemeCfg configuration =
       AdminTestCaseUtils.getConfiguration(
-          PasswordStorageSchemeCfgDefn.getInstance(),
+          SaltedMD5PasswordStorageSchemeCfgDefn.getInstance(),
           configEntry.getEntry()
           );
 

@@ -29,8 +29,9 @@ package org.opends.server.extensions;
 
 
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.PasswordStorageSchemeCfgDefn;
-import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
+import org.opends.server.admin.std.meta.
+            SaltedSHA384PasswordStorageSchemeCfgDefn;
+import org.opends.server.admin.std.server.SaltedSHA384PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 
 
@@ -67,9 +68,9 @@ public class SaltedSHA384PasswordStorageSchemeTestCase
     SaltedSHA384PasswordStorageScheme scheme =
          new SaltedSHA384PasswordStorageScheme();
 
-    PasswordStorageSchemeCfg configuration =
+    SaltedSHA384PasswordStorageSchemeCfg configuration =
       AdminTestCaseUtils.getConfiguration(
-          PasswordStorageSchemeCfgDefn.getInstance(),
+          SaltedSHA384PasswordStorageSchemeCfgDefn.getInstance(),
           configEntry.getEntry()
           );
 

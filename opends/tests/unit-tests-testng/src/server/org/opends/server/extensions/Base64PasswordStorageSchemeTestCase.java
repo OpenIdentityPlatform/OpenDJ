@@ -29,8 +29,8 @@ package org.opends.server.extensions;
 
 
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.PasswordStorageSchemeCfgDefn;
-import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
+import org.opends.server.admin.std.meta.Base64PasswordStorageSchemeCfgDefn;
+import org.opends.server.admin.std.server.Base64PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 
 
@@ -66,9 +66,9 @@ public class Base64PasswordStorageSchemeTestCase
   {
     Base64PasswordStorageScheme scheme = new Base64PasswordStorageScheme();
 
-    PasswordStorageSchemeCfg configuration =
+    Base64PasswordStorageSchemeCfg configuration =
       AdminTestCaseUtils.getConfiguration(
-          PasswordStorageSchemeCfgDefn.getInstance(),
+          Base64PasswordStorageSchemeCfgDefn.getInstance(),
           configEntry.getEntry()
           );
 

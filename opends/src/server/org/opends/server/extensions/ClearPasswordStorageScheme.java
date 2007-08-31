@@ -25,11 +25,13 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+
+
+
+import java.util.Arrays;
+
 import org.opends.messages.Message;
-
-
-
-import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
+import org.opends.server.admin.std.server.ClearPasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ByteString;
@@ -38,9 +40,8 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.messages.ExtensionMessages.*;
-import java.util.Arrays;
+import static org.opends.server.extensions.ExtensionsConstants.*;
 
 
 
@@ -51,11 +52,8 @@ import java.util.Arrays;
  * applications.
  */
 public class ClearPasswordStorageScheme
-       extends PasswordStorageScheme <PasswordStorageSchemeCfg>
+       extends PasswordStorageScheme<ClearPasswordStorageSchemeCfg>
 {
-
-
-
   /**
    * Creates a new instance of this password storage scheme.  Note that no
    * initialization should be performed here, as all initialization should be
@@ -64,7 +62,6 @@ public class ClearPasswordStorageScheme
   public ClearPasswordStorageScheme()
   {
     super();
-
   }
 
 
@@ -74,9 +71,8 @@ public class ClearPasswordStorageScheme
    */
   @Override()
   public void initializePasswordStorageScheme(
-      PasswordStorageSchemeCfg configuration
-      )
-  throws ConfigException, InitializationException
+                   ClearPasswordStorageSchemeCfg configuration)
+         throws ConfigException, InitializationException
   {
     // No initialization is required.
   }

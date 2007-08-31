@@ -25,7 +25,6 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
 
 
 
@@ -33,7 +32,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
+import org.opends.messages.Message;
+import org.opends.server.admin.std.server.
+            PasswordPolicyStateExtendedOperationHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
@@ -63,8 +64,8 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -136,7 +137,8 @@ import static org.opends.server.util.StaticUtils.*;
  * set*, add*, remove*, or clear* operation).
  */
 public class PasswordPolicyStateExtendedOperation
-       extends ExtendedOperationHandler<ExtendedOperationHandlerCfg>
+       extends ExtendedOperationHandler<
+                    PasswordPolicyStateExtendedOperationHandlerCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -472,8 +474,8 @@ public class PasswordPolicyStateExtendedOperation
    *                                   configuration.
    */
   public void initializeExtendedOperationHandler(
-       ExtendedOperationHandlerCfg config)
-       throws ConfigException, InitializationException
+                   PasswordPolicyStateExtendedOperationHandlerCfg config)
+         throws ConfigException, InitializationException
   {
     // Construct the filter that will be used to retrieve user entries.
     try

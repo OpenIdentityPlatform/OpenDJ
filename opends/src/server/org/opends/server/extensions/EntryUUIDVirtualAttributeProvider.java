@@ -25,7 +25,6 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
 
 
 
@@ -33,7 +32,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.UUID;
 
-import org.opends.server.admin.std.server.VirtualAttributeCfg;
+import org.opends.messages.Message;
+import org.opends.server.admin.std.server.EntryUUIDVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.SearchOperation;
@@ -48,8 +48,8 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.VirtualAttributeRule;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -64,7 +64,7 @@ import static org.opends.server.util.StaticUtils.*;
  * time the entries are added or imported.
  */
 public class EntryUUIDVirtualAttributeProvider
-       extends VirtualAttributeProvider<VirtualAttributeCfg>
+       extends VirtualAttributeProvider<EntryUUIDVirtualAttributeCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -89,7 +89,7 @@ public class EntryUUIDVirtualAttributeProvider
    */
   @Override()
   public void initializeVirtualAttributeProvider(
-                            VirtualAttributeCfg configuration)
+                            EntryUUIDVirtualAttributeCfg configuration)
          throws ConfigException, InitializationException
   {
     // No initialization is required.

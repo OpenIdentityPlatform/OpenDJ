@@ -25,7 +25,6 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins;
-import org.opends.messages.Message;
 
 
 
@@ -34,18 +33,22 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
+import org.opends.server.admin.std.server.LastModPluginCfg;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PreOperationPluginResult;
 import org.opends.server.config.ConfigException;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
@@ -56,13 +59,12 @@ import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 
-import static org.opends.server.config.ConfigConstants.*;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.messages.PluginMessages.*;
-
-import static org.opends.server.util.TimeThread.*;
+import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import static org.opends.server.util.TimeThread.*;
+
+
 
 /**
  * This class implements a Directory Server plugin that will add the
@@ -71,8 +73,8 @@ import org.opends.server.loggers.debug.DebugTracer;
  * whenever the entry is modified or renamed.
  */
 public final class LastModPlugin
-       extends DirectoryServerPlugin<PluginCfg>
-       implements ConfigurationChangeListener<PluginCfg>
+       extends DirectoryServerPlugin<LastModPluginCfg>
+       implements ConfigurationChangeListener<LastModPluginCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -91,6 +93,9 @@ public final class LastModPlugin
   // The attribute type for the "modifyTimestamp" attribute.
   private final AttributeType modifyTimestampType;
 
+  // The current configuration for this plugin.
+  private LastModPluginCfg currentConfig;
+
 
 
   /**
@@ -102,7 +107,6 @@ public final class LastModPlugin
   public LastModPlugin()
   {
     super();
-
 
 
     // Get the attribute types for the attributes that we will use.  This needs
@@ -125,10 +129,11 @@ public final class LastModPlugin
    */
   @Override()
   public final void initializePlugin(Set<PluginType> pluginTypes,
-                                     PluginCfg configuration)
+                                     LastModPluginCfg configuration)
          throws ConfigException
   {
-    configuration.addChangeListener(this);
+    currentConfig = configuration;
+    configuration.addLastModChangeListener(this);
 
     // Make sure that the plugin has been enabled for the appropriate types.
     for (PluginType t : pluginTypes)
@@ -148,6 +153,17 @@ public final class LastModPlugin
           throw new ConfigException(message);
       }
     }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void finalizePlugin()
+  {
+    currentConfig.removeLastModChangeListener(this);
   }
 
 
@@ -332,7 +348,8 @@ public final class LastModPlugin
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<Message> unacceptableReasons)
   {
-    return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
+    LastModPluginCfg cfg = (LastModPluginCfg) configuration;
+    return isConfigurationChangeAcceptable(cfg, unacceptableReasons);
   }
 
 
@@ -340,7 +357,7 @@ public final class LastModPlugin
   /**
    * {@inheritDoc}
    */
-  public boolean isConfigurationChangeAcceptable(PluginCfg configuration,
+  public boolean isConfigurationChangeAcceptable(LastModPluginCfg configuration,
                       List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
@@ -374,9 +391,10 @@ public final class LastModPlugin
   /**
    * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationChange(PluginCfg configuration)
+  public ConfigChangeResult applyConfigurationChange(
+                                 LastModPluginCfg configuration)
   {
-    // No implementation is required.
+    currentConfig = configuration;
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 }

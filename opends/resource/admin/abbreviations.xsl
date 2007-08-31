@@ -48,7 +48,9 @@
               or $value = 'jdbc' or $value = 'tcp' or $value = 'tls'
               or $value = 'pkcs11' or $value = 'sasl' or $value = 'gssapi'
               or $value = 'md5' or $value = 'je' or $value = 'dse'
-              or $value = 'fifo' or $value= 'vlv'
+              or $value = 'fifo' or $value = 'vlv' or $value = 'uuid'
+              or $value = 'md5' or $value = 'sha1' or $value = 'sha256'
+              or $value = 'sha384' or $value = 'sha512' or $value = 'tls'
              "/>
   </xsl:template>
 </xsl:stylesheet>
