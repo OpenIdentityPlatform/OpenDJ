@@ -485,19 +485,16 @@ class UninstallCliHelper extends CliApplicationHelper {
             else
             {
               userData.setStopServer(false);
-              if (interactive)
-              {
-                printLineBreak();
-                /* Ask for confirmation to delete files */
-                cancelled = !confirmDeleteFiles();
-              }
+              printLineBreak();
+              /* Ask for confirmation to delete files */
+              cancelled = !confirmDeleteFiles();
             }
           }
           else
           {
             printLineBreak();
-            /* Ask for confirmation to stop server */
-            cancelled = !confirmToStopServer();
+            /* Ask for confirmation to delete files */
+            cancelled = !confirmDeleteFiles();
           }
         }
         else
