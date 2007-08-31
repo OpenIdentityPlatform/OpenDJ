@@ -275,20 +275,23 @@ public final class EntryEncodeConfig
    * Decodes the entry encode configuration from the specified portion
    * of the given byte array.
    *
-   * @param  encodedEntry  The byte array containing the encoded
-   *                       entry.
-   * @param  startPos      The position at which to start decoding the
-   *                       encode configuration.
-   * @param  length        The number of bytes contained in the encode
-   *                       configuration.
+   * @param  encodedEntry      The byte array containing the encoded
+   *                           entry.
+   * @param  startPos          The position at which to start decoding
+   *                           the encode configuration.
+   * @param  length            The number of bytes contained in the
+   *                           encode configuration.
+   * @param  compressedSchema  The compressed schema manager to use
+   *                           when decoding.
    *
    * @return  The decoded configuration.
    *
    * @throws  DirectoryException  If the configuration cannot be
    *                              properly decoded.
    */
-  public static EntryEncodeConfig decode(byte[] encodedEntry,
-                                         int startPos, int length)
+  public static EntryEncodeConfig
+                     decode(byte[] encodedEntry, int startPos,
+                     int length, CompressedSchema compressedSchema)
          throws DirectoryException
   {
     if (length != 1)
@@ -321,7 +324,8 @@ public final class EntryEncodeConfig
     }
 
     return new EntryEncodeConfig(excludeDN, compressAttrDescriptions,
-                                 compressObjectClassSets);
+                                 compressObjectClassSets,
+                                 compressedSchema);
   }
 
 

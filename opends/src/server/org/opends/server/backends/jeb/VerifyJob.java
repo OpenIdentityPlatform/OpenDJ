@@ -472,7 +472,8 @@ public class VerifyJob
         Entry entry;
         try
         {
-          entry = JebFormat.entryFromDatabase(data.getData());
+          entry = JebFormat.entryFromDatabase(data.getData(),
+                                 rootContainer.getCompressedSchema());
         }
         catch (Exception e)
         {

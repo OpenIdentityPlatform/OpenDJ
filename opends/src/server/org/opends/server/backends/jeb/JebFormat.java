@@ -27,6 +27,7 @@
 package org.opends.server.backends.jeb;
 
 
+import org.opends.server.api.CompressedSchema;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Exception;
@@ -145,6 +146,7 @@ public class JebFormat
    * </pre>
    *
    * @param bytes A byte array containing the encoded database value.
+   * @param compressedSchema The compressed schema manager to use when decoding.
    * @return The decoded entry.
    * @throws ASN1Exception If the data is not in the expected ASN.1 encoding
    * format.
@@ -154,17 +156,19 @@ public class JebFormat
    * compressed data.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  static public Entry entryFromDatabase(byte[] bytes)
+  static public Entry entryFromDatabase(byte[] bytes,
+                                        CompressedSchema compressedSchema)
        throws DirectoryException,ASN1Exception,LDAPException,DataFormatException
   {
     byte[] uncompressedBytes = decodeDatabaseEntry(bytes);
-    return decodeDirectoryServerEntry(uncompressedBytes);
+    return decodeDirectoryServerEntry(uncompressedBytes, compressedSchema);
   }
 
   /**
    * Decode an entry from a ASN1 encoded DirectoryServerEntry.
    *
    * @param bytes A byte array containing the encoding of DirectoryServerEntry.
+   * @param compressedSchema The compressed schema manager to use when decoding.
    * @return The decoded entry.
    * @throws ASN1Exception If the data is not in the expected ASN.1 encoding
    * format.
@@ -172,10 +176,11 @@ public class JebFormat
    * format.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  static private Entry decodeDirectoryServerEntry(byte[] bytes)
+  static private Entry decodeDirectoryServerEntry(byte[] bytes,
+                            CompressedSchema compressedSchema)
        throws DirectoryException,ASN1Exception,LDAPException
   {
-    return Entry.decode(bytes);
+    return Entry.decode(bytes, compressedSchema);
   }
 
   /**
@@ -261,7 +266,7 @@ public class JebFormat
   static public byte[] entryToDatabase(Entry entry)
          throws DirectoryException
   {
-    return entryToDatabase(entry, new DataConfig(false, false));
+    return entryToDatabase(entry, new DataConfig(false, false, null));
   }
 
   /**

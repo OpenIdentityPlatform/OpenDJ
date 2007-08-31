@@ -228,7 +228,8 @@ public class ExportJob
         Entry entry = null;
         try
         {
-          entry = JebFormat.entryFromDatabase(data.getData());
+          entry = JebFormat.entryFromDatabase(data.getData(),
+                       entryContainer.getRootContainer().getCompressedSchema());
         }
         catch (Exception e)
         {

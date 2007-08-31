@@ -28,6 +28,8 @@ package org.opends.server.backends.jeb;
 
 import org.opends.server.types.EntryEncodeConfig;
 
+import static org.opends.server.util.Validator.*;
+
 /**
  * Configuration class to indicate desired compression and cryptographic options
  * for the data stored in the database.
@@ -50,12 +52,25 @@ public class DataConfig
    * @param compressed true if data should be compressed, false if not.
    * @param compactEncoding true if data should be encoded in compact form,
    * false if not.
+   * @param compressedSchema the compressed schema manager to use.  It must not
+   * be {@code null} if compactEncoding is {@code true}.
    */
-  public DataConfig(boolean compressed, boolean compactEncoding)
+  public DataConfig(boolean compressed, boolean compactEncoding,
+                    JECompressedSchema compressedSchema)
   {
     this.compressed = compressed;
-    this.encodeConfig = new EntryEncodeConfig(false, compactEncoding,
-                                              compactEncoding);
+
+    if (compressedSchema == null)
+    {
+      ensureTrue(! compactEncoding);
+      this.encodeConfig = new EntryEncodeConfig(false, compactEncoding, false);
+    }
+    else
+    {
+      this.encodeConfig =
+           new EntryEncodeConfig(false, compactEncoding, compactEncoding,
+                                 compressedSchema);
+    }
   }
 
   /**
@@ -93,11 +108,24 @@ public class DataConfig
    * writing to the database.
    * @param compactEncoding true if data should be encoded in compact form,
    * false if not.
+   * @param compressedSchema The compressed schema manager to use.  It must not
+   * be {@code null} if compactEncoding is {@code true}.
    */
-  public void setCompactEncoding(boolean compactEncoding)
+  public void setCompactEncoding(boolean compactEncoding,
+                                 JECompressedSchema compressedSchema)
   {
-    this.encodeConfig = new EntryEncodeConfig(false, compactEncoding,
-                                              compactEncoding);
+    if (compressedSchema == null)
+    {
+      ensureTrue(! compactEncoding);
+      this.encodeConfig = new EntryEncodeConfig(false, compactEncoding,
+                                                compactEncoding);
+    }
+    else
+    {
+      this.encodeConfig = new EntryEncodeConfig(false, compactEncoding,
+                                                compactEncoding,
+                                                compressedSchema);
+    }
   }
 
   /**
