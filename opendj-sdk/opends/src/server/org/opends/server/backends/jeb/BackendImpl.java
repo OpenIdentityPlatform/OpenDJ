@@ -623,7 +623,18 @@ public class BackendImpl
    */
   public long numSubordinates(DN entryDN) throws DirectoryException
   {
-    EntryContainer ec = rootContainer.getEntryContainer(entryDN);
+    EntryContainer ec;
+    if (rootContainer != null)
+    {
+      ec = rootContainer.getEntryContainer(entryDN);
+    }
+    else
+    {
+      Message message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+              message);
+    }
+
     if(ec == null)
     {
       return -1;
@@ -669,7 +680,19 @@ public class BackendImpl
   public Entry getEntry(DN entryDN) throws DirectoryException
   {
     readerBegin();
-    EntryContainer ec = rootContainer.getEntryContainer(entryDN);
+
+    EntryContainer ec;
+    if (rootContainer != null)
+    {
+      ec = rootContainer.getEntryContainer(entryDN);
+    }
+    else
+    {
+      Message message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+              message);
+    }
+
     ec.sharedLock.lock();
     Entry entry;
     try
@@ -721,7 +744,19 @@ public class BackendImpl
   {
     writerBegin();
     DN entryDN = entry.getDN();
-    EntryContainer ec = rootContainer.getEntryContainer(entryDN);
+
+    EntryContainer ec;
+    if (rootContainer != null)
+    {
+      ec = rootContainer.getEntryContainer(entryDN);
+    }
+    else
+    {
+      Message message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+              message);
+    }
+
     ec.sharedLock.lock();
     try
     {
@@ -771,7 +806,18 @@ public class BackendImpl
   {
     writerBegin();
 
-    EntryContainer ec = rootContainer.getEntryContainer(entryDN);
+    EntryContainer ec;
+    if (rootContainer != null)
+    {
+      ec = rootContainer.getEntryContainer(entryDN);
+    }
+    else
+    {
+      Message message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+              message);
+    }
+
     ec.sharedLock.lock();
     try
     {
@@ -822,7 +868,18 @@ public class BackendImpl
     writerBegin();
 
     DN entryDN = entry.getDN();
-    EntryContainer ec = rootContainer.getEntryContainer(entryDN);
+    EntryContainer ec;
+    if (rootContainer != null)
+    {
+      ec = rootContainer.getEntryContainer(entryDN);
+    }
+    else
+    {
+      Message message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+              message);
+    }
+
     ec.sharedLock.lock();
 
     try
@@ -878,8 +935,19 @@ public class BackendImpl
       throws DirectoryException, CancelledOperationException
   {
     writerBegin();
-    EntryContainer currentContainer = rootContainer.getEntryContainer(
-        currentDN);
+
+    EntryContainer currentContainer;
+    if (rootContainer != null)
+    {
+      currentContainer = rootContainer.getEntryContainer(currentDN);
+    }
+    else
+    {
+      Message message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+              message);
+    }
+
     EntryContainer container = rootContainer.getEntryContainer(entry.getDN());
 
     if (currentContainer != container)
@@ -935,8 +1003,18 @@ public class BackendImpl
       throws DirectoryException
   {
     readerBegin();
-    EntryContainer ec = rootContainer.getEntryContainer(
-        searchOperation.getBaseDN());
+
+    EntryContainer ec;
+    if (rootContainer != null)
+    {
+      ec = rootContainer.getEntryContainer(searchOperation.getBaseDN());
+    }
+    else
+    {
+      Message message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+              message);
+    }
     ec.sharedLock.lock();
 
     try
