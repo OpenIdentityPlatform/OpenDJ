@@ -148,6 +148,18 @@ public class GuiUserInteraction implements UserInteraction {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  public String promptForString(Message prompt, Message title,
+                                String defaultValue) {
+    Object o = JOptionPane.showInputDialog(
+            parent, prompt.toString(), title.toString(),
+            JOptionPane.QUESTION_MESSAGE,
+            null, null, defaultValue);
+    return o != null ? o.toString() : null;
+  }
+
+  /**
    * JOptionPane that controls the number of characters that are allowed
    * to appear on a single line in the input area of the dialog.
    */

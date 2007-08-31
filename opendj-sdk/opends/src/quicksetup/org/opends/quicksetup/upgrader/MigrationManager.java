@@ -32,7 +32,7 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.quicksetup.ApplicationException;
-import org.opends.quicksetup.ApplicationReturnCode;
+import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserInteraction;
 import org.opends.quicksetup.Constants;
@@ -179,7 +179,7 @@ public class MigrationManager {
       Message msg = INFO_ERROR_APPLYING_CUSTOM_CONFIG.get();
       LOG.log(Level.INFO, msg.toString(), e);
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.IMPORT_ERROR, msg, e);
+          ReturnCode.IMPORT_ERROR, msg, e);
     }
   }
 
@@ -201,7 +201,7 @@ public class MigrationManager {
       Message msg = INFO_ERROR_APPLYING_CUSTOM_SCHEMA.get();
       LOG.log(Level.INFO, msg.toString(), e);
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.IMPORT_ERROR, msg, e);
+          ReturnCode.IMPORT_ERROR, msg, e);
     }
   }
 
@@ -274,7 +274,7 @@ public class MigrationManager {
             // do nothing; will retry;
           } else {
             throw new ApplicationException(
-                ApplicationReturnCode.ReturnCode.CANCELLED,
+                ReturnCode.CANCELLED,
                 INFO_UPGRADE_CANCELED.get(), e);
           }
         } else {
@@ -341,7 +341,7 @@ public class MigrationManager {
     int ret = oo.getReturnCode();
     if (ret != 0) {
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.TOOL_ERROR,
+          ReturnCode.TOOL_ERROR,
               INFO_ERROR_LDIF_DIFF_TOOL_RETURN_CODE.get(Integer.toString(ret)),
               null);
     }

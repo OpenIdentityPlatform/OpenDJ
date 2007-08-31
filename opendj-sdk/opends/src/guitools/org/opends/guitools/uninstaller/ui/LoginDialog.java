@@ -59,7 +59,7 @@ import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.Step;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.UserDataCertificateException;
-import org.opends.quicksetup.ApplicationReturnCode.ReturnCode;
+import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.ui.UIFactory;

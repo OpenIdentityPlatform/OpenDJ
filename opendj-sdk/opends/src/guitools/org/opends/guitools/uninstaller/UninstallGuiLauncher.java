@@ -34,7 +34,7 @@ import static org.opends.server.tools.ToolConstants.OPTION_SHORT_HELP;
 import java.io.File;
 import java.util.logging.Logger;
 
-import org.opends.quicksetup.ApplicationReturnCode;
+import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.util.Utils;
@@ -136,15 +136,14 @@ public class UninstallGuiLauncher extends UninstallLauncher {
       {
         printVersion();
       }
-      System.exit(ApplicationReturnCode.ReturnCode.PRINT_VERSION
-          .getReturnCode());
+      System.exit(ReturnCode.PRINT_VERSION.getReturnCode());
     }
     else if (shouldPrintUsage()) {
       if (!argParser.usageOrVersionDisplayed())
       {
         printUsage(false);
       }
-      System.exit(ApplicationReturnCode.ReturnCode.SUCCESSFUL.getReturnCode());
+      System.exit(ReturnCode.SUCCESSFUL.getReturnCode());
     } else {
       willLaunchGui();
       int exitCode = launchGui(args);

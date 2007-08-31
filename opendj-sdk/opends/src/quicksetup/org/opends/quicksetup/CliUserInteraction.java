@@ -144,6 +144,15 @@ public class CliUserInteraction extends CliApplicationHelper
     return sb.toString();
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public String promptForString(Message prompt, Message title,
+                                String defaultValue) {
+
+    return promptForString(prompt, defaultValue);
+  }
+
   private String createOption(int index, String option) {
     return new StringBuilder().
             append(Integer.toString(index)).

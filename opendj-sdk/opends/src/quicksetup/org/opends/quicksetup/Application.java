@@ -605,7 +605,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
   public UserInteraction userInteraction() {
     // Note:  overridden in GuiApplication
     UserInteraction ui = null;
-    if (!getUserData().isQuiet()) {
+    UserData ud = getUserData();
+    if (ud != null && ud.isInteractive()) {
       ui = new CliUserInteraction();
     }
     return ui;
@@ -721,7 +722,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
       Message errorMessage = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
           server.getHostPort(true), ne.toString(true));
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR, errorMessage,
+          ReturnCode.CONFIGURATION_ERROR, errorMessage,
           ne);
     }
     return ctx;

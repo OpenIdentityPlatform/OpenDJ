@@ -91,6 +91,7 @@ public class UserData
    * Creates a user data object with default values.
    */
   public UserData() {
+    interactive = true;
     startServer = true;
     enableWindowsService = false;
     forceOnError = true;
@@ -509,7 +510,7 @@ public class UserData
    * @return boolean where true indicates this session should be interactive
    */
   public boolean isInteractive() {
-    return !this.quiet && this.interactive;
+    return this.interactive;
   }
 
   /**

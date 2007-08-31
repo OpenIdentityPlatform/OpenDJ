@@ -43,10 +43,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * BuildExtractor unzips an OpenDS installation package (.zip file) from a user
- * specified location into the current builds staging directory.  This Java
- * program handles this task so that we don't need to rely on the operating
- * system's tools for managing zip files.
+ * BuildExtractor runs prior to an upgrade or reversion operation.  Its main
+ * purpose is to unzip an OpenDS installation package (.zip file) from a user
+ * specified location into the current builds staging directory.  However,
+ * this program is also responsible for determining whether or not this
+ * invocation is intended to be an upgrade or reversion operation.  If this
+ * is a reversion, this program just exists with the appropriate exit code
+ * indicating reversion.  If this is an upgrade this program unzips the
+ * installation package.
+ *
+ * This Java program handles unzipping files so that we don't need to rely on
+ * the operating system's tools for managing zip files.
  *
  * This tool is a stand-alone program since it is run in preparation for a
  * off line upgrade and runs using the current program's jars rather than
@@ -59,6 +66,12 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
 
   static private final Logger LOG =
           Logger.getLogger(BuildExtractor.class.getName());
+
+  /** Return code indicating that this invocation is an upgrade. */
+  private static final int RC_CONTINUE_WITH_UPGRADE = 99;
+
+  /** Return code indicating that this invocation is a reversion. */
+  private static final int RC_CONTINUE_WITH_REVERSION = 98;
 
   /**
    * Creates and run a BuildExtractor using command line arguments.
@@ -78,13 +91,13 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
     new BuildExtractor(args).launch();
   }
 
-  private BuildExtractorCliHelper helper = new BuildExtractorCliHelper();
-
   private UpgradeUserData userData;
 
   private boolean finished;
 
   private ApplicationException error;
+
+  private ReturnCode rc;
 
   private BuildExtractor(String[] args) {
     super(args);
@@ -101,37 +114,49 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
    * contents into the current build's staging are and exits with return code 0.
    */
   public void run() {
-    try {
-      UpgradeUserData uud = (UpgradeUserData)getUserData();
-      File buildFile = uud.getInstallPackage();
-      if (buildFile != null) {
-        LOG.log(Level.INFO, "expanding zip file " + buildFile.getPath());
-        File stageDirectory = initStageDirectory();
-        ZipExtractor extractor = new ZipExtractor(buildFile);
-        extractor.extract(stageDirectory);
-        LOG.log(Level.INFO, "extraction finished");
-        Installation installation = new Installation(stageDirectory);
-        if (!installation.isValid()) {
-          LOG.log(Level.INFO, "extraction produed an invalid OpenDS" +
-                  "installation: " + installation.getInvalidityReason());
-          Message invalidMsg = INFO_BUILD_EXTRACTOR_FILE_INVALID.get(
-                  Utils.getPath(buildFile),
-                  installation.getInvalidityReason());
-          error = new ApplicationException(
-              ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
-                  invalidMsg, null);
-          System.err.println(invalidMsg);
+    UpgradeUserData uud = (UpgradeUserData)getUserData();
+    if (UpgradeUserData.Operation.REVERSION.equals(uud.getOperation())) {
+      rc = new ReturnCode(RC_CONTINUE_WITH_REVERSION);
+    } else {
+      try {
+        File buildFile = uud.getInstallPackage();
+        if (buildFile != null) {
+          LOG.log(Level.INFO, "Expanding zip file " + buildFile.getPath());
+          File stageDirectory = initStageDirectory();
+          ZipExtractor extractor = new ZipExtractor(buildFile);
+          extractor.extract(stageDirectory);
+          LOG.log(Level.INFO, "Extraction finished");
+          Installation installation = new Installation(stageDirectory);
+          if (!installation.isValid()) {
+            LOG.log(Level.INFO, "Extraction produed an invalid OpenDS" +
+                    "installation: " + installation.getInvalidityReason());
+            Message invalidMsg = INFO_BUILD_EXTRACTOR_FILE_INVALID.get(
+                    Utils.getPath(buildFile),
+                    installation.getInvalidityReason());
+            error = new ApplicationException(
+                ReturnCode.APPLICATION_ERROR,
+                    invalidMsg, null);
+            System.err.println(invalidMsg);
+          }
+          rc = new ReturnCode(RC_CONTINUE_WITH_UPGRADE);
+        } else {
+          // This should never happen assuming createUserData did the
+          // right thing
+          LOG.log(Level.INFO, "Build extractor failed to " +
+                  "specify valid installation zip file");
+          throw new IllegalStateException("Build extractor failed to " +
+                  "specify valid installation zip file");
         }
+      } catch (Throwable t) {
+        LOG.log(Level.INFO, "Unexpected error extracting build", t);
+        String reason = t.getLocalizedMessage();
+        error = new ApplicationException(
+                ReturnCode.APPLICATION_ERROR,
+                INFO_BUILD_EXTRACTOR_ERROR.get(reason), t);
+        System.err.println(reason);
+      } finally   {
+        finished = true;
       }
-    } catch (Throwable t) {
-      LOG.log(Level.INFO, "unexpected error extracting build", t);
-      String reason = t.getLocalizedMessage();
-      error = new ApplicationException(
-              ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
-              INFO_BUILD_EXTRACTOR_ERROR.get(reason), t);
-      System.err.println(reason);
-    } finally   {
-      finished = true;
     }
   }
 
@@ -173,7 +198,21 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
   public UserData createUserData(Launcher launcher)
           throws UserDataException
   {
-    return helper.createUserData(args);
+    BuildExtractorCliHelper helper =
+            new BuildExtractorCliHelper((UpgradeLauncher)launcher);
+    UpgradeUserData uud = helper.createUserData(args);
+
+    // Build Extractor is always quiet
+    uud.setQuiet(true);
+
+    // The user may have indicated the operation via interactivity
+    if (UpgradeUserData.Operation.UPGRADE.equals(uud.getOperation())) {
+      isUpgrade = true;
+    } else if (UpgradeUserData.Operation.REVERSION.equals(uud.getOperation())) {
+      isReversion = true;
+    }
+
+    return uud;
   }
 
   /**
@@ -211,6 +250,13 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
    */
   public ApplicationException getRunError() {
     return error;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public ReturnCode getReturnCode() {
+    return rc;
   }
 
   /**

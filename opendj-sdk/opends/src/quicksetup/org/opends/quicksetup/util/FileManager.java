@@ -162,14 +162,14 @@ public class FileManager {
         if (target.exists()) {
           if (!target.delete()) {
             throw new ApplicationException(
-                    ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+                    ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
                     INFO_ERROR_DELETING_FILE.get(Utils.getPath(target)), null);
           }
         }
       }
       if (!fileToRename.renameTo(target)) {
         throw new ApplicationException(
-                ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+                ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
                 INFO_ERROR_RENAMING_FILE.get(Utils.getPath(fileToRename),
                         Utils.getPath(target)), null);
       }
@@ -525,7 +525,7 @@ public class FileManager {
                       objectFile.getAbsolutePath(),
                       destination.getAbsolutePath());
               throw new ApplicationException(
-                      ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+                      ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
                       errMsg, null);
             } finally {
               if (fis != null) {
@@ -548,7 +548,7 @@ public class FileManager {
                     objectFile.getAbsolutePath(),
                     destination.getAbsolutePath());
             throw new ApplicationException(
-                    ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+                    ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
                     errMsg, null);
           }
         } else {
@@ -654,7 +654,7 @@ public class FileManager {
           errMsg = INFO_ERROR_DELETING_DIRECTORY.get(file.getAbsolutePath());
         }
         throw new ApplicationException(
-                ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+                ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
                 errMsg, null);
       }
 

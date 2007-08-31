@@ -37,12 +37,14 @@ import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.QuickSetupLog;
+import org.opends.quicksetup.ReturnCode;
 
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.FileBasedArgument;
+import org.opends.server.util.args.ArgumentException;
+import org.opends.server.util.args.StringArgument;
 
 import java.util.logging.Logger;
 import java.io.File;
@@ -65,6 +67,24 @@ public class UpgradeLauncher extends Launcher {
   /** Long form of the option for specifying the installation package file. */
   static public final String FILE_OPTION_LONG = "file";
 
+  /** Short form of the option for specifying the reversion files directory. */
+  static public final Character REVERT_ARCHIVE_OPTION_SHORT = 'a';
+
+  /** Long form of the option for specifying the reversion files directory. */
+  static public final String REVERT_ARCHIVE_OPTION_LONG = "reversionArchive";
+
+  /** Short form of the option for specifying the 'most recent' option. */
+  static public final Character REVERT_MOST_RECENT_OPTION_SHORT = 'r';
+
+  /** Long form of the option for specifying the 'most recent' option. */
+  static public final String REVERT_MOST_RECENT_OPTION_LONG ="revertMostRecent";
+
+  /** Indicates that this operation is an upgrade as opposed to reversion. */
+  protected boolean isUpgrade;
+
+  /** Indicates that this operation is a reversion as opposed to an upgrade. */
+  protected boolean isReversion;
+
   /**
    * The main method which is called by the setup command lines.
    *
@@ -83,6 +103,14 @@ public class UpgradeLauncher extends Launcher {
   }
 
   private ArgumentParser argParser;
+
+  private BooleanArgument showUsage;
+  private StringArgument file;
+  private BooleanArgument quiet;
+  private BooleanArgument noPrompt;
+  private BooleanArgument revertMostRecent;
+  private StringArgument reversionArchive;
+
 
   /**
    * {@inheritDoc}
@@ -158,6 +186,94 @@ public class UpgradeLauncher extends Launcher {
   }
 
   /**
+   * Indicates whether or not this operation is silent.
+   * @return boolean where true indicates silence
+   */
+  public boolean isQuiet() {
+    return quiet.isPresent();
+  }
+
+  /**
+   * Indicates whether or not this operation is interactive.
+   * @return boolean where true indicates noninteractive
+   */
+  public boolean isNoPrompt() {
+    return noPrompt.isPresent();
+  }
+
+  /**
+   * Indicates whether this invocation is intended to upgrade the current
+   * build as opposed to revert.
+   * @return boolean where true indicates upgrade
+   */
+  public boolean isUpgrade() {
+    return isUpgrade;
+  }
+
+  /**
+   * Indicates whether this invocation is intended to revert the current
+   * build as opposed to upgrade.
+   * @return boolean where true indicates revert
+   */
+  public boolean isReversion() {
+    return isReversion;
+  }
+
+  /**
+   * Indicates that none of the options that indicate an upgrade
+   * or reversion where specified on the command line so we are going
+   * to have to prompt for the information or fail.
+   *
+   * @return boolean where true means this application needs to ask
+   *         the user which operation they would like to perform; false
+   *         means no further input is required
+   */
+  public boolean isInteractive() {
+    return !file.isPresent() &&
+            !reversionArchive.isPresent() &&
+            !revertMostRecent.isPresent();
+  }
+
+  /**
+   * Gets the name of the file to be used for upgrade.
+   * @return name of the upgrade file
+   */
+  public String getUpgradeFileName() {
+    return file.getValue();
+  }
+
+  /**
+   * Gets the name of the directory to be used for reversion.
+   * @return name of the reversion directory
+   */
+  public String getReversionArchiveDirectoryName() {
+    return reversionArchive.getValue();
+  }
+
+
+  /**
+   * Gets the file's directory if specified on the command line.
+   * @return File representing the directory where the reversion files are
+   * stored.
+   */
+  public File getReversionArchiveDirectory() {
+    File f = null;
+    String s = reversionArchive.getValue();
+    if (s != null) {
+      f = new File(s);
+    }
+    return f;
+  }
+
+  /**
+   * Indicates whether the user has specified the 'mostRecent' option.
+   * @return boolean where true indicates use the most recent upgrade backup
+   */
+  public boolean isRevertMostRecent() {
+    return revertMostRecent.isPresent();
+  }
+
+  /**
    * Creates an instance.
    *
    * @param args specified on command line
@@ -175,37 +291,86 @@ public class UpgradeLauncher extends Launcher {
 
     argParser = new ArgumentParser(getClass().getName(),
         INFO_UPGRADE_LAUNCHER_USAGE_DESCRIPTION.get(), false);
-    BooleanArgument showUsage;
-    FileBasedArgument file;
-    BooleanArgument quiet;
-    BooleanArgument noPrompt;
     try
     {
-      file = new FileBasedArgument(
-              "file",
+      file = new StringArgument(
+              FILE_OPTION_LONG,
               FILE_OPTION_SHORT,
               FILE_OPTION_LONG,
-              false, false,
+              false, false, true,
               "{file}",
               null, null, INFO_UPGRADE_DESCRIPTION_FILE.get());
       argParser.addArgument(file);
+
+      revertMostRecent = new BooleanArgument(
+              REVERT_MOST_RECENT_OPTION_LONG,
+              REVERT_MOST_RECENT_OPTION_SHORT,
+              REVERT_MOST_RECENT_OPTION_LONG,
+              INFO_REVERT_DESCRIPTION_RECENT.get());
+      argParser.addArgument(revertMostRecent);
+
+      reversionArchive = new StringArgument(
+              REVERT_ARCHIVE_OPTION_LONG,
+              REVERT_ARCHIVE_OPTION_SHORT,
+              REVERT_ARCHIVE_OPTION_LONG,
+              false, false, true,
+              "{directory}",
+              null, null, INFO_REVERT_DESCRIPTION_DIRECTORY.get());
+      argParser.addArgument(reversionArchive);
+
       noPrompt = new BooleanArgument(
-          OPTION_LONG_NO_PROMPT,
-          OPTION_SHORT_NO_PROMPT,
-          OPTION_LONG_NO_PROMPT,
-          INFO_UPGRADE_DESCRIPTION_NO_PROMPT.get());
+              OPTION_LONG_NO_PROMPT,
+              OPTION_SHORT_NO_PROMPT,
+              OPTION_LONG_NO_PROMPT,
+              INFO_UPGRADE_DESCRIPTION_NO_PROMPT.get());
       argParser.addArgument(noPrompt);
+
       quiet = new BooleanArgument(
-          OPTION_LONG_QUIET,
-          OPTION_SHORT_QUIET,
-          OPTION_LONG_QUIET,
-          INFO_UPGRADE_DESCRIPTION_SILENT.get());
+              OPTION_LONG_QUIET,
+              OPTION_SHORT_QUIET,
+              OPTION_LONG_QUIET,
+              INFO_UPGRADE_DESCRIPTION_SILENT.get());
       argParser.addArgument(quiet);
-      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
-        OPTION_LONG_HELP,
-        INFO_DESCRIPTION_USAGE.get());
+
+      showUsage = new BooleanArgument(
+              "showusage",
+              OPTION_SHORT_HELP,
+              OPTION_LONG_HELP,
+              INFO_DESCRIPTION_USAGE.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
+
+      try {
+        argParser.parseArguments(args);
+
+        // Set fields indicating reversion or upgrade.  This may change
+        // later if interaction is required to make the determination.
+        isUpgrade = file.isPresent();
+        isReversion =
+                reversionArchive.isPresent() || revertMostRecent.isPresent();
+
+        if (showUsage.isPresent()) {
+          argParser.getUsage(System.out);
+          System.exit(ReturnCode.PRINT_USAGE.getReturnCode());
+        } else if (isUpgrade) {
+          if (reversionArchive.isPresent()) {
+            System.err.println(ERR_UPGRADE_INCOMPATIBLE_ARGS.get(
+                    file.getName(), reversionArchive.getName()));
+            System.exit(ReturnCode.
+                    APPLICATION_ERROR.getReturnCode());
+          } else if (revertMostRecent.isPresent()) {
+            System.err.println(ERR_UPGRADE_INCOMPATIBLE_ARGS.get(
+                    file.getName(), revertMostRecent.getName()));
+            System.exit(ReturnCode.
+                    APPLICATION_ERROR.getReturnCode());
+
+          }
+        }
+      } catch (ArgumentException ae) {
+        System.err.println(ae.getMessageObject());
+        System.exit(ReturnCode.
+                APPLICATION_ERROR.getReturnCode());
+      }
     }
     catch (Throwable t)
     {

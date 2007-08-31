@@ -28,6 +28,7 @@
 package org.opends.quicksetup.upgrader;
 
 import static org.opends.messages.QuickSetupMessages.*;
+import org.opends.messages.Message;
 
 import org.opends.quicksetup.UserDataException;
 
@@ -44,6 +45,14 @@ public class BuildExtractorCliHelper extends UpgraderCliHelper {
           Logger.getLogger(BuildExtractorCliHelper.class.getName());
 
   /**
+   * Create a parameterized instance.
+   * @param launcher for this CLI
+   */
+  public BuildExtractorCliHelper(UpgradeLauncher launcher) {
+    super(launcher);
+  }
+
+  /**
    * Creates a set of user data from command line arguments and installation
    * status.
    * @param args String[] of arguments passed in from the command line
@@ -53,37 +62,44 @@ public class BuildExtractorCliHelper extends UpgraderCliHelper {
   public UpgradeUserData createUserData(String[] args)
     throws UserDataException {
     UpgradeUserData uud = super.createUserData(args);
-
-    // Build extractor is always quiet whether user
-    // has specified this or not.
-    uud.setQuiet(true);
-
-    if (localInstallPackFileNameArg.isPresent()) {
-      String localInstallPackFileName =
-              localInstallPackFileNameArg.getValue();
-      LOG.log(Level.INFO, "file specified on command line: " +
-              localInstallPackFileName);
-      uud.setInstallPackage(
-              validateInstallPackFile(localInstallPackFileName));
-    } else if (isInteractive()) {
-      LOG.log(Level.INFO, "obtaining file information interactively");
-      while(true) {
-        String fileName = promptForString(
-                INFO_UPGRADE_FILE_PROMPT.get(), null);
-        try {
-          uud.setInstallPackage(validateInstallPackFile(fileName));
-          LOG.log(Level.INFO, "file specified interactively: " +
-                  fileName);
-          break;
-        } catch (UserDataException ude) {
-          System.out.println(ude.getMessage());
+    if (launcher.isInteractive()) {
+      if (!launcher.isNoPrompt()) {
+        LOG.log(Level.INFO, "obtaining file information interactively");
+        Message[] options = new Message[] {
+                INFO_UPGRADE_OPERATION_UPGRADE.get(),
+                INFO_UPGRADE_OPERATION_REVERSION.get()
+        };
+        int response = promptOptions(
+                INFO_UPGRADE_OPERATION_PROMPT.get(),
+                options[0],
+                options);
+        if (response == 0) {
+          uud.setOperation(UpgradeUserData.Operation.UPGRADE);
+          while(true) {
+            String fileName = promptForString(
+                    INFO_UPGRADE_FILE_PROMPT.get(), null);
+            try {
+              uud.setInstallPackage(validateInstallPackFile(fileName));
+              LOG.log(Level.INFO, "file specified interactively: " +
+                      fileName);
+              break;
+            } catch (UserDataException ude) {
+              System.out.println(ude.getMessage());
+            }
+          }
+        } else {
+          uud.setOperation(UpgradeUserData.Operation.REVERSION);
         }
+      } else {
+        throw new UserDataException(null,
+                INFO_ERROR_OPTIONS_REQUIRED_OR_INTERACTIVE.get());
       }
     } else {
-      throw new UserDataException(null,
-              INFO_ERROR_OPTION_REQUIRED_OR_INTERACTIVE.get("-" +
-                      UpgradeLauncher.FILE_OPTION_SHORT + "/--" +
-                              UpgradeLauncher.FILE_OPTION_LONG));
+      String upgradeFile = launcher.getUpgradeFileName();
+      if (upgradeFile != null) {
+        uud.setInstallPackage(
+                validateInstallPackFile(upgradeFile));
+      }
     }
     return uud;
   }

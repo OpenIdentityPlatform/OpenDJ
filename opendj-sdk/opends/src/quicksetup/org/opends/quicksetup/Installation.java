@@ -170,16 +170,6 @@ public class Installation {
   public static final String WINDOWS_UPGRADE_FILE_NAME = "upgrade.bat";
 
   /**
-   * The UNIX revert script file name.
-   */
-  public static final String UNIX_REVERT_FILE_NAME = "revert";
-
-  /**
-   * The Windows revert batch file name.
-   */
-  public static final String WINDOWS_REVERT_FILE_NAME = "revert.bat";
-
-  /**
    * The UNIX start script file name.
    */
   public static final String UNIX_START_FILE_NAME = "start-ds";

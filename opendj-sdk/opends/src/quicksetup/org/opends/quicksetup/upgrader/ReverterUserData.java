@@ -36,22 +36,42 @@ import java.io.File;
  */
 class ReverterUserData extends UserData {
 
-  File filesDir = null;
+  /** Directory where the reversion archive lives. */
+  private File reversionArchiveDir = null;
+
+  /** Indicates that we are reverting to the most recent version. */
+  private boolean mostRecent;
 
   /**
    * Gets the directory where the files are stored for the reversion.
    * @return File where the reversion files are kept
    */
-  public File getFilesDirectory() {
-    return filesDir;
+  public File getReversionArchiveDirectory() {
+    return reversionArchiveDir;
   }
 
   /**
    * Sets the directory where the files are stored for the reversion.
    * @param files where the reversion files are kept
    */
-  public void setFilesDirectory(File files) {
-    this.filesDir = files;
+  public void setReversionArchiveDirectory(File files) {
+    this.reversionArchiveDir = files;
+  }
+
+  /**
+   * Sets whether or not we will be reverting to the most recent version.
+   * @param mostRecent version or not
+   */
+  public void setRevertMostRecent(boolean mostRecent) {
+    this.mostRecent = mostRecent;
+  }
+
+  /**
+   * Indicates whether or not we will be reverting to the most recent version.
+   * @return boolean where true means revert to the most recent version
+   */
+  public boolean isRevertMostRecent() {
+    return this.mostRecent;
   }
 
 }

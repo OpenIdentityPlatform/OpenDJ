@@ -592,6 +592,13 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  public ReturnCode getReturnCode() {
+    return null;
+  }
+
+  /**
    * Initialize the different map used in this class.
    */
   private void initMaps() {
@@ -828,7 +835,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
     catch (Throwable t) {
       ue = new ApplicationException(
-              ApplicationReturnCode.ReturnCode.BUG,
+              ReturnCode.BUG,
               getThrowableMsg(INFO_BUG_MSG.get(), t), t);
       status = UninstallProgressStep.FINISHED_WITH_ERROR;
       Message msg = getFormattedError(ue, true);
@@ -1137,7 +1144,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         errMsg = INFO_ERROR_DELETING_DIRECTORY.get(file.getAbsolutePath());
       }
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+          ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
           errMsg, null);
     }
 
@@ -1250,7 +1257,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         break;
       default:
         throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.WINDOWS_SERVICE_ERROR,
+            ReturnCode.WINDOWS_SERVICE_ERROR,
                 errorMessage, null);
     }
   }
@@ -1869,7 +1876,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       Message errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
               serverDisplay, t.toString());
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR, errorMessage,
+          ReturnCode.CONFIGURATION_ERROR, errorMessage,
           t);
     }
     ADSContext adsContext = new ADSContext(ctx);
@@ -1887,7 +1894,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         ADSContextException.ErrorType.NOT_YET_REGISTERED)
       {
         throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+            ReturnCode.CONFIGURATION_ERROR,
             INFO_REMOTE_ADS_EXCEPTION.get(
                     serverDisplay, ace.toString()), ace);
       }

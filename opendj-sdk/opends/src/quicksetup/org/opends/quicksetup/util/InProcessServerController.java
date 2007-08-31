@@ -60,10 +60,12 @@ import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.CompareOperation;
 import org.opends.server.config.ConfigException;
 
 import java.util.logging.Logger;
@@ -416,7 +418,7 @@ public class InProcessServerController {
           // report the error to the user
           MessageBuilder error = op.getErrorMessage();
           throw new ApplicationException(
-              ApplicationReturnCode.ReturnCode.IMPORT_ERROR,
+              ReturnCode.IMPORT_ERROR,
                   INFO_ERROR_APPLY_LDIF_MODIFY.get(dnByteString.toString(),
                           error != null ? error.toString() : ""),
                   null);
@@ -435,6 +437,29 @@ public class InProcessServerController {
         rc = addOp.getResultCode();
         if (rc.equals(ResultCode.SUCCESS)) {
           LOG.log(Level.INFO, "processed server add " + addOp.getEntryDN());
+        } else if (rc.equals(ResultCode.ENTRY_ALREADY_EXISTS)) {
+          // Compare the attributes with the existing entry to see if we
+          // can ignore this add.
+          boolean ignore = true;
+          for (RawAttribute attr : rawAttrs) {
+            ArrayList<ASN1OctetString> values = attr.getValues();
+            for (ASN1OctetString value : values) {
+              CompareOperation compOp =
+                cc.processCompare(dnByteString, attr.getAttributeType(), value);
+              if (ResultCode.ASSERTION_FAILED.equals(compOp.getResultCode())) {
+                ignore = false;
+                break;
+              }
+            }
+          }
+          if (!ignore) {
+            MessageBuilder error = addOp.getErrorMessage();
+            throw new ApplicationException(
+                ReturnCode.IMPORT_ERROR,
+                    INFO_ERROR_APPLY_LDIF_ADD.get(dnByteString.toString(),
+                            error != null ? error.toString() : ""),
+                    null);
+          }
         } else {
           boolean ignore = false;
 
@@ -471,7 +496,7 @@ public class InProcessServerController {
           if (!ignore) {
             MessageBuilder error = addOp.getErrorMessage();
             throw new ApplicationException(
-                    ApplicationReturnCode.ReturnCode.IMPORT_ERROR,
+                    ReturnCode.IMPORT_ERROR,
                     INFO_ERROR_APPLY_LDIF_ADD.get(dnByteString.toString(),
                             error != null ? error.toString() : ""),
                     null);
@@ -489,7 +514,7 @@ public class InProcessServerController {
           // report the error to the user
           MessageBuilder error = delOp.getErrorMessage();
           throw new ApplicationException(
-              ApplicationReturnCode.ReturnCode.IMPORT_ERROR,
+              ReturnCode.IMPORT_ERROR,
                   INFO_ERROR_APPLY_LDIF_DELETE.get(dnByteString.toString(),
                           error != null ? error.toString() : ""),
                   null);
@@ -497,7 +522,7 @@ public class InProcessServerController {
         break;
       default:
         LOG.log(Level.SEVERE, "Unexpected record type " + cre.getClass());
-        throw new ApplicationException(ApplicationReturnCode.ReturnCode.BUG,
+        throw new ApplicationException(ReturnCode.BUG,
                 INFO_BUG_MSG.get(),
                 null);
     }

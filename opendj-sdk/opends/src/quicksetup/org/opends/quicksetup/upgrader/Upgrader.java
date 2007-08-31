@@ -33,7 +33,7 @@ import static org.opends.messages.QuickSetupMessages.*;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 
-import org.opends.quicksetup.ApplicationReturnCode;
+import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.WizardStep;
 import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.ApplicationException;
@@ -782,7 +782,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
                   "Error starting server in order to apply custom" +
                           "schema and/or configuration", e);
           throw new ApplicationException(
-              ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
+              ReturnCode.APPLICATION_ERROR,
               INFO_ERROR_STARTING_SERVER.get(), e);
         }
 
@@ -833,7 +833,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
           LOG.log(Level.INFO, "server stopped");
         } catch (Throwable t) {
           LOG.log(Level.INFO, "Error stopping server", t);
-          throw new ApplicationException(ApplicationReturnCode.ReturnCode.BUG,
+          throw new ApplicationException(ReturnCode.BUG,
                   INFO_ERROR_STOPPING_SERVER.get(), t);
         }
       }
@@ -850,12 +850,20 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 null, INFO_ERROR_ARTIFICIAL.get(), null);
       }
 
-      LOG.log(Level.INFO, "verifying upgrade");
-      setCurrentProgressStep(UpgradeProgressStep.VERIFYING);
-      Installation installation = getInstallation();
-      ServerHealthChecker healthChecker = new ServerHealthChecker(installation);
-      healthChecker.checkServer();
-      List<Message> errors = healthChecker.getProblemMessages();
+      List<Message> errors;
+      try {
+        LOG.log(Level.INFO, "verifying upgrade");
+        setCurrentProgressStep(UpgradeProgressStep.VERIFYING);
+        Installation installation = getInstallation();
+        ServerHealthChecker healthChecker =
+                new ServerHealthChecker(installation);
+        healthChecker.checkServer();
+        errors = healthChecker.getProblemMessages();
+      } catch (Exception e) {
+        LOG.log(Level.INFO, "error performing server health check", e);
+        notifyListeners(getFormattedErrorWithLineBreak());
+        throw e;
+      }
 
       // For testing
       if ("true".equals(
@@ -873,7 +881,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 Utils.listToMessage(errors,
                         Constants.LINE_SEPARATOR, /*bullet=*/"\u2022 ", "");
         ApplicationException ae = new ApplicationException(
-                ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
+                ReturnCode.APPLICATION_ERROR,
                 INFO_ERROR_UPGRADED_SERVER_STARTS_WITH_ERRORS.get(
                         Constants.LINE_SEPARATOR + formattedDetails), null);
         UserInteraction ui = userInteraction();
@@ -928,7 +936,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
             int port = getInstallation().getCurrentConfiguration().getPort();
             if (port != -1 && !Utils.canUseAsPort(port)) {
               throw new ApplicationException(
-                  ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
+                  ReturnCode.APPLICATION_ERROR,
                       INFO_ERROR_PORT_IN_USE.get(Integer.toString(port)),
                       null);
             }
@@ -954,7 +962,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       } catch (IOException ioe) {
         LOG.log(Level.INFO, "error determining if server running");
         this.runWarning = new ApplicationException(
-            ApplicationReturnCode.ReturnCode.TOOL_ERROR,
+            ReturnCode.TOOL_ERROR,
                 INFO_ERROR_SERVER_STATUS.get(), ioe);
       }
 
@@ -962,7 +970,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
       // We don't consider a  user cancelation exception
       // to be an error.
-      if (ae.getType() != ApplicationReturnCode.ReturnCode.CANCELLED) {
+      if (ae.getType() != ReturnCode.CANCELLED) {
         this.runError = ae;
       } else {
         this.abort = true;
@@ -970,7 +978,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
     } catch (Throwable t) {
       this.runError =
-              new ApplicationException(ApplicationReturnCode.ReturnCode.BUG,
+              new ApplicationException(ReturnCode.BUG,
                       INFO_BUG_MSG.get(), t);
     } finally {
       try {
@@ -1087,7 +1095,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
   private void checkAbort() throws ApplicationException {
     if (abort) throw new ApplicationException(
-        ApplicationReturnCode.ReturnCode.CANCELLED,
+        ReturnCode.CANCELLED,
             INFO_UPGRADE_CANCELED.get(), null);
   }
 
@@ -1222,7 +1230,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       throw ae;
     } catch (Exception e) {
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+          ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
               INFO_ERROR_BACKUP_FILESYSTEM.get(),
               e);
     }
@@ -1235,7 +1243,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       int ret = output.getReturnCode();
       if (ret != 0) {
         throw new ApplicationException(
-            ApplicationReturnCode.ReturnCode.TOOL_ERROR,
+            ReturnCode.TOOL_ERROR,
                 INFO_ERROR_BACKUP_DB_TOOL_RETURN_CODE.get(
                         Integer.toString(ret)),
                 null);
@@ -1245,7 +1253,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       throw ae;
     } catch (Exception e) {
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.TOOL_ERROR,
+          ReturnCode.TOOL_ERROR,
               INFO_ERROR_BACKUP_DB.get(), e);
     }
   }
@@ -1292,7 +1300,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       throw ae;
     } catch (Exception e) {
       throw new ApplicationException(
-          ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+          ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
               INFO_ERROR_INITIALIZING_UPGRADE.get(), e);
     }
   }
@@ -1370,11 +1378,11 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
   /**
    * {@inheritDoc}
-   * @param launcher
    */
   public UserData createUserData(Launcher launcher)
           throws UserDataException {
-    return getCliHelper().createUserData(launcher.getArguments());
+    return new UpgraderCliHelper((UpgradeLauncher) launcher).
+            createUserData(launcher.getArguments());
   }
 
   /**
@@ -1384,18 +1392,18 @@ public class Upgrader extends GuiApplication implements CliApplication {
     return runError;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public ReturnCode getReturnCode() {
+    return null;
+  }
+
   private void setCurrentProgressStep(UpgradeProgressStep step) {
     this.currentProgressStep = step;
     int progress = step.getProgress();
     Message msg = getSummary(step);
     notifyListeners(progress, msg, getFormattedProgress(msg));
-  }
-
-  private UpgraderCliHelper getCliHelper() {
-    if (cliHelper == null) {
-      cliHelper = new UpgraderCliHelper();
-    }
-    return cliHelper;
   }
 
   private Message getFinalSuccessMessage() {
