@@ -90,7 +90,7 @@ public class EqualLengthApproximateMatchingRule
    */
   public String getOID()
   {
-    return "equallengthapproximatematch-oid";
+    return "1.3.6.1.4.1.26027.1.999.26";
   }
 
 
