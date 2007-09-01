@@ -209,20 +209,48 @@ public abstract class CliApplicationHelper {
    * @return  The string value read from the user.
    */
   public String promptForString(Message prompt, String defaultValue) {
+    return promptForString(prompt, defaultValue, true);
+  }
+
+  /**
+   * Interactively prompts (on standard output) the user to provide a string
+   * value.  Any non-empty string will be allowed (the empty string will
+   * indicate that the default should be used, if there is one).
+   *
+   * @param  prompt        The prompt to present to the user.
+   * @param  defaultValue  The default value to assume if the user presses ENTER
+   *                       without typing anything, or <CODE>null</CODE> if
+   *                       there should not be a default and the user must
+   *                       explicitly provide a value.
+   * @param addLineBreakIfDefault adds a line break between the prompt and the
+   *                       default value if this is not <CODE>null</CODE>.
+   * @return  The string value read from the user.
+   */
+  protected String promptForString(Message prompt, String defaultValue,
+      boolean addLineBreakIfDefault) {
     String wrappedPrompt = StaticUtils.wrapText(prompt,
-            Utils.getCommandLineMaxLineWidth());
+        Utils.getCommandLineMaxLineWidth());
 
     while (true) {
       if (defaultValue == null) {
         out.print(wrappedPrompt);
         out.print(" ");
       } else {
-        out.println(wrappedPrompt);
-        out.print("[");
-        out.print(defaultValue);
-        out.print("]: ");
+        if (addLineBreakIfDefault)
+        {
+          out.println(wrappedPrompt);
+          out.print("[");
+          out.print(defaultValue);
+          out.print("]: ");
+        }
+        else
+        {
+          out.print(wrappedPrompt);
+          out.print(" [");
+          out.print(defaultValue);
+          out.print("]: ");
+        }
       }
-
       out.flush();
 
       String response = readLine();
@@ -266,10 +294,6 @@ public abstract class CliApplicationHelper {
       {
         pwd = new String(pwChars);
       }
-      // Sometimes the backspace trick creates problems in the terminal and
-      // out.println() does not write a new line.  printing a space fixes the
-      // problem
-      out.print(" ");
       out.flush();
     }
     catch (Throwable t)
@@ -288,10 +312,25 @@ public abstract class CliApplicationHelper {
    */
   protected int promptForPort(Message msg, int defaultValue)
   {
+    return promptForPort(msg, defaultValue, true);
+  }
+
+  /**
+   * Prompts the user to provide a port.
+   * @param msg the message to be displayed.
+   * @param defaultValue the default value to be proposed.
+   * @param addLineBreakIfDefault adds a line break between the prompt and the
+   *                       default value if this is not <CODE>null</CODE>.
+   * @return the user to provide a port.
+   */
+  protected int promptForPort(Message msg, int defaultValue,
+      boolean addLineBreakIfDefault)
+  {
     int port = -1;
     while (port == -1)
     {
-      String s = promptForString(msg, String.valueOf(defaultValue));
+      String s = promptForString(msg, String.valueOf(defaultValue),
+          addLineBreakIfDefault);
       if ((s != null) && (s.trim().length() > 0))
       {
         try
@@ -610,7 +649,8 @@ public abstract class CliApplicationHelper {
    */
   protected String askForAdministratorUID(String defaultValue)
   {
-    return promptForString(INFO_ADMINISTRATOR_UID_PROMPT.get(), defaultValue);
+    return promptForString(INFO_ADMINISTRATOR_UID_PROMPT.get(), defaultValue,
+        false);
   }
 
   /**

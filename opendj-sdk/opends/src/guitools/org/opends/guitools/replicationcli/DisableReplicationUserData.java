@@ -39,6 +39,8 @@ class DisableReplicationUserData extends ReplicationUserData
   private int port;
   private boolean useStartTLS;
   private boolean useSSL;
+  private String bindDn;
+  private String bindPwd;
 
   /**
    * Returns the host name of the server.
@@ -113,5 +115,47 @@ class DisableReplicationUserData extends ReplicationUserData
   void setUseStartTLS(boolean useStartTLS)
   {
     this.useStartTLS = useStartTLS;
+  }
+
+  /**
+   * Returns the bind DN to be used to connect to the server if no Administrator
+   * has been defined.
+   * @return the bind DN to be used to connect to the server if no Administrator
+   * has been defined.
+   */
+  public String getBindDn()
+  {
+    return bindDn;
+  }
+
+  /**
+   * Sets the bind DN to be used to connect to the server if no Administrator
+   * has been defined.
+   * @param bindDn the bind DN to be used.
+   */
+  public void setBindDn(String bindDn)
+  {
+    this.bindDn = bindDn;
+  }
+
+  /**
+   * Returns the password to be used to connect to the server if no
+   * Administrator has been defined.
+   * @return the password to be used to connect to the server if no
+   * Administrator has been defined.
+   */
+  public String getBindPwd()
+  {
+    return bindPwd;
+  }
+
+  /**
+   * Sets the password to be used to connect to the server if no Administrator
+   * has been defined.
+   * @param bindPwd the password to be used.
+   */
+  public void setBindPwd(String bindPwd)
+  {
+    this.bindPwd = bindPwd;
   }
 }
