@@ -54,7 +54,7 @@ import org.opends.server.util.args.SubCommand;
  * required information has been provided.  However it does not do any
  * verification that require connection to any server.
  */
-public class ReplicationCliParser extends SecureConnectionCliParser
+public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 {
   private SubCommand enableReplicationSubCmd;
   private SubCommand disableReplicationSubCmd;
@@ -63,124 +63,129 @@ public class ReplicationCliParser extends SecureConnectionCliParser
   private BooleanArgument noPromptArg;
 
   /**
-   * The 'hostName' global argument for the first server.
+   * The 'hostName' argument for the first server.
    */
   private StringArgument hostName1Arg = null;
 
   /**
-   * The 'port' global argument for the first server.
+   * The 'port' argument for the first server.
    */
   private IntegerArgument port1Arg = null;
 
   /**
-   * The 'binDN' global argument for the first server.
+   * The 'binDN' argument for the first server.
    */
   private StringArgument bindDn1Arg = null;
 
   /**
-   * The 'bindPasswordFile' global argument for the first server.
+   * The 'bindPasswordFile' argument for the first server.
    */
   private FileBasedArgument bindPasswordFile1Arg = null;
 
   /**
-   * The 'bindPassword' global argument for the first server.
+   * The 'bindPassword' argument for the first server.
    */
   private StringArgument bindPassword1Arg = null;
 
   /**
    * The 'useSSLArg' argument for the first server.
    */
-  protected BooleanArgument useSSL1Arg = null;
+  private BooleanArgument useSSL1Arg = null;
 
   /**
    * The 'useStartTLS1Arg' argument for the first server.
    */
-  protected BooleanArgument useStartTLS1Arg = null;
+  private BooleanArgument useStartTLS1Arg = null;
 
   /**
-   * The 'replicationPort' global argument for the first server.
+   * The 'replicationPort' argument for the first server.
    */
   private IntegerArgument replicationPort1Arg = null;
 
   /**
-   * The 'hostName' global argument for the second server.
+   * The 'hostName' argument for the second server.
    */
   private StringArgument hostName2Arg = null;
 
   /**
-   * The 'port' global argument for the second server.
+   * The 'port' argument for the second server.
    */
   private IntegerArgument port2Arg = null;
 
   /**
-   * The 'binDN' global argument for the second server.
+   * The 'binDN' argument for the second server.
    */
   private StringArgument bindDn2Arg = null;
 
   /**
-   * The 'bindPasswordFile' global argument for the second server.
+   * The 'bindPasswordFile' argument for the second server.
    */
   private FileBasedArgument bindPasswordFile2Arg = null;
 
   /**
-   * The 'bindPassword' global argument for the second server.
+   * The 'bindPassword' argument for the second server.
    */
   private StringArgument bindPassword2Arg = null;
 
   /**
    * The 'useSSLArg' argument for the second server.
    */
-  protected BooleanArgument useSSL2Arg = null;
+  private BooleanArgument useSSL2Arg = null;
 
   /**
    * The 'useStartTLS2Arg' argument for the second server.
    */
-  protected BooleanArgument useStartTLS2Arg = null;
+  private BooleanArgument useStartTLS2Arg = null;
 
   /**
-   * The 'replicationPort' global argument for the second server.
+   * The 'replicationPort' argument for the second server.
    */
   private IntegerArgument replicationPort2Arg = null;
 
   /**
-   * The 'hostName' global argument for the source server.
+   * The 'skipPortCheckArg' argument to not check replication ports.
+   */
+  private BooleanArgument skipPortCheckArg;
+
+  /**
+   * The 'hostName' argument for the source server.
    */
   private StringArgument hostNameSourceArg = null;
 
   /**
-   * The 'port' global argument for the source server.
+   * The 'port' argument for the source server.
    */
   private IntegerArgument portSourceArg = null;
 
   /**
-   * The 'useSSLArg' argument for the source server.
+   * The 'useSSLArg' for the source server.
    */
-  protected BooleanArgument useSSLSourceArg = null;
+  private BooleanArgument useSSLSourceArg = null;
 
   /**
-   * The 'useStartTLSSourceArg' argument for the source server.
+   * The 'useStartTLSSourceArg' for the source server.
    */
-  protected BooleanArgument useStartTLSSourceArg = null;
+  private BooleanArgument useStartTLSSourceArg = null;
 
   /**
-   * The 'hostName' global argument for the destination server.
+   * The 'hostName' argument for the destination server.
    */
   private StringArgument hostNameDestinationArg = null;
 
   /**
-   * The 'port' global argument for the destination server.
+   * The 'port' argument for the destination server.
    */
   private IntegerArgument portDestinationArg = null;
 
   /**
    * The 'useSSLArg' argument for the destination server.
    */
-  protected BooleanArgument useSSLDestinationArg = null;
+  private BooleanArgument useSSLDestinationArg = null;
 
   /**
    * The 'useStartTLSDestinationArg' argument for the destination server.
    */
-  protected BooleanArgument useStartTLSDestinationArg = null;
+  private BooleanArgument useStartTLSDestinationArg = null;
 
   /**
    * The 'suffixes' global argument.
@@ -230,7 +235,7 @@ public class ReplicationCliParser extends SecureConnectionCliParser
    *          be invoked to launch the program with which this
    *          argument parser is associated.
    */
-  public ReplicationCliParser(String mainClassName)
+  public ReplicationCliArgumentParser(String mainClassName)
   {
     super(mainClassName,
         INFO_REPLICATION_TOOL_DESCRIPTION.get(ENABLE_REPLICATION_SUBCMD_NAME,
@@ -363,8 +368,8 @@ public class ReplicationCliParser extends SecureConnectionCliParser
     }
     int index = 0;
 
-    baseDNsArg = new StringArgument("baseDNs", 'b',
-        "baseDNs", false, true, true, OPTION_VALUE_BASEDN, null,
+    baseDNsArg = new StringArgument("baseDNs", OPTION_SHORT_BASEDN,
+        OPTION_LONG_BASEDN, false, true, true, OPTION_VALUE_BASEDN, null,
         null, INFO_DESCRIPTION_REPLICATION_BASEDNS.get());
     defaultArgs.add(index++, baseDNsArg);
 
@@ -412,33 +417,33 @@ public class ReplicationCliParser extends SecureConnectionCliParser
   throws ArgumentException
   {
 
-    hostName1Arg = new StringArgument("host1", 'h',
+    hostName1Arg = new StringArgument("host1", OPTION_SHORT_HOST,
         "host1", false, false, true, OPTION_VALUE_HOST, "localhost",
         null, INFO_DESCRIPTION_ENABLE_REPLICATION_HOST1.get());
 
-    port1Arg = new IntegerArgument("port1", 'p', "port1",
+    port1Arg = new IntegerArgument("port1", OPTION_SHORT_PORT, "port1",
         false, false, true, OPTION_VALUE_PORT, 389, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT1.get());
 
-    bindDn1Arg = new StringArgument("bindDN1", 'D',
+    bindDn1Arg = new StringArgument("bindDN1", OPTION_SHORT_BINDDN,
         "bindDN1", false, false, true, OPTION_VALUE_BINDDN,
         "cn=Directory Manager", null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN1.get());
 
     bindPassword1Arg = new StringArgument("bindPassword1",
-        'w', "bindPassword1", false, false, true,
+        null, "bindPassword1", false, false, true,
         OPTION_VALUE_BINDPWD, null, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD1.get());
 
     bindPasswordFile1Arg = new FileBasedArgument("bindPasswordFile1",
-        'j', "bindPasswordFile1", false, false,
+        null, "bindPasswordFile1", false, false,
         OPTION_VALUE_BINDPWD_FILE, null, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE1.get());
 
-    useSSL1Arg = new BooleanArgument("useSSL1", 'Z',
+    useSSL1Arg = new BooleanArgument("useSSL1", OPTION_SHORT_USE_SSL,
         "useSSL1", INFO_DESCRIPTION_ENABLE_REPLICATION_USE_SSL1.get());
 
-    useStartTLS1Arg = new BooleanArgument("startTLS1", 'q',
+    useStartTLS1Arg = new BooleanArgument("startTLS1", OPTION_SHORT_START_TLS,
         "startTLS1",
         INFO_DESCRIPTION_ENABLE_REPLICATION_STARTTLS1.get());
 
@@ -446,21 +451,21 @@ public class ReplicationCliParser extends SecureConnectionCliParser
         "replicationPort1", false, false, true, OPTION_VALUE_PORT, 8989, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_PORT1.get());
 
-    hostName2Arg = new StringArgument("host2", 'H',
+    hostName2Arg = new StringArgument("host2", 'O',
         "host2", false, false, true, OPTION_VALUE_HOST, "localhost",
         null, INFO_DESCRIPTION_ENABLE_REPLICATION_HOST2.get());
 
-    port2Arg = new IntegerArgument("port2", 'P', "port2",
+    port2Arg = new IntegerArgument("port2", null, "port2",
         false, false, true, OPTION_VALUE_PORT, 389, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT2.get());
 
-    bindDn2Arg = new StringArgument("bindDN2", 'N',
+    bindDn2Arg = new StringArgument("bindDN2", null,
         "bindDN2", false, false, true, OPTION_VALUE_BINDDN,
         "cn=Directory Manager", null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN2.get());
 
     bindPassword2Arg = new StringArgument("bindPassword2",
-        'W', "bindPassword2", false, false, true,
+        null, "bindPassword2", false, false, true,
         OPTION_VALUE_BINDPWD, null, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD2.get());
 
@@ -469,16 +474,20 @@ public class ReplicationCliParser extends SecureConnectionCliParser
         OPTION_VALUE_BINDPWD_FILE, null, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE2.get());
 
-    useSSL2Arg = new BooleanArgument("useSSL2", 'S',
+    useSSL2Arg = new BooleanArgument("useSSL2", 'z',
         "useSSL2", INFO_DESCRIPTION_ENABLE_REPLICATION_USE_SSL2.get());
 
-    useStartTLS2Arg = new BooleanArgument("startTLS2", 'Q',
+    useStartTLS2Arg = new BooleanArgument("startTLS2", null,
         "startTLS2",
         INFO_DESCRIPTION_ENABLE_REPLICATION_STARTTLS2.get());
 
     replicationPort2Arg = new IntegerArgument("replicationPort2", 'R',
         "replicationPort2", false, false, true, OPTION_VALUE_PORT, 8989, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_PORT2.get());
+
+    skipPortCheckArg = new BooleanArgument(
+        "skipportcheck", 'S', "skipPortCheck",
+        INFO_DESCRIPTION_ENABLE_REPLICATION_SKIPPORT.get());
 
     enableReplicationSubCmd = new SubCommand(this,
         ENABLE_REPLICATION_SUBCMD_NAME,
@@ -489,6 +498,7 @@ public class ReplicationCliParser extends SecureConnectionCliParser
         bindPasswordFile1Arg, useStartTLS1Arg, useSSL1Arg, replicationPort1Arg,
         hostName2Arg, port2Arg, bindDn2Arg, bindPassword2Arg,
         bindPasswordFile2Arg, useStartTLS2Arg, useSSL2Arg, replicationPort2Arg,
+        skipPortCheckArg
     };
     for (int i=0; i<argsToAdd.length; i++)
     {
@@ -508,10 +518,13 @@ public class ReplicationCliParser extends SecureConnectionCliParser
     disableReplicationSubCmd = new SubCommand(this,
         DISABLE_REPLICATION_SUBCMD_NAME,
         INFO_DESCRIPTION_SUBCMD_DISABLE_REPLICATION.get());
-
+    bindDnArg = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
+        OPTION_LONG_BINDDN, false, false, true, OPTION_VALUE_BINDDN,
+        "cn=Directory Manager", null,
+        INFO_DESCRIPTION_DISABLE_REPLICATION_BINDDN.get());
     Argument[] argsToAdd = {
         hostNameArg, portArg,
-        useSSLArg, useStartTLSArg
+        useSSLArg, useStartTLSArg, bindDnArg
     };
     for (int i=0; i<argsToAdd.length; i++)
     {
@@ -526,35 +539,35 @@ public class ReplicationCliParser extends SecureConnectionCliParser
   private void createInitializeReplicationSubCommand()
   throws ArgumentException
   {
-    hostNameSourceArg = new StringArgument("hostSource", 'h',
+    hostNameSourceArg = new StringArgument("hostSource", OPTION_SHORT_HOST,
         "hostSource", false, false, true, OPTION_VALUE_HOST, "localhost",
         null, INFO_DESCRIPTION_INITIALIZE_REPLICATION_HOST_SOURCE.get());
 
-    portSourceArg = new IntegerArgument("portSource", 'p', "portSource",
-        false, false, true, OPTION_VALUE_PORT, 389, null,
+    portSourceArg = new IntegerArgument("portSource", OPTION_SHORT_PORT,
+        "portSource", false, false, true, OPTION_VALUE_PORT, 389, null,
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_SOURCE.get());
 
-    useSSLSourceArg = new BooleanArgument("useSSLSource", 'Z',
+    useSSLSourceArg = new BooleanArgument("useSSLSource", OPTION_SHORT_USE_SSL,
         "useSSLSource",
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_USE_SSL_SOURCE.get());
 
-    useStartTLSSourceArg = new BooleanArgument("startTLSSource", 'q',
-        "startTLSSource",
+    useStartTLSSourceArg = new BooleanArgument("startTLSSource",
+        OPTION_SHORT_START_TLS, "startTLSSource",
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_STARTTLS_SOURCE.get());
 
-    hostNameDestinationArg = new StringArgument("hostDestination", 'H',
+    hostNameDestinationArg = new StringArgument("hostDestination", 'O',
         "hostDestination", false, false, true, OPTION_VALUE_HOST, "localhost",
         null, INFO_DESCRIPTION_INITIALIZE_REPLICATION_HOST_DESTINATION.get());
 
-    portDestinationArg = new IntegerArgument("portDestination", 'P',
+    portDestinationArg = new IntegerArgument("portDestination", null,
         "portDestination", false, false, true, OPTION_VALUE_PORT, 389, null,
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_DESTINATION.get());
 
-    useSSLDestinationArg = new BooleanArgument("useSSLDestination", 'S',
+    useSSLDestinationArg = new BooleanArgument("useSSLDestination", 'z',
         "useSSLDestination",
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_USE_SSL_DESTINATION.get());
 
-    useStartTLSDestinationArg = new BooleanArgument("startTLSDestination", 'Q',
+    useStartTLSDestinationArg = new BooleanArgument("startTLSDestination", null,
         "startTLSDestination",
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_STARTTLS_DESTINATION.get());
 
@@ -893,7 +906,7 @@ public class ReplicationCliParser extends SecureConnectionCliParser
    * Returns the first server bind dn explicitly provided in the enable
    * replication subcommand.
    * @return the first server bind dn explicitly provided in the enable
-   * replication subcommand.  Returns -1 if no port was explicitly provided.
+   * replication subcommand.
    */
   public String getBindDn1()
   {
@@ -981,7 +994,7 @@ public class ReplicationCliParser extends SecureConnectionCliParser
    * Returns the second server bind dn explicitly provided in the enable
    * replication subcommand.
    * @return the second server bind dn explicitly provided in the enable
-   * replication subcommand.  Returns -1 if no port was explicitly provided.
+   * replication subcommand.
    */
   public String getBindDn2()
   {
@@ -1023,6 +1036,17 @@ public class ReplicationCliParser extends SecureConnectionCliParser
   }
 
   /**
+   * Returns whether the user asked to skip the replication port checks (if the
+   * ports are free) or not.
+   * @return <CODE>true</CODE> the user asked to skip the replication port
+   * checks (if the ports are free) and <CODE>false</CODE> otherwise.
+   */
+  public boolean skipReplicationPortCheck()
+  {
+    return skipPortCheckArg.isPresent();
+  }
+
+  /**
    * Returns the host name explicitly provided in the disable replication
    * subcommand.
    * @return the host name explicitly provided in the disable replication
@@ -1042,6 +1066,28 @@ public class ReplicationCliParser extends SecureConnectionCliParser
   public String getDefaultHostNameToDisable()
   {
     return getDefaultValue(hostNameArg);
+  }
+
+  /**
+   * Returns the server bind dn explicitly provided in the disable replication
+   * subcommand.
+   * @return the server bind dn explicitly provided in the disable replication
+   * subcommand.
+   */
+  public String getBindDNToDisable()
+  {
+    return getValue(bindDnArg);
+  }
+
+  /**
+   * Returns the server bind dn default value in the disable replication
+   * subcommand.
+   * @return the server bind dn default value in the enable replication
+   * subcommand.
+   */
+  public String getDefaultBindDnToDisable()
+  {
+    return getDefaultValue(bindDnArg);
   }
 
   /**
@@ -1350,41 +1396,14 @@ public class ReplicationCliParser extends SecureConnectionCliParser
       }
     }
 
-    if (hostName1Arg.getValue().equalsIgnoreCase(hostName2Arg.getValue()))
+    if (hostName1Arg.getValue().equalsIgnoreCase(hostName2Arg.getValue()) &&
+        !isInteractive())
     {
       if (port1Arg.getValue() == port2Arg.getValue())
       {
         Message message = ERR_REPLICATION_SAME_SERVER_PORT.get(
             hostName1Arg.getValue(), port1Arg.getValue());
         addMessage(buf, message);
-      }
-
-      // If the user explicitly provides the same port in the same host,
-      // reject it.
-      if (getValue(replicationPort1Arg) == getValue(replicationPort2Arg))
-      {
-        Message message = ERR_REPLICATION_SAME_REPLICATION_PORT.get(
-            replicationPort1Arg.getValue(), hostName1Arg.getValue());
-        addMessage(buf, message);
-      }
-
-      try
-      {
-        if (replicationPort1Arg.getIntValue() == port1Arg.getIntValue())
-        {
-          Message message = ERR_REPLICATION_SAME_REPLICATION_PORT.get(
-              replicationPort1Arg.getValue(), hostName1Arg.getValue());
-          addMessage(buf, message);
-        }
-      } catch (ArgumentException ae)
-      {
-        // This is a bug
-        throw new IllegalStateException(
-            "There was an argument exception calling "+
-            "ReplicationCliParser.validateEnableReplicationOptions().  "+
-            "This appears to be a bug "+
-            "because this method should be called after calling "+
-            "parseArguments which should result in an error.", ae);
       }
     }
   }
@@ -1404,7 +1423,8 @@ public class ReplicationCliParser extends SecureConnectionCliParser
     Argument[][] conflictingPairs =
     {
         {useStartTLSSourceArg, useSSLSourceArg},
-        {useStartTLSDestinationArg, useSSLDestinationArg}
+        {useStartTLSDestinationArg, useSSLDestinationArg},
+        {adminUidArg, bindDnArg}
     };
 
     for (int i=0; i< conflictingPairs.length; i++)
@@ -1415,17 +1435,6 @@ public class ReplicationCliParser extends SecureConnectionCliParser
       {
         Message message = ERR_TOOL_CONFLICTING_ARGS.get(
             arg1.getLongIdentifier(), arg2.getLongIdentifier());
-        addMessage(buf, message);
-      }
-    }
-
-    if (hostNameSourceArg.getValue().equalsIgnoreCase(
-        hostNameDestinationArg.getValue()))
-    {
-      if (portSourceArg.getValue() == portDestinationArg.getValue())
-      {
-        Message message = ERR_REPLICATION_SAME_SERVER_PORT.get(
-            hostNameSourceArg.getValue(), portSourceArg.getValue());
         addMessage(buf, message);
       }
     }
@@ -1445,6 +1454,27 @@ public class ReplicationCliParser extends SecureConnectionCliParser
   {
     // The startTLS and useSSL arguments are already validated in
     // SecureConnectionCliParser.validateGlobalOptions.
+    if (hostName1Arg.getValue().equalsIgnoreCase(hostName2Arg.getValue()) &&
+        !isInteractive())
+    {
+      if (port1Arg.getValue() == port2Arg.getValue())
+      {
+        Message message = ERR_REPLICATION_SAME_SERVER_PORT.get(
+            hostName1Arg.getValue(), port1Arg.getValue());
+        addMessage(buf, message);
+      }
+    }
+
+    if (hostNameSourceArg.getValue().equalsIgnoreCase(
+        hostNameDestinationArg.getValue()) && !isInteractive())
+    {
+      if (portSourceArg.getValue() == portSourceArg.getValue())
+      {
+        Message message = ERR_REPLICATION_SAME_SERVER_PORT.get(
+            hostNameSourceArg.getValue(), portSourceArg.getValue());
+        addMessage(buf, message);
+      }
+    }
   }
 
   /**

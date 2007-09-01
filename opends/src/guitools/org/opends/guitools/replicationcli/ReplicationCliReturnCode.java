@@ -55,9 +55,10 @@ public enum ReplicationCliReturnCode
   CANNOT_INITIALIZE_ARGS(1, ERR_REPLICATION_NO_MESSAGE.get()),
 
   /**
-   * Cannot parse argument.
+   * Cannot parse arguments because the user provided arguments are not valid
+   * or there was an error checking the user data.
    */
-  ERROR_PARSING_ARGS(2, ERR_REPLICATION_NO_MESSAGE.get()),
+  ERROR_USER_DATA(2, ERR_REPLICATION_NO_MESSAGE.get()),
 
   /**
    * The user cancelled the operation in interactive mode.
@@ -152,8 +153,18 @@ public enum ReplicationCliReturnCode
    * Error removing replication port reference on base DN.
    */
   ERROR_DISABLING_REPLICATION_REMOVE_REFERENCE_ON_BASEDN(20,
-      ERR_REPLICATION_NO_MESSAGE.get());
+      ERR_REPLICATION_NO_MESSAGE.get()),
 
+  /**
+   * Error initializing Administration Framework.
+   */
+  ERROR_INITIALIZING_ADMINISTRATION_FRAMEWORK(20,
+      ERR_REPLICATION_NO_MESSAGE.get()),
+
+  /**
+   * Error seeding trustore.
+   */
+  ERROR_SEEDING_TRUSTORE(21, ERR_REPLICATION_NO_MESSAGE.get());
 
 
   private Message message;
