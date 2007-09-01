@@ -470,6 +470,168 @@ public final class DirectoryEnvironmentConfig
 
 
   /**
+   * Indicates whether the Directory Server should maintain an archive
+   * of previous configurations.  If no explicit value is defined,
+   * then a default result of {@code true} will be returned.
+   *
+   * @return  {@code true} if the Directory Server should maintain an
+   *          archive of previous configurations, or {@code false} if
+   *          not.
+   */
+  public boolean maintainConfigArchive()
+  {
+    String maintainArchiveStr =
+         getProperty(PROPERTY_MAINTAIN_CONFIG_ARCHIVE);
+    if (maintainArchiveStr == null)
+    {
+      return true;
+    }
+
+    return (! maintainArchiveStr.equalsIgnoreCase("false"));
+  }
+
+
+
+  /**
+   * Specifies whether the Directory Server should maintain an archive
+   * of previous configurations.
+   *
+   * @param  maintainConfigArchive  Indicates whether the Directory
+   *                                Server should maintain an archive
+   *                                of previous configurations.
+   *
+   * @return  The previous setting for this configuration option.  If
+   *          no previous value was specified, then {@code true} will
+   *          be returned.
+   *
+   * @throws  InitializationException  If the Directory Server is
+   *                                   already running.
+   */
+  public boolean setMaintainConfigArchive(
+                      boolean maintainConfigArchive)
+         throws InitializationException
+  {
+    if (DirectoryServer.isRunning())
+    {
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
+    }
+
+    String oldMaintainStr =
+         setProperty(PROPERTY_MAINTAIN_CONFIG_ARCHIVE,
+                     String.valueOf(maintainConfigArchive));
+    if (oldMaintainStr == null)
+    {
+      return true;
+    }
+    else
+    {
+      return (! oldMaintainStr.equalsIgnoreCase("false"));
+    }
+  }
+
+
+
+  /**
+   * Retrieves the maximum number of archived configurations that the
+   * Directory Server should maintain.  If no value is defined, then a
+   * value of zero will be returned.
+   *
+   * @return  The maximum number of archived configurations that the
+   *          Directory Server should maintain, or zero if there
+   *          should not be any limit.
+   */
+  public int getMaxConfigArchiveSize()
+  {
+    String maxSizeStr =
+         getProperty(PROPERTY_MAX_CONFIG_ARCHIVE_SIZE);
+    if (maxSizeStr == null)
+    {
+      return 0;
+    }
+
+    try
+    {
+      int maxSize = Integer.parseInt(maxSizeStr);
+      if (maxSize > 0)
+      {
+        return maxSize;
+      }
+      else
+      {
+        return 0;
+      }
+    }
+    catch (Exception e)
+    {
+      return 0;
+    }
+  }
+
+
+
+  /**
+   * Specifies the maximum number of archived configurations that the
+   * Directory Server should maintain.  A value that is less than or
+   * equal to zero may be used to indicate that there should not be
+   * any limit to the number of archived configurations.
+   *
+   * @param  maxConfigArchiveSize  The maximum number of archived
+   *                               configurations that the Directory
+   *                               Server should maintain.
+   *
+   * @return  The previous setting for this configuration option.  If
+   *          no previous value was specified, then zero will be
+   *          returned.
+   *
+   * @throws  InitializationException  If the Directory Server is
+   *                                   already running.
+   */
+  public int setMaxConfigArchiveSize(int maxConfigArchiveSize)
+         throws InitializationException
+  {
+    if (DirectoryServer.isRunning())
+    {
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
+    }
+
+    if (maxConfigArchiveSize < 0)
+    {
+      maxConfigArchiveSize = 0;
+    }
+
+    String oldMaxSizeStr =
+         setProperty(PROPERTY_MAX_CONFIG_ARCHIVE_SIZE,
+                     String.valueOf(maxConfigArchiveSize));
+    if (oldMaxSizeStr == null)
+    {
+      return 0;
+    }
+    else
+    {
+      try
+      {
+        int oldMaxSize = Integer.parseInt(oldMaxSizeStr);
+        if (oldMaxSize > 0)
+        {
+          return oldMaxSize;
+        }
+        else
+        {
+          return 0;
+        }
+      }
+      catch (Exception e)
+      {
+        return 0;
+      }
+    }
+  }
+
+
+
+  /**
    * Retrieves the directory that contains the server schema
    * configuration files.  If no value is defined, but a default
    * directory of "config/schema" exists below the server root, then
