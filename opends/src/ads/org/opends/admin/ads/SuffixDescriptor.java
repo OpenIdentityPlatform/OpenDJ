@@ -114,7 +114,7 @@ public class SuffixDescriptor
     buf.append(getDN());
     for (ReplicaDescriptor replica : getReplicas())
     {
-      buf.append("-"+replica.getServer().getId());
+      buf.append("-").append(replica.getServer().getId());
     }
 
     return buf.toString();

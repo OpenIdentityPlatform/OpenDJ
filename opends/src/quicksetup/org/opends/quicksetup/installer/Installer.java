@@ -1867,9 +1867,9 @@ public abstract class Installer extends GuiApplication {
   protected void updateADS() throws ApplicationException
   {
     DataReplicationOptions repl = getUserData().getReplicationOptions();
-    boolean remoteServer =
+    boolean isRemoteServer =
             repl.getType() == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY;
-    AuthenticationData auth = (remoteServer) ? repl.getAuthenticationData()
+    AuthenticationData auth = (isRemoteServer) ? repl.getAuthenticationData()
                                              : null;
     InitialLdapContext remoteCtx = null; // Bound to remote ADS host (if any).
     InitialLdapContext localCtx = null; // Bound to local server.
@@ -1879,7 +1879,7 @@ public abstract class Installer extends GuiApplication {
        ADSContextException to ApplicationException and clean up JNDI contexts.*/
     try
     {
-      if (remoteServer)
+      if (isRemoteServer)
       {
         /* In case the user specified an existing topology... */
         String ldapUrl = getLdapUrl(auth);
@@ -1921,7 +1921,7 @@ public abstract class Installer extends GuiApplication {
       /* Act on local server depending on if using remote or local ADS */
       notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CREATING_ADS.get()));
       localCtx = createLocalContext();
-      if (remoteServer)
+      if (isRemoteServer)
       {
         /* Create an empty ADS suffix on the local server. */
         ADSContext localAdsContext = new ADSContext(localCtx);
@@ -1938,14 +1938,16 @@ public abstract class Installer extends GuiApplication {
       /* Register new server in ADS. */
       ServerDescriptor server = ServerDescriptor.createStandalone(localCtx);
       server.updateAdsPropertiesWithServerProperties();
-      if (0 != adsContext.registerOrUpdateServer(server.getAdsProperties()))
-      {
+      if (0 == adsContext.registerOrUpdateServer(server.getAdsProperties())) {
+        if (isRemoteServer) registeredNewServerOnRemote = true;
+      } else {
         LOG.log(Level.WARNING, "Server was already registered. Updating " +
                 "server registration.");
       }
-      else if (remoteServer)
+      if (isRemoteServer)
       {
-        registeredNewServerOnRemote = true;
+        ServerDescriptor.seedAdsTrustStore(localCtx,
+                                           adsContext.getTrustedCertificates());
       }
       notifyListeners(getFormattedDone());
       notifyListeners(getLineBreak());
@@ -1960,7 +1962,7 @@ public abstract class Installer extends GuiApplication {
                   INFO_PROGRESS_CREATING_ADMINISTRATOR.get()));
           adsContext.createAdministrator(getAdministratorProperties(
                   getUserData()));
-          if (remoteServer && !createdRemoteAds) createdAdministrator = true;
+          if (isRemoteServer && !createdRemoteAds) createdAdministrator = true;
           notifyListeners(getFormattedDone());
           notifyListeners(getLineBreak());
           checkAbort();
@@ -1982,7 +1984,7 @@ public abstract class Installer extends GuiApplication {
     }
     catch (NoPermissionException ne)
     {
-      if (remoteServer)
+      if (isRemoteServer)
       {
         throw new ApplicationException(
                 ReturnCode.CONFIGURATION_ERROR,
@@ -2001,7 +2003,7 @@ public abstract class Installer extends GuiApplication {
     }
     catch (NamingException ne)
     {
-      if (remoteServer)
+      if (isRemoteServer)
       {
         throw new ApplicationException(
                 ReturnCode.CONFIGURATION_ERROR,
@@ -2019,7 +2021,7 @@ public abstract class Installer extends GuiApplication {
     {
       throw new ApplicationException(
               ReturnCode.CONFIGURATION_ERROR,
-              ((remoteServer)
+              ((isRemoteServer)
                       ? INFO_REMOTE_ADS_EXCEPTION.get(
                       getHostDisplay(auth), ace.getReason())
                       : INFO_ADS_EXCEPTION.get(ace.toString())), ace);

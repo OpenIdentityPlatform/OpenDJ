@@ -173,7 +173,7 @@ public class ADSContext
      * belongs to an instance key entry, separate from the server entry and
      * named by the ds-cfg-key-id attribute from the server entry.
      */
-    INSTANCE_KEY_CERT("ds-cfg-public-key-certificate"/*;binary*/,
+    INSTANCE_PUBLIC_KEY_CERTIFICATE("ds-cfg-public-key-certificate"/*;binary*/,
             ADSPropertySyntax.CERTIFICATE_BINARY);
 
     private String attrName;
@@ -418,7 +418,8 @@ public class ADSContext
     try
     {
       dirContext.createSubcontext(dn, attrs).close();
-      if (serverProperties.containsKey(ServerProperty.INSTANCE_KEY_CERT))
+      if (serverProperties.containsKey(
+                                ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE))
       {
         registerInstanceKeyCertificate(serverProperties, dn);
       }
@@ -462,7 +463,8 @@ public class ADSContext
       BasicAttributes attrs = makeAttrsFromServerProperties(serverProperties);
       dirContext.modifyAttributes(dn, InitialLdapContext.REPLACE_ATTRIBUTE,
           attrs);
-      if (serverProperties.containsKey(ServerProperty.INSTANCE_KEY_CERT))
+      if (serverProperties.containsKey(
+                                ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE))
       {
         registerInstanceKeyCertificate(serverProperties, dn);
       }
@@ -481,7 +483,8 @@ public class ADSContext
 
   /**
    * Method called to unregister a server in the ADS. Note that the server's
-   * instance key-pair public-key certificate entry (created in registerServer)
+   * instance key-pair public-key certificate entry (created in
+   * <tt>registerServer()</tt>)
    * is left untouched.
    * @param serverProperties the properties of the server.
    * @throws ADSContextException if the server could not be unregistered.
@@ -1400,7 +1403,7 @@ public class ADSContext
 
     switch(property)
     {
-      case INSTANCE_KEY_CERT:
+      case INSTANCE_PUBLIC_KEY_CERTIFICATE:
         result = null;  // used in separate instance key entry
         break;
       case GROUPS:
@@ -2017,8 +2020,8 @@ public class ADSContext
    */
 
   /**
-   * Returns the parent entry of the server key entries in ADS.
-   * @return the parent entry of the server key entries in ADS.
+   Returns the parent entry of the server key entries in ADS.
+   @return the parent entry of the server key entries in ADS.
    */
   private static String getInstanceKeysContainerDN()
   {
@@ -2041,8 +2044,10 @@ public class ADSContext
           Map<ServerProperty, Object> serverProperties,
           LdapName serverEntryDn) throws NamingException
   {
-    assert serverProperties.containsKey(ServerProperty.INSTANCE_KEY_CERT);
-    if (! serverProperties.containsKey(ServerProperty.INSTANCE_KEY_CERT)) {
+    assert serverProperties.containsKey(
+                                ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE);
+    if (! serverProperties.containsKey(
+                              ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE)) {
       return;
     }
 
@@ -2061,8 +2066,10 @@ public class ADSContext
               ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID));
     }
     keyAttrs.put(new BasicAttribute(
-            ServerProperty.INSTANCE_KEY_CERT.getAttributeName() + ";binary",
-            serverProperties.get(ServerProperty.INSTANCE_KEY_CERT)));
+            ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE.getAttributeName()
+                    + ";binary",
+            serverProperties.get(
+                    ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE)));
 
     /* search for public-key certificate entry in ADS DIT */
     final String attrIDs[] = { "ds-cfg-key-id" };
@@ -2076,6 +2083,12 @@ public class ADSContext
         keyID = (String)keyIdAttr.get();
       }
     }
+    /* TODO: It is possible (but unexpected) that the caller specifies a
+       ds-cfg-key-id value for which there is a certificate entry in ADS, but
+       the certificate value does not match that supplied by the caller. The
+       above search would not return the entry, but the below attempt to add
+       an new entry with the supplied ds-cfg-key-id will fail (throw a
+       NameAlreadyBoundException) */
     else {
       /* create key ID, if it was not supplied in serverProperties */
       if (null == keyID) {
@@ -2097,5 +2110,47 @@ public class ADSContext
             InitialLdapContext.REPLACE_ATTRIBUTE,
             (new BasicAttributes(
                    ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID)));
+  }
+
+  /**
+   Return the set of valid (i.e., not tagged as compromised) instance key-pair
+   public-key certificate entries in ADS.
+   @return The set of valid (i.e., not tagged as compromised) instance key-pair
+   public-key certificate entries in ADS represented as a Map from ds-cfg-key-id
+   value to ds-cfg-public-key-certificate;binary value Note that the collection
+   might be empty.
+   @throws ADSContextException in case of problems with the entry search.
+   */
+  public Map<String,byte[]> getTrustedCertificates()
+          throws ADSContextException
+  {
+    Map<String, byte[]> keyEntryMap = new HashMap<String, byte[]>();
+    try {
+      final LdapName baseDN = new LdapName(getInstanceKeysContainerDN());
+      final String searchFilter =
+       "(&(objectclass=ds-cfg-instance-key)(!(ds-cfg-key-compromised-time=*)))";
+      final SearchControls searchControls = new SearchControls();
+      searchControls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
+      final String attrIDs[]= {
+              ADSContext.ServerProperty.INSTANCE_KEY_ID.getAttributeName(),
+              ADSContext.ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE
+                      .getAttributeName() + ";binary"};
+      searchControls.setReturningAttributes(attrIDs);
+      NamingEnumeration<SearchResult> keyEntries
+              = dirContext.search(baseDN, searchFilter, searchControls);
+      while (keyEntries.hasMore()) {
+        final SearchResult entry = keyEntries.next();
+        final Attributes attrs = entry.getAttributes();
+        final Attribute keyIDAttr = attrs.get(attrIDs[0]);
+        final Attribute keyCertAttr = attrs.get(attrIDs[1]);
+        if (null == keyIDAttr || null == keyCertAttr) continue; // schema viol.
+        keyEntryMap.put((String)keyIDAttr.get(), (byte[])keyCertAttr.get());
+      }
+    }
+    catch (NamingException x) {
+      throw new ADSContextException(
+              ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+    }
+    return keyEntryMap;
   }
 }

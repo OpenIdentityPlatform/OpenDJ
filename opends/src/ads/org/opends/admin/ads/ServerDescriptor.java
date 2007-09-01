@@ -37,13 +37,11 @@ import java.util.Set;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.BasicAttributes;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
+import javax.naming.NameAlreadyBoundException;
+import javax.naming.directory.*;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 
 import org.opends.admin.ads.util.ConnectionUtils;
 
@@ -338,6 +336,7 @@ public class ServerDescriptor
       }
       catch (Throwable t)
       {
+        /* ignore */
       }
     }
     return host + ":" + port;
@@ -481,7 +480,7 @@ public class ServerDescriptor
       }
     }
     adsProperties.put(ADSContext.ServerProperty.ID, getHostPort(true));
-    adsProperties.put(ADSContext.ServerProperty.INSTANCE_KEY_CERT,
+    adsProperties.put(ADSContext.ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE,
                       getInstancePublicKeyCertificate());
   }
 
@@ -717,6 +716,7 @@ public class ServerDescriptor
     }
     catch (NameNotFoundException nse)
     {
+      /* ignore */
     }
     desc.serverProperties.put(ServerProperty.IS_REPLICATION_ENABLED,
         replicationEnabled ? Boolean.TRUE : Boolean.FALSE);
@@ -769,6 +769,7 @@ public class ServerDescriptor
     }
     catch (NameNotFoundException nse)
     {
+      /* ignore */
     }
 
     ctls = new SearchControls();
@@ -815,23 +816,22 @@ public class ServerDescriptor
     }
     catch (NameNotFoundException nse)
     {
+      /* ignore */
     }
   }
 
   /**
-   * Updates the instance key public-key certificate value of this context from
-   * the local truststore of the instance bound by this context. Any current
-   * value of the certificate is overwritten. The intent of this method is to
-   * retrieve the instance-key public-key certificate when this context is bound
-   * to an instance, and cache it for later use in registering the instance into
-   * ADS.
-   *
-   * @param desc The map to update with the instance key-pair public-key
-   * certificate.
-   * @param ctx The bound server instance.
-   *
-   * @throws NamingException if unable to retrieve certificate from bound
-   * instance.
+   Updates the instance key public-key certificate value of this context from
+   the local truststore of the instance bound by this context. Any current
+   value of the certificate is overwritten. The intent of this method is to
+   retrieve the instance-key public-key certificate when this context is bound
+   to an instance, and cache it for later use in registering the instance into
+   ADS.
+   @param desc The map to update with the instance key-pair public-key
+   certificate.
+   @param ctx The bound server instance.
+   @throws NamingException if unable to retrieve certificate from bound
+   instance.
    */
   private static void updatePublicKeyCertificate(ServerDescriptor desc,
       InitialLdapContext ctx) throws NamingException
@@ -845,12 +845,12 @@ public class ServerDescriptor
          it (which induces the CryptoManager to create the public-key
          certificate attribute), then repeat the search. */
       try {
-        final SearchControls sc = new SearchControls();
-        sc.setSearchScope(SearchControls.OBJECT_SCOPE);
+        final SearchControls searchControls = new SearchControls();
+        searchControls.setSearchScope(SearchControls.OBJECT_SCOPE);
         final String attrIDs[] = { "ds-cfg-public-key-certificate;binary" };
-        sc.setReturningAttributes(attrIDs);
-        final SearchResult certEntry
-           = ctx.search(dn, "(objectclass=ds-cfg-instance-key)", sc).next();
+        searchControls.setReturningAttributes(attrIDs);
+        final SearchResult certEntry = ctx.search(dn,
+                   "(objectclass=ds-cfg-instance-key)", searchControls).next();
         final Attribute certAttr = certEntry.getAttributes().get(attrIDs[0]);
         if (null != certAttr) {
           /* attribute ds-cfg-public-key-certificate is a MUST in the schema */
@@ -864,7 +864,7 @@ public class ServerDescriptor
         if (0 == i) {
           /* Poke CryptoManager to initialize truststore. Note the special
              attribute in the request. */
-          final BasicAttributes attrs = new BasicAttributes();
+          final Attributes attrs = new BasicAttributes();
           final Attribute oc = new BasicAttribute("objectclass");
           oc.add("top");
           oc.add("ds-cfg-self-signed-cert-request");
@@ -878,6 +878,53 @@ public class ServerDescriptor
     }
   }
 
+  /**
+   Seeds the bound instance's local ads-truststore with a set of instance
+   key-pair public key certificates. The result is the instance will trust any
+   instance posessing the private key corresponding to one of the public-key
+   certificates. This trust is necessary at least to initialize replication,
+   which uses the trusted certificate entries in the ads-truststore for server
+   authentication.
+   @param ctx The bound instance.
+   @param keyEntryMap The set of valid (i.e., not tagged as compromised)
+   instance key-pair public-key certificate entries in ADS represented as a map
+   from keyID to public-key certificate (binary).
+   @throws NamingException in case an error occurs while updating the instance's
+   ads-truststore via LDAP.
+   */
+  public static void seedAdsTrustStore(
+          InitialLdapContext ctx,
+          Map<String, byte[]> keyEntryMap)
+          throws NamingException
+  {
+    /* TODO: this DN is declared in some core constants file. Create a
+       constants file for the installer and import it into the core. */
+    final String truststoreDnStr = "cn=ads-truststore";
+    final Attribute oc = new BasicAttribute("objectclass");
+    oc.add("top");
+    oc.add("ds-cfg-instance-key");
+    for (Map.Entry<String, byte[]> keyEntry : keyEntryMap.entrySet()){
+      final BasicAttributes keyAttrs = new BasicAttributes();
+      keyAttrs.put(oc);
+      final Attribute rdnAttr = new BasicAttribute(
+              ADSContext.ServerProperty.INSTANCE_KEY_ID.getAttributeName(),
+              keyEntry.getKey());
+      keyAttrs.put(rdnAttr);
+      keyAttrs.put(new BasicAttribute(
+              ADSContext.ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE.
+                      getAttributeName() + ";binary", keyEntry.getValue()));
+      final LdapName keyDn = new LdapName((new StringBuilder(rdnAttr.getID()))
+              .append("=").append(Rdn.escapeValue(rdnAttr.get())).append(",")
+              .append(truststoreDnStr).toString());
+      try {
+        ctx.createSubcontext(keyDn, keyAttrs).close();
+      }
+      catch(NameAlreadyBoundException x){
+        ctx.destroySubcontext(keyDn);
+        ctx.createSubcontext(keyDn, keyAttrs).close();
+      }
+    }
+  }
 
   /**
    * Returns the number of entries in a given backend using the provided
@@ -915,7 +962,7 @@ public class ServerDescriptor
     }
     catch (Exception ex)
     {
-
+      /* ignore */
     }
     return nEntries;
 
@@ -972,6 +1019,7 @@ public class ServerDescriptor
       areDnsEqual = name1.equals(name2);
     } catch (Exception ex)
     {
+      /* ignore */
     }
     return areDnsEqual;
   }
