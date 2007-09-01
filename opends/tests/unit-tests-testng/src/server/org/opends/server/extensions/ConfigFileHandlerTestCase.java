@@ -28,12 +28,19 @@ package org.opends.server.extensions;
 
 
 
+import java.util.ArrayList;
+
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.config.ConfigEntry;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.DN;
 
 import static org.testng.Assert.*;
+
+import static org.opends.server.util.ServerConstants.*;
 
 
 
@@ -77,6 +84,65 @@ public class ConfigFileHandlerTestCase
     );
 
     assertFalse(resultCode == 0);
+  }
+
+
+
+  /**
+   * Tests to ensure that none of the configuration entries are using the
+   * extensibleObject object class.
+   */
+  @Test
+  public void testNoExtensibleObjects()
+         throws Exception
+  {
+    ArrayList<DN> violatingDNs = new ArrayList<DN>();
+    recursivelyTestNoExtensibleObjects(
+         DirectoryServer.getConfigHandler().getConfigRootEntry(), violatingDNs);
+
+    if (! violatingDNs.isEmpty())
+    {
+      StringBuilder message = new StringBuilder();
+      message.append("The extensibleObject object class is not allowed for " +
+                     "use in the server configuration.");
+      message.append(EOL);
+      message.append("Configuration entries containing the extensibleObject " +
+                     "object class:");
+      message.append(EOL);
+      for (DN dn : violatingDNs)
+      {
+        message.append("- ");
+        message.append(dn.toString());
+        message.append(EOL);
+      }
+
+      throw new AssertionError(message.toString());
+    }
+  }
+
+
+
+  /**
+   * Tests that the provided configuration entry does not contain the
+   * extensibleObject object class, and neither do any of its subordinate
+   * entries.
+   *
+   * @param  configEntry   The configuration entry to be checked.
+   * @param  violatingDNs  A list to which the DN of any entry containing the
+   *                       extensibleObject class should be added.
+   */
+  private void recursivelyTestNoExtensibleObjects(ConfigEntry configEntry,
+                                                  ArrayList<DN> violatingDNs)
+  {
+    if (configEntry.hasObjectClass("extensibleObject"))
+    {
+      violatingDNs.add(configEntry.getDN());
+    }
+
+    for (ConfigEntry ce : configEntry.getChildren().values())
+    {
+      recursivelyTestNoExtensibleObjects(ce, violatingDNs);
+    }
   }
 }
 
