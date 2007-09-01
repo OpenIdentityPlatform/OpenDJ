@@ -40,7 +40,7 @@
   <adm:tag name="security"/>
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>ds-cfg-crypto-manager-oid</ldap:oid>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.163</ldap:oid>
       <ldap:name>ds-cfg-crypto-manager</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
@@ -135,7 +135,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>ds-cfg-ssl-encryption-oid</ldap:oid>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.481</ldap:oid>
         <ldap:name>ds-cfg-ssl-encryption</ldap:name>
       </ldap:attribute>
     </adm:profile>
