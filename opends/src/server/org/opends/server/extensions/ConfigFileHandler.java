@@ -44,6 +44,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.TreeMap;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
@@ -76,6 +77,7 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.tools.LDIFModify;
+import org.opends.server.types.DirectoryEnvironmentConfig;
 
 
 import org.opends.server.types.*;
@@ -130,6 +132,9 @@ public class ConfigFileHandler
 
 
 
+  // Indicates whether to maintain a configuration archive.
+  private boolean maintainConfigArchive;
+
   // A SHA-1 digest of the last known configuration.  This should only be
   // incorrect if the server configuration file has been manually edited with
   // the server online, which is a bad thing.
@@ -144,6 +149,9 @@ public class ConfigFileHandler
 
   // The set of base DNs for this config handler backend.
   private DN[] baseDNs;
+
+  // The maximum config archive size to maintain.
+  private int maxConfigArchiveSize;
 
   // The write lock used to ensure that only one thread can apply a
   // configuration update at any given time.
@@ -228,30 +236,37 @@ public class ConfigFileHandler
     // Check to see if a configuration archive exists.  If not, then create one.
     // If so, then check whether the current configuration matches the last
     // configuration in the archive.  If it doesn't, then archive it.
-    try
-    {
-      configurationDigest = calculateConfigDigest();
-    }
-    catch (DirectoryException de)
-    {
-      throw new InitializationException(de.getMessageObject(), de.getCause());
-    }
-
-    File archiveDirectory = new File(f.getParent(), CONFIG_ARCHIVE_DIR_NAME);
-    if (archiveDirectory.exists())
+    DirectoryEnvironmentConfig envConfig =
+         DirectoryServer.getEnvironmentConfig();
+    maintainConfigArchive = envConfig.maintainConfigArchive();
+    maxConfigArchiveSize  = envConfig.getMaxConfigArchiveSize();
+    if (maintainConfigArchive)
     {
       try
       {
-        byte[] lastDigest = getLastConfigDigest(archiveDirectory);
-        if (! Arrays.equals(configurationDigest, lastDigest))
+        configurationDigest = calculateConfigDigest();
+      }
+      catch (DirectoryException de)
+      {
+        throw new InitializationException(de.getMessageObject(), de.getCause());
+      }
+
+      File archiveDirectory = new File(f.getParent(), CONFIG_ARCHIVE_DIR_NAME);
+      if (archiveDirectory.exists())
+      {
+        try
         {
-          writeConfigArchive();
-        }
-      } catch (Exception e) {}
-    }
-    else
-    {
-      writeConfigArchive();
+          byte[] lastDigest = getLastConfigDigest(archiveDirectory);
+          if (! Arrays.equals(configurationDigest, lastDigest))
+          {
+            writeConfigArchive();
+          }
+        } catch (Exception e) {}
+      }
+      else
+      {
+        writeConfigArchive();
+      }
     }
 
 
@@ -267,8 +282,11 @@ public class ConfigFileHandler
       if (changesFile.exists())
       {
         applyChangesFile(f, changesFile);
-        configurationDigest = calculateConfigDigest();
-        writeConfigArchive();
+        if (maintainConfigArchive)
+        {
+          configurationDigest = calculateConfigDigest();
+          writeConfigArchive();
+        }
       }
     }
     catch (Exception e)
@@ -628,7 +646,7 @@ public class ConfigFileHandler
     // Determine the appropriate server root.  If it's not defined in the
     // environment config, then try to figure it out from the location of the
     // configuration file.
-    File rootFile = DirectoryServer.getEnvironmentConfig().getServerRoot();
+    File rootFile = envConfig.getServerRoot();
     if (rootFile == null)
     {
       try
@@ -1952,60 +1970,63 @@ public class ConfigFileHandler
     // copy the current config off to the side before writing the new config
     // so that the manual changes don't get lost but also don't get applied.
     // Also, send an admin alert notifying administrators about the problem.
-    try
+    if (maintainConfigArchive)
     {
-      byte[] currentDigest = calculateConfigDigest();
-      if (! Arrays.equals(configurationDigest, currentDigest))
+      try
       {
-        File existingCfg   = new File(configFile);
-        File newConfigFile = new File(existingCfg.getParent(),
-                                      "config.manualedit-" +
-                                           TimeThread.getGMTTime() + ".ldif");
-        int counter = 2;
-        while (newConfigFile.exists())
+        byte[] currentDigest = calculateConfigDigest();
+        if (! Arrays.equals(configurationDigest, currentDigest))
         {
-          newConfigFile = new File(newConfigFile.getAbsolutePath() + "." +
-                                   counter++);
-        }
-
-        FileInputStream  inputStream  = new FileInputStream(existingCfg);
-        FileOutputStream outputStream = new FileOutputStream(newConfigFile);
-        byte[] buffer = new byte[8192];
-        while (true)
-        {
-          int bytesRead = inputStream.read(buffer);
-          if (bytesRead < 0)
+          File existingCfg   = new File(configFile);
+          File newConfigFile = new File(existingCfg.getParent(),
+                                        "config.manualedit-" +
+                                             TimeThread.getGMTTime() + ".ldif");
+          int counter = 2;
+          while (newConfigFile.exists())
           {
-            break;
+            newConfigFile = new File(newConfigFile.getAbsolutePath() + "." +
+                                     counter++);
           }
 
-          outputStream.write(buffer, 0, bytesRead);
+          FileInputStream  inputStream  = new FileInputStream(existingCfg);
+          FileOutputStream outputStream = new FileOutputStream(newConfigFile);
+          byte[] buffer = new byte[8192];
+          while (true)
+          {
+            int bytesRead = inputStream.read(buffer);
+            if (bytesRead < 0)
+            {
+              break;
+            }
+
+            outputStream.write(buffer, 0, bytesRead);
+          }
+
+          inputStream.close();
+          outputStream.close();
+
+          Message message = WARN_CONFIG_MANUAL_CHANGES_DETECTED.get(
+              configFile, newConfigFile.getAbsolutePath());
+          logError(message);
+
+          DirectoryServer.sendAlertNotification(this,
+               ALERT_TYPE_MANUAL_CONFIG_EDIT_HANDLED, message);
+        }
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        inputStream.close();
-        outputStream.close();
-
-        Message message = WARN_CONFIG_MANUAL_CHANGES_DETECTED.get(
-            configFile, newConfigFile.getAbsolutePath());
+        Message message = ERR_CONFIG_MANUAL_CHANGES_LOST.get(
+            configFile, stackTraceToSingleLineString(e));
         logError(message);
 
         DirectoryServer.sendAlertNotification(this,
              ALERT_TYPE_MANUAL_CONFIG_EDIT_HANDLED, message);
       }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CONFIG_MANUAL_CHANGES_LOST.get(
-          configFile, stackTraceToSingleLineString(e));
-      logError(message);
-
-      DirectoryServer.sendAlertNotification(this,
-           ALERT_TYPE_MANUAL_CONFIG_EDIT_HANDLED, message);
     }
 
 
@@ -2064,7 +2085,10 @@ public class ConfigFileHandler
 
 
     // Try to write the archive for the new configuration.
-    writeConfigArchive();
+    if (maintainConfigArchive)
+    {
+      writeConfigArchive();
+    }
   }
 
 
@@ -2075,6 +2099,11 @@ public class ConfigFileHandler
    */
   private void writeConfigArchive()
   {
+    if (! maintainConfigArchive)
+    {
+      return;
+    }
+
     // Determine the path to the directory that will hold the archived
     // configuration files.
     File configDirectory  = new File(configFile).getParentFile();
@@ -2195,6 +2224,41 @@ public class ConfigFileHandler
       {
         outputStream.close();
       } catch (Exception e) {}
+    }
+
+
+    // If we should enforce a maximum number of archived configurations, then
+    // see if there are any old ones that we need to delete.
+    if (maxConfigArchiveSize > 0)
+    {
+      String[] archivedFileList = archiveDirectory.list();
+      int numToDelete = archivedFileList.length - maxConfigArchiveSize;
+      if (numToDelete > 0)
+      {
+        TreeSet<String> archiveSet = new TreeSet<String>();
+        for (String name : archivedFileList)
+        {
+          if (! name.startsWith("config-"))
+          {
+            continue;
+          }
+
+          // Simply ordering by filename should work, even when there are
+          // timestamp conflicts, because the dash comes before the period in
+          // the ASCII character set.
+          archiveSet.add(name);
+        }
+
+        Iterator<String> iterator = archiveSet.iterator();
+        for (int i=0; ((i < numToDelete) && iterator.hasNext()); i++)
+        {
+          File f = new File(archiveDirectory, iterator.next());
+          try
+          {
+            f.delete();
+          } catch (Exception e) {}
+        }
+      }
     }
   }
 

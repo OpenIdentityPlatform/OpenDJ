@@ -2531,6 +2531,28 @@ public final class ServerConstants
 
   /**
    * The name of the system property that can be used to determine whether the
+   * server should maintain an archive of previous configurations.  If this is
+   * not set, or if the value is anything other than "false", then the server
+   * will maintain a configuration archive.
+   */
+  public static final String PROPERTY_MAINTAIN_CONFIG_ARCHIVE =
+       "org.opends.server.MaintainConfigArchive";
+
+
+
+  /**
+   * The name of the system property that can be used to specify the maximum
+   * number of archived configurations to maintain.  If this is not set, or if
+   * it set to a zero or negative value, then there will be no limit on the
+   * number of archived configurations.
+   */
+  public static final String PROPERTY_MAX_CONFIG_ARCHIVE_SIZE =
+       "org.opends.server.MaxConfigArchiveSize";
+
+
+
+  /**
+   * The name of the system property that can be used to determine whether the
    * Directory Server is starting up for the purpose of running the unit tests.
    */
   public static final String PROPERTY_RUNNING_UNIT_TESTS =
