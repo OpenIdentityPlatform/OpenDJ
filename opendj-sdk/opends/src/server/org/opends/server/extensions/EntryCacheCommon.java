@@ -95,6 +95,10 @@ public class EntryCacheCommon
     // or PHASE_APPLY.
     private boolean _isAcceptable;
 
+    // Indicates whether administrative action is required or not. Used when
+    // _configPhase is PHASE_APPLY.
+    private boolean _isAdminActionRequired;
+
     /**
      * Create an error handler.
      *
@@ -111,11 +115,12 @@ public class EntryCacheCommon
         ArrayList<Message>            errorMessages
         )
     {
-      _configPhase         = configPhase;
-      _unacceptableReasons = unacceptableReasons;
-      _errorMessages       = errorMessages;
-      _resultCode          = ResultCode.SUCCESS;
-      _isAcceptable        = true;
+      _configPhase           = configPhase;
+      _unacceptableReasons   = unacceptableReasons;
+      _errorMessages         = errorMessages;
+      _resultCode            = ResultCode.SUCCESS;
+      _isAcceptable          = true;
+      _isAdminActionRequired = false;
     }
 
     /**
@@ -129,6 +134,49 @@ public class EntryCacheCommon
             Message error,
             boolean isAcceptable,
             ResultCode resultCode
+    )
+    {
+      switch (_configPhase)
+      {
+      case PHASE_INIT:
+        {
+        _errorMessages.add (error);
+        _isAcceptable = isAcceptable;
+        break;
+        }
+      case PHASE_ACCEPTABLE:
+        {
+        _unacceptableReasons.add (error);
+        _isAcceptable = isAcceptable;
+        break;
+        }
+      case PHASE_APPLY:
+        {
+        _errorMessages.add (error);
+        _isAcceptable = isAcceptable;
+        if (_resultCode == ResultCode.SUCCESS)
+        {
+          _resultCode = resultCode;
+        }
+        break;
+        }
+      }
+    }
+
+    /**
+     * Report an error.
+     *
+     * @param error        the error to report
+     * @param isAcceptable <code>true</code> if the configuration is acceptable
+     * @param resultCode   the change result for the current configuration
+     * @param isAdminActionRequired <code>true</code> if administrative action
+     *                              is required or <code>false</code> otherwise
+     */
+    public void reportError(
+            Message error,
+            boolean isAcceptable,
+            ResultCode resultCode,
+            boolean isAdminActionRequired
     )
     {
       switch (_configPhase)
@@ -152,6 +200,7 @@ public class EntryCacheCommon
         {
           _resultCode = resultCode;
         }
+        _isAdminActionRequired = isAdminActionRequired;
         break;
         }
       }
@@ -211,6 +260,17 @@ public class EntryCacheCommon
     public ConfigPhase getConfigPhase()
     {
       return _configPhase;
+    }
+
+    /**
+     * Get the current isAdminActionRequired flag as determined after apply
+     * action has been taken on a given configuration.
+     *
+     * @return the isAdminActionRequired flag
+     */
+    public boolean getIsAdminActionRequired()
+    {
+      return _isAdminActionRequired;
     }
   } // ConfigErrorHandler
 

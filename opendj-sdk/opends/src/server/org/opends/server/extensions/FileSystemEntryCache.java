@@ -29,11 +29,14 @@ import org.opends.messages.Message;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.StringTokenizer;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -54,19 +57,21 @@ import com.sleepycat.je.DatabaseNotFoundException;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.StatsConfig;
+import com.sleepycat.je.config.ConfigParam;
+import com.sleepycat.je.config.EnvironmentParams;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.admin.std.server.FileSystemEntryCacheCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.backends.jeb.ConfigurableEnvironment;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.EntryEncodeConfig;
-
-
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
@@ -75,12 +80,13 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.util.ServerConstants;
+
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.messages.ExtensionMessages.*;
-
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.ConfigMessages.*;
 
 /**
  * This class defines a Directory Server entry cache that uses JE database to
@@ -193,16 +199,6 @@ public class FileSystemEntryCache
   private static final String INDEXCLASSDBNAME = "IndexClassDB";
   private static final String INDEXKEY = "EntryCacheIndex";
 
-  // JE config constants.
-  // TODO: All hardcoded for now but we need to use a common
-  // ds-cfg-je-property like multi-valued attribute for this, see Issue 1481.
-  private static final Long JEBYTESINTERVAL = 10485760L;
-  private static final Long JELOGFILEMAX = 10485760L;
-  private static final Integer JEMINFILEUTILIZATION = 50;
-  private static final Integer JEMINUTILIZATION = 90;
-  private static final Integer JEMAXBATCHFILES = 1;
-  private static final Integer JEMINAGE = 1;
-
   // The number of milliseconds between persistent state save/restore
   // progress reports.
   private long progressInterval = 5000;
@@ -215,11 +211,26 @@ public class FileSystemEntryCache
   private EntryEncodeConfig encodeConfig =
     new EntryEncodeConfig(true, false, false);
 
+  // JE native properties to configuration attributes map.
+  private HashMap<String, String> configAttrMap =
+    new HashMap<String, String>();
+
+  // Currently registered configuration object.
+  private FileSystemEntryCacheCfg registeredConfiguration;
+
   /**
    * Creates a new instance of this entry cache.
    */
   public FileSystemEntryCache() {
     super();
+
+    // Register all JE native properties that map to
+    // corresponding config attributes.
+    configAttrMap.put("je.maxMemoryPercent",
+      ConfigurableEnvironment.ATTR_DATABASE_CACHE_PERCENT);
+    configAttrMap.put("je.maxMemory",
+      ConfigurableEnvironment.ATTR_DATABASE_CACHE_SIZE);
+
     // All initialization should be performed in the initializeEntryCache.
   }
 
@@ -229,16 +240,30 @@ public class FileSystemEntryCache
   public void initializeEntryCache(FileSystemEntryCacheCfg configuration)
           throws ConfigException, InitializationException {
 
+    registeredConfiguration = configuration;
     configuration.addFileSystemChangeListener (this);
     configEntryDN = configuration.dn();
 
     // Read and apply configuration.
     boolean applyChanges = true;
+    ArrayList<Message> errorMessages = new ArrayList<Message>();
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
-          EntryCacheCommon.ConfigPhase.PHASE_INIT, null, null
+          EntryCacheCommon.ConfigPhase.PHASE_INIT, null, errorMessages
           );
-    processEntryCacheConfig(configuration, applyChanges, errorHandler);
+    if (!processEntryCacheConfig(configuration, applyChanges, errorHandler)) {
+      MessageBuilder buffer = new MessageBuilder();
+      if (!errorMessages.isEmpty()) {
+        Iterator<Message> iterator = errorMessages.iterator();
+        buffer.append(iterator.next());
+        while (iterator.hasNext()) {
+          buffer.append(".  ");
+          buffer.append(iterator.next());
+        }
+      }
+      Message message = ERR_FSCACHE_CANNOT_INITIALIZE.get(buffer.toString());
+      throw new ConfigException(message);
+    }
 
     // Set the cache type.
     if (cacheType.equalsIgnoreCase("LRU")) {
@@ -273,9 +298,6 @@ public class FileSystemEntryCache
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      // Log an error message.
-      logError(ERR_FSCACHE_HOMELESS.get());
-
       // Not having any home directory for the cache db environment is a
       // fatal error as we are unable to continue any further without it.
       Message message =
@@ -283,65 +305,10 @@ public class FileSystemEntryCache
       throw new InitializationException(message, e);
     }
 
-    // Open JE environment and cache database.
+    // Configure and open JE environment and cache database.
     try {
-      entryCacheEnvConfig = new EnvironmentConfig();
-
-      // All these environment properties are cranked up to their extreme
-      // values, either max or min, to get the smallest space consumption,
-      // which turns into memory consumption for memory based filesystems,
-      // possible. This will negate the performance somewhat but preserves
-      // the memory to a much greater extent.
-      //
-      // TODO: All these options should be configurable, see Issue 1481.
-      //
-      entryCacheEnvConfig.setConfigParam("je.log.fileMax",
-          JELOGFILEMAX.toString());
-      entryCacheEnvConfig.setConfigParam("je.cleaner.minUtilization",
-          JEMINUTILIZATION.toString());
-      entryCacheEnvConfig.setConfigParam("je.cleaner.maxBatchFiles",
-          JEMAXBATCHFILES.toString());
-      entryCacheEnvConfig.setConfigParam("je.cleaner.minAge",
-          JEMINAGE.toString());
-      entryCacheEnvConfig.setConfigParam("je.cleaner.minFileUtilization",
-          JEMINFILEUTILIZATION.toString());
-      entryCacheEnvConfig.setConfigParam("je.checkpointer.bytesInterval",
-          JEBYTESINTERVAL.toString());
-
       entryCacheEnvConfig.setAllowCreate(true);
       entryCacheEnv = new Environment(new File(cacheHome), entryCacheEnvConfig);
-
-      // Set JE cache percent and size where the size value will prevail if set.
-      entryCacheEnvMutableConfig = new EnvironmentMutableConfig();
-      if (jeCachePercent != 0) {
-        try {
-          entryCacheEnvMutableConfig.setCachePercent(jeCachePercent);
-        } catch (IllegalArgumentException e) {
-          if (debugEnabled()) {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          // Its safe to ignore and continue here, JE will use its default
-          // value for this however we have to let the user know about it
-          // so just log an error message.
-          logError(ERR_FSCACHE_CANNOT_SET_JE_MEMORY_PCT.get());
-        }
-      }
-      if (jeCacheSize != 0) {
-        try {
-          entryCacheEnvMutableConfig.setCacheSize(jeCacheSize);
-        } catch (IllegalArgumentException e) {
-          if (debugEnabled()) {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          // Its safe to ignore and continue here, JE will use its default
-          // value for this however we have to let the user know about it
-          // so just log an error message.
-          logError(ERR_FSCACHE_CANNOT_SET_JE_MEMORY_SIZE.get());
-        }
-      }
-
       entryCacheEnv.setMutableConfig(entryCacheEnvMutableConfig);
       entryCacheDBConfig = new DatabaseConfig();
       entryCacheDBConfig.setAllowCreate(true);
@@ -513,7 +480,9 @@ public class FileSystemEntryCache
       }
 
       Message message =
-          ERR_FSCACHE_CANNOT_INITIALIZE.get();
+          ERR_FSCACHE_CANNOT_INITIALIZE.get(
+          (e.getCause() != null ? e.getCause().getMessage() :
+            stackTraceToSingleLineString(e)));
       throw new InitializationException(message, e);
     }
 
@@ -525,6 +494,8 @@ public class FileSystemEntryCache
   public void finalizeEntryCache() {
 
     cacheWriteLock.lock();
+
+    registeredConfiguration.removeFileSystemChangeListener (this);
 
     // Store index/maps in case of persistent cache. Since the cache database
     // already exist at this point all we have to do is to serialize cache
@@ -1076,10 +1047,13 @@ public class FileSystemEntryCache
       EntryCacheCommon.getConfigErrorHandler (
           EntryCacheCommon.ConfigPhase.PHASE_APPLY, null, errorMessages
           );
-    processEntryCacheConfig (configuration, applyChanges, errorHandler);
 
+    // Do not apply changes unless this cache is enabled.
+    if (configuration.isEnabled()) {
+      processEntryCacheConfig (configuration, applyChanges, errorHandler);
+    }
 
-    boolean adminActionRequired = false;
+    boolean adminActionRequired = errorHandler.getIsAdminActionRequired();
     ConfigChangeResult changeResult = new ConfigChangeResult(
         errorHandler.getResultCode(),
         adminActionRequired,
@@ -1188,8 +1162,8 @@ public class FileSystemEntryCache
    * @param applyChanges   If true then take into account the new configuration.
    * @param errorHandler   An handler used to report errors.
    *
-   * @return  The mapping between strings of character set values and the
-   *          minimum number of characters required from those sets.
+   * @return  <CODE>true</CODE> if configuration is acceptable,
+   *          or <CODE>false</CODE> otherwise.
    */
   public boolean processEntryCacheConfig(
       FileSystemEntryCacheCfg             configuration,
@@ -1198,18 +1172,24 @@ public class FileSystemEntryCache
       )
   {
     // Local variables to read configuration.
-    DN                    newConfigEntryDN;
-    long                  newLockTimeout;
-    long                  newMaxEntries;
-    long                  newMaxAllowedMemory;
-    HashSet<SearchFilter> newIncludeFilters = null;
-    HashSet<SearchFilter> newExcludeFilters = null;
-    int                   newJECachePercent;
-    long                  newJECacheSize;
-    boolean               newPersistentCache;
-    boolean               newCompactEncoding;
-    String                newCacheType = DEFAULT_FSCACHE_TYPE;
-    String                newCacheHome = DEFAULT_FSCACHE_HOME;
+    DN                       newConfigEntryDN;
+    long                     newLockTimeout;
+    long                     newMaxEntries;
+    long                     newMaxAllowedMemory;
+    HashSet<SearchFilter>    newIncludeFilters = null;
+    HashSet<SearchFilter>    newExcludeFilters = null;
+    int                      newJECachePercent;
+    long                     newJECacheSize;
+    boolean                  newPersistentCache;
+    boolean                  newCompactEncoding;
+    String                   newCacheType = DEFAULT_FSCACHE_TYPE;
+    String                   newCacheHome = DEFAULT_FSCACHE_HOME;
+    SortedSet<String>        newJEProperties;
+
+    EnvironmentMutableConfig newMutableEnvConfig =
+      new EnvironmentMutableConfig();
+    EnvironmentConfig        newEnvConfig =
+      new EnvironmentConfig();
 
     // Read configuration.
     newConfigEntryDN = configuration.dn();
@@ -1237,6 +1217,9 @@ public class FileSystemEntryCache
     // Check if this cache should use compact encoding.
     newCompactEncoding = configuration.isBackendCompactEncoding();
 
+    // Get native JE properties.
+    newJEProperties = configuration.getJEProperty();
+
     switch (errorHandler.getConfigPhase())
     {
     case PHASE_INIT:
@@ -1260,6 +1243,45 @@ public class FileSystemEntryCache
           errorHandler,
           configEntryDN
           );
+      // JE configuration properties.
+      try {
+        newMutableEnvConfig.setCachePercent((newJECachePercent != 0 ?
+          newJECachePercent :
+          EnvironmentConfig.DEFAULT.getCachePercent()));
+      } catch (Exception e) {
+        if (debugEnabled()) {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+        errorHandler.reportError(
+          ERR_FSCACHE_CANNOT_SET_JE_MEMORY_PCT.get(),
+          false,
+          DirectoryServer.getServerErrorResultCode()
+          );
+      }
+      try {
+        newMutableEnvConfig.setCacheSize(newJECacheSize);
+      } catch (Exception e) {
+        if (debugEnabled()) {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+        errorHandler.reportError(
+          ERR_FSCACHE_CANNOT_SET_JE_MEMORY_SIZE.get(),
+          false,
+          DirectoryServer.getServerErrorResultCode()
+          );
+      }
+      // JE native properties.
+      try {
+        newEnvConfig = ConfigurableEnvironment.setJEProperties(
+          newEnvConfig, newJEProperties, configAttrMap);
+      } catch (Exception e) {
+        if (debugEnabled()) {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+        errorHandler.reportError(
+          ERR_FSCACHE_CANNOT_SET_JE_PROPERTIES.get(e.getMessage()),
+          false, DirectoryServer.getServerErrorResultCode());
+      }
       break;
     case PHASE_ACCEPTABLE:  // acceptable and apply are using the same
     case PHASE_APPLY:       // error ID codes
@@ -1277,6 +1299,54 @@ public class FileSystemEntryCache
           errorHandler,
           configEntryDN
           );
+      // Iterate through native JE properties.
+      try {
+        Map paramsMap = EnvironmentParams.SUPPORTED_PARAMS;
+        // If this entry cache is disabled then there is no open JE
+        // environment to check against, skip mutable check if so.
+        if (configuration.isEnabled()) {
+          newMutableEnvConfig =
+            ConfigurableEnvironment.setJEProperties(
+            entryCacheEnv.getConfig(), newJEProperties, configAttrMap);
+          EnvironmentConfig oldEnvConfig = entryCacheEnv.getConfig();
+          for (String jeEntry : newJEProperties) {
+            // There is no need to validate properties yet again.
+            StringTokenizer st = new StringTokenizer(jeEntry, "=");
+            if (st.countTokens() == 2) {
+              String jePropertyName = st.nextToken();
+              String jePropertyValue = st.nextToken();
+              ConfigParam param = (ConfigParam) paramsMap.get(jePropertyName);
+              if (!param.isMutable()) {
+                String oldValue = oldEnvConfig.getConfigParam(param.getName());
+                String newValue = jePropertyValue;
+                if (!oldValue.equalsIgnoreCase(newValue)) {
+                  Message message =
+                    INFO_CONFIG_JE_PROPERTY_REQUIRES_RESTART.get(
+                    jePropertyName);
+                  errorHandler.reportError(message, true, ResultCode.SUCCESS,
+                    true);
+                  if (debugEnabled()) {
+                    TRACER.debugInfo("The change to the following property " +
+                      "will take effect when the component is restarted: " +
+                      jePropertyName);
+                  }
+                }
+              }
+            }
+          }
+        } else {
+          newMutableEnvConfig =
+            ConfigurableEnvironment.setJEProperties(
+            new EnvironmentConfig(), newJEProperties, configAttrMap);
+        }
+      } catch (ConfigException ce) {
+        errorHandler.reportError(ce.getMessageObject(),
+          false, DirectoryServer.getServerErrorResultCode());
+      } catch (Exception e) {
+        errorHandler.reportError(
+          Message.raw(stackTraceToSingleLineString(e)),
+          false, DirectoryServer.getServerErrorResultCode());
+      }
       break;
     }
 
@@ -1284,19 +1354,19 @@ public class FileSystemEntryCache
     {
       switch (errorHandler.getConfigPhase()) {
       case PHASE_INIT:
-        cacheType      = newCacheType;
-        cacheHome      = newCacheHome;
-        jeCachePercent = newJECachePercent;
-        jeCacheSize    = newJECacheSize;
+        cacheType = newCacheType;
+        cacheHome = newCacheHome;
+        entryCacheEnvConfig = newEnvConfig;
+        entryCacheEnvMutableConfig = newMutableEnvConfig;
         break;
       case PHASE_APPLY:
-        jeCachePercent = newJECachePercent;
         try {
-            EnvironmentMutableConfig envConfig =
+            newMutableEnvConfig =
               entryCacheEnv.getMutableConfig();
-            envConfig.setCachePercent((jeCachePercent != 0 ? jeCachePercent :
+            newMutableEnvConfig.setCachePercent((newJECachePercent != 0 ?
+              newJECachePercent :
               EnvironmentConfig.DEFAULT.getCachePercent()));
-            entryCacheEnv.setMutableConfig(envConfig);
+            entryCacheEnv.setMutableConfig(newMutableEnvConfig);
             entryCacheEnv.evictMemory();
         } catch (Exception e) {
             if (debugEnabled()) {
@@ -1308,12 +1378,11 @@ public class FileSystemEntryCache
               DirectoryServer.getServerErrorResultCode()
               );
         }
-        jeCacheSize = newJECacheSize;
         try {
-            EnvironmentMutableConfig envConfig =
+            newMutableEnvConfig =
               entryCacheEnv.getMutableConfig();
-            envConfig.setCacheSize(jeCacheSize);
-            entryCacheEnv.setMutableConfig(envConfig);
+            newMutableEnvConfig.setCacheSize(newJECacheSize);
+            entryCacheEnv.setMutableConfig(newMutableEnvConfig);
             entryCacheEnv.evictMemory();
         } catch (Exception e) {
             if (debugEnabled()) {
@@ -1321,6 +1390,23 @@ public class FileSystemEntryCache
             }
             errorHandler.reportError(
               ERR_FSCACHE_CANNOT_SET_JE_MEMORY_SIZE.get(),
+              false,
+              DirectoryServer.getServerErrorResultCode()
+              );
+        }
+        try {
+          EnvironmentConfig oldEnvConfig = entryCacheEnv.getConfig();
+          newEnvConfig = ConfigurableEnvironment.setJEProperties(
+            oldEnvConfig, newJEProperties, configAttrMap);
+          // This takes care of changes to the JE environment for those
+          // properties that are mutable at runtime.
+          entryCacheEnv.setMutableConfig(newEnvConfig);
+        } catch (Exception e) {
+          if (debugEnabled()) {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+            errorHandler.reportError(
+              ERR_FSCACHE_CANNOT_SET_JE_PROPERTIES.get(e.getMessage()),
               false,
               DirectoryServer.getServerErrorResultCode()
               );
@@ -1339,6 +1425,8 @@ public class FileSystemEntryCache
       setLockTimeout(newLockTimeout);
       setIncludeFilters(newIncludeFilters);
       setExcludeFilters(newExcludeFilters);
+
+      registeredConfiguration = configuration;
     }
 
     return errorHandler.getIsAcceptable();

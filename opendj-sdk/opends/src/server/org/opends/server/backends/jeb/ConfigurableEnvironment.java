@@ -35,14 +35,20 @@ import org.opends.server.types.DebugLogLevel;
 import java.util.HashMap;
 import java.util.Map;
 import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.SortedSet;
+import java.util.StringTokenizer;
+import org.opends.messages.Message;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.admin.std.server.JEBackendCfg;
 import org.opends.server.admin.std.meta.JEBackendCfgDefn;
 import org.opends.server.admin.DurationPropertyDefinition;
 import org.opends.server.admin.BooleanPropertyDefinition;
 import org.opends.server.admin.PropertyDefinition;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.messages.ConfigMessages.*;
 
 /**
  * This class maps JE properties to configuration attributes.
@@ -163,6 +169,13 @@ public class ConfigurableEnvironment
    */
   public static final String ATTR_NUM_CLEANER_THREADS =
        ConfigConstants.NAME_PREFIX_CFG + "database-cleaner-num-threads";
+
+
+  /**
+   * The name of the attribute which may specify any native JE properties.
+   */
+  public static final String ATTR_JE_PROPERTY =
+       ConfigConstants.NAME_PREFIX_CFG + "je-property";
 
 
   /**
@@ -389,6 +402,92 @@ public class ConfigurableEnvironment
 
       String value = getPropertyValue(cfg, attrName);
       envConfig.setConfigParam(jeProperty, value);
+    }
+
+    // See if there are any native JE properties specified in the config
+    // and if so try to parse, evaluate and set them.
+    SortedSet<String> jeProperties = cfg.getJEProperty();
+    try {
+      envConfig = setJEProperties(envConfig, jeProperties, attrMap);
+    } catch (ConfigException e) {
+      throw e;
+    }
+
+    return envConfig;
+  }
+
+
+
+  /**
+   * Parse, validate and set native JE environment properties for
+   * a given environment config.
+   *
+   * @param  envConfig The JE environment config for which to set
+   *                   the properties.
+   * @param  jeProperties The JE environment properties to parse,
+   *                      validate and set.
+   * @param  configAttrMap Component supported JE properties to
+   *                       their configuration attributes map.
+   * @return An environment config instance with given properties
+   *         set.
+   * @throws ConfigException If there is an error while parsing,
+   *         validating and setting any of the properties provided.
+   */
+  public static EnvironmentConfig setJEProperties(EnvironmentConfig envConfig,
+    SortedSet<String> jeProperties, HashMap<String, String> configAttrMap)
+    throws ConfigException
+  {
+    if (jeProperties.isEmpty()) {
+      // return default config.
+      return envConfig;
+    }
+
+    // Set to catch duplicate properties.
+    HashSet<String> uniqueJEProperties = new HashSet<String>();
+
+    // Iterate through the config values associated with a JE property.
+    for (String jeEntry : jeProperties)
+    {
+      StringTokenizer st = new StringTokenizer(jeEntry, "=");
+      if (st.countTokens() == 2) {
+        String jePropertyName = st.nextToken();
+        String jePropertyValue = st.nextToken();
+        // Check if it is a duplicate.
+        if (uniqueJEProperties.contains(jePropertyName)) {
+          Message message = ERR_CONFIG_JE_DUPLICATE_PROPERTY.get(
+              jePropertyName);
+            throw new ConfigException(message);
+        }
+        // Set JE property.
+        try {
+          envConfig.setConfigParam(jePropertyName, jePropertyValue);
+          // This is a special case that JE cannot validate before
+          // actually setting it. Validate it before it gets to JE.
+          if (jePropertyName.equals("java.util.logging.level")) {
+            java.util.logging.Level.parse(jePropertyValue);
+          }
+          // If this property shadows an existing config attribute.
+          if (configAttrMap.containsKey(jePropertyName)) {
+            Message message = ERR_CONFIG_JE_PROPERTY_SHADOWS_CONFIG.get(
+              jePropertyName, attrMap.get(jePropertyName));
+            throw new ConfigException(message);
+          }
+          // Add this property to unique set.
+          uniqueJEProperties.add(jePropertyName);
+        } catch(IllegalArgumentException e) {
+          if (debugEnabled()) {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+          Message message =
+            ERR_CONFIG_JE_PROPERTY_INVALID.get(
+            jeEntry, e.getMessage());
+          throw new ConfigException(message, e.getCause());
+        }
+      } else {
+        Message message =
+          ERR_CONFIG_JE_PROPERTY_INVALID_FORM.get(jeEntry);
+        throw new ConfigException(message);
+      }
     }
 
     return envConfig;

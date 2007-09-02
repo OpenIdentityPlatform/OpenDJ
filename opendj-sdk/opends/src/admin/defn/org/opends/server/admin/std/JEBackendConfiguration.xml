@@ -991,4 +991,32 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="je-property"
+    mandatory="false"
+    multi-valued="true">
+    <adm:synopsis>
+      Specifies the database and environment properties for the Berkeley DB
+      Java Edition database serving the data for this backend.
+    </adm:synopsis>
+    <adm:description>
+      Any Berkeley DB Java Edition property can be specified using the
+      following form: property-name=property-value
+      Refer to OpenDS documentation for further information on related
+      properties, their implications and range values. The definitive
+      identification of all the property parameters available in the
+      example.properties file of Berkeley DB Java Edition distribution.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.452</ldap:oid>
+        <ldap:name>ds-cfg-je-property</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>
