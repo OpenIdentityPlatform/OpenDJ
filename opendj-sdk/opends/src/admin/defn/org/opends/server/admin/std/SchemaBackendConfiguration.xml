@@ -105,7 +105,7 @@
     </adm:synopsis>
     <adm:description>
       This may provide compatibility with some applications that expect schema
-      attributes like attributeType and objectClasses to be included by default
+      attributes like attributeTypes and objectClasses to be included by default
       even if they are not requested.  Note that the ldapSyntaxes attribute
       will always be treated as operational in order to avoid problems with
       attempts to modify the schema over protocol.

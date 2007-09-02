@@ -821,7 +821,7 @@
     <adm:description>
       This can be used to bound the recovery time that may be required if the
       database environment is opened without having been properly closed.
-      If this propertyis set to a non-zero value, the checkpointer wakeup
+      If this property is set to a non-zero value, the checkpointer wakeup
       interval is not used.  To use time based checkpointing, set this
       property to zero.
     </adm:description>

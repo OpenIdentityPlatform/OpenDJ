@@ -36,7 +36,7 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
 
   <adm:synopsis>
     <adm:user-friendly-plural-name />
-    are reponsible for distributing error log messages from the error logger to
+    are responsible for distributing error log messages from the error logger to
     a destination.
   </adm:synopsis>
 
@@ -162,7 +162,7 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       Property to specify the override severity levels for the logger
       based on the category of the messages. Each override severity
       level should include the category and the severity levels to log
-      for that category. (ie. core-server=mild_error,info,mild_warning).
+      for that category. (i.e., core-server=mild_error,info,mild_warning).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>

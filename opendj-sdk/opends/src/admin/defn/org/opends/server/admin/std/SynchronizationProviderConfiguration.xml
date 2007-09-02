@@ -34,7 +34,7 @@
   <adm:synopsis>
     <adm:user-friendly-plural-name />
     are responsible for handling Synchronization of the Directory Server
-    datas with other OpenDS instances or other data repositories.
+    data with other OpenDS instances or other data repositories.
   </adm:synopsis>
   <adm:tag name="replication"/>
   <adm:profile name="ldap">

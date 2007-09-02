@@ -58,7 +58,7 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:property name="value" mandatory="true" multi-valued="true">
     <adm:synopsis>
       Specifies the value (or set of values) that should be included in entries
-      matching the critieria in the associated virtual attribute rule.
+      matching the criteria in the associated virtual attribute rule.
     </adm:synopsis>
     <adm:syntax>
       <adm:string />

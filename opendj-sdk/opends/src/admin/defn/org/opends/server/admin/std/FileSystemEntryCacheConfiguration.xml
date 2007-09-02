@@ -46,7 +46,7 @@
     Entries are maintained either by FIFO (default) or LRU (configurable)
     based list implementation.
 
-    Cache sizing is based on the size or percentage of free space availble in
+    Cache sizing is based on the size or percentage of free space available in
     the file system, such that if enough memory is free, then adding an entry
     to the cache will not require purging, but if more than a specified
     percentage of the file system available space is already consumed, then
