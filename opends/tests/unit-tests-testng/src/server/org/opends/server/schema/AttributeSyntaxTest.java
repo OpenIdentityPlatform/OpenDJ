@@ -52,7 +52,7 @@ public abstract class AttributeSyntaxTest extends SchemaTestCase
    * 
    * @return An instance of the attribute syntax that muste be tested.
    */
-  public abstract AttributeSyntax getRule();
+  protected abstract AttributeSyntax getRule();
 
   /**
    * Test the normalization and the approximate comparison.

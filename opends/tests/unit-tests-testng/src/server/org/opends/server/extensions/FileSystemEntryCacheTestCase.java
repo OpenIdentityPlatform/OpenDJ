@@ -40,7 +40,9 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.OperatingSystem;
 import org.opends.server.util.ServerConstants;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
@@ -52,23 +54,19 @@ import static org.testng.Assert.*;
 /**
  * A set of test cases for FileSystem entry cache implementation.
  */
-@Test(groups = "entrycache")
+@Test(groups = "entrycache", sequential=true)
 public class FileSystemEntryCacheTestCase
        extends CommonEntryCacheTestCase
 {
   /**
    * Configuration entry for this cache.
    */
-  private static Entry cacheConfigEntry;
-
-
+  private Entry cacheConfigEntry;
 
   /**
    * Temporary folder to setup dummy JE backend environment in.
    */
-  private static File jeBackendTempDir;
-
-
+  private File jeBackendTempDir;
 
   /**
    * Utility method to restore default cache configuration.

@@ -345,7 +345,7 @@ public abstract class PasswordStorageSchemeTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public abstract PasswordStorageScheme getScheme()
+  protected abstract PasswordStorageScheme getScheme()
          throws Exception;
 }
 

@@ -54,14 +54,11 @@ public class SaltedMD5PasswordStorageSchemeTestCase
   /**
    * Retrieves an initialized instance of this password storage scheme.
    *
-   * @param  configEntry  The configuration entry for the password storage
-   *                      scheme, or <CODE>null</CODE> if none is available.
-   *
    * @return  An initialized instance of this password storage scheme.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public PasswordStorageScheme getScheme()
+  protected PasswordStorageScheme getScheme()
          throws Exception
   {
     SaltedMD5PasswordStorageScheme scheme =

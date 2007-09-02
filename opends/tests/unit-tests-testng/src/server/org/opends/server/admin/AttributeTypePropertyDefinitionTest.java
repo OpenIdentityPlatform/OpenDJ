@@ -32,6 +32,7 @@ package org.opends.server.admin;
 import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
@@ -44,7 +45,7 @@ import org.testng.annotations.Test;
 /**
  * AttributeTypePropertyDefinition Tester.
  */
-public class AttributeTypePropertyDefinitionTest {
+public class AttributeTypePropertyDefinitionTest extends DirectoryServerTestCase {
 
   /**
    * Sets up tests.

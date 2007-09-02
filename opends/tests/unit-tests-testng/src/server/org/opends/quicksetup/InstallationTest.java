@@ -36,7 +36,7 @@ import java.io.IOException;
 /**
  * Installation Tester.
  */
-@Test(groups = {"slow"})
+@Test(groups = {"slow"}, sequential=true)
 public class InstallationTest extends QuickSetupTestCase {
 
   Installation installation;

@@ -34,6 +34,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.LDAPException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.DirectoryServerTestCase;
 import org.opends.messages.Message;
 
 import java.util.ArrayList;
@@ -47,8 +48,7 @@ import org.testng.annotations.*;
  * This class defines a set of tests for the
  * org.opends.server.protocol.ldap.AddResponseProtocolOp class.
  */
-public class TestAddResponseProtocolOp
-{
+public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
   /**
    * The protocol op type for add requests.
    */
@@ -215,7 +215,7 @@ public class TestAddResponseProtocolOp
    *
    * @throws Exception If the test failed unexpectedly.
    */
-  //@Test(expectedExceptions = LDAPException.class)
+  @Test
   public void testDecodeInvalidDN() throws Exception
   {
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
@@ -233,7 +233,7 @@ public class TestAddResponseProtocolOp
    *
    * @throws Exception If the test failed unexpectedly.
    */
-  //@Test(expectedExceptions = LDAPException.class)
+  @Test
   public void testDecodeInvalidResultMsg() throws Exception
   {
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
@@ -251,7 +251,7 @@ public class TestAddResponseProtocolOp
    *
    * @throws Exception If the test failed unexpectedly.
    */
-  //@Test(expectedExceptions = LDAPException.class)
+  @Test
   public void testDecodeInvalidReferralURLs() throws Exception
   {
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);

@@ -229,4 +229,17 @@ public class WorkflowImpl implements Workflow
 
     return workflowToDeregister;
   }
+
+  /**
+   * Deregisters all Workflows that have been registered.  This should be
+   * called when the server is shutting down.
+   */
+  public static void deregisterAllOnShutdown()
+  {
+    synchronized (registeredWorkflowsLock)
+    {
+      registeredWorkflows =
+        new TreeMap<String, Workflow>(registeredWorkflows);
+    }
+  }
 }

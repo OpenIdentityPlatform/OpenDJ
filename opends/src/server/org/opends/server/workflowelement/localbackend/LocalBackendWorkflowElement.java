@@ -2513,7 +2513,6 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
         {
           Control c   = requestControls.get(i);
           String  oid = c.getOID();
-
           if (!AccessControlConfigManager.getInstance().
                   getAccessControlHandler().
                   isAllowed(baseDN, localOp, c))

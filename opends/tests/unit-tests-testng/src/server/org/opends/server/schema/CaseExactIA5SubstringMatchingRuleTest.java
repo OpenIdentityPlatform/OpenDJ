@@ -66,7 +66,7 @@ public class CaseExactIA5SubstringMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  public SubstringMatchingRule getRule()
+  protected SubstringMatchingRule getRule()
   {
     return new CaseExactIA5SubstringMatchingRule();
   }

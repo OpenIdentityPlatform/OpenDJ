@@ -72,7 +72,7 @@ public class BooleanEqualityMatchingRuleTest extends EqualityMatchingRuleTest
    * {@inheritDoc}
    */
   @Override
-  public EqualityMatchingRule getRule()
+  protected EqualityMatchingRule getRule()
   {
     return new BooleanEqualityMatchingRule();
   }

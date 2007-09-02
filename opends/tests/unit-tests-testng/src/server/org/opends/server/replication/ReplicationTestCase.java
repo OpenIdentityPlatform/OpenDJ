@@ -82,7 +82,7 @@ import org.testng.annotations.Test;
 /**
  * An abstract class that all Replication unit test should extend.
  */
-@Test(groups = { "precommit", "replication" })
+@Test(groups = { "precommit", "replication" }, sequential = true)
 public abstract class ReplicationTestCase extends DirectoryServerTestCase
 {
 
@@ -129,7 +129,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   public void setUp() throws Exception
   {
     // This test suite depends on having the schema available.
-    TestCaseUtils.startServer();
+    TestCaseUtils.restartServer();
 
     // Create an internal connection
     connection = InternalClientConnection.getRootConnection();
@@ -319,6 +319,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   {
     cleanConfigEntries();
     cleanRealEntries();
+
+    entryList = null;
+    configEntryList = null;
   }
 
   /**

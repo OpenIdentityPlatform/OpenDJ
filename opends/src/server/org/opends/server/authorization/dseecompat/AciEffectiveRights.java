@@ -757,4 +757,15 @@ public class AciEffectiveRights {
     }
     return ret;
   }
+
+  /**
+   * Finalizes static variables on shutdown so that we release the memory
+   * associated with them (for the unit tests) and get fresh copies if we're
+   * doing an in-core restart.
+   */
+  public static void finalizeOnShutdown() {
+    AciEffectiveRights.aclRights = null;
+    AciEffectiveRights.aclRightsInfo = null;
+    AciEffectiveRights.dnAttributeType = null;
+  }
 }

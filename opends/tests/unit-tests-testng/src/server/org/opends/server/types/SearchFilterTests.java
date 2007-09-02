@@ -942,7 +942,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   /**
    *
    */
-  public List<FilterDescription> getMinimalFilterDescriptionList() throws Exception {
+  protected List<FilterDescription> getMinimalFilterDescriptionList() throws Exception {
     List<FilterDescription> baseDescriptions = new ArrayList<FilterDescription>();
     List<FilterDescription> allDescriptions = new ArrayList<FilterDescription>();
 

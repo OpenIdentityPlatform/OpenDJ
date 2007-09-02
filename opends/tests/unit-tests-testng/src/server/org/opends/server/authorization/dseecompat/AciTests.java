@@ -80,6 +80,7 @@ import java.text.SimpleDateFormat;
  * they are built by buildAciValue, so that we are less likely to screw up
  * the syntax.
  */
+@Test(sequential=true, groups="slow")
 public class AciTests extends DirectoryServerTestCase {
 // TODO: test modify use cases
 // TODO: test searches where we expect a subset of attributes and entries
@@ -546,10 +547,9 @@ public class AciTests extends DirectoryServerTestCase {
     TestCaseUtils.startServer();
     deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI, true);
     TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
   }
 
-   @AfterClass
+   @AfterClass(alwaysRun = true)
    public void tearDown() throws Exception {
      modEntries(GLOBAL_DEFAULT_ACIS, DIR_MGR_DN, DIR_MGR_PW);
   }
@@ -841,7 +841,7 @@ public class AciTests extends DirectoryServerTestCase {
   // We use this with acis that are crafted in such a way so that they are
   // invalid if any character is removed.  By convention, the character
   // is only removed if the corresponding mask character is a - or \"
-  public List<String> getAciMissingCharCombos(String aci, String mask) {
+  protected List<String> getAciMissingCharCombos(String aci, String mask) {
     List <String> acisMissingOneChar = new ArrayList<String>();
     for (int i = 0; i < aci.length(); i++) {
       // Add this test only if the mask tells us we haven't seen it before.
@@ -858,7 +858,7 @@ public class AciTests extends DirectoryServerTestCase {
 
 
   // Common between validAcis and invalidAcis
-  public Object[][] buildAciValidationParams(List<String> acis, boolean testMultipleCombos) {
+  private Object[][] buildAciValidationParams(List<String> acis, boolean testMultipleCombos) {
     List<String[]> paramsList = new ArrayList<String[]>();
 
     for (String aci: acis) {
@@ -917,7 +917,7 @@ public class AciTests extends DirectoryServerTestCase {
     testValidAcisHelper(modifierDn, modifierPw, aciModLdif);
   }
 
-  public void testValidAcisHelper(String modifierDn, String modifierPw, String aciModLdif) throws Throwable {
+  private void testValidAcisHelper(String modifierDn, String modifierPw, String aciModLdif) throws Throwable {
     try {
       // Setup the basic DIT
       addEntries(VALIDITY_TESTS_DIT, DIR_MGR_DN, DIR_MGR_PW);
@@ -1687,8 +1687,13 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
   }
 
   private static class SearchTestParams {
+    /** The server DIT to run the tests against. */
     private final String _initialDitLdif;
+
+    /** ACIs that will produce the same search results for the above DIT. */
     private final List<String> _equivalentAciLdifs;
+
+    /**  */
     private final List<SingleSearchParams> _searchTests = new ArrayList<SingleSearchParams>();
 
     /**
@@ -1715,9 +1720,10 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
         // Add the search test as is.
         explodedTests.add(searchTest);
 
+        // Enabling this doubles the number of test cases without much benefit, so we disable it for now
         // And add it with the ACIs merged into the initial import
-        String ditWithAcis = applyChangesToLdif(searchTest._initialDitLdif, searchTest._aciLdif);
-        explodedTests.add(searchTest.clone(ditWithAcis, ""));
+        // String ditWithAcis = applyChangesToLdif(searchTest._initialDitLdif, searchTest._aciLdif);
+        // explodedTests.add(searchTest.clone(ditWithAcis, ""));
       }
 
       return explodedTests;
@@ -1937,11 +1943,11 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
 
 
   /**
-  * Test group  bind rule ACI keywords.
+   * Test group  bind rule ACI keywords.
    *
-  * @throws Throwable
- */
-    @Test()
+   * @throws Throwable
+   */
+ @Test()
  public void testGroupAcis()  throws Throwable {
      //group2   fail
      SingleSearchParams adminParam =

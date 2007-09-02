@@ -330,6 +330,7 @@ public class TestDN extends TypesTestCase {
    * @throws Exception
    *           If the test failed unexpectedly.
    */
+  @Test
   public void testToNormalizedString() throws Exception {
     DN dn = DN.decode("dc=example,dc=com");
 
@@ -348,6 +349,7 @@ public class TestDN extends TypesTestCase {
    * @throws Exception
    *           If the test failed unexpectedly.
    */
+  @Test
   public void testDecodeNull() throws Exception {
     assertEquals(DN.decode((ByteString) null), DN.nullDN());
     assertEquals(DN.decode((String) null), DN.nullDN());

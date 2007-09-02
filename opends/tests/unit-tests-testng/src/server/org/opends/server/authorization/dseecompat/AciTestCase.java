@@ -42,7 +42,8 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
 
-@Test(groups = {"precommit", "dseecompat"})
+
+@Test(groups = {"precommit", "dseecompat"}, sequential = true)
 public abstract class  AciTestCase extends DirectoryServerTestCase {
   public static final String DIR_MGR_DN = "cn=Directory Manager";
   public static final String PWD = "password";

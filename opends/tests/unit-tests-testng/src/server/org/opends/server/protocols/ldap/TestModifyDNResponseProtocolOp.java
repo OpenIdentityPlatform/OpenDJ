@@ -34,6 +34,7 @@ import org.opends.server.types.RDN;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.*;
 import static org.opends.server.util.ServerConstants.EOL;
+import org.opends.server.DirectoryServerTestCase;
 import org.opends.messages.Message;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -47,8 +48,7 @@ import java.util.Iterator;
  * This class defines a set of tests for the
  * org.opends.server.protocol.ldap.ModifyDNResponseProtocolOp class.
  */
-public class TestModifyDNResponseProtocolOp
-{
+public class TestModifyDNResponseProtocolOp extends DirectoryServerTestCase {
   /**
    * The protocol op type for modify DN requests.
    */
@@ -218,7 +218,7 @@ public class TestModifyDNResponseProtocolOp
    *
    * @throws Exception If the test failed unexpectedly.
    */
-  //@Test(expectedExceptions = LDAPException.class)
+  @Test
   public void testDecodeInvalidDN() throws Exception
   {
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
@@ -236,7 +236,7 @@ public class TestModifyDNResponseProtocolOp
    *
    * @throws Exception If the test failed unexpectedly.
    */
-  //@Test(expectedExceptions = LDAPException.class)
+  @Test
   public void testDecodeInvalidResultMsg() throws Exception
   {
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
@@ -254,7 +254,7 @@ public class TestModifyDNResponseProtocolOp
    *
    * @throws Exception If the test failed unexpectedly.
    */
-  //@Test(expectedExceptions = LDAPException.class)
+  @Test
   public void testDecodeInvalidReferralURLs() throws Exception
   {
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);

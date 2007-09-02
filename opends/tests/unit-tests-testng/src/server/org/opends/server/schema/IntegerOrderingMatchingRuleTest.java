@@ -75,7 +75,7 @@ public class IntegerOrderingMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  public OrderingMatchingRule getRule()
+  protected OrderingMatchingRule getRule()
   {
     return new IntegerOrderingMatchingRule();
   }

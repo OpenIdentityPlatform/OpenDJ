@@ -98,6 +98,7 @@ public class TraditionalWorkQueueTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test
   public void testChangingNumWorkerThreads()
          throws Exception
   {

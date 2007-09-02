@@ -60,7 +60,7 @@ public class TraditionalWorkQueueMonitorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public MonitorProvider getMonitorInstance()
+  protected MonitorProvider getMonitorInstance()
          throws Exception
   {
     String monitorName = "work queue";

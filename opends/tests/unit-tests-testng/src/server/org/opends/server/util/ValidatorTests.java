@@ -30,11 +30,12 @@ import org.testng.annotations.Test;
 import org.testng.annotations.DataProvider;
 import static org.testng.Assert.*;
 import org.opends.messages.Message;
+import org.opends.server.DirectoryServerTestCase;
 
 /**
  * Tests for the Validator class.
  */
-public class ValidatorTests {
+public class ValidatorTests extends DirectoryServerTestCase {
   private static final Object NON_NULL = new Object();
 
   //////////////////////////////////////////////////////////////////////////////

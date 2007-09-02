@@ -55,7 +55,7 @@ public class CryptPasswordStorageSchemeTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public PasswordStorageScheme getScheme()
+  protected PasswordStorageScheme getScheme()
          throws Exception
   {
     CryptPasswordStorageScheme scheme =

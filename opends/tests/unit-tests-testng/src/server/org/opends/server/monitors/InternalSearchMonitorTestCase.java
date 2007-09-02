@@ -90,6 +90,7 @@ public class InternalSearchMonitorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test
   public void testWithSubtreeMonitorSearch()
          throws Exception
   {
@@ -162,6 +163,7 @@ public class InternalSearchMonitorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test
   public void testWithSubtreeAndBaseMonitorSearch()
          throws Exception
   {

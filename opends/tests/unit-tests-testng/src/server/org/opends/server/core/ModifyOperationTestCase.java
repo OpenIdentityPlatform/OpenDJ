@@ -37,6 +37,7 @@ import java.util.concurrent.locks.Lock;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
@@ -74,6 +75,11 @@ import static org.opends.server.protocols.ldap.LDAPConstants.*;
 public class ModifyOperationTestCase
        extends OperationTestCase
 {
+
+  @BeforeClass
+  public void restartServer() throws Exception {
+    TestCaseUtils.restartServer();
+  }
 
   // Some of the tests disable the backends, so we reenable them here.
   @AfterMethod(alwaysRun=true)
@@ -311,7 +317,7 @@ public class ModifyOperationTestCase
    * {@inheritDoc}
    */
   @Override()
-  public Operation[] createTestOperations()
+  protected Operation[] createTestOperations()
          throws Exception
   {
     Object[][]  objs = getModifyOperations();

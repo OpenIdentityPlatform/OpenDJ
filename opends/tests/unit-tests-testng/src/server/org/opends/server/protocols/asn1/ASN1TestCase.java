@@ -32,7 +32,7 @@ import org.testng.annotations.Test;
 /**
  * An abstract base class for all ASN1 test cases.
  */
-@Test(groups = { "precommit", "asn1" })
+@Test(groups = { "precommit", "asn1" }, sequential = true)
 public abstract class ASN1TestCase extends DirectoryServerTestCase {
   // No implementation required.
 }

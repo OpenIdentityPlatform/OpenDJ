@@ -67,7 +67,7 @@ public class CaseExactIA5EqualityMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  public EqualityMatchingRule getRule()
+  protected EqualityMatchingRule getRule()
   {
     return new CaseExactIA5EqualityMatchingRule();
   }

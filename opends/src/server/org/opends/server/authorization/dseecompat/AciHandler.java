@@ -134,6 +134,13 @@ public class AciHandler
    public static final String ALL_OP_ATTRS_MATCHED = "allOpAttrsMatched";
 
    static {
+     initStatics();
+   }
+
+  // We initialize these for each new AciHandler so that we can clear out
+  // the stale references that can occur during an in-core restart.
+  private static void initStatics()
+  {
     if((aciType = DirectoryServer.getAttributeType("aci")) == null)
     {
       aciType = DirectoryServer.getDefaultAttributeType("aci");
@@ -167,7 +174,7 @@ public class AciHandler
      } catch (DirectoryException ex) {
        //Should never happen.
      }
-   }
+  }
 
   /**
    * Creates a new DSEE-compatible access control handler.
@@ -188,6 +195,7 @@ public class AciHandler
                    DseeCompatAccessControlHandlerCfg configuration)
          throws ConfigException, InitializationException
   {
+    initStatics();
     DN configurationDN=configuration.dn();
     aciList = new AciList(configurationDN);
     aciListenerMgr = new AciListenerManager(aciList, configurationDN);
@@ -203,7 +211,7 @@ public class AciHandler
   @Override()
   public void finalizeAccessControlHandler()
   {
-    // No implementation required.
+    AciEffectiveRights.finalizeOnShutdown();
   }
 
 

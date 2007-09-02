@@ -228,7 +228,7 @@ public class BindOperationTestCase
    * {@inheritDoc}
    */
   @Override()
-  public Operation[] createTestOperations()
+  protected Operation[] createTestOperations()
          throws Exception
   {
     Object[][] simpleBinds = getSimpleBindOperations();
@@ -633,6 +633,7 @@ public class BindOperationTestCase
    * Tests the <CODE>getSASLAuthUserEntry</CODE> method for completed SASL bind
    * operations in which this value will be set.
    */
+  @Test
   public void testGetSASLAuthUserEntryNonNull()
   {
     InternalClientConnection conn =

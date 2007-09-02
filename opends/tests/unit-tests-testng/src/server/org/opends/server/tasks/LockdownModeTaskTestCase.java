@@ -85,6 +85,7 @@ public class LockdownModeTaskTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test
   public void testLockdownModeTasks()
          throws Exception
   {

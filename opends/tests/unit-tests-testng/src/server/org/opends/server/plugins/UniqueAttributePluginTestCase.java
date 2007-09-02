@@ -69,7 +69,9 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
   public void startServer()
          throws Exception
   {
-    TestCaseUtils.startServer();
+    TestCaseUtils.restartServer();
+    TestCaseUtils.initializeTestBackend(true);
+    
     //Add entries to two backends to test public naming context.
     addTestEntries("o=test", 't');
     TestCaseUtils.clearJEBackend(true,"userRoot", "dc=example,dc=com");

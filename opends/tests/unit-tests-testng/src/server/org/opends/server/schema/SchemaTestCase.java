@@ -34,7 +34,7 @@ import org.testng.annotations.Test;
 /**
 * An abstract class that all schema unit test should extend. 
 */
-@Test(groups = { "precommit", "schema" })
+@Test(groups = { "precommit", "schema" }, sequential = true)
 public abstract class SchemaTestCase extends DirectoryServerTestCase
 {
   /**

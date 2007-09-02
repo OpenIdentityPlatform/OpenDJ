@@ -30,30 +30,18 @@ package org.opends.quicksetup;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.AfterSuite;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.DirectoryServerTestCase;
 
 import java.io.IOException;
 
 /**
  *
  */
-public class QuickSetupTestCase {
-
-  @BeforeSuite
-  public final void suppressOutput() {
-    TestCaseUtils.suppressOutput();
-  }
-
+public class QuickSetupTestCase extends DirectoryServerTestCase {
   @BeforeSuite
   public final void initServer()
           throws IOException, ApplicationException, InterruptedException
   {
     TestUtilities.initServer();
   }
-
-  @AfterSuite
-  public final void shutdownServer() throws ApplicationException {
-    TestUtilities.stopServer();
-    TestCaseUtils.unsupressOutput();
-  }  
-
 }

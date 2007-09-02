@@ -101,7 +101,7 @@ public abstract class OrderingMatchingRuleTest extends SchemaTestCase
    *
    * @return The Ordering matching Rules that is to be tested.
    */
-  public abstract OrderingMatchingRule getRule();
+  protected abstract OrderingMatchingRule getRule();
 
 
   /**

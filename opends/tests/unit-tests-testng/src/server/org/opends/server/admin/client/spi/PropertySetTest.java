@@ -36,13 +36,14 @@ import org.opends.server.admin.client.spi.Property;
 import org.opends.server.admin.client.spi.PropertySet;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.admin.std.meta.RootCfgDefn;
+import org.opends.server.DirectoryServerTestCase;
 
 import java.util.*;
 
 /**
  * PropertySet Tester.
  */
-public class PropertySetTest {
+public class PropertySetTest extends AdminTestCase {
 
   /** Default value for boolean property */
   private static final Boolean BOOL_DEFAULT = Boolean.TRUE;

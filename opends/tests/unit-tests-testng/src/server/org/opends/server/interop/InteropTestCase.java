@@ -37,7 +37,7 @@ import org.opends.server.DirectoryServerTestCase;
 /**
  * An abstract base class for all test cases covering interoperability classes.
  */
-@Test(groups = { "precommit", "interop" })
+@Test(groups = { "precommit", "interop" }, sequential = true)
 public abstract class InteropTestCase
        extends DirectoryServerTestCase
 {

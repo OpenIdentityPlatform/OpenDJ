@@ -33,6 +33,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.workflowelement.WorkflowElement;
@@ -44,8 +45,7 @@ import org.testng.annotations.Test;
 /**
  * This set of tests test the network groups.
  */
-public class NetworkGroupTest
-{  
+public class NetworkGroupTest extends DirectoryServerTestCase {
   //===========================================================================
   //
   //                      B E F O R E    C L A S S

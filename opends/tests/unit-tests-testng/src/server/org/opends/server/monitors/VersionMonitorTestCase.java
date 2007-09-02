@@ -59,7 +59,7 @@ public class VersionMonitorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public MonitorProvider getMonitorInstance()
+  protected MonitorProvider getMonitorInstance()
          throws Exception
   {
     VersionMonitorProvider monitorProvider = new VersionMonitorProvider();

@@ -30,6 +30,7 @@ package org.opends.server.admin;
 import static org.testng.Assert.*;
 
 import org.opends.server.admin.std.meta.RootCfgDefn;
+import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -37,7 +38,7 @@ import org.testng.annotations.Test;
 /**
  * EnumPropertyDefinition Tester.
  */
-public class EnumPropertyDefinitionTest {
+public class EnumPropertyDefinitionTest extends DirectoryServerTestCase {
 
   private enum TestEnum { ONE, TWO, THREE }
 

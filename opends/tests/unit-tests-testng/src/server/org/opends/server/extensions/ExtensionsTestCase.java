@@ -37,7 +37,7 @@ import org.opends.server.DirectoryServerTestCase;
 /**
  * An abstract base class for all extensions test cases.
  */
-@Test(groups = { "precommit", "extensions" })
+@Test(groups = { "precommit", "extensions" }, sequential = true)
 public abstract class ExtensionsTestCase
        extends DirectoryServerTestCase
 {

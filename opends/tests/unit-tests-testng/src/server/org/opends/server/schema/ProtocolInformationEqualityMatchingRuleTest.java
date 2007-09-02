@@ -66,7 +66,7 @@ public class ProtocolInformationEqualityMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  public EqualityMatchingRule getRule()
+  protected EqualityMatchingRule getRule()
   {
     return new ProtocolInformationEqualityMatchingRule();
   }

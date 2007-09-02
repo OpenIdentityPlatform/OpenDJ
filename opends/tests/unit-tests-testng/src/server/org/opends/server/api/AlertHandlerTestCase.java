@@ -270,6 +270,7 @@ public class AlertHandlerTestCase
    * @return  The DN of the configuration entry with which this alert
    *          generator is associated.
    */
+  @Test // TestNG treats this as a test, so we annotate it to eliminate warnings
   public DN getComponentEntryDN()
   {
     try
@@ -291,6 +292,7 @@ public class AlertHandlerTestCase
    * @return  The fully-qualified name of the Java class for this
    *          alert generator implementation.
    */
+  @Test // TestNG treats this as a test, so we annotate it to eliminate warnings
   public String getClassName()
   {
     return getClass().getName();
@@ -309,6 +311,7 @@ public class AlertHandlerTestCase
    * @return  Information about the set of alerts that this generator
    *          may produce.
    */
+  @Test // TestNG treats this as a test, so we annotate it to eliminate warnings
   public LinkedHashMap<String,String> getAlerts()
   {
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();

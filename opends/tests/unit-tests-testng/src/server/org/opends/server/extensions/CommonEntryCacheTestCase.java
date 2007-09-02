@@ -43,7 +43,7 @@ import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.util.ServerConstants;
 
 import static org.testng.Assert.*;
-
+import org.testng.annotations.AfterClass;
 
 
 /**
@@ -71,7 +71,7 @@ public abstract class CommonEntryCacheTestCase
   /**
    * Number of loops for each concurrency test.
    */
-  protected int CONCURRENCYLOOPS = 1000;
+  protected int CONCURRENCYLOOPS = 100;
 
 
 
@@ -570,5 +570,14 @@ public abstract class CommonEntryCacheTestCase
         cache.getEntry(b, i, LockType.NONE, new ArrayList<Lock>());
       }
     }
+  }
+
+  /**
+   * Clear out references to save memory.
+   */
+  @AfterClass
+  public void clearReferences() {
+    cache = null;
+    configuration = null;
   }
 }

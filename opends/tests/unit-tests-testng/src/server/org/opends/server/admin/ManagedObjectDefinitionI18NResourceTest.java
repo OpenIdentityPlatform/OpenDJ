@@ -30,13 +30,14 @@ package org.opends.server.admin;
 import static org.testng.Assert.*;
 import org.testng.annotations.*;
 import org.opends.server.admin.std.meta.GlobalCfgDefn;
+import org.opends.server.DirectoryServerTestCase;
 
 import java.util.Locale;
 
 /**
  * ManagedObjectDefinitionI18NResource Tester.
  */
-public class ManagedObjectDefinitionI18NResourceTest {
+public class ManagedObjectDefinitionI18NResourceTest extends DirectoryServerTestCase {
   ManagedObjectDefinitionI18NResource modr = null;
 
   /**

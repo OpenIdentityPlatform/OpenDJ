@@ -127,7 +127,7 @@ public class TargetAttrTestCase extends AciTestCase {
     addEntries("o=test");
   }
 
-  @AfterClass
+  @AfterClass(alwaysRun = true)
   public void tearDown() throws Exception {
      String aciLdif=makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN,
           G_READ_ACI, G_SELF_MOD, G_SCHEMA, G_DSE, G_USER_OPS, G_CONTROL,

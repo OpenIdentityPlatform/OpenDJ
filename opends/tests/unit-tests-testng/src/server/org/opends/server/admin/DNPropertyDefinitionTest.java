@@ -32,6 +32,7 @@ package org.opends.server.admin;
 import static org.testng.Assert.assertEquals;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -44,7 +45,7 @@ import org.testng.annotations.Test;
 /**
  * ClassPropertyDefinition Tester.
  */
-public class DNPropertyDefinitionTest {
+public class DNPropertyDefinitionTest extends DirectoryServerTestCase {
 
   /**
    * Sets up tests

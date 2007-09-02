@@ -223,7 +223,7 @@ public class TestModifyDNOperation extends OperationTestCase
    * {@inheritDoc}
    */
   @Override()
-  public Operation[] createTestOperations()
+  protected Operation[] createTestOperations()
       throws Exception
   {
     ArrayList<Control> noControls = new ArrayList<Control>(0);

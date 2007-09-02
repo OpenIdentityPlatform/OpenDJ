@@ -859,8 +859,10 @@ public class ReplicationServerTest extends ReplicationTestCase
   @AfterClass()
   public void shutdown() throws Exception
   {
-    if (replicationServer != null)
+    if (replicationServer != null) {
       replicationServer.shutdown();
+      replicationServer = null;
+    }
   }
 
   /**

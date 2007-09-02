@@ -68,7 +68,7 @@ public class UniqueMemberEqualityMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  public EqualityMatchingRule getRule()
+  protected EqualityMatchingRule getRule()
   {
     return new UniqueMemberEqualityMatchingRule();
   }

@@ -157,6 +157,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test
   public void testGetUserEntry()
          throws Exception
   {

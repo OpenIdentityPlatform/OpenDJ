@@ -47,7 +47,7 @@ import org.testng.annotations.Test;
 /**
  * An abstract class that all JMX unit test should extend.
  */
-@Test(groups = { "precommit", "jmx" })
+@Test(groups = { "precommit", "jmx" }, sequential = true)
 public abstract class JmxTestCase extends DirectoryServerTestCase
 {
   /**
@@ -60,7 +60,7 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
   public void setUp() throws Exception
   {
     // Make sure that the server is up and running.
-    TestCaseUtils.startServer();
+    TestCaseUtils.restartServer();
     TestCaseUtils.initializeTestBackend(true);
 
     synchronized (this)

@@ -50,7 +50,7 @@ import java.util.ListIterator;
  * An abstract class that all types  unit test should extend.
  */
 
-@Test(groups = { "precommit", "ldap" })
+@Test(groups = { "precommit", "ldap" }, sequential = true)
 public abstract class LdapTestCase extends DirectoryServerTestCase
 {
 	

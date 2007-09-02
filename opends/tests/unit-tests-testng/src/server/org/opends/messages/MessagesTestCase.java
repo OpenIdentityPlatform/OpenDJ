@@ -37,7 +37,7 @@ import org.opends.server.DirectoryServerTestCase;
 /**
  * An abstract base class for all messages test cases.
  */
-@Test(groups = { "precommit", "messages" })
+@Test(groups = { "precommit", "messages" }, sequential=true)
 public abstract class MessagesTestCase
        extends DirectoryServerTestCase
 {

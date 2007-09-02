@@ -36,6 +36,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.core.DirectoryServer;
 
 import static org.testng.Assert.*;
@@ -47,8 +48,7 @@ import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 /**
  * A set of test cases for the dsservice tool.
  */
-public class DsframeworkTestCase
-{
+public class DsframeworkTestCase extends DirectoryServerTestCase {
   // The path to a file containing an invalid bind password.
   private String invalidPasswordFile;
 

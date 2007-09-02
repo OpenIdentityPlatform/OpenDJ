@@ -39,7 +39,7 @@ public class MatchingRuleSyntaxTest extends AttributeSyntaxTest
    * {@inheritDoc}
    */
   @Override
-  public AttributeSyntax getRule()
+  protected AttributeSyntax getRule()
   {
     return new MatchingRuleSyntax();
   }

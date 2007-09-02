@@ -57,11 +57,6 @@ public class GroupDN implements KeywordBindRule {
      */
     private EnumBindRuleType type=null;
 
-    /*
-     * Group manager needed for group API.
-     */
-    private static GroupManager groupManager =
-                                            DirectoryServer.getGroupManager();
     /**
      * Regular expression matching one or more LDAP URLs separated by
      * "||".
@@ -126,7 +121,7 @@ public class GroupDN implements KeywordBindRule {
        Iterator<DN> it=groupDNs.iterator();
         for(; it.hasNext() && matched != EnumEvalResult.TRUE;) {
             DN  groupDN=it.next();
-            Group group = groupManager.getGroupInstance(groupDN);
+            Group group = getGroupManager().getGroupInstance(groupDN);
             if((group != null) && (evalCtx.isMemberOf(group)))
                matched = EnumEvalResult.TRUE;
         }
@@ -159,7 +154,7 @@ public class GroupDN implements KeywordBindRule {
                 if(suffixDN != null &&
                    !groupDN.isDescendantOf(suffixDN))
                         continue;
-                Group group = groupManager.getGroupInstance(groupDN);
+                Group group = getGroupManager().getGroupInstance(groupDN);
                 if((group != null) && (evalCtx.isMemberOf(group))) {
                     matched=EnumEvalResult.TRUE;
                     break;
@@ -169,5 +164,9 @@ public class GroupDN implements KeywordBindRule {
             }
         }
         return matched;
+    }
+
+    private static GroupManager getGroupManager() {
+        return DirectoryServer.getGroupManager();
     }
 }

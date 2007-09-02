@@ -48,7 +48,7 @@ import java.nio.channels.FileLock;
 /**
  * FileManager Tester.
  */
-@Test(groups = {"slow"})
+@Test(groups = {"slow"}, sequential=true)
 public class FileManagerTest extends QuickSetupTestCase {
 
   File fmWorkspace = null;
@@ -134,6 +134,7 @@ public class FileManagerTest extends QuickSetupTestCase {
    * Tests the rename.
    * @throws Exception
    */
+  @Test
   public void testRenameNonExistentTarget() throws Exception {
     File src = File.createTempFile("src", null);
     File target = new File(src.getParentFile(), "target");

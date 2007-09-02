@@ -28,13 +28,14 @@
 package org.opends.server.admin;
 
 import static org.opends.server.admin.DurationUnit.*;
+import org.opends.server.DirectoryServerTestCase;
 import static org.testng.Assert.*;
 import org.testng.annotations.*;
 
 /**
  * DurationUnit Tester.
  */
-public class DurationUnitTest {
+public class DurationUnitTest extends DirectoryServerTestCase {
 
   /**
    * @return test data for testing getUnit

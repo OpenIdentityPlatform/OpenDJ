@@ -70,7 +70,7 @@ public class CaseIgnoreIA5SubstringMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  public SubstringMatchingRule getRule()
+  protected SubstringMatchingRule getRule()
   {
     return new CaseIgnoreIA5SubstringMatchingRule();
   }

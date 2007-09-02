@@ -69,7 +69,7 @@ public class NumericStringOrderingMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  public OrderingMatchingRule getRule()
+  protected OrderingMatchingRule getRule()
   {
     return new NumericStringOrderingMatchingRule();
   }

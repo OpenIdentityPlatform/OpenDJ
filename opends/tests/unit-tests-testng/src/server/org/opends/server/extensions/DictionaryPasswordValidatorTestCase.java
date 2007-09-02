@@ -35,6 +35,7 @@ import java.util.List;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.testng.annotations.AfterClass;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.messages.MessageBuilder;
@@ -94,6 +95,15 @@ public class DictionaryPasswordValidatorTestCase
     );
   }
 
+  /**
+   * The Dictionary can take up a lot of memory, so we restart the server to
+   * implicitly unregister the validator and free the memory. 
+   */
+  @AfterClass
+  public void freeDictionaryMemory() throws Exception
+  {
+    TestCaseUtils.restartServer();
+  }
 
 
   /**

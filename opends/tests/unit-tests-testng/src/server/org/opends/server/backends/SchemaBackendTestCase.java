@@ -689,6 +689,7 @@ public class SchemaBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test
   public void testAddAttributeTypeToAltSchemaFile()
          throws Exception
   {
@@ -776,6 +777,7 @@ public class SchemaBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test
   public void testReplaceAttributeTypeInAltSchemaFile()
          throws Exception
   {

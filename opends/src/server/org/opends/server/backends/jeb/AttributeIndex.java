@@ -1536,7 +1536,7 @@ public class AttributeIndex
   }
 
   /**
-   * Set the index trust state.
+   * Set the index truststate.
    * @param txn A database transaction, or null if none is required.
    * @param trusted True if this index should be trusted or false
    *                otherwise.

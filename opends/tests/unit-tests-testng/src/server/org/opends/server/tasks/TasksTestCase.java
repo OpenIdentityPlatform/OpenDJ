@@ -49,7 +49,7 @@ import java.util.ArrayList;
 /**
  * A base class for all tasks test cases.
  */
-@Test(groups = { "precommit", "tasks" })
+@Test(groups = { "precommit", "tasks" }, sequential = true)
 public class TasksTestCase extends DirectoryServerTestCase {
 
   /**
