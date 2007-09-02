@@ -35,7 +35,7 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    is the provider class for the dseecompt ACI.
+    is the provider class for the dseecompat ACI.
   </adm:synopsis>
 
   <adm:profile name="ldap">

@@ -54,7 +54,7 @@
       should try to connect at startup time.
     </adm:synopsis>
     <adm:description>
-      Adresses must be specified using the syntax: hostname:port
+      Addresses must be specified using the syntax: hostname:port
     </adm:description>
     <adm:requires-admin-action>
       <adm:none />

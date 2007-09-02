@@ -35,7 +35,7 @@
     The
     <adm:user-friendly-name />
     provides hashing, encryption and other kinds of cryptographic operations.
-    It also contains methods for compressing and uncompressing data.
+    It also contains methods for compressing and decompressing data.
   </adm:synopsis>
   <adm:tag name="security"/>
   <adm:profile name="ldap">

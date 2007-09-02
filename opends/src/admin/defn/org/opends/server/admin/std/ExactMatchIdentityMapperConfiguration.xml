@@ -36,7 +36,7 @@
     The
     <adm:user-friendly-name />
     maps an identifier string to user entries by searching for the entry
-    containing a specified attribute whose value is the provided identifer.
+    containing a specified attribute whose value is the provided identifier.
   </adm:synopsis>
 
   <adm:profile name="ldap">

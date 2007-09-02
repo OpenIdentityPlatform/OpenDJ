@@ -132,7 +132,7 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          Group membership will not be taken into accountwhen determining
+          Group membership will not be taken into account when determining
           whether an entry is eligible to use this virtual attribute.
         </adm:synopsis>
       </adm:alias>

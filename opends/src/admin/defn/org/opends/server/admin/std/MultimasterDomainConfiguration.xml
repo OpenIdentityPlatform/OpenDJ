@@ -53,7 +53,7 @@
       should try to connect at startup time.
     </adm:synopsis>
     <adm:description>
-      Adresses must be specified using the syntax: hostname:port
+      Addresses must be specified using the syntax: hostname:port
     </adm:description>
     <adm:requires-admin-action>
       <adm:none />
@@ -224,7 +224,7 @@
     <adm:synopsis>
       Specifies the heartbeat interval that this Domain must use when
       communicating with replication servers. The Domain will expect
-      regular heatbeat coming from the replication server with this
+      regular heartbeat coming from the replication server with this
       interval if they are not received it will close its connection and
       connect to another replication server.
     </adm:synopsis>
@@ -261,7 +261,7 @@
           <adm:synopsis>
             Indicates that updates should be accepted even though it is
             not possible to send them to any Replication Server.
-            Best effort will be made to resend those updates to a
+            Best effort will be made to re-send those updates to a
             Replication Servers when one of them is available, however
             those changes will be at risk because they will only be
             available from the historical information. This mode may

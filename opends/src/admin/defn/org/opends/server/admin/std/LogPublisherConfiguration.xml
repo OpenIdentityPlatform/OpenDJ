@@ -34,7 +34,7 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
 
   <adm:synopsis>
     <adm:user-friendly-plural-name />
-    are reponsible for distributing log messages from different loggers to
+    are responsible for distributing log messages from different loggers to
     a destination.
   </adm:synopsis>
 

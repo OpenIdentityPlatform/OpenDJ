@@ -36,7 +36,7 @@
 
   <adm:synopsis>
     <adm:user-friendly-plural-name />
-    are reponsible for distributing access log messages from the access logger
+    are responsible for distributing access log messages from the access logger
     to a destination.
   </adm:synopsis>
 

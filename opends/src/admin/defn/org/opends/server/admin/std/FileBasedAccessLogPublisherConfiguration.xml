@@ -59,7 +59,7 @@
     <adm:synopsis>
       Indicate whether the
       <adm:user-friendly-name />
-      will publish records asyncronously.
+      will publish records asynchronously.
     </adm:synopsis>
     <adm:syntax>
       <adm:boolean />

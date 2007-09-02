@@ -315,7 +315,7 @@
   <adm:property name="time-limit" mandatory="false">
     <adm:synopsis>
       Specifies the maximum length of time that the Directory Server should
-      spend procesing a search operation.  A value of 0 seconds indicates that
+      spend processing a search operation.  A value of 0 seconds indicates that
       no time limit will be enforced.  Note that this is the default server-wide
       time limit, but it may be overridden on a per-user basis using the
       ds-rlim-time-limit operational attribute.
@@ -492,7 +492,7 @@
       <adm:alias>
         <adm:synopsis>
           If no values are defined, then it will not be possible to take
-          advantage of server features that may provide thea bility to send
+          advantage of server features that may provide the ability to send
           e-mail via SMTP.
         </adm:synopsis>
       </adm:alias>
