@@ -2612,6 +2612,16 @@ public final class ServerConstants
 
 
   /**
+   * The name of the system property that can be used to indicate that the
+   * Directory Server should attempt to start using the last known good
+   * configuration, rather than the current active configuration.
+   */
+  public static final String PROPERTY_USE_LAST_KNOWN_GOOD_CONFIG =
+       "org.opends.server.UseLastKnownGoodConfiguration";
+
+
+
+  /**
    * The column at which to wrap long lines of output in the command-line tools.
    */
   public static final int MAX_LINE_WIDTH;

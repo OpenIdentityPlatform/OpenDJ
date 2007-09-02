@@ -1611,6 +1611,10 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.477
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.478
   NAME 'ds-cfg-message-template-file' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.485
+  NAME 'ds-cfg-save-config-on-successful-startup'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1830,7 +1834,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.40 NAME 'ds-cfg-root-config'
   ds-cfg-reject-unauthenticated-requests  $
   ds-cfg-bind-with-dn-requires-password $ ds-cfg-lookthrough-limit $
   ds-cfg-smtp-server $ ds-cfg-allowed-task $ ds-cfg-disabled-privilege $
-  ds-cfg-return-bind-error-messages $ ds-cfg-idle-time-limit )
+  ds-cfg-return-bind-error-messages $ ds-cfg-idle-time-limit $
+  ds-cfg-save-config-on-successful-startup )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.41 NAME 'ds-cfg-root-dn' SUP top
   AUXILIARY MAY ds-cfg-alternate-bind-dn X-ORIGIN 'OpenDS Directory Server' )
