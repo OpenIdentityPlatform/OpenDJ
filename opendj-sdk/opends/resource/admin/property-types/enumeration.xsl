@@ -35,15 +35,25 @@
       select="../../adm:profile[@name='preprocessor']" />
     <xsl:element name="import">
       <xsl:choose>
-        <xsl:when test="$pp/admpp:package">
-          <xsl:value-of select="concat($pp/admpp:package/@name, '.')" />
+        <xsl:when test="$pp/admpp:first-defined-in">
+          <xsl:value-of
+            select="concat($pp/admpp:first-defined-in/@package, '.')" />
+          <xsl:if test="$pp/admpp:first-defined-in/@name">
+            <xsl:value-of select="'meta.'" />
+            <xsl:call-template name="name-to-java">
+              <xsl:with-param name="value"
+                select="$pp/admpp:first-defined-in/@name" />
+            </xsl:call-template>
+            <xsl:value-of select="'CfgDefn.'" />
+          </xsl:if>
         </xsl:when>
         <xsl:otherwise>
           <xsl:value-of
-            select="concat($pp/admpp:managed-object/@package, '.meta.')" />
+            select="concat($pp/admpp:last-defined-in/@package, '.')" />
+          <xsl:value-of select="'meta.'" />
           <xsl:call-template name="name-to-java">
             <xsl:with-param name="value"
-              select="$pp/admpp:managed-object/@name" />
+              select="$pp/admpp:last-defined-in/@name" />
           </xsl:call-template>
           <xsl:value-of select="'CfgDefn.'" />
         </xsl:otherwise>
@@ -59,9 +69,18 @@
     </xsl:element>
     <xsl:variable name="pp"
       select="../../adm:profile[@name='preprocessor']" />
-    <xsl:if test="$pp/admpp:package">
+    <xsl:if test="$pp/admpp:first-defined-in">
       <xsl:element name="import">
-        <xsl:value-of select="concat($pp/admpp:package/@name, '.')" />
+        <xsl:value-of
+          select="concat($pp/admpp:first-defined-in/@package, '.')" />
+        <xsl:if test="$pp/admpp:first-defined-in/@name">
+          <xsl:value-of select="'meta.'" />
+          <xsl:call-template name="name-to-java">
+            <xsl:with-param name="value"
+              select="$pp/admpp:first-defined-in/@name" />
+          </xsl:call-template>
+          <xsl:value-of select="'CfgDefn.'" />
+        </xsl:if>
         <xsl:apply-templates select="." mode="java-value-type" />
       </xsl:element>
     </xsl:if>

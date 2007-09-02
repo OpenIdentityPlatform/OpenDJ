@@ -84,12 +84,14 @@
       Generate enumerations defined by this managed object..
     -->
     <xsl:for-each
-      select="$this-local-properties[adm:syntax/adm:enumeration]">
+      select="$this-local-properties[adm:syntax/adm:enumeration and not(adm:profile[@name='preprocessor']/adm:first-defined-in)]">
       <xsl:sort select="@name" />
-      <xsl:text>&#xa;</xsl:text>
-      <xsl:text>&#xa;</xsl:text>
-      <xsl:text>&#xa;</xsl:text>
-      <xsl:call-template name="generate-enumeration" />
+      <xsl:if test="not(adm:profile[@name='preprocessor']/admpp:first-defined-in)">
+        <xsl:text>&#xa;</xsl:text>
+        <xsl:text>&#xa;</xsl:text>
+        <xsl:text>&#xa;</xsl:text>
+        <xsl:call-template name="generate-enumeration" />
+      </xsl:if>
     </xsl:for-each>
     <!--
       Define application tags if this is the root configuration.
@@ -222,7 +224,7 @@
                          '&quot;, null);&#xa;')" />
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:value-of select="concat('  }&#xa;')" />
+    <xsl:value-of select="'  }&#xa;'" />
     <!--
       Create configuration view factory methods for non-abstract definitions
     -->
@@ -897,7 +899,7 @@
     </xsl:if>
     <xsl:choose>
       <xsl:when
-        test="adm:profile[@name='preprocessor']/admpp:managed-object[@name=$this-name and @package=$this-package]">
+        test="adm:profile[@name='preprocessor']/admpp:last-defined-in[@name=$this-name and @package=$this-package]">
         <xsl:value-of
           select="concat('   *&#xa;',
                      '   * @return Returns the &quot;',
@@ -993,7 +995,7 @@
     </xsl:variable>
     <xsl:choose>
       <xsl:when
-        test="adm:profile[@name='preprocessor']/admpp:managed-object[@name=$this-name and @package=$this-package]">
+        test="adm:profile[@name='preprocessor']/admpp:last-defined-in[@name=$this-name and @package=$this-package]">
         <xsl:value-of
           select="concat($java-managed-object-name, 'CfgClient,',
                      $java-managed-object-name, 'Cfg&gt; get',
