@@ -702,7 +702,7 @@
 
   <adm:property name="idle-time-limit" mandatory="false" multi-valued="false">
     <adm:synopsis>
-      Specifies the maximum lenght of time that a client connection may remain
+      Specifies the maximum length of time that a client connection may remain
       established since its last completed operation.  A value of "0 seconds"
       indicates that no idle time limit will be enforced.
     </adm:synopsis>
@@ -718,6 +718,30 @@
       <ldap:attribute>
         <ldap:oid>1.3.6.1.4.1.26027.1.1.463</ldap:oid>
         <ldap:name>ds-cfg-idle-time-limit</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="save-config-on-successful-startup" mandatory="false">
+    <adm:synopsis>
+      Indicates whether the Directory Server should save a copy of its
+      configuration whenever the startup process completes successfully.  This
+      can ensure that the server provides a "last known good" configuration,
+      which can be used as a reference (or copied into the active config) if the
+      server fails to start with the current "active" configuration.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.485</ldap:oid>
+        <ldap:name>ds-cfg-save-config-on-successful-startup</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

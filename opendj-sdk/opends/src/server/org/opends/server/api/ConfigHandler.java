@@ -132,5 +132,25 @@ public abstract class ConfigHandler
    */
   public abstract void writeUpdatedConfig()
          throws DirectoryException;
+
+
+
+  /**
+   * Indicates that the Directory Server has started successfully and
+   * that the configuration handler should save a copy of the current
+   * configuration for use as a "last known good" reference.  Note
+   * that this may not be possible with some kinds of configuration
+   * repositories, so it should be a best effort attempt.
+   * <BR><BR>
+   * This method should only be called by the Directory Server itself
+   * when the server has started successfully.  It should not be
+   * invoked by any other component at any other time.
+   */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.VOLATILE,
+       mayInstantiate=false,
+       mayExtend=true,
+       mayInvoke=false)
+  public abstract void writeSuccessfulStartupConfig();
 }
 

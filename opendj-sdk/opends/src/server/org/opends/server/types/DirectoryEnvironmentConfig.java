@@ -470,6 +470,77 @@ public final class DirectoryEnvironmentConfig
 
 
   /**
+   * Indicates whether the Directory Server should attempt to start
+   * with the "last known good" configuration rather than the current
+   * active configuration file.  Note that if there is no "last known
+   * good" configuration file available, then the server should try to
+   * start using the current, active configuration file.  If no
+   * explicit value is defined, then a default result of {@code false}
+   * will be returned.
+   *
+   * @return  {@code true} if the Directory Server should attempt to
+   *          start using the "last known good" configuration, or
+   *          {@code false} if it should try to start using the
+   *          active configuration.
+   */
+  public boolean useLastKnownGoodConfiguration()
+  {
+    String useLastKnownGoodStr =
+         getProperty(PROPERTY_USE_LAST_KNOWN_GOOD_CONFIG);
+    if (useLastKnownGoodStr == null)
+    {
+      return false;
+    }
+
+    return useLastKnownGoodStr.equalsIgnoreCase("true");
+  }
+
+
+
+  /**
+   * Specifies whether the Directory Server should attempt to start
+   * using the last known good configuration rather than the
+   * current active configuration.
+   *
+   * @param  useLastKnownGoodConfiguration  Indicates whether the
+   *                                        Directory Server should
+   *                                        attempt to start using the
+   *                                        last known good
+   *                                        configuration.
+   *
+   * @return  The previous setting for this configuration option.  If
+   *          no previous value was specified, then {@code false} will
+   *          be returned.
+   *
+   * @throws  InitializationException  If the Directory Server is
+   *                                   already running.
+   */
+  public boolean setUseLastKnownGoodConfiguration(
+                      boolean useLastKnownGoodConfiguration)
+         throws InitializationException
+  {
+    if (DirectoryServer.isRunning())
+    {
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
+    }
+
+    String oldUseLastKnownGoodStr =
+         setProperty(PROPERTY_USE_LAST_KNOWN_GOOD_CONFIG,
+                     String.valueOf(useLastKnownGoodConfiguration));
+    if (oldUseLastKnownGoodStr == null)
+    {
+      return false;
+    }
+    else
+    {
+      return oldUseLastKnownGoodStr.equalsIgnoreCase("true");
+    }
+  }
+
+
+
+  /**
    * Indicates whether the Directory Server should maintain an archive
    * of previous configurations.  If no explicit value is defined,
    * then a default result of {@code true} will be returned.

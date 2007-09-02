@@ -28,6 +28,7 @@ package org.opends.server.extensions;
 
 
 
+import java.io.File;
 import java.util.ArrayList;
 
 import org.testng.annotations.BeforeClass;
@@ -60,6 +61,19 @@ public class ConfigFileHandlerTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
+
+    String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
+    String startOKFile = buildRoot + File.separator + "build" + File.separator +
+                         "unit-tests" + File.separator + "package" +
+                         File.separator + "config" + File.separator +
+                         "config.ldif.startok";
+
+    assertTrue(new File(startOKFile).exists(),
+               startOKFile + " does not exist but it should");
+    assertFalse(new File(startOKFile + ".tmp").exists(),
+                startOKFile + ".tmp exists but should not");
+    assertFalse(new File(startOKFile + ".old").exists(),
+                startOKFile + ".old exists but should not");
   }
 
 

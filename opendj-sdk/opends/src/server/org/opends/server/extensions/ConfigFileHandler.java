@@ -25,7 +25,6 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
 
 
 
@@ -60,6 +59,7 @@ import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.Mac;
 
+import org.opends.messages.Message;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConfigAddListener;
@@ -135,6 +135,9 @@ public class ConfigFileHandler
   // Indicates whether to maintain a configuration archive.
   private boolean maintainConfigArchive;
 
+  // Indicates whether to start using the last known good configuration.
+  private boolean useLastKnownGoodConfig;
+
   // A SHA-1 digest of the last known configuration.  This should only be
   // incorrect if the server configuration file has been manually edited with
   // the server online, which is a bad thing.
@@ -199,15 +202,41 @@ public class ConfigFileHandler
     configLock = new ReentrantLock();
 
 
-    // Make sure that the configuration file exists.
+    // Determine whether we should try to start using the last known good
+    // configuration.  If so, then only do so if such a file exists.  If it
+    // doesn't exist, then fall back on the active configuration file.
     this.configFile = configFile;
-    File f = new File(configFile);
+    DirectoryEnvironmentConfig envConfig =
+         DirectoryServer.getEnvironmentConfig();
+    useLastKnownGoodConfig = envConfig.useLastKnownGoodConfiguration();
+    File f = null;
+    if (useLastKnownGoodConfig)
+    {
+      f = new File(configFile + ".startok");
+      if (! f.exists())
+      {
+        logError(WARN_CONFIG_FILE_NO_STARTOK_FILE.get(f.getAbsolutePath(),
+                                                      configFile));
+        useLastKnownGoodConfig = false;
+        f = new File(configFile);
+      }
+      else
+      {
+        logError(NOTE_CONFIG_FILE_USING_STARTOK_FILE.get(f.getAbsolutePath(),
+                                                         configFile));
+      }
+    }
+    else
+    {
+      f = new File(configFile);
+    }
 
     try
     {
       if (! f.exists())
       {
-        Message message = ERR_CONFIG_FILE_DOES_NOT_EXIST.get(configFile);
+        Message message = ERR_CONFIG_FILE_DOES_NOT_EXIST.get(
+                               f.getAbsolutePath());
         throw new InitializationException(message);
       }
     }
@@ -228,7 +257,7 @@ public class ConfigFileHandler
       }
 
       Message message = ERR_CONFIG_FILE_CANNOT_VERIFY_EXISTENCE.get(
-          configFile, String.valueOf(e));
+                             f.getAbsolutePath(), String.valueOf(e));
       throw new InitializationException(message);
     }
 
@@ -236,11 +265,9 @@ public class ConfigFileHandler
     // Check to see if a configuration archive exists.  If not, then create one.
     // If so, then check whether the current configuration matches the last
     // configuration in the archive.  If it doesn't, then archive it.
-    DirectoryEnvironmentConfig envConfig =
-         DirectoryServer.getEnvironmentConfig();
     maintainConfigArchive = envConfig.maintainConfigArchive();
     maxConfigArchiveSize  = envConfig.getMaxConfigArchiveSize();
-    if (maintainConfigArchive)
+    if (maintainConfigArchive & (! useLastKnownGoodConfig))
     {
       try
       {
@@ -307,7 +334,7 @@ public class ConfigFileHandler
     LDIFReader reader;
     try
     {
-      LDIFImportConfig importConfig = new LDIFImportConfig(configFile);
+      LDIFImportConfig importConfig = new LDIFImportConfig(f.getAbsolutePath());
 
       // FIXME -- Should we support encryption or compression for the config?
 
@@ -321,7 +348,7 @@ public class ConfigFileHandler
       }
 
       Message message = ERR_CONFIG_FILE_CANNOT_OPEN_FOR_READ.get(
-          configFile, String.valueOf(e));
+                             f.getAbsolutePath(), String.valueOf(e));
       throw new InitializationException(message, e);
     }
 
@@ -352,7 +379,7 @@ public class ConfigFileHandler
       }
 
       Message message = ERR_CONFIG_FILE_INVALID_LDIF_ENTRY.get(
-          le.getLineNumber(), configFile, String.valueOf(le));
+          le.getLineNumber(), f.getAbsolutePath(), String.valueOf(le));
       throw new InitializationException(message, le);
     }
     catch (Exception e)
@@ -375,7 +402,8 @@ public class ConfigFileHandler
       }
 
       Message message =
-          ERR_CONFIG_FILE_READ_ERROR.get(configFile, String.valueOf(e));
+          ERR_CONFIG_FILE_READ_ERROR.get(f.getAbsolutePath(),
+                                       String.valueOf(e));
       throw new InitializationException(message, e);
     }
 
@@ -395,7 +423,7 @@ public class ConfigFileHandler
         }
       }
 
-      Message message = ERR_CONFIG_FILE_EMPTY.get(configFile);
+      Message message = ERR_CONFIG_FILE_EMPTY.get(f.getAbsolutePath());
       throw new InitializationException(message);
     }
 
@@ -407,7 +435,8 @@ public class ConfigFileHandler
       if (! entry.getDN().equals(configRootDN))
       {
         Message message = ERR_CONFIG_FILE_INVALID_BASE_DN.get(
-            configFile, entry.getDN().toString(), DN_CONFIG_ROOT);
+                               f.getAbsolutePath(), entry.getDN().toString(),
+                               DN_CONFIG_ROOT);
         throw new InitializationException(message);
       }
     }
@@ -452,8 +481,8 @@ public class ConfigFileHandler
       }
 
       // This should not happen, so we can use a generic error here.
-      Message message =
-          ERR_CONFIG_FILE_GENERIC_ERROR.get(configFile, String.valueOf(e));
+      Message message = ERR_CONFIG_FILE_GENERIC_ERROR.get(f.getAbsolutePath(),
+                                                          String.valueOf(e));
       throw new InitializationException(message, e);
     }
 
@@ -494,7 +523,8 @@ public class ConfigFileHandler
         }
 
         Message message = ERR_CONFIG_FILE_INVALID_LDIF_ENTRY.get(
-            le.getLineNumber(), configFile, String.valueOf(le));
+                               le.getLineNumber(), f.getAbsolutePath(),
+                               String.valueOf(le));
         throw new InitializationException(message, le);
       }
       catch (Exception e)
@@ -516,8 +546,8 @@ public class ConfigFileHandler
           }
         }
 
-        Message message =
-            ERR_CONFIG_FILE_READ_ERROR.get(configFile, String.valueOf(e));
+        Message message = ERR_CONFIG_FILE_READ_ERROR.get(f.getAbsolutePath(),
+                                                         String.valueOf(e));
         throw new InitializationException(message, e);
       }
 
@@ -559,8 +589,9 @@ public class ConfigFileHandler
         }
 
         Message message = ERR_CONFIG_FILE_DUPLICATE_ENTRY.get(
-            entryDN.toString(), String.valueOf(reader.getLastEntryLineNumber()),
-                configFile);
+                               entryDN.toString(),
+                               String.valueOf(reader.getLastEntryLineNumber()),
+                               f.getAbsolutePath());
         throw new InitializationException(message);
       }
 
@@ -582,7 +613,9 @@ public class ConfigFileHandler
         }
 
         Message message = ERR_CONFIG_FILE_UNKNOWN_PARENT.get(
-            entryDN.toString(), reader.getLastEntryLineNumber(), configFile);
+                               entryDN.toString(),
+                               reader.getLastEntryLineNumber(),
+                               f.getAbsolutePath());
         throw new InitializationException(message);
       }
 
@@ -601,9 +634,9 @@ public class ConfigFileHandler
           }
         }
 
-        Message message = ERR_CONFIG_FILE_NO_PARENT.
-            get(entryDN.toString(), reader.getLastEntryLineNumber(), configFile,
-                parentDN.toString());
+        Message message = ERR_CONFIG_FILE_NO_PARENT.get(entryDN.toString(),
+                               reader.getLastEntryLineNumber(),
+                               f.getAbsolutePath(), parentDN.toString());
         throw new InitializationException(message);
       }
 
@@ -636,8 +669,8 @@ public class ConfigFileHandler
           }
         }
 
-        Message message =
-            ERR_CONFIG_FILE_GENERIC_ERROR.get(configFile, String.valueOf(e));
+        Message message = ERR_CONFIG_FILE_GENERIC_ERROR.get(f.getAbsolutePath(),
+                                                            String.valueOf(e));
         throw new InitializationException(message, e);
       }
     }
@@ -651,7 +684,7 @@ public class ConfigFileHandler
     {
       try
       {
-        File configDirFile = new File(configFile).getParentFile();
+        File configDirFile = f.getParentFile();
         if ((configDirFile != null) &&
             configDirFile.getName().equals(CONFIG_DIR_NAME))
         {
@@ -2258,6 +2291,185 @@ public class ConfigFileHandler
             f.delete();
           } catch (Exception e) {}
         }
+      }
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void writeSuccessfulStartupConfig()
+  {
+    if (useLastKnownGoodConfig)
+    {
+      // The server was started with the "last known good" configuration, so we
+      // shouldn't overwrite it with something that is probably bad.
+      return;
+    }
+
+
+    String startOKFilePath = configFile + ".startok";
+    String tempFilePath    = startOKFilePath + ".tmp";
+    String oldFilePath     = startOKFilePath + ".old";
+
+
+    // Copy the current config file to a temporary file.
+    File tempFile = new File(tempFilePath);
+    FileInputStream inputStream = null;
+    try
+    {
+      inputStream = new FileInputStream(configFile);
+
+      FileOutputStream outputStream = null;
+      try
+      {
+        outputStream = new FileOutputStream(tempFilePath, false);
+
+        try
+        {
+          byte[] buffer = new byte[8192];
+          while (true)
+          {
+            int bytesRead = inputStream.read(buffer);
+            if (bytesRead < 0)
+            {
+              break;
+            }
+
+            outputStream.write(buffer, 0, bytesRead);
+          }
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+
+          logError(ERR_STARTOK_CANNOT_WRITE.get(configFile, tempFilePath,
+                                                getExceptionMessage(e)));
+          return;
+        }
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        logError(ERR_STARTOK_CANNOT_OPEN_FOR_WRITING.get(tempFilePath,
+                      getExceptionMessage(e)));
+        return;
+      }
+      finally
+      {
+        try
+        {
+          outputStream.close();
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      logError(ERR_STARTOK_CANNOT_OPEN_FOR_READING.get(configFile,
+                                                       getExceptionMessage(e)));
+      return;
+    }
+    finally
+    {
+      try
+      {
+        inputStream.close();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
+
+
+    // If a ".startok" file already exists, then move it to an ".old" file.
+    File oldFile = new File(oldFilePath);
+    try
+    {
+      if (oldFile.exists())
+      {
+        oldFile.delete();
+      }
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
+
+    File startOKFile = new File(startOKFilePath);
+    try
+    {
+      if (startOKFile.exists())
+      {
+        startOKFile.renameTo(oldFile);
+      }
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
+
+
+    // Rename the temp file to the ".startok" file.
+    try
+    {
+      tempFile.renameTo(startOKFile);
+    } catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      logError(ERR_STARTOK_CANNOT_RENAME.get(tempFilePath, startOKFilePath,
+                                             getExceptionMessage(e)));
+      return;
+    }
+
+
+    // Remove the ".old" file if there is one.
+    try
+    {
+      if (oldFile.exists())
+      {
+        oldFile.delete();
+      }
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }

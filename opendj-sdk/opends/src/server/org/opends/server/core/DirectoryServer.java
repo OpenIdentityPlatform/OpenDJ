@@ -359,6 +359,10 @@ public class DirectoryServer
   // been abandoned.
   private boolean notifyAbandonedOperations;
 
+  // Indicates whether to save a copy of the configuration on successful
+  // startup.
+  private boolean saveConfigOnSuccessfulStartup;
+
   // Indicates whether the server is currently in the process of shutting down.
   private boolean shuttingDown;
 
@@ -1425,6 +1429,14 @@ public class DirectoryServer
       {
         startConnectionHandlers();
         new IdleTimeLimitThread().start();
+      }
+
+
+      // If we should write a copy of the config on successful startup, then do
+      // so now.
+      if (saveConfigOnSuccessfulStartup)
+      {
+        configHandler.writeSuccessfulStartupConfig();
       }
 
 
@@ -7727,6 +7739,37 @@ public class DirectoryServer
 
 
   /**
+   * Indicates whether the Directory Server should save a copy of its
+   * configuration whenever it is started successfully.
+   *
+   * @return  {@code true} if the server should save a copy of its configuration
+   *          whenever it is started successfully, or {@code false} if not.
+   */
+  public static boolean saveConfigOnSuccessfulStartup()
+  {
+    return directoryServer.saveConfigOnSuccessfulStartup;
+  }
+
+
+
+  /**
+   * Specifies whether the Directory Server should save a copy of its
+   * configuration whenever it is started successfully.
+   *
+   * @param  saveConfigOnSuccessfulStartup  Specifies whether the server should
+   *                                        save a copy of its configuration
+   *                                        whenever it is started successfully.
+   */
+  public static void setSaveConfigOnSuccessfulStartup(
+                          boolean saveConfigOnSuccessfulStartup)
+  {
+    directoryServer.saveConfigOnSuccessfulStartup =
+         saveConfigOnSuccessfulStartup;
+  }
+
+
+
+  /**
    * Registers the provided backup task listener with the Directory Server.
    *
    * @param  listener  The backup task listener to register with the Directory
@@ -8999,15 +9042,16 @@ public class DirectoryServer
   public static void main(String[] args)
   {
     // Define the arguments that may be provided to the server.
-    BooleanArgument checkStartability = null;
-    BooleanArgument quietMode         = null;
-    BooleanArgument windowsNetStart   = null;
-    BooleanArgument displayUsage      = null;
-    BooleanArgument fullVersion       = null;
-    BooleanArgument noDetach          = null;
-    BooleanArgument systemInfo        = null;
-    StringArgument  configClass       = null;
-    StringArgument  configFile        = null;
+    BooleanArgument checkStartability      = null;
+    BooleanArgument quietMode              = null;
+    BooleanArgument windowsNetStart        = null;
+    BooleanArgument displayUsage           = null;
+    BooleanArgument fullVersion            = null;
+    BooleanArgument noDetach               = null;
+    BooleanArgument systemInfo             = null;
+    BooleanArgument useLastKnownGoodConfig = null;
+    StringArgument  configClass            = null;
+    StringArgument  configFile             = null;
 
 
     // Create the command-line argument parser for use with this program.
@@ -9062,6 +9106,13 @@ public class DirectoryServer
       systemInfo = new BooleanArgument("systeminfo", 's', "systemInfo",
                                        INFO_DSCORE_DESCRIPTION_SYSINFO.get());
       argParser.addArgument(systemInfo);
+
+
+      useLastKnownGoodConfig =
+           new BooleanArgument("lastknowngoodconfig", 'L',
+                               "useLastKnownGoodConfig",
+                               INFO_DSCORE_DESCRIPTION_LASTKNOWNGOODCFG.get());
+      argParser.addArgument(useLastKnownGoodConfig);
 
 
       noDetach = new BooleanArgument("nodetach", 'N', "nodetach",
@@ -9389,6 +9440,8 @@ public class DirectoryServer
                                     configClass.getValue());
       environmentConfig.setProperty(PROPERTY_CONFIG_FILE,
                                     configFile.getValue());
+      environmentConfig.setProperty(PROPERTY_USE_LAST_KNOWN_GOOD_CONFIG,
+           String.valueOf(useLastKnownGoodConfig.isPresent()));
 
 
       startupErrorLogPublisher =

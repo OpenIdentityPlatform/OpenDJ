@@ -337,6 +337,9 @@ public class CoreConfigManager
          globalConfig.isReturnBindErrorMessages());
 
     DirectoryServer.setIdleTimeLimit(globalConfig.getIdleTimeLimit());
+
+    DirectoryServer.setSaveConfigOnSuccessfulStartup(
+         globalConfig.isSaveConfigOnSuccessfulStartup());
   }
 
 
