@@ -107,8 +107,8 @@ public class PersistentServerStateTest extends ReplicationTestCase
     ChangeNumber cn1 = gen1.newChangeNumber();
     ChangeNumber cn2 = gen2.newChangeNumber();
 
-    state.update(cn1);
-    state.update(cn2);
+    assertEquals(state.update(cn1), true);
+    assertEquals(state.update(cn2), true);
 
     state.save();
 
@@ -120,6 +120,12 @@ public class PersistentServerStateTest extends ReplicationTestCase
         "cn1 has not been saved or loaded correctly for " + dn);
     assertEquals(cn2Saved, cn2,
         "cn2 has not been saved or loaded correctly for " + dn);
+    
+    state.clear();
+    stateSaved = new PersistentServerState(baseDn);
+    cn1Saved = stateSaved.getMaxChangeNumber((short) 1);
+    assertEquals(cn1Saved, null,
+        "cn1 has not been saved after clear for " + dn);
 
   }
 }

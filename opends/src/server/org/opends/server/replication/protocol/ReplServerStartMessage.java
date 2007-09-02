@@ -65,6 +65,7 @@ public class ReplServerStartMessage extends StartMessage implements
    * @param windowSize The window size.
    * @param serverState our ServerState for this baseDn.
    * @param protocolVersion The replication protocol version of the creator.
+   * @param generationId The generationId for this server.
    * @param sslEncryption Whether to continue using SSL to encrypt messages
    *                      after the start messages have been exchanged.
    */
@@ -72,9 +73,10 @@ public class ReplServerStartMessage extends StartMessage implements
                                int windowSize,
                                ServerState serverState,
                                short protocolVersion,
+                               long generationId,
                                boolean sslEncryption)
   {
-    super(protocolVersion);
+    super(protocolVersion, generationId);
     this.serverId = serverId;
     this.serverURL = serverURL;
     if (baseDn != null)

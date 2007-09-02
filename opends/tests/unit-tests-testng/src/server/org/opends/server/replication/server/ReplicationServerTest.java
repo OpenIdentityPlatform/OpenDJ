@@ -30,6 +30,8 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.replication.protocol.OperationContext.*;
 
 import java.net.InetAddress;
@@ -41,8 +43,12 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.opends.messages.Category;
+import org.opends.messages.Message;
+import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.ModifyDNOperationBasis;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
@@ -68,6 +74,8 @@ import org.testng.annotations.Test;
 
 public class ReplicationServerTest extends ReplicationTestCase
 {
+  // The tracer object for the debug logger
+  private static final DebugTracer TRACER = getTracer();
   /**
    * The replicationServer that will be used in this test.
    */
@@ -105,6 +113,15 @@ public class ReplicationServerTest extends ReplicationTestCase
     replicationServer = new ReplicationServer(conf);
   }
 
+  private void debugInfo(String s)
+  {
+    // logError(Message.raw(Category.SYNC, Severity.NOTICE, s));
+    if (debugEnabled())
+    {
+      TRACER.debugInfo("** TEST **" + s);
+    }
+  }
+
   /**
    * Basic test of the replicationServer code :
    *  Connect 2 clients to the replicationServer and exchange messages
@@ -116,6 +133,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   @Test()
   public void changelogBasic() throws Exception
   {
+    debugInfo("Starting changelogBasic");
     ReplicationBroker server1 = null;
     ReplicationBroker server2 = null;
 
@@ -188,7 +206,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         fail("ReplicationServer basic : incorrect message type received.");
 
       /*
-       * Send and receive a Delete Msg from server 1 to server 2
+       * Send and receive a Delete Msg from server 2 to server 1
        */
       msg =
         new DeleteMsg("o=test,dc=example,dc=com", firstChangeNumberServer2,
@@ -226,6 +244,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       if (server2 != null)
         server2.stop();
     }
+    debugInfo("Ending changelogBasic");
   }
 
   /**
@@ -235,6 +254,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
   public void newClient() throws Exception
   {
+    debugInfo("Starting newClient");
     ReplicationBroker broker = null;
 
     try {
@@ -244,7 +264,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
       ReplicationMessage msg2 = broker.receive();
       if (!(msg2 instanceof DeleteMsg))
-        fail("ReplicationServer basic transmission failed");
+        fail("ReplicationServer basic transmission failed:" + msg2);
       else
       {
         DeleteMsg del = (DeleteMsg) msg2;
@@ -258,6 +278,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       if (broker != null)
         broker.stop();
     }
+    debugInfo("Ending newClient");
   }
 
 
@@ -277,11 +298,13 @@ public class ReplicationServerTest extends ReplicationTestCase
     try {
       broker =
         openReplicationSession(DN.decode("dc=example,dc=com"), (short) 3,
-                             100, replicationServerPort, 1000, state);
+                             100, replicationServerPort, 5000, state);
 
       ReplicationMessage msg2 = broker.receive();
       if (!(msg2 instanceof DeleteMsg))
-        fail("ReplicationServer basic transmission failed");
+      {
+        fail("ReplicationServer basic transmission failed:" + msg2);
+      }
       else
       {
         DeleteMsg del = (DeleteMsg) msg2;
@@ -304,6 +327,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
   public void newClientWithFirstChanges() throws Exception
   {
+    debugInfo("Starting newClientWithFirstChanges");
     /*
      * Create a ServerState updated with the first changes from both servers
      * done in test changelogBasic.
@@ -313,6 +337,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     state.update(firstChangeNumberServer2);
 
     newClientWithChanges(state, secondChangeNumberServer1);
+    debugInfo("Ending newClientWithFirstChanges");
   }
 
   /**
@@ -792,7 +817,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       ServerStartMessage msg =
         new ServerStartMessage((short) 1723, DN.decode("dc=example,dc=com"),
             0, 0, 0, 0, WINDOW, (long) 5000, new ServerState(),
-            ProtocolVersion.currentVersion(), sslEncryption);
+            ProtocolVersion.currentVersion(), 0, sslEncryption);
       session.publish(msg);
 
       // Read the Replication Server state from the ReplServerStartMessage that
@@ -819,10 +844,13 @@ public class ReplicationServerTest extends ReplicationTestCase
 
       // send a ServerStartMessage containing the ServerState that was just
       // received.
+      DN baseDn = DN.decode("dc=example,dc=com");
       msg = new ServerStartMessage(
-          (short) 1724, DN.decode("dc=example,dc=com"),
+          (short) 1724, baseDn,
           0, 0, 0, 0, WINDOW, (long) 5000, replServerState,
-          ProtocolVersion.currentVersion(), sslEncryption);
+          ProtocolVersion.currentVersion(),
+          ReplicationTestCase.getGenerationId(baseDn),
+          sslEncryption);
       session.publish(msg);
 
       // Read the ReplServerStartMessage that come back.

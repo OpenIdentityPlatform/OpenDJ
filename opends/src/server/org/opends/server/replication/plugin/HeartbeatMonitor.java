@@ -28,6 +28,8 @@
 package org.opends.server.replication.plugin;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+
 import org.opends.server.loggers.debug.DebugTracer;
 
 import java.io.IOException;
@@ -99,8 +101,9 @@ public class HeartbeatMonitor extends DirectoryThread
   {
     if (debugEnabled())
     {
-      TRACER.debugInfo("Heartbeat monitor is starting, expected interval is %d",
-                heartbeatInterval);
+      TRACER.debugInfo("Heartbeat monitor is starting, expected interval is " +
+                heartbeatInterval +
+          stackTraceToSingleLineString(new Exception()));
     }
     try
     {
@@ -110,9 +113,6 @@ public class HeartbeatMonitor extends DirectoryThread
         long lastReceiveTime = session.getLastReceiveTime();
         if (now > lastReceiveTime + 2 * heartbeatInterval)
         {
-          TRACER.debugInfo("Heartbeat monitor is closing the broker session " +
-          "because it could not detect a heartbeat.");
-
           // Heartbeat is well overdue so the server is assumed to be dead.
           if (debugEnabled())
           {
@@ -140,7 +140,8 @@ public class HeartbeatMonitor extends DirectoryThread
     {
       if (debugEnabled())
       {
-        TRACER.debugInfo("Heartbeat monitor is exiting.");
+        TRACER.debugInfo("Heartbeat monitor is exiting." +
+            stackTraceToSingleLineString(new Exception()));
       }
     }
   }

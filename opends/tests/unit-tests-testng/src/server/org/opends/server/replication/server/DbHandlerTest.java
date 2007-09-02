@@ -73,7 +73,7 @@ public class DbHandlerTest extends ReplicationTestCase
     ReplicationDbEnv dbEnv = new ReplicationDbEnv(path, replicationServer);
 
     DbHandler handler =
-      new DbHandler((short) 1, DN.decode("o=test"), replicationServer, dbEnv);
+      new DbHandler((short) 1, DN.decode("o=test"), replicationServer, dbEnv, 1);
 
     ChangeNumberGenerator gen = new ChangeNumberGenerator((short)1, 0);
     ChangeNumber changeNumber1 = gen.newChangeNumber();
@@ -117,5 +117,76 @@ public class DbHandlerTest extends ReplicationTestCase
 
     TestCaseUtils.deleteDirectory(testRoot);
   }
+
+  /*
+   * Test the feature of clearing a dbHandler used by a replication server.
+   * The clear feature is used when a replication server receives a request
+   * to reset the generationId of a given domain.
+   */
+  @Test()
+  void testDbHandlerClear() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    //  find  a free port for the replicationServer
+    ServerSocket socket = TestCaseUtils.bindFreePort();
+    int changelogPort = socket.getLocalPort();
+    socket.close();
+
+    // configure a ReplicationServer.
+    ReplServerFakeConfiguration conf =
+      new ReplServerFakeConfiguration(changelogPort, null, 0,
+                                     2, 0, 100, null);
+    ReplicationServer replicationServer = new ReplicationServer(conf);
+
+    // create or clean a directory for the dbHandler
+    String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
+    String path = buildRoot + File.separator + "build" + File.separator +
+                  "unit-tests" + File.separator + "dbHandler";
+    File testRoot = new File(path);
+    if (testRoot.exists())
+    {
+      TestCaseUtils.deleteDirectory(testRoot);
+    }
+    testRoot.mkdirs();
+
+    ReplicationDbEnv dbEnv = new ReplicationDbEnv(path, replicationServer);
+
+    DbHandler handler =
+      new DbHandler((short) 1, DN.decode("o=test"), replicationServer, dbEnv, 1);
+
+    // Creates changes added to the dbHandler
+    ChangeNumberGenerator gen = new ChangeNumberGenerator((short)1, 0);
+    ChangeNumber changeNumber1 = gen.newChangeNumber();
+    ChangeNumber changeNumber2 = gen.newChangeNumber();
+    ChangeNumber changeNumber3 = gen.newChangeNumber();
+
+    DeleteMsg update1 = new DeleteMsg("o=test", changeNumber1, "uid");
+    DeleteMsg update2 = new DeleteMsg("o=test", changeNumber2, "uid");
+    DeleteMsg update3 = new DeleteMsg("o=test", changeNumber3, "uid");
+
+    // Add the changes
+    handler.add(update1);
+    handler.add(update2);
+    handler.add(update3);
+
+    // Check they are here
+    assertEquals(changeNumber1, handler.getFirstChange());
+    assertEquals(changeNumber3, handler.getLastChange());
+
+    // Clear ...
+    handler.clear();
+
+    // Check the db is cleared.
+    assertEquals(null, handler.getFirstChange());
+    assertEquals(null, handler.getLastChange());
+
+    handler.shutdown();
+    dbEnv.shutdown();
+    replicationServer.shutdown();
+
+    TestCaseUtils.deleteDirectory(testRoot);
+  }
+
 
 }

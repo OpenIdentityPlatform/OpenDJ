@@ -57,6 +57,7 @@ ds-cfg-allowed-task: org.opends.server.tasks.ExportTask
 ds-cfg-allowed-task: org.opends.server.tasks.ImportTask
 ds-cfg-allowed-task: org.opends.server.tasks.InitializeTargetTask
 ds-cfg-allowed-task: org.opends.server.tasks.InitializeTask
+ds-cfg-allowed-task: org.opends.server.tasks.SetGenerationIdTask
 ds-cfg-allowed-task: org.opends.server.tasks.LeaveLockdownModeTask
 ds-cfg-allowed-task: org.opends.server.tasks.RebuildTask
 ds-cfg-allowed-task: org.opends.server.tasks.RestoreTask

@@ -54,6 +54,8 @@ public abstract class ReplicationMessage
   static final byte MSG_TYPE_ERROR = 14;
   static final byte MSG_TYPE_WINDOW_PROBE = 15;
   static final byte MSG_TYPE_REPL_SERVER_INFO = 16;
+  static final byte MSG_TYPE_RESET_GENERATION_ID = 17;
+
   // Adding a new type of message here probably requires to
   // change accordingly generateMsg method below
 
@@ -76,6 +78,7 @@ public abstract class ReplicationMessage
    * MSG_TYPE_ERROR
    * MSG_TYPE_WINDOW_PROBE
    * MSG_TYPE_REPL_SERVER_INFO
+   * MSG_TYPE_RESET_GENERATION_ID
    *
    * @return the byte[] representation of this message.
    * @throws UnsupportedEncodingException  When the encoding of the message
@@ -139,6 +142,9 @@ public abstract class ReplicationMessage
       break;
       case MSG_TYPE_ERROR:
         msg = new ErrorMessage(buffer);
+      break;
+      case MSG_TYPE_RESET_GENERATION_ID:
+        msg = new ResetGenerationId(buffer);
       break;
       case MSG_TYPE_WINDOW_PROBE:
         msg = new WindowProbe(buffer);

@@ -29,7 +29,6 @@ package org.opends.server.replication.plugin;
 import java.io.IOException;
 import java.io.OutputStream;
 
-
 /**
  * This class creates an output stream that can be used to export entries
  * to a synchonization domain.
@@ -37,7 +36,15 @@ import java.io.OutputStream;
 public class ReplLDIFOutputStream
        extends OutputStream
 {
+  // The synchronization domain on which the export is done
   ReplicationDomain domain;
+
+  // The number of entries to be exported
+  long numEntries;
+
+  // The current number of entries exported
+  long numExportedEntries;
+
   String entryBuffer = "";
 
   /**
@@ -45,10 +52,12 @@ public class ReplLDIFOutputStream
    * domain.
    *
    * @param domain The replication domain
+   * @param numEntries The max number of entry to process.
    */
-  public ReplLDIFOutputStream(ReplicationDomain domain)
+  public ReplLDIFOutputStream(ReplicationDomain domain, long numEntries)
   {
     this.domain = domain;
+    this.numEntries = numEntries;
   }
 
   /**
@@ -75,11 +84,19 @@ public class ReplLDIFOutputStream
       endOfEntryIndex = ebytes.indexOf("\n\n");
       if ( endOfEntryIndex >= 0 )
       {
+
         endOfEntryIndex += 2;
         entryBuffer = entryBuffer + ebytes.substring(0, endOfEntryIndex);
 
         // Send the entry
-        domain.sendEntryLines(entryBuffer);
+        if ((numEntries>0) && (numExportedEntries > numEntries))
+        {
+          // This outputstream has reached the total number
+          // of entries to export.
+          return;
+        }
+        domain.exportLDIFEntry(entryBuffer);
+        numExportedEntries++;
 
         startOfEntryIndex = startOfEntryIndex + endOfEntryIndex;
         entryBuffer = "";

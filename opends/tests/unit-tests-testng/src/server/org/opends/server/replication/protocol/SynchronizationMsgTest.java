@@ -493,7 +493,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     state.update(new ChangeNumber((long)1, 1,(short)1));
     ServerStartMessage msg = new ServerStartMessage(serverId, baseDN,
-        window, window, window, window, window, window, state, (short)1, true);
+        window, window, window, window, window, window, state, (short)1, 
+        (long)1, true);
     ServerStartMessage newMsg = new ServerStartMessage(msg.getBytes());
     assertEquals(msg.getServerId(), newMsg.getServerId());
     assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
@@ -507,6 +508,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getServerState().getMaxChangeNumber((short)1),
         newMsg.getServerState().getMaxChangeNumber((short)1));
     assertEquals(msg.getVersion(), newMsg.getVersion());
+    assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
   }
 
   @DataProvider(name="changelogStart")
@@ -527,7 +529,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     state.update(new ChangeNumber((long)1, 1,(short)1));
     ReplServerStartMessage msg = new ReplServerStartMessage(serverId,
-        url, baseDN, window, state, (short)1, true);
+        url, baseDN, window, state, (short)1, (long)1, true);
     ReplServerStartMessage newMsg = new ReplServerStartMessage(msg.getBytes());
     assertEquals(msg.getServerId(), newMsg.getServerId());
     assertEquals(msg.getServerURL(), newMsg.getServerURL());
@@ -536,6 +538,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getServerState().getMaxChangeNumber((short)1),
         newMsg.getServerState().getMaxChangeNumber((short)1));
     assertEquals(msg.getVersion(), newMsg.getVersion());
+    assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
     assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
   }
 
@@ -572,9 +575,11 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     List<String> connectedServers = new ArrayList<String>(0);
     connectedServers.add("s1");
     connectedServers.add("s2");
-    ReplServerInfoMessage msg = new ReplServerInfoMessage(connectedServers);
+    ReplServerInfoMessage msg = 
+      new ReplServerInfoMessage(connectedServers, 13);
     ReplServerInfoMessage newMsg = new ReplServerInfoMessage(msg.getBytes());
     assertEquals(msg.getConnectedServers(), newMsg.getConnectedServers());
+    assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
   }
 
   /**

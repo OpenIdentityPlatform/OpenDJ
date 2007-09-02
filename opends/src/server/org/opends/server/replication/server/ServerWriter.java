@@ -30,6 +30,7 @@ import org.opends.messages.Message;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.opends.messages.ReplicationMessages.*;
 
 import java.io.IOException;
@@ -97,12 +98,35 @@ public class ServerWriter extends DirectoryThread
         TRACER.debugInfo("LDAP server writer starting " + serverId);
       }
     }
-    try {
+    try
+    {
       while (true)
       {
         UpdateMessage update = replicationCache.take(this.handler);
         if (update == null)
           return;       /* this connection is closing */
+
+        // Ignore update to be sent to a replica with a bad generation ID
+        long referenceGenerationId = replicationCache.getGenerationId();
+        if (referenceGenerationId != handler.getGenerationId())
+        {
+          logError(ERR_IGNORING_UPDATE_TO.get(
+              update.getDn(),
+              this.handler.getMonitorInstanceName()));
+          continue;
+        }
+
+        if (debugEnabled())
+        {
+          TRACER.debugInfo(
+            "In " + replicationCache.getReplicationServer().
+              getMonitorInstanceName() +
+            ", writer to " + this.handler.getMonitorInstanceName() +
+            " publishes" + update.toString() +
+            " refgenId=" + referenceGenerationId +
+            " server=" + handler.getServerId() +
+            " generationId=" + handler.getGenerationId());
+        }
         session.publish(update);
       }
     }
@@ -130,7 +154,8 @@ public class ServerWriter extends DirectoryThread
        * An unexpected error happened.
        * Log an error and close the connection.
        */
-      Message message = ERR_WRITER_UNEXPECTED_EXCEPTION.get(handler.toString());
+      Message message = ERR_WRITER_UNEXPECTED_EXCEPTION.get(handler.toString() +
+                        " " +  stackTraceToSingleLineString(e));
       logError(message);
     }
     finally {

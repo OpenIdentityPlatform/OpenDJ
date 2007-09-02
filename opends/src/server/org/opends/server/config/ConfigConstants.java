@@ -1335,10 +1335,17 @@ public final class ConfigConstants
   public static final String ATTR_MATCHING_RULE_USE_LC = "matchingruleuse";
 
   /**
-   * The name of the attribute that holds the sycnhronization state,
+   * The name of the attribute that holds the synchronization state,
    * formatted in lowercase.
    */
   public static final String ATTR_SYNCHRONIZATION_STATE_LC = "ds-sync-state";
+
+  /**
+   * The name of the attribute that holds the relication generationId,
+   * formatted in lowercase.
+   */
+  public static final String ATTR_SYNCHRONIZATION_GENERATIONID_LC =
+       "ds-sync-generation-id";
 
   /**
    * The default maximum request size that should be used if none is specified
@@ -4246,6 +4253,21 @@ public final class ConfigConstants
    */
   public static final String ATTR_REBUILD_MAX_THREADS =
        NAME_PREFIX_TASK + "rebuild-max-threads";
+
+  /**
+   * The name of the objectclass that will be used for a Directory Server
+   * reset generationId task definition.
+   */
+  public static final String OC_RESET_GENERATION_ID_TASK =
+       NAME_PREFIX_TASK + "reset-generation-id";
+
+
+  /**
+   * The name of the attribute containing the baseDn related to the replication
+   * domain to which applies the task.
+   */
+  public static final String ATTR_TASK_SET_GENERATION_ID_DOMAIN_DN =
+    OC_RESET_GENERATION_ID_TASK + "-domain-base-dn";
 
   /**
    * The name of the attribute in an import task definition that specifies

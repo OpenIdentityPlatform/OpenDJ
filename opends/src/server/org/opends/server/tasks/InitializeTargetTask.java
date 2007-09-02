@@ -129,7 +129,7 @@ public class InitializeTargetTask extends Task
     }
     try
     {
-      domain.initializeTarget(target, this);
+      domain.initializeRemote(target, this);
     }
     catch(DirectoryException de)
     {

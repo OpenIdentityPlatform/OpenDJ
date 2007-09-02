@@ -39,6 +39,7 @@ import java.util.zip.DataFormatException;
 public abstract class StartMessage extends ReplicationMessage
 {
   private short protocolVersion;
+  private long  generationId;
 
   /**
    * The length of the header of this message.
@@ -49,11 +50,14 @@ public abstract class StartMessage extends ReplicationMessage
    * Create a new StartMessage.
    *
    * @param protocolVersion The Replication Protocol version of the server
-   * for which the StartMessage is created.
+   *                        for which the StartMessage is created.
+   * @param generationId    The generationId for this server.
+   *
    */
-  public StartMessage(short protocolVersion)
+  public StartMessage(short protocolVersion, long generationId)
   {
     this.protocolVersion = protocolVersion;
+    this.generationId = generationId;
   }
 
   /**
@@ -86,11 +90,14 @@ public abstract class StartMessage extends ReplicationMessage
   throws UnsupportedEncodingException
   {
     byte[] versionByte = Short.toString(protocolVersion).getBytes("UTF-8");
+    byte[] byteGenerationID =
+      String.valueOf(generationId).getBytes("UTF-8");
 
     /* The message header is stored in the form :
      * <message type><protocol version>
      */
     int length = 1 + versionByte.length + 1 +
+                     byteGenerationID.length + 1 +
                      additionalLength;
 
     byte[] encodedMsg = new byte[length];
@@ -100,7 +107,10 @@ public abstract class StartMessage extends ReplicationMessage
     int pos = 1;
 
     /* put the protocol version */
-    headerLength = addByteArray(versionByte, encodedMsg, pos);
+    pos = addByteArray(versionByte, encodedMsg, pos);
+
+    /* put the generationId */
+    headerLength = addByteArray(byteGenerationID, encodedMsg, pos);
 
     return encodedMsg;
   }
@@ -129,6 +139,14 @@ public abstract class StartMessage extends ReplicationMessage
       protocolVersion = Short.valueOf(
           new String(encodedMsg, pos, length, "UTF-8"));
       pos += length + 1;
+
+      /* read the generationId */
+      length = getNextLength(encodedMsg, pos);
+      generationId = Long.valueOf(new String(encodedMsg, pos, length,
+          "UTF-8"));
+      pos += length +1;
+
+
       return pos;
     } catch (UnsupportedEncodingException e)
     {
@@ -147,4 +165,14 @@ public abstract class StartMessage extends ReplicationMessage
   {
     return protocolVersion;
   }
+
+  /**
+   * Get the generationId from this message.
+   * @return The generationId.
+   */
+  public long getGenerationId()
+  {
+    return generationId;
+  }
+
 }

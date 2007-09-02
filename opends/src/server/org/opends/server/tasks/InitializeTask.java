@@ -139,7 +139,7 @@ public class InitializeTask extends Task
     try
     {
       // launch the import
-      domain.initialize(source, this);
+      domain.initializeFromRemote(source, this);
 
       synchronized(initState)
       {

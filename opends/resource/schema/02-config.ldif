@@ -1515,6 +1515,10 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.449 NAME 'ds-cfg-message-subject'
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.450 NAME 'ds-cfg-message-body'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.479
+  NAME 'ds-sync-generation-id'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15  USAGE directoryOperation SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.451
   NAME 'ds-task-import-clear-backend'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
@@ -1557,6 +1561,10 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.464 NAME 'ds-rlim-idle-time-limit'
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.465
   NAME 'ds-cfg-notification-sender-address'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.480
+  NAME 'ds-task-reset-generation-id-domain-base-dn'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.466
@@ -2250,6 +2258,10 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.119
   NAME 'ds-task-disconnect' SUP ds-task STRUCTURAL
   MUST ds-task-disconnect-connection-id
   MAY ( ds-task-disconnect-message $ ds-task-disconnect-notify-client )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.124
+  NAME 'ds-task-reset-generation-id' SUP ds-task
+  MUST ( ds-task-reset-generation-id-domain-base-dn )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.121
   NAME 'ds-cfg-regular-expression-identity-mapper' SUP ds-cfg-identity-mapper
