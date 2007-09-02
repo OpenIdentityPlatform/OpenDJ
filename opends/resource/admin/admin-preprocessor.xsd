@@ -34,11 +34,11 @@
       "package" element is appended identifying the referenced package.
     </xsd:documentation>
   </xsd:annotation>
-  <xsd:element name="managed-object">
+  <xsd:element name="last-defined-in">
     <xsd:annotation>
       <xsd:documentation>
-        Specifies the name and package of the managed object definition
-        which defines a property definition.
+        Specifies the name and package of the last managed object
+        definition which defined or overrides this property definition.
       </xsd:documentation>
     </xsd:annotation>
     <xsd:complexType>
@@ -60,16 +60,26 @@
       </xsd:attribute>
     </xsd:complexType>
   </xsd:element>
-  <xsd:element name="package">
+  <xsd:element name="first-defined-in">
     <xsd:annotation>
       <xsd:documentation>
-        This optional element specifies, for referenced property
-        definitions (i.e. those defined in a Package.xml file), the name
-        of the package defining the definition.
+        This optional element specifies the location where the property
+        was first defined. This may be in a referenced Package.xml
+        definition, or in an overridden parent definition. This element
+        is only present when the package/name attributes would differ
+        from those specified in the last-defined-in element.
       </xsd:documentation>
     </xsd:annotation>
     <xsd:complexType>
-      <xsd:attribute name="name" type="admin:package-type"
+      <xsd:attribute name="name" type="admin:name-type"
+        use="optional">
+        <xsd:annotation>
+          <xsd:documentation>
+            The name of the managed object if applicable.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="package" type="admin:package-type"
         use="required">
         <xsd:annotation>
           <xsd:documentation>

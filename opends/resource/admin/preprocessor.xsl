@@ -378,7 +378,7 @@
         <xsl:attribute name="name">
           <xsl:value-of select="'preprocessor'" />
         </xsl:attribute>
-        <xsl:element name="admpp:managed-object">
+        <xsl:element name="admpp:last-defined-in">
           <xsl:attribute name="name">
             <xsl:value-of select="$moname" />
           </xsl:attribute>
@@ -529,7 +529,7 @@
         <xsl:attribute name="name">
           <xsl:value-of select="'preprocessor'" />
         </xsl:attribute>
-        <xsl:element name="admpp:managed-object">
+        <xsl:element name="admpp:last-defined-in">
           <xsl:attribute name="name">
             <xsl:value-of select="$moname" />
           </xsl:attribute>
@@ -537,8 +537,8 @@
             <xsl:value-of select="$mopackage" />
           </xsl:attribute>
         </xsl:element>
-        <xsl:element name="admpp:package">
-          <xsl:attribute name="name">
+        <xsl:element name="admpp:first-defined-in">
+          <xsl:attribute name="package">
             <xsl:value-of select="$package" />
           </xsl:attribute>
         </xsl:element>
@@ -641,7 +641,7 @@
         <xsl:attribute name="name">
           <xsl:value-of select="'preprocessor'" />
         </xsl:attribute>
-        <xsl:element name="admpp:managed-object">
+        <xsl:element name="admpp:last-defined-in">
           <xsl:attribute name="name">
             <xsl:value-of select="$moname" />
           </xsl:attribute>
@@ -649,6 +649,19 @@
             <xsl:value-of select="$mopackage" />
           </xsl:attribute>
         </xsl:element>
+        <xsl:choose>
+          <xsl:when
+            test="$property/adm:profile[@name='preprocessor']/admpp:first-defined-in">
+            <xsl:copy-of
+              select="$property/adm:profile[@name='preprocessor']/admpp:first-defined-in" />
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:element name="admpp:first-defined-in">
+              <xsl:copy-of
+                select="$property/adm:profile[@name='preprocessor']/admpp:last-defined-in/@*" />
+            </xsl:element>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:element>
     </xsl:element>
   </xsl:template>
@@ -799,7 +812,7 @@
         <xsl:attribute name="name">
           <xsl:value-of select="'preprocessor'" />
         </xsl:attribute>
-        <xsl:element name="admpp:managed-object">
+        <xsl:element name="admpp:last-defined-in">
           <xsl:attribute name="name">
             <xsl:value-of select="$moname" />
           </xsl:attribute>
@@ -1170,17 +1183,17 @@
     Useful variables relating to managed object's relations.
   -->
   <xsl:variable name="this-local-relations"
-    select="$this/adm:relation[adm:profile[@name='preprocessor']/admpp:managed-object[@name=$this-name and @package=$this-package]]" />
+    select="$this/adm:relation[adm:profile[@name='preprocessor']/admpp:last-defined-in[@name=$this-name and @package=$this-package]]" />
   <xsl:variable name="this-inherited-relations"
-    select="$this/adm:relation[adm:profile[@name='preprocessor']/admpp:managed-object[not(@name=$this-name and @package=$this-package)]]" />
+    select="$this/adm:relation[adm:profile[@name='preprocessor']/admpp:last-defined-in[not(@name=$this-name and @package=$this-package)]]" />
   <xsl:variable name="this-all-relations" select="$this/adm:relation" />
   <!-- 
     Useful variables relating to managed object's properties.
   -->
   <xsl:variable name="this-local-properties"
-    select="$this/adm:property[adm:profile[@name='preprocessor']/admpp:managed-object[@name=$this-name and @package=$this-package]]" />
+    select="$this/adm:property[adm:profile[@name='preprocessor']/admpp:last-defined-in[@name=$this-name and @package=$this-package]]" />
   <xsl:variable name="this-inherited-properties"
-    select="$this/adm:property[adm:profile[@name='preprocessor']/admpp:managed-object[not(@name=$this-name and @package=$this-package)]]" />
+    select="$this/adm:property[adm:profile[@name='preprocessor']/admpp:last-defined-in[not(@name=$this-name and @package=$this-package)]]" />
   <xsl:variable name="this-all-properties" select="$this/adm:property" />
   <!--
     Default rule for testing.
