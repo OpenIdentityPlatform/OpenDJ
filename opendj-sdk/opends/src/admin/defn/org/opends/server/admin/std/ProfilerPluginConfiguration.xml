@@ -53,6 +53,13 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
+  <adm:property-override name="plugin-type">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>startup</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
   <adm:property name="profile-sample-interval" mandatory="true">
     <adm:synopsis>
       Specifies the profiler sample interval.

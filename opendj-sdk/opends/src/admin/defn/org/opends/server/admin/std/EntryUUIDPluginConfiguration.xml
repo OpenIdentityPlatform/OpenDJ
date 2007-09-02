@@ -57,5 +57,14 @@
     </adm:default-behavior>
   </adm:property-override>
 
+  <adm:property-override name="plugin-type">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>ldifimport</adm:value>
+        <adm:value>preoperationadd</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+
 </adm:managed-object>
 

@@ -59,5 +59,15 @@
     </adm:default-behavior>
   </adm:property-override>
 
+  <adm:property-override name="plugin-type">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>preoperationadd</adm:value>
+        <adm:value>preoperationmodify</adm:value>
+        <adm:value>preoperationmodifydn</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+
 </adm:managed-object>
 
