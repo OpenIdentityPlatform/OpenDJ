@@ -60,5 +60,15 @@
     </adm:default-behavior>
   </adm:property-override>
 
+  <adm:property-override name="conflict-behavior">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          real-overrides-virtual
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+
 </adm:managed-object>
 

@@ -27,10 +27,11 @@
  ! -->
 
 <adm:managed-object name="member-virtual-attribute"
-plural-name="user-defined-virtual-attributes"
-package="org.opends.server.admin.std" extends="virtual-attribute"
-xmlns:adm="http://www.opends.org/admin"
-xmlns:ldap="http://www.opends.org/admin-ldap">
+  plural-name="user-defined-virtual-attributes"
+  package="org.opends.server.admin.std" extends="virtual-attribute"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+
   <adm:synopsis>
     The
     <adm:user-friendly-name />
@@ -40,6 +41,7 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     looks like a static group but obtains all of its membership from a dynamic
     group (or some other type of group, including another static group).
   </adm:synopsis>
+
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.101</ldap:oid>
@@ -47,6 +49,7 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       <ldap:superior>ds-cfg-virtual-attribute</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+
   <adm:property-override name="provider-class">
     <adm:default-behavior>
       <adm:defined>
@@ -56,6 +59,7 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
+
   <adm:property name="allow-retrieving-membership" mandatory="true">
     <adm:synopsis>
       Indicates whether to handle requests that request all values for the
@@ -74,5 +78,15 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+
+  <adm:property-override name="conflict-behavior">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          virtual-overrides-real
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
 </adm:managed-object>
 
