@@ -45,6 +45,7 @@ import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectAlreadyExistsException;
 import org.opends.server.admin.ManagedObjectDefinition;
+import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyOption;
@@ -133,11 +134,13 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
     // First make sure that the parent managed object still exists.
     ManagedObjectPath<?, ?> path = getManagedObjectPath();
     ManagedObjectPath<?, ?> parent = path.parent();
-    if (!parent.isEmpty()) {
-      LdapName dn = LDAPNameBuilder.create(parent, driver.getLDAPProfile());
-      if (!driver.entryExists(dn)) {
+
+    try {
+      if (!driver.managedObjectExists(parent)) {
         throw new ConcurrentModificationException();
       }
+    } catch (ManagedObjectNotFoundException e) {
+      throw new ConcurrentModificationException();
     }
 
     // We may need to create the parent "relation" entry if this is a
