@@ -30,7 +30,8 @@
 plural-name="plugin-roots"
 package="org.opends.server.admin.std" abstract="false"
 xmlns:adm="http://www.opends.org/admin"
-xmlns:ldap="http://www.opends.org/admin-ldap">
+xmlns:ldap="http://www.opends.org/admin-ldap"
+xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
     The
     <adm:user-friendly-name />
@@ -55,6 +56,11 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       <ldap:naming-attribute>
         cn
       </ldap:naming-attribute>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+      </cli:relation>
     </adm:profile>
   </adm:relation>
 
