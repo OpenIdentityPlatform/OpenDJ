@@ -131,11 +131,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
   @Override
   public void setUp() throws Exception
   {
-    // This test suite depends on having the schema available.
-    TestCaseUtils.startServer();
-
-    // Create an internal connection
-    connection = InternalClientConnection.getRootConnection();
+    super.setUp(); 
 
     // Create backend top level entries
     String[] topEntries = new String[2];
