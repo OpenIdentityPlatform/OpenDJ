@@ -49,6 +49,7 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.ReplicationBroker;
+import org.opends.server.replication.plugin.ReplicationDomain;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplicationMessage;
@@ -349,9 +350,10 @@ public class ProtocolWindowTest extends ReplicationTestCase
     ProtocolVersion.setCurrentVersion((short)2);
 
     ReplicationBroker broker = new ReplicationBroker(
-        new ServerState(),
-        baseDn,
+        new ServerState(), 
+        baseDn, 
         (short) 13, 0, 0, 0, 0, 1000, 0,
+        ReplicationTestCase.getGenerationId(baseDn),
         getReplSessionSecurity());
 
 
@@ -369,5 +371,11 @@ public class ProtocolWindowTest extends ReplicationTestCase
     // Check broker negociated version
     pversion = broker.getProtocolVersion();
     assertEquals(pversion, 0);
-  }
+    
+    broker.stop();
+    
+    logError(Message.raw(
+        Category.SYNC, Severity.INFORMATION,
+        "Ending Replication ProtocolWindowTest : protocolVersion"));
+  }    
 }

@@ -27,9 +27,14 @@
 package org.opends.server.replication.protocol;
 import org.opends.messages.Message;
 
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
+
+import org.opends.server.loggers.debug.DebugTracer;
 
 /**
  * This message is part of the replication protocol.
@@ -41,6 +46,9 @@ public class ErrorMessage extends RoutableMessage implements
 {
   private static final long serialVersionUID = 2726389860247088266L;
 
+  // The tracer object for the debug logger
+  private static final DebugTracer TRACER = getTracer();
+
   // Specifies the messageID built form the error that was detected
   private int msgID;
 
@@ -48,10 +56,11 @@ public class ErrorMessage extends RoutableMessage implements
   private Message details = null;
 
   /**
-   * Create a InitializeMessage.
+   * Creates an ErrorMessage providing the destination server.
+   *
    * @param sender The server ID of the server that send this message.
    * @param destination The destination server or servers of this message.
-   * @param details The details of the error.
+   * @param details The message containing the details of the error.
    */
   public ErrorMessage(short sender, short destination,
                       Message details)
@@ -59,10 +68,13 @@ public class ErrorMessage extends RoutableMessage implements
     super(sender, destination);
     this.msgID  = details.getDescriptor().getId();
     this.details = details;
+
+    if (debugEnabled())
+      TRACER.debugInfo(" Creating error message" + this.toString());
   }
 
   /**
-   * Create a InitializeMessage.
+   * Creates an ErrorMessage.
    *
    * @param destination replication server id
    * @param details details of the error
@@ -72,13 +84,17 @@ public class ErrorMessage extends RoutableMessage implements
     super((short)-2, destination);
     this.msgID  = details.getDescriptor().getId();
     this.details = details;
+
+    if (debugEnabled())
+      TRACER.debugInfo(this.toString());
   }
 
   /**
-   * Creates a new InitializeMessage by decoding the provided byte array.
-   * @param in A byte array containing the encoded information for the Message
+   * Creates a new ErrorMessage by decoding the provided byte array.
+   *
+   * @param  in A byte array containing the encoded information for the Message
    * @throws DataFormatException If the in does not contain a properly
-   *                             encoded InitializeMessage.
+   *                             encoded message.
    */
   public ErrorMessage(byte[] in) throws DataFormatException
   {
@@ -184,5 +200,19 @@ public class ErrorMessage extends RoutableMessage implements
     {
       return null;
     }
+  }
+
+  /**
+   * Returns a string representation of the message.
+   *
+   * @return the string representation of this message.
+   */
+  public String toString()
+  {
+    return "ErrorMessage=["+
+      " sender=" + this.senderID +
+      " destination=" + this.destination +
+      " msgID=" + this.msgID +
+      " details=" + this.details + "]";
   }
 }

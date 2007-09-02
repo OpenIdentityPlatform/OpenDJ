@@ -69,7 +69,9 @@ public class ServerStartMessage extends StartMessage implements
   private boolean sslEncryption;
 
   /**
-   * Create a new ServerStartMessage.
+   * Creates a new ServerStartMessage. This message is to be sent by an LDAP
+   * Server after being connected to a replication server for a given
+   * replication domain.
    *
    * @param serverId The serverId of the server for which the ServerStartMessage
    *                 is created.
@@ -82,6 +84,7 @@ public class ServerStartMessage extends StartMessage implements
    * @param heartbeatInterval The requested heartbeat interval.
    * @param serverState  The state of this server.
    * @param protocolVersion The replication protocol version of the creator.
+   * @param generationId The generationId for this server.
    * @param sslEncryption Whether to continue using SSL to encrypt messages
    *                      after the start messages have been exchanged.
    */
@@ -91,9 +94,10 @@ public class ServerStartMessage extends StartMessage implements
                             long heartbeatInterval,
                             ServerState serverState,
                             short protocolVersion,
+                            long generationId,
                             boolean sslEncryption)
   {
-    super(protocolVersion);
+    super(protocolVersion, generationId);
 
     this.serverId = serverId;
     this.baseDn = baseDn.toString();
@@ -128,10 +132,6 @@ public class ServerStartMessage extends StartMessage implements
   {
     super(MSG_TYPE_SERVER_START, in);
 
-    /* The ServerStartMessage is encoded in the form :
-     * <header><baseDn><ServerId><ServerUrl><maxRecvDelay><maxRecvQueue>
-     * <maxSendDelay><maxSendQueue><window><heartbeatInterval><ServerState>
-     */
     try
     {
       /* first bytes are the header */
@@ -303,11 +303,6 @@ public class ServerStartMessage extends StartMessage implements
   @Override
   public byte[] getBytes()
   {
-    /*
-     * ServerStartMessage contains.
-     * <baseDn><ServerId><ServerUrl><maxRecvDelay><maxRecvQueue>
-     * <maxSendDelay><maxSendQueue><windowsize><heartbeatInterval><ServerState>
-     */
     try {
       byte[] byteDn = baseDn.getBytes("UTF-8");
       byte[] byteServerId = String.valueOf(serverId).getBytes("UTF-8");

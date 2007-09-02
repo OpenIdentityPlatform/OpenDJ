@@ -110,7 +110,8 @@ public class IsolationTest extends ReplicationTestCase
 
       // chek that the operation was successful.
       // check that the update failed.
-      assertEquals(ResultCode.SUCCESS, op.getResultCode());
+      assertEquals(op.getResultCode(), ResultCode.SUCCESS, 
+          op.getAdditionalLogMessage().toString());
     }
     finally
     {

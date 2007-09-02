@@ -37,6 +37,7 @@ import java.net.SocketException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.loggers.debug.DebugTracer;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 /**
  * This class Implement a protocol session using a basic socket and relying on
@@ -91,7 +92,8 @@ public class SocketSession implements ProtocolSession
   {
     if (debugEnabled())
     {
-      TRACER.debugVerbose("Closing SocketSession.");
+      TRACER.debugInfo("Closing SocketSession."
+          + stackTraceToSingleLineString(new Exception()));
     }
     socket.close();
   }
@@ -104,6 +106,12 @@ public class SocketSession implements ProtocolSession
   {
     byte[] buffer = msg.getBytes();
     String str = String.format("%08x", buffer.length);
+
+    if (debugEnabled())
+    {
+      TRACER.debugInfo("SocketSession publish <" + str + ">");
+    }
+
     byte[] sendLengthBuf = str.getBytes();
 
     output.write(sendLengthBuf);

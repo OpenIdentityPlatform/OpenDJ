@@ -313,9 +313,6 @@ public class PersistentServerState extends ServerState
   {
     ArrayList<ASN1OctetString> values = this.toASN1ArrayList();
 
-    if (values.size() == 0)
-      return ResultCode.SUCCESS;
-
     LDAPAttribute attr =
       new LDAPAttribute(REPLICATION_STATE, values);
     LDAPModification mod = new LDAPModification(ModificationType.REPLACE, attr);
@@ -342,5 +339,27 @@ public class PersistentServerState extends ServerState
       logError(message);
     }
     return op.getResultCode();
+  }
+
+  /**
+   * Empty the ServerState.
+   * After this call the Server State will be in the same state
+   * as if it was just created.
+   */
+  public void clearInMemory()
+  {
+    super.clear();
+    this.savedStatus = false;
+  }
+
+  /**
+   * Empty the ServerState.
+   * After this call the Server State will be in the same state
+   * as if it was just created.
+   */
+  public void clear()
+  {
+    clearInMemory();
+    save();
   }
 }

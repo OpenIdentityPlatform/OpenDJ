@@ -151,7 +151,10 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
     attributes.add(attr);
 
     attributes.add(new Attribute("ssl-encryption",
-                                 String.valueOf(domain.isSessionEncrypted())));
+        String.valueOf(domain.isSessionEncrypted())));
+
+    attributes.add(new Attribute("generation-id",
+        String.valueOf(domain.getGenerationId())));
 
     return attributes;
 

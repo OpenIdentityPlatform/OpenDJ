@@ -51,6 +51,7 @@ import java.util.zip.DataFormatException;
 public class ReplServerInfoMessage extends ReplicationMessage
 {
   private List<String> connectedServers = null;
+  private long generationId;
 
   /**
    * Creates a new changelogInfo message from its encoded form.
@@ -68,15 +69,23 @@ public class ReplServerInfoMessage extends ReplicationMessage
         throw new DataFormatException(
         "Input is not a valid changelogInfo Message.");
 
-      connectedServers = new ArrayList<String>();
       int pos = 1;
+
+      /* read the generationId */
+      int length = getNextLength(in, pos);
+      generationId = Long.valueOf(new String(in, pos, length,
+          "UTF-8"));
+      pos += length +1;
+
+      /* read the connected servers */
+      connectedServers = new ArrayList<String>();
       while (pos < in.length)
       {
         /*
          * Read the next server ID
          * first calculate the length then construct the string
          */
-        int length = getNextLength(in, pos);
+        length = getNextLength(in, pos);
         connectedServers.add(new String(in, pos, length, "UTF-8"));
         pos += length +1;
       }
@@ -92,10 +101,14 @@ public class ReplServerInfoMessage extends ReplicationMessage
    * connected servers.
    *
    * @param connectedServers The list of currently connected servers ID.
+   * @param generationId     The generationId currently associated with this
+   *                         domain.
    */
-  public ReplServerInfoMessage(List<String> connectedServers)
+  public ReplServerInfoMessage(List<String> connectedServers,
+      long generationId)
   {
     this.connectedServers = connectedServers;
+    this.generationId = generationId;
   }
 
   /**
@@ -110,6 +123,12 @@ public class ReplServerInfoMessage extends ReplicationMessage
 
       /* Put the message type */
       oStream.write(MSG_TYPE_REPL_SERVER_INFO);
+
+      // Put the generationId
+      oStream.write(String.valueOf(generationId).getBytes("UTF-8"));
+      oStream.write(0);
+
+      // Put the servers
       if (connectedServers.size() >= 1)
       {
         for (String server : connectedServers)
@@ -119,6 +138,7 @@ public class ReplServerInfoMessage extends ReplicationMessage
           oStream.write(0);
         }
       }
+
       return oStream.toByteArray();
     }
     catch (IOException e)
@@ -139,4 +159,29 @@ public class ReplServerInfoMessage extends ReplicationMessage
   {
     return connectedServers;
   }
+
+  /**
+   * Get the generationId from this message.
+   * @return The generationId.
+   */
+  public long getGenerationId()
+  {
+    return generationId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString()
+  {
+    String csrvs = "";
+    for (String s : connectedServers)
+    {
+      csrvs += s + "/";
+    }
+    return ("ReplServerInfoMessage: genId=" + getGenerationId() +
+            " Connected peers:" + csrvs);
+  }
+
 }

@@ -207,8 +207,12 @@ public final class Schema
   // file.
   private long youngestModificationTime;
 
-  // The Synchronization State.
+  // The synchronization State.
   private LinkedHashSet<AttributeValue> synchronizationState = null;
+
+  // The synchronization generationId.
+  private LinkedHashSet<AttributeValue> synchronizationGenerationId
+    = null;
 
 
 
@@ -2766,6 +2770,11 @@ public final class Schema
       dupSchema.synchronizationState =
         new LinkedHashSet<AttributeValue>(synchronizationState);
     }
+    if (synchronizationGenerationId != null)
+    {
+      dupSchema.synchronizationGenerationId = new
+        LinkedHashSet<AttributeValue>(synchronizationGenerationId);
+    }
 
     return dupSchema;
   }
@@ -2779,6 +2788,28 @@ public final class Schema
   public LinkedHashSet<AttributeValue> getSynchronizationState()
   {
     return synchronizationState;
+  }
+
+  /**
+   * Sets the Synchronization state for this schema.
+   *
+   * @param  values  Synchronization state for this schema.
+   */
+  public void setSynchronizationGenerationId(
+              LinkedHashSet<AttributeValue> values)
+  {
+    synchronizationGenerationId = values;
+  }
+
+  /**
+   * Retrieves the Synchronization generationId for this schema.
+   *
+   * @return  The Synchronization generationId for this schema.
+   */
+  public LinkedHashSet<AttributeValue>
+    getSynchronizationGenerationId()
+  {
+    return synchronizationGenerationId;
   }
 
   /**

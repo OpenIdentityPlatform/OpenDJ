@@ -171,6 +171,10 @@ public class SchemaBackend
   // The attribute type that will be used to save the synchronization state.
   private AttributeType synchronizationStateType;
 
+  // The attribute type that will be used to save the synchronization
+  // generationId.
+  private AttributeType synchronizationGenerationIdType;
+
   // The value containing DN of the user we'll say created the configuration.
   private AttributeValue creatorsName;
 
@@ -264,6 +268,9 @@ public class SchemaBackend
     nameFormsType = DirectoryServer.getAttributeType(ATTR_NAME_FORMS_LC, true);
     synchronizationStateType =
       DirectoryServer.getAttributeType(ATTR_SYNCHRONIZATION_STATE_LC, true);
+    synchronizationGenerationIdType =
+      DirectoryServer.getAttributeType(ATTR_SYNCHRONIZATION_GENERATIONID_LC,
+          true);
 
 
     // Initialize the lastmod attributes.
@@ -911,6 +918,14 @@ public class SchemaBackend
     attrList = new ArrayList<Attribute>(1);
     attrList.add(attr);
     operationalAttrs.put(synchronizationStateType, attrList);
+
+    //  Add the synchronization GenerationId attribute.
+    valueSet = DirectoryServer.getSchema().getSynchronizationGenerationId();
+    attr = new Attribute(synchronizationGenerationIdType,
+                         ATTR_SYNCHRONIZATION_GENERATIONID_LC, valueSet);
+    attrList = new ArrayList<Attribute>(1);
+    attrList.add(attr);
+    operationalAttrs.put(synchronizationGenerationIdType, attrList);
 
     // Add all the user-defined attributes.
     for (Attribute a : userDefinedAttributes)

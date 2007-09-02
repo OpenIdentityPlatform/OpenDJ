@@ -158,7 +158,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
       ResultCode code = modOp.getResultCode();
       assertTrue(code.equals(ResultCode.SUCCESS),
-                 "The original operation failed");
+                 "The original operation failed: " + code.getResultCodeName());
 
       // See if the client has received the msg
       ReplicationMessage msg = broker.receive();
@@ -217,7 +217,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
   public void replaySchemaChange() throws Exception
   {
     logError(Message.raw(Category.SYNC, Severity.NOTICE,
-        "Starting replication test : pushSchemaChange "));
+        "Starting replication test : replaySchemaChange "));
 
     final DN baseDn = DN.decode("cn=schema");
 

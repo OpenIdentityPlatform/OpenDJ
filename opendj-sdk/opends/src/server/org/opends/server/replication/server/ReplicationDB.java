@@ -62,11 +62,11 @@ public class ReplicationDB
   /**
    * Creates a new database or open existing database that will be used
    * to store and retrieve changes from an LDAP server.
-   * @param serverId Identifier of the LDAP server.
-   * @param baseDn baseDn of the LDAP server.
-   * @param replicationServer the ReplicationServer that needs to be shutdown
-   * @param dbenv the Db encironemnet to use to create the db
-   * @throws DatabaseException if a database problem happened
+   * @param serverId The identifier of the LDAP server.
+   * @param baseDn The baseDn of the replication domain.
+   * @param replicationServer The ReplicationServer that needs to be shutdown.
+   * @param dbenv The Db environment to use to create the db.
+   * @throws DatabaseException If a database problem happened.
    */
   public ReplicationDB(Short serverId, DN baseDn,
                      ReplicationServer replicationServer,
@@ -77,8 +77,10 @@ public class ReplicationDB
     this.baseDn = baseDn;
     this.dbenv = dbenv;
     this.replicationServer = replicationServer;
-    db = dbenv.getOrAddDb(serverId, baseDn);
 
+    // Get or create the associated Replicationcache and Db.
+    db = dbenv.getOrAddDb(serverId, baseDn,
+        replicationServer.getReplicationCache(baseDn, true).getGenerationId());
   }
 
   /**
@@ -471,5 +473,20 @@ public class ReplicationDB
     {
       cursor.delete();
     }
+  }
+
+  /**
+   * Clears this change DB from the changes it contains.
+   *
+   * @throws Exception Throws an exception it occurs.
+   * @throws DatabaseException Throws a DatabaseException when it occurs.
+   */
+  public void clear() throws Exception, DatabaseException
+  {
+    // Clears the changes
+    dbenv.clearDb(this.toString());
+
+    // Clears the reference to this serverID
+    dbenv.clearServerId(baseDn, serverId);
   }
 }

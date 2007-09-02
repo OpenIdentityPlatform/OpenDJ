@@ -720,6 +720,14 @@ public class SchemaConfigManager
             new MatchingRuleUseSyntax());
     }
 
+    AttributeType synchronizationGenerationIdType =
+      schema.getAttributeType(ATTR_SYNCHRONIZATION_GENERATIONID_LC);
+    if (synchronizationGenerationIdType == null)
+    {
+      synchronizationGenerationIdType = DirectoryServer.getDefaultAttributeType
+          (ATTR_SYNCHRONIZATION_GENERATIONID_LC, new MatchingRuleUseSyntax());
+    }
+
     List<Attribute> synchronizationState =
       entry.getAttribute(synchronizationStateType);
     if (synchronizationState != null && !(synchronizationState.isEmpty()))

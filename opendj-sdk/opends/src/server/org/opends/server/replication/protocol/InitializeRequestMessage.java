@@ -155,4 +155,14 @@ public class InitializeRequestMessage extends RoutableMessage implements
       return null;
     }
   }
+
+  /**
+   * Get a string representation of this object.
+   * @return A string representation of this object.
+   */
+  public String toString()
+  {
+    return "InitializeRequestMessage: baseDn="+baseDn+" senderId="+senderID +
+    " destination=" + destination;
+  }
 }
