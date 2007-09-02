@@ -29,8 +29,6 @@ package org.opends.server.admin.client.spi;
 
 
 
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -509,93 +507,6 @@ public abstract class Driver {
 
 
   /**
-   * Determines whether or not the named parent managed object has the
-   * named instantiable child managed object.
-   *
-   * @param <C>
-   *          The type of client managed object configuration that the
-   *          relation definition refers to.
-   * @param <S>
-   *          The type of server managed object configuration that the
-   *          relation definition refers to.
-   * @param parent
-   *          The path of the parent managed object.
-   * @param rd
-   *          The instantiable relation definition.
-   * @param name
-   *          The name of the child managed object.
-   * @return Returns <code>true</code> if the named instantiable
-   *         child managed object exists, <code>false</code>
-   *         otherwise.
-   * @throws IllegalArgumentException
-   *           If the relation definition is not associated with the
-   *           parent managed object's definition.
-   * @throws ManagedObjectNotFoundException
-   *           If the parent managed object could not be found.
-   * @throws AuthorizationException
-   *           If the server refuses to make the determination because
-   *           the client does not have the correct privileges.
-   * @throws CommunicationException
-   *           If the client cannot contact the server due to an
-   *           underlying communication problem.
-   */
-  public final <C extends ConfigurationClient, S extends Configuration>
-  boolean hasManagedObject(
-      ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
-      String name) throws IllegalArgumentException,
-      ManagedObjectNotFoundException, AuthorizationException,
-      CommunicationException {
-    // FIXME: use naming properties for comparison where available.
-    String[] children = listManagedObjects(parent, rd);
-    String nname = toLowerCase(name.trim().replaceAll(" +", " "));
-    for (String child : children) {
-      if (nname.equals(toLowerCase(child.trim().replaceAll(" +", " ")))) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-
-
-  /**
-   * Determines whether or not the named parent managed object has an
-   * optional child managed object.
-   *
-   * @param <C>
-   *          The type of client managed object configuration that the
-   *          relation definition refers to.
-   * @param <S>
-   *          The type of server managed object configuration that the
-   *          relation definition refers to.
-   * @param parent
-   *          The path of the parent managed object.
-   * @param rd
-   *          The optional relation definition.
-   * @return Returns <code>true</code> if the optional child managed
-   *         object exists, <code>false</code> otherwise.
-   * @throws IllegalArgumentException
-   *           If the relation definition is not associated with the
-   *           parent managed object's definition.
-   * @throws ManagedObjectNotFoundException
-   *           If the parent managed object could not be found.
-   * @throws AuthorizationException
-   *           If the server refuses to make the determination because
-   *           the client does not have the correct privileges.
-   * @throws CommunicationException
-   *           If the client cannot contact the server due to an
-   *           underlying communication problem.
-   */
-  public abstract <C extends ConfigurationClient, S extends Configuration>
-  boolean hasManagedObject(
-      ManagedObjectPath<?, ?> parent, OptionalRelationDefinition<C, S> rd)
-      throws IllegalArgumentException, ManagedObjectNotFoundException,
-      AuthorizationException, CommunicationException;
-
-
-
-  /**
    * Lists the child managed objects of the named parent managed
    * object.
    *
@@ -671,6 +582,31 @@ public abstract class Driver {
       AbstractManagedObjectDefinition<? extends C, ? extends S> d)
       throws IllegalArgumentException, ManagedObjectNotFoundException,
       AuthorizationException, CommunicationException;
+
+
+
+  /**
+   * Determines whether or not the named managed object exists.
+   * <p>
+   * Implementations should always return <code>true</code> when the
+   * provided path is empty.
+   *
+   * @param path
+   *          The path of the named managed object.
+   * @return Returns <code>true</code> if the named managed object
+   *         exists, <code>false</code> otherwise.
+   * @throws ManagedObjectNotFoundException
+   *           If the parent managed object could not be found.
+   * @throws AuthorizationException
+   *           If the server refuses to make the determination because
+   *           the client does not have the correct privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
+   */
+  public abstract boolean managedObjectExists(ManagedObjectPath<?, ?> path)
+      throws ManagedObjectNotFoundException, AuthorizationException,
+      CommunicationException;
 
 
 

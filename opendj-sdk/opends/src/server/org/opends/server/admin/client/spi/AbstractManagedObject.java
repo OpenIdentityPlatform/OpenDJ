@@ -342,7 +342,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
     validateRelationDefinition(r);
     Driver ctx = getDriver();
     try {
-      return ctx.hasManagedObject(path, r);
+      return ctx.managedObjectExists(path.child(r));
     } catch (ManagedObjectNotFoundException e) {
       throw new ConcurrentModificationException();
     }
@@ -668,11 +668,9 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
       Driver ctx = getDriver();
 
       try {
-        ctx.getManagedObject(path);
-      } catch (DefinitionDecodingException e) {
-        // Ignore.
-      } catch (ManagedObjectDecodingException e) {
-        // Ignore.
+        if (!ctx.managedObjectExists(path)) {
+          throw new ConcurrentModificationException();
+        }
       } catch (ManagedObjectNotFoundException e) {
         throw new ConcurrentModificationException();
       }

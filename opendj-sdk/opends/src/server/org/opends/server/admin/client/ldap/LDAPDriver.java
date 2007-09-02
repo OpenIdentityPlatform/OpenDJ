@@ -119,7 +119,7 @@ final class LDAPDriver extends Driver {
       AuthorizationException, CommunicationException {
     validateRelationDefinition(parent, rd);
 
-    if (!entryExists(parent)) {
+    if (!managedObjectExists(parent)) {
       throw new ManagedObjectNotFoundException();
     }
 
@@ -140,7 +140,7 @@ final class LDAPDriver extends Driver {
       CommunicationException {
     validateRelationDefinition(parent, rd);
 
-    if (!entryExists(parent)) {
+    if (!managedObjectExists(parent)) {
       throw new ManagedObjectNotFoundException();
     }
 
@@ -158,7 +158,7 @@ final class LDAPDriver extends Driver {
       ManagedObjectPath<C, S> path) throws DefinitionDecodingException,
       ManagedObjectDecodingException, ManagedObjectNotFoundException,
       AuthorizationException, CommunicationException {
-    if (!entryExists(path)) {
+    if (!managedObjectExists(path)) {
       throw new ManagedObjectNotFoundException();
     }
 
@@ -232,7 +232,7 @@ final class LDAPDriver extends Driver {
       DefinitionDecodingException, AuthorizationException,
       ManagedObjectNotFoundException, CommunicationException,
       PropertyException {
-    if (!entryExists(path)) {
+    if (!managedObjectExists(path)) {
       throw new ManagedObjectNotFoundException();
     }
 
@@ -290,26 +290,6 @@ final class LDAPDriver extends Driver {
    */
   @Override
   public <C extends ConfigurationClient, S extends Configuration>
-  boolean hasManagedObject(
-      ManagedObjectPath<?, ?> parent, OptionalRelationDefinition<C, S> rd)
-      throws IllegalArgumentException, ManagedObjectNotFoundException,
-      AuthorizationException, CommunicationException {
-    validateRelationDefinition(parent, rd);
-
-    if (!entryExists(parent)) {
-      throw new ManagedObjectNotFoundException();
-    }
-
-    return entryExists(parent.child(rd));
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public <C extends ConfigurationClient, S extends Configuration>
   String[] listManagedObjects(
       ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
       AbstractManagedObjectDefinition<? extends C, ? extends S> d)
@@ -317,7 +297,7 @@ final class LDAPDriver extends Driver {
       AuthorizationException, CommunicationException {
     validateRelationDefinition(parent, rd);
 
-    if (!entryExists(parent)) {
+    if (!managedObjectExists(parent)) {
       throw new ManagedObjectNotFoundException();
     }
 
@@ -346,6 +326,29 @@ final class LDAPDriver extends Driver {
     }
 
     return children.toArray(new String[children.size()]);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean managedObjectExists(ManagedObjectPath<?, ?> path)
+      throws ManagedObjectNotFoundException, AuthorizationException,
+      CommunicationException {
+    if (path.isEmpty()) {
+      return true;
+    }
+
+    ManagedObjectPath<?,?> parent = path.parent();
+    LdapName dn = LDAPNameBuilder.create(parent, profile);
+    if (!entryExists(dn)) {
+      throw new ManagedObjectNotFoundException();
+    }
+
+    dn = LDAPNameBuilder.create(path, profile);
+    return entryExists(dn);
   }
 
 
@@ -499,20 +502,6 @@ final class LDAPDriver extends Driver {
 
 
 
-  // Determines whether the LDAP entry associated with the managed
-  // object path exists.
-  private boolean entryExists(ManagedObjectPath<?, ?> path)
-      throws CommunicationException, AuthorizationException {
-    if (path.isEmpty()) {
-      return true;
-    }
-
-    LdapName dn = LDAPNameBuilder.create(path, profile);
-    return entryExists(dn);
-  }
-
-
-
   // Determine the type of managed object associated with the named
   // entry.
   private <C extends ConfigurationClient, S extends Configuration>
@@ -561,7 +550,7 @@ final class LDAPDriver extends Driver {
   private boolean removeManagedObject(ManagedObjectPath<?, ?> path)
       throws CommunicationException, AuthorizationException,
       OperationRejectedException, ManagedObjectNotFoundException {
-    if (!entryExists(path)) {
+    if (!managedObjectExists(path)) {
       return false;
     }
 
