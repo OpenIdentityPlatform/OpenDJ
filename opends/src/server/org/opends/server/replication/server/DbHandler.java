@@ -348,6 +348,7 @@ public class DbHandler implements Runnable
         mb.append(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH.get());
         mb.append(stackTraceToSingleLineString(end));
         logError(mb.toMessage());
+        break;
       }
     }
     // call flush a last time before exiting to make sure that
