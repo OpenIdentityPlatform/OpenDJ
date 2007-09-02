@@ -33,9 +33,11 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import org.opends.messages.MessageBuilder;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.EntryCacheCfg;
@@ -58,7 +60,6 @@ import org.opends.server.util.ServerConstants;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ExtensionMessages.*;
-
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -100,9 +101,14 @@ public class SoftReferenceEntryCache
   // reference is freed.
   private ReferenceQueue<CacheEntry> referenceQueue;
 
+  // Currently registered configuration object.
+  private SoftReferenceEntryCacheCfg registeredConfiguration;
+
   private Thread cleanerThread;
 
   private volatile boolean shutdown = false;
+
+
 
   static
   {
@@ -148,6 +154,7 @@ public class SoftReferenceEntryCache
       )
       throws ConfigException, InitializationException
   {
+    registeredConfiguration = configuration;
     configuration.addSoftReferenceChangeListener (this);
     configEntryDN = configuration.dn();
 
@@ -156,11 +163,25 @@ public class SoftReferenceEntryCache
 
     // Read configuration and apply changes.
     boolean applyChanges = true;
+    ArrayList<Message> errorMessages = new ArrayList<Message>();
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
-          EntryCacheCommon.ConfigPhase.PHASE_INIT, null, null
+          EntryCacheCommon.ConfigPhase.PHASE_INIT, null, errorMessages
           );
-    processEntryCacheConfig (configuration, applyChanges, errorHandler);
+    if (!processEntryCacheConfig(configuration, applyChanges, errorHandler)) {
+      MessageBuilder buffer = new MessageBuilder();
+      if (!errorMessages.isEmpty()) {
+        Iterator<Message> iterator = errorMessages.iterator();
+        buffer.append(iterator.next());
+        while (iterator.hasNext()) {
+          buffer.append(".  ");
+          buffer.append(iterator.next());
+        }
+      }
+      Message message = ERR_SOFTREFCACHE_CANNOT_INITIALIZE.get(
+        buffer.toString());
+      throw new ConfigException(message);
+    }
   }
 
 
@@ -170,7 +191,10 @@ public class SoftReferenceEntryCache
    */
   public synchronized void finalizeEntryCache()
   {
+    registeredConfiguration.removeSoftReferenceChangeListener (this);
+
     shutdown = true;
+
     dnMap.clear();
     idMap.clear();
     if (cleanerThread != null) {
@@ -510,9 +534,12 @@ public class SoftReferenceEntryCache
       EntryCacheCommon.getConfigErrorHandler (
           EntryCacheCommon.ConfigPhase.PHASE_APPLY, null, errorMessages
           );
-    processEntryCacheConfig (configuration, applyChanges, errorHandler);
+    // Do not apply changes unless this cache is enabled.
+    if (configuration.isEnabled()) {
+      processEntryCacheConfig (configuration, applyChanges, errorHandler);
+    }
 
-    boolean adminActionRequired = false;
+    boolean adminActionRequired = errorHandler.getIsAdminActionRequired();
     ConfigChangeResult changeResult = new ConfigChangeResult(
         errorHandler.getResultCode(),
         adminActionRequired,
@@ -530,8 +557,8 @@ public class SoftReferenceEntryCache
    * @param applyChanges   If true then take into account the new configuration.
    * @param errorHandler   An handler used to report errors.
    *
-   * @return  The mapping between strings of character set values and the
-   *          minimum number of characters required from those sets.
+   * @return  <CODE>true</CODE> if configuration is acceptable,
+   *          or <CODE>false</CODE> otherwise.
    */
   public boolean processEntryCacheConfig(
       SoftReferenceEntryCacheCfg          configuration,
@@ -594,6 +621,8 @@ public class SoftReferenceEntryCache
       setLockTimeout(newLockTimeout);
       setIncludeFilters(newIncludeFilters);
       setExcludeFilters(newExcludeFilters);
+
+      registeredConfiguration = configuration;
     }
 
     return errorHandler.getIsAcceptable();

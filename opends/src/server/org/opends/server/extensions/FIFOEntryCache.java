@@ -58,10 +58,10 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.ServerConstants;
+import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ExtensionMessages.*;
-
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -142,6 +142,9 @@ public class FIFOEntryCache
   // The maximum number of entries that may be held in the cache.
   private long maxEntries;
 
+  // Currently registered configuration object.
+  private FIFOEntryCacheCfg registeredConfiguration;
+
 
 
   static
@@ -175,6 +178,7 @@ public class FIFOEntryCache
       )
       throws ConfigException, InitializationException
   {
+    registeredConfiguration = configuration;
     configuration.addFIFOChangeListener (this);
     configEntryDN = configuration.dn();
 
@@ -186,11 +190,24 @@ public class FIFOEntryCache
 
     // Read configuration and apply changes.
     boolean applyChanges = true;
+    ArrayList<Message> errorMessages = new ArrayList<Message>();
     EntryCacheCommon.ConfigErrorHandler errorHandler =
       EntryCacheCommon.getConfigErrorHandler (
-          EntryCacheCommon.ConfigPhase.PHASE_INIT, null, null
+          EntryCacheCommon.ConfigPhase.PHASE_INIT, null, errorMessages
           );
-    processEntryCacheConfig (configuration, applyChanges, errorHandler);
+    if (!processEntryCacheConfig(configuration, applyChanges, errorHandler)) {
+      MessageBuilder buffer = new MessageBuilder();
+      if (!errorMessages.isEmpty()) {
+        Iterator<Message> iterator = errorMessages.iterator();
+        buffer.append(iterator.next());
+        while (iterator.hasNext()) {
+          buffer.append(".  ");
+          buffer.append(iterator.next());
+        }
+      }
+      Message message = ERR_FIFOCACHE_CANNOT_INITIALIZE.get(buffer.toString());
+      throw new ConfigException(message);
+    }
   }
 
 
@@ -200,9 +217,11 @@ public class FIFOEntryCache
    */
   public void finalizeEntryCache()
   {
-    // Release all memory currently in use by this cache.
     cacheLock.lock();
 
+    registeredConfiguration.removeFIFOChangeListener (this);
+
+    // Release all memory currently in use by this cache.
     try
     {
       idMap.clear();
@@ -911,10 +930,13 @@ public class FIFOEntryCache
       EntryCacheCommon.getConfigErrorHandler (
           EntryCacheCommon.ConfigPhase.PHASE_APPLY, null, errorMessages
           );
-    processEntryCacheConfig (configuration, applyChanges, errorHandler);
 
+    // Do not apply changes unless this cache is enabled.
+    if (configuration.isEnabled()) {
+      processEntryCacheConfig (configuration, applyChanges, errorHandler);
+    }
 
-    boolean adminActionRequired = false;
+    boolean adminActionRequired = errorHandler.getIsAdminActionRequired();
     ConfigChangeResult changeResult = new ConfigChangeResult(
         errorHandler.getResultCode(),
         adminActionRequired,
@@ -1007,8 +1029,8 @@ public class FIFOEntryCache
    * @param applyChanges   If true then take into account the new configuration.
    * @param errorHandler   An handler used to report errors.
    *
-   * @return  The mapping between strings of character set values and the
-   *          minimum number of characters required from those sets.
+   * @return  <CODE>true</CODE> if configuration is acceptable,
+   *          or <CODE>false</CODE> otherwise.
    */
   public boolean processEntryCacheConfig(
       FIFOEntryCacheCfg                   configuration,
@@ -1083,6 +1105,8 @@ public class FIFOEntryCache
       setLockTimeout(newLockTimeout);
       setIncludeFilters(newIncludeFilters);
       setExcludeFilters(newExcludeFilters);
+
+      registeredConfiguration = configuration;
     }
 
     return errorHandler.getIsAcceptable();

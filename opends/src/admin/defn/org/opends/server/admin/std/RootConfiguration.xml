@@ -206,7 +206,7 @@
     </adm:profile>
   </adm:relation>
   <adm:relation name="entry-cache">
-    <adm:one-to-one />
+    <adm:one-to-zero-or-one />
     <adm:profile name="ldap">
       <ldap:rdn-sequence>cn=Entry Cache,cn=config</ldap:rdn-sequence>
     </adm:profile>

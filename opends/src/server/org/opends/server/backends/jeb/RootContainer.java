@@ -43,6 +43,12 @@ import org.opends.server.types.DN;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
+import org.opends.server.api.Backend;
+import org.opends.server.admin.std.server.JEBackendCfg;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.config.ConfigException;
+
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -51,14 +57,8 @@ import static org.opends.messages.ConfigMessages.
     ERR_CONFIG_BACKEND_MODE_INVALID;
 import static org.opends.messages.ConfigMessages.
     WARN_CONFIG_BACKEND_INSANE_MODE;
-
-import org.opends.server.api.Backend;
-import org.opends.server.admin.std.server.JEBackendCfg;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.config.ConfigException;
-import static org.opends.server.util.StaticUtils.getFileForPath;
-import org.opends.server.util.StaticUtils;
+import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.ConfigMessages.*;
 
 /**
  * Wrapper class for the JE environment. Root container holds all the entry
@@ -780,6 +780,34 @@ public class RootContainer
         EnvironmentConfig newEnvConfig =
             ConfigurableEnvironment.parseConfigEntry(cfg);
         Map paramsMap = EnvironmentParams.SUPPORTED_PARAMS;
+
+        // Iterate through native JE properties.
+        SortedSet<String> jeProperties = cfg.getJEProperty();
+        for (String jeEntry : jeProperties) {
+          // There is no need to validate properties yet again.
+          StringTokenizer st = new StringTokenizer(jeEntry, "=");
+          if (st.countTokens() == 2) {
+            String jePropertyName = st.nextToken();
+            String jePropertyValue = st.nextToken();
+            ConfigParam param = (ConfigParam) paramsMap.get(jePropertyName);
+            if (!param.isMutable()) {
+              String oldValue = oldEnvConfig.getConfigParam(param.getName());
+              String newValue = jePropertyValue;
+              if (!oldValue.equalsIgnoreCase(newValue)) {
+                adminActionRequired = true;
+                messages.add(INFO_CONFIG_JE_PROPERTY_REQUIRES_RESTART.get(
+                        jePropertyName));
+                if(debugEnabled()) {
+                  TRACER.debugInfo("The change to the following property " +
+                    "will take effect when the component is restarted: " +
+                    jePropertyName);
+                }
+              }
+            }
+          }
+        }
+
+        // Iterate through JE configuration attributes.
         for (Object o : paramsMap.values())
         {
           ConfigParam param = (ConfigParam) o;
@@ -820,7 +848,7 @@ public class RootContainer
     }
     catch (Exception e)
     {
-      messages.add(Message.raw(StaticUtils.stackTraceToSingleLineString(e)));
+      messages.add(Message.raw(stackTraceToSingleLineString(e)));
       ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
                                    adminActionRequired,
                                    messages);

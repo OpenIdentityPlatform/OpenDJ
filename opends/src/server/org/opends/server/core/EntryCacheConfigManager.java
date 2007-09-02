@@ -50,15 +50,12 @@ import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
+import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.ConfigMessages.*;
-
-import org.opends.messages.MessageBuilder;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 
 
@@ -152,28 +149,16 @@ public class EntryCacheConfigManager
 
     // Register as an add and delete listener with the root configuration so we
     // can be notified if any entry cache entry is added or removed.
-    // If entry cache configuration is using a one-to-zero-or-one relation
-    // then uncomment the lines below (see issue #1558).
-    /*
-    // rootConfiguration.addEntryCacheAddListener(this);
-    // rootConfiguration.addEntryCacheDeleteListener(this);
-    */
+    rootConfiguration.addEntryCacheAddListener(this);
+    rootConfiguration.addEntryCacheDeleteListener(this);
 
     // If the entry cache configuration is not present then keep the
     // default entry cache already installed.
-    // If entry cache configuration is using a one-to-zero-or-one relation
-    // then uncomment the lines below (see issue #1558).
-    /*
-    //    if (!rootConfiguration.hasEntryCache())
-    //    {
-    //      logError(
-    //          ErrorLogCategory.CONFIGURATION,
-    //          ErrorLogSeverity.SEVERE_WARNING,
-    //          ERR_CONFIG_ENTRYCACHE_NO_CONFIG_ENTRY
-    //          );
-    //      return;
-    //    }
-    */
+    if (!rootConfiguration.hasEntryCache())
+    {
+      logError(WARN_CONFIG_ENTRYCACHE_NO_CONFIG_ENTRY.get());
+      return;
+    }
 
     // Get the entry cache configuration.
     EntryCacheCfg configuration = rootConfiguration.getEntryCache();
@@ -190,7 +175,7 @@ public class EntryCacheConfigManager
       String className = configuration.getEntryCacheClass();
       try
       {
-        loadAndInstallEntryCache (className, configuration);
+        loadAndInstallEntryCache (className);
       }
       catch (InitializationException ie)
       {
@@ -211,21 +196,15 @@ public class EntryCacheConfigManager
     // returned status -- all is fine by default
     boolean status = true;
 
-    if (configuration.isEnabled())
-    {
-      // Get the name of the class and make sure we can instantiate it as an
-      // entry cache.
-      String className = configuration.getEntryCacheClass();
-      try
-      {
-        // Load the class but don't initialize it.
-        loadEntryCache(className, configuration, false);
-      }
-      catch (InitializationException ie)
-      {
-        unacceptableReasons.add(ie.getMessageObject());
-        status = false;
-      }
+    // Get the name of the class and make sure we can instantiate it as an
+    // entry cache.
+    String className = configuration.getEntryCacheClass();
+    try {
+      // Load the class but don't initialize it.
+      loadEntryCache(className, configuration, false);
+    } catch (InitializationException ie) {
+      unacceptableReasons.add(ie.getMessageObject());
+      status = false;
     }
 
     return status;
@@ -279,7 +258,7 @@ public class EntryCacheConfigManager
     // Instantiate the new class and initalize it.
     try
     {
-      loadAndInstallEntryCache (newClassName, configuration);
+      loadAndInstallEntryCache (newClassName);
     }
     catch (InitializationException ie)
     {
@@ -346,7 +325,7 @@ public class EntryCacheConfigManager
       String className = configuration.getEntryCacheClass();
       try
       {
-        loadAndInstallEntryCache (className, configuration);
+        loadAndInstallEntryCache (className);
       }
       catch (InitializationException ie)
       {
@@ -368,8 +347,6 @@ public class EntryCacheConfigManager
       List<Message> unacceptableReasons
       )
   {
-    // NYI
-
     // If we've gotten to this point, then it is acceptable as far as we are
     // concerned.  If it is unacceptable according to the configuration, then
     // the entry cache itself will make that determination.
@@ -417,11 +394,28 @@ public class EntryCacheConfigManager
    *                                   to initialize the entry cache.
    */
   private void loadAndInstallEntryCache(
-    String        className,
-    EntryCacheCfg configuration
+    String        className
     )
     throws InitializationException
   {
+    EntryCacheCfg configuration;
+
+    // Get the root configuration object.
+    ServerManagementContext managementContext =
+      ServerManagementContext.getInstance();
+    RootCfg rootConfiguration =
+      managementContext.getRootConfiguration();
+
+    // Get the entry cache configuration.
+    try {
+      configuration = rootConfiguration.getEntryCache();
+    } catch (ConfigException ce) {
+      Message message = ERR_CONFIG_ENTRYCACHE_CANNOT_INITIALIZE_CACHE.get(
+        className, (ce.getCause() != null ? ce.getCause().getMessage() :
+          stackTraceToSingleLineString(ce)));
+      throw new InitializationException(message, ce);
+    }
+
     // Load the entry cache class...
     EntryCache entryCache = loadEntryCache (className, configuration, true);
 
@@ -464,7 +458,14 @@ public class EntryCacheConfigManager
       definition = EntryCacheCfgDefn.getInstance();
       propertyDefinition = definition.getEntryCacheClassPropertyDefinition();
       cacheClass = propertyDefinition.loadClass(className, EntryCache.class);
-      cache = (EntryCache<? extends EntryCacheCfg>) cacheClass.newInstance();
+
+      // If there is some entry cache instance already initialized work with
+      // it instead of creating a new one unless explicit init is requested.
+      if (initialize || (_entryCache == null)) {
+        cache = (EntryCache<? extends EntryCacheCfg>) cacheClass.newInstance();
+      } else {
+        cache = (EntryCache<? extends EntryCacheCfg>) _entryCache;
+      }
 
       if (initialize)
       {
@@ -474,7 +475,10 @@ public class EntryCacheConfigManager
             );
         method.invoke(cache, configuration);
       }
-      else
+      // This will check if configuration is acceptable on disabled
+      // and uninitialized cache instance that has no "acceptable"
+      // change listener registered to invoke and verify on its own.
+      else if (!configuration.isEnabled())
       {
         Method method = cache.getClass().getMethod("isConfigurationAcceptable",
                                                    EntryCacheCfg.class,
@@ -507,9 +511,23 @@ public class EntryCacheConfigManager
     }
     catch (Exception e)
     {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      if (!initialize) {
+        if (e instanceof InitializationException) {
+          throw (InitializationException) e;
+        } else {
+          Message message = ERR_CONFIG_ENTRYCACHE_CONFIG_NOT_ACCEPTABLE.get(
+            String.valueOf(configuration.dn()), e.getCause() != null ?
+              e.getCause().getMessage() : stackTraceToSingleLineString(e));
+          throw new InitializationException(message);
+        }
+      }
       Message message = ERR_CONFIG_ENTRYCACHE_CANNOT_INITIALIZE_CACHE.get(
-          className,
-          String.valueOf(configuration.dn()));
+        className, (e.getCause() != null ? e.getCause().getMessage() :
+          stackTraceToSingleLineString(e)));
       throw new InitializationException(message, e);
     }
   }
