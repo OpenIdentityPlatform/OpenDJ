@@ -161,7 +161,7 @@ public class AddOperationTestCase
    * {@inheritDoc}
    */
   @Override()
-  public Operation[] createTestOperations()
+  protected Operation[] createTestOperations()
          throws Exception
   {
     Object[][]  objs = getAddOperations();

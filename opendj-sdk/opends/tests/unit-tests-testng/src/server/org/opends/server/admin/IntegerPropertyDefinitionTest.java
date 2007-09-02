@@ -30,13 +30,14 @@ package org.opends.server.admin;
 import static org.testng.Assert.*;
 
 import org.opends.server.admin.std.meta.RootCfgDefn;
+import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
  * IntegerPropertyDefinition Tester.
  */
-public class IntegerPropertyDefinitionTest {
+public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
 
   /**
    * Tests creation of builder succeeds

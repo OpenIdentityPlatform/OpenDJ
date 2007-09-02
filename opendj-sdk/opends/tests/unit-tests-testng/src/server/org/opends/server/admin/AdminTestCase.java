@@ -32,7 +32,7 @@ import org.testng.annotations.Test;
 /**
  * An abstract class that all admin unit tests should extend.
  */
-@Test(groups = { "precommit", "admin" })
+@Test(groups = { "precommit", "admin" }, sequential = true)
 public abstract class AdminTestCase extends DirectoryServerTestCase {
   // No implementation required.
 }

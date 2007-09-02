@@ -73,7 +73,7 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase
    *
    * @return An instance of the matching rule to test.
    */
-  public abstract SubstringMatchingRule getRule();
+  protected abstract SubstringMatchingRule getRule();
 
   /**
    * Test the normalization and the middle substring match.

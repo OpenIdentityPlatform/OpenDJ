@@ -59,7 +59,7 @@ public class SystemInfoMonitorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public MonitorProvider getMonitorInstance()
+  protected MonitorProvider getMonitorInstance()
          throws Exception
   {
     SystemInfoMonitorProvider monitorProvider = new SystemInfoMonitorProvider();

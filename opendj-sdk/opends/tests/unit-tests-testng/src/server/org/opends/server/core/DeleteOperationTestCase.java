@@ -86,7 +86,7 @@ public class DeleteOperationTestCase
    * {@inheritDoc}
    */
   @Override()
-  public Operation[] createTestOperations()
+  protected Operation[] createTestOperations()
          throws Exception
   {
     InternalClientConnection conn =

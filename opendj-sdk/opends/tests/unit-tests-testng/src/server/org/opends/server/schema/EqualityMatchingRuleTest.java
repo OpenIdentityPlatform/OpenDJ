@@ -65,7 +65,7 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
    *
    * @return An instance of the matching rule to test.
    */
-  public abstract EqualityMatchingRule getRule();
+  protected abstract EqualityMatchingRule getRule();
 
   /**
    * Test the normalization and the comparison of valid values.

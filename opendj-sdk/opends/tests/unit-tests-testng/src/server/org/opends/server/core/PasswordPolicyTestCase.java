@@ -75,7 +75,7 @@ public class PasswordPolicyTestCase
   public void startServer()
          throws Exception
   {
-    TestCaseUtils.startServer();
+    TestCaseUtils.restartServer();
   }
 
 

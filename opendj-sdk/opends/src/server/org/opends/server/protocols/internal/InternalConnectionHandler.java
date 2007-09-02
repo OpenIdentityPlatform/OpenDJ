@@ -258,5 +258,16 @@ public final class InternalConnectionHandler
   {
     buffer.append("Internal Connection Handler");
   }
+
+  /**
+   * Called near the end of server shutdown.  This ensures that a new
+   * InternalClientConnection is created if the server is immediately
+   * restarted as part of an in-core restart.
+   */
+  public static void clearRootClientConnectionAtShutdown()
+  {
+    InternalClientConnection.clearRootClientConnectionAtShutdown();
+  }
+
 }
 

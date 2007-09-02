@@ -728,6 +728,15 @@ public class Index extends DatabaseContainer
   }
 
   /**
+   * Return true iff this index is trusted.
+   * @return the trusted state of this index
+   */
+  public synchronized boolean isTrusted()
+  {
+    return trusted;
+  }
+
+  /**
    * Set the rebuild status of this index.
    * @param rebuildRunning True if a rebuild process on this index
    *                       is running or False otherwise.

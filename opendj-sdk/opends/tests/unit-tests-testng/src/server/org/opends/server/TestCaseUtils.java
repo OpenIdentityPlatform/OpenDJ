@@ -37,6 +37,9 @@ import java.util.HashMap;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.LinkedHashMap;
+import java.util.TreeMap;
+import java.util.LinkedHashSet;
+import java.util.Collections;
 import java.util.logging.Logger;
 import java.util.logging.Handler;
 import java.util.logging.LogManager;
@@ -50,10 +53,11 @@ import org.opends.server.backends.MemoryBackend;
 import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.backends.jeb.EntryContainer;
 import org.opends.server.backends.jeb.RootContainer;
+import org.opends.server.backends.jeb.DatabaseContainer;
+import org.opends.server.backends.jeb.Index;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.TextAccessLogPublisher;
@@ -75,14 +79,17 @@ import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.OperatingSystem;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
 import org.opends.server.util.EmbeddedUtils;
 
 import static org.testng.Assert.*;
 
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.tasks.TaskUtils;
 import org.opends.server.api.WorkQueue;
+import org.opends.server.api.Backend;
 import org.opends.messages.Message;
 
 /**
@@ -105,11 +112,39 @@ public final class TestCaseUtils {
        "org.opends.server.LdapPort";
 
   /**
+   * If this System property is set to true, then the classes/ directory
+   * will be copied into the server package setup for the tests.  This allows
+   * the server tools (e.g. ldapsearch) to be used on a live server, but it
+   * takes a while to copy all of the files, so we don't do it by default.
+   */
+  public static final String PROPERTY_COPY_CLASSES_TO_TEST_PKG =
+       "org.opends.test.copyClassesToTestPackage";
+
+  /**
    * The string representation of the DN that will be used as the base entry for
    * the test backend.  This must not be changed, as there are a number of test
    * cases that depend on this specific value of "o=test".
    */
   public static final String TEST_ROOT_DN_STRING = "o=test";
+
+
+  /**
+   * The test text writer for the Debug Logger
+   */
+  public static TestTextWriter DEBUG_TEXT_WRITER =
+      new TestTextWriter();
+
+  /**
+   * The test text writer for the Debug Logger
+   */
+  public static TestTextWriter ERROR_TEXT_WRITER =
+      new TestTextWriter();
+
+  /**
+   * The test text writer for the Debug Logger
+   */
+  public static TestTextWriter ACCESS_TEXT_WRITER =
+      new TestTextWriter();
 
   /**
    * Indicates whether the server has already been started.  The value of this
@@ -137,6 +172,11 @@ public final class TestCaseUtils {
    * The LDAPS port the server is bound to on start.
    */
   private static int serverLdapsPort;
+
+  /**
+   * Incremented by one each time the server has restarted.
+   */
+  private static int serverRestarts = 0;
 
   /**
    * Starts the Directory Server so that it will be available for use while
@@ -203,8 +243,11 @@ public final class TestCaseUtils {
     File testLibDir       = new File(testRoot, "lib");
     File testBinDir       = new File(testRoot, "bin");
 
-    copyDirectory(serverClassesDir, testClassesDir);
-    copyDirectory(unitClassesDir, testClassesDir);
+    if (Boolean.getBoolean(PROPERTY_COPY_CLASSES_TO_TEST_PKG)) {
+      copyDirectory(serverClassesDir, testClassesDir);
+      copyDirectory(unitClassesDir, testClassesDir);
+    }
+
     copyDirectory(libDir, testLibDir);
     copyDirectory(new File(resourceDir, "bin"), testBinDir);
     copyDirectory(new File(resourceDir, "config"), testConfigDir);
@@ -224,7 +267,6 @@ public final class TestCaseUtils {
              new File(testConfigDir, "server-cert.p12"));
     copyFile(new File(testResourceDir, "client-cert.p12"),
              new File(testConfigDir, "client-cert.p12"));
-
 
     for (File f : testBinDir.listFiles())
     {
@@ -316,23 +358,132 @@ public final class TestCaseUtils {
 
     config.addAccessLogger(
           TextAccessLogPublisher.getStartupTextAccessPublisher(
-              TestListener.ACCESS_TEXT_WRITER, false));
+              ACCESS_TEXT_WRITER, false));
 
     config.addErrorLogger(
          TextErrorLogPublisher.getStartupTextErrorPublisher(
-              TestListener.ERROR_TEXT_WRITER));
+              ERROR_TEXT_WRITER));
 
     config.addDebugLogger(
          TextDebugLogPublisher.getStartupTextDebugPublisher(
-              TestListener.DEBUG_TEXT_WRITER));
+              DEBUG_TEXT_WRITER));
 
     EmbeddedUtils.startServer(config);
 
     assertTrue(InvocationCounterPlugin.startupCalled());
 
+    // Save config.ldif for when we restart the server
+    backupServerConfigLdif();
+
     SERVER_STARTED = true;
 
     initializeTestBackend(true);
+  }
+
+  /**
+   * Similar to startServer, but it will restart the server each time it is
+   * called.  Since this is somewhat expensive, it should be called under
+   * two circumstances.  Either in an @AfterClass method for a test that
+   * makes lots of configuration changes to the server, or in a @BeforeClass
+   * method for a test that is very sensitive to running in a clean server.
+   *
+   * @throws  IOException  If a problem occurs while interacting with the
+   *                       filesystem to prepare the test package root.
+   *
+   * @throws  InitializationException  If a problem occurs while starting the
+   *                                   server.
+   *
+   * @throws  ConfigException  If there is a problem with the server
+   *                           configuration.
+   */
+  public static synchronized void restartServer()
+         throws IOException, InitializationException, ConfigException,
+                DirectoryException, Exception
+  {
+    if (!SERVER_STARTED) {
+      startServer();
+      return;
+    }
+
+    long startMs = System.currentTimeMillis();
+
+    clearLoggersContents();
+    
+    clearJEBackends();
+    restoreServerConfigLdif();
+    memoryBackend = null;  // We need it to be recreated and reregistered
+
+    EmbeddedUtils.restartServer(null, null, DirectoryServer.getEnvironmentConfig());
+    initializeTestBackend(true);
+
+    // This generates too much noise, so it's disabled by default.
+    // outputLogContentsIfError("Potential problem during in-core restart.  You be the judge.");
+
+    // Keep track of these so we can report how long they took in the test summary
+    long durationMs = System.currentTimeMillis() - startMs;
+    restartTimesMs.add(durationMs);
+
+    serverRestarts++;
+  }
+
+  public static List<Long> restartTimesMs = new ArrayList<Long>();
+  public static List<Long> getRestartTimesMs() {
+    return Collections.unmodifiableList(restartTimesMs);
+  }
+
+  private static void outputLogContentsIfError(String prefix) {
+    StringBuilder logContents = new StringBuilder(prefix + EOL);
+    appendLogsContents(logContents);
+
+    if (logContents.indexOf("ERROR") != -1) {
+      originalSystemErr.println(logContents);
+    }
+  }
+
+  private static void clearJEBackends() throws Exception
+  {
+    for (Backend backend: DirectoryServer.getBackends().values()) {
+      if (backend instanceof BackendImpl) {
+        TestCaseUtils.clearJEBackend(false, backend.getBackendID(), null);
+      }
+    }
+  }
+
+  public static void clearDataBackends() throws Exception
+  {
+    clearJEBackends();
+    memoryBackend.clearMemoryBackend();
+  }
+
+  private static File getTestConfigDir()
+  {
+    String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
+    File   buildDir  = new File(buildRoot, "build");
+    File   unitRoot  = new File(buildDir, "unit-tests");
+    File   testRoot  = new File(unitRoot, "package");
+    return new File(testRoot, "config");
+  }
+
+  private static void backupServerConfigLdif() throws IOException
+  {
+    File testConfigDir = getTestConfigDir();
+    copyFile(new File(testConfigDir, "config.ldif"),
+             new File(testConfigDir, "config.ldif.for-restart"));
+  }
+
+  private static void restoreServerConfigLdif() throws IOException {
+    File testConfigDir = getTestConfigDir();
+    File from = new File(testConfigDir, "config.ldif.for-restart");
+    File to = new File(testConfigDir, "config.ldif");
+
+    // Sometimes this fails because config.ldif is in use, so we wait
+    // and try it again.
+    try {
+      copyFile(from, to);
+    } catch (IOException e) {
+      sleep(1000);
+      copyFile(from, to);
+    }
   }
 
   /**
@@ -352,10 +503,15 @@ public final class TestCaseUtils {
    */
   private static void waitForOpsToComplete()
   {
-    WorkQueue workQueue = DirectoryServer.getWorkQueue();
-    final long NO_TIMEOUT = -1;
-    workQueue.waitUntilIdle(NO_TIMEOUT);
+    try {
+      WorkQueue workQueue = DirectoryServer.getWorkQueue();
+      final long NO_TIMEOUT = -1;
+      workQueue.waitUntilIdle(NO_TIMEOUT);
+    } catch (Exception e) {
+      // Ignore it, maybe the server hasn't been started.
+    }
   }
+
 
   /**
    * Binds to the given socket port on the local host.
@@ -472,19 +628,51 @@ public final class TestCaseUtils {
   {
     BackendImpl backend = (BackendImpl)DirectoryServer.getBackend(beID);
     RootContainer rootContainer = backend.getRootContainer();
-    for (EntryContainer ec : rootContainer.getEntryContainers())
-    {
-      ec.clear();
-      assertEquals(ec.getHighestEntryID().longValue(), 0L);
-    }
-    rootContainer.resetNextEntryID();
+    if (rootContainer != null) {
+      for (EntryContainer ec : rootContainer.getEntryContainers())
+      {
+        ec.clear();
+        assertEquals(ec.getHighestEntryID().longValue(), 0L);
+      }
+      rootContainer.resetNextEntryID();
 
-    if (createBaseEntry)
-    {
-      DN baseDN = DN.decode(dn);
-      Entry e = createEntry(baseDN);
-      backend = (BackendImpl)DirectoryServer.getBackend(beID);
-      backend.addEntry(e, null);
+      if (createBaseEntry)
+      {
+        DN baseDN = DN.decode(dn);
+        Entry e = createEntry(baseDN);
+        backend = (BackendImpl)DirectoryServer.getBackend(beID);
+        backend.addEntry(e, null);
+      }
+    }
+  }
+
+  /**
+   * This was used to track down which test was trashing the indexes.
+   * We left it here because it might be useful again.
+   */
+  public static void printUntrustedIndexes()
+  {
+    try {
+      BackendImpl backend = (BackendImpl)DirectoryServer.getBackend("userRoot");
+      if (backend == null) {
+        return;
+      }
+      RootContainer rootContainer = backend.getRootContainer();
+      for (EntryContainer ec : rootContainer.getEntryContainers())
+      {
+        List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
+        ec.listDatabases(databases);
+        for (DatabaseContainer dbContainer: databases) {
+          if (dbContainer instanceof Index) {
+            Index index = (Index)dbContainer;
+            if (!index.isTrusted()) {
+              originalSystemErr.println("ERROR:  The index " + index.toString() + " is no longer trusted.");
+            }
+          }
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace(originalSystemErr);
     }
   }
 
@@ -606,14 +794,25 @@ public final class TestCaseUtils {
   }
 
   /**
-   * Get teh LDAPS port the test environment Directory Server instance is
-   * running on
+   * Get the LDAPS port the test environment Directory Server instance is
+   * running on.
    *
    * @return The port number.
    */
   public static int getServerLdapsPort()
   {
     return serverLdapsPort;
+  }
+
+  /**
+   * Get the number of times the server has done an incore restart during
+   * the unit tests.
+   *
+   * @return the number of server restarts.
+   */
+  public static int getNumServerRestarts()
+  {
+    return serverRestarts;
   }
 
   /**
@@ -1060,6 +1259,73 @@ public final class TestCaseUtils {
     redirectedSystemErr.reset();
   }
 
+  /**
+   * clear everything written to the Access, Error, or Debug loggers
+   */
+  public synchronized static void clearLoggersContents() {
+    ACCESS_TEXT_WRITER.clear();
+    ERROR_TEXT_WRITER.clear();
+    DEBUG_TEXT_WRITER.clear();
+    clearSystemOutContents();
+    clearSystemErrContents();
+  }
+
+  /**
+   * Append the contents of the Access Log, Error Log, Debug Loggers,
+   * System.out, System.err to the specified buffer.
+   */
+  public static void appendLogsContents(StringBuilder logsContents)
+  {
+    List<String> messages = TestCaseUtils.ACCESS_TEXT_WRITER.getMessages();
+    if (! messages.isEmpty())
+    {
+      logsContents.append(EOL);
+      logsContents.append("Access Log Messages:");
+      logsContents.append(EOL);
+      for (String message : messages)
+      {
+        logsContents.append(message);
+        logsContents.append(EOL);
+      }
+    }
+
+    messages = TestCaseUtils.ERROR_TEXT_WRITER.getMessages();
+    if (! messages.isEmpty())
+    {
+      logsContents.append(EOL);
+      logsContents.append("Error Log Messages:");
+      logsContents.append(EOL);
+      for (String message : messages)
+      {
+        logsContents.append(message);
+        logsContents.append(EOL);
+      }
+    }
+
+    messages = TestCaseUtils.DEBUG_TEXT_WRITER.getMessages();
+    if(! messages.isEmpty())
+    {
+      logsContents.append(EOL);
+      logsContents.append("Debug Log Messages:");
+      logsContents.append(EOL);
+      for (String message : messages)
+      {
+        logsContents.append(message);
+        logsContents.append(EOL);
+      }
+    }
+
+    String systemOut = TestCaseUtils.getSystemOutContents();
+    if (systemOut.length() > 0) {
+      logsContents.append(EOL + "System.out contents:" + EOL + systemOut);
+    }
+
+    String systemErr = TestCaseUtils.getSystemErrContents();
+    if (systemErr.length() > 0) {
+      logsContents.append(EOL + "System.err contents:" + EOL + systemErr);
+    }
+  }
+
   public synchronized static void unsupressOutput() {
     System.setOut(originalSystemOut);
     System.setErr(originalSystemErr);
@@ -1225,6 +1491,67 @@ public final class TestCaseUtils {
     System.arraycopy(args, 0, fullArgs, 9, args.length);
 
     assertEquals(DSConfig.main(fullArgs, false, System.out, System.err), 0);
+  }
+
+
+  /**
+   * Return a String representation of all of the current threads.
+   * @return a dump of all Threads on the server
+   */
+  public static String threadStacksToString()
+  {
+    Map<Thread,StackTraceElement[]> threadStacks = Thread.getAllStackTraces();
+
+
+    // Re-arrange all of the elements by thread ID so that there is some logical
+    // order.
+    TreeMap<Long,Map.Entry<Thread,StackTraceElement[]>> orderedStacks =
+         new TreeMap<Long,Map.Entry<Thread,StackTraceElement[]>>();
+    for (Map.Entry<Thread,StackTraceElement[]> e : threadStacks.entrySet())
+    {
+      orderedStacks.put(e.getKey().getId(), e);
+    }
+
+    final StringBuilder buffer = new StringBuilder();
+    for (Map.Entry<Thread,StackTraceElement[]> e : orderedStacks.values())
+    {
+      Thread t                          = e.getKey();
+      StackTraceElement[] stackElements = e.getValue();
+
+      long id = t.getId();
+
+      buffer.append("id=");
+      buffer.append(id);
+      buffer.append(" ---------- ");
+      buffer.append(t.getName());
+      buffer.append(" ----------");
+      buffer.append(EOL);
+
+      if (stackElements != null)
+      {
+        for (int j=0; j < stackElements.length; j++)
+        {
+          buffer.append("   ").append(stackElements[j].getClassName());
+          buffer.append(".");
+          buffer.append(stackElements[j].getMethodName());
+          buffer.append("(");
+          buffer.append(stackElements[j].getFileName());
+          buffer.append(":");
+          if (stackElements[j].isNativeMethod())
+          {
+            buffer.append("native");
+          }
+          else
+          {
+            buffer.append(stackElements[j].getLineNumber());
+          }
+          buffer.append(")").append(EOL);
+        }
+      }
+      buffer.append(EOL);
+    }
+
+    return buffer.toString();
   }
 }
 

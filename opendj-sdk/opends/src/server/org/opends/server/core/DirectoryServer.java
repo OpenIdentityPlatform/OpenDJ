@@ -73,6 +73,7 @@ import org.opends.server.api.WorkQueue;
 import org.opends.server.api.AccessLogPublisher;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.api.DebugLogPublisher;
+import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.StartupPluginResult;
 import org.opends.server.backends.RootDSEBackend;
@@ -187,6 +188,8 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.workflowelement.*;
 import org.opends.server.workflowelement.localbackend.*;
+import org.opends.server.protocols.internal.InternalConnectionHandler;
+import org.opends.server.protocols.internal.InternalClientConnection;
 
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
@@ -1461,6 +1464,8 @@ public class DirectoryServer
         removeErrorLogPublisher(startupErrorLogPublisher);
       }
 
+      // Force the root connection to be initialized.
+      InternalClientConnection.getRootConnection();
 
       // If a server.starting file exists, then remove it.
       File serverStartingFile =
@@ -8151,6 +8156,12 @@ public class DirectoryServer
       directoryServer.shuttingDown = true;
     }
 
+    ConfigEntry rootConfigEntry = null;
+    try {
+      rootConfigEntry = directoryServer.configHandler.getConfigRootEntry();
+    } catch (Exception e) {
+
+    }
 
     // Send an alert notification that the server is shutting down.
     Message message = NOTE_SERVER_SHUTDOWN.get(className, reason);
@@ -8311,6 +8322,13 @@ public class DirectoryServer
       DirectoryServer.deregisterPasswordPolicy(configEntryDN);
     }
 
+    // Finalize the access control handler
+    AccessControlHandler accessControlHandler =
+        AccessControlConfigManager.getInstance().getAccessControlHandler();
+    if (accessControlHandler != null)
+    {
+      accessControlHandler.finalizeAccessControlHandler();
+    }
 
     // Perform any necessary cleanup work for the group manager.
     if (directoryServer.groupManager != null)
@@ -8421,10 +8439,14 @@ public class DirectoryServer
       logError(message);
     }
 
+    // Deregister all workflows.
+    WorkflowImpl.deregisterAllOnShutdown();
 
     // Deregister all network group configuration.
-    NetworkGroup.deregisterAll();
+    NetworkGroup.deregisterAllOnShutdown();
 
+    // Force a new InternalClientConnection to be created on restart.
+    InternalConnectionHandler.clearRootClientConnectionAtShutdown();
 
     // Log a final message indicating that the server is stopped (which should
     // be true for all practical purposes), and then shut down all the error

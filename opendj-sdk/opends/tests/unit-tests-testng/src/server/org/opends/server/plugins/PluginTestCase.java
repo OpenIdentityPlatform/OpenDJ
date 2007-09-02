@@ -36,7 +36,7 @@ import org.testng.annotations.Test;
 /**
  * An abstract base class for all plugin test cases.
  */
-@Test(groups = { "precommit", "plugins" })
+@Test(groups = { "precommit", "plugins" }, sequential = true)
 public abstract class PluginTestCase
        extends DirectoryServerTestCase
 {

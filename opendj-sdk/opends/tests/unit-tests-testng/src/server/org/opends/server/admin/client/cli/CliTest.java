@@ -33,6 +33,7 @@ import org.testng.annotations.*;
 import org.opends.admin.ads.ADSContext.ServerGroupProperty;
 import org.opends.admin.ads.ADSContextException.ErrorType;
 import org.opends.server.util.args.ArgumentException;
+import org.opends.server.DirectoryServerTestCase;
 
 import static org.opends.messages.AdminMessages.*;
 import org.opends.messages.Message;
@@ -41,7 +42,7 @@ import org.opends.messages.Message;
 /**
  * PropertySet Tester.
  */
-public class CliTest {
+public class CliTest extends DirectoryServerTestCase {
 
 
   /**

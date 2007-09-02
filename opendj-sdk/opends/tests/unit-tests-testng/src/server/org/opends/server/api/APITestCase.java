@@ -37,7 +37,7 @@ import org.opends.server.DirectoryServerTestCase;
 /**
  * An abstract base class for all API test cases.
  */
-@Test(groups = { "precommit", "api" })
+@Test(groups = { "precommit", "api" }, sequential = true)
 public abstract class APITestCase
        extends DirectoryServerTestCase
 {

@@ -37,7 +37,7 @@ import org.opends.server.DirectoryServerTestCase;
 /**
  * An abstract base class for all plugin API test cases.
  */
-@Test(groups = { "precommit", "pluginapi" })
+@Test(groups = { "precommit", "pluginapi" }, sequential = true)
 public abstract class PluginAPITestCase
        extends DirectoryServerTestCase
 {

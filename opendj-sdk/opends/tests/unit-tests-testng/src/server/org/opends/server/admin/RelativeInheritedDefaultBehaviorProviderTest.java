@@ -34,13 +34,13 @@ import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 
 import org.opends.server.TestCaseUtils;
-
+import org.opends.server.DirectoryServerTestCase;
 
 
 /**
  * RelativeInheritedDefaultBehaviorProvider Tester.
  */
-public class RelativeInheritedDefaultBehaviorProviderTest {
+public class RelativeInheritedDefaultBehaviorProviderTest extends DirectoryServerTestCase {
 
   private static final int OFFSET = 0;
 

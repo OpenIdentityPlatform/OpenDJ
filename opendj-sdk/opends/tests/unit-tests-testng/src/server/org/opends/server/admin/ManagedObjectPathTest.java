@@ -34,6 +34,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.admin.std.client.ConnectionHandlerCfgClient;
 import org.opends.server.admin.std.client.GlobalCfgClient;
 import org.opends.server.admin.std.client.LDAPConnectionHandlerCfgClient;
@@ -54,7 +55,7 @@ import org.testng.annotations.Test;
 /**
  * ManagedObjectPath test cases.
  */
-public class ManagedObjectPathTest {
+public class ManagedObjectPathTest extends DirectoryServerTestCase {
 
   /**
    * Sets up tests

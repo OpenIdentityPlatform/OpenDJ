@@ -29,6 +29,7 @@ package org.opends.server.monitors;
 
 
 import org.testng.annotations.Test;
+import org.testng.annotations.AfterClass;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.DirectoryServerTestCase;
@@ -85,7 +86,7 @@ public abstract class GenericMonitorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public abstract MonitorProvider getMonitorInstance()
+  protected abstract MonitorProvider getMonitorInstance()
          throws Exception;
 
 
@@ -158,6 +159,16 @@ public abstract class GenericMonitorTestCase
          throws Exception
   {
     getMonitorInstance().getMonitorData();
+  }
+
+
+  /**
+   * We need to drop all of the memory that we can.
+   */
+  @AfterClass
+  public void cleanupMem()
+  {
+    configEntry = null;
   }
 }
 

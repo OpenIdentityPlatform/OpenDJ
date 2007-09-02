@@ -25,11 +25,12 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.server.admin;
+package org.opends.server.admin;                                                                                  
 
 import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -38,7 +39,7 @@ import org.testng.annotations.Test;
 /**
  * DurationPropertyDefinition Tester.
  */
-public class DurationPropertyDefinitionTest {
+public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
 
   /**
    * Sets up tests

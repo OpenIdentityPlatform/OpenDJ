@@ -97,15 +97,7 @@ public class TestPasswordValidator
                    PasswordValidatorCfg configuration)
          throws InitializationException
   {
-    if (instance == null)
-    {
-      instance = this;
-    }
-    else
-    {
-      throw new InitializationException(Message.raw(
-           "Cannot configure more than one TestPasswordValidator instance"));
-    }
+    instance = this;
 
     lastNewPassword      = null;
     lastCurrentPasswords = null;
@@ -150,6 +142,18 @@ public class TestPasswordValidator
   public static TestPasswordValidator getInstance()
   {
     return instance;
+  }
+
+
+
+  /**
+   * Clears the instance after the tests so that it's memory can be reclaimed.
+   * This can actually be quite a bit of memory since it references the
+   * Schema, ConfigEntryS, etc
+   */
+  public static void clearInstanceAfterTests()
+  {
+    instance = null;
   }
 
 

@@ -51,6 +51,7 @@ public class ManageAccountTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -313,6 +314,7 @@ public class ManageAccountTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test
   public void testAnonymousUser()
          throws Exception
   {
@@ -350,6 +352,7 @@ public class ManageAccountTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test
   public void testUnprivilegedUser()
          throws Exception
   {
@@ -387,6 +390,7 @@ public class ManageAccountTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test
   public void testUsingSSL()
          throws Exception
   {
@@ -426,6 +430,7 @@ public class ManageAccountTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test
   public void testUsingStartTLS()
          throws Exception
   {
@@ -466,6 +471,7 @@ public class ManageAccountTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Test
   public void testUsingSASL()
          throws Exception
   {

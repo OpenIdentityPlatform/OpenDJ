@@ -126,7 +126,7 @@ public class AuthPasswordEqualityMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  public EqualityMatchingRule getRule()
+  protected EqualityMatchingRule getRule()
   {
     return new AuthPasswordEqualityMatchingRule();
   }

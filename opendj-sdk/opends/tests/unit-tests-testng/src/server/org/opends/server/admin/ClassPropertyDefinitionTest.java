@@ -32,6 +32,7 @@ import static org.testng.Assert.*;
 import java.util.List;
 
 import org.opends.server.admin.std.meta.RootCfgDefn;
+import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -39,7 +40,7 @@ import org.testng.annotations.Test;
 /**
  * ClassPropertyDefinition Tester.
  */
-public class ClassPropertyDefinitionTest {
+public class ClassPropertyDefinitionTest extends DirectoryServerTestCase {
 
   ClassPropertyDefinition.Builder builder = null;
 

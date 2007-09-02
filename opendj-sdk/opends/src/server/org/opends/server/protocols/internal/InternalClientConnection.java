@@ -149,7 +149,6 @@ public final class InternalClientConnection
     nextMessageID    = new AtomicInteger(1);
     nextConnectionID = new AtomicLong(-1);
     nextOperationID  = new AtomicLong(0);
-    rootConnection   = new InternalClientConnection();
   }
 
 
@@ -380,6 +379,11 @@ public final class InternalClientConnection
    */
   public static InternalClientConnection getRootConnection()
   {
+    if (rootConnection == null)
+    {
+      rootConnection = new InternalClientConnection();
+    }
+
     return rootConnection;
   }
 
@@ -2218,6 +2222,16 @@ public final class InternalClientConnection
     }
 
     buffer.append("\")");
+  }
+
+  /**
+   * Called near the end of server shutdown.  This ensures that a new
+   * InternalClientConnection is created if the server is immediately
+   * restarted as part of an in-core restart.
+   */
+  static void clearRootClientConnectionAtShutdown()
+  {
+    rootConnection = null;
   }
 }
 

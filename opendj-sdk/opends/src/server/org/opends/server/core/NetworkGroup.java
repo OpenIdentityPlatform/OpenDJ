@@ -30,6 +30,7 @@ import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.Validator.ensureNotNull;
 
 import java.util.TreeMap;
+import java.util.Collection;
 
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -584,12 +585,34 @@ public class NetworkGroup
    * Deregisters all network groups that have been registered.  This should be
    * called when the server is shutting down.
    */
-  public static void deregisterAll()
+  public static void deregisterAllOnShutdown()
   {
     synchronized (registeredNetworkGroupsLock)
     {
+      // Invalidate all NetworkGroups so they cannot accidentally be used
+      // after a restart.
+      Collection<NetworkGroup> networkGroups = registeredNetworkGroups.values();
+      for (NetworkGroup networkGroup: networkGroups)
+      {
+        networkGroup.invalidate();
+      }
+      defaultNetworkGroup.invalidate();
+
       registeredNetworkGroups = new TreeMap<String,NetworkGroup>();
       defaultNetworkGroup = new NetworkGroup ("default");
     }
+  }
+
+  /**
+   * We've seen parts of the server hold references to a NetworkGroup
+   * during an in-core server restart.  To help detect when this happens,
+   * we null out the member variables, so we will fail fast with an NPE if an
+   * invalidate NetworkGroup is used.
+   */
+  private void invalidate()
+  {
+    namingContexts = null;
+    networkGroupID = null;
+    rootDSEWorkflowNode = null;
   }
 }

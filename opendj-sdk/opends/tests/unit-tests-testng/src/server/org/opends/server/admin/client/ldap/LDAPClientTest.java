@@ -72,6 +72,7 @@ import org.testng.annotations.Test;
 /**
  * Administration framework LDAP client unit tests.
  */
+@Test(sequential=true)
 public final class LDAPClientTest extends AdminTestCase {
 
   // Test LDIF.

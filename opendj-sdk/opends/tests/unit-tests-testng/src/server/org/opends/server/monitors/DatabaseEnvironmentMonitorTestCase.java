@@ -61,7 +61,7 @@ public class DatabaseEnvironmentMonitorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public MonitorProvider getMonitorInstance()
+  protected MonitorProvider getMonitorInstance()
          throws Exception
   {
     String monitorName = "userroot database environment";

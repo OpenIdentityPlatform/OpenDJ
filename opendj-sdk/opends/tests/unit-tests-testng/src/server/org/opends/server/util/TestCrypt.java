@@ -39,7 +39,7 @@ import java.util.List;
  * This class defines a set of tests for the
  * {@link org.opends.server.util.Crypt} class.
  */
-@Test(groups = { "slow" })  // Make them slow, since they are unlikely to break and since there are 4K+ they can take a while
+@Test(groups = { "slow" }, sequential = true)  // Make them slow, since they are unlikely to break and since there are 4K+ they can take a while
 public final class TestCrypt extends UtilTestCase {
   private Crypt crypt = new Crypt();
 

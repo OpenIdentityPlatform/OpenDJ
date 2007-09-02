@@ -31,8 +31,9 @@ import org.testng.annotations.Test;
 import org.testng.annotations.DataProvider;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
+import org.opends.server.DirectoryServerTestCase;
 
-public class DNSTestCase {
+public class DNSTestCase extends DirectoryServerTestCase {
 
     private DNS dns=new DNS(null, null);
 

@@ -266,7 +266,7 @@
   <target name="clean" depends="cleanadmin,cleanmessages"
        description="Clean up any files generated during the build process">
 
-    <delete dir="${build.dir}"           />
+    <delete dir="${build.dir}" />
     <delete file="${dynconstants.file}"  />
     <fileset dir="${lib.dir}">
       <include name="*.jar" />
@@ -1051,7 +1051,7 @@
 
 
   <!-- Prepare to execute the Directory Server TestNG unit tests. -->
-  <target name="testinit" depends="buildtools, weave"
+  <target name="testinit" depends="buildtools,compile"
          description="Prepare to execute the Directory Server TestNG unit tests.">
     <!-- If we are to perform coverage tests, then set that up. -->
     <path id="emma.lib">
@@ -1292,22 +1292,16 @@
           description="Execute the Directory Server TestNG unit tests in text mode with a coverage report.  Use -Dtest.packages, -Dtest.classes, or -Dtest.methods to control which unit tests are run.  Use -Dtest.diff.srcpath to control which src files show up in the coverage diff.  See the 'test' package for other properties you can set.">
   </target>
 
-
-
   <!-- Execute the Directory Server TestNG unit tests in text mode with a coverage report and slow tests. -->
   <target name="testallwithcoverage"
           depends="coverage,testall,coveragediff"
           description="The same as 'testwithcoverage' except 'testall' is run instead of 'test'.">
   </target>
 
-
-
   <!-- Execute the Directory Server TestNG unit tests specified from CLI in text mode with a coverage report. -->
   <target name="testcustomwithcoverage">
     <echo message="This target is deprecated. Please use the testwithcoverage target as it now supports the test.* properties." />
   </target>
-
-
 
   <target name="testhelp" unless="disable.test.help">
     <echo message="About to run the unit tests.  Ant options to control the tests:"/>
@@ -1315,9 +1309,56 @@
     <echo message="  -Dorg.opends.test.suppressOutput=false"/>
     <echo message="      writes the unit test output to the screen"/>
     <echo message=""/>
+    <echo message="  -Dtest.progress=&quot;default,memory&quot;"/>
+    <echo message="      Unless explicity disabled using -Dtest.progress=none, the"/>
+    <echo message="      tests provide continuous progress of the tests that are being"/>
+    <echo message="      run.  The specific options to set for this property are"/>
+    <echo message=""/>
+    <echo message="        none:         no progress output"/>
+    <echo message="        all:          enables all progress (slows tests)"/>
+    <echo message="        default:      same as &quot;time,count,restarts&quot;"/>
+    <echo message="        time:         timing information for the tests"/>
+    <echo message="        count:        # of run test classes, methods, and invocations"/>
+    <echo message="        memory:       running total of memory usage (slows tests)"/>
+    <echo message="        threadcount:  running total of active threads"/>
+    <echo message="        threadchange: +/- changes for active threads between tests"/>
+    <echo message="        restarts:     running total of in-core server restarts"/>
+    <echo message=""/>
+    <echo message="      To specifying multiple values, nseparate them with ',' and"/>
+    <echo message="      quote the entire value.  For instance, when you want the default"/>
+    <echo message="      output plus more, do -Dtest.progress=&quot;default,memory&quot;."/>
+    <echo message=""/>
+    <echo message="      Enabling memory progress slows down the tests significantly."/>
+    <echo message="      Include the otherwise undocumented property &quot;gcs&quot; to see how"/>
+    <echo message="      much time each progress line spends doing garbage collections"/>
+    <echo message="      to get an accurate measure of memory usage."/>
+    <echo message=""/>
+    <echo message="      A new line of progress is written immediately before TestNG starts"/>
+    <echo message="      to run the first test of a new class.  All @BeforeClass and"/>
+    <echo message="      @BeforeMethod methods will have been invoked for the class as well"/>
+    <echo message="      as the @DataProvider (if any) for the first test method."/>
+    <echo message="      Also, some classes are still run out-of-order.  These will only"/>
+    <echo message="      appear once in the output.  Keep these two things in mind when,"/>
+    <echo message="      especially when debugging memory usage, running times, and thread "/>
+    <echo message="      creation."/>
+    <echo message=""/>
+    <echo message="  -Dtestng.verbosity0to5=5"/>
+    <echo message="      for example has TestNG dump the maximum amount of debugging"/>
+    <echo message="      output to stdout.  This output is useful to check the order"/>
+    <echo message="      in which test methods are invoked.  Valid values are integer"/>
+    <echo message="      values from 0 (no output) to 5 (maximum output).  Since this"/>
+    <echo message="      implicitly sets -Dorg.opends.test.suppressOutput=false,"/>
+    <echo message="      other stderr/stdout output generated by the unit tests will"/>
+    <echo message="      also be displayed."/>
+    <echo message=""/>
     <echo message="  -Dorg.opends.test.pauseOnFailure=true"/>
     <echo message="      pauses the test suite whenever a failure occurs allowing you to inspect"/>
     <echo message="      the server more closely in the failure state"/>
+    <echo message=""/>
+    <echo message="  -Dorg.opends.test.copyClassesToTestPackage=true"/>
+    <echo message="      copies the classes into the test server root.  This enables you to run"/>
+    <echo message="      the server tools on the test server.  It can slow down the test startup"/>
+    <echo message="      so the files are not copied by default."/>
     <echo message=""/>
     <echo message="  -Dtest.failed=true"/>
     <echo message="      runs only the tests that failed last time"/>
@@ -1333,7 +1374,14 @@
     <echo message="      definition is the same as the org.opends.server.debug.target.x" />
     <echo message="      property when starting ${SHORT_NAME}. " />
     <echo message="      Default debug target:"/>
-    <echo message="      org.opends.server:level=warning,category=caught|data|database-access|message|protocol" />
+    <echo message="      org.opends.server:level=warning,category=caught|data|database-access|message|protocol,stack" />
+    <echo message=""/>
+    <echo message="  -Dtest.diff.srcpath=src/server/org/opends/server/core"/>
+    <echo message="      for example includes only the classes in"/>
+    <echo message="      src/server/org/opends/server/core in the coveragediff report."/>
+    <echo message="      To list multiple directories or files, separate them with"/>
+    <echo message="      a space as you would an argument list to 'svn diff' and quote"/>
+    <echo message="      the whole value."/>
     <echo message=""/>
     <echo message="  -Dtest.groups=exclude=slow"/>
     <echo message="      for example excludes the slow tests.  Each value is expected" />
@@ -1358,12 +1406,11 @@
     <echo message="      method names to the end separating them with a ',' and "/>
     <echo message="      quote the entire value. Debug logging is disabled."/>
     <echo message=""/>
-    <echo message="  -Dtest.diff.srcpath=src/server/org/opends/server/core"/>
-    <echo message="      for example includes only the classes in"/>
-    <echo message="      src/server/org/opends/server/core in the coveragediff report."/>
-    <echo message="      To list multiple directories or files, separate them with"/>
-    <echo message="      a space as you would an argument list to 'svn diff' and quote"/>
-    <echo message="      the whole value."/>
+    <echo message="  -Dtest.remote.debug.port=5005"/>
+    <echo message="      for example will allow you to remotely debug the unit tests from"/>
+    <echo message="      the debugger of your choice by pointing it at port 5005."/>
+    <echo message="      The unit tests will not start to run until the debugger is attached"/>
+    <echo message="      unless you als specify -Dtest.remote.debug.suspend=n."/>
     <echo message=""/>
   </target>
 
@@ -1390,6 +1437,21 @@
       </not>
     </condition>
 
+    <!-- This sets testng.verbosity if it's not already set. -->
+    <condition property="testng.verbosity0to5" value="0">
+      <not>
+        <isset property="testng.verbosity0to5" />
+      </not>
+    </condition>
+
+    <!-- This sets unsuppresses the test output if and only if testng
+         is configured to dump debug output. -->
+    <condition property="org.opends.test.suppressOutput" value="false">
+      <not>
+        <equals arg1="${testng.verbosity0to5}" arg2="0"/>
+      </not>
+    </condition>
+
     <!-- This sets org.opends.test.suppressOutput if and only if it's not
          already set. -->
     <condition property="org.opends.test.suppressOutput" value="true">
@@ -1409,11 +1471,53 @@
     <!-- This sets org.opends.test.debug.target if and only if its's not
          already set. -->
     <condition property="org.opends.test.debug.target"
-               value="org.opends.server:level=warning,category=caught|data|database-access|message|protocol">
+               value="org.opends.server:level=warning,category=caught|data|database-access|message|protocol,stack">
       <not>
         <isset property="org.opends.test.debug.target" />
       </not>
     </condition>
+
+    <condition property="org.opends.test.copyClassesToTestPackage"
+               value="false">
+      <not>
+        <isset property="org.opends.test.copyClassesToTestPackage" />
+      </not>
+    </condition>
+
+    <condition property="test.progress"
+               value="">
+      <not>
+        <isset property="test.progress" />
+      </not>
+    </condition>
+
+
+    <!-- If the debug port was set, we pass these options into the <testng> target below:
+           -Xdebug 
+           -Xnoagent 
+           -Djava.compiler=NONE 
+           -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005
+     -->
+    <condition property="test.remote.debug.suspend" value="y">
+       <not>
+         <isset property="test.remote.debug.suspend" />
+       </not>
+    </condition>
+    <condition property="jvm.debug.arg1" value="-Xdebug" else="-Dopends.bogus.debug.arg1">
+       <isset property="test.remote.debug.port" />
+    </condition>
+    <condition property="jvm.debug.arg2" value="-Xnoagent" else="-Dopends.bogus.debug.arg2">
+       <isset property="test.remote.debug.port" />
+    </condition>
+    <condition property="jvm.debug.arg3" value="-Djava.compiler=NONE" else="-Dopends.bogus.debug.arg3">
+       <isset property="test.remote.debug.port" />
+    </condition>
+    <condition property="jvm.debug.arg4" 
+         value="-Xrunjdwp:transport=dt_socket,server=y,suspend=${test.remote.debug.suspend},address=${test.remote.debug.port}" 
+         else="-Dopends.bogus.debug.arg4">
+       <isset property="test.remote.debug.port" />
+    </condition>
+
 
     <!-- Cleanout the old reports.  Otherwise, the old testng-failed.xml
          will hang around even if all of the tests pass. -->
@@ -1428,6 +1532,7 @@
 
     <testng outputdir="${unittest.report.dir}"
             haltonfailure="false"
+            verbose="${testng.verbosity0to5}"
             enableAssert="${TESTASSERT}"
             listeners="org.opends.server.TestListener org.testng.reporters.FailedReporter"
             useDefaultListeners="false"
@@ -1461,8 +1566,14 @@
       <jvmarg value="-Dorg.opends.test.suppressOutput=${org.opends.test.suppressOutput}" />
       <jvmarg value="-Dorg.opends.test.pauseOnFailure=${org.opends.test.pauseOnFailure}" />
       <jvmarg value="-Dorg.opends.test.debug.target=${org.opends.test.debug.target}" />
+      <jvmarg value="-Dorg.opends.test.copyClassesToTestPackage=${org.opends.test.copyClassesToTestPackage}" />
+      <jvmarg value="-Dtest.progress=${test.progress}" />
       <jvmarg value="-Xms${MEM}" />
       <jvmarg value="-Xmx${MEM}" />
+      <jvmarg value="${jvm.debug.arg1}" />
+      <jvmarg value="${jvm.debug.arg2}" />
+      <jvmarg value="${jvm.debug.arg3}" />
+      <jvmarg value="${jvm.debug.arg4}" />
       <xmlfileset dir="${unittest.resource.dir}" includes="testng.xml" />
     </testng>
 

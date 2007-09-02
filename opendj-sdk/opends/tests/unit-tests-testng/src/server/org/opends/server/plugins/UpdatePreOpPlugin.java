@@ -119,14 +119,8 @@ public class UpdatePreOpPlugin
       }
     }
 
-    if (instance == null)
-    {
-      instance = this;
-    }
-    else
-    {
-      throw new ConfigException(Message.raw("Only one update preop plugin may be used"));
-    }
+    // We assume that there is only one of these active at a time.
+    instance = this;
 
     setAttributes       = new ArrayList<Attribute>();
     removeAttributes    = new ArrayList<AttributeType>();

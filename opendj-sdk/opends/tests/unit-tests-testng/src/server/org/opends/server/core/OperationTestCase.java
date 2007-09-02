@@ -62,6 +62,31 @@ public abstract class OperationTestCase
     TestCaseUtils.quiesceServer();
   }
 
+  // When this was part of an @BeforeClass method, it was not called reliably
+  // for each subclass.
+  @BeforeMethod
+  public void initializeLDAPStatistics()
+  {
+    for (ConnectionHandler ch : DirectoryServer.getConnectionHandlers())
+    {
+      if (ch instanceof LDAPConnectionHandler)
+      {
+        LDAPConnectionHandler lch = (LDAPConnectionHandler) ch;
+        if (lch.useSSL())
+        {
+          ldapsStatistics = lch.getStatTracker();
+        }
+        else
+        {
+          ldapStatistics = lch.getStatTracker();
+        }
+      }
+    }
+
+    assertNotNull(ldapStatistics);
+    assertNotNull(ldapsStatistics);
+  }
+
   /**
    * Since the PostResponse plugins are called after the response is sent
    * back to the client, a client (e.g. a test case) can get a response before
@@ -84,25 +109,7 @@ public abstract class OperationTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
-
-    for (ConnectionHandler ch : DirectoryServer.getConnectionHandlers())
-    {
-      if (ch instanceof LDAPConnectionHandler)
-      {
-        LDAPConnectionHandler lch = (LDAPConnectionHandler) ch;
-        if (lch.useSSL())
-        {
-          ldapsStatistics = lch.getStatTracker();
-        }
-        else
-        {
-          ldapStatistics = lch.getStatTracker();
-        }
-      }
-    }
-
-    assertNotNull(ldapStatistics);
-    assertNotNull(ldapsStatistics);
+    TestCaseUtils.clearDataBackends();
   }
 
 
@@ -119,7 +126,7 @@ public abstract class OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public abstract Operation[] createTestOperations()
+  protected abstract Operation[] createTestOperations()
          throws Exception;
 
 

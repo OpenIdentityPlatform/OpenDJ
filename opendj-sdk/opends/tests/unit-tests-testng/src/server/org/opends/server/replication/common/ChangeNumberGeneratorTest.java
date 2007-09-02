@@ -39,7 +39,7 @@ public class ChangeNumberGeneratorTest extends ReplicationTestCase
   /**
    * Test the adjust method of ChangeNumberGenerator
    */
-  @Test(dataProvider = "changeNumberData")
+  @Test
   public void adjustTest()
   {
     ChangeNumberGenerator generator =

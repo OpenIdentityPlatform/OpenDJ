@@ -87,7 +87,7 @@ public class GeneralizedTimeOrderingMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  public OrderingMatchingRule getRule()
+  protected OrderingMatchingRule getRule()
   {
     return new GeneralizedTimeOrderingMatchingRule();
   }

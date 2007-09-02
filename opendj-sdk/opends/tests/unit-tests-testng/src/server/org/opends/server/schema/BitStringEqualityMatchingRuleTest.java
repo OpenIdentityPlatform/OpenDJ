@@ -69,7 +69,7 @@ public class BitStringEqualityMatchingRuleTest extends EqualityMatchingRuleTest
    * {@inheritDoc}
    */
   @Override
-  public EqualityMatchingRule getRule()
+  protected EqualityMatchingRule getRule()
   {
     return new BitStringEqualityMatchingRule();
   }

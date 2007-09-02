@@ -61,7 +61,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
   @BeforeClass
   public void setUp() throws Exception
   {
-    TestCaseUtils.startServer();
+    TestCaseUtils.restartServer();
     beID = "userRoot";
     configFilePath = DirectoryServer.getConfigFile();
     TaskUtils.disableBackend(beID);

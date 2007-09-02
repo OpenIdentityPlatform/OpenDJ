@@ -28,6 +28,7 @@ package org.opends.server.extensions;
 
 import org.opends.server.types.*;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import static org.opends.server.util.ServerConstants.OID_REAL_ATTRS_ONLY;
@@ -43,8 +44,7 @@ import static org.testng.Assert.assertEquals;
 
 import java.util.*;
 
-public class NumSubordinatesVirtualAttributeProviderTestCase
-{
+public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectoryServerTestCase {
     // The attribute type for the numSubordinates attribute.
   private AttributeType numSubordinatesType;
 
@@ -59,7 +59,7 @@ public class NumSubordinatesVirtualAttributeProviderTestCase
   public void startServer()
          throws Exception
   {
-    TestCaseUtils.startServer();
+    TestCaseUtils.restartServer();
 
     numSubordinatesType =
         DirectoryServer.getAttributeType("numsubordinates", false);

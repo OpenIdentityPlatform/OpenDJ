@@ -175,7 +175,8 @@ public class SearchOperationTestCase extends OperationTestCase
   }
 
 
-  public Operation[] createTestOperations() throws Exception
+  @Override
+  protected Operation[] createTestOperations() throws Exception
   {
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();

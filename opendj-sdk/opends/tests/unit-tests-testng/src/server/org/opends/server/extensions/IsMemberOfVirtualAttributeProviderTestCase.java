@@ -85,7 +85,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
   public void startServer()
          throws Exception
   {
-    TestCaseUtils.startServer();
+    TestCaseUtils.restartServer();
 
     isMemberOfType = DirectoryServer.getAttributeType("ismemberof", false);
     assertNotNull(isMemberOfType);

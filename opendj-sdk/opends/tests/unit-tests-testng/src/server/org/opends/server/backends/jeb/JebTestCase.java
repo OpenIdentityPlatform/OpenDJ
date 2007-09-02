@@ -51,7 +51,7 @@ import org.testng.annotations.Test;
 /**
  * An abstract base class for all Jeb backend test cases.
  */
-@Test(groups = { "precommit", "jeb" })
+@Test(groups = { "precommit", "jeb" }, sequential = true)
 public abstract class JebTestCase extends DirectoryServerTestCase {
     private TreeMap<DN,Entry> entryTreeMap = new TreeMap<DN,Entry>();
     int numEntries;

@@ -68,7 +68,7 @@ public class CaseIgnoreOrderingMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  public OrderingMatchingRule getRule()
+  protected OrderingMatchingRule getRule()
   {
     return new CaseIgnoreOrderingMatchingRule();
   }

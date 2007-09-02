@@ -67,7 +67,7 @@ public class NumericStringSubstringMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  public SubstringMatchingRule getRule()
+  protected SubstringMatchingRule getRule()
   {
     return new NumericStringSubstringMatchingRule();
   }

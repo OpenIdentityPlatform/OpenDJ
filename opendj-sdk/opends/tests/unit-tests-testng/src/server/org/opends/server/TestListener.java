@@ -33,6 +33,8 @@ import org.testng.ITestResult;
 import org.testng.IClass;
 import org.testng.ITestNGMethod;
 import org.testng.ITestContext;
+import org.testng.annotations.Test;
+import org.testng.annotations.DataProvider;
 import org.testng.xml.XmlSuite;
 import static org.opends.server.util.ServerConstants.EOL;
 import static org.opends.server.TestCaseUtils.originalSystemErr;
@@ -44,17 +46,25 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashSet;
+import java.util.Iterator;
+import java.util.Arrays;
 import java.io.PrintStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * This class is our replacement for the test results that TestNG generates.
  *   It prints out test to the console as they happen.
  */
 public class TestListener extends TestListenerAdapter implements IReporter {
-  private final StringBuilder _bufferedTestFailures = new StringBuilder();
 
   public static final String REPORT_FILE_NAME = "results.txt";
 
@@ -62,23 +72,83 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   // fails, we can do the coverage report before failing the build.
   public static final String ANT_TESTS_FAILED_FILE_NAME = ".tests-failed-marker";
 
-  /**
-   * The test text writer for the Debug Logger
-   */
-  public static TestTextWriter DEBUG_TEXT_WRITER =
-      new TestTextWriter();
 
-  /**
-   * The test text writer for the Debug Logger
-   */
-  public static TestTextWriter ERROR_TEXT_WRITER =
-      new TestTextWriter();
+  private final StringBuilder _bufferedTestFailures = new StringBuilder();
 
-  /**
-   * The test text writer for the Debug Logger
-   */
-  public static TestTextWriter ACCESS_TEXT_WRITER =
-      new TestTextWriter();
+
+  public static final String PROPERTY_TEST_PROGRESS = "test.progress";
+  public static final String TEST_PROGRESS_NONE = "none";
+  public static final String TEST_PROGRESS_ALL = "all";
+  public static final String TEST_PROGRESS_DEFAULT = "default";
+  public static final String TEST_PROGRESS_TIME = "time";
+  public static final String TEST_PROGRESS_TEST_COUNT = "count";
+  public static final String TEST_PROGRESS_MEMORY = "memory";
+  public static final String TEST_PROGRESS_MEMORY_GCS = "gcs";  // Hidden for now, since it's not useful to most developers
+  public static final String TEST_PROGRESS_RESTARTS = "restarts";
+  public static final String TEST_PROGRESS_THREAD_COUNT = "threadcount";
+  public static final String TEST_PROGRESS_THREAD_CHANGES = "threadchanges";
+
+  private boolean doProgressNone = false;
+  private boolean doProgressTime = true;
+  private boolean doProgressTestCount = true;
+  private boolean doProgressMemory = false;
+  private boolean doProgressMemoryGcs = false;
+  private boolean doProgressRestarts = true;
+  private boolean doProgressThreadCount = false;
+  private boolean doProgressThreadChanges = false;
+
+  private void initializeProgressVars() {
+    String prop = System.getProperty(PROPERTY_TEST_PROGRESS);
+    if (prop == null) {
+      return;
+    }
+
+    prop = prop.toLowerCase();
+    List<String> progressValues = Arrays.asList(prop.split("\\s*\\W+\\s*"));
+
+    if ((prop.length() == 0) || progressValues.isEmpty()) {
+      // Accept the defaults
+    } else if (progressValues.contains(TEST_PROGRESS_NONE)) {
+      doProgressNone = true;
+      doProgressTime = false;
+      doProgressTestCount = false;
+      doProgressMemory = false;
+      doProgressMemoryGcs = false;
+      doProgressRestarts = false;
+      doProgressThreadCount = false;
+      doProgressThreadChanges = false;
+    } else if (progressValues.contains(TEST_PROGRESS_ALL)) {
+      doProgressNone = false;
+      doProgressTime = true;
+      doProgressTestCount = true;
+      doProgressMemory = true;
+      doProgressMemoryGcs = true;
+      doProgressRestarts = true;
+      doProgressThreadCount = true;
+      doProgressThreadChanges = true;
+    } else {
+      doProgressNone = false;
+      doProgressTime = progressValues.contains(TEST_PROGRESS_TIME);
+      doProgressTestCount = progressValues.contains(TEST_PROGRESS_TEST_COUNT);
+      doProgressMemory = progressValues.contains(TEST_PROGRESS_MEMORY);
+      doProgressMemoryGcs = progressValues.contains(TEST_PROGRESS_MEMORY_GCS);
+      doProgressRestarts = progressValues.contains(TEST_PROGRESS_RESTARTS);
+      doProgressThreadCount = progressValues.contains(TEST_PROGRESS_THREAD_COUNT);
+      doProgressThreadChanges = progressValues.contains(TEST_PROGRESS_THREAD_CHANGES);
+
+      // If we were asked to do the defaults, then restore anything that's on by default
+      if (progressValues.contains(TEST_PROGRESS_DEFAULT)) {
+        doProgressTime = true;
+        doProgressTestCount = true;
+        doProgressRestarts = true;
+      }
+    }
+  }
+
+  public TestListener() throws Exception {
+    initializeProgressVars();
+  }
+
 
   private static final String DIVIDER_LINE = "-------------------------------------------------------------------------------" + EOL;
 
@@ -100,7 +170,9 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   private void writeAntTestsFailedMarker(String outputDirectory) {
     // Signal 'ant' that all of the tests passed by removing this
     // special file.
-    if (countTestsWithStatus(ITestResult.FAILURE) == 0) {
+    if ((countTestsWithStatus(ITestResult.FAILURE) == 0) &&
+        (countTestsWithStatus(ITestResult.SKIP) == 0))
+    {
       new File(outputDirectory, ANT_TESTS_FAILED_FILE_NAME).delete();
     }
   }
@@ -118,10 +190,20 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     reportStream.println(center("UNIT TEST REPORT"));
     reportStream.println(center("----------------") + EOL);
     reportStream.println("Finished at: " + (new Date()));
-    reportStream.println("# Test clases: " + _classResults.size());
+    reportStream.println("# Test classes: " + _classResults.size());
+    reportStream.println("# Test classes interleaved: " + _classesWithTestsRunInterleaved.size());
     reportStream.println("# Test methods: " + countTestMethods());
     reportStream.println("# Tests passed: " + countTestsWithStatus(ITestResult.SUCCESS));
     reportStream.println("# Tests failed: " + countTestsWithStatus(ITestResult.FAILURE));
+    reportStream.println(EOL + DIVIDER_LINE + DIVIDER_LINE + EOL + EOL);
+    reportStream.println(center("TEST CLASSES RUN INTERLEAVED"));
+    reportStream.println(EOL + EOL);
+    for (Iterator<Class> iterator = _classesWithTestsRunInterleaved.iterator(); iterator.hasNext();)
+    {
+      Class cls = iterator.next();
+      reportStream.println("  " + cls.getName());
+    }
+
     reportStream.println(EOL + DIVIDER_LINE + DIVIDER_LINE + EOL + EOL);
     reportStream.println(center("FAILED TESTS"));
     reportStream.println(EOL + EOL);
@@ -132,6 +214,12 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     reportStream.println(getTimingInfo());
 
     reportStream.close();
+
+    if ((countTestsWithStatus(ITestResult.FAILURE) == 0) &&
+        (countTestsWithStatus(ITestResult.SKIP) != 0)) {
+      originalSystemErr.println("There were no explicit test failures, but some tests were skipped (possibly due to errors in @Before* or @After* methods).");
+      System.exit(-1);
+    }
   }
 
   private String getFqMethod(ITestResult result) {
@@ -165,9 +253,6 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       failed.append(EOL);
     }
 
-
-
-
     if (failed.length() > 0) {
       originalSystemErr.println("The following unit tests failed: ");
       originalSystemErr.println(failed);
@@ -180,37 +265,68 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     originalSystemErr.println();
     originalSystemErr.println("Wrote full test report to:");
     originalSystemErr.println(reportFile.getAbsolutePath());
+    originalSystemErr.println("Test classes run interleaved: " + _classesWithTestsRunInterleaved.size());
+
+    // Try to hard to reclaim as much memory as possible.
+    runGc();
+
+    originalSystemErr.printf("Final amount of memory in use: %.1f MB",
+            (usedMemory() / (1024.0 * 1024.0))).println();
+    if (doProgressMemory) {
+      originalSystemErr.printf("Maximum amount of memory in use: %.1f MB",
+              (maxMemInUse / (1024.0 * 1024.0))).println();
+    }
+    originalSystemErr.println("Final number of threads: " + Thread.activeCount());
+
+
+    List<Long> systemRestartTimes = TestCaseUtils.getRestartTimesMs();
+    long totalRestartMs = 0;
+    for (long restartMs: systemRestartTimes) {
+      totalRestartMs += restartMs;
+    }
+    double averageRestartSec = 0;
+    if (systemRestartTimes.size() > 0) {
+      averageRestartSec = totalRestartMs / (1000.0 * systemRestartTimes.size());
+    }
+    originalSystemErr.printf("In core restarts: %d  (took %.1fs on average)",
+            TestCaseUtils.getNumServerRestarts(), averageRestartSec);
+    originalSystemErr.println();
+
+    if (doProgressThreadChanges) {
+      originalSystemErr.print(TestCaseUtils.threadStacksToString());      
+    }
+
+    if (_classesWithTestsRunInterleaved.size() > 0) {
+      System.err.println("WARNING:  Some of the test methods for multiple classes " +
+              "were run out of order (i.e. interleaved with other classes).  Either "  +
+              "a class doesn't have the sequential=true annotation, which should " +
+              "have been reported already or there has been a regression with TestNG.");
+    }
   }
 
 
   public void onTestStart(ITestResult tr) {
     super.onTestStart(tr);
-    ACCESS_TEXT_WRITER.clear();
-    ERROR_TEXT_WRITER.clear();
-    DEBUG_TEXT_WRITER.clear();
-    TestCaseUtils.clearSystemOutContents();
-    TestCaseUtils.clearSystemErrContents();
+
+    enforceTestClassTypeAndAnnotations(tr);
+    checkForInterleavedBetweenClasses(tr);
+    enforceMethodHasAnnotation(tr);
   }
 
-
+  private void onTestFinished(ITestResult tr) {
+    // Clear when a test finishes instead before the next one starts
+    // so that we get the output generated by any @BeforeClass method etc.
+    TestCaseUtils.clearLoggersContents();
+    addTestResult(tr);
+  }
 
   public void onTestSuccess(ITestResult tr) {
     super.onTestSuccess(tr);
-    addTestResult(tr);
-
-    // Clear the test parameters on a successful test because they take up a lot
-    // of memory and we won't need them again (as we might with a failed test).
-    clearTestParameters(tr);
-  }
-
-  private static final String[][] CLEARED_TEST_PARAMETERS = {{"<test-parameters-cleared>"}};
-  private void clearTestParameters(ITestResult tr) {
-    tr.setParameters(CLEARED_TEST_PARAMETERS);
+    onTestFinished(tr);
   }
 
   public void onTestFailure(ITestResult tr) {
     super.onTestFailure(tr);
-    addTestResult(tr);
 
     IClass cls = tr.getTestClass();
     ITestNGMethod method = tr.getMethod();
@@ -232,54 +348,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       failureInfo.append("parameter[" + i + "]: ").append(parameter).append(EOL);
     }
 
-    List<String> messages = ACCESS_TEXT_WRITER.getMessages();
-    if (! messages.isEmpty())
-    {
-      failureInfo.append(EOL);
-      failureInfo.append("Access Log Messages:");
-      failureInfo.append(EOL);
-      for (String message : messages)
-      {
-        failureInfo.append(message);
-        failureInfo.append(EOL);
-      }
-    }
-
-    messages = ERROR_TEXT_WRITER.getMessages();
-    if (! messages.isEmpty())
-    {
-      failureInfo.append(EOL);
-      failureInfo.append("Error Log Messages:");
-      failureInfo.append(EOL);
-      for (String message : messages)
-      {
-        failureInfo.append(message);
-        failureInfo.append(EOL);
-      }
-    }
-
-    messages = DEBUG_TEXT_WRITER.getMessages();
-    if(! messages.isEmpty())
-    {
-      failureInfo.append(EOL);
-      failureInfo.append("Debug Log Messages:");
-      failureInfo.append(EOL);
-      for (String message : messages)
-      {
-        failureInfo.append(message);
-        failureInfo.append(EOL);
-      }
-    }
-
-    String systemOut = TestCaseUtils.getSystemOutContents();
-    if (systemOut.length() > 0) {
-      failureInfo.append(EOL + "System.out contents:" + EOL + systemOut);
-    }
-
-    String systemErr = TestCaseUtils.getSystemErrContents();
-    if (systemErr.length() > 0) {
-      failureInfo.append(EOL + "System.err contents:" + EOL + systemErr);
-    }
+    appendFailureInfo(failureInfo);
 
     failureInfo.append(EOL + EOL);
     originalSystemErr.print(EOL + EOL + EOL + "                 T E S T   F A I L U R E ! ! !" + EOL + EOL);
@@ -291,40 +360,82 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     String pauseStr = System.getProperty("org.opends.test.pauseOnFailure");
     if ((pauseStr != null) && pauseStr.equalsIgnoreCase("true"))
     {
-      File tempFile = null;
+      pauseOnFailure();
+    }
+
+    onTestFinished(tr);
+  }
+
+
+
+  public static void pauseOnFailure() {
+    File tempFile = null;
+    try
+    {
+      tempFile = File.createTempFile("testfailure", "watchdog");
+      tempFile.deleteOnExit();
+      originalSystemErr.println("**** Pausing test execution until file " +
+                                tempFile.getCanonicalPath() + " is removed.");
+      originalSystemErr.println("LDAP Port:   " +
+                                TestCaseUtils.getServerLdapPort());
+      originalSystemErr.println("LDAPS Port:  " +
+                                TestCaseUtils.getServerLdapsPort());
+      originalSystemErr.println("JMX Port:    " +
+                                TestCaseUtils.getServerJmxPort());
+    }
+    catch (Exception e)
+    {
+      originalSystemErr.println("**** ERROR:  Could not create a watchdog " +
+           "file.  Pausing test execution indefinitely.");
+      originalSystemErr.println("**** You will have to manually kill the " +
+           "JVM when you're done investigating the problem.");
+    }
+
+    while ((tempFile != null) && tempFile.exists())
+    {
       try
       {
-        tempFile = File.createTempFile("testfailure", "watchdog");
-        tempFile.deleteOnExit();
-        originalSystemErr.println("**** Pausing test execution until file " +
-                                  tempFile.getCanonicalPath() + " is removed.");
-        originalSystemErr.println("LDAP Port:   " +
-                                  TestCaseUtils.getServerLdapPort());
-        originalSystemErr.println("LDAPS Port:  " +
-                                  TestCaseUtils.getServerLdapsPort());
-        originalSystemErr.println("JMX Port:    " +
-                                  TestCaseUtils.getServerJmxPort());
-      }
-      catch (Exception e)
-      {
-        originalSystemErr.println("**** ERROR:  Could not create a watchdog " +
-             "file.  Pausing test execution indefinitely.");
-        originalSystemErr.println("**** You will have to manually kill the " +
-             "JVM when you're done investigating the problem.");
-      }
-
-      while ((tempFile == null) || tempFile.exists())
-      {
-        try
-        {
-          Thread.sleep(100);
-        } catch (Exception e) {}
-      }
-
-      originalSystemErr.println("**** Watchdog file removed.  Resuming test " +
-                                "case execution.");
+        Thread.sleep(100);
+      } catch (Exception e) {}
     }
+
+    originalSystemErr.println("**** Watchdog file removed.  Resuming test " +
+                              "case execution.");
   }
+
+  private void appendFailureInfo(StringBuilder failureInfo)
+  {
+    TestCaseUtils.appendLogsContents(failureInfo);
+  }
+
+  public void onConfigurationFailure(ITestResult tr) {
+    super.onConfigurationFailure(tr);
+
+    IClass cls = tr.getTestClass();
+    ITestNGMethod method = tr.getMethod();
+
+    String fqMethod = cls.getName() + "#" + method.getMethodName();
+
+    StringBuilder failureInfo = new StringBuilder();
+    failureInfo.append("Failed Test:  ").append(fqMethod).append(EOL);
+    Object[] parameters = tr.getParameters();
+
+
+    Throwable cause = tr.getThrowable();
+    if (cause != null) {
+      failureInfo.append("Failure Cause:  ").append(getTestngLessStack(cause));
+    }
+
+    appendFailureInfo(failureInfo);
+
+    failureInfo.append(EOL + EOL);
+    originalSystemErr.print(EOL + EOL + EOL + "         C O N F I G U R A T I O N   F A I L U R E ! ! !" + EOL + EOL);
+    originalSystemErr.print(failureInfo);
+    originalSystemErr.print(DIVIDER_LINE + EOL + EOL);
+
+    _bufferedTestFailures.append(failureInfo);
+  }
+
 
   private String getTestngLessStack(Throwable t) {
     StackTraceElement[] elements = t.getStackTrace();
@@ -342,6 +453,14 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     buffer.append(t).append(EOL);
     for (int i = 0; i <= lowestOpenDSFrame; i++) {
       buffer.append("    ").append(elements[i]).append(EOL);
+    }
+
+    Throwable cause = t.getCause();
+    if (t != null) {
+      if (cause instanceof InvocationTargetException) {
+        InvocationTargetException invocation = ((InvocationTargetException)cause);
+        buffer.append("Invocation Target Exception: " + getTestngLessStack(invocation));
+      }
     }
 
     return buffer.toString();
@@ -362,16 +481,379 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
   public void onTestSkipped(ITestResult tr) {
     super.onTestSkipped(tr);
-    // TODO: do we need to do anything with this?
+    onTestFinished(tr);
   }
 
   public void onTestFailedButWithinSuccessPercentage(ITestResult tr) {
     super.onTestFailedButWithinSuccessPercentage(tr);
-    addTestResult(tr);
+    onTestFinished(tr);
   }
 
   private void addTestResult(ITestResult result) {
     getResultsForClass(result.getTestClass()).addTestResult(result);
+
+    // Read the comments in DirectoryServerTestCase to understand what's
+    // going on here.
+    Object[] testInstances = result.getMethod().getInstances();
+    for (int i = 0; i < testInstances.length; i++) {
+      Object testInstance = testInstances[i];
+      if (testInstance instanceof DirectoryServerTestCase) {
+        DirectoryServerTestCase dsTestCase = (DirectoryServerTestCase)testInstance;
+        Object[] parameters = result.getParameters();
+        if (result.getStatus() == ITestResult.SUCCESS) {
+          dsTestCase.addParamsFromSuccessfulTests(parameters);
+          // This can eat up a bunch of memory for tests that are expected to throw
+          result.setThrowable(null);
+        } else {
+          dsTestCase.addParamsFromFailedTest(parameters);
+
+          // When the test finishes later on, we might not have everything
+          // that we need to print the result (e.g. the Schema for an Entry
+          // or DN), so go ahead and convert it to a String now.
+          result.setParameters(convertToStringParameters(parameters));
+        }
+      } else {
+        // We already warned about it.
+      }
+    }
+  }
+
+
+  private String[] convertToStringParameters(Object[] parameters) {
+    if (parameters == null) {
+      return null;
+    }
+
+    String[] strParams = new String[parameters.length];
+    for (int i = 0; i < parameters.length; i++) {
+      strParams[i] = String.valueOf(parameters[i]).intern();
+    }
+
+    return strParams;
+  }
+
+
+  private Set<Class> _checkedForTypeAndAnnotations = new HashSet<Class>();
+  private void enforceTestClassTypeAndAnnotations(ITestResult tr) {
+    Class testClass = null;
+    testClass = tr.getMethod().getRealClass();
+
+    // Only warn once per class.
+    if (_checkedForTypeAndAnnotations.contains(testClass)) {
+      return;
+    }
+    _checkedForTypeAndAnnotations.add(testClass);
+
+    if (!DirectoryServerTestCase.class.isAssignableFrom(testClass)) {
+      String errorMessage =
+              "The test class " + testClass.getName() + " must inherit (directly or indirectly) " +
+              "from DirectoryServerTestCase.";
+      TestCaseUtils.originalSystemErr.println("\n\nERROR: " + errorMessage + "\n\n");
+      throw new RuntimeException(errorMessage);
+    }
+
+
+    Class<?> classWithTestAnnotation = findClassWithTestAnnotation(testClass);
+
+    if (classWithTestAnnotation == null) {
+      String errorMessage =
+              "The test class " + testClass.getName() + " does not have a @Test annotation.  " +
+              "All test classes must have a @Test annotation, and this annotation must have " +
+              "sequential=true set to ensure that tests for a single class are run together.";
+      TestCaseUtils.originalSystemErr.println("\n\nERROR: " + errorMessage + "\n\n");
+      throw new RuntimeException(errorMessage);
+    }
+
+    Test testAnnotation = classWithTestAnnotation.getAnnotation(Test.class);
+    if (!testAnnotation.sequential()) {
+      // Give an error message that is as specific as possible.
+      String errorMessage =
+              "The @Test annotation for class " + testClass.getName() +
+              (classWithTestAnnotation.equals(testClass) ? " " : (", which is declared by class " + classWithTestAnnotation.getName() + ", ")) +
+              "must include sequential=true to ensure that tests for a single class are run together.";
+      TestCaseUtils.originalSystemErr.println("\n\nERROR: " + errorMessage + "\n\n");
+      throw new RuntimeException(errorMessage);
+    }
+  }
+
+  private final LinkedHashSet<Class> _classesWithTestsRunInterleaved = new LinkedHashSet<Class>();
+  private Object _lastTestObject = null;
+  private final IdentityHashMap<Object,Object> _previousTestObjects = new IdentityHashMap<Object,Object>();
+  private void checkForInterleavedBetweenClasses(ITestResult tr) {
+    Object[] testInstances = tr.getMethod().getInstances();
+    // This will almost always have a single element.  If it doesn't, just
+    // skip it.
+    if (testInstances.length != 1) {
+      return;
+    }
+
+    Object testInstance = testInstances[0];
+
+    // We're running another test on the same test object.  Everything is fine.
+    if (_lastTestObject == testInstance) {
+      return;
+    }
+
+    // Otherwise, we're running a new test, so save the old one.
+    if (_lastTestObject != null) {
+      _previousTestObjects.put(_lastTestObject, _lastTestObject);
+    }
+
+    // Output progress info since we're running a new class
+    outputTestProgress(_lastTestObject, testInstance);
+    
+    // And make sure we don't have a test object that we already ran tests with.
+    if (_previousTestObjects.containsKey(testInstance)) {
+      _classesWithTestsRunInterleaved.add(testInstance.getClass());
+    }
+
+    _lastTestObject = testInstance;
+  }
+
+
+  private Set<Method> _checkedForAnnotation = new HashSet<Method>();
+  private void enforceMethodHasAnnotation(ITestResult tr) {
+    // Only warn once per method.
+    Method testMethod = tr.getMethod().getMethod();
+    if (_checkedForAnnotation.contains(testMethod)) {
+      return;
+    }
+    _checkedForAnnotation.add(testMethod);
+
+    Annotation testAnnotation = testMethod.getAnnotation(Test.class);
+    Annotation dataProviderAnnotation = testMethod.getAnnotation(DataProvider.class);
+
+    if ((testAnnotation == null) && (dataProviderAnnotation == null)) {
+      String errorMessage =
+              "The test method " + testMethod + " does not have a @Test annotation.  " +
+              "However, TestNG assumes it is a test method because it's a public method " +
+              "in a class with a class-level @Test annotation.  You can remove this warning by either " +
+              "marking the method with @Test or by making it non-public.";
+      TestCaseUtils.originalSystemErr.println("\n\nWARNING: " + errorMessage + "\n\n");
+    }
+  }
+
+
+  // Return the class in cls's inheritence hierarchy that has the @Test
+  // annotation defined.
+  private Class findClassWithTestAnnotation(Class<?> cls) {
+    while (cls != null) {
+      if (cls.getAnnotation(Test.class) != null) {
+        return cls;
+      } else {
+        cls = cls.getSuperclass();
+      }
+    }
+    return null;
+  }
+
+
+  private boolean statusHeaderPrinted = false;
+  private synchronized void printStatusHeaderOnce() {
+    if (statusHeaderPrinted) {
+      return;
+    }
+    statusHeaderPrinted = true;
+
+    if (doProgressNone) {
+      return;
+    }
+
+    originalSystemErr.println();
+    originalSystemErr.println("How to read the progressive status info:");
+
+
+    if (doProgressTime) {
+      originalSystemErr.println("  Test duration status: {Total min:sec.  Since last status sec.}");
+    }
+
+    if (doProgressTestCount) {
+      originalSystemErr.println("  Test count status:  {# test classes  # test methods  # test method invocations  # test failures}.");
+    }
+
+    if (doProgressMemory) {
+      originalSystemErr.println("  Memory usage status: {MB in use  +/-change since last status}");
+    }
+
+    if (doProgressMemoryGcs) {
+      originalSystemErr.println("  GCs during status:  {GCs done to settle used memory   time to do it}");
+    }
+
+    if (doProgressThreadCount) {
+      originalSystemErr.println("  Thread count status:  {#td number of active threads}");
+    }
+
+    if (doProgressRestarts) {
+      originalSystemErr.println("  In core restart status: {#rs number of in-core restarts}");
+    }
+
+    if (doProgressThreadChanges) {
+      originalSystemErr.println("  Thread change status: +/- thread name for new or finished threads since last status");
+    }
+
+    originalSystemErr.println("  TestClass (the class that just completed)");
+    originalSystemErr.println();
+  }
+
+  private final long startTimeMs = System.currentTimeMillis();
+  private long prevTimeMs = System.currentTimeMillis();
+  private List<String> prevThreads = new ArrayList<String>();
+  private long prevMemInUse = 0;
+  private long maxMemInUse = 0;
+  private void outputTestProgress(Object finishedTestObject, Object nextTestObject) {
+    if (doProgressNone) {
+      return;
+    }
+
+    printStatusHeaderOnce();
+
+    if (doProgressTime) {
+      long curTimeMs = System.currentTimeMillis();
+      long durationSec = (curTimeMs - startTimeMs) / 1000;
+      long durationLastMs = curTimeMs - prevTimeMs;
+      originalSystemErr.printf("{%2d:%02d (%3.0fs)}  ",
+              (durationSec / 60),
+              (durationSec % 60),
+              (durationLastMs / 1000.0));
+      prevTimeMs = curTimeMs;
+    }
+
+    if (doProgressTestCount) {
+      originalSystemErr.printf("{%3dc %4dm %5di %df}  ",
+            _classResults.size(), countTestMethods(), countTotalInvocations(),
+              countTestsWithStatus(ITestResult.FAILURE));
+    }
+
+    if (doProgressMemory) {
+      Runtime runtime = Runtime.getRuntime();
+      TestCaseUtils.quiesceServer();
+      long beforeGc = System.currentTimeMillis();
+      int gcs = runGc();
+      long gcDuration = System.currentTimeMillis() - beforeGc;
+
+      long totalMemory = runtime.totalMemory();
+      long freeMemory = runtime.freeMemory();
+      long curMemInUse = totalMemory - freeMemory;
+      long memDelta = curMemInUse - prevMemInUse;
+      double perMegaByte = 1.0 / (1024.0 * 1024.0);
+
+      maxMemInUse = Math.max(maxMemInUse, curMemInUse);
+
+      originalSystemErr.printf("{%5.1fMB  %+5.1fMB}  ",
+            curMemInUse * perMegaByte,
+            memDelta * perMegaByte);
+
+      if (doProgressMemoryGcs) {
+        originalSystemErr.printf("{%2d gcs  %4.1fs}  ",
+                gcs,
+                gcDuration / 1000.0);
+      }
+      prevMemInUse = curMemInUse;
+    }
+
+    if (doProgressThreadCount) {
+      originalSystemErr.printf("{#td %3d}  ", Thread.activeCount());
+    }
+
+    if (doProgressRestarts) {
+      originalSystemErr.printf("{#rs %2d}  ", TestCaseUtils.getNumServerRestarts());
+    }
+
+    if (finishedTestObject == null) {
+      originalSystemErr.println(": starting");
+    } else {
+      String abbrClass = packageLessClass(finishedTestObject);
+      originalSystemErr.printf(": %s ", abbrClass).flush();
+      originalSystemErr.println();
+    }
+
+    if (doProgressThreadChanges) {
+      List<String> currentThreads = listAllThreadNames();
+      List<String> newThreads = removeExactly(prevThreads, currentThreads);
+      List<String> oldThreads = removeExactly(currentThreads, prevThreads);
+
+      if (!newThreads.isEmpty()) {
+        originalSystemErr.println("  Thread changes:");
+        for (int i = 0; i < oldThreads.size(); i++) {
+          String threadName =  oldThreads.get(i);
+          originalSystemErr.println("    + " + threadName);
+        }
+        for (int i = 0; i < newThreads.size(); i++) {
+          String threadName =  newThreads.get(i);
+          originalSystemErr.println("    - " + threadName);
+        }
+      }
+
+      prevThreads = currentThreads;
+    }
+  }
+
+
+  private int runGc() {
+    Runtime runtime = Runtime.getRuntime();
+    int numGcs;
+    long curMem = usedMemory();
+    long prevMem = Long.MAX_VALUE;
+    StringBuilder gcConvergence = new StringBuilder();
+    for (numGcs = 0; (prevMem > curMem) && numGcs < 100; numGcs++) {
+        runtime.runFinalization();
+        runtime.gc();
+        Thread.yield();
+        Thread.yield();
+
+        prevMem = curMem;
+        curMem = usedMemory();
+
+        gcConvergence.append("[" + numGcs + "]: " + (prevMem - curMem)).append("  ");
+    }
+    return numGcs;
+  }
+
+  private List<String> listAllThreadNames() {
+    Thread currentThread = Thread.currentThread();
+    ThreadGroup topGroup = currentThread.getThreadGroup();
+    while (topGroup.getParent() != null) {
+      topGroup = topGroup.getParent();
+    }
+
+    Thread threads[] = new Thread[topGroup.activeCount() * 2];
+    int numThreads = topGroup.enumerate(threads);
+
+    List<String> activeThreads = new ArrayList<String>();
+    for (int i = 0; i < numThreads; i++) {
+      Thread thread = threads[i];
+      if (thread.isAlive()) {
+        String fullName = thread.getName();
+        activeThreads.add(fullName);
+      }
+    }
+
+    Collections.sort(activeThreads);
+    return activeThreads;
+  }
+
+  /**
+   * Removes toRemove from base.  If there are duplicate items in base, then
+   * only one is removed for each item in toRemove.
+   *
+   * @return a new List with base with toRemove items removed from it
+   */
+  private List<String> removeExactly(List<String> base, List<String> toRemove) {
+    List<String> diff = new ArrayList<String>(base);
+    for (int i = 0; i < toRemove.size(); i++) {
+      String item = toRemove.get(i);
+      diff.remove(item);
+    }
+    return diff;
+  }
+
+  private String packageLessClass(Object obj) {
+    return obj.getClass().getName().replaceAll(".*\\.", "");
+  }
+
+  private long usedMemory() {
+    Runtime runtime = Runtime.getRuntime();
+    return runtime.totalMemory() - runtime.freeMemory();
   }
 
   private final LinkedHashMap<IClass, TestClassResults> _classResults = new LinkedHashMap<IClass, TestClassResults>();
@@ -411,6 +893,14 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     int count = 0;
     for (TestClassResults results: _classResults.values()) {
       count += results._resultCounts[status];
+    }
+    return count;
+  }
+
+  private int countTotalInvocations() {
+    int count = 0;
+    for (TestClassResults results: _classResults.values()) {
+      count += results._totalInvocations;
     }
     return count;
   }

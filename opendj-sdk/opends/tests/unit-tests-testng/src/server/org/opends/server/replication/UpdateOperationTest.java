@@ -90,7 +90,7 @@ import org.testng.annotations.Test;
  * Test synchronization of update operations on the directory server and through
  * the replication server broker interface.
  */
-public class UpdateOperationTest extends ReplicationTestCase
+public class  UpdateOperationTest extends ReplicationTestCase
 {
   /**
    * An entry with a entryUUID

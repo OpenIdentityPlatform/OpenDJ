@@ -74,7 +74,7 @@ public class UUIDOrderingMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  public OrderingMatchingRule getRule()
+  protected OrderingMatchingRule getRule()
   {
     return new UUIDOrderingMatchingRule();
   }

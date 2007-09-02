@@ -29,11 +29,12 @@ package org.opends.server.admin;
 
 import static org.testng.Assert.*;
 import org.testng.annotations.*;
+import org.opends.server.DirectoryServerTestCase;
 
 /**
  * SizeUnit Tester.
  */
-public class SizeUnitTest {
+public class SizeUnitTest extends DirectoryServerTestCase {
 
   /**
    * Creates data for testing String to SizeUnit conversions

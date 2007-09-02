@@ -57,7 +57,7 @@ public class UnbindOperationTestCase
    * {@inheritDoc}
    */
   @Override()
-  public Operation[] createTestOperations()
+  protected Operation[] createTestOperations()
          throws Exception
   {
     InternalClientConnection conn =
@@ -141,6 +141,7 @@ public class UnbindOperationTestCase
    * Tests the <CODE>getCancelRequest</CODE> method to ensure that it always
    * returns <CODE>null</CODE>.
    */
+  @Test
   public void testGetCancelRequest()
   {
     InternalClientConnection conn =

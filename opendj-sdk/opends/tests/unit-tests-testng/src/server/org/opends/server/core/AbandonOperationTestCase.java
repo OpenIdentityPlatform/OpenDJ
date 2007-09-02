@@ -81,7 +81,7 @@ import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchScope;
 import org.testng.annotations.Test;
-
+import org.testng.annotations.BeforeClass;
 
 
 /**
@@ -94,7 +94,7 @@ public class AbandonOperationTestCase
    * {@inheritDoc}
    */
   @Override()
-  public Operation[] createTestOperations()
+  protected Operation[] createTestOperations()
          throws Exception
   {
     InternalClientConnection conn =
@@ -109,6 +109,13 @@ public class AbandonOperationTestCase
   }
 
 
+  /**
+   * For some reason, the @BeforeClass method in the super class is not called.
+   */
+  @BeforeClass()
+  public void startServer() throws Exception {
+    super.startServer();
+  }
 
   /**
    * Tests the <CODE>getIDToAbandon</CODE> method.

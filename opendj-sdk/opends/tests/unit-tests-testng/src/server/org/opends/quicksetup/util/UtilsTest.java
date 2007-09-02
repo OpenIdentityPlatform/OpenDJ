@@ -30,11 +30,13 @@ package org.opends.quicksetup.util;
 import static org.testng.Assert.*;
 import org.testng.annotations.*;
 import org.opends.quicksetup.Constants;
+import org.opends.server.DirectoryServerTestCase;
 
 /**
  * Utils Tester.
  */
-public class UtilsTest {
+@Test(sequential=true)
+public class UtilsTest extends DirectoryServerTestCase {
 
   @DataProvider(name = "breakHtmlStringData")
   public Object[][] breakHtmlStringData() {

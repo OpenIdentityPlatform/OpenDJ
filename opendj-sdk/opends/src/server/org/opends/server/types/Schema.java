@@ -2823,6 +2823,7 @@ public final class Schema
       File configFile = new File(DirectoryServer.getConfigFile());
       File configDirectory  = configFile.getParentFile();
       File upgradeDirectory = new File(configDirectory, "upgrade");
+      upgradeDirectory.mkdir();
       File concatFile       = new File(upgradeDirectory,
                                        SCHEMA_CONCAT_FILE_NAME);
       concatFilePath = concatFile.getAbsolutePath();

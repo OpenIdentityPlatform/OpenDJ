@@ -37,7 +37,7 @@ import org.opends.server.DirectoryServerTestCase;
 /**
  * An abstract base class for all backend test cases.
  */
-@Test(groups = { "precommit", "backend" })
+@Test(groups = { "precommit", "backend" }, sequential = true)
 public abstract class BackendTestCase
        extends DirectoryServerTestCase
 {

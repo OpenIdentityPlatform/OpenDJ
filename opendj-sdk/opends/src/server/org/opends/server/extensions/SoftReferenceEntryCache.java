@@ -100,7 +100,9 @@ public class SoftReferenceEntryCache
   // reference is freed.
   private ReferenceQueue<CacheEntry> referenceQueue;
 
+  private Thread cleanerThread;
 
+  private volatile boolean shutdown = false;
 
   static
   {
@@ -131,8 +133,7 @@ public class SoftReferenceEntryCache
     setLockTimeout(LockManager.DEFAULT_TIMEOUT);
     referenceQueue = new ReferenceQueue<CacheEntry>();
 
-    Thread cleanerThread =
-         new Thread(this, "Soft Reference Entry Cache Cleaner");
+    cleanerThread = new Thread(this, "Soft Reference Entry Cache Cleaner");
     cleanerThread.setDaemon(true);
     cleanerThread.start();
   }
@@ -167,10 +168,22 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
-  public void finalizeEntryCache()
+  public synchronized void finalizeEntryCache()
   {
+    shutdown = true;
     dnMap.clear();
     idMap.clear();
+    if (cleanerThread != null) {
+      for (int i = 0; cleanerThread.isAlive() && (i < 5); i++) {
+        cleanerThread.interrupt();
+        try {
+          cleanerThread.join(10);
+        } catch (InterruptedException e) {
+          // We'll exit eventually.
+        }
+      }
+      cleanerThread = null;
+    }
   }
 
 
@@ -595,7 +608,7 @@ public class SoftReferenceEntryCache
    */
   public void run()
   {
-    while (true)
+    while (!shutdown)
     {
       try
       {

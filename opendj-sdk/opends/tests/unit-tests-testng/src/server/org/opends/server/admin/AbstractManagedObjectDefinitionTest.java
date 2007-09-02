@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.admin.std.meta.ConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.meta.JMXConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.meta.LDAPConnectionHandlerCfgDefn;
@@ -47,7 +48,8 @@ import org.testng.annotations.Test;
 /**
  * AbstractManagedObjectDefinition test cases.
  */
-public class AbstractManagedObjectDefinitionTest {
+@Test(sequential=true)
+public class AbstractManagedObjectDefinitionTest extends DirectoryServerTestCase {
 
   /**
    * A test managed object definition.

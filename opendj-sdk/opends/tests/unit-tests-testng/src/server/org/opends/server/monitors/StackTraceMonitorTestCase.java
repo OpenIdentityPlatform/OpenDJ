@@ -59,7 +59,7 @@ public class StackTraceMonitorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public MonitorProvider getMonitorInstance()
+  protected MonitorProvider getMonitorInstance()
          throws Exception
   {
     StackTraceMonitorProvider monitorProvider = new StackTraceMonitorProvider();

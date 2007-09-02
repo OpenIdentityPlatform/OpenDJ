@@ -30,6 +30,7 @@ package org.opends.server.admin;
 import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -38,7 +39,7 @@ import org.testng.annotations.Test;
 /**
  * BooleanPropertyDefinition Tester.
  */
-public class BooleanPropertyDefinitionTest {
+public class BooleanPropertyDefinitionTest extends DirectoryServerTestCase {
 
   BooleanPropertyDefinition.Builder builder = null;
 

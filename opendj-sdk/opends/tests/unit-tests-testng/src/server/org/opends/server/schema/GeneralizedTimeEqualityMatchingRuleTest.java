@@ -93,7 +93,7 @@ public class GeneralizedTimeEqualityMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  public EqualityMatchingRule getRule()
+  protected EqualityMatchingRule getRule()
   {
     return new GeneralizedTimeEqualityMatchingRule();
   }

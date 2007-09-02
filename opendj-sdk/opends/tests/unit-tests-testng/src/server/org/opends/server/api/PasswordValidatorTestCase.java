@@ -34,6 +34,7 @@ import java.util.Set;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.testng.annotations.AfterClass;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
@@ -78,7 +79,18 @@ public class PasswordValidatorTestCase
   public void startServer()
          throws Exception
   {
-    TestCaseUtils.startServer();
+    TestCaseUtils.restartServer();
+  }
+
+
+
+  /**
+   * Drops static references to allow garbage collection. 
+   */
+  @AfterClass
+  public void shutdown()
+  {
+    TestPasswordValidator.clearInstanceAfterTests();
   }
 
 
@@ -267,7 +279,7 @@ public class PasswordValidatorTestCase
 
     Set<ByteString> currentPasswords =
          TestPasswordValidator.getLastCurrentPasswords();
-    assertTrue(currentPasswords.isEmpty());
+    assertTrue(currentPasswords.isEmpty(), "currentPasswords=" + currentPasswords);
   }
 
 

@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
@@ -98,7 +99,7 @@ public class PluginConfigManagerTestCase
   public void startServer()
          throws Exception
   {
-    TestCaseUtils.startServer();
+    TestCaseUtils.restartServer();
   }
 
 
@@ -612,7 +613,7 @@ public class PluginConfigManagerTestCase
     {
       DirectoryServerPlugin p =
            DirectoryServer.getPluginConfigManager().getRegisteredPlugin(dn);
-      assertNotNull(p);
+      assertNotNull(p, "The " + dn + " plugin is not registered with the server.");
       pluginList.add(p);
     }
 

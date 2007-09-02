@@ -94,7 +94,7 @@ public class DistinguishedNameEqualityMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  public EqualityMatchingRule getRule()
+  protected EqualityMatchingRule getRule()
   {
     return new DistinguishedNameEqualityMatchingRule();
   }

@@ -36,7 +36,7 @@ import org.testng.annotations.Test;
 /**
  * An abstract base class for all internal test cases.
  */
-@Test(groups = { "precommit", "internal" })
+@Test(groups = { "precommit", "internal" }, sequential = true)
 public abstract class InternalTestCase
        extends DirectoryServerTestCase
 {

@@ -4362,6 +4362,44 @@ public class EntryContainer
       {
         db.open();
       }
+
+      Transaction txn = null;
+      try
+      {
+        txn = beginTransaction();
+        for(DatabaseContainer db : databases)
+        {
+          if (db instanceof Index)
+          {
+            Index index = (Index)db;
+            index.setTrusted(txn, true);
+          }
+        }
+        transactionCommit(txn);
+      }
+      catch(Exception de)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
+        }
+
+        // This is mainly used during the unit tests, so it's not essential.
+        try
+        {
+          if (txn != null)
+          {
+            transactionAbort(txn);
+          }
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
+          }
+        }
+      }
     }
 
     return count;

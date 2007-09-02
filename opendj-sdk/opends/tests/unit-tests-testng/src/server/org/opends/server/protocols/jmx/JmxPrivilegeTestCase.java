@@ -356,6 +356,12 @@ public class JmxPrivilegeTestCase
     deleteOperation = conn.processDelete(DN
         .decode("dc=unindexed,dc=jeb"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+
+    for (int i = 0; (connections != null) && (i < connections.length); i++)
+    {
+      connections[i].finalize();
+      connections[i] = null;
+    }
   }
 
 

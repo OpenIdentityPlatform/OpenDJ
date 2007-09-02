@@ -32,6 +32,7 @@ package org.opends.server.admin;
 import static org.testng.Assert.assertEquals;
 
 import org.opends.server.admin.std.meta.RootCfgDefn;
+import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.Test;
 
 
@@ -39,7 +40,7 @@ import org.testng.annotations.Test;
 /**
  * StringPropertyDefinition Tester.
  */
-public class StringPropertyDefinitionTest {
+public class StringPropertyDefinitionTest extends DirectoryServerTestCase {
 
   /**
    * Tests validateValue() with valid data and no pattern.

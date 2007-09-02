@@ -27,6 +27,7 @@
 package org.opends.server.backends.jeb;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.DirectoryServerTestCase;
 import static org.opends.server.util.ServerConstants.OID_SERVER_SIDE_SORT_RESPONSE_CONTROL;
 import static org.opends.server.util.ServerConstants.OID_VLV_RESPONSE_CONTROL;
 import org.opends.server.controls.ServerSideSortRequestControl;
@@ -49,8 +50,7 @@ import static org.testng.Assert.assertEquals;
 
 import java.util.*;
 
-public class TestVLVIndex
-{
+public class TestVLVIndex extends DirectoryServerTestCase {
   SortOrder sortOrder;
 
   private  String beID="indexRoot";

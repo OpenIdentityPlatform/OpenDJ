@@ -128,7 +128,7 @@ public class CompareOperationTestCase extends OperationTestCase
   }
 
 
-  public Operation[] createTestOperations() throws Exception
+  protected Operation[] createTestOperations() throws Exception
   {
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();

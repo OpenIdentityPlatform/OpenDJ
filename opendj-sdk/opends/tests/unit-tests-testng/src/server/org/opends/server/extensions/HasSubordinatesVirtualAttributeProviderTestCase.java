@@ -28,6 +28,7 @@ package org.opends.server.extensions;
 
 import org.opends.server.types.*;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.DirectoryServerTestCase;
 import static org.opends.server.util.StaticUtils.getBytes;
 import static org.opends.server.util.ServerConstants.OID_REAL_ATTRS_ONLY;
 import static org.opends.server.util.ServerConstants.OID_VIRTUAL_ATTRS_ONLY;
@@ -47,8 +48,7 @@ import java.util.LinkedHashSet;
 import java.util.UUID;
 import java.util.LinkedList;
 
-public class HasSubordinatesVirtualAttributeProviderTestCase
-{
+public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectoryServerTestCase {
       // The attribute type for the hasSubordinates attribute.
   private AttributeType hasSubordinatesType;
 

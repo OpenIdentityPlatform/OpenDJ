@@ -710,7 +710,7 @@ public class RejectUnauthReqTests extends CoreTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @AfterClass()
+  @Test
   public void  testResetRejUnauthReqCfgAttr()  throws Exception
   {
     String path = TestCaseUtils.createTempFile(

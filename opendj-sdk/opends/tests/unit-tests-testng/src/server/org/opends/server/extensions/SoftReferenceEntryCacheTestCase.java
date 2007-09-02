@@ -46,7 +46,7 @@ import static org.testng.Assert.*;
 /**
  * A set of test cases for SoftReference entry cache implementation.
  */
-@Test(groups = "entrycache")
+@Test(groups = "entrycache", sequential=true)
 public class SoftReferenceEntryCacheTestCase
        extends CommonEntryCacheTestCase
 {

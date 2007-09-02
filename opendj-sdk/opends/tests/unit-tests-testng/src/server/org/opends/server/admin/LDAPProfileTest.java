@@ -30,13 +30,14 @@ package org.opends.server.admin;
 import static org.testng.Assert.*;
 import org.testng.annotations.*;
 import org.opends.server.admin.std.meta.GlobalCfgDefn;
+import org.opends.server.DirectoryServerTestCase;
 
 import java.util.List;
 
 /**
  * LDAPProfile Tester.
  */
-public class LDAPProfileTest {
+public class LDAPProfileTest extends DirectoryServerTestCase {
 
   /**
    * Tests execution of getObjectClasses() and makes sure the
