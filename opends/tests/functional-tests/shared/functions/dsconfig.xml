@@ -1683,7 +1683,110 @@
       </return>
     </sequence>
   </function>
-  
+
+  <!-- List synchronization providers using dsconfig -->
+  <function name="listSyncProviders">
+    <function-prolog>
+      This function list the synchronization providers using dsconfig
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+        Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
+    </function-map-args>
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+        STAFCmdParams=''
+        STAFCmd=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+          STAFCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
+        
+        STAFCmdParamsList=[]
+        STAFCmdParamsList.append('list-synchronization-providers')
+      </script>
+      <call function="'_dsconfigCommonArgs'" />
+      <script>
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      <call function="'runCommand'">
+        { 'name'      : 'List synchronization providers',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }
+      </call>
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode,
+          'result'     : STAXReason,
+          'expected'   : expectedRC
+        }
+      </call>
+      <return>
+        STAXReason
+      </return>
+    </sequence>
+  </function>
+    
   
   <!-- Create a replication server using dsconfig -->
   <function name="createReplicationServer">
