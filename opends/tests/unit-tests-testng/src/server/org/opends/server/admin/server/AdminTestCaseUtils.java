@@ -30,8 +30,13 @@ package org.opends.server.admin.server;
 
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.Configuration;
+import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.DefinitionDecodingException;
+import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.ManagedObjectPath;
+import org.opends.server.admin.RelationDefinition;
+import org.opends.server.admin.SingletonRelationDefinition;
+import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.Entry;
@@ -43,6 +48,15 @@ import org.opends.server.types.Entry;
  * cases which interact with the admin framework.
  */
 public final class AdminTestCaseUtils {
+
+  // The relation name which will be used for dummy configurations. A
+  // deliberately obfuscated name is chosen to avoid clashes.
+  private static final String DUMMY_TEST_RELATION = "*dummy*test*relation*";
+
+  // Indicates if the dummy relation profile has been registered.
+  private static boolean isProfileRegistered = false;
+
+
 
   // Prevent instantiation.
   private AdminTestCaseUtils() {
@@ -71,9 +85,9 @@ public final class AdminTestCaseUtils {
     ConfigEntry configEntry = new ConfigEntry(entry, null);
 
     try {
-      ServerManagedObject<? extends S> mo = ServerManagedObject
-          .decode(ManagedObjectPath.emptyPath(), definition,
-              configEntry);
+      ServerManagementContext context = ServerManagementContext.getInstance();
+      ServerManagedObject<? extends S> mo = context.decode(getPath(definition),
+          configEntry);
       return mo.getConfiguration();
     } catch (DefinitionDecodingException e) {
       throw ConfigExceptionFactory.getInstance()
@@ -82,5 +96,39 @@ public final class AdminTestCaseUtils {
       throw ConfigExceptionFactory.getInstance()
           .createDecodingExceptionAdaptor(e);
     }
+  }
+
+
+
+  // Construct a dummy path.
+  private synchronized static <C extends ConfigurationClient, S extends Configuration>
+  ManagedObjectPath<C, S> getPath(AbstractManagedObjectDefinition<C, S> d) {
+    if (!isProfileRegistered) {
+      LDAPProfile.Wrapper profile = new LDAPProfile.Wrapper() {
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getRelationRDNSequence(RelationDefinition<?, ?> r) {
+          if (r.getName().equals(DUMMY_TEST_RELATION)) {
+            return "cn=dummy configuration,cn=config";
+          } else {
+            return null;
+          }
+        }
+
+      };
+
+      LDAPProfile.getInstance().pushWrapper(profile);
+      isProfileRegistered = true;
+    }
+
+    SingletonRelationDefinition.Builder<C, S> builder =
+      new SingletonRelationDefinition.Builder<C, S>(
+        RootCfgDefn.getInstance(), DUMMY_TEST_RELATION, d);
+    ManagedObjectPath<?, ?> root = ManagedObjectPath.emptyPath();
+    return root.child(builder.getInstance());
+
   }
 }
