@@ -363,7 +363,7 @@ public class PackageInfoTestCase
    *
    * @param  sourceDirectory  The directory for which to make the determination.
    */
-  @Test(enabled=false, dataProvider="quickSetupSourceDirectories")
+  @Test(dataProvider="quickSetupSourceDirectories")
   public void testQuickSetupPackageInfoExists(File sourceDirectory)
          throws Exception
   {
