@@ -63,6 +63,16 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
+  
+  <adm:property-override name="plugin-type">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>postoperationdelete</adm:value>
+        <adm:value>postoperationmodifydn</adm:value>
+        <adm:value>subordinatemodifydn</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
 
   <adm:property name="referential-integrity-attribute-type" mandatory="true"
                 multi-valued="true">
@@ -76,14 +86,6 @@
     <adm:description>
       Specifies an attribute type to process referential integrity.
     </adm:description>
-    <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>T
-          The ds-cfg-referential-integrity attribute must be specified at least
-          once.
-        </adm:synopsis>
-      </adm:alias>
-    </adm:default-behavior>
     <adm:syntax>
       <adm:attribute-type />
     </adm:syntax>
@@ -94,7 +96,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
 
   <adm:property name="referential-integrity-base-dn" mandatory="false"
                 multi-valued="true">
