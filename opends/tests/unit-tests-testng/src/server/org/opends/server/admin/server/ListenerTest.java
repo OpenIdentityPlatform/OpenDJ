@@ -174,7 +174,7 @@ public final class ListenerTest extends AdminTestCase {
         DelayedConfigAddListener dl = (DelayedConfigAddListener) l;
         ConfigAddListener tmp = dl.getDelayedAddListener();
         if (tmp instanceof ConfigAddListenerAdaptor) {
-          ConfigAddListenerAdaptor al = (ConfigAddListenerAdaptor) tmp;
+          ConfigAddListenerAdaptor<?> al = (ConfigAddListenerAdaptor<?>) tmp;
           if (al.getConfigurationAddListener() == listener) {
             isFound = true;
           }
@@ -203,7 +203,7 @@ public final class ListenerTest extends AdminTestCase {
         DelayedConfigAddListener dl = (DelayedConfigAddListener) l;
         ConfigAddListener tmp = dl.getDelayedAddListener();
         if (tmp instanceof ConfigAddListenerAdaptor) {
-          ConfigAddListenerAdaptor al = (ConfigAddListenerAdaptor) tmp;
+          ConfigAddListenerAdaptor<?> al = (ConfigAddListenerAdaptor<?>) tmp;
           if (al.getConfigurationAddListener() == listener) {
             fail("Delayed listener still exists in entry " + parentDN
                 + " when it should have been removed");
@@ -223,7 +223,7 @@ public final class ListenerTest extends AdminTestCase {
     isFound = false;
     for (ConfigAddListener l : configEntry.getAddListeners()) {
       if (l instanceof ConfigAddListenerAdaptor) {
-        ConfigAddListenerAdaptor al = (ConfigAddListenerAdaptor) l;
+        ConfigAddListenerAdaptor<?> al = (ConfigAddListenerAdaptor<?>) l;
         if (al.getConfigurationAddListener() == listener) {
           isFound = true;
 
@@ -280,7 +280,7 @@ public final class ListenerTest extends AdminTestCase {
     boolean isFound = false;
     for (ConfigAddListener l : configEntry.getAddListeners()) {
       if (l instanceof ConfigAddListenerAdaptor) {
-        ConfigAddListenerAdaptor al = (ConfigAddListenerAdaptor) l;
+        ConfigAddListenerAdaptor<?> al = (ConfigAddListenerAdaptor<?>) l;
         if (al.getConfigurationAddListener() == listener) {
           isFound = true;
 
@@ -328,7 +328,7 @@ public final class ListenerTest extends AdminTestCase {
     boolean isFound = false;
     for (ConfigAddListener l : configEntry.getAddListeners()) {
       if (l instanceof ConfigAddListenerAdaptor) {
-        ConfigAddListenerAdaptor al = (ConfigAddListenerAdaptor) l;
+        ConfigAddListenerAdaptor<?> al = (ConfigAddListenerAdaptor<?>) l;
         if (al.getConfigurationAddListener() == listener) {
           isFound = true;
 
@@ -378,7 +378,7 @@ public final class ListenerTest extends AdminTestCase {
         DelayedConfigAddListener dl = (DelayedConfigAddListener) l;
         ConfigDeleteListener tmp = dl.getDelayedDeleteListener();
         if (tmp instanceof ConfigDeleteListenerAdaptor) {
-          ConfigDeleteListenerAdaptor al = (ConfigDeleteListenerAdaptor) tmp;
+          ConfigDeleteListenerAdaptor<?> al = (ConfigDeleteListenerAdaptor<?>) tmp;
           if (al.getConfigurationDeleteListener() == listener) {
             isFound = true;
           }
@@ -407,7 +407,7 @@ public final class ListenerTest extends AdminTestCase {
         DelayedConfigAddListener dl = (DelayedConfigAddListener) l;
         ConfigDeleteListener tmp = dl.getDelayedDeleteListener();
         if (tmp instanceof ConfigDeleteListenerAdaptor) {
-          ConfigDeleteListenerAdaptor al = (ConfigDeleteListenerAdaptor) tmp;
+          ConfigDeleteListenerAdaptor<?> al = (ConfigDeleteListenerAdaptor<?>) tmp;
           if (al.getConfigurationDeleteListener() == listener) {
             fail("Delayed listener still exists in entry " + parentDN
                 + " when it should have been removed");
@@ -427,7 +427,7 @@ public final class ListenerTest extends AdminTestCase {
     isFound = false;
     for (ConfigDeleteListener l : configEntry.getDeleteListeners()) {
       if (l instanceof ConfigDeleteListenerAdaptor) {
-        ConfigDeleteListenerAdaptor al = (ConfigDeleteListenerAdaptor) l;
+        ConfigDeleteListenerAdaptor<?> al = (ConfigDeleteListenerAdaptor<?>) l;
         if (al.getConfigurationDeleteListener() == listener) {
           isFound = true;
 
@@ -484,7 +484,7 @@ public final class ListenerTest extends AdminTestCase {
     boolean isFound = false;
     for (ConfigDeleteListener l : configEntry.getDeleteListeners()) {
       if (l instanceof ConfigDeleteListenerAdaptor) {
-        ConfigDeleteListenerAdaptor al = (ConfigDeleteListenerAdaptor) l;
+        ConfigDeleteListenerAdaptor<?> al = (ConfigDeleteListenerAdaptor<?>) l;
         if (al.getConfigurationDeleteListener() == listener) {
           isFound = true;
 
@@ -532,7 +532,7 @@ public final class ListenerTest extends AdminTestCase {
     boolean isFound = false;
     for (ConfigDeleteListener l : configEntry.getDeleteListeners()) {
       if (l instanceof ConfigDeleteListenerAdaptor) {
-        ConfigDeleteListenerAdaptor al = (ConfigDeleteListenerAdaptor) l;
+        ConfigDeleteListenerAdaptor<?> al = (ConfigDeleteListenerAdaptor<?>) l;
         if (al.getConfigurationDeleteListener() == listener) {
           isFound = true;
 
