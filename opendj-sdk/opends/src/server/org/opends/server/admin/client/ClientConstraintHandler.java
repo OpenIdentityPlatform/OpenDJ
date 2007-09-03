@@ -51,6 +51,15 @@ import org.opends.server.admin.ManagedObjectPath;
 public abstract class ClientConstraintHandler {
 
   /**
+   * Creates a new client constraint handler.
+   */
+  protected ClientConstraintHandler() {
+    // No implementation required.
+  }
+
+
+
+  /**
    * Determines whether or not the newly created managed object which
    * is about to be added to the server configuration satisfies this
    * constraint.
