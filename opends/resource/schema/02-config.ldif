@@ -1642,6 +1642,10 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.473
    NAME 'ds-cfg-referential-integrity-base-dn'
    SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
    X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.486
+  NAME 'ds-cfg-max-blocked-write-time-limit'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1735,7 +1739,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.14
   ds-cfg-ssl-client-auth-policy $ ds-cfg-ssl-cert-nickname $
   ds-cfg-accept-backlog $ ds-cfg-key-manager-provider-dn $
   ds-cfg-trust-manager-provider-dn $ ds-cfg-ssl-protocol $
-  ds-cfg-ssl-cipher-suite ) X-ORIGIN 'OpenDS Directory Server' )
+  ds-cfg-ssl-cipher-suite $ ds-cfg-max-blocked-write-time-limit )
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.15 NAME 'ds-cfg-entry-cache'
   SUP top STRUCTURAL MUST ( cn $ ds-cfg-entry-cache-class $
   ds-cfg-entry-cache-enabled ) X-ORIGIN 'OpenDS Directory Server' )

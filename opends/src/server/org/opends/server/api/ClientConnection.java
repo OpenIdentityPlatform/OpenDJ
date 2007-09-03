@@ -25,24 +25,26 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
-import org.opends.messages.Message;
 
 
 
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.Selector;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.opends.messages.Message;
 import org.opends.server.api.plugin.IntermediateResponsePluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.NetworkGroup;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -62,11 +64,9 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.util.TimeThread;
 
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.CoreMessages.*;
-
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -398,6 +398,49 @@ public abstract class ClientConnection
    *          {@code null} if no security is in place.
    */
   public abstract String getSecurityMechanism();
+
+
+
+  /**
+   * Retrieves a {@code Selector} that may be used to ensure that
+   * write  operations complete in a timely manner, or terminate the
+   * connection in the event that they fail to do so.  This is an
+   * optional method for client connections, and the default
+   * implementation returns {@code null} to indicate that the maximum
+   * blocked write time limit is not supported for this connection.
+   * Subclasses that do wish to support this functionality should
+   * return a valid {@code Selector} object.
+   *
+   * @return  The {@code Selector} that may be used to ensure that
+   *          write operations complete in a timely manner, or
+   *          {@code null} if this client connection does not support
+   *          maximum blocked write time limit functionality.
+   */
+  public Selector getWriteSelector()
+  {
+    // There will not be a write selector in the default
+    // implementation.
+    return null;
+  }
+
+
+
+  /**
+   * Retrieves the maximum length of time in milliseconds that
+   * attempts to write data to the client should be allowed to block.
+   * A value of zero indicates there should be no limit.
+   *
+   * @return  The maximum length of time in milliseconds that attempts
+   *          to write data to the client should be allowed to block,
+   *          or zero if there should be no limit.
+   */
+  public long getMaxBlockedWriteTimeLimit()
+  {
+    // By default, we'll return 0, which indicates that there should
+    // be no maximum time limit.  Subclasses should override this if
+    // they want to support a maximum blocked write time limit.
+    return 0L;
+  }
 
 
 

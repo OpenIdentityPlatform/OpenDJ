@@ -25,22 +25,12 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
 
 
-
-import static org.opends.server.loggers.AccessLogger.logDisconnect;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.messages.ProtocolMessages.*;
-import org.opends.messages.MessageBuilder;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,8 +38,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.ConnectionSecurityProvider;
@@ -82,14 +75,21 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
-
-
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.util.TimeThread;
+
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.AccessLogger.logDisconnect;
+import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 
 
@@ -114,6 +114,9 @@ public class LDAPClientConnection
 
   // The next operation ID that should be used for this connection.
   private AtomicLong nextOperationID;
+
+  // The selector that may be used for write operations.
+  private AtomicReference<Selector> writeSelector;
 
   // Indicates whether the Directory Server believes this connection to be
   // valid and available for communication.
@@ -251,6 +254,7 @@ public class LDAPClientConnection
     operationsInProgress = new ConcurrentHashMap<Integer,AbstractOperation>();
     keepStats            = connectionHandler.keepStats();
     protocol             = "LDAP";
+    writeSelector        = new AtomicReference<Selector>();
 
     clientAddress = clientChannel.socket().getInetAddress().getHostAddress();
     clientPort    = clientChannel.socket().getPort();
@@ -992,6 +996,17 @@ public class LDAPClientConnection
     finalizeConnectionInternal();
 
 
+    // If there is a write selector for this connection, then close it.
+    Selector selector = writeSelector.get();
+    if (selector != null)
+    {
+      try
+      {
+        selector.close();
+      } catch (Exception e) {}
+    }
+
+
     // See if we should send a notification to the client.  If so, then
     // construct and send a notice of disconnection unsolicited response.
     // Note that we cannot send this notification to an LDAPv2 client.
@@ -1425,6 +1440,49 @@ public class LDAPClientConnection
     {
       opsInProgressLock.unlock();
     }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public Selector getWriteSelector()
+  {
+    Selector selector = writeSelector.get();
+    if (selector == null)
+    {
+      try
+      {
+        selector = Selector.open();
+        if (! writeSelector.compareAndSet(null, selector))
+        {
+          selector.close();
+          selector = writeSelector.get();
+        }
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
+
+    return selector;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public long getMaxBlockedWriteTimeLimit()
+  {
+    return connectionHandler.getMaxBlockedWriteTimeLimit();
   }
 
 

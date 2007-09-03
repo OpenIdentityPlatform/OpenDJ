@@ -425,6 +425,7 @@ ds-cfg-use-tcp-nodelay: true
 ds-cfg-allow-tcp-reuse-address: true
 ds-cfg-send-rejection-notice: true
 ds-cfg-max-request-size: 5 megabytes
+ds-cfg-max-blocked-write-time-limit: 2 minutes
 ds-cfg-num-request-handlers: 2
 ds-cfg-allow-start-tls: false
 ds-cfg-use-ssl: false
@@ -448,6 +449,7 @@ ds-cfg-use-tcp-nodelay: true
 ds-cfg-allow-tcp-reuse-address: true
 ds-cfg-send-rejection-notice: true
 ds-cfg-max-request-size: 5 megabytes
+ds-cfg-max-blocked-write-time-limit: 2 minutes
 ds-cfg-num-request-handlers: 2
 ds-cfg-allow-start-tls: false
 ds-cfg-use-ssl: true
