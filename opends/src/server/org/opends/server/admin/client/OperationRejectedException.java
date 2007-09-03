@@ -26,15 +26,29 @@
  */
 
 package org.opends.server.admin.client;
-import org.opends.messages.Message;
 
+
+
+import static org.opends.messages.AdminMessages.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import org.opends.server.util.Validator;
 
 
 
 /**
- * This exception is thrown when the server refuses to create, delete,
- * or modify a managed object due to some server-side constraint that
- * cannot be satisified and which cannot be enforced by the client.
+ * This exception is thrown when the client or server refuses to
+ * create, delete, or modify a managed object due to one or more
+ * constraints that cannot be satisfied.
+ * <p>
+ * Operations can be rejected either by a client-side constraint
+ * violation triggered by {@link ClientConstraintHandler}, or by a
+ * server-side error.
  * <p>
  * For example, the Directory Server might not be able perform an
  * operation due to some OS related problem, such as lack of disk
@@ -49,48 +63,81 @@ public class OperationRejectedException extends AdminClientException {
 
 
 
-  /**
-   * Create an operation rejected exception.
-   */
-  public OperationRejectedException() {
-    // No implementation required.
+  // Merge the messages into a single message.
+  private static Message getSingleMessage(Collection<Message> messages) {
+    Validator.ensureNotNull(messages);
+    Validator.ensureTrue(!messages.isEmpty());
+
+    MessageBuilder builder = new MessageBuilder();
+
+    boolean isFirst = true;
+    for (Message m : messages) {
+      if (!isFirst) {
+        builder.append("; ");
+      }
+      builder.append(m);
+      isFirst = false;
+    }
+
+    return builder.toMessage();
   }
 
+  // The messages describing the constraint violations that occurred.
+  private final Collection<Message> messages;
+
 
 
   /**
-   * Create an operation rejected exception with a cause.
+   * Creates a new operation rejected exception with the provided
+   * messages.
    *
-   * @param cause
-   *          The cause.
+   * @param messages
+   *          The messages describing the constraint violations that
+   *          occurred (must be non-<code>null</code> and
+   *          non-empty).
    */
-  public OperationRejectedException(Throwable cause) {
-    super(cause);
+  public OperationRejectedException(Collection<Message> messages) {
+    super(getSingleMessage(messages));
+
+    this.messages = new ArrayList<Message>(messages);
   }
 
 
 
   /**
-   * Create an operation rejected exception with a message and cause.
+   * Creates a new operation rejected exception with the provided
+   * message.
    *
    * @param message
-   *          The message.
-   * @param cause
-   *          The cause.
-   */
-  public OperationRejectedException(Message message, Throwable cause) {
-    super(message, cause);
-  }
-
-
-
-  /**
-   * Create an operation rejected exception with a message.
-   *
-   * @param message
-   *          The message.
+   *          The message describing the constraint violation that
+   *          occurred (must be non-<code>null</code> and
+   *          non-empty).
    */
   public OperationRejectedException(Message message) {
-    super(message);
+    this(Collections.singleton(message));
   }
+
+
+
+  /**
+   * Creates a new operation rejected exception with a default
+   * message.
+   */
+  public OperationRejectedException() {
+    this(ERR_OPERATION_REJECTED_DEFAULT.get());
+  }
+
+
+
+  /**
+   * Gets an unmodifiable collection view of the messages describing
+   * the constraint violations that occurred.
+   *
+   * @return Returns an unmodifiable collection view of the messages
+   *         describing the constraint violations that occurred.
+   */
+  public Collection<Message> getMessages() {
+    return Collections.unmodifiableCollection(messages);
+  }
+
 }

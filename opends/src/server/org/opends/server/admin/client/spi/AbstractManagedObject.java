@@ -36,9 +36,11 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
+import org.opends.server.admin.Constraint;
 import org.opends.server.admin.DefaultBehaviorException;
 import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.IllegalPropertyValueException;
@@ -57,11 +59,13 @@ import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
 import org.opends.server.admin.client.AuthorizationException;
+import org.opends.server.admin.client.ClientConstraintHandler;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.IllegalManagedObjectNameException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
+import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
 
@@ -148,6 +152,30 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
     if (!exceptions.isEmpty()) {
       throw new MissingMandatoryPropertiesException(exceptions);
+    }
+
+    // Now enforce any constraints.
+    List<Message> messages = new LinkedList<Message>();
+    boolean isAcceptable = true;
+    ManagementContext context = getDriver().getManagementContext();
+
+    for (Constraint constraint : definition.getAllConstraints()) {
+      for (ClientConstraintHandler handler : constraint
+          .getClientConstraintHandlers()) {
+        if (existsOnServer) {
+          if (!handler.isModifyAcceptable(context, this, messages)) {
+            isAcceptable = false;
+          }
+        } else {
+          if (!handler.isAddAcceptable(context, this, messages)) {
+            isAcceptable = false;
+          }
+        }
+      }
+    }
+
+    if (!isAcceptable) {
+      throw new OperationRejectedException(messages);
     }
 
     // Commit the managed object.
@@ -497,8 +525,9 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
    *           If the managed object's parent has been removed by
    *           another client.
    * @throws OperationRejectedException
-   *           If the server refuses to add this managed object due to
-   *           some server-side constraint which cannot be satisfied.
+   *           If the managed object cannot be added due to some
+   *           client-side or server-side constraint which cannot be
+   *           satisfied.
    * @throws AuthorizationException
    *           If the server refuses to add this managed object
    *           because the client does not have the correct
@@ -566,8 +595,8 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
    *           If this managed object has been removed from the server
    *           by another client.
    * @throws OperationRejectedException
-   *           If the server refuses to modify this managed object due
-   *           to some server-side constraint which cannot be
+   *           If the managed object cannot be added due to some
+   *           client-side or server-side constraint which cannot be
    *           satisfied.
    * @throws AuthorizationException
    *           If the server refuses to modify this managed object

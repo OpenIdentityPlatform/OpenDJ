@@ -40,6 +40,7 @@ import javax.naming.directory.BasicAttributes;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.InstantiableRelationDefinition;
@@ -59,8 +60,6 @@ import org.opends.server.admin.client.spi.AbstractManagedObject;
 import org.opends.server.admin.client.spi.Driver;
 import org.opends.server.admin.client.spi.Property;
 import org.opends.server.admin.client.spi.PropertySet;
-import org.opends.server.admin.std.client.RootCfgClient;
-import org.opends.server.admin.std.meta.RootCfgDefn;
 
 
 
@@ -73,22 +72,6 @@ import org.opends.server.admin.std.meta.RootCfgDefn;
  */
 final class LDAPManagedObject<T extends ConfigurationClient> extends
     AbstractManagedObject<T> {
-
-  /**
-   * Constructs a root LDAP managed object associated with the
-   * provided LDAP driver.
-   *
-   * @param driver
-   *          The LDAP management driver.
-   * @return Returns a root LDAP managed object associated with the
-   *         provided LDAP driver.
-   */
-  static ManagedObject<RootCfgClient> getRootManagedObject(
-      LDAPDriver driver) {
-    return new LDAPManagedObject<RootCfgClient>(driver, RootCfgDefn
-        .getInstance(), ManagedObjectPath.emptyPath(), new PropertySet(), true,
-        null);
-  }
 
   // The LDAP management driver associated with this managed object.
   private final LDAPDriver driver;
@@ -176,7 +159,12 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
           driver.getLDAPConnection().createEntry(dn, attributes);
         } catch (OperationNotSupportedException e) {
           // Unwilling to perform.
-          throw new OperationRejectedException(e);
+          if (e.getMessage() != null) {
+            throw new OperationRejectedException();
+          } else {
+            Message m = Message.raw("%s", e.getMessage());
+            throw new OperationRejectedException(m);
+          }
         } catch (NamingException e) {
           driver.adaptNamingException(e);
         }
@@ -220,7 +208,12 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
       throw new ManagedObjectAlreadyExistsException();
     } catch (OperationNotSupportedException e) {
       // Unwilling to perform.
-      throw new OperationRejectedException(e);
+      if (e.getMessage() != null) {
+        throw new OperationRejectedException();
+      } else {
+        Message m = Message.raw("%s", e.getMessage());
+        throw new OperationRejectedException(m);
+      }
     } catch (NamingException e) {
       driver.adaptNamingException(e);
     }
@@ -269,7 +262,12 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
         throw new AuthorizationException(e);
       } catch (OperationNotSupportedException e) {
         // Unwilling to perform.
-        throw new OperationRejectedException(e);
+        if (e.getMessage() != null) {
+          throw new OperationRejectedException();
+        } else {
+          Message m = Message.raw("%s", e.getMessage());
+          throw new OperationRejectedException(m);
+        }
       } catch (NamingException e) {
         // Just treat it as a communication problem.
         throw new CommunicationException(e);

@@ -115,9 +115,9 @@ public interface ManagedObject<T extends ConfigurationClient> extends
    *           this managed object is being modified but it has been
    *           removed from the server by another client.
    * @throws OperationRejectedException
-   *           If the server refuses to add or modify this managed
-   *           object due to some server-side constraint which cannot
-   *           be satisfied.
+   *           If this managed object cannot be added or modified due
+   *           to some client-side or server-side constraint which
+   *           cannot be satisfied.
    * @throws AuthorizationException
    *           If the server refuses to add or modify this managed
    *           object because the client does not have the correct
@@ -590,16 +590,16 @@ public interface ManagedObject<T extends ConfigurationClient> extends
    *           If the managed object could not be removed because it
    *           could not found on the server.
    * @throws OperationRejectedException
-   *           If the server refuses to remove the managed object due
-   *           to some server-side constraint which cannot be
+   *           If the managed object cannot be removed due to some
+   *           client-side or server-side constraint which cannot be
    *           satisfied (for example, if it is referenced by another
    *           managed object).
    * @throws ConcurrentModificationException
    *           If this managed object has been removed from the server
    *           by another client.
    * @throws AuthorizationException
-   *           If the server refuses to make the list the managed
-   *           objects because the client does not have the correct
+   *           If the server refuses to remove the managed objects
+   *           because the client does not have the correct
    *           privileges.
    * @throws CommunicationException
    *           If the client cannot contact the server due to an
@@ -631,16 +631,16 @@ public interface ManagedObject<T extends ConfigurationClient> extends
    *           If the managed object could not be removed because it
    *           could not found on the server.
    * @throws OperationRejectedException
-   *           If the server refuses to remove the managed object due
-   *           to some server-side constraint which cannot be
+   *           If the managed object cannot be removed due to some
+   *           client-side or server-side constraint which cannot be
    *           satisfied (for example, if it is referenced by another
    *           managed object).
    * @throws ConcurrentModificationException
    *           If this managed object has been removed from the server
    *           by another client.
    * @throws AuthorizationException
-   *           If the server refuses to make the list the managed
-   *           objects because the client does not have the correct
+   *           If the server refuses to remove the managed objects
+   *           because the client does not have the correct
    *           privileges.
    * @throws CommunicationException
    *           If the client cannot contact the server due to an

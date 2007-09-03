@@ -32,15 +32,18 @@ package org.opends.server.admin.client.spi;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AliasDefaultBehaviorProvider;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
+import org.opends.server.admin.Constraint;
 import org.opends.server.admin.DefaultBehaviorException;
 import org.opends.server.admin.DefaultBehaviorProviderVisitor;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
@@ -55,14 +58,18 @@ import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyNotFoundException;
 import org.opends.server.admin.PropertyOption;
+import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.admin.client.AuthorizationException;
+import org.opends.server.admin.client.ClientConstraintHandler;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
+import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.OperationRejectedException;
+import org.opends.server.admin.std.client.RootCfgClient;
 
 
 
@@ -308,24 +315,28 @@ public abstract class Driver {
    * @throws ManagedObjectNotFoundException
    *           If the parent managed object could not be found.
    * @throws OperationRejectedException
-   *           If the server refuses to remove the child managed
-   *           object due to some server-side constraint which cannot
-   *           be satisfied (for example, if it is referenced by
-   *           another managed object).
+   *           If the managed object cannot be removed due to some
+   *           client-side or server-side constraint which cannot be
+   *           satisfied (for example, if it is referenced by another
+   *           managed object).
    * @throws AuthorizationException
-   *           If the server refuses to make the list the managed
-   *           objects because the client does not have the correct
+   *           If the server refuses to remove the managed objects
+   *           because the client does not have the correct
    *           privileges.
    * @throws CommunicationException
    *           If the client cannot contact the server due to an
    *           underlying communication problem.
    */
-  public abstract <C extends ConfigurationClient, S extends Configuration>
+  public final <C extends ConfigurationClient, S extends Configuration>
   boolean deleteManagedObject(
       ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
       String name) throws IllegalArgumentException,
       ManagedObjectNotFoundException, OperationRejectedException,
-      AuthorizationException, CommunicationException;
+      AuthorizationException, CommunicationException {
+    validateRelationDefinition(parent, rd);
+    ManagedObjectPath<?, ?> child = parent.child(rd, name);
+    return doDeleteManagedObject(child);
+  }
 
 
 
@@ -352,24 +363,28 @@ public abstract class Driver {
    * @throws ManagedObjectNotFoundException
    *           If the parent managed object could not be found.
    * @throws OperationRejectedException
-   *           If the server refuses to remove the child managed
-   *           object due to some server-side constraint which cannot
-   *           be satisfied (for example, if it is referenced by
-   *           another managed object).
+   *           If the managed object cannot be removed due to some
+   *           client-side or server-side constraint which cannot be
+   *           satisfied (for example, if it is referenced by another
+   *           managed object).
    * @throws AuthorizationException
-   *           If the server refuses to make the list the managed
-   *           objects because the client does not have the correct
+   *           If the server refuses to remove the managed objects
+   *           because the client does not have the correct
    *           privileges.
    * @throws CommunicationException
    *           If the client cannot contact the server due to an
    *           underlying communication problem.
    */
-  public abstract <C extends ConfigurationClient, S extends Configuration>
+  public final <C extends ConfigurationClient, S extends Configuration>
   boolean deleteManagedObject(
       ManagedObjectPath<?, ?> parent, OptionalRelationDefinition<C, S> rd)
       throws IllegalArgumentException, ManagedObjectNotFoundException,
       OperationRejectedException, AuthorizationException,
-      CommunicationException;
+      CommunicationException {
+    validateRelationDefinition(parent, rd);
+    ManagedObjectPath<?, ?> child = parent.child(rd);
+    return doDeleteManagedObject(child);
+  }
 
 
 
@@ -507,6 +522,18 @@ public abstract class Driver {
 
 
   /**
+   * Gets the root configuration managed object associated with this
+   * management context driver.
+   *
+   * @return Returns the root configuration managed object associated
+   *         with this management context driver.
+   */
+  public abstract
+  ManagedObject<RootCfgClient> getRootConfigurationManagedObject();
+
+
+
+  /**
    * Lists the child managed objects of the named parent managed
    * object.
    *
@@ -611,6 +638,40 @@ public abstract class Driver {
 
 
   /**
+   * Deletes the named managed object.
+   * <p>
+   * Implementations do not need check whether the named managed
+   * object exists, nor do they need to enforce client constraints.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          relation definition refers to.
+   * @param path
+   *          The path of the managed object to be deleted.
+   * @throws OperationRejectedException
+   *           If the managed object cannot be removed due to some
+   *           server-side constraint which cannot be satisfied (for
+   *           example, if it is referenced by another managed
+   *           object).
+   * @throws AuthorizationException
+   *           If the server refuses to remove the managed objects
+   *           because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
+   */
+  protected abstract <C extends ConfigurationClient, S extends Configuration>
+  void deleteManagedObject(
+      ManagedObjectPath<C, S> path) throws OperationRejectedException,
+      AuthorizationException, CommunicationException;
+
+
+
+  /**
    * Gets the default values for the specified property.
    *
    * @param <PD>
@@ -632,6 +693,84 @@ public abstract class Driver {
       throws DefaultBehaviorException {
     DefaultValueFinder<PD> v = new DefaultValueFinder<PD>(p, isCreate);
     return v.find(p, pd);
+  }
+
+
+
+  /**
+   * Gets the management context associated with this driver.
+   *
+   * @return Returns the management context associated with this
+   *         driver.
+   */
+  protected abstract ManagementContext getManagementContext();
+
+
+
+  /**
+   * Validate that a relation definition belongs to the managed object
+   * referenced by the provided path.
+   *
+   * @param path
+   *          The parent managed object path.
+   * @param rd
+   *          The relation definition.
+   * @throws IllegalArgumentException
+   *           If the relation definition does not belong to the
+   *           managed object definition.
+   */
+  protected final void validateRelationDefinition(ManagedObjectPath<?, ?> path,
+      RelationDefinition<?, ?> rd) throws IllegalArgumentException {
+    AbstractManagedObjectDefinition<?, ?> d = path.getManagedObjectDefinition();
+    RelationDefinition<?, ?> tmp = d.getRelationDefinition(rd.getName());
+    if (tmp != rd) {
+      throw new IllegalArgumentException("The relation " + rd.getName()
+          + " is not associated with a " + d.getName());
+    }
+  }
+
+
+
+  // Remove a managed object, first ensuring that the parent exists,
+  // then ensuring that the child exists, before ensuring that any
+  // constraints are satisfied.
+  private <C extends ConfigurationClient, S extends Configuration>
+  boolean doDeleteManagedObject(
+      ManagedObjectPath<C, S> path) throws ManagedObjectNotFoundException,
+      OperationRejectedException, AuthorizationException,
+      CommunicationException {
+    // First make sure that the parent exists.
+    if (!managedObjectExists(path.parent())) {
+      throw new ManagedObjectNotFoundException();
+    }
+
+    // Make sure that the targeted managed object exists.
+    if (!managedObjectExists(path)) {
+      return false;
+    }
+
+    // The targeted managed object is guaranteed to exist, so enforce
+    // any constraints.
+    AbstractManagedObjectDefinition<?, ?> d = path.getManagedObjectDefinition();
+    List<Message> messages = new LinkedList<Message>();
+    boolean isAcceptable = true;
+
+    for (Constraint constraint : d.getAllConstraints()) {
+      for (ClientConstraintHandler handler : constraint
+          .getClientConstraintHandlers()) {
+        ManagementContext context = getManagementContext();
+        if (!handler.isDeleteAcceptable(context, path, messages)) {
+          isAcceptable = false;
+        }
+      }
+    }
+
+    if (!isAcceptable) {
+      throw new OperationRejectedException(messages);
+    }
+
+    deleteManagedObject(path);
+    return true;
   }
 
 }

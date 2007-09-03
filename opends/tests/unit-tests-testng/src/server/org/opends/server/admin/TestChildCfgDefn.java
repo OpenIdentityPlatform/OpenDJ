@@ -180,6 +180,28 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
   private TestChildCfgDefn() {
     super("test-child", null);
   }
+  
+  
+  
+  /**
+   * Adds a constraint temporarily with this test definition.
+   * 
+   * @param constraint The constraint.
+   */
+  public void addConstraint(Constraint constraint) {
+    registerConstraint(constraint);
+  }
+  
+  
+  
+  /**
+   * Removes a constraint from this test definition.
+   * 
+   * @param constraint The constraint.
+   */
+  public void removeConstraint(Constraint constraint) {
+    deregisterConstraint(constraint);
+  }
 
 
 
