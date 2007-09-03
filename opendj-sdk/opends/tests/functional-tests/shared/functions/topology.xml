@@ -614,12 +614,12 @@
            'dsPath'  : syncserverPath
          }
       </call>
-      
+     
       <message>
-        'Create synchronization provider'
+        'List synchronization providers'
       </message>
       
-      <call function="'createSyncProvider'">
+      <call function="'listSyncProviders'">
         { 'location'       : syncserver.getHostname(),
           'dsPath'         : syncserverPath,
           'dsInstanceHost' : syncserver.getHostname(),
