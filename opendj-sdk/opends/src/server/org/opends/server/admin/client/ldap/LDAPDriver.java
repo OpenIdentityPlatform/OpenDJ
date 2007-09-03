@@ -47,6 +47,7 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
@@ -59,7 +60,6 @@ import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.ManagedObjectPath;
-import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyIsMandatoryException;
@@ -74,6 +74,8 @@ import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.admin.client.spi.Driver;
 import org.opends.server.admin.client.spi.PropertySet;
+import org.opends.server.admin.std.client.RootCfgClient;
+import org.opends.server.admin.std.meta.RootCfgDefn;
 
 
 
@@ -85,6 +87,9 @@ final class LDAPDriver extends Driver {
   // The LDAP connection.
   private final LDAPConnection connection;
 
+  // The LDAP management context.
+  private final LDAPManagementContext context;
+
   // The LDAP profile which should be used to construct LDAP
   // requests and decode LDAP responses.
   private final LDAPProfile profile;
@@ -95,56 +100,18 @@ final class LDAPDriver extends Driver {
    * Creates a new LDAP driver using the specified LDAP connection and
    * profile.
    *
+   * @param context
+   *          The LDAP management context.
    * @param connection
    *          The LDAP connection.
    * @param profile
    *          The LDAP profile.
    */
-  public LDAPDriver(LDAPConnection connection, LDAPProfile profile) {
+  public LDAPDriver(LDAPManagementContext context, LDAPConnection connection,
+      LDAPProfile profile) {
+    this.context = context;
     this.connection = connection;
     this.profile = profile;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public <C extends ConfigurationClient, S extends Configuration>
-  boolean deleteManagedObject(
-      ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
-      String name) throws IllegalArgumentException,
-      ManagedObjectNotFoundException, OperationRejectedException,
-      AuthorizationException, CommunicationException {
-    validateRelationDefinition(parent, rd);
-
-    if (!managedObjectExists(parent)) {
-      throw new ManagedObjectNotFoundException();
-    }
-
-    return removeManagedObject(parent.child(rd, name));
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public <C extends ConfigurationClient, S extends Configuration>
-  boolean deleteManagedObject(
-      ManagedObjectPath<?, ?> parent, OptionalRelationDefinition<C, S> rd)
-      throws IllegalArgumentException, ManagedObjectNotFoundException,
-      OperationRejectedException, AuthorizationException,
-      CommunicationException {
-    validateRelationDefinition(parent, rd);
-
-    if (!managedObjectExists(parent)) {
-      throw new ManagedObjectNotFoundException();
-    }
-
-    return removeManagedObject(parent.child(rd));
   }
 
 
@@ -289,6 +256,18 @@ final class LDAPDriver extends Driver {
    * {@inheritDoc}
    */
   @Override
+  public ManagedObject<RootCfgClient> getRootConfigurationManagedObject() {
+    return new LDAPManagedObject<RootCfgClient>(this,
+        RootCfgDefn.getInstance(), ManagedObjectPath.emptyPath(),
+        new PropertySet(), true, null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public <C extends ConfigurationClient, S extends Configuration>
   String[] listManagedObjects(
       ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
@@ -341,7 +320,7 @@ final class LDAPDriver extends Driver {
       return true;
     }
 
-    ManagedObjectPath<?,?> parent = path.parent();
+    ManagedObjectPath<?, ?> parent = path.parent();
     LdapName dn = LDAPNameBuilder.create(parent, profile);
     if (!entryExists(dn)) {
       throw new ManagedObjectNotFoundException();
@@ -349,6 +328,43 @@ final class LDAPDriver extends Driver {
 
     dn = LDAPNameBuilder.create(path, profile);
     return entryExists(dn);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected <C extends ConfigurationClient, S extends Configuration>
+  void deleteManagedObject(
+      ManagedObjectPath<C, S> path) throws OperationRejectedException,
+      AuthorizationException, CommunicationException {
+    // Delete the entry and any subordinate entries.
+    LdapName dn = LDAPNameBuilder.create(path, profile);
+    try {
+      connection.deleteSubtree(dn);
+    } catch (OperationNotSupportedException e) {
+      // Unwilling to perform.
+      if (e.getMessage() != null) {
+        throw new OperationRejectedException();
+      } else {
+        Message m = Message.raw("%s", e.getMessage());
+        throw new OperationRejectedException(m);
+      }
+    } catch (NamingException e) {
+      adaptNamingException(e);
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected LDAPManagementContext getManagementContext() {
+    return context;
   }
 
 
@@ -542,43 +558,5 @@ final class LDAPDriver extends Driver {
     };
 
     return d.resolveManagedObjectDefinition(resolver);
-  }
-
-
-
-  // Remove the named managed object.
-  private boolean removeManagedObject(ManagedObjectPath<?, ?> path)
-      throws CommunicationException, AuthorizationException,
-      OperationRejectedException, ManagedObjectNotFoundException {
-    if (!managedObjectExists(path)) {
-      return false;
-    }
-
-    // Delete the entry and any subordinate entries.
-    LdapName dn = LDAPNameBuilder.create(path, profile);
-    try {
-      connection.deleteSubtree(dn);
-    } catch (OperationNotSupportedException e) {
-      // Unwilling to perform.
-      throw new OperationRejectedException(e);
-    } catch (NamingException e) {
-      adaptNamingException(e);
-    }
-
-    return true;
-  }
-
-
-
-  // Validate that a relation definition belongs to this managed
-  // object.
-  private void validateRelationDefinition(ManagedObjectPath<?, ?> path,
-      RelationDefinition<?, ?> rd) throws IllegalArgumentException {
-    AbstractManagedObjectDefinition<?, ?> d = path.getManagedObjectDefinition();
-    RelationDefinition<?, ?> tmp = d.getRelationDefinition(rd.getName());
-    if (tmp != rd) {
-      throw new IllegalArgumentException("The relation " + rd.getName()
-          + " is not associated with a " + d.getName());
-    }
   }
 }

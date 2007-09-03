@@ -30,9 +30,8 @@ package org.opends.server.admin.client.ldap;
 
 
 import org.opends.server.admin.LDAPProfile;
-import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagementContext;
-import org.opends.server.admin.std.client.RootCfgClient;
+import org.opends.server.admin.client.spi.Driver;
 import org.opends.server.util.Validator;
 
 
@@ -63,7 +62,7 @@ public final class LDAPManagementContext extends ManagementContext {
   // Private constructor.
   private LDAPManagementContext(LDAPConnection connection,
       LDAPProfile profile) {
-    this.driver = new LDAPDriver(connection, profile);
+    this.driver = new LDAPDriver(this, connection, profile);
   }
 
 
@@ -71,7 +70,8 @@ public final class LDAPManagementContext extends ManagementContext {
   /**
    * {@inheritDoc}
    */
-  public ManagedObject<RootCfgClient> getRootConfigurationManagedObject() {
-    return LDAPManagedObject.getRootManagedObject(driver);
+  @Override
+  protected Driver getDriver() {
+    return driver;
   }
 }

@@ -40,6 +40,7 @@ import javax.naming.ldap.LdapName;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.AdminTestCase;
+import org.opends.server.admin.Constraint;
 import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.ManagedObjectAlreadyExistsException;
@@ -793,6 +794,206 @@ public final class LDAPClientTest extends AdminTestCase {
     ManagementContext ctx = LDAPManagementContext.createFromContext(c);
     removeTestParent(ctx, "test parent 1");
     c.assertSubtreeIsDeleted();
+  }
+
+
+
+  /**
+   * Tests creation of a child managed object succeeds when registered
+   * add constraints succeed.
+   *
+   * @throws Exception
+   *           If an unexpected error occurred.
+   */
+  @Test
+  public void testAddConstraintSuccess() throws Exception {
+    Constraint constraint = new MockConstraint(true, false, false);
+    TestChildCfgDefn.getInstance().addConstraint(constraint);
+
+    try {
+      CreateEntryMockLDAPConnection c = new CreateEntryMockLDAPConnection(
+          "cn=test child new,cn=test children,cn=test parent 1,cn=test parents,cn=config");
+      c.importLDIF(TEST_LDIF);
+      c.addExpectedAttribute("cn", "test child new");
+      c.addExpectedAttribute("objectclass", "top", "ds-cfg-virtual-attribute");
+      c.addExpectedAttribute("ds-cfg-virtual-attribute-enabled", "true");
+      c.addExpectedAttribute("ds-cfg-virtual-attribute-class",
+          "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
+      c.addExpectedAttribute("ds-cfg-virtual-attribute-type", "description");
+
+      ManagementContext ctx = LDAPManagementContext.createFromContext(c);
+      TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
+      TestChildCfgClient child = parent.createTestChild(TestChildCfgDefn
+          .getInstance(), "test child new", null);
+      child.setMandatoryBooleanProperty(true);
+      child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer
+          .getAttributeType("description"));
+      child.commit();
+
+      c.assertEntryIsCreated();
+    } finally {
+      // Clean up.
+      TestChildCfgDefn.getInstance().removeConstraint(constraint);
+    }
+  }
+
+
+
+  /**
+   * Tests creation of a child managed object fails when registered
+   * add constraints fail.
+   *
+   * @throws Exception
+   *           If an unexpected error occurred.
+   */
+  @Test(expectedExceptions=OperationRejectedException.class)
+  public void testAddConstraintFail() throws Exception {
+    Constraint constraint = new MockConstraint(false, true, true);
+    TestChildCfgDefn.getInstance().addConstraint(constraint);
+
+    try {
+      CreateEntryMockLDAPConnection c = new CreateEntryMockLDAPConnection(
+          "cn=test child new,cn=test children,cn=test parent 1,cn=test parents,cn=config");
+      c.importLDIF(TEST_LDIF);
+      c.addExpectedAttribute("cn", "test child new");
+      c.addExpectedAttribute("objectclass", "top", "ds-cfg-virtual-attribute");
+      c.addExpectedAttribute("ds-cfg-virtual-attribute-enabled", "true");
+      c.addExpectedAttribute("ds-cfg-virtual-attribute-class",
+          "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
+      c.addExpectedAttribute("ds-cfg-virtual-attribute-type", "description");
+
+      ManagementContext ctx = LDAPManagementContext.createFromContext(c);
+      TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
+      TestChildCfgClient child = parent.createTestChild(TestChildCfgDefn
+          .getInstance(), "test child new", null);
+      child.setMandatoryBooleanProperty(true);
+      child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer
+          .getAttributeType("description"));
+      child.commit();
+      Assert.fail("The add constraint failed to prevent creation of the managed object");
+    } finally {
+      // Clean up.
+      TestChildCfgDefn.getInstance().removeConstraint(constraint);
+    }
+  }
+
+
+
+  /**
+   * Tests removal of a child managed object succeeds when registered
+   * remove constraints succeed.
+   *
+   * @throws Exception
+   *           If an unexpected error occurred.
+   */
+  @Test
+  public void testRemoveConstraintSuccess() throws Exception {
+    Constraint constraint = new MockConstraint(false, false, true);
+    TestChildCfgDefn.getInstance().addConstraint(constraint);
+
+    try {
+      DeleteSubtreeMockLDAPConnection c = new DeleteSubtreeMockLDAPConnection(
+          "cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config");
+      c.importLDIF(TEST_LDIF);
+      ManagementContext ctx = LDAPManagementContext.createFromContext(c);
+      TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
+      parent.removeTestChild("test child 1");
+      c.assertSubtreeIsDeleted();
+    } finally {
+      // Clean up.
+      TestChildCfgDefn.getInstance().removeConstraint(constraint);
+    }
+  }
+
+
+
+  /**
+   * Tests removal of a child managed object fails when registered
+   * remove constraints fails.
+   *
+   * @throws Exception
+   *           If an unexpected error occurred.
+   */
+  @Test(expectedExceptions=OperationRejectedException.class)
+  public void testRemoveConstraintFail() throws Exception {
+    Constraint constraint = new MockConstraint(true, true, false);
+    TestChildCfgDefn.getInstance().addConstraint(constraint);
+
+    try {
+      DeleteSubtreeMockLDAPConnection c = new DeleteSubtreeMockLDAPConnection(
+          "cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config");
+      c.importLDIF(TEST_LDIF);
+      ManagementContext ctx = LDAPManagementContext.createFromContext(c);
+      TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
+      parent.removeTestChild("test child 1");
+      Assert.fail("The remove constraint failed to prevent removal of the managed object");
+    } finally {
+      // Clean up.
+      TestChildCfgDefn.getInstance().removeConstraint(constraint);
+    }
+  }
+
+
+
+  /**
+   * Tests modification of a child managed object succeeds when
+   * registered remove constraints succeed.
+   *
+   * @throws Exception
+   *           If an unexpected error occurred.
+   */
+  @Test
+  public void testModifyConstraintSuccess() throws Exception {
+    Constraint constraint = new MockConstraint(false, true, false);
+    TestChildCfgDefn.getInstance().addConstraint(constraint);
+
+    try {
+      ModifyEntryMockLDAPConnection c = new ModifyEntryMockLDAPConnection(
+          "cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config");
+      c.importLDIF(TEST_LDIF);
+      c.addExpectedModification("ds-cfg-virtual-attribute-base-dn");
+      ManagementContext ctx = LDAPManagementContext.createFromContext(c);
+      TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
+      TestChildCfgClient child = parent.getTestChild("test child 2");
+      child.setOptionalMultiValuedDNProperty1(Collections.<DN> emptySet());
+      child.commit();
+      Assert.assertTrue(c.isEntryModified());
+    } finally {
+      // Clean up.
+      TestChildCfgDefn.getInstance().removeConstraint(constraint);
+    }
+  }
+
+
+
+  /**
+   * Tests modification of a child managed object fails when
+   * registered remove constraints fails.
+   *
+   * @throws Exception
+   *           If an unexpected error occurred.
+   */
+  @Test(expectedExceptions = OperationRejectedException.class)
+  public void testModifyConstraintFail() throws Exception {
+    Constraint constraint = new MockConstraint(true, false, true);
+    TestChildCfgDefn.getInstance().addConstraint(constraint);
+
+    try {
+      ModifyEntryMockLDAPConnection c = new ModifyEntryMockLDAPConnection(
+          "cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config");
+      c.importLDIF(TEST_LDIF);
+      c.addExpectedModification("ds-cfg-virtual-attribute-base-dn");
+      ManagementContext ctx = LDAPManagementContext.createFromContext(c);
+      TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
+      TestChildCfgClient child = parent.getTestChild("test child 2");
+      child.setOptionalMultiValuedDNProperty1(Collections.<DN> emptySet());
+      child.commit();
+      Assert
+          .fail("The modify constraint failed to prevent modification of the managed object");
+    } finally {
+      // Clean up.
+      TestChildCfgDefn.getInstance().removeConstraint(constraint);
+    }
   }
 
 

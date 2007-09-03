@@ -26,7 +26,6 @@
  */
 
 package org.opends.server.admin;
-import org.opends.messages.Message;
 
 
 
@@ -35,12 +34,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Set;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
 
 
@@ -68,6 +69,10 @@ public abstract class AbstractManagedObjectDefinition
   // The parent managed object definition if applicable.
   private final AbstractManagedObjectDefinition<? super C, ? super S> parent;
 
+  // The set of constraints associated with this managed object
+  // definition.
+  private final Collection<Constraint> constraints;
+
   // The set of property definitions applicable to this managed object
   // definition.
   private final Map<String, PropertyDefinition<?>> propertyDefinitions;
@@ -75,6 +80,10 @@ public abstract class AbstractManagedObjectDefinition
   // The set of relation definitions applicable to this managed object
   // definition.
   private final Map<String, RelationDefinition<?, ?>> relationDefinitions;
+
+  // The set of all constraints associated with this managed object
+  // definition including inherited constraints.
+  private final Collection<Constraint> allConstraints;
 
   // The set of all property definitions associated with this managed
   // object definition including inherited property definitions.
@@ -106,8 +115,10 @@ public abstract class AbstractManagedObjectDefinition
       AbstractManagedObjectDefinition<? super C, ? super S> parent) {
     this.name = name;
     this.parent = parent;
+    this.constraints = new LinkedList<Constraint>();
     this.propertyDefinitions = new HashMap<String, PropertyDefinition<?>>();
     this.relationDefinitions = new HashMap<String, RelationDefinition<?,?>>();
+    this.allConstraints = new LinkedList<Constraint>();
     this.allPropertyDefinitions = new HashMap<String, PropertyDefinition<?>>();
     this.allRelationDefinitions =
       new HashMap<String, RelationDefinition<?, ?>>();
@@ -118,6 +129,8 @@ public abstract class AbstractManagedObjectDefinition
     // If we have a parent definition then inherit its features.
     if (parent != null) {
       parent.children.put(name, this);
+
+      allConstraints.addAll(parent.getAllConstraints());
 
       for (PropertyDefinition<?> pd : parent.getAllPropertyDefinitions()) {
         allPropertyDefinitions.put(pd.getName(), pd);
@@ -153,6 +166,20 @@ public abstract class AbstractManagedObjectDefinition
     }
 
     return Collections.unmodifiableCollection(list);
+  }
+
+
+
+  /**
+   * Get all the constraints associated with this type of managed
+   * object. The returned collection will contain inherited
+   * constraints.
+   *
+   * @return Returns an unmodifiable collection containing all the
+   *         constraints associated with this type of managed object.
+   */
+  public final Collection<Constraint> getAllConstraints() {
+    return Collections.unmodifiableCollection(allConstraints);
   }
 
 
@@ -258,6 +285,19 @@ public abstract class AbstractManagedObjectDefinition
   public final Collection<AbstractManagedObjectDefinition
       <? extends C, ? extends S>> getChildren() {
     return Collections.unmodifiableCollection(children.values());
+  }
+
+
+
+  /**
+   * Get the constraints defined by this managed object definition.
+   * The returned collection will not contain inherited constraints.
+   *
+   * @return Returns an unmodifiable collection containing the
+   *         constraints defined by this managed object definition.
+   */
+  public final Collection<Constraint> getConstraints() {
+    return Collections.unmodifiableCollection(constraints);
   }
 
 
@@ -635,6 +675,22 @@ public abstract class AbstractManagedObjectDefinition
 
 
   /**
+   * Deregister a constraint from the managed object definition.
+   * <p>
+   * This method <b>must not</b> be called by applications and is
+   * only intended for internal testing.
+   *
+   * @param constraint
+   *          The constraint to be deregistered.
+   */
+  protected final void deregisterConstraint(Constraint constraint) {
+    constraints.remove(constraint);
+    allConstraints.remove(constraint);
+  }
+
+
+
+  /**
    * Deregister a relation definition from the managed object
    * definition.
    * <p>
@@ -650,6 +706,21 @@ public abstract class AbstractManagedObjectDefinition
 
     relationDefinitions.remove(name);
     allRelationDefinitions.remove(name);
+  }
+
+
+
+  /**
+   * Register a constraint with the managed object definition.
+   * <p>
+   * This method <b>must not</b> be called by applications.
+   *
+   * @param constraint
+   *          The constraint to be registered.
+   */
+  protected final void registerConstraint(Constraint constraint) {
+    constraints.add(constraint);
+    allConstraints.add(constraint);
   }
 
 
