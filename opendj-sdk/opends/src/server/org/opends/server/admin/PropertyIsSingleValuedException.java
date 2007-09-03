@@ -29,9 +29,13 @@ package org.opends.server.admin;
 
 
 
+import static org.opends.messages.AdminMessages.*;
+
+
+
 /**
- * Thrown when an attempt is made to add more than value to a single-valued
- * property.
+ * Thrown when an attempt is made to add more than value to a
+ * single-valued property.
  */
 public class PropertyIsSingleValuedException extends PropertyException {
 
@@ -45,22 +49,10 @@ public class PropertyIsSingleValuedException extends PropertyException {
   /**
    * Create a new property is single valued exception.
    *
-   * @param d
+   * @param pd
    *          The property definition.
    */
-  public PropertyIsSingleValuedException(PropertyDefinition<?> d) {
-    super(d);
+  public PropertyIsSingleValuedException(PropertyDefinition<?> pd) {
+    super(pd, ERR_PROPERTY_IS_SINGLE_VALUED_EXCEPTION.get(pd.getName()));
   }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getMessage() {
-    return "The property \"" + getPropertyDefinition().getName()
-        + "\" must not contain more than one value";
-  }
-
 }

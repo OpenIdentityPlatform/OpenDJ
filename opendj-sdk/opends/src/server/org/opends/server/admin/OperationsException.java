@@ -27,40 +27,22 @@
 
 package org.opends.server.admin;
 
+
+
 import org.opends.messages.Message;
 
 
+
 /**
- * Exceptions thrown as a result of errors that occurred when reading, listing,
- * and modifying managed objects.
+ * Exceptions thrown as a result of errors that occurred when reading,
+ * listing, and modifying managed objects.
  */
-public class OperationsException extends AdminException {
+public abstract class OperationsException extends AdminException {
 
   /**
    * Serialization ID.
    */
   private static final long serialVersionUID = 6329910102360262187L;
-
-
-
-  /**
-   * Create an operations exception.
-   */
-  public OperationsException() {
-    // No implementation required.
-  }
-
-
-
-  /**
-   * Create an operations exception with a cause.
-   *
-   * @param cause
-   *          The cause.
-   */
-  public OperationsException(Throwable cause) {
-    super(cause);
-  }
 
 
 
@@ -72,7 +54,7 @@ public class OperationsException extends AdminException {
    * @param cause
    *          The cause.
    */
-  public OperationsException(Message message, Throwable cause) {
+  protected OperationsException(Message message, Throwable cause) {
     super(message, cause);
   }
 
@@ -84,7 +66,7 @@ public class OperationsException extends AdminException {
    * @param message
    *          The message.
    */
-  public OperationsException(Message message) {
+  protected OperationsException(Message message) {
     super(message);
   }
 }

@@ -29,9 +29,13 @@ package org.opends.server.admin;
 
 
 
+import org.opends.messages.Message;
+
+
+
 /**
- * Exceptions thrown as a result of errors that occurred when decoding and
- * modifying property values.
+ * Exceptions thrown as a result of errors that occurred when decoding
+ * and modifying property values.
  */
 public abstract class PropertyException extends AdminRuntimeException {
 
@@ -40,42 +44,56 @@ public abstract class PropertyException extends AdminRuntimeException {
    */
   private static final long serialVersionUID = -8465109598081914482L;
 
-  // The property definition associated with the property that caused the
-  // exception.
-  private final PropertyDefinition<?> definition;
+  // The property definition associated with the property that caused
+  // the exception.
+  private final PropertyDefinition<?> pd;
 
 
 
   /**
-   * Create an operations exception with a cause.
+   * Creates property exception without a cause.
    *
-   * @param definition
-   *          The property definition associated with the property that caused
-   *          the exception.
+   * @param pd
+   *          The property definition associated with the property
+   *          that caused the exception.
+   * @param message
+   *          The message.
    */
-  protected PropertyException(PropertyDefinition<?> definition) {
-    this.definition = definition;
+  protected PropertyException(PropertyDefinition<?> pd, Message message) {
+    super(message);
+    this.pd = pd;
   }
 
 
 
   /**
-   * Get the property definition associated with the property that caused the
-   * exception.
+   * Creates property exception with a cause.
    *
-   * @return Returns the property definition associated with the property that
-   *         caused the exception.
+   * @param pd
+   *          The property definition associated with the property
+   *          that caused the exception.
+   * @param message
+   *          The message.
+   * @param cause
+   *          The cause.
+   */
+  protected PropertyException(PropertyDefinition<?> pd, Message message,
+      Throwable cause) {
+    super(message, cause);
+    this.pd = pd;
+  }
+
+
+
+  /**
+   * Get the property definition associated with the property that
+   * caused the exception.
+   *
+   * @return Returns the property definition associated with the
+   *         property that caused the exception.
    */
   public final PropertyDefinition<?> getPropertyDefinition() {
-    return definition;
+    return pd;
   }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public abstract String getMessage();
 
 }

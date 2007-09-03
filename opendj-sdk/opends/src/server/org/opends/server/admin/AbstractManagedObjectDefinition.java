@@ -637,12 +637,14 @@ public abstract class AbstractManagedObjectDefinition
     rd = resolveManagedObjectDefinitionAux(this, r);
     if (rd == null) {
       // Unable to resolve the definition.
-      throw new DefinitionDecodingException(Reason.WRONG_TYPE_INFORMATION);
+      throw new DefinitionDecodingException(this,
+          Reason.WRONG_TYPE_INFORMATION);
     } else if (rd instanceof ManagedObjectDefinition) {
       return (ManagedObjectDefinition<? extends C, ? extends S>) rd;
     } else {
       // Resolved definition was abstract.
-      throw new DefinitionDecodingException(Reason.ABSTRACT_TYPE_INFORMATION);
+      throw new DefinitionDecodingException(this,
+          Reason.ABSTRACT_TYPE_INFORMATION);
     }
   }
 

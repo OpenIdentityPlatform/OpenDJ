@@ -26,7 +26,11 @@
  */
 
 package org.opends.server.admin;
-import org.opends.messages.Message;
+
+
+
+import static org.opends.messages.AdminMessages.*;
+
 
 
 /**
@@ -41,16 +45,12 @@ public final class ManagedObjectAlreadyExistsException extends
    */
   private static final long serialVersionUID = -2344653674171609366L;
 
-  // Simple description of this exception for debugging.
-  private static final String MSG = "A managed object could not be created"
-      + " because there is an existing managed object with the same name";
-
 
 
   /**
    * Create a managed object already exists exception.
    */
   public ManagedObjectAlreadyExistsException() {
-    super(Message.raw(MSG));
+    super(ERR_MANAGED_OBJECT_ALREADY_EXISTS_EXCEPTION.get());
   }
 }

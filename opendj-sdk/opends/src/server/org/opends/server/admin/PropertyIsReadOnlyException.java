@@ -29,6 +29,10 @@ package org.opends.server.admin;
 
 
 
+import static org.opends.messages.AdminMessages.*;
+
+
+
 /**
  * Thrown when an attempt is made to modify a read-only property.
  */
@@ -44,22 +48,11 @@ public class PropertyIsReadOnlyException extends PropertyException {
   /**
    * Create a new property is read-only exception.
    *
-   * @param d
+   * @param pd
    *          The property definition.
    */
-  public PropertyIsReadOnlyException(PropertyDefinition<?> d) {
-    super(d);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getMessage() {
-    return "The property \"" + getPropertyDefinition().getName()
-        + "\" must not be modified as it is read-only";
+  public PropertyIsReadOnlyException(PropertyDefinition<?> pd) {
+    super(pd, ERR_PROPERTY_IS_READ_ONLY_EXCEPTION.get(pd.getName()));
   }
 
 }

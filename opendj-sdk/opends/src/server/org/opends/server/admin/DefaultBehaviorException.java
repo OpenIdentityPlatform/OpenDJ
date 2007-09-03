@@ -29,6 +29,10 @@ package org.opends.server.admin;
 
 
 
+import static org.opends.messages.AdminMessages.*;
+
+
+
 /**
  * This exception is thrown when a property's default values cannot be
  * determined. This can occur in the following situations:
@@ -47,9 +51,6 @@ public class DefaultBehaviorException extends PropertyException {
    */
   private static final long serialVersionUID = -2542117466747573053L;
 
-  // The cause of this exception.
-  private final Throwable cause;
-
 
 
   /**
@@ -63,28 +64,6 @@ public class DefaultBehaviorException extends PropertyException {
    *          being determined.
    */
   public DefaultBehaviorException(PropertyDefinition<?> pd, Throwable cause) {
-    super(pd);
-    this.cause = cause;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Throwable getCause() {
-    return cause;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getMessage() {
-    return "The default values could not be determined "
-        + "for the property \"" + getPropertyDefinition().getName() + "\"";
+    super(pd, ERR_DEFAULT_BEHAVIOR_PROPERTY_EXCEPTION.get(pd.getName()), cause);
   }
 }

@@ -26,10 +26,12 @@
  */
 
 package org.opends.server.admin.client;
+
+
+
+import static org.opends.messages.AdminMessages.*;
+
 import org.opends.messages.Message;
-
-
-
 import org.opends.server.admin.IllegalPropertyValueStringException;
 import org.opends.server.admin.OperationsException;
 import org.opends.server.admin.PropertyDefinition;
@@ -52,6 +54,30 @@ public class IllegalManagedObjectNameException extends OperationsException {
    * Serialization ID.
    */
   private static final long serialVersionUID = 7491748228684293291L;
+
+
+
+  // Create the message
+  private static Message createMessage(String illegalName,
+      PropertyDefinition<?> namingPropertyDefinition) {
+    if (illegalName.length() == 0) {
+      return ERR_ILLEGAL_MANAGED_OBJECT_NAME_EXCEPTION_EMPTY.get();
+    } else if (illegalName.trim().length() == 0) {
+      return ERR_ILLEGAL_MANAGED_OBJECT_NAME_EXCEPTION_BLANK.get();
+    } else if (namingPropertyDefinition != null) {
+      try {
+        namingPropertyDefinition.decodeValue(illegalName);
+      } catch (IllegalPropertyValueStringException e) {
+        PropertyDefinitionUsageBuilder builder =
+          new PropertyDefinitionUsageBuilder(true);
+        return ERR_ILLEGAL_MANAGED_OBJECT_NAME_EXCEPTION_SYNTAX.get(
+            illegalName, namingPropertyDefinition.getName(), builder
+                .getUsage(namingPropertyDefinition));
+      }
+    }
+
+    return ERR_ILLEGAL_MANAGED_OBJECT_NAME_EXCEPTION_OTHER.get(illegalName);
+  }
 
   // The illegal name.
   private final String illegalName;
@@ -85,6 +111,8 @@ public class IllegalManagedObjectNameException extends OperationsException {
    */
   public IllegalManagedObjectNameException(String illegalName,
       PropertyDefinition<?> namingPropertyDefinition) {
+    super(createMessage(illegalName, namingPropertyDefinition));
+
     this.illegalName = illegalName;
     this.namingPropertyDefinition = namingPropertyDefinition;
   }
@@ -110,36 +138,6 @@ public class IllegalManagedObjectNameException extends OperationsException {
    */
   public PropertyDefinition<?> getNamingPropertyDefinition() {
     return namingPropertyDefinition;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Message getMessageObject() {
-    if (illegalName.length() == 0) {
-      return Message.raw("Empty managed object names are not permitted");
-    } else if (illegalName.trim().length() == 0) {
-      return Message.raw("Blank managed object names are not permitted");
-    } else if (namingPropertyDefinition != null) {
-      try {
-        namingPropertyDefinition.decodeValue(illegalName);
-      } catch (IllegalPropertyValueStringException e) {
-        String msg = "The managed object name \"%s\" is not a valid value "
-            + "for the naming property \"%s\", which must have the following "
-            + "syntax: %s";
-        PropertyDefinitionUsageBuilder builder =
-          new PropertyDefinitionUsageBuilder(true);
-        return Message.raw(String.format(msg, illegalName,
-                namingPropertyDefinition.getName(),
-                builder.getUsage(namingPropertyDefinition)));
-      }
-    }
-
-    return Message.raw("The managed object name \"" + illegalName +
-            "\" is not permitted");
   }
 
 }

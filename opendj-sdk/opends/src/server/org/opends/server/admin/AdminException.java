@@ -26,36 +26,19 @@
  */
 
 package org.opends.server.admin;
+
+
+
 import org.opends.messages.Message;
 
 import org.opends.server.types.OpenDsException;
+
 
 
 /**
  * Exceptions thrown when interacting with administration framework.
  */
 public abstract class AdminException extends OpenDsException {
-
-  /**
-   * Create an admin exception.
-   */
-  protected AdminException() {
-    // No implementation required.
-  }
-
-
-
-  /**
-   * Create an admin exception with a cause.
-   *
-   * @param cause
-   *          The cause.
-   */
-  protected AdminException(Throwable cause) {
-    super(cause);
-  }
-
-
 
   /**
    * Create an admin exception with a message and cause.

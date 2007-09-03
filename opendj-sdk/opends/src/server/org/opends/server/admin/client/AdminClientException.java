@@ -26,9 +26,10 @@
  */
 
 package org.opends.server.admin.client;
+
+
+
 import org.opends.messages.Message;
-
-
 
 import org.opends.server.admin.AdminException;
 
@@ -43,33 +44,12 @@ import org.opends.server.admin.AdminException;
  * Client exceptions represent communications problems, security
  * problems, and service related problems.
  */
-public class AdminClientException extends AdminException {
+public abstract class AdminClientException extends AdminException {
 
   /**
    * Serialization ID.
    */
   private static final long serialVersionUID = 4044747533980824456L;
-
-
-
-  /**
-   * Create an administration client exception.
-   */
-  public AdminClientException() {
-    // No implementation required.
-  }
-
-
-
-  /**
-   * Create an administration client exception with a cause.
-   *
-   * @param cause
-   *          The cause.
-   */
-  public AdminClientException(Throwable cause) {
-    super(cause);
-  }
 
 
 
@@ -82,7 +62,7 @@ public class AdminClientException extends AdminException {
    * @param cause
    *          The cause.
    */
-  public AdminClientException(Message message, Throwable cause) {
+  protected AdminClientException(Message message, Throwable cause) {
     super(message, cause);
   }
 
@@ -94,7 +74,7 @@ public class AdminClientException extends AdminException {
    * @param message
    *          The message.
    */
-  public AdminClientException(Message message) {
+  protected AdminClientException(Message message) {
     super(message);
   }
 }

@@ -530,7 +530,7 @@ final class LDAPDriver extends Driver {
 
     if (oc == null) {
       // No object classes.
-      throw new DefinitionDecodingException(Reason.NO_TYPE_INFORMATION);
+      throw new DefinitionDecodingException(d, Reason.NO_TYPE_INFORMATION);
     }
 
     final Set<String> objectClasses = new HashSet<String>();
@@ -544,7 +544,7 @@ final class LDAPDriver extends Driver {
 
     if (objectClasses.isEmpty()) {
       // No object classes.
-      throw new DefinitionDecodingException(Reason.NO_TYPE_INFORMATION);
+      throw new DefinitionDecodingException(d, Reason.NO_TYPE_INFORMATION);
     }
 
     // Resolve the appropriate sub-type based on the object classes.

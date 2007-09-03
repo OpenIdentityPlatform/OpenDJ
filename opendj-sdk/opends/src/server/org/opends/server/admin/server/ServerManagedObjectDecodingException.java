@@ -26,22 +26,27 @@
  */
 
 package org.opends.server.admin.server;
-import org.opends.messages.Message;
 
 
+
+import static org.opends.messages.AdminMessages.*;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.DecodingException;
+import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.PropertyException;
+import org.opends.server.util.Validator;
 
 
 
 /**
- * The requested server managed object was found but one or more of its
- * properties could not be decoded successfully.
+ * The requested server managed object was found but one or more of
+ * its properties could not be decoded successfully.
  */
 public class ServerManagedObjectDecodingException extends DecodingException {
 
@@ -50,11 +55,42 @@ public class ServerManagedObjectDecodingException extends DecodingException {
    */
   private static final long serialVersionUID = 1598401431084729853L;
 
-  // The partially created server managed object.
-  private final ServerManagedObject<?> partialManagedObject;
+
+
+  // Create the message.
+  private static Message createMessage(
+      ServerManagedObject<?> partialManagedObject,
+      Collection<PropertyException> causes) {
+    Validator.ensureNotNull(causes);
+    Validator.ensureTrue(!causes.isEmpty());
+
+    ManagedObjectDefinition<?, ?> d = partialManagedObject
+        .getManagedObjectDefinition();
+    if (causes.size() == 1) {
+      return ERR_MANAGED_OBJECT_DECODING_EXCEPTION_SINGLE.get(d
+          .getUserFriendlyName(), causes.iterator().next().getMessageObject());
+    } else {
+      MessageBuilder builder = new MessageBuilder();
+
+      boolean isFirst = true;
+      for (PropertyException cause : causes) {
+        if (!isFirst) {
+          builder.append("; ");
+        }
+        builder.append(cause.getMessageObject());
+        isFirst = false;
+      }
+
+      return ERR_MANAGED_OBJECT_DECODING_EXCEPTION_PLURAL.get(d
+          .getUserFriendlyName(), builder.toMessage());
+    }
+  }
 
   // The exception(s) that caused this decoding exception.
   private final Collection<PropertyException> causes;
+
+  // The partially created server managed object.
+  private final ServerManagedObject<?> partialManagedObject;
 
 
 
@@ -62,15 +98,18 @@ public class ServerManagedObjectDecodingException extends DecodingException {
    * Create a new property decoding exception.
    *
    * @param partialManagedObject
-   *          The partially created server managed object containing properties
-   *          which were successfully decoded and empty properties for those
-   *          which were not (this may include empty mandatory properties).
+   *          The partially created server managed object containing
+   *          properties which were successfully decoded and empty
+   *          properties for those which were not (this may include
+   *          empty mandatory properties).
    * @param causes
    *          The exception(s) that caused this decoding exception.
    */
   public ServerManagedObjectDecodingException(
       ServerManagedObject<?> partialManagedObject,
       Collection<PropertyException> causes) {
+    super(createMessage(partialManagedObject, causes));
+
     this.partialManagedObject = partialManagedObject;
     this.causes = Collections
         .unmodifiableList(new LinkedList<PropertyException>(causes));
@@ -79,10 +118,11 @@ public class ServerManagedObjectDecodingException extends DecodingException {
 
 
   /**
-   * Get an unmodifiable collection view of the causes of this exception.
+   * Get an unmodifiable collection view of the causes of this
+   * exception.
    *
-   * @return Returns an unmodifiable collection view of the causes of this
-   *         exception.
+   * @return Returns an unmodifiable collection view of the causes of
+   *         this exception.
    */
   public Collection<PropertyException> getCauses() {
     return causes;
@@ -91,28 +131,15 @@ public class ServerManagedObjectDecodingException extends DecodingException {
 
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Message getMessageObject() {
-    StringBuilder builder = new StringBuilder();
-    builder.append("The managed object could not be decoded due"
-        + " to the following property exceptions: ");
-    // FIXME: better formatting.
-    builder.append(causes.toString());
-    return Message.raw(builder.toString());  // TODO: i18n?
-  }
-
-
-
-  /**
-   * Get the partially created server managed object containing properties which
-   * were successfully decoded and empty properties for those which were not
-   * (this may include empty mandatory properties).
+   * Get the partially created server managed object containing
+   * properties which were successfully decoded and empty properties
+   * for those which were not (this may include empty mandatory
+   * properties).
    *
-   * @return Returns the partially created server managed object containing
-   *         properties which were successfully decoded and empty properties for
-   *         those which were not (this may include empty mandatory properties).
+   * @return Returns the partially created server managed object
+   *         containing properties which were successfully decoded and
+   *         empty properties for those which were not (this may
+   *         include empty mandatory properties).
    */
   public ServerManagedObject<?> getPartialManagedObject() {
     return partialManagedObject;

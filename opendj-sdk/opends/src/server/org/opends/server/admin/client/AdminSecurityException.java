@@ -26,8 +26,10 @@
  */
 
 package org.opends.server.admin.client;
-import org.opends.messages.Message;
 
+
+
+import org.opends.messages.Message;
 
 
 
@@ -38,27 +40,6 @@ import org.opends.messages.Message;
  * problems.
  */
 public abstract class AdminSecurityException extends AdminClientException {
-
-  /**
-   * Create a security exception.
-   */
-  protected AdminSecurityException() {
-    // No implementation required.
-  }
-
-
-
-  /**
-   * Create a security exception with a cause.
-   *
-   * @param cause
-   *          The cause.
-   */
-  protected AdminSecurityException(Throwable cause) {
-    super(cause);
-  }
-
-
 
   /**
    * Create a security exception with a message and cause.

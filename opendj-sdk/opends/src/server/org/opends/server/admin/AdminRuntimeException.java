@@ -26,34 +26,21 @@
  */
 
 package org.opends.server.admin;
+
+
+
 import org.opends.messages.Message;
 
 
 
 /**
- * Exceptions thrown when interacting with administration framework that
- * applications are not expected to catch.
+ * Exceptions thrown when interacting with administration framework
+ * that applications are not expected to catch.
  */
 public abstract class AdminRuntimeException extends RuntimeException {
 
-  /**
-   * Create an admin runtime exception.
-   */
-  protected AdminRuntimeException() {
-    // No implementation required.
-  }
-
-
-
-  /**
-   * Create an admin runtime exception with a cause.
-   *
-   * @param cause
-   *          The cause.
-   */
-  protected AdminRuntimeException(Throwable cause) {
-    super(cause);
-  }
+  // Message that explains the problem.
+  private final Message message;
 
 
 
@@ -67,6 +54,7 @@ public abstract class AdminRuntimeException extends RuntimeException {
    */
   protected AdminRuntimeException(Message message, Throwable cause) {
     super(message.toString(), cause);
+    this.message = message;
   }
 
 
@@ -79,5 +67,18 @@ public abstract class AdminRuntimeException extends RuntimeException {
    */
   protected AdminRuntimeException(Message message) {
     super(message.toString());
+    this.message = message;
+  }
+
+
+
+  /**
+   * Returns the message that explains the problem that occurred.
+   *
+   * @return Returns the message describing the problem that occurred
+   *         (never <code>null</code>).
+   */
+  public Message getMessageObject() {
+    return this.message;
   }
 }
