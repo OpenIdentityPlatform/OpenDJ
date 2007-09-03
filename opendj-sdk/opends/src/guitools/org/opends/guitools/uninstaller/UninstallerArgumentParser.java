@@ -53,21 +53,21 @@ import org.opends.server.util.args.StringArgument;
  */
 public class UninstallerArgumentParser extends SecureConnectionCliParser
 {
-  private BooleanArgument noPrompt;
-  private BooleanArgument forceOnError;
-  private BooleanArgument quiet;
-  private BooleanArgument removeAll;
-  private BooleanArgument removeServerLibraries;
-  private BooleanArgument removeDatabases;
-  private BooleanArgument removeLogFiles;
-  private BooleanArgument removeConfigurationFiles;
-  private BooleanArgument removeBackupFiles;
-  private BooleanArgument removeLDIFFiles;
+  private BooleanArgument noPromptArg;
+  BooleanArgument forceOnErrorArg;
+  private BooleanArgument quietArg;
+  private BooleanArgument removeAllArg;
+  private BooleanArgument removeServerLibrariesArg;
+  private BooleanArgument removeDatabasesArg;
+  private BooleanArgument removeLogFilesArg;
+  private BooleanArgument removeConfigurationFilesArg;
+  private BooleanArgument removeBackupFilesArg;
+  private BooleanArgument removeLDIFFilesArg;
 
   /**
    * The 'admin UID' global argument.
    */
-  private StringArgument adminUidArg;
+  StringArgument adminUidArg;
   private StringArgument referencedHostNameArg;
 
   /**
@@ -103,73 +103,74 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
   throws ArgumentException
   {
     LinkedHashSet<Argument> args = new LinkedHashSet<Argument>();
-    removeAll = new BooleanArgument(
+    removeAllArg = new BooleanArgument(
         "remove-all",
         'a',
         "remove-all",
         INFO_UNINSTALLDS_DESCRIPTION_REMOVE_ALL.get()
         );
-    args.add(removeAll);
-    removeServerLibraries = new BooleanArgument(
+    args.add(removeAllArg);
+    removeServerLibrariesArg = new BooleanArgument(
         "server-libraries",
         'l',
         "server-libraries",
         INFO_UNINSTALLDS_DESCRIPTION_REMOVE_SERVER_LIBRARIES.get()
         );
-    args.add(removeServerLibraries);
-    removeDatabases = new BooleanArgument(
+    args.add(removeServerLibrariesArg);
+    removeDatabasesArg = new BooleanArgument(
         "databases",
         'd',
         "databases",
         INFO_UNINSTALLDS_DESCRIPTION_REMOVE_DATABASES.get()
         );
-    args.add(removeDatabases);
-    removeLogFiles = new BooleanArgument(
+    args.add(removeDatabasesArg);
+    removeLogFilesArg = new BooleanArgument(
         "log-files",
         'L',
         "log-files",
         INFO_UNINSTALLDS_DESCRIPTION_REMOVE_LOG_FILES.get()
         );
-    args.add(removeLogFiles);
-    removeConfigurationFiles = new BooleanArgument(
+    args.add(removeLogFilesArg);
+    removeConfigurationFilesArg = new BooleanArgument(
         "configuration-files",
         'c',
         "configuration-files",
         INFO_UNINSTALLDS_DESCRIPTION_REMOVE_CONFIGURATION_FILES.get()
         );
-    args.add(removeConfigurationFiles);
-    removeBackupFiles = new BooleanArgument(
+    args.add(removeConfigurationFilesArg);
+    removeBackupFilesArg = new BooleanArgument(
         "backup-files",
         'b',
         "backup-files",
         INFO_UNINSTALLDS_DESCRIPTION_REMOVE_BACKUP_FILES.get()
         );
-    args.add(removeBackupFiles);
-    removeLDIFFiles = new BooleanArgument(
+    args.add(removeBackupFilesArg);
+    removeLDIFFilesArg = new BooleanArgument(
         "ldif-files",
         'e',
         "ldif-files",
         INFO_UNINSTALLDS_DESCRIPTION_REMOVE_LDIF_FILES.get()
         );
-    args.add(removeLDIFFiles);
-    noPrompt = new BooleanArgument(
+    args.add(removeLDIFFilesArg);
+    noPromptArg = new BooleanArgument(
         OPTION_LONG_NO_PROMPT,
         OPTION_SHORT_NO_PROMPT,
         OPTION_LONG_NO_PROMPT,
         INFO_DESCRIPTION_NO_PROMPT.get());
-    args.add(noPrompt);
-    forceOnError = new BooleanArgument(
+    args.add(noPromptArg);
+    forceOnErrorArg = new BooleanArgument(
         "forceOnError",
         'f',
         "forceOnError",
-        INFO_UNINSTALLDS_DESCRIPTION_FORCE.get(noPrompt.getLongIdentifier()));
-    args.add(forceOnError);
-    quiet = new BooleanArgument(
+        INFO_UNINSTALLDS_DESCRIPTION_FORCE.get(
+            noPromptArg.getLongIdentifier()));
+    args.add(forceOnErrorArg);
+    quietArg = new BooleanArgument(
         OPTION_LONG_QUIET,
         OPTION_SHORT_QUIET,
         OPTION_LONG_QUIET,
         INFO_UNINSTALLDS_DESCRIPTION_QUIET.get());
-    args.add(quiet);
+    args.add(quietArg);
 
     adminUidArg = new StringArgument("adminUID", 'I',
         "adminUID", false, false, true, "adminUID",
@@ -210,7 +211,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    */
   public boolean isInteractive()
   {
-    return !noPrompt.isPresent();
+    return !noPromptArg.isPresent();
   }
 
   /**
@@ -221,7 +222,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    */
   public boolean isForceOnError()
   {
-    return forceOnError.isPresent();
+    return forceOnErrorArg.isPresent();
   }
 
   /**
@@ -232,7 +233,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    */
   public boolean isQuiet()
   {
-    return quiet.isPresent();
+    return quietArg.isPresent();
   }
 
   /**
@@ -243,7 +244,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    */
   public boolean removeAll()
   {
-    return removeAll.isPresent();
+    return removeAllArg.isPresent();
   }
 
   /**
@@ -254,7 +255,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    */
   public boolean removeServerLibraries()
   {
-    return removeServerLibraries.isPresent();
+    return removeServerLibrariesArg.isPresent();
   }
 
   /**
@@ -265,7 +266,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    */
   public boolean removeDatabases()
   {
-    return removeDatabases.isPresent();
+    return removeDatabasesArg.isPresent();
   }
 
   /**
@@ -276,7 +277,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    */
   public boolean removeConfigurationFiles()
   {
-    return removeConfigurationFiles.isPresent();
+    return removeConfigurationFilesArg.isPresent();
   }
 
   /**
@@ -287,7 +288,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    */
   public boolean removeBackupFiles()
   {
-    return removeBackupFiles.isPresent();
+    return removeBackupFilesArg.isPresent();
   }
 
   /**
@@ -298,7 +299,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    */
   public boolean removeLDIFFiles()
   {
-    return removeLDIFFiles.isPresent();
+    return removeLDIFFilesArg.isPresent();
   }
 
   /**
@@ -309,7 +310,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    */
   public boolean removeLogFiles()
   {
-    return removeLogFiles.isPresent();
+    return removeLogFilesArg.isPresent();
   }
 
   /**
@@ -371,32 +372,32 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
   public int validateGlobalOptions(MessageBuilder buf)
   {
     int returnValue;
-    if (!noPrompt.isPresent() && forceOnError.isPresent())
+    if (!noPromptArg.isPresent() && forceOnErrorArg.isPresent())
     {
       Message message = ERR_UNINSTALL_FORCE_REQUIRES_NO_PROMPT.get(
-          forceOnError.getLongIdentifier(), noPrompt.getLongIdentifier());
+          forceOnErrorArg.getLongIdentifier(), noPromptArg.getLongIdentifier());
       if (buf.length() > 0)
       {
         buf.append(EOL);
       }
       buf.append(message);
     }
-    if (removeAll.isPresent())
+    if (removeAllArg.isPresent())
     {
       BooleanArgument[] removeArgs = {
-          removeServerLibraries,
-          removeDatabases,
-          removeLogFiles,
-          removeConfigurationFiles,
-          removeBackupFiles,
-          removeLDIFFiles
+          removeServerLibrariesArg,
+          removeDatabasesArg,
+          removeLogFilesArg,
+          removeConfigurationFilesArg,
+          removeBackupFilesArg,
+          removeLDIFFilesArg
       };
       for (int i=0; i<removeArgs.length; i++)
       {
         if (removeArgs[i].isPresent())
         {
           Message message = ERR_TOOL_CONFLICTING_ARGS.get(
-              removeAll.getLongIdentifier(),
+              removeAllArg.getLongIdentifier(),
               removeArgs[i].getLongIdentifier());
           if (buf.length() > 0)
           {
