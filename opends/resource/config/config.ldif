@@ -1480,6 +1480,19 @@ ds-cfg-plugin-type: preOperationModify
 ds-cfg-plugin-type: preOperationModifyDN
 ds-cfg-unique-attribute-type: uid
 
+dn: cn=Referential Integrity,cn=Plugins,cn=config
+objectClass: top
+objectClass: ds-cfg-plugin
+objectClass: ds-cfg-referential-integrity-plugin
+cn: Referential Integrity
+ds-cfg-plugin-class: org.opends.server.plugins.ReferentialIntegrityPlugin
+ds-cfg-plugin-enabled: false
+ds-cfg-plugin-type: postOperationDelete
+ds-cfg-plugin-type: postOperationModifyDN
+ds-cfg-plugin-type: subordinateModifyDN
+ds-cfg-referential-integrity-attribute-type: member
+ds-cfg-referential-integrity-attribute-type: uniqueMember
+
 dn: cn=Root DNs,cn=config
 objectClass: top
 objectClass: ds-cfg-root-dn-base
