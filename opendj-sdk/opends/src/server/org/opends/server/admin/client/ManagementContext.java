@@ -238,15 +238,6 @@ public abstract class ManagementContext {
   /**
    * Gets the effective values of a property in the named managed
    * object.
-   * <p>
-   * Implementations MUST NOT not use
-   * {@link #getManagedObject(ManagedObjectPath)} to read the
-   * referenced managed object in its entirety. Specifically,
-   * implementations MUST only attempt to resolve the default values
-   * for the requested property and its dependencies (if it uses
-   * inherited defaults). This is to avoid infinite recursion where a
-   * managed object contains a property which inherits default values
-   * from another property in the same managed object.
    *
    * @param <PD>
    *          The type of the property to be retrieved.
