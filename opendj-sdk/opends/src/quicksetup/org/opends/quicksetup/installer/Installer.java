@@ -1809,6 +1809,12 @@ public abstract class Installer extends GuiApplication {
             }
           }
         }
+        if (replicationId == -1)
+        {
+          throw new ApplicationException(
+              ReturnCode.APPLICATION_ERROR,
+              ERR_COULD_NOT_FIND_REPLICATIONID.get(dn), null);
+        }
         try
         {
           Thread.sleep(3000);
