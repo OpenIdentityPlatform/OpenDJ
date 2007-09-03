@@ -26,10 +26,12 @@
  */
 
 package org.opends.server.admin.client;
+
+
+
+import static org.opends.messages.AdminMessages.*;
+
 import org.opends.messages.Message;
-
-
-
 import org.opends.server.admin.OperationsException;
 
 
@@ -49,22 +51,24 @@ public class ConcurrentModificationException extends OperationsException {
 
 
   /**
-   * Create a concurrent modification exception.
+   * Create a concurrent modification exception with a default
+   * message.
    */
   public ConcurrentModificationException() {
-    // No implementation required.
+    super(ERR_CONCURRENT_MODIFICATION_EXCEPTION_DEFAULT.get());
   }
 
 
 
   /**
-   * Create a concurrent modification exception with a cause.
+   * Create a concurrent modification exception with a cause and a
+   * default message.
    *
    * @param cause
    *          The cause.
    */
   public ConcurrentModificationException(Throwable cause) {
-    super(cause);
+    super(ERR_CONCURRENT_MODIFICATION_EXCEPTION_DEFAULT.get(), cause);
   }
 
 

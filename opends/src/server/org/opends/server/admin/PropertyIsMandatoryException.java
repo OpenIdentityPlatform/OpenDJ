@@ -29,6 +29,10 @@ package org.opends.server.admin;
 
 
 
+import static org.opends.messages.AdminMessages.*;
+
+
+
 /**
  * Thrown when an attempt is made to remove a mandatory property.
  */
@@ -44,22 +48,11 @@ public class PropertyIsMandatoryException extends PropertyException {
   /**
    * Create a new property is mandatory exception.
    *
-   * @param d
+   * @param pd
    *          The property definition.
    */
-  public PropertyIsMandatoryException(PropertyDefinition<?> d) {
-    super(d);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getMessage() {
-    return "The property \"" + getPropertyDefinition().getName()
-        + "\" must be specified as it is mandatory";
+  public PropertyIsMandatoryException(PropertyDefinition<?> pd) {
+    super(pd, ERR_PROPERTY_IS_MANDATORY_EXCEPTION.get(pd.getName()));
   }
 
 }

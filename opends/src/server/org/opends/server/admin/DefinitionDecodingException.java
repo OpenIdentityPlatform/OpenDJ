@@ -26,7 +26,13 @@
  */
 
 package org.opends.server.admin;
+
+
+
+import static org.opends.messages.AdminMessages.*;
+
 import org.opends.messages.Message;
+
 
 
 /**
@@ -36,55 +42,54 @@ import org.opends.messages.Message;
 public class DefinitionDecodingException extends DecodingException {
 
   /**
+   * An enumeration defining the reasons why the definition could not
+   * be resolved.
+   */
+  public static enum Reason {
+    /**
+     * The managed object could be found but its type resolved to an
+     * abstract managed object definition.
+     */
+    ABSTRACT_TYPE_INFORMATION(),
+
+    /**
+     * The managed object could be found but did not contain any type
+     * information (eg missing object classes in LDAP).
+     */
+    NO_TYPE_INFORMATION(),
+
+    /**
+     * The managed object could be found but did not contain the
+     * expected type information (eg incorrect object classes in
+     * LDAP).
+     */
+    WRONG_TYPE_INFORMATION();
+
+  }
+
+  /**
    * Version ID required by serializable classes.
    */
   private static final long serialVersionUID = 3459033551415663416L;
 
 
 
-  /**
-   * An enumeration defining the reasons why the definition could not be
-   * resolved.
-   */
-  public static enum Reason {
-    /**
-     * The managed object could be found but did not contain any type
-     * information (eg missing object classes in LDAP).
-     */
-    NO_TYPE_INFORMATION(Message.raw( // TODO: i18n?
-        "The managed object could be found but did not contain any"
-            + " type information (e.g. missing object classes in LDAP).")),
-
-    /**
-     * The managed object could be found but did not contain the expected type
-     * information (eg incorrect object classes in LDAP).
-     */
-    WRONG_TYPE_INFORMATION(Message.raw( // TODO: i18n?
-        "The managed object could be found but did not contain the"
-            + " expected type information (e.g. incorrect object"
-            + " classes in LDAP).")),
-
-    /**
-     * The managed object could be found but its type resolved to an abstract
-     * managed object definition.
-     */
-    ABSTRACT_TYPE_INFORMATION(Message.raw( // TODO: i18n?
-        "The managed object could be found but its type resolved to an"
-            + " abstract managed object definition."));
-
-    // Simple description of this reason for debugging.
-    private Message msg;
-
-
-
-    // Private constructor.
-    private Reason(Message msg) {
-      this.msg = msg;
+  // Create the message.
+  private static Message createMessage(AbstractManagedObjectDefinition<?, ?> d,
+      Reason reason) {
+    Message ufn = d.getUserFriendlyName();
+    switch (reason) {
+    case NO_TYPE_INFORMATION:
+      return ERR_DECODING_EXCEPTION_NO_TYPE_INFO.get(ufn);
+    case WRONG_TYPE_INFORMATION:
+      return ERR_DECODING_EXCEPTION_WRONG_TYPE_INFO.get(ufn);
+    default:
+      return ERR_DECODING_EXCEPTION_ABSTRACT_TYPE_INFO.get(ufn);
     }
-
   }
 
-
+  // The expected type of managed object.
+  private final AbstractManagedObjectDefinition<?, ?> d;
 
   // The reason why the definition could not be determined.
   private final Reason reason;
@@ -94,32 +99,38 @@ public class DefinitionDecodingException extends DecodingException {
   /**
    * Create a new definition decoding exception.
    *
+   * @param d
+   *          The expected type of managed object.
    * @param reason
    *          The reason why the definition could not be determined.
    */
-  public DefinitionDecodingException(Reason reason) {
+  public DefinitionDecodingException(AbstractManagedObjectDefinition<?, ?> d,
+      Reason reason) {
+    super(createMessage(d, reason));
+    this.d = d;
     this.reason = reason;
   }
 
 
 
   /**
-   * Get the reason why the definition could not be determined.
+   * Gets the expected managed object definition.
    *
-   * @return Returns the reason why the definition could not be determined.
+   * @return Returns the expected managed object definition.
    */
-  public Reason getReason() {
-    return reason;
+  public AbstractManagedObjectDefinition<?, ?> getManagedObjectDefinition() {
+    return d;
   }
 
 
 
   /**
-   * {@inheritDoc}
+   * Gets the reason why the definition could not be determined.
+   *
+   * @return Returns the reason why the definition could not be
+   *         determined.
    */
-  @Override
-  public Message getMessageObject() {
-    return reason.msg;
+  public Reason getReason() {
+    return reason;
   }
-
 }

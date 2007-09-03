@@ -264,8 +264,9 @@ public final class ServerManagedObject<S extends Configuration> implements
       AbstractManagedObjectDefinition<?, ?> supr = target
           .getManagedObjectDefinition();
       if (!supr.isParentOf(d)) {
-        throw new DefaultBehaviorException(nextProperty,
-            new DefinitionDecodingException(Reason.WRONG_TYPE_INFORMATION));
+        throw new DefaultBehaviorException(
+            nextProperty, new DefinitionDecodingException(supr,
+                Reason.WRONG_TYPE_INFORMATION));
       }
 
       // Save the current property in case of recursion.

@@ -26,14 +26,17 @@
  */
 
 package org.opends.server.admin.client;
-import org.opends.messages.Message;
 
 
+
+import static org.opends.messages.AdminMessages.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.OperationsException;
 import org.opends.server.admin.PropertyIsMandatoryException;
 import org.opends.server.util.Validator;
@@ -52,6 +55,34 @@ public class MissingMandatoryPropertiesException extends OperationsException {
    */
   private static final long serialVersionUID = 6342522125252055588L;
 
+
+
+  // Create the message.
+  private static Message createMessage(
+      Collection<PropertyIsMandatoryException> causes) {
+    Validator.ensureNotNull(causes);
+    Validator.ensureTrue(!causes.isEmpty());
+
+    if (causes.size() == 1) {
+      return ERR_MISSING_MANDATORY_PROPERTIES_EXCEPTION_SINGLE.get(causes
+          .iterator().next().getPropertyDefinition().getName());
+    } else {
+      MessageBuilder builder = new MessageBuilder();
+
+      boolean isFirst = true;
+      for (PropertyIsMandatoryException cause : causes) {
+        if (!isFirst) {
+          builder.append(", ");
+        }
+        builder.append(cause.getPropertyDefinition().getName());
+        isFirst = false;
+      }
+
+      return ERR_MISSING_MANDATORY_PROPERTIES_EXCEPTION_PLURAL.get(builder
+          .toMessage());
+    }
+  }
+
   // The causes of this exception.
   private final Collection<PropertyIsMandatoryException> causes;
 
@@ -67,8 +98,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
    */
   public MissingMandatoryPropertiesException(
       Collection<PropertyIsMandatoryException> causes) {
-    Validator.ensureNotNull(causes);
-    Validator.ensureTrue(!causes.isEmpty());
+    super(createMessage(causes));
 
     this.causes = new ArrayList<PropertyIsMandatoryException>(causes);
   }
@@ -96,26 +126,6 @@ public class MissingMandatoryPropertiesException extends OperationsException {
    */
   public Collection<PropertyIsMandatoryException> getCauses() {
     return Collections.unmodifiableCollection(causes);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Message getMessageObject() {
-    StringBuilder builder = new StringBuilder();
-    builder.append("The following properties are mandatory: ");
-    boolean isFirst = true;
-    for (PropertyIsMandatoryException e : causes) {
-      if (!isFirst) {
-        builder.append(", ");
-      }
-      builder.append(e.getPropertyDefinition().getName());
-      isFirst = false;
-    }
-    return Message.raw(builder.toString());
   }
 
 }

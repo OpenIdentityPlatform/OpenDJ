@@ -26,7 +26,11 @@
  */
 
 package org.opends.server.admin;
+
+
+
 import org.opends.messages.Message;
+
 
 
 /**
@@ -35,18 +39,13 @@ import org.opends.messages.Message;
 public abstract class DecodingException extends OperationsException {
 
   /**
-   * Create a decoding exception.
+   * Create a decoding exception with a message.
+   *
+   * @param message
+   *          The message.
    */
-  protected DecodingException() {
-    // No implementation required.
+  protected DecodingException(Message message) {
+    super(message);
   }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public abstract Message getMessageObject();
 
 }

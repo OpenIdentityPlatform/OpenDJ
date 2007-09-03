@@ -29,10 +29,14 @@ package org.opends.server.admin;
 
 
 
+import static org.opends.messages.AdminMessages.*;
+
+
+
 /**
- * Indicates that an unknown type of property definition was encountered. This
- * can occur as the management prototype develops and new kinds of property
- * definitions are added.
+ * Indicates that an unknown type of property definition was
+ * encountered. This can occur as the management prototype develops
+ * and new kinds of property definitions are added.
  */
 public final class UnknownPropertyDefinitionException
     extends PropertyException {
@@ -48,13 +52,15 @@ public final class UnknownPropertyDefinitionException
   /**
    * Creates a new unknown property definition exception.
    *
-   * @param d
+   * @param pd
    *          The unknown property definition.
    * @param p
    *          The visitor parameter if there was one.
    */
-  public UnknownPropertyDefinitionException(PropertyDefinition<?> d, Object p) {
-    super(d);
+  public UnknownPropertyDefinitionException(PropertyDefinition<?> pd,
+      Object p) {
+    super(pd, ERR_UNKNOWN_PROPERTY_DEFINITION_EXCEPTION.get(pd.getName(), pd
+        .getClass().getName()));
     this.parameter = p;
   }
 
@@ -69,14 +75,4 @@ public final class UnknownPropertyDefinitionException
     return parameter;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getMessage() {
-    return "Unhandled property definition type encountered \""
-        + getPropertyDefinition().getClass().getName() + "\"";
-  }
 }

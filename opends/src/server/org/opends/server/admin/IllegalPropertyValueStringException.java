@@ -29,9 +29,15 @@ package org.opends.server.admin;
 
 
 
+import static org.opends.messages.AdminMessages.*;
+
+import org.opends.messages.Message;
+
+
+
 /**
- * Thrown to indicate that a property value string was invalid according to its
- * associated property definition.
+ * Thrown to indicate that a property value string was invalid
+ * according to its associated property definition.
  */
 public class IllegalPropertyValueStringException extends PropertyException {
 
@@ -48,14 +54,14 @@ public class IllegalPropertyValueStringException extends PropertyException {
   /**
    * Create a new illegal property value string exception.
    *
-   * @param d
+   * @param pd
    *          The property definition.
    * @param value
    *          The illegal property value string.
    */
-  public IllegalPropertyValueStringException(PropertyDefinition<?> d,
+  public IllegalPropertyValueStringException(PropertyDefinition<?> pd,
       String value) {
-    super(d);
+    super(pd, createMessage(pd, value));
     this.value = value;
   }
 
@@ -72,17 +78,12 @@ public class IllegalPropertyValueStringException extends PropertyException {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getMessage() {
-    String msg = "The string value \"%s\" is not a valid value for the "
-        + "property \"%s\", which must have the following syntax: %s";
-    PropertyDefinition<?> pd = getPropertyDefinition();
+  // Create the message.
+  private static Message createMessage(PropertyDefinition<?> pd, String value) {
     PropertyDefinitionUsageBuilder builder = new PropertyDefinitionUsageBuilder(
         true);
-    return String.format(msg, value, pd.getName(), builder.getUsage(pd));
+    return ERR_ILLEGAL_PROPERTY_VALUE_STRING_EXCEPTION.get(value, pd.getName(),
+        builder.getUsage(pd));
   }
 
 }

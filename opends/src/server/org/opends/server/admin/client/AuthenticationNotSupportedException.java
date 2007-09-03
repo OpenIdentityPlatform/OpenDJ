@@ -26,8 +26,12 @@
  */
 
 package org.opends.server.admin.client;
-import org.opends.messages.Message;
 
+
+
+import static org.opends.messages.AdminMessages.*;
+
+import org.opends.messages.Message;
 
 
 
@@ -46,22 +50,24 @@ public class AuthenticationNotSupportedException
 
 
   /**
-   * Create an authentication not supported exception.
+   * Creates an authentication not supported exception with a default
+   * message.
    */
   public AuthenticationNotSupportedException() {
-    // No implementation required.
+    super(ERR_AUTHENTICATION_NOT_SUPPORTED_EXCEPTION_DEFAULT.get());
   }
 
 
 
   /**
-   * Create an authentication not supported exception with a cause.
+   * Creates an authentication not supported exception with a cause
+   * and a default message.
    *
    * @param cause
    *          The cause.
    */
   public AuthenticationNotSupportedException(Throwable cause) {
-    super(cause);
+    super(ERR_AUTHENTICATION_NOT_SUPPORTED_EXCEPTION_DEFAULT.get(), cause);
   }
 
 

@@ -26,7 +26,11 @@
  */
 
 package org.opends.server.admin;
-import org.opends.messages.Message;
+
+
+
+import static org.opends.messages.AdminMessages.*;
+
 
 
 /**
@@ -39,28 +43,25 @@ public class ManagedObjectNotFoundException extends OperationsException {
    */
   private static final long serialVersionUID = -477551786551892978L;
 
-  // Simple description of this exception for debugging.
-  private static final String MSG = // TODO: i18n
-    "The requested managed object could not be found";
-
 
 
   /**
    * Create a managed object not found exception.
    */
   public ManagedObjectNotFoundException() {
-    super(Message.raw(MSG));
+    super(ERR_MANAGED_OBJECT_NOT_FOUND_EXCEPTION.get());
   }
 
 
 
   /**
-   * Create a managed object not found exception with the specified cause.
+   * Create a managed object not found exception with the specified
+   * cause.
    *
    * @param cause
    *          The cause of this exception.
    */
   public ManagedObjectNotFoundException(Throwable cause) {
-    super(Message.raw(MSG), cause);
+    super(ERR_MANAGED_OBJECT_NOT_FOUND_EXCEPTION.get(), cause);
   }
 }

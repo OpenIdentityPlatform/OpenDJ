@@ -26,8 +26,12 @@
  */
 
 package org.opends.server.admin.client;
-import org.opends.messages.Message;
 
+
+
+import static org.opends.messages.AdminMessages.*;
+
+import org.opends.messages.Message;
 
 
 
@@ -46,22 +50,23 @@ public class AuthenticationException extends AdminSecurityException {
 
 
   /**
-   * Create an authentication exception.
+   * Creates an authentication exception with a default message.
    */
   public AuthenticationException() {
-    // No implementation required.
+    super(ERR_AUTHENTICATION_EXCEPTION_DEFAULT.get());
   }
 
 
 
   /**
-   * Create an authentication exception with a cause.
+   * Create an authentication exception with a cause and a default
+   * message.
    *
    * @param cause
    *          The cause.
    */
   public AuthenticationException(Throwable cause) {
-    super(cause);
+    super(ERR_AUTHENTICATION_EXCEPTION_DEFAULT.get(), cause);
   }
 
 

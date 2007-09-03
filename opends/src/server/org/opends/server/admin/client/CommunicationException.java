@@ -26,8 +26,12 @@
  */
 
 package org.opends.server.admin.client;
-import org.opends.messages.Message;
 
+
+
+import static org.opends.messages.AdminMessages.*;
+
+import org.opends.messages.Message;
 
 
 
@@ -48,22 +52,23 @@ public class CommunicationException extends AdminClientException {
 
 
   /**
-   * Create a communication exception.
+   * Create a communication exception with a default message.
    */
   public CommunicationException() {
-    // No implementation required.
+    super(ERR_COMMUNICATION_EXCEPTION_DEFAULT.get());
   }
 
 
 
   /**
-   * Create a communication exception with a cause.
+   * Create a communication exception with a cause and a default
+   * message.
    *
    * @param cause
    *          The cause.
    */
   public CommunicationException(Throwable cause) {
-    super(cause);
+    super(ERR_COMMUNICATION_EXCEPTION_DEFAULT.get(), cause);
   }
 
 

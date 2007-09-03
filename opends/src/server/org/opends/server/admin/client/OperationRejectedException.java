@@ -68,18 +68,23 @@ public class OperationRejectedException extends AdminClientException {
     Validator.ensureNotNull(messages);
     Validator.ensureTrue(!messages.isEmpty());
 
-    MessageBuilder builder = new MessageBuilder();
+    if (messages.size() == 1) {
+      return ERR_OPERATION_REJECTED_EXCEPTION_SINGLE.get(messages.iterator()
+          .next());
+    } else {
+      MessageBuilder builder = new MessageBuilder();
 
-    boolean isFirst = true;
-    for (Message m : messages) {
-      if (!isFirst) {
-        builder.append("; ");
+      boolean isFirst = true;
+      for (Message m : messages) {
+        if (!isFirst) {
+          builder.append("; ");
+        }
+        builder.append(m);
+        isFirst = false;
       }
-      builder.append(m);
-      isFirst = false;
-    }
 
-    return builder.toMessage();
+      return ERR_OPERATION_REJECTED_EXCEPTION_PLURAL.get(builder.toMessage());
+    }
   }
 
   // The messages describing the constraint violations that occurred.
@@ -110,8 +115,7 @@ public class OperationRejectedException extends AdminClientException {
    *
    * @param message
    *          The message describing the constraint violation that
-   *          occurred (must be non-<code>null</code> and
-   *          non-empty).
+   *          occurred.
    */
   public OperationRejectedException(Message message) {
     this(Collections.singleton(message));
