@@ -486,6 +486,20 @@ public final class LDAPConnectionHandler extends
 
 
   /**
+   * Retrieves the maximum length of time in milliseconds that attempts to write
+   * to LDAP client connections should be allowed to block.
+   *
+   * @return  The maximum length of time in milliseconds that attempts to write
+   *          to LDAP client connections should be allowed to block, or zero if
+   *          there should not be any limit imposed.
+   */
+  public long getMaxBlockedWriteTimeLimit() {
+    return currentConfig.getMaxBlockedWriteTimeLimit();
+  }
+
+
+
+  /**
    * Retrieves the maximum ASN.1 element value length that will be
    * allowed by this connection handler.
    *

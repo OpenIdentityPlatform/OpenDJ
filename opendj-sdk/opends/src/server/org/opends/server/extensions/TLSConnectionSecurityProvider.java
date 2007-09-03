@@ -25,7 +25,6 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
 
 
 
@@ -40,6 +39,7 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLSession;
 
+import org.opends.messages.Message;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.api.KeyManagerProvider;
@@ -47,16 +47,16 @@ import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.SSLClientAuthPolicy;
 import org.opends.server.util.SelectableCertificateKeyManager;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -64,7 +64,7 @@ import static org.opends.server.util.StaticUtils.*;
 /**
  * This class provides an implementation of a connection security provider that
  * uses SSL/TLS to encrypt the communication to and from the client.  It uses
- * the <CODE>javax.net.ssl.SSLEngine</CODE> class to provide the actual SSL
+ * the {@code javax.net.ssl.SSLEngine} class to provide the actual SSL
  * communication layer, and the Directory Server key and trust store providers
  * to determine which key and trust stores to use.
  */
@@ -132,10 +132,10 @@ public class TLSConnectionSecurityProvider
   /**
    * Creates a new instance of this connection security provider.  Note that
    * no initialization should be done here, since it should all be done in the
-   * <CODE>initializeConnectionSecurityProvider</CODE> method.  Also note that
-   * this instance should only be used to create new instances that are
-   * associated with specific client connections.  This instance itself should
-   * not be used to attempt secure communication with the client.
+   * {@code initializeConnectionSecurityProvider} method.  Also note that this
+   * instance should only be used to create new instances that are associated
+   * with specific client connections.  This instance itself should not be used
+   * to attempt secure communication with the client.
    */
   public TLSConnectionSecurityProvider()
   {
@@ -276,20 +276,9 @@ public class TLSConnectionSecurityProvider
 
 
   /**
-   * Initializes this connection security provider using the information in the
-   * provided configuration entry.
-   *
-   * @param  configEntry  The entry that contains the configuration for this
-   *                      connection security provider.
-   *
-   * @throws  ConfigException  If the provided entry does not contain an
-   *                           acceptable configuration for this security
-   *                           provider.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the provided
-   *                                   configuration.
+   * {@inheritDoc}
    */
+  @Override()
   public void initializeConnectionSecurityProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
@@ -314,9 +303,9 @@ public class TLSConnectionSecurityProvider
 
 
   /**
-   * Performs any finalization that may be necessary for this connection
-   * security provider.
+   * {@inheritDoc}
    */
+  @Override()
   public void finalizeConnectionSecurityProvider()
   {
     // No implementation is required.
@@ -325,10 +314,9 @@ public class TLSConnectionSecurityProvider
 
 
   /**
-   * Retrieves the name used to identify this security mechanism.
-   *
-   * @return  The name used to identify this security mechanism.
+   * {@inheritDoc}
    */
+  @Override()
   public String getSecurityMechanismName()
   {
     return SSL_CONTEXT_INSTANCE_NAME;
@@ -337,13 +325,9 @@ public class TLSConnectionSecurityProvider
 
 
   /**
-   * Indicates whether client connections using this connection security
-   * provider should be considered secure.
-   *
-   * @return  <CODE>true</CODE> if client connections using this connection
-   *          security provider should be considered secure, or
-   *          <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean isSecure()
   {
     // This should be considered secure.
@@ -353,21 +337,9 @@ public class TLSConnectionSecurityProvider
 
 
   /**
-   * Creates a new instance of this connection security provider that will be
-   * used to encode and decode all communication on the provided client
-   * connection.
-   *
-   * @param  clientConnection  The client connection with which this security
-   *                           provider will be associated.
-   * @param  socketChannel     The socket channel that may be used to
-   *                           communicate with the client.
-   *
-   * @return  The created connection security provider instance.
-   *
-   * @throws  DirectoryException  If a problem occurs while creating a new
-   *                              instance of this security provider for the
-   *                              given client connection.
+   * {@inheritDoc}
    */
+  @Override()
   public ConnectionSecurityProvider newInstance(ClientConnection
                                                       clientConnection,
                                                 SocketChannel socketChannel)
@@ -380,20 +352,9 @@ public class TLSConnectionSecurityProvider
 
 
   /**
-   * Indicates that the associated client connection is being closed and that
-   * this security provider should perform any necessary processing to deal with
-   * that.  If it is indicated that the connection is still valid, then the
-   * security provider may attempt to communicate with the client to perform a
-   * graceful shutdown.
-   *
-   * @param  connectionValid  Indicates whether the Directory Server believes
-   *                          that the client connection is still valid and may
-   *                          be used for communication with the client.  Note
-   *                          that this may be inaccurate, or that the state of
-   *                          the connection may change during the course of
-   *                          this method, so the security provider must be able
-   *                          to handle failures if they arise.
+   * {@inheritDoc}
    */
+  @Override()
   public void disconnect(boolean connectionValid)
   {
     if (connectionValid)
@@ -468,13 +429,9 @@ public class TLSConnectionSecurityProvider
 
 
   /**
-   * Retrieves the size in bytes that the client should use for the byte buffer
-   * meant to hold clear-text data read from or to be written to the client.
-   *
-   * @return  The size in bytes that the client should use for the byte buffer
-   *          meant to hold clear-text data read from or to be written to the
-   *          client.
+   * {@inheritDoc}
    */
+  @Override()
   public int getClearBufferSize()
   {
     return clearBufferSize;
@@ -483,13 +440,9 @@ public class TLSConnectionSecurityProvider
 
 
   /**
-   * Retrieves the size in bytes that the client should use for the byte buffer
-   * meant to hold encoded data read from or to be written to the client.
-   *
-   * @return  The size in bytes that the client should use for the byte buffer
-   *          meant to hold encoded data read from or to be written to the
-   *          client.
+   * {@inheritDoc}
    */
+  @Override()
   public int getEncodedBufferSize()
   {
     return sslBufferSize;
@@ -498,18 +451,9 @@ public class TLSConnectionSecurityProvider
 
 
   /**
-   * Reads data from a client connection, performing any necessary negotiation
-   * in the process.  Whenever any clear-text data has been obtained, then the
-   * connection security provider should make that available to the client by
-   * calling the <CODE>ClientConnection.processDataRead</CODE> method.
-   *
-   * @return  <CODE>true</CODE> if all the data in the provided buffer was
-   *          processed and the client connection can remain established, or
-   *          <CODE>false</CODE> if a decoding error occurred and requests from
-   *          this client should no longer be processed.  Note that if this
-   *          method does return <CODE>false</CODE>, then it must have already
-   *          disconnected the client.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean readData()
   {
     while (true)
@@ -675,23 +619,9 @@ handshakeLoop:
 
 
   /**
-   * Writes the data contained in the provided clear-text buffer to the client,
-   * performing any necessary encoding in the process.  It must be capable of
-   * dealing with input buffers that are larger than the value returned by the
-   * <CODE>getClearBufferSize</CODE> method.  When this method returns, the
-   * provided buffer should be in its original state with regard to the position
-   * and limit.
-   *
-   * @param  clearData  The buffer containing the clear-text data to write to
-   *                    the client.
-   *
-   * @return  <CODE>true</CODE> if all the data in the provided buffer was
-   *          written to the client and the connection may remain established,
-   *          or <CODE>false</CODE> if a problem occurred and the client
-   *          connection is no longer valid.  Note that if this method does
-   *          return <CODE>false</CODE>, then it must have already disconnected
-   *          the client.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean writeData(ByteBuffer clearData)
   {
     int originalPosition = clearData.position();
@@ -741,17 +671,16 @@ handshakeLoop:
    * Writes the data contained in the provided clear-text buffer to the client,
    * performing any necessary encoding in the process.  The amount of data in
    * the provided buffer must be less than or equal to the value returned by the
-   * <CODE>getClearBufferSize</CODE> method.
+   * {@code getClearBufferSize} method.
    *
    * @param  clearData  The buffer containing the clear-text data to write to
    *                    the client.
    *
-   * @return  <CODE>true</CODE> if all the data in the provided buffer was
-   *          written to the client and the connection may remain established,
-   *          or <CODE>false</CODE> if a problem occurred and the client
-   *          connection is no longer valid.  Note that if this method does
-   *          return <CODE>false</CODE>, then it must have already disconnected
-   *          the client.
+   * @return  {@code true} if all the data in the provided buffer was written to
+   *          the client and the connection may remain established, or
+   *          {@code false} if a problem occurred and the client connection is
+   *          no longer valid.  Note that if this method does return
+   *          {@code false}, then it must have already disconnected the client.
    */
   private boolean writeInternal(ByteBuffer clearData)
   {
@@ -784,6 +713,11 @@ handshakeStatusLoop:
                 clientConnection.disconnect(
                      DisconnectReason.CLIENT_DISCONNECT, false, null);
                 return false;
+              }
+              else if (bytesWritten == 0)
+              {
+                return NullConnectionSecurityProvider.writeWithTimeout(
+                            clientConnection, socketChannel, sslOutBuffer);
               }
             }
             break;
@@ -885,6 +819,11 @@ handshakeStatusLoop:
                      DisconnectReason.CLIENT_DISCONNECT, false, null);
                 return false;
               }
+              else if (bytesWritten == 0)
+              {
+                return NullConnectionSecurityProvider.writeWithTimeout(
+                            clientConnection, socketChannel, sslOutBuffer);
+              }
             }
             break;
 
@@ -935,6 +874,11 @@ handshakeStatusLoop:
                                         false, null);
             return false;
           }
+          else if (bytesWritten == 0)
+          {
+            return NullConnectionSecurityProvider.writeWithTimeout(
+                        clientConnection, socketChannel, sslOutBuffer);
+          }
         }
       }
 
@@ -976,8 +920,8 @@ handshakeStatusLoop:
   /**
    * Retrieves the set of SSL protocols that will be allowed.
    *
-   * @return  The set of SSL protocols that will be allowed, or
-   *          <CODE>null</CODE> if the default set will be used.
+   * @return  The set of SSL protocols that will be allowed, or {@code null} if
+   *          the default set will be used.
    */
   public String[] getEnabledProtocols()
   {
@@ -990,8 +934,7 @@ handshakeStatusLoop:
    * Specifies the set of SSL protocols that will be allowed.
    *
    * @param  enabledProtocols  The set of SSL protocols that will be allowed, or
-   *                           <CODE>null</CODE> if the default set will be
-   *                           used.
+   *                           {@code null} if the default set will be used.
    */
   public void setEnabledProtocols(String[] enabledProtocols)
   {
@@ -1068,8 +1011,8 @@ handshakeStatusLoop:
    * listed, followed by the certificates of any issuers in the chain.
    *
    * @return  The certificate chain that the client presented to the server
-   *          during the handshake process, or <CODE>null</CODE> if the client
-   *          did not present a certificate.
+   *          during the handshake process, or {@code null} if the client did
+   *          not present a certificate.
    */
   public Certificate[] getClientCertificateChain()
   {

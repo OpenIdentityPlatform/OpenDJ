@@ -30,21 +30,25 @@ package org.opends.server.extensions;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.Iterator;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
+
 
 
 /**
@@ -59,7 +63,6 @@ public class NullConnectionSecurityProvider
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-
 
 
 
@@ -92,7 +95,6 @@ public class NullConnectionSecurityProvider
   public NullConnectionSecurityProvider()
   {
     super();
-
   }
 
 
@@ -121,20 +123,9 @@ public class NullConnectionSecurityProvider
 
 
   /**
-   * Initializes this connection security provider using the information in the
-   * provided configuration entry.
-   *
-   * @param  configEntry  The entry that contains the configuration for this
-   *                      connection security provider.
-   *
-   * @throws  ConfigException  If the provided entry does not contain an
-   *                           acceptable configuration for this security
-   *                           provider.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the provided
-   *                                   configuration.
+   * {@inheritDoc}
    */
+  @Override()
   public void initializeConnectionSecurityProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
@@ -146,9 +137,9 @@ public class NullConnectionSecurityProvider
 
 
   /**
-   * Performs any finalization that may be necessary for this connection
-   * security provider.
+   * {@inheritDoc}
    */
+  @Override()
   public void finalizeConnectionSecurityProvider()
   {
     // No implementation is required.
@@ -157,10 +148,9 @@ public class NullConnectionSecurityProvider
 
 
   /**
-   * Retrieves the name used to identify this security mechanism.
-   *
-   * @return  The name used to identify this security mechanism.
+   * {@inheritDoc}
    */
+  @Override()
   public String getSecurityMechanismName()
   {
     return "NULL";
@@ -169,13 +159,9 @@ public class NullConnectionSecurityProvider
 
 
   /**
-   * Indicates whether client connections using this connection security
-   * provider should be considered secure.
-   *
-   * @return  <CODE>true</CODE> if client connections using this connection
-   *          security provider should be considered secure, or
-   *          <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean isSecure()
   {
     // This is not a secure provider.
@@ -185,21 +171,9 @@ public class NullConnectionSecurityProvider
 
 
   /**
-   * Creates a new instance of this connection security provider that will be
-   * used to encode and decode all communication on the provided client
-   * connection.
-   *
-   * @param  clientConnection  The client connection with which this security
-   *                           provider will be associated.
-   * @param  socketChannel     The socket channel that may be used to
-   *                           communicate with the client.
-   *
-   * @return  The created connection security provider instance.
-   *
-   * @throws  DirectoryException  If a problem occurs while creating a new
-   *                              instance of this security provider for the
-   *                              given client connection.
+   * {@inheritDoc}
    */
+  @Override()
   public ConnectionSecurityProvider newInstance(ClientConnection
                                                       clientConnection,
                                                 SocketChannel socketChannel)
@@ -212,20 +186,9 @@ public class NullConnectionSecurityProvider
 
 
   /**
-   * Indicates that the associated client connection is being closed and that
-   * this security provider should perform any necessary processing to deal with
-   * that.  If it is indicated that the connection is still valid, then the
-   * security provider may attempt to communicate with the client to perform a
-   * graceful shutdown.
-   *
-   * @param  connectionValid  Indicates whether the Directory Server believes
-   *                          that the client connection is still valid and may
-   *                          be used for communication with the client.  Note
-   *                          that this may be inaccurate, or that the state of
-   *                          the connection may change during the course of
-   *                          this method, so the security provider must be able
-   *                          to handle failures if they arise.
+   * {@inheritDoc}
    */
+  @Override()
   public void disconnect(boolean connectionValid)
   {
     // No implementation is required.
@@ -234,13 +197,9 @@ public class NullConnectionSecurityProvider
 
 
   /**
-   * Retrieves the size in bytes that the client should use for the byte buffer
-   * meant to hold clear-text data read from or to be written to the client.
-   *
-   * @return  The size in bytes that the client should use for the byte buffer
-   *          meant to hold clear-text data read from or to be written to the
-   *          client.
+   * {@inheritDoc}
    */
+  @Override()
   public int getClearBufferSize()
   {
     return BUFFER_SIZE;
@@ -249,13 +208,9 @@ public class NullConnectionSecurityProvider
 
 
   /**
-   * Retrieves the size in bytes that the client should use for the byte buffer
-   * meant to hold encoded data read from or to be written to the client.
-   *
-   * @return  The size in bytes that the client should use for the byte buffer
-   *          meant to hold encoded data read from or to be written to the
-   *          client.
+   * {@inheritDoc}
    */
+  @Override()
   public int getEncodedBufferSize()
   {
     return BUFFER_SIZE;
@@ -264,18 +219,9 @@ public class NullConnectionSecurityProvider
 
 
   /**
-   * Reads data from a client connection, performing any necessary negotiation
-   * in the process.  Whenever any clear-text data has been obtained, then the
-   * connection security provider should make that available to the client by
-   * calling the <CODE>ClientConnection.processDataRead</CODE> method.
-   *
-   * @return  <CODE>true</CODE> if all the data in the provided buffer was
-   *          processed and the client connection can remain established, or
-   *          <CODE>false</CODE> if a decoding error occurred and requests from
-   *          this client should no longer be processed.  Note that if this
-   *          method does return <CODE>false</CODE>, then it must have already
-   *          disconnected the client.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean readData()
   {
     clearBuffer.clear();
@@ -342,23 +288,9 @@ public class NullConnectionSecurityProvider
 
 
   /**
-   * Writes the data contained in the provided clear-text buffer to the client,
-   * performing any necessary encoding in the process.  It must be capable of
-   * dealing with input buffers that are larger than the value returned by the
-   * <CODE>getClearBufferSize</CODE> method.  When this method returns, the
-   * provided buffer should be in its original state with regard to the position
-   * and limit.
-   *
-   * @param  clearData  The buffer containing the clear-text data to write to
-   *                    the client.
-   *
-   * @return  <CODE>true</CODE> if all the data in the provided buffer was
-   *          written to the client and the connection may remain established,
-   *          or <CODE>false</CODE> if a problem occurred and the client
-   *          connection is no longer valid.  Note that if this method does
-   *          return <CODE>false</CODE>, then it must have already disconnected
-   *          the client.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean writeData(ByteBuffer clearData)
   {
     int position = clearData.position();
@@ -375,6 +307,14 @@ public class NullConnectionSecurityProvider
           clientConnection.disconnect(DisconnectReason.CLIENT_DISCONNECT, false,
                                       null);
           return false;
+        }
+        else if (bytesWritten == 0)
+        {
+          // This can happen if the server can't send data to the client (e.g.,
+          // because the client is blocked or there is a network problem.  In
+          // that case, then use a selector to perform the write, timing out and
+          // terminating the client connection if necessary.
+          return writeWithTimeout(clientConnection, socketChannel, clearData);
         }
       }
 
@@ -409,6 +349,144 @@ public class NullConnectionSecurityProvider
     {
       clearData.position(position);
       clearData.limit(limit);
+    }
+  }
+
+
+
+  /**
+   * Writes the contents of the provided buffer to the client, terminating the
+   * connection if the write is unsuccessful for too long (e.g., if the client
+   * is unresponsive or there is a network problem).  If possible, it will
+   * attempt to use the selector returned by the
+   * {@code ClientConnection.getWriteSelector} method, but it is capable of
+   * working even if that method returns {@code null}.
+   * <BR><BR>
+   * Note that this method has been written in a generic manner so that other
+   * connection security providers can use it to send data to the client,
+   * provided that the given buffer contains the appropriate pre-encoded
+   * information.
+   * <BR><BR>
+   * Also note that the original position and limit values will not be
+   * preserved, so if that is important to the caller, then it should record
+   * them before calling this method and restore them after it returns.
+   *
+   * @param  clientConnection  The client connection to which the data is to be
+   *                           written.
+   * @param  socketChannel     The socket channel over which to write the data.
+   * @param  buffer            The data to be written to the client.
+   *
+   * @return  <CODE>true</CODE> if all the data in the provided buffer was
+   *          written to the client and the connection may remain established,
+   *          or <CODE>false</CODE> if a problem occurred and the client
+   *          connection is no longer valid.  Note that if this method does
+   *          return <CODE>false</CODE>, then it must have already disconnected
+   *          the client.
+   *
+   * @throws  IOException  If a problem occurs while attempting to write data
+   *                       to the client.  The caller will be responsible for
+   *                       catching this and terminating the client connection.
+   */
+  public static boolean writeWithTimeout(ClientConnection clientConnection,
+                                         SocketChannel socketChannel,
+                                         ByteBuffer buffer)
+         throws IOException
+  {
+    long startTime = System.currentTimeMillis();
+    long waitTime  = clientConnection.getMaxBlockedWriteTimeLimit();
+    if (waitTime <= 0)
+    {
+      // We won't support an infinite time limit, so fall back to using
+      // five minutes, which is a very long timeout given that we're
+      // blocking a worker thread.
+      waitTime = 300000L;
+    }
+
+    long stopTime = startTime + waitTime;
+
+
+    Selector selector = clientConnection.getWriteSelector();
+    if (selector == null)
+    {
+      // The client connection does not provide a selector, so we'll fall back
+      // to a more inefficient way that will work without a selector.
+      while (buffer.hasRemaining() && (System.currentTimeMillis() < stopTime))
+      {
+        if (socketChannel.write(buffer) < 0)
+        {
+          // The client connection has been closed.  Disconnect and return.
+          clientConnection.disconnect(DisconnectReason.CLIENT_DISCONNECT, false,
+                                      null);
+          return false;
+        }
+      }
+
+      if (buffer.hasRemaining())
+      {
+        // If we've gotten here, then the write timed out.  Terminate the client
+        // connection.
+        clientConnection.disconnect(DisconnectReason.IO_TIMEOUT, false, null);
+        return false;
+      }
+
+      return true;
+    }
+
+
+    // Register with the selector for handling write operations.
+    SelectionKey key = socketChannel.register(selector, SelectionKey.OP_WRITE);
+
+    try
+    {
+      selector.select(waitTime);
+      while (buffer.hasRemaining())
+      {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime >= stopTime)
+        {
+          // We've been blocked for too long.  Terminate the client connection.
+          clientConnection.disconnect(DisconnectReason.IO_TIMEOUT, false, null);
+          return false;
+        }
+        else
+        {
+          waitTime = stopTime - currentTime;
+        }
+
+        Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
+        while (iterator.hasNext())
+        {
+          SelectionKey k = iterator.next();
+          if (k.isWritable())
+          {
+            int bytesWritten = socketChannel.write(buffer);
+            if (bytesWritten < 0)
+            {
+              // The client connection has been closed.  Disconnect and return.
+              clientConnection.disconnect(DisconnectReason.CLIENT_DISCONNECT,
+                                          false, null);
+              return false;
+            }
+
+            iterator.remove();
+          }
+        }
+
+        if (buffer.hasRemaining())
+        {
+          selector.select(waitTime);
+        }
+      }
+
+      return true;
+    }
+    finally
+    {
+      if (key.isValid())
+      {
+        key.cancel();
+        selector.selectNow();
+      }
     }
   }
 }
