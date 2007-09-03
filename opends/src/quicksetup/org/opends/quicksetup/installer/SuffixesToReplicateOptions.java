@@ -28,7 +28,7 @@
 
 package org.opends.quicksetup.installer;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.opends.admin.ads.SuffixDescriptor;
@@ -86,13 +86,13 @@ public class SuffixesToReplicateOptions
     {
     case REPLICATE_WITH_EXISTING_SUFFIXES:
       Set s = (Set)args[0];
-      availableSuffixes = new HashSet<SuffixDescriptor>();
+      availableSuffixes = new LinkedHashSet<SuffixDescriptor>();
       for (Object o: s)
       {
         availableSuffixes.add((SuffixDescriptor)o);
       }
       s = (Set)args[1];
-      suffixesToReplicate = new HashSet<SuffixDescriptor>();
+      suffixesToReplicate = new LinkedHashSet<SuffixDescriptor>();
       for (Object o: s)
       {
         suffixesToReplicate.add((SuffixDescriptor)o);
@@ -104,13 +104,13 @@ public class SuffixesToReplicateOptions
       if ((args != null) && (args.length > 0))
       {
         s = (Set)args[0];
-        availableSuffixes = new HashSet<SuffixDescriptor>();
+        availableSuffixes = new LinkedHashSet<SuffixDescriptor>();
         for (Object o: s)
         {
           availableSuffixes.add((SuffixDescriptor)o);
         }
         s = (Set)args[1];
-        suffixesToReplicate = new HashSet<SuffixDescriptor>();
+        suffixesToReplicate = new LinkedHashSet<SuffixDescriptor>();
         for (Object o: s)
         {
           suffixesToReplicate.add((SuffixDescriptor)o);
@@ -138,7 +138,10 @@ public class SuffixesToReplicateOptions
    */
   public Set<SuffixDescriptor> getAvailableSuffixes()
   {
-    return availableSuffixes;
+    LinkedHashSet<SuffixDescriptor> copy =
+      new LinkedHashSet<SuffixDescriptor>();
+    copy.addAll(availableSuffixes);
+    return copy;
   }
 
   /**
@@ -149,7 +152,10 @@ public class SuffixesToReplicateOptions
    */
   public Set<SuffixDescriptor> getSuffixes()
   {
-    return suffixesToReplicate;
+    LinkedHashSet<SuffixDescriptor> copy =
+      new LinkedHashSet<SuffixDescriptor>();
+    copy.addAll(suffixesToReplicate);
+    return copy;
   }
 }
 

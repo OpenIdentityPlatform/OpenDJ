@@ -1757,9 +1757,18 @@ public abstract class Installer extends GuiApplication {
       ServerDescriptor server = replica.getServer();
       String hostPort = server.getHostPort(true);
 
-      notifyListeners(getFormattedProgress(
-        INFO_PROGRESS_INITIALIZING_SUFFIX.get(dn, hostPort)));
-      notifyListeners(getLineBreak());
+      boolean isADS = areDnsEqual(dn, ADSContext.getAdministrationSuffixDN());
+      if(!isADS)
+      {
+        notifyListeners(getFormattedProgress(
+            INFO_PROGRESS_INITIALIZING_SUFFIX.get(dn, hostPort)));
+        notifyListeners(getLineBreak());
+      }
+      else
+      {
+        notifyListeners(getFormattedWithPoints(
+            INFO_PROGRESS_INITIALIZING_ADS.get()));
+      }
       try
       {
         int replicationId = replica.getReplicationId();
@@ -1811,7 +1820,11 @@ public abstract class Installer extends GuiApplication {
         {
           try
           {
-            initializeSuffix(ctx, replicationId, dn, true, hostPort);
+            LOG.log(Level.INFO, "Calling initializeSuffix with base DN: "+dn);
+            LOG.log(Level.INFO, "Try number: "+(6 - nTries));
+            LOG.log(Level.INFO, "replicationId of source replica: "+
+                replicationId);
+            initializeSuffix(ctx, replicationId, dn, !isADS, hostPort);
             initDone = true;
           }
           catch (PeerNotFoundException pnfe)
@@ -1847,6 +1860,10 @@ public abstract class Installer extends GuiApplication {
         {
         }
         throw ae;
+      }
+      if (isADS)
+      {
+        notifyListeners(getFormattedDone());
       }
       notifyListeners(getLineBreak());
       checkAbort();
@@ -3666,6 +3683,7 @@ public abstract class Installer extends GuiApplication {
       }
       catch (NameAlreadyBoundException x)
       {
+        LOG.log(Level.WARNING, "A task with dn: "+dn+" already existed.");
       }
       catch (NamingException ne)
       {
@@ -3694,6 +3712,7 @@ public abstract class Installer extends GuiApplication {
     Message lastDisplayedMsg = null;
     String lastLogMsg = null;
     long lastTimeMsgDisplayed = -1;
+    long lastTimeMsgLogged = -1;
     int totalEntries = 0;
     while (!isOver)
     {
@@ -3708,78 +3727,84 @@ public abstract class Installer extends GuiApplication {
       {
         NamingEnumeration res = ctx.search(dn, filter, searchControls);
         SearchResult sr = (SearchResult)res.next();
-        if (displayProgress)
-        {
-          // Display the number of entries that have been handled and
-          // a percentage...
-          Message msg;
-          String sProcessed = getFirstValue(sr,
-          "ds-task-processed-entry-count");
-          String sUnprocessed = getFirstValue(sr,
-          "ds-task-unprocessed-entry-count");
-          int processed = -1;
-          int unprocessed = -1;
-          if (sProcessed != null)
-          {
-            processed = Integer.parseInt(sProcessed);
-          }
-          if (sUnprocessed != null)
-          {
-            unprocessed = Integer.parseInt(sUnprocessed);
-          }
-          totalEntries = Math.max(totalEntries, processed+unprocessed);
 
-          if ((processed != -1) && (unprocessed != -1))
+        // Get the number of entries that have been handled and
+        // a percentage...
+        Message msg;
+        String sProcessed = getFirstValue(sr,
+        "ds-task-processed-entry-count");
+        String sUnprocessed = getFirstValue(sr,
+        "ds-task-unprocessed-entry-count");
+        int processed = -1;
+        int unprocessed = -1;
+        if (sProcessed != null)
+        {
+          processed = Integer.parseInt(sProcessed);
+        }
+        if (sUnprocessed != null)
+        {
+          unprocessed = Integer.parseInt(sUnprocessed);
+        }
+        totalEntries = Math.max(totalEntries, processed+unprocessed);
+
+        if ((processed != -1) && (unprocessed != -1))
+        {
+          if (processed + unprocessed > 0)
           {
-            if (processed + unprocessed > 0)
-            {
-              int perc = (100 * processed) / (processed + unprocessed);
-              msg = INFO_INITIALIZE_PROGRESS_WITH_PERCENTAGE.get(sProcessed,
-                  String.valueOf(perc));
-            }
-            else
-            {
-              //msg = INFO_NO_ENTRIES_TO_INITIALIZE.get();
-              msg = null;
-            }
-          }
-          else if (processed != -1)
-          {
-            msg = INFO_INITIALIZE_PROGRESS_WITH_PROCESSED.get(sProcessed);
-          }
-          else if (unprocessed != -1)
-          {
-            msg = INFO_INITIALIZE_PROGRESS_WITH_UNPROCESSED.get(sUnprocessed);
+            int perc = (100 * processed) / (processed + unprocessed);
+            msg = INFO_INITIALIZE_PROGRESS_WITH_PERCENTAGE.get(sProcessed,
+                String.valueOf(perc));
           }
           else
           {
-            msg = lastDisplayedMsg;
+            //msg = INFO_NO_ENTRIES_TO_INITIALIZE.get();
+            msg = null;
           }
+        }
+        else if (processed != -1)
+        {
+          msg = INFO_INITIALIZE_PROGRESS_WITH_PROCESSED.get(sProcessed);
+        }
+        else if (unprocessed != -1)
+        {
+          msg = INFO_INITIALIZE_PROGRESS_WITH_UNPROCESSED.get(sUnprocessed);
+        }
+        else
+        {
+          msg = lastDisplayedMsg;
+        }
 
-          if (msg != null)
+        if (msg != null)
+        {
+          long currentTime = System.currentTimeMillis();
+          /* Refresh period: to avoid having too many lines in the log */
+          long minRefreshPeriod;
+          if (totalEntries < 100)
           {
-            long currentTime = System.currentTimeMillis();
-            /* Refresh period: to avoid having too many lines in the log */
-            long minRefreshPeriod;
-            if (totalEntries < 100)
-            {
-              minRefreshPeriod = 0;
-            }
-            else if (totalEntries < 1000)
-            {
-              minRefreshPeriod = 1000;
-            }
-            else if (totalEntries < 10000)
-            {
-              minRefreshPeriod = 5000;
-            }
-            else
-            {
-              minRefreshPeriod = 10000;
-            }
+            minRefreshPeriod = 0;
+          }
+          else if (totalEntries < 1000)
+          {
+            minRefreshPeriod = 1000;
+          }
+          else if (totalEntries < 10000)
+          {
+            minRefreshPeriod = 5000;
+          }
+          else
+          {
+            minRefreshPeriod = 10000;
+          }
+          if (((currentTime - minRefreshPeriod) > lastTimeMsgLogged))
+          {
+            lastTimeMsgLogged = currentTime;
+            LOG.log(Level.INFO, "Progress msg: "+msg);
+          }
+          if (displayProgress)
+          {
             if (!msg.equals(lastDisplayedMsg) &&
-            ((currentTime - minRefreshPeriod) > lastTimeMsgDisplayed))
-            if (!msg.equals(lastDisplayedMsg))
+                ((currentTime - minRefreshPeriod) > lastTimeMsgDisplayed) &&
+                !msg.equals(lastDisplayedMsg))
             {
               notifyListeners(getFormattedProgress(msg));
               lastDisplayedMsg = msg;
@@ -3788,6 +3813,7 @@ public abstract class Installer extends GuiApplication {
             }
           }
         }
+
         String logMsg = getFirstValue(sr, "ds-task-log-message");
         if (logMsg != null)
         {
@@ -3816,9 +3842,13 @@ public abstract class Installer extends GuiApplication {
                     sourceServerDisplay);
           }
 
+          LOG.log(Level.WARNING, "Processed errorMsg: "+errorMsg);
           if (helper.isCompletedWithErrors(state))
           {
-            notifyListeners(getFormattedWarning(errorMsg));
+            if (displayProgress)
+            {
+              notifyListeners(getFormattedWarning(errorMsg));
+            }
           }
           else if (!helper.isSuccessful(state) ||
               helper.isStoppedByError(state))
@@ -3829,16 +3859,20 @@ public abstract class Installer extends GuiApplication {
             if ((lastLogMsg == null) ||
                 helper.isPeersNotFoundError(lastLogMsg))
             {
+              LOG.log(Level.WARNING, "Throwing peer not found error.  "+
+                  "Last Log Msg: "+lastLogMsg);
               // Assume that this is a peer not found error.
               throw new PeerNotFoundException(errorMsg);
             }
             else
             {
+              LOG.log(Level.SEVERE, "Throwing ApplicationException.");
               throw ae;
             }
           }
           else if (displayProgress)
           {
+            LOG.log(Level.INFO, "Initialization completed successfully.");
             notifyListeners(getFormattedProgress(
                 INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get()));
           }

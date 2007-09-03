@@ -375,16 +375,16 @@ public class OfflineInstaller extends Installer
       steps.add(InstallProgressStep.STARTING_SERVER);
     }
 
-    if (mustConfigureReplication())
-    {
-      steps.add(InstallProgressStep.CONFIGURING_REPLICATION);
-      totalTime += hmTime.get(InstallProgressStep.CONFIGURING_REPLICATION);
-    }
-
     if (mustCreateAds())
     {
       totalTime += hmTime.get(InstallProgressStep.CONFIGURING_ADS);
       steps.add(InstallProgressStep.CONFIGURING_ADS);
+    }
+
+    if (mustConfigureReplication())
+    {
+      steps.add(InstallProgressStep.CONFIGURING_REPLICATION);
+      totalTime += hmTime.get(InstallProgressStep.CONFIGURING_REPLICATION);
     }
 
     if (mustInitializeSuffixes())
