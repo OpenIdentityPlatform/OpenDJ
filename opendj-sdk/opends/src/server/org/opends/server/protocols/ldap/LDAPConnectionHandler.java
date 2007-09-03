@@ -1109,6 +1109,7 @@ public final class LDAPConnectionHandler extends
             } else {
               if (shutdownRequested) {
                 cleanUpSelector();
+                selector.close();
                 listening = false;
                 enabled = false;
                 continue;
