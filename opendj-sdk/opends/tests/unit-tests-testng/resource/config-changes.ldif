@@ -309,6 +309,14 @@ ds-cfg-plugin-enabled: true
 replace: ds-cfg-unique-attribute-type
 ds-cfg-unique-attribute-type: oncRpcNumber
 
+dn: cn=Referential Integrity,cn=Plugins,cn=config
+changeType: modify
+replace: ds-cfg-plugin-enabled
+ds-cfg-plugin-enabled: true
+-
+add: ds-cfg-referential-integrity-base-dn
+ds-cfg-referential-integrity-base-dn: dc=does,dc=not,dc=exist
+
 dn: cn=Test Unique Attribute,cn=Plugins,cn=config
 changeType: add
 objectClass: top

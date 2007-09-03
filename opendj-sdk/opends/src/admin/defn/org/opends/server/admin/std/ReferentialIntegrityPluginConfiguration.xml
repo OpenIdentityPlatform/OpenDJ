@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+
+<adm:managed-object
+        name="referential-integrity-plugin"
+        plural-name="referential-integrity-plugins"
+        package="org.opends.server.admin.std"
+        extends="plugin"
+        xmlns:adm="http://www.opends.org/admin"
+        xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The <adm:user-friendly-name />
+    is used to enforce referential integrity on DN attribute types
+    specified in the plugin configuration. The values of these attribute types,
+    may reference entries that have been deleted by a delete operation or
+    renamed by a modify DN operation. The plugin will either remove stale
+    references to deleted entries or remove an old references and add a new
+    references to a renamed entries. The plugin allows the scope of this
+    referential check to be limited to a set of base DNs if desired.
+    It also can be configured to perform the referential
+    checking in background mode at specified intervals.
+  </adm:synopsis>
+
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.122</ldap:oid>
+      <ldap:name>ds-cfg-referential-integrity-plugin</ldap:name>
+      <ldap:superior>ds-cfg-plugin</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+
+  <adm:property-override name="plugin-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.plugins.ReferentialIntegrityPlugin
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+
+  <adm:property name="referential-integrity-attribute-type" mandatory="true"
+                multi-valued="true">
+    <adm:synopsis>
+      Specifies an attribute type to  process referential integrity checking on.
+      There must be at least one of these specified in the plugin configuration
+      and the syntax of the type must either be distinguished name
+      (1.3.6.1.4.1.1466.115.121.1.12) or name and optional uid
+      (1.3.6.1.4.1.1466.115.121.1.34).
+    </adm:synopsis>
+    <adm:description>
+      Specifies an attribute type to process referential integrity.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>T
+          The ds-cfg-referential-integrity attribute must be specified at least
+          once.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:attribute-type />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.472</ldap:oid>
+        <ldap:name>ds-cfg-referential-integrity-attribute-type</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+
+  <adm:property name="referential-integrity-base-dn" mandatory="false"
+                multi-valued="true">
+    <adm:synopsis>
+      Specifies a base DN to restrict the referential integrity
+      processing scope. If none of these are specified in the plugin
+      configuration, then the server's public naming contexts are used.
+    </adm:synopsis>
+    <adm:description>
+       Specifies the a base DN to restrict the referential integrity
+       processing scope.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The scope will be to use all of the public naming contexts.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:dn />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.473</ldap:oid>
+        <ldap:name>ds-cfg-referential-integrity-base-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="referential-integrity-log-file" mandatory="false"
+                multi-valued="false">
+    <adm:synopsis>
+      Specifies the log file location where the update records will be written
+      when the plugin is in background mode processing. The default location is
+      in the logs directory of the server instance, using the file name
+      "referint".
+    </adm:synopsis>
+    <adm:description>
+      Specifies the log file location where the update records will be written.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>logs/referint</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.474</ldap:oid>
+        <ldap:name>ds-cfg-referential-integrity-log-file</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="referential-integrity-update-interval" mandatory="false"
+                multi-valued="false">
+    <adm:synopsis>
+      Specifies the interval, in seconds, when the referential integrity
+      background thread will wakeup and process new update records. If this
+      value is 0, then the updates are processed in foreground.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the interval, in seconds, when the referential integrity update
+      thread will wakeup and process new update records.
+    </adm:description>
+     <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          0 seconds
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+   <adm:syntax>
+      <adm:duration base-unit="s" allow-unlimited="false" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.475</ldap:oid>
+        <ldap:name>ds-cfg-referential-integrity-update-interval</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+</adm:managed-object>
+

@@ -157,13 +157,17 @@ public class TestModifyDNOperation extends OperationTestCase
          new InternalClientConnection(DN.decode("uid=proxy.user,o=test"));
   }
 
+
+
   /**
    * Invokes a number of operation methods on the provided modify operation
-   * for which all processing has been completed.
+   * for which all processing has been completed. This method is used for
+   * tests that bypass the referential integrity plugin for whatever reason.
    *
    * @param  modifyDNOperation  The operation to be tested.
    */
-  private void examineCompletedOperation(ModifyDNOperation modifyDNOperation)
+  private void
+  examineCompletedOPNoExtraPluginCounts(ModifyDNOperation modifyDNOperation)
   {
     assertTrue(modifyDNOperation.getProcessingStartTime() > 0);
     assertTrue(modifyDNOperation.getProcessingStopTime() > 0);
@@ -175,6 +179,29 @@ public class TestModifyDNOperation extends OperationTestCase
     assertEquals(InvocationCounterPlugin.getPostOperationCount(), 1);
     ensurePostReponseHasRun();
     assertEquals(InvocationCounterPlugin.getPostResponseCount(), 1);
+  }
+
+
+  /**
+   * Invokes a number of operation methods on the provided modify operation
+   * for which all processing has been completed.  The counters
+   * postResponseCount and preParseCount are incremented twice when
+   * referential integrity plugin is enabled.
+   *
+   * @param  modifyDNOperation  The operation to be tested.
+   */
+  private void examineCompletedOperation(ModifyDNOperation modifyDNOperation)
+  {
+    assertTrue(modifyDNOperation.getProcessingStartTime() > 0);
+    assertTrue(modifyDNOperation.getProcessingStopTime() > 0);
+    assertTrue(modifyDNOperation.getProcessingTime() >= 0);
+    assertNotNull(modifyDNOperation.getResponseLogElements());
+
+    assertEquals(InvocationCounterPlugin.getPreParseCount(), 2);
+    assertEquals(InvocationCounterPlugin.getPreOperationCount(), 1);
+    assertEquals(InvocationCounterPlugin.getPostOperationCount(), 1);
+    ensurePostReponseHasRun();
+    assertEquals(InvocationCounterPlugin.getPostResponseCount(), 2);
   }
 
   /**
@@ -512,7 +539,7 @@ public class TestModifyDNOperation extends OperationTestCase
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
 
-    examineCompletedOperation(modifyDNOperation);
+    examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
     InvocationCounterPlugin.resetAllCounters();
 
     modifyDNOperation =
@@ -537,7 +564,7 @@ public class TestModifyDNOperation extends OperationTestCase
       assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
 
-    examineCompletedOperation(modifyDNOperation);
+    examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
   }
 
   @Test
@@ -571,7 +598,7 @@ public class TestModifyDNOperation extends OperationTestCase
       assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
 
-    examineCompletedOperation(modifyDNOperation);
+    examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
     InvocationCounterPlugin.resetAllCounters();
 
     modifyDNOperation =
@@ -596,7 +623,7 @@ public class TestModifyDNOperation extends OperationTestCase
       assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
     }
 
-    examineCompletedOperation(modifyDNOperation);
+    examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
   }
 
   @Test
@@ -631,7 +658,7 @@ public class TestModifyDNOperation extends OperationTestCase
       assertTrue(attribute.hasValue(new AttributeValue(attribute.getAttributeType(), "Aaccf Amar")));
     }
 
-    examineCompletedOperation(modifyDNOperation);
+    examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
     InvocationCounterPlugin.resetAllCounters();
 
     modifyDNOperation =
@@ -658,8 +685,7 @@ public class TestModifyDNOperation extends OperationTestCase
     {
       assertTrue(attribute.hasValue(new AttributeValue(attribute.getAttributeType(), "user.0")));
     }
-
-    examineCompletedOperation(modifyDNOperation);
+    examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
   }
 
   @Test
