@@ -51,6 +51,7 @@ import javax.swing.text.JTextComponent;
 import org.opends.admin.ads.ServerDescriptor;
 
 import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.installer.AuthenticationData;
 import org.opends.quicksetup.ui.FieldName;
 import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.ui.LabelFieldDescriptor;
@@ -74,6 +75,10 @@ implements Comparator<ServerDescriptor>
   private JPanel fieldsPanel;
   private TreeSet<ServerDescriptor> orderedServers =
     new TreeSet<ServerDescriptor>(this);
+  //The display of the server the user provided in the replication options
+  // panel
+  private String serverToConnectDisplay = null;
+
   /**
    * Constructor of the panel.
    * @param application Application represented by this panel and used to
@@ -203,8 +208,21 @@ implements Comparator<ServerDescriptor>
   {
     TreeSet<ServerDescriptor> array = orderServers(
         data.getRemoteWithNoReplicationPort().keySet());
-    if (!array.equals(orderedServers))
+    AuthenticationData authData =
+      data.getReplicationOptions().getAuthenticationData();
+    String newServerDisplay;
+    if (data != null)
     {
+      newServerDisplay = authData.getHostName()+":"+authData.getPort();
+    }
+    else
+    {
+      newServerDisplay = "";
+    }
+    if (!array.equals(orderedServers) ||
+        !newServerDisplay.equals(serverToConnectDisplay))
+    {
+      serverToConnectDisplay = newServerDisplay;
       /**
        * Adds the required focus listeners to the fields.
        */
@@ -231,8 +249,17 @@ implements Comparator<ServerDescriptor>
       hmLabels.clear();
       for (ServerDescriptor server : orderedServers)
       {
+        String serverDisplay;
+        if (server.getHostPort(false).equalsIgnoreCase(serverToConnectDisplay))
+        {
+          serverDisplay = serverToConnectDisplay;
+        }
+        else
+        {
+          serverDisplay = server.getHostPort(true);
+        }
         LabelFieldDescriptor desc = new LabelFieldDescriptor(
-                Message.raw(server.getHostPort(true)),
+                Message.raw(serverDisplay),
                 INFO_REPLICATION_PORT_TOOLTIP.get(),
                 LabelFieldDescriptor.FieldType.TEXTFIELD,
                 LabelFieldDescriptor.LabelType.PRIMARY,

@@ -59,6 +59,7 @@ import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.event.ButtonEvent;
+import org.opends.quicksetup.installer.AuthenticationData;
 import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
 import org.opends.quicksetup.ui.FieldName;
 import org.opends.quicksetup.ui.GuiApplication;
@@ -85,6 +86,10 @@ implements Comparator<SuffixDescriptor>
   private HashMap<String, JCheckBox> hmCheckBoxes =
     new HashMap<String, JCheckBox>();
   private Set<JEditorPane> suffixLabels = new HashSet<JEditorPane>();
+  // The display of the server the user provided in the replication options
+  // panel
+  private String serverToConnectDisplay = null;
+
 
   private JRadioButton rbCreateNewSuffix;
   private JRadioButton rbReplicate;
@@ -252,8 +257,21 @@ implements Comparator<SuffixDescriptor>
     TreeSet<SuffixDescriptor> array = orderSuffixes(
         data.getSuffixesToReplicateOptions().getAvailableSuffixes());
 
-    if (!array.equals(orderedSuffixes))
+    AuthenticationData authData =
+      data.getReplicationOptions().getAuthenticationData();
+    String newServerDisplay;
+    if (data != null)
     {
+      newServerDisplay = authData.getHostName()+":"+authData.getPort();
+    }
+    else
+    {
+      newServerDisplay = "";
+    }
+    if (!array.equals(orderedSuffixes) ||
+        !newServerDisplay.equals(serverToConnectDisplay))
+    {
+      serverToConnectDisplay = newServerDisplay;
       HashMap<String, Boolean> hmOldValues = new HashMap<String, Boolean>();
       for (String id : hmCheckBoxes.keySet())
       {
@@ -452,7 +470,15 @@ implements Comparator<SuffixDescriptor>
 
     ServerDescriptor server = replica.getServer();
 
-    String serverDisplay = server.getHostPort(true);
+    String serverDisplay;
+    if (server.getHostPort(false).equalsIgnoreCase(serverToConnectDisplay))
+    {
+      serverDisplay = serverToConnectDisplay;
+    }
+    else
+    {
+      serverDisplay = server.getHostPort(true);
+    }
 
     int nEntries = replica.getEntries();
 

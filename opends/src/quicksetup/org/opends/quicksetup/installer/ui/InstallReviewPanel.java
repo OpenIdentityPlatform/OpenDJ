@@ -34,6 +34,7 @@ import static org.opends.messages.QuickSetupMessages.*;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.installer.AuthenticationData;
 import org.opends.quicksetup.installer.DataReplicationOptions;
 import org.opends.quicksetup.installer.NewSuffixOptions;
 import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
@@ -360,15 +361,35 @@ public class InstallReviewPanel extends ReviewPanel {
         SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES) &&
         remotePorts.size() > 0)
     {
+      String serverToConnectDisplay;
+      AuthenticationData authData =
+        userInstallData.getReplicationOptions().getAuthenticationData();
+      if (userInstallData != null)
+      {
+        serverToConnectDisplay = authData.getHostName()+":"+authData.getPort();
+      }
+      else
+      {
+        serverToConnectDisplay = "";
+      }
       buf.append(String.valueOf(
                       userInstallData.getReplicationOptions()
                               .getReplicationPort()));
       TreeSet<Message> remoteServerLines = new TreeSet<Message>();
       for (ServerDescriptor server : remotePorts.keySet())
       {
+        String serverDisplay;
+        if (server.getHostPort(false).equalsIgnoreCase(serverToConnectDisplay))
+        {
+          serverDisplay = serverToConnectDisplay;
+        }
+        else
+        {
+          serverDisplay = server.getHostPort(true);
+        }
         remoteServerLines.add(INFO_REMOTE_SERVER_REPLICATION_PORT.get(
                 String.valueOf(remotePorts.get(server)),
-                server.getHostPort(true)));
+                serverDisplay));
       }
       for (Message line : remoteServerLines)
       {
