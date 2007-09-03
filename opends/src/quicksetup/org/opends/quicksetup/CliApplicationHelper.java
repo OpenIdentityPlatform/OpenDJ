@@ -30,6 +30,7 @@ package org.opends.quicksetup;
 
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.guitools.statuspanel.ConnectionProtocolPolicy;
 import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -758,17 +759,21 @@ public abstract class CliApplicationHelper {
    * Prompts the user to accept the certificate.
    * @param t the throwable that was generated because the certificate was
    * not trusted.
-   * @param trustManager the global trustManager that contains the certificates
-   * accepted by the user.
+   * @param usedTrustManager the trustManager used when trying to establish the
+   * connection.
    * @param usedUrl the LDAP URL used to connect to the server.
+   * @param trustManager the global trustManager that contains the certificates
+   * accepted by the user and that will be updated.
    * @return <CODE>true</CODE> if the user accepted the certificate and
    * <CODE>false</CODE> otherwise.
    */
   protected boolean promptForCertificateConfirmation(Throwable t,
-      ApplicationTrustManager trustManager, String usedUrl)
+      ApplicationTrustManager usedTrustManager, String usedUrl,
+      ApplicationTrustManager trustManager)
   {
     boolean returnValue = false;
-    ApplicationTrustManager.Cause cause = trustManager.getLastRefusedCause();
+    ApplicationTrustManager.Cause cause =
+      usedTrustManager.getLastRefusedCause();
 
     LOG.log(Level.INFO, "Certificate exception cause: "+cause);
     UserDataCertificateException.Type excType = null;
@@ -807,12 +812,39 @@ public abstract class CliApplicationHelper {
       UserDataCertificateException udce =
         new UserDataCertificateException(Step.REPLICATION_OPTIONS,
             INFO_CERTIFICATE_EXCEPTION.get(h, String.valueOf(p)), t, h, p,
-                trustManager.getLastRefusedChain(),
-                trustManager.getLastRefusedAuthType(), excType);
+                usedTrustManager.getLastRefusedChain(),
+                usedTrustManager.getLastRefusedAuthType(), excType);
 
       returnValue = handleCertificateException(udce, trustManager, true);
     }
     return returnValue;
+  }
+
+  /**
+   * Returns the ConnectionPolicy to be used with the parameters provided
+   * by the user.
+   * @param useSSL whether the user asked to use SSL or not.
+   * @param useStartTLS whether the user asked to use Start TLS or not.
+   * @return the ConnectionPolicy to be used with the parameters provided
+   * by the user.
+   */
+  protected ConnectionProtocolPolicy getConnectionPolicy(boolean useSSL,
+      boolean useStartTLS)
+  {
+    ConnectionProtocolPolicy policy;
+    if (useStartTLS)
+    {
+      policy = ConnectionProtocolPolicy.USE_STARTTLS;
+    }
+    else if (useSSL)
+    {
+      policy = ConnectionProtocolPolicy.USE_LDAPS;
+    }
+    else
+    {
+      policy = ConnectionProtocolPolicy.USE_LESS_SECURE_AVAILABLE;
+    }
+    return policy;
   }
 
   /**
@@ -822,7 +854,8 @@ public abstract class CliApplicationHelper {
    * accepted by the user.
    * @param udce the UserDataCertificateException that was generated.
    * @param trustManager the global trustManager that contains the certificates
-   * accepted by the user.
+   * accepted by the user and that will be updated if the user accepts the
+   * certificate.
    * @param displayErrorMessage whether to display the message describing
    * the error encountered (certificate not trusted) or only prompt to accept
    * the certificate.

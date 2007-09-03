@@ -382,6 +382,7 @@ class StatusCli extends CliApplicationHelper
                 LOG.log(Level.WARNING, "Error reading config file: "+ce, ce);
                 printLineBreak();
                 printErrorMessage(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
+                printLineBreak();
                 useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL);
                 if (!useSSL)
                 {
@@ -399,7 +400,7 @@ class StatusCli extends CliApplicationHelper
                   String usedUrl = ConnectionUtils.getLDAPUrl(host, port,
                       useSSL);
                   if (!promptForCertificateConfirmation(ne, getTrustManager(),
-                      usedUrl))
+                      usedUrl, getTrustManager()))
                   {
                     cancelled = true;
                   }
@@ -1208,32 +1209,5 @@ class StatusCli extends CliApplicationHelper
   private ApplicationTrustManager getTrustManager()
   {
     return argParser.getTrustManager();
-  }
-
-  /**
-   * Returns the ConnectionPolicy to be used with the parameters provided
-   * by the user.
-   * @param useSSL whether the user asked to use SSL or not.
-   * @param useStartTLS whether the user asked to use Start TLS or not.
-   * @return the ConnectionPolicy to be used with the parameters provided
-   * by the user.
-   */
-  private ConnectionProtocolPolicy getConnectionPolicy(boolean useSSL,
-      boolean useStartTLS)
-  {
-    ConnectionProtocolPolicy policy;
-    if (useStartTLS)
-    {
-      policy = ConnectionProtocolPolicy.USE_STARTTLS;
-    }
-    if (useSSL)
-    {
-      policy = ConnectionProtocolPolicy.USE_LDAPS;
-    }
-    else
-    {
-      policy = ConnectionProtocolPolicy.USE_LESS_SECURE_AVAILABLE;
-    }
-    return policy;
   }
 }

@@ -108,8 +108,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   private ProgressDialog startProgressDlg;
   private MessageBuilder startProgressDetails = new MessageBuilder();
   private UninstallData conf;
-  private String replicationServerHostPort;
-
   /**
    * Default constructor.
    */
@@ -828,12 +826,14 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       }
 
     } catch (ApplicationException ex) {
+      LOG.log(Level.SEVERE, "Error: "+ex, ex);
       ue = ex;
       status = UninstallProgressStep.FINISHED_WITH_ERROR;
       Message msg = getFormattedError(ex, true);
       notifyListeners(msg);
     }
     catch (Throwable t) {
+      LOG.log(Level.SEVERE, "Error: "+t, t);
       ue = new ApplicationException(
               ReturnCode.BUG,
               getThrowableMsg(INFO_BUG_MSG.get(), t), t);
@@ -1348,7 +1348,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     {
       getUninstallUserData().setAdminUID(loginDialog.getAdministratorUid());
       getUninstallUserData().setAdminPwd(loginDialog.getAdministratorPwd());
-      getUninstallUserData().setReferencedHostName(loginDialog.getHostName());
       final InitialLdapContext ctx = loginDialog.getContext();
       try
       {
@@ -1360,8 +1359,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         LOG.log(Level.WARNING, "Could not find local server: "+ne, ne);
         getUninstallUserData().setLocalServerUrl("ldap://localhost:389");
       }
-      replicationServerHostPort = loginDialog.getHostName() + ":" +
-      conf.getReplicationServerPort();
+      getUninstallUserData().setReplicationServer(
+          loginDialog.getHostName() + ":" +
+          conf.getReplicationServerPort());
 
       BackgroundTask worker = new BackgroundTask()
       {
@@ -1449,6 +1449,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     /* Check the exceptions and see if we throw them or not. */
     for (TopologyCacheException e : exceptions)
     {
+      LOG.log(Level.INFO, "Analyzing exception: "+e, e);
       if (stopProcessing)
       {
         break;
@@ -1641,6 +1642,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       LOG.log(Level.WARNING, "The server ADS properties for the server to "+
           "uninstall could not be found.");
     }
+
     for (ServerDescriptor server : servers)
     {
       if (server.getAdsProperties() != serverADSProperties)
@@ -1652,8 +1654,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
   /**
    * This method updates the replication in the remote server represented by
-   * a given ServerProperty object.  It does not thrown any exception and works
-   * in a best effort mode.
+   * a given ServerProperty object.
    * It also tries to delete the server registration entry from the remote ADS
    * servers if the serverADSProperties object passed is not null.
    * @param server the ServerDescriptor object representing the server where
@@ -1681,7 +1682,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       {
         for (Object o : replicationServers)
         {
-          if (replicationServerHostPort.equalsIgnoreCase((String)o))
+          if (getUninstallUserData().getReplicationServer().equalsIgnoreCase(
+              (String)o))
           {
             hasReferences = true;
             break;
@@ -1698,7 +1700,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         {
           for (Object o : replica.getReplicationServers())
           {
-            if (replicationServerHostPort.equalsIgnoreCase((String)o))
+            if (getUninstallUserData().getReplicationServer().equalsIgnoreCase(
+                (String)o))
             {
               hasReferences = true;
               break;
@@ -1799,7 +1802,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           String replServer = null;
           for (String o : replServers)
           {
-            if (replicationServerHostPort.equalsIgnoreCase(o))
+            if (getUninstallUserData().getReplicationServer().equalsIgnoreCase(
+                o))
             {
               replServer = o;
               break;
@@ -1836,7 +1840,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             String replServer = null;
             for (String o : replServers)
             {
-              if (replicationServerHostPort.equalsIgnoreCase(o))
+              if (getUninstallUserData().getReplicationServer().
+                  equalsIgnoreCase(o))
               {
                 replServer = o;
                 break;
@@ -1938,7 +1943,28 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           property = ServerDescriptor.ServerProperty.LDAP_PORT;
         }
         ArrayList ports = (ArrayList)server.getServerProperties().get(property);
-        isServerToUninstall = ports.contains(port);
+        if (ports == null)
+        {
+          isServerToUninstall = ports.contains(port);
+        }
+        else
+        {
+          // This occurs if the instance could not be loaded.
+          ADSContext.ServerProperty adsProperty;
+          if (isSecure)
+          {
+            adsProperty = ADSContext.ServerProperty.LDAPS_PORT;
+          }
+          else
+          {
+            adsProperty = ADSContext.ServerProperty.LDAPS_PORT;
+          }
+          String v = (String)server.getAdsProperties().get(adsProperty);
+          if (v != null)
+          {
+            isServerToUninstall = v.equals(String.valueOf(port));
+          }
+        }
       }
       catch (Throwable t)
       {

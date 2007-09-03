@@ -519,7 +519,8 @@ public class ReplicationCliMain extends CliApplicationHelper
         if (Utils.isCertificateException(ne))
         {
           String usedUrl = ConnectionUtils.getLDAPUrl(host1, port1, useSSL1);
-          if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl))
+          if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl,
+              getTrustManager()))
           {
             cancelled = true;
           }
@@ -716,7 +717,8 @@ public class ReplicationCliMain extends CliApplicationHelper
         if (Utils.isCertificateException(ne))
         {
           String usedUrl = ConnectionUtils.getLDAPUrl(host2, port2, useSSL2);
-          if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl))
+          if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl,
+              getTrustManager()))
           {
             cancelled = true;
           }
@@ -993,7 +995,8 @@ public class ReplicationCliMain extends CliApplicationHelper
         if (Utils.isCertificateException(ne))
         {
           String usedUrl = ConnectionUtils.getLDAPUrl(host, port, useSSL);
-          if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl))
+          if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl,
+              getTrustManager()))
           {
             cancelled = true;
           }
@@ -1171,7 +1174,8 @@ public class ReplicationCliMain extends CliApplicationHelper
         {
           String usedUrl = ConnectionUtils.getLDAPUrl(hostSource, portSource,
               useSSLSource);
-          if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl))
+          if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl,
+              getTrustManager()))
           {
             cancelled = true;
           }
@@ -1271,7 +1275,8 @@ public class ReplicationCliMain extends CliApplicationHelper
         {
           String usedUrl = ConnectionUtils.getLDAPUrl(hostDestination,
               portDestination, useSSLDestination);
-          if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl))
+          if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl,
+              getTrustManager()))
           {
             cancelled = true;
           }
@@ -1737,7 +1742,7 @@ public class ReplicationCliMain extends CliApplicationHelper
               {
                 reloadTopology = true;
                 cancelled = !promptForCertificateConfirmation(e.getCause(),
-                      getTrustManager(), e.getLdapUrl());
+                    e.getTrustManager(), e.getLdapUrl(), e.getTrustManager());
               }
               else
               {

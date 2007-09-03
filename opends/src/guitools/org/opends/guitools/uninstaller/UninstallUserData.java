@@ -52,10 +52,12 @@ public class UninstallUserData extends UserData {
     new ApplicationTrustManager(null);
   private String adminUID;
   private String adminPwd;
-  private String referencedHostName;
   private String localServerUrl;
   private HashSet<ServerDescriptor> remoteServers =
     new HashSet<ServerDescriptor>();
+  private boolean useSSL;
+  private boolean useStartTLS;
+  private String replicationServer;
 
   /**
    * Sets the database directories located outside the installation which must
@@ -289,19 +291,20 @@ public class UninstallUserData extends UserData {
   }
 
   /**
-   * Returns the referenced host name provided by the user.
-   * @return the referenced host name provided by the user.
+   * Returns the replication server as referenced in other servers.
+   * @return the replication server as referenced in other servers.
    */
-  public String getReferencedHostName() {
-    return referencedHostName;
+  public String getReplicationServer() {
+    return replicationServer;
   }
 
   /**
-   * Sets the referenced host name provided by the user.
-   * @param referencedHostName the referenced host name provided by the user.
+   * Sets the replication server as referenced in other servers.
+   * @param replicationServer the replication server as referenced in other
+   * servers.
    */
-  public void setReferencedHostName(String referencedHostName) {
-    this.referencedHostName = referencedHostName;
+  public void setReplicationServer(String replicationServer) {
+    this.replicationServer = replicationServer;
   }
 
   /**
@@ -341,5 +344,45 @@ public class UninstallUserData extends UserData {
   {
     this.remoteServers.clear();
     this.remoteServers.addAll(remoteServers);
+  }
+
+  /**
+   * Whether we must use SSL to connect to the local server or not.
+   * @return <CODE>true</CODE> if we must use SSL to connect to the local server
+   * and <CODE>false</CODE> otherwise.
+   */
+  public boolean useSSL()
+  {
+    return useSSL;
+  }
+
+  /**
+   * Sets whether we must use SSL to connect to the local server or not.
+   * @param useSSL whether we must use SSL to connect to the local server or
+   * not.
+   */
+  public void setUseSSL(boolean useSSL)
+  {
+    this.useSSL = useSSL;
+  }
+
+  /**
+   * Whether we must use Start TLS to connect to the local server or not.
+   * @return <CODE>true</CODE> if we must use Start TLS to connect to the local
+   * server and <CODE>false</CODE> otherwise.
+   */
+  public boolean useStartTLS()
+  {
+    return useStartTLS;
+  }
+
+  /**
+   * Sets whether we must use Start TLS to connect to the local server or not.
+   * @param useStartTLS whether we must use Start TLS to connect to the local
+   * server or not.
+   */
+  public void setUseStartTLS(boolean useStartTLS)
+  {
+    this.useStartTLS = useStartTLS;
   }
 }
