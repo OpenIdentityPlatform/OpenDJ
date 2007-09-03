@@ -346,7 +346,7 @@ final class LDAPDriver extends Driver {
       connection.deleteSubtree(dn);
     } catch (OperationNotSupportedException e) {
       // Unwilling to perform.
-      if (e.getMessage() != null) {
+      if (e.getMessage() == null) {
         throw new OperationRejectedException();
       } else {
         Message m = Message.raw("%s", e.getMessage());

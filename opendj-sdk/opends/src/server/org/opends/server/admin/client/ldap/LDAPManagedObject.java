@@ -159,7 +159,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
           driver.getLDAPConnection().createEntry(dn, attributes);
         } catch (OperationNotSupportedException e) {
           // Unwilling to perform.
-          if (e.getMessage() != null) {
+          if (e.getMessage() == null) {
             throw new OperationRejectedException();
           } else {
             Message m = Message.raw("%s", e.getMessage());
@@ -262,7 +262,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
         throw new AuthorizationException(e);
       } catch (OperationNotSupportedException e) {
         // Unwilling to perform.
-        if (e.getMessage() != null) {
+        if (e.getMessage() == null) {
           throw new OperationRejectedException();
         } else {
           Message m = Message.raw("%s", e.getMessage());
