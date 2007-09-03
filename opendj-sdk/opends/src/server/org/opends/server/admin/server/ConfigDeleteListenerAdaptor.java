@@ -25,26 +25,34 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
-import org.opends.messages.Message;
 
 
+
+import static org.opends.messages.AdminMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.Configuration;
+import org.opends.server.admin.Constraint;
 import org.opends.server.admin.DecodingException;
 import org.opends.server.admin.InstantiableRelationDefinition;
+import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
-import org.opends.server.admin.RelationDefinition;
 import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.config.ConfigEntry;
+import org.opends.server.config.ConfigException;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.ResultCode;
-import org.opends.messages.MessageBuilder;
+
 
 
 /**
@@ -56,24 +64,31 @@ import org.opends.messages.MessageBuilder;
  *          The type of server configuration handled by the delete
  *          listener.
  */
-final class ConfigDeleteListenerAdaptor<S extends Configuration>
-    extends AbstractConfigListenerAdaptor implements
-    ConfigDeleteListener {
+final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
+    AbstractConfigListenerAdaptor implements ConfigDeleteListener {
 
-  // The managed object path of the parent.
-  private final ManagedObjectPath<?, ?> path;
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
+  // Cached configuration object between accept/apply callbacks.
+  private S cachedConfiguration;
+
+  // Cached managed object between accept/apply callbacks.
+  private ServerManagedObject<? extends S> cachedManagedObject;
 
   // The instantiable relation.
   private final InstantiableRelationDefinition<?, S> instantiableRelation;
 
-  // The optional relation.
-  private final OptionalRelationDefinition<?, S> optionalRelation;
-
   // The underlying delete listener.
   private final ConfigurationDeleteListener<S> listener;
 
-  // Cached configuration object between accept/apply callbacks.
-  private S cachedConfiguration;
+  // The optional relation.
+  private final OptionalRelationDefinition<?, S> optionalRelation;
+
+  // The managed object path of the parent.
+  private final ManagedObjectPath<?, ?> path;
 
 
 
@@ -96,6 +111,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration>
     this.instantiableRelation = relation;
     this.listener = listener;
     this.cachedConfiguration = null;
+    this.cachedManagedObject = null;
   }
 
 
@@ -119,6 +135,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration>
     this.instantiableRelation = null;
     this.listener = listener;
     this.cachedConfiguration = null;
+    this.cachedManagedObject = null;
   }
 
 
@@ -126,8 +143,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration>
   /**
    * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationDelete(
-      ConfigEntry configEntry) {
+  public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry) {
     if (optionalRelation != null) {
       // Optional managed objects are located directly beneath the
       // parent and have a well-defined name. We need to make sure
@@ -142,7 +158,28 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration>
 
     // Cached objects are guaranteed to be from previous acceptable
     // callback.
-    return listener.applyConfigurationDelete(cachedConfiguration);
+    ConfigChangeResult result = listener
+        .applyConfigurationDelete(cachedConfiguration);
+
+    // Now apply post constraint call-backs.
+    if (result.getResultCode() == ResultCode.SUCCESS) {
+      ManagedObjectDefinition<?, ?> d = cachedManagedObject
+          .getManagedObjectDefinition();
+      for (Constraint constraint : d.getAllConstraints()) {
+        for (ServerConstraintHandler handler : constraint
+            .getServerConstraintHandlers()) {
+          try {
+            handler.performDeletePostCondition(cachedManagedObject);
+          } catch (ConfigException e) {
+            if (debugEnabled()) {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+          }
+        }
+      }
+    }
+
+    return result;
   }
 
 
@@ -156,11 +193,9 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration>
     AttributeValue av = dn.getRDN().getAttributeValue(0);
     String name = av.getStringValue().trim();
 
-    ManagedObjectPath<?, ?> childPath;
-    RelationDefinition<?, S> r;
+    ManagedObjectPath<?, S> childPath;
     if (instantiableRelation != null) {
       childPath = path.child(instantiableRelation, name);
-      r = instantiableRelation;
     } else {
       // Optional managed objects are located directly beneath the
       // parent and have a well-defined name. We need to make sure
@@ -171,21 +206,46 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration>
         // Doesn't apply to us.
         return true;
       }
-
-      r = optionalRelation;
     }
 
-    ServerManagedObject<? extends S> mo;
     try {
-      mo = ServerManagedObject.decode(childPath, r
-          .getChildDefinition(), configEntry);
+      ServerManagementContext context = ServerManagementContext.getInstance();
+      cachedManagedObject = context.decode(childPath, configEntry);
     } catch (DecodingException e) {
-      generateUnacceptableReason(e, unacceptableReason);
+      unacceptableReason.append(e.getMessageObject());
       return false;
     }
 
-    cachedConfiguration = mo.getConfiguration();
+    cachedConfiguration = cachedManagedObject.getConfiguration();
     List<Message> reasons = new LinkedList<Message>();
+
+    // Enforce any constraints.
+    boolean isAcceptable = true;
+    ManagedObjectDefinition<?, ?> d = cachedManagedObject
+        .getManagedObjectDefinition();
+    for (Constraint constraint : d.getAllConstraints()) {
+      for (ServerConstraintHandler handler : constraint
+          .getServerConstraintHandlers()) {
+        try {
+          if (!handler.isDeleteAcceptable(cachedManagedObject, reasons)) {
+            isAcceptable = false;
+          }
+        } catch (ConfigException e) {
+          Message message = ERR_SERVER_CONSTRAINT_EXCEPTION.get(e
+              .getMessageObject());
+          reasons.add(message);
+          isAcceptable = false;
+        }
+      }
+    }
+
+    // Give up immediately if a constraint violation occurs.
+    if (!isAcceptable) {
+      generateUnacceptableReason(reasons, unacceptableReason);
+      return false;
+    }
+
+    // Let the delete listener decide.
     if (listener.isConfigurationDeleteAcceptable(cachedConfiguration,
         reasons)) {
       return true;
@@ -201,8 +261,8 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration>
    * Get the configuration delete listener associated with this
    * adaptor.
    *
-   * @return Returns the configuration delete listener associated
-   *         with this adaptor.
+   * @return Returns the configuration delete listener associated with
+   *         this adaptor.
    */
   ConfigurationDeleteListener<S> getConfigurationDeleteListener() {
     return listener;

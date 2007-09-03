@@ -31,6 +31,7 @@ package org.opends.server.admin;
 import java.util.Collection;
 
 import org.opends.server.admin.client.ClientConstraintHandler;
+import org.opends.server.admin.server.ServerConstraintHandler;
 
 
 
@@ -68,9 +69,23 @@ public interface Constraint {
    * @return Returns the client-side constraint handlers which will be
    *         used to enforce this constraint in client applications.
    *         The returned collection must not be <code>null</code>
-   *         but maybe empty (indicating that the constrain can only
+   *         but maybe empty (indicating that the constraint can only
    *         be enforced on the server-side).
    */
   Collection<ClientConstraintHandler> getClientConstraintHandlers();
+
+
+
+  /**
+   * Gets the server-side constraint handlers which will be used to
+   * enforce this constraint within the server.
+   *
+   * @return Returns the server-side constraint handlers which will be
+   *         used to enforce this constraint within the server. The
+   *         returned collection must not be <code>null</code> and
+   *         must not be empty, since constraints must always be
+   *         enforced on the server.
+   */
+  Collection<ServerConstraintHandler> getServerConstraintHandlers();
 
 }

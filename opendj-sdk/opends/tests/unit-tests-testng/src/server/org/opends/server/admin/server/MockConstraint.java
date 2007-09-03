@@ -24,7 +24,7 @@
  *
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
-package org.opends.server.admin.client.ldap;
+package org.opends.server.admin.server;
 
 
 
@@ -33,13 +33,12 @@ import java.util.Collections;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.Constraint;
-import org.opends.server.admin.ManagedObjectPath;
-import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.ClientConstraintHandler;
-import org.opends.server.admin.client.CommunicationException;
-import org.opends.server.admin.client.ManagedObject;
-import org.opends.server.admin.client.ManagementContext;
-import org.opends.server.admin.server.ServerConstraintHandler;
+import org.opends.server.config.ConfigEntry;
+import org.opends.server.config.ConfigException;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.DN;
+import org.testng.Assert;
 
 
 
@@ -50,17 +49,16 @@ import org.opends.server.admin.server.ServerConstraintHandler;
 public final class MockConstraint implements Constraint {
 
   /**
-   * Mock client constraint handler.
+   * Mock server constraint handler.
    */
-  private class Handler extends ClientConstraintHandler {
+  private class Handler extends ServerConstraintHandler {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean isAddAcceptable(ManagementContext context,
-        ManagedObject<?> managedObject, Collection<Message> unacceptableReasons)
-        throws AuthorizationException, CommunicationException {
+    public boolean isAddAcceptable(ServerManagedObject<?> managedObject,
+        Collection<Message> unacceptableReasons) throws ConfigException {
       if (!allowAdds) {
         unacceptableReasons.add(Message.raw("Adds not allowed"));
       }
@@ -74,9 +72,8 @@ public final class MockConstraint implements Constraint {
      * {@inheritDoc}
      */
     @Override
-    public boolean isDeleteAcceptable(ManagementContext context,
-        ManagedObjectPath<?, ?> path, Collection<Message> unacceptableReasons)
-        throws AuthorizationException, CommunicationException {
+    public boolean isDeleteAcceptable(ServerManagedObject<?> managedObject,
+        Collection<Message> unacceptableReasons) throws ConfigException {
       if (!allowDeletes) {
         unacceptableReasons.add(Message.raw("Deletes not allowed"));
       }
@@ -90,14 +87,55 @@ public final class MockConstraint implements Constraint {
      * {@inheritDoc}
      */
     @Override
-    public boolean isModifyAcceptable(ManagementContext context,
-        ManagedObject<?> managedObject, Collection<Message> unacceptableReasons)
-        throws AuthorizationException, CommunicationException {
+    public boolean isModifyAcceptable(ServerManagedObject<?> managedObject,
+        Collection<Message> unacceptableReasons) throws ConfigException {
       if (!allowModifies) {
         unacceptableReasons.add(Message.raw("Modifies not allowed"));
       }
 
       return allowModifies;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void performAddPostCondition(ServerManagedObject<?> managedObject)
+        throws ConfigException {
+      // Make sure that the associated config entry exists.
+      DN targetDN = managedObject.getDN();
+      ConfigEntry configEntry = DirectoryServer.getConfigEntry(targetDN);
+      Assert.assertNotNull(configEntry);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void performDeletePostCondition(ServerManagedObject<?> managedObject)
+        throws ConfigException {
+      // Make sure that the associated config entry does not exist.
+      DN targetDN = managedObject.getDN();
+      ConfigEntry configEntry = DirectoryServer.getConfigEntry(targetDN);
+      Assert.assertNull(configEntry);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void performModifyPostCondition(ServerManagedObject<?> managedObject)
+        throws ConfigException {
+      // Make sure that the associated config entry exists.
+      DN targetDN = managedObject.getDN();
+      ConfigEntry configEntry = DirectoryServer.getConfigEntry(targetDN);
+      Assert.assertNotNull(configEntry);
     }
 
   }
@@ -136,7 +174,7 @@ public final class MockConstraint implements Constraint {
    * {@inheritDoc}
    */
   public Collection<ClientConstraintHandler> getClientConstraintHandlers() {
-    return Collections.<ClientConstraintHandler> singleton(new Handler());
+    return Collections.emptySet();
   }
 
 
@@ -145,7 +183,7 @@ public final class MockConstraint implements Constraint {
    * {@inheritDoc}
    */
   public Collection<ServerConstraintHandler> getServerConstraintHandlers() {
-    return Collections.emptySet();
+    return Collections.<ServerConstraintHandler> singleton(new Handler());
   }
 
 }

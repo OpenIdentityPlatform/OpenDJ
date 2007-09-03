@@ -25,11 +25,14 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
+
+
+
 import org.opends.messages.Message;
 
-
-
+import static org.opends.messages.AdminMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -40,10 +43,12 @@ import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AliasDefaultBehaviorProvider;
 import org.opends.server.admin.Configuration;
+import org.opends.server.admin.Constraint;
 import org.opends.server.admin.DecodingException;
 import org.opends.server.admin.DefaultBehaviorProvider;
 import org.opends.server.admin.DefaultBehaviorProviderVisitor;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
+import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
@@ -60,6 +65,7 @@ import org.opends.messages.MessageBuilder;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.ResultCode;
 import org.opends.server.util.StaticUtils;
 
 
@@ -199,9 +205,6 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
   // Cached managed object between accept/apply call-backs.
   private ServerManagedObject<? extends S> cachedManagedObject;
 
-  // The managed object definition.
-  private final AbstractManagedObjectDefinition<?, S> d;
-
   // The names of entries that this change listener depends on.
   private final Set<DN> dependencies;
 
@@ -216,7 +219,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
   private final ConfigurationChangeListener<? super S> listener;
 
   // The managed object path.
-  private final ManagedObjectPath<?, ?> path;
+  private final ManagedObjectPath<?, S> path;
 
 
 
@@ -225,17 +228,13 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
    *
    * @param path
    *          The managed object path.
-   * @param d
-   *          The managed object definition.
    * @param listener
    *          The underlying change listener.
    */
-  public ConfigChangeListenerAdaptor(ManagedObjectPath<?, ?> path,
-      AbstractManagedObjectDefinition<?, S> d,
+  public ConfigChangeListenerAdaptor(ManagedObjectPath<?, S> path,
       ConfigurationChangeListener<? super S> listener) {
     this.path = path;
     this.dn = DNBuilder.create(path);
-    this.d = d;
     this.listener = listener;
     this.cachedManagedObject = null;
 
@@ -245,6 +244,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
     this.dependencies = new HashSet<DN>();
     this.dependencyListener = new DependencyConfigChangeListener(dn, this);
 
+    AbstractManagedObjectDefinition<?, ?> d = path.getManagedObjectDefinition();
     for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
       Visitor.find(path, pd, dependencies);
     }
@@ -311,8 +311,28 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
     // listener lists.
     cachedManagedObject.setConfigEntry(configEntry);
 
-    return listener.applyConfigurationChange(cachedManagedObject
-        .getConfiguration());
+    ConfigChangeResult result = listener
+        .applyConfigurationChange(cachedManagedObject.getConfiguration());
+
+    // Now apply post constraint call-backs.
+    if (result.getResultCode() == ResultCode.SUCCESS) {
+      ManagedObjectDefinition<?, ?> d = cachedManagedObject
+          .getManagedObjectDefinition();
+      for (Constraint constraint : d.getAllConstraints()) {
+        for (ServerConstraintHandler handler : constraint
+            .getServerConstraintHandlers()) {
+          try {
+            handler.performModifyPostCondition(cachedManagedObject);
+          } catch (ConfigException e) {
+            if (debugEnabled()) {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+          }
+        }
+      }
+    }
+
+    return result;
   }
 
 
@@ -350,14 +370,42 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
       MessageBuilder unacceptableReason, ConfigEntry newConfigEntry) {
     try {
-      cachedManagedObject = ServerManagedObject.decode(path, d, configEntry,
-          newConfigEntry);
+      ServerManagementContext context = ServerManagementContext.getInstance();
+      cachedManagedObject = context.decode(path, configEntry, newConfigEntry);
     } catch (DecodingException e) {
-      generateUnacceptableReason(e, unacceptableReason);
+      unacceptableReason.append(e.getMessageObject());
       return false;
     }
 
     List<Message> reasons = new LinkedList<Message>();
+
+    // Enforce any constraints.
+    boolean isAcceptable = true;
+    ManagedObjectDefinition<?, ?> d = cachedManagedObject
+        .getManagedObjectDefinition();
+    for (Constraint constraint : d.getAllConstraints()) {
+      for (ServerConstraintHandler handler : constraint
+          .getServerConstraintHandlers()) {
+        try {
+          if (!handler.isModifyAcceptable(cachedManagedObject, reasons)) {
+            isAcceptable = false;
+          }
+        } catch (ConfigException e) {
+          Message message = ERR_SERVER_CONSTRAINT_EXCEPTION.get(e
+              .getMessageObject());
+          reasons.add(message);
+          isAcceptable = false;
+        }
+      }
+    }
+
+    // Give up immediately if a constraint violation occurs.
+    if (!isAcceptable) {
+      generateUnacceptableReason(reasons, unacceptableReason);
+      return false;
+    }
+
+    // Let the change listener decide.
     if (listener.isConfigurationChangeAcceptable(cachedManagedObject
         .getConfiguration(), reasons)) {
       return true;
@@ -390,8 +438,8 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
       if (configEntry != null) {
         return configEntry;
       } else {
-        Message message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST.
-            get(String.valueOf(dn));
+        Message message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST
+            .get(String.valueOf(dn));
         ErrorLogger.logError(message);
       }
     } catch (ConfigException e) {

@@ -25,26 +25,34 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
-import org.opends.messages.Message;
 
 
+
+import static org.opends.messages.AdminMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.Configuration;
+import org.opends.server.admin.Constraint;
 import org.opends.server.admin.DecodingException;
 import org.opends.server.admin.InstantiableRelationDefinition;
+import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
-import org.opends.server.admin.RelationDefinition;
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.config.ConfigEntry;
+import org.opends.server.config.ConfigException;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.ResultCode;
-import org.opends.messages.MessageBuilder;
+
 
 
 /**
@@ -58,20 +66,28 @@ import org.opends.messages.MessageBuilder;
 final class ConfigAddListenerAdaptor<S extends Configuration> extends
     AbstractConfigListenerAdaptor implements ConfigAddListener {
 
-  // The managed object path of the parent.
-  private final ManagedObjectPath<?, ?> path;
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
+  // Cached configuration object between accept/apply callbacks.
+  private S cachedConfiguration;
+
+  // Cached managed object between accept/apply callbacks.
+  private ServerManagedObject<? extends S> cachedManagedObject;
 
   // The instantiable relation.
   private final InstantiableRelationDefinition<?, S> instantiableRelation;
 
-  // The optional relation.
-  private final OptionalRelationDefinition<?, S> optionalRelation;
-
   // The underlying add listener.
   private final ConfigurationAddListener<S> listener;
 
-  // Cached configuration object between accept/apply callbacks.
-  private S cachedConfiguration;
+  // The optional relation.
+  private final OptionalRelationDefinition<?, S> optionalRelation;
+
+  // The managed object path of the parent.
+  private final ManagedObjectPath<?, ?> path;
 
 
 
@@ -94,6 +110,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
     this.optionalRelation = null;
     this.listener = listener;
     this.cachedConfiguration = null;
+    this.cachedManagedObject = null;
   }
 
 
@@ -117,6 +134,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
     this.instantiableRelation = null;
     this.listener = listener;
     this.cachedConfiguration = null;
+    this.cachedManagedObject = null;
   }
 
 
@@ -124,8 +142,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
   /**
    * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationAdd(
-      ConfigEntry configEntry) {
+  public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry) {
     if (optionalRelation != null) {
       // Optional managed objects are located directly beneath the
       // parent and have a well-defined name. We need to make sure
@@ -140,7 +157,28 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
 
     // Cached objects are guaranteed to be from previous acceptable
     // callback.
-    return listener.applyConfigurationAdd(cachedConfiguration);
+    ConfigChangeResult result = listener
+        .applyConfigurationAdd(cachedConfiguration);
+
+    // Now apply post constraint call-backs.
+    if (result.getResultCode() == ResultCode.SUCCESS) {
+      ManagedObjectDefinition<?, ?> d = cachedManagedObject
+          .getManagedObjectDefinition();
+      for (Constraint constraint : d.getAllConstraints()) {
+        for (ServerConstraintHandler handler : constraint
+            .getServerConstraintHandlers()) {
+          try {
+            handler.performAddPostCondition(cachedManagedObject);
+          } catch (ConfigException e) {
+            if (debugEnabled()) {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+          }
+        }
+      }
+    }
+
+    return result;
   }
 
 
@@ -154,11 +192,9 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
     AttributeValue av = dn.getRDN().getAttributeValue(0);
     String name = av.getStringValue().trim();
 
-    ManagedObjectPath<?, ?> childPath;
-    RelationDefinition<?, S> r;
+    ManagedObjectPath<?, S> childPath;
     if (instantiableRelation != null) {
       childPath = path.child(instantiableRelation, name);
-      r = instantiableRelation;
     } else {
       // Optional managed objects are located directly beneath the
       // parent and have a well-defined name. We need to make sure
@@ -169,21 +205,46 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
         // Doesn't apply to us.
         return true;
       }
-
-      r = optionalRelation;
     }
 
-    ServerManagedObject<? extends S> mo;
     try {
-      mo = ServerManagedObject.decode(childPath, r
-          .getChildDefinition(), configEntry, configEntry);
+      ServerManagementContext context = ServerManagementContext.getInstance();
+      cachedManagedObject = context.decode(childPath, configEntry, configEntry);
     } catch (DecodingException e) {
-      generateUnacceptableReason(e, unacceptableReason);
+      unacceptableReason.append(e.getMessageObject());
       return false;
     }
 
-    cachedConfiguration = mo.getConfiguration();
+    cachedConfiguration = cachedManagedObject.getConfiguration();
     List<Message> reasons = new LinkedList<Message>();
+
+    // Enforce any constraints.
+    boolean isAcceptable = true;
+    ManagedObjectDefinition<?, ?> d = cachedManagedObject
+        .getManagedObjectDefinition();
+    for (Constraint constraint : d.getAllConstraints()) {
+      for (ServerConstraintHandler handler : constraint
+          .getServerConstraintHandlers()) {
+        try {
+          if (!handler.isAddAcceptable(cachedManagedObject, reasons)) {
+            isAcceptable = false;
+          }
+        } catch (ConfigException e) {
+          Message message = ERR_SERVER_CONSTRAINT_EXCEPTION.get(e
+              .getMessageObject());
+          reasons.add(message);
+          isAcceptable = false;
+        }
+      }
+    }
+
+    // Give up immediately if a constraint violation occurs.
+    if (!isAcceptable) {
+      generateUnacceptableReason(reasons, unacceptableReason);
+      return false;
+    }
+
+    // Let the add listener decide.
     if (listener.isConfigurationAddAcceptable(cachedConfiguration, reasons)) {
       return true;
     } else {
@@ -195,9 +256,9 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
 
 
   /**
-   * Get the configuiration add listener associated with this adaptor.
+   * Get the configuration add listener associated with this adaptor.
    *
-   * @return Returns the configuiration add listener associated with
+   * @return Returns the configuration add listener associated with
    *         this adaptor.
    */
   ConfigurationAddListener<S> getConfigurationAddListener() {
