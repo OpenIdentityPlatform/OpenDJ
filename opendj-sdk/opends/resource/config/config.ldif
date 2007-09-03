@@ -1973,6 +1973,7 @@ cn: Trust Manager Providers
 dn: cn=Blind Trust,cn=Trust Manager Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-trust-manager-provider
+objectClass: ds-cfg-blind-trust-manager-provider
 cn: Blind Trust
 ds-cfg-trust-manager-provider-class: org.opends.server.extensions.BlindTrustManagerProvider
 ds-cfg-trust-manager-provider-enabled: false
