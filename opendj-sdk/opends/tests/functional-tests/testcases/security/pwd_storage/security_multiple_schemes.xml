@@ -102,7 +102,7 @@
               'subcommand'           : 'create-password-storage-scheme' ,    
               'objectType'           : 'scheme-name' ,
               'objectName'           : 'SHA-1',
-              'optionsString'        : '--type generic --set enabled:true --set scheme-class:org.opends.server.extensions.SHA1PasswordStorageScheme ',
+              'optionsString'        : '--type sha1 --set enabled:true ',
               'expectedRC'           : 0 } 
             </call>          
             
