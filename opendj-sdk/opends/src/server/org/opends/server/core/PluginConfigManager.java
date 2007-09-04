@@ -1631,7 +1631,7 @@ public class PluginConfigManager
                 String.valueOf(entry.getDN()), stackTraceToSingleLineString(e));
         logError(message);
 
-        return new LDIFPluginResult(false, false);
+        return new LDIFPluginResult(false, false, message);
       }
 
       if (result == null)
@@ -1641,7 +1641,7 @@ public class PluginConfigManager
                 String.valueOf(entry.getDN()));
         logError(message);
 
-        return new LDIFPluginResult(false, false);
+        return new LDIFPluginResult(false, false, message);
       }
       else if (! result.continuePluginProcessing())
       {
@@ -1694,7 +1694,7 @@ public class PluginConfigManager
                 String.valueOf(entry.getDN()), stackTraceToSingleLineString(e));
         logError(message);
 
-        return new LDIFPluginResult(false, false);
+        return new LDIFPluginResult(false, false, message);
       }
 
       if (result == null)
@@ -1704,7 +1704,7 @@ public class PluginConfigManager
                 String.valueOf(entry.getDN()));
         logError(message);
 
-        return new LDIFPluginResult(false, false);
+        return new LDIFPluginResult(false, false, message);
       }
       else if (! result.continuePluginProcessing())
       {

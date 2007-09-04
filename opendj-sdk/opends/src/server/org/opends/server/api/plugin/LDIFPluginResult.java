@@ -28,6 +28,10 @@ package org.opends.server.api.plugin;
 
 
 
+import org.opends.messages.Message;
+
+
+
 /**
  * This class defines a data structure that holds information about
  * the result of processing an LDIF import or export plugin.
@@ -56,6 +60,9 @@ public class LDIFPluginResult
   // imported/exported.
   private final boolean continueEntryProcessing;
 
+  // A message explaining why the entry was rejected.
+  private final Message rejectMessage;
+
 
 
   /**
@@ -65,7 +72,7 @@ public class LDIFPluginResult
    */
   private LDIFPluginResult()
   {
-    this(true, true);
+    this(true, true, null);
   }
 
 
@@ -85,8 +92,33 @@ public class LDIFPluginResult
   public LDIFPluginResult(boolean continuePluginProcessing,
                           boolean continueEntryProcessing)
   {
+    this(continuePluginProcessing, continueEntryProcessing, null);
+  }
+
+
+
+  /**
+   * Creates a new pre-operation plugin result with the provided
+   * information.
+   *
+   * @param  continuePluginProcessing  Indicates whether any further
+   *                                   LDIF import/export plugins
+   *                                   should be invoked for the
+   *                                   associated entry.
+   * @param  continueEntryProcessing   Indicates whether the
+   *                                   associated entry should still
+   *                                   be imported/exported.
+   * @param  rejectMessage             A message explaining why the
+   *                                   entry should not be
+   *                                   imported/exported.
+   */
+  public LDIFPluginResult(boolean continuePluginProcessing,
+                          boolean continueEntryProcessing,
+                          Message rejectMessage)
+  {
     this.continuePluginProcessing = continuePluginProcessing;
     this.continueEntryProcessing  = continueEntryProcessing;
+    this.rejectMessage            = rejectMessage;
   }
 
 
@@ -121,6 +153,20 @@ public class LDIFPluginResult
 
 
   /**
+   * Retrieves a message explaining why the entry should not be
+   * imported/exported, if one was provided.
+   *
+   * @return  A message explaining why the entry should not be
+   *          imported/exported, or {@code null} if none was provided.
+   */
+  public Message getRejectMessage()
+  {
+    return rejectMessage;
+  }
+
+
+
+  /**
    * Retrieves a string representation of this post-response plugin
    * result.
    *
@@ -149,6 +195,14 @@ public class LDIFPluginResult
     buffer.append(continuePluginProcessing);
     buffer.append(", continueEntryProcessing=");
     buffer.append(continueEntryProcessing);
+
+    if (rejectMessage != null)
+    {
+      buffer.append(", rejectMessage=\"");
+      buffer.append(rejectMessage);
+      buffer.append("\"");
+    }
+
     buffer.append(")");
   }
 }
