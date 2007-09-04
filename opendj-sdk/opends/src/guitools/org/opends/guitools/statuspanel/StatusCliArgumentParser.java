@@ -75,8 +75,8 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
   {
     ArrayList<Argument> defaultArgs =
       new ArrayList<Argument>(createGlobalArguments(outStream));
-    defaultArgs.remove(portArg);
-    defaultArgs.remove(hostNameArg);
+    defaultArgs.remove(secureArgsList.portArg);
+    defaultArgs.remove(secureArgsList.hostNameArg);
     defaultArgs.remove(verboseArg);
     noPromptArg = new BooleanArgument(
         ToolConstants.OPTION_LONG_NO_PROMPT,
@@ -107,9 +107,9 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
   public String getExplicitBindDn()
   {
     String dn = null;
-    if (bindDnArg.isPresent())
+    if (secureArgsList.bindDnArg.isPresent())
     {
-      dn = bindDnArg.getValue();
+      dn = secureArgsList.bindDnArg.getValue();
     }
     return dn;
   }
@@ -122,6 +122,6 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
    */
   public String getDefaultBindDn()
   {
-    return bindDnArg.getDefaultValue();
+    return secureArgsList.bindDnArg.getDefaultValue();
   }
 }

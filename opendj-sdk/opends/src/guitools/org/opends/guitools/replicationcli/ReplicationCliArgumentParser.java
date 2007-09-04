@@ -353,13 +353,13 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       new ArrayList<Argument>(createGlobalArguments(outStream));
 
     Argument[] argsToRemove = {
-      hostNameArg,
-      portArg,
-      bindDnArg,
-      bindPasswordFileArg,
-      bindPasswordArg,
-      useSSLArg,
-      useStartTLSArg
+      secureArgsList.hostNameArg,
+      secureArgsList.portArg,
+      secureArgsList.bindDnArg,
+      secureArgsList.bindPasswordFileArg,
+      secureArgsList.bindPasswordArg,
+      secureArgsList.useSSLArg,
+      secureArgsList.useStartTLSArg
     };
 
     for (int i=0; i<argsToRemove.length; i++)
@@ -518,14 +518,13 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     disableReplicationSubCmd = new SubCommand(this,
         DISABLE_REPLICATION_SUBCMD_NAME,
         INFO_DESCRIPTION_SUBCMD_DISABLE_REPLICATION.get());
-    bindDnArg = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
+    secureArgsList.bindDnArg = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
         OPTION_LONG_BINDDN, false, false, true, OPTION_VALUE_BINDDN,
         "cn=Directory Manager", null,
         INFO_DESCRIPTION_DISABLE_REPLICATION_BINDDN.get());
-    Argument[] argsToAdd = {
-        hostNameArg, portArg,
-        useSSLArg, useStartTLSArg, bindDnArg
-    };
+    Argument[] argsToAdd = { secureArgsList.hostNameArg,
+        secureArgsList.portArg, secureArgsList.useSSLArg,
+        secureArgsList.useStartTLSArg, secureArgsList.bindDnArg };
     for (int i=0; i<argsToAdd.length; i++)
     {
       disableReplicationSubCmd.addArgument(argsToAdd[i]);
@@ -825,7 +824,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public boolean useSSLToDisable()
   {
-    return useSSLArg.isPresent();
+    return secureArgsList.useSSLArg.isPresent();
   }
 
   /**
@@ -837,7 +836,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public boolean useStartTLSToDisable()
   {
-    return useStartTLSArg.isPresent();
+    return secureArgsList.useStartTLSArg.isPresent();
   }
 
   /**
@@ -1054,7 +1053,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public String getHostNameToDisable()
   {
-    return getValue(hostNameArg);
+    return getValue(secureArgsList.hostNameArg);
   }
 
   /**
@@ -1065,7 +1064,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public String getDefaultHostNameToDisable()
   {
-    return getDefaultValue(hostNameArg);
+    return getDefaultValue(secureArgsList.hostNameArg);
   }
 
   /**
@@ -1076,7 +1075,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public String getBindDNToDisable()
   {
-    return getValue(bindDnArg);
+    return getValue(secureArgsList.bindDnArg);
   }
 
   /**
@@ -1087,7 +1086,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public String getDefaultBindDnToDisable()
   {
-    return getDefaultValue(bindDnArg);
+    return getDefaultValue(secureArgsList.bindDnArg);
   }
 
   /**
@@ -1186,7 +1185,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public int getPortToDisable()
   {
-    return getValue(portArg);
+    return getValue(secureArgsList.portArg);
   }
 
   /**
@@ -1197,7 +1196,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public int getDefaultPortToDisable()
   {
-    return getDefaultValue(portArg);
+    return getDefaultValue(secureArgsList.portArg);
   }
 
   /**
@@ -1424,7 +1423,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     {
         {useStartTLSSourceArg, useSSLSourceArg},
         {useStartTLSDestinationArg, useSSLDestinationArg},
-        {adminUidArg, bindDnArg}
+        {adminUidArg, secureArgsList.bindDnArg}
     };
 
     for (int i=0; i< conflictingPairs.length; i++)

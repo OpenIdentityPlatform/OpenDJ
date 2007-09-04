@@ -563,12 +563,12 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
   /**
    * The value for the short option unit-size.
    */
-  private static final char OPTION_DSCFG_SHORT_UNIT_SIZE = 'Z';
+  private static final char OPTION_DSCFG_SHORT_UNIT_SIZE = 'z';
 
   /**
    * The value for the short option unit-time.
    */
-  private static final char OPTION_DSCFG_SHORT_UNIT_TIME = 'M';
+  private static final char OPTION_DSCFG_SHORT_UNIT_TIME = 'm';
 
   // The argument which should be used to specify zero or more
   // property names.

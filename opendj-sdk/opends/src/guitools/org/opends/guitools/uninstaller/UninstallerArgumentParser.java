@@ -178,18 +178,18 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
 
     ArrayList<Argument> defaultArgs =
       new ArrayList<Argument>(createGlobalArguments(System.err));
-    int index = defaultArgs.indexOf(bindDnArg);
+    int index = defaultArgs.indexOf(secureArgsList.bindDnArg);
     if (index != -1)
     {
       defaultArgs.add(index, adminUidArg);
-      defaultArgs.remove(bindDnArg);
+      defaultArgs.remove(secureArgsList.bindDnArg);
     }
     else
     {
       defaultArgs.add(adminUidArg);
     }
-    defaultArgs.remove(hostNameArg);
-    defaultArgs.remove(portArg);
+    defaultArgs.remove(secureArgsList.hostNameArg);
+    defaultArgs.remove(secureArgsList.portArg);
     defaultArgs.remove(verboseArg);
     UserData uData = new UserData();
     referencedHostNameArg = new StringArgument("referencedHostName",
