@@ -47,6 +47,7 @@ import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.GlobalCfg;
 import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
+import org.opends.server.types.DN;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -257,5 +258,88 @@ public class ManagedObjectPathTest extends DirectoryServerTestCase {
         domain,
         ManagedObjectPath
             .valueOf("/relation=synchronization-provider+type=multimaster-synchronization-provider+name=MMR/relation=multimaster-domain+name=Domain"));
+  }
+
+  /**
+   * Tests matches and equals methods behave differently.
+   */
+  @Test
+  public void testMatches() {
+    ManagedObjectPath<?, ?> path = ManagedObjectPath.emptyPath();
+
+    ManagedObjectPath<ConnectionHandlerCfgClient, ConnectionHandlerCfg> child1 = path
+        .child(RootCfgDefn.getInstance()
+            .getConnectionHandlersRelationDefinition(),
+            "LDAP connection handler");
+
+    ManagedObjectPath<LDAPConnectionHandlerCfgClient, LDAPConnectionHandlerCfg> child2 = path
+        .child(RootCfgDefn.getInstance()
+            .getConnectionHandlersRelationDefinition(),
+            LDAPConnectionHandlerCfgDefn.getInstance(),
+            "LDAP connection handler");
+
+    ManagedObjectPath<LDAPConnectionHandlerCfgClient, LDAPConnectionHandlerCfg> child3 = path
+        .child(RootCfgDefn.getInstance()
+            .getConnectionHandlersRelationDefinition(),
+            LDAPConnectionHandlerCfgDefn.getInstance(),
+            "Another LDAP connection handler");
+
+    assertTrue(child1.matches(child1));
+    assertTrue(child2.matches(child2));
+    assertTrue(child1.matches(child2));
+    assertTrue(child2.matches(child1));
+    
+    assertTrue(child1.equals(child1));
+    assertTrue(child2.equals(child2));
+    assertFalse(child1.equals(child2));
+    assertFalse(child2.equals(child1));
+    
+    assertFalse(child1.matches(child3));
+    assertFalse(child2.matches(child3));
+    assertFalse(child3.matches(child1));
+    assertFalse(child3.matches(child2));
+    
+    assertFalse(child1.equals(child3));
+    assertFalse(child2.equals(child3));
+    assertFalse(child3.equals(child1));
+    assertFalse(child3.equals(child2));
+  }
+  
+  /**
+   * Tests toDN method.
+   * 
+   * @throws Exception
+   *           If an unexpected error occurred.
+   */
+  @Test
+  public void testToDN() throws Exception {
+    ManagedObjectPath<?, ?> path = ManagedObjectPath.emptyPath();
+
+    ManagedObjectPath<ConnectionHandlerCfgClient, ConnectionHandlerCfg> child1 = path
+        .child(RootCfgDefn.getInstance()
+            .getConnectionHandlersRelationDefinition(),
+            "LDAP connection handler");
+
+    ManagedObjectPath<LDAPConnectionHandlerCfgClient, LDAPConnectionHandlerCfg> child2 = path
+        .child(RootCfgDefn.getInstance()
+            .getConnectionHandlersRelationDefinition(),
+            LDAPConnectionHandlerCfgDefn.getInstance(),
+            "LDAP connection handler");
+
+    ManagedObjectPath<LDAPConnectionHandlerCfgClient, LDAPConnectionHandlerCfg> child3 = path
+        .child(RootCfgDefn.getInstance()
+            .getConnectionHandlersRelationDefinition(),
+            LDAPConnectionHandlerCfgDefn.getInstance(),
+            "Another LDAP connection handler");
+    
+    DN expectedEmpty = DN.nullDN();
+    DN expectedChild1 = DN.decode("cn=LDAP connection handler,cn=connection handlers,cn=config");
+    DN expectedChild2 = DN.decode("cn=LDAP connection handler,cn=connection handlers,cn=config");
+    DN expectedChild3 = DN.decode("cn=Another LDAP connection handler,cn=connection handlers,cn=config");
+    
+    assertEquals(path.toDN(), expectedEmpty);
+    assertEquals(child1.toDN(), expectedChild1);
+    assertEquals(child2.toDN(), expectedChild2);
+    assertEquals(child3.toDN(), expectedChild3);
   }
 }

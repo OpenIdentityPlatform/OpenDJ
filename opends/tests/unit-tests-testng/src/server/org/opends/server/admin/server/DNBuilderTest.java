@@ -101,9 +101,7 @@ public final class DNBuilderTest extends AdminTestCase {
         .getTestChildrenRelationDefinition(), "test-child-1");
 
     // Now serialize it.
-    DNBuilder builder = new DNBuilder();
-    path.serialize(builder);
-    DN actual = builder.getInstance();
+    DN actual = DNBuilder.create(path);
     DN expected = DN
         .decode("cn=test-child-1,cn=test children,cn=test-parent-1,cn=test parents,cn=config");
 
@@ -152,9 +150,7 @@ public final class DNBuilderTest extends AdminTestCase {
     // Now serialize it.
     LDAPProfile.getInstance().pushWrapper(wrapper);
     try {
-      DNBuilder builder = new DNBuilder();
-      path.serialize(builder);
-      DN actual = builder.getInstance();
+      DN actual = DNBuilder.create(path);
       DN expected = DN
           .decode("cn=singleton-test-child,cn=test-parent-1,cn=test parents,cn=config");
 
@@ -184,9 +180,7 @@ public final class DNBuilderTest extends AdminTestCase {
         .getOptionalTestChildRelationDefinition());
 
     // Now serialize it.
-    DNBuilder builder = new DNBuilder();
-    path.serialize(builder);
-    DN actual = builder.getInstance();
+    DN actual = DNBuilder.create(path);
     DN expected = DN
         .decode("cn=optional test child,cn=test-parent-1,cn=test parents,cn=config");
 
