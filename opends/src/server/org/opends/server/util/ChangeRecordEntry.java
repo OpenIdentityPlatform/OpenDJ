@@ -79,5 +79,14 @@ public abstract class ChangeRecordEntry
    * @return  The name of the change operation type.
    */
   public abstract ChangeOperationType getChangeOperationType();
+
+
+
+  /**
+   * Retrieves a string representation of this change record entry.
+   *
+   * @return  A string representation of this change record entry.
+   */
+  public abstract String toString();
 }
 

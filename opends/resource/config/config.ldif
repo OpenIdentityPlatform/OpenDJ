@@ -458,6 +458,16 @@ ds-cfg-ssl-cert-nickname: server-cert
 ds-cfg-key-manager-provider-dn: cn=JKS,cn=Key Manager Providers,cn=config
 ds-cfg-trust-manager-provider-dn: cn=JKS,cn=Trust Manager Providers,cn=config
 
+dn: cn=LDIF Connection Handler,cn=Connection Handlers,cn=config
+objectClass: top
+objectClass: ds-cfg-connection-handler
+objectClass: ds-cfg-ldif-connection-handler
+cn: LDIF Connection Handler
+ds-cfg-connection-handler-class: org.opends.server.protocols.LDIFConnectionHandler
+ds-cfg-connection-handler-enabled: true
+ds-cfg-ldif-directory: config/auto-process-ldif
+ds-cfg-poll-interval: 5 seconds
+
 dn: cn=JMX Connection Handler,cn=Connection Handlers,cn=config
 objectClass: top
 objectClass: ds-cfg-connection-handler

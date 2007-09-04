@@ -63,6 +63,17 @@ public final class TestChangeRecordEntry extends UtilTestCase {
       // Will not use.
       return null;
     }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override()
+    public String toString()
+    {
+      return "MyChangeRecordEntry()";
+    }
   }
 
   /**

@@ -65,5 +65,21 @@ public final class DeleteChangeRecordEntry extends ChangeRecordEntry
   {
     return ChangeOperationType.DELETE;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public String toString()
+  {
+    StringBuilder buffer = new StringBuilder();
+    buffer.append("DeleteChangeRecordEntry(dn=\"");
+    buffer.append(String.valueOf(getDN()));
+    buffer.append("\")");
+
+    return buffer.toString();
+  }
 }
 

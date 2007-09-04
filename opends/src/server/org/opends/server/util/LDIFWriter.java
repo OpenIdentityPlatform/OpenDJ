@@ -25,7 +25,6 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
-import org.opends.messages.Message;
 
 
 
@@ -36,18 +35,22 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.Collection;
 
+import org.opends.messages.Message;
+import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.Modification;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.RDN;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
 
@@ -253,6 +256,155 @@ public boolean writeEntries(Collection <Entry> entries)
   {
     ensureNotNull(entry);
     return entry.toLDIF(exportConfig);
+  }
+
+
+
+  /**
+   * Writes a change record entry for the provided change record.
+   *
+   * @param  changeRecord  The change record entry to be written.
+   *
+   * @throws  IOException  If a problem occurs while writing the change record.
+   */
+  public void writeChangeRecord(ChangeRecordEntry changeRecord)
+         throws IOException
+  {
+    ensureNotNull(changeRecord);
+
+
+    // Get the information necessary to write the LDIF.
+    BufferedWriter writer     = exportConfig.getWriter();
+    int            wrapColumn = exportConfig.getWrapColumn();
+    boolean        wrapLines  = (wrapColumn > 1);
+
+
+    // First, write the DN.
+    StringBuilder dnLine = new StringBuilder();
+    dnLine.append("dn");
+    appendLDIFSeparatorAndValue(dnLine,
+                                getBytes(changeRecord.getDN().toString()));
+    writeLDIFLine(dnLine, writer, wrapLines, wrapColumn);
+
+
+    // Figure out what type of change it is and act accordingly.
+    if (changeRecord instanceof AddChangeRecordEntry)
+    {
+      StringBuilder changeTypeLine = new StringBuilder("changetype: add");
+      writeLDIFLine(changeTypeLine, writer, wrapLines, wrapColumn);
+
+      AddChangeRecordEntry addRecord = (AddChangeRecordEntry) changeRecord;
+      for (Attribute a : addRecord.getAttributes())
+      {
+        for (AttributeValue v : a.getValues())
+        {
+          StringBuilder line = new StringBuilder();
+          line.append(a.getNameWithOptions());
+          String stringValue = v.getStringValue();
+          if (needsBase64Encoding(stringValue))
+          {
+            line.append(":: ");
+            line.append(Base64.encode(v.getValueBytes()));
+          }
+          else
+          {
+            line.append(": ");
+            line.append(stringValue);
+          }
+          writeLDIFLine(line, writer, wrapLines, wrapColumn);
+        }
+      }
+    }
+    else if (changeRecord instanceof DeleteChangeRecordEntry)
+    {
+      StringBuilder changeTypeLine = new StringBuilder("changetype: delete");
+      writeLDIFLine(changeTypeLine, writer, wrapLines, wrapColumn);
+    }
+    else if (changeRecord instanceof ModifyChangeRecordEntry)
+    {
+      StringBuilder changeTypeLine = new StringBuilder("changetype: modify");
+      writeLDIFLine(changeTypeLine, writer, wrapLines, wrapColumn);
+
+      ModifyChangeRecordEntry modifyRecord =
+           (ModifyChangeRecordEntry) changeRecord;
+      List<RawModification> mods = modifyRecord.getModifications();
+      Iterator<RawModification> iterator = mods.iterator();
+      while (iterator.hasNext())
+      {
+        RawModification m = iterator.next();
+        RawAttribute a = m.getAttribute();
+        String attrName = a.getAttributeType();
+        StringBuilder modTypeLine = new StringBuilder();
+        modTypeLine.append(m.getModificationType().getLDIFName());
+        modTypeLine.append(": ");
+        modTypeLine.append(attrName);
+        writeLDIFLine(modTypeLine, writer, wrapLines, wrapColumn);
+
+        for (ASN1OctetString s : a.getValues())
+        {
+          StringBuilder valueLine = new StringBuilder();
+          String stringValue = s.stringValue();
+
+          valueLine.append(attrName);
+          if (needsBase64Encoding(stringValue))
+          {
+            valueLine.append(":: ");
+            valueLine.append(Base64.encode(s.value()));
+          }
+          else
+          {
+            valueLine.append(": ");
+            valueLine.append(stringValue);
+          }
+
+          writeLDIFLine(valueLine, writer, wrapLines, wrapColumn);
+        }
+
+        if (iterator.hasNext())
+        {
+          StringBuilder dashLine = new StringBuilder("-");
+          writeLDIFLine(dashLine, writer, wrapLines, wrapColumn);
+        }
+      }
+    }
+    else if (changeRecord instanceof ModifyDNChangeRecordEntry)
+    {
+      StringBuilder changeTypeLine = new StringBuilder("changetype: moddn");
+      writeLDIFLine(changeTypeLine, writer, wrapLines, wrapColumn);
+
+      ModifyDNChangeRecordEntry modifyDNRecord =
+           (ModifyDNChangeRecordEntry) changeRecord;
+
+      StringBuilder newRDNLine = new StringBuilder();
+      newRDNLine.append("newrdn: ");
+      modifyDNRecord.getNewRDN().toString(newRDNLine);
+      writeLDIFLine(newRDNLine, writer, wrapLines, wrapColumn);
+
+      StringBuilder deleteOldRDNLine = new StringBuilder();
+      deleteOldRDNLine.append("deleteoldrdn: ");
+      if (modifyDNRecord.deleteOldRDN())
+      {
+        deleteOldRDNLine.append("1");
+      }
+      else
+      {
+        deleteOldRDNLine.append("0");
+      }
+      writeLDIFLine(deleteOldRDNLine, writer, wrapLines, wrapColumn);
+
+      DN newSuperiorDN = modifyDNRecord.getNewSuperiorDN();
+      if (newSuperiorDN != null)
+      {
+        StringBuilder newSuperiorLine = new StringBuilder();
+        newSuperiorLine.append("newsuperior: ");
+        newSuperiorDN.toString(newSuperiorLine);
+        writeLDIFLine(newSuperiorLine, writer, wrapLines, wrapColumn);
+      }
+    }
+
+
+    // Make sure there is a blank line after the entry.
+    writer.newLine();
   }
 
 

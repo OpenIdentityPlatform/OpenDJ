@@ -31,6 +31,7 @@ import static org.opends.server.util.Validator.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import org.opends.server.types.DN;
@@ -99,6 +100,37 @@ public final class ModifyChangeRecordEntry extends ChangeRecordEntry
   public ChangeOperationType getChangeOperationType()
   {
     return ChangeOperationType.MODIFY;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public String toString()
+  {
+    StringBuilder buffer = new StringBuilder();
+    buffer.append("ModifyChangeRecordEntry(dn=\"");
+    buffer.append(String.valueOf(getDN()));
+    buffer.append("\", mods={");
+
+    Iterator<RawModification> iterator = modifications.iterator();
+    while (iterator.hasNext())
+    {
+      RawModification mod = iterator.next();
+      buffer.append(mod.getModificationType().getLDIFName());
+      buffer.append(" ");
+      buffer.append(mod.getAttribute().getAttributeType());
+
+      if (iterator.hasNext())
+      {
+        buffer.append(", ");
+      }
+    }
+    buffer.append("})");
+
+    return buffer.toString();
   }
 }
 
