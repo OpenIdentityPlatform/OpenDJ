@@ -68,7 +68,8 @@ public class CommunicationException extends AdminClientException {
    *          The cause.
    */
   public CommunicationException(Throwable cause) {
-    super(ERR_COMMUNICATION_EXCEPTION_DEFAULT.get(), cause);
+    super(ERR_COMMUNICATION_EXCEPTION_DEFAULT_CAUSE.get(cause.getMessage()),
+        cause);
   }
 
 
