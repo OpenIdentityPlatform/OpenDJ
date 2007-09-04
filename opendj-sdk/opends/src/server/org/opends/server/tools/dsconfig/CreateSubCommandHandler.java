@@ -575,7 +575,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     } catch (ManagedObjectDecodingException e) {
       Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
       Message msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(ufn);
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg, e);
     } catch (CommunicationException e) {
       Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(d.getUserFriendlyName(), e
           .getMessage());

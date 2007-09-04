@@ -228,7 +228,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
     } catch (ManagedObjectDecodingException e) {
       ufn = path.getManagedObjectDefinition().getUserFriendlyName();
       Message msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(ufn);
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg, e);
     } catch (CommunicationException e) {
       Message msg = ERR_DSCFG_ERROR_LIST_CE.get(ufn, e.getMessage());
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
@@ -270,7 +270,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
         // FIXME: just output this as a warnings (incl. the name) but
         // continue.
         Message msg = ERR_DSCFG_ERROR_LIST_MODE.get(ufn);
-        throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+        throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg, e);
       } catch (AuthorizationException e) {
         Message msg = ERR_DSCFG_ERROR_LIST_AUTHZ.get(ufn);
         throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -303,7 +303,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
         throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
       } catch (ManagedObjectDecodingException e) {
         Message msg = ERR_DSCFG_ERROR_LIST_MODE.get(ufn);
-        throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+        throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg, e);
       } catch (ConcurrentModificationException e) {
         Message msg = ERR_DSCFG_ERROR_LIST_CME.get(ufn);
         throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
