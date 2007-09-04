@@ -30,6 +30,7 @@ import static org.opends.server.util.Validator.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -114,5 +115,31 @@ public final class AddChangeRecordEntry extends ChangeRecordEntry
     return Collections.unmodifiableList(attributes);
   }
 
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public String toString()
+  {
+    StringBuilder buffer = new StringBuilder();
+    buffer.append("AddChangeRecordEntry(dn=\"");
+    buffer.append(String.valueOf(getDN()));
+    buffer.append("\", attrs={");
+
+    Iterator<Attribute> iterator = attributes.iterator();
+    while (iterator.hasNext())
+    {
+      buffer.append(iterator.next().getName());
+      if (iterator.hasNext())
+      {
+        buffer.append(", ");
+      }
+    }
+    buffer.append("})");
+
+    return buffer.toString();
+  }
 }
 

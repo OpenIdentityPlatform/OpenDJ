@@ -1659,6 +1659,50 @@ public final class ServerConstants
 
 
   /**
+   * The description for the alert type that will be used for the alert
+   * notification generated when the LDIF connection handler is unable to
+   * process the contents of a file as valid LDIF.
+   */
+  public static final String ALERT_DESCRIPTION_LDIF_CONNHANDLER_PARSE_ERROR =
+       "This alert type will be used to provide notification that the " +
+       "LDIF connection handler encountered an unrecoverable error while " +
+       "attempting to parse an LDIF file.";
+
+
+
+  /**
+   * The alert type string that will be used for the alert notification
+   * generated when the LDIF connection handler is unable to process the
+   * contents of a file as valid LDIF.
+   */
+  public static final String ALERT_TYPE_LDIF_CONNHANDLER_PARSE_ERROR =
+       "org.opends.server.LDIFConnectionHandlerParseError";
+
+
+
+  /**
+   * The description for the alert type that will be used for the alert
+   * notification generated if an I/O error occurs while attempting to
+   * read or write LDIF content.
+   */
+  public static final String ALERT_DESCRIPTION_LDIF_CONNHANDLER_IO_ERROR =
+       "This alert type will be used to provide notification that the " +
+       "LDIF connection handler encountered an I/O error that prevented it " +
+       "from completing its processing.";
+
+
+
+  /**
+   * The alert type string that will be used for the alert notification
+   * generated if an I/O error occurs while attempting to  read or write LDIF
+   * content.
+   */
+  public static final String ALERT_TYPE_LDIF_CONNHANDLER_IO_ERROR =
+       "org.opends.server.LDIFConnectionHandlerIOError";
+
+
+
+  /**
    * The name of the default password storage scheme that will be used for new
    * passwords.
    */

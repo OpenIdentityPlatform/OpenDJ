@@ -127,5 +127,33 @@ public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
   {
     return ChangeOperationType.MODIFY_DN;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public String toString()
+  {
+    StringBuilder buffer = new StringBuilder();
+    buffer.append("ModifyDNChangeRecordEntry(dn=\"");
+    buffer.append(String.valueOf(getDN()));
+    buffer.append("\", newRDN=\"");
+    buffer.append(String.valueOf(newRDN));
+    buffer.append("\", deleteOldRDN=");
+    buffer.append(deleteOldRDN);
+
+    if (newSuperiorDN != null)
+    {
+      buffer.append(", newSuperior=\"");
+      newSuperiorDN.toString(buffer);
+      buffer.append("\"");
+    }
+
+    buffer.append(")");
+
+    return buffer.toString();
+  }
 }
 

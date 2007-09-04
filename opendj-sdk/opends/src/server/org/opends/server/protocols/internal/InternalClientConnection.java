@@ -25,17 +25,8 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.internal;
-import org.opends.messages.Message;
 
 
-
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.messages.ProtocolMessages.*;
-
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
 
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
@@ -49,6 +40,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.opends.messages.Message;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.ConnectionSecurityProvider;
@@ -71,8 +63,6 @@ import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
-
-
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
@@ -88,6 +78,17 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.SearchScope;
+import org.opends.server.util.AddChangeRecordEntry;
+import org.opends.server.util.DeleteChangeRecordEntry;
+import org.opends.server.util.ModifyChangeRecordEntry;
+import org.opends.server.util.ModifyDNChangeRecordEntry;
+
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -933,6 +934,54 @@ public final class InternalClientConnection
 
 
   /**
+   * Processes an internal add operation based on the provided add
+   * change record entry.
+   *
+   * @param  addRecord  The add change record entry to be processed.
+   *
+   * @return  A reference to the add operation that was processed and
+   *          contains information about the result of the processing.
+   */
+  public AddOperation processAdd(AddChangeRecordEntry addRecord)
+  {
+    LinkedHashMap<ObjectClass,String> objectClasses =
+         new LinkedHashMap<ObjectClass,String>();
+    LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
+         new LinkedHashMap<AttributeType,List<Attribute>>();
+    LinkedHashMap<AttributeType,List<Attribute>> opAttrs =
+         new LinkedHashMap<AttributeType,List<Attribute>>();
+
+    Entry e = new Entry(addRecord.getDN(), objectClasses, userAttrs,
+                        opAttrs);
+
+    ArrayList<AttributeValue> duplicateValues =
+         new ArrayList<AttributeValue>();
+    for (Attribute a : addRecord.getAttributes())
+    {
+      if (a.getAttributeType().isObjectClassType())
+      {
+        for (AttributeValue v : a.getValues())
+        {
+          String ocName = v.getStringValue();
+          String lowerName = toLowerCase(ocName);
+          ObjectClass oc = DirectoryServer.getObjectClass(lowerName,
+                                                          true);
+          objectClasses.put(oc, ocName);
+        }
+      }
+      else
+      {
+        e.addAttribute(a, duplicateValues);
+      }
+    }
+
+    return processAdd(addRecord.getDN(), objectClasses, userAttrs,
+                      opAttrs);
+  }
+
+
+
+  /**
    * Processes an internal bind operation with the provided
    * information.  Note that regardless of whether the bind is
    * successful, the authentication state for this internal connection
@@ -1224,6 +1273,25 @@ public final class InternalClientConnection
 
 
   /**
+   * Processes an internal delete operation with the provided
+   * information.
+   *
+   * @param  deleteRecord  The delete change record entry to be
+   *                       processed.
+   *
+   * @return  A reference to the delete operation that was processed
+   *          and contains information about the result of the
+   *          processing.
+   */
+  public DeleteOperation processDelete(
+                              DeleteChangeRecordEntry deleteRecord)
+  {
+    return processDelete(deleteRecord.getDN());
+  }
+
+
+
+  /**
    * Processes an internal extended operation with the provided
    * information.
    *
@@ -1327,6 +1395,26 @@ public final class InternalClientConnection
     modifyOperation.run();
 
     return modifyOperation;
+  }
+
+
+
+  /**
+   * Processes an internal modify operation with the provided
+   * information.
+   *
+   * @param  modifyRecord  The modify change record entry with
+   *                       information about the changes to perform.
+   *
+   * @return  A reference to the modify operation that was processed
+   *          and contains information about the result of the
+   *          processing.
+   */
+  public ModifyOperation processModify(
+                              ModifyChangeRecordEntry modifyRecord)
+  {
+    return processModify(modifyRecord.getDN().toString(),
+                         modifyRecord.getModifications());
   }
 
 
@@ -1493,6 +1581,29 @@ public final class InternalClientConnection
 
     modifyDNOperation.run();
     return modifyDNOperation;
+  }
+
+
+
+  /**
+   * Processes an internal modify DN operation with the provided
+   * information.
+   *
+   * @param  modifyDNRecord  The modify DN change record entry with
+   *                         information about the processing to
+   *                         perform.
+   *
+   * @return  A reference to the modify DN operation that was
+   *          processed and contains information about the result of
+   *          the processing.
+   */
+  public ModifyDNOperation processModifyDN(
+              ModifyDNChangeRecordEntry modifyDNRecord)
+  {
+    return processModifyDN(modifyDNRecord.getDN(),
+                           modifyDNRecord.getNewRDN(),
+                           modifyDNRecord.deleteOldRDN(),
+                           modifyDNRecord.getNewSuperiorDN());
   }
 
 

@@ -41,40 +41,51 @@ public enum ChangeOperationType
   /**
    * The change type for add operations.
    */
-  ADD("ADD"),
+  ADD("ADD", "add"),
 
 
 
   /**
    * The change type for delete operations.
    */
-  DELETE("DELETE"),
+  DELETE("DELETE", "delete"),
 
 
 
   /**
    * The change type for modify operations.
    */
-  MODIFY("MODIFY"),
+  MODIFY("MODIFY", "modify"),
 
 
 
   /**
    * The change type for modify DN operations.
    */
-  MODIFY_DN("MODIFY_DN");
+  MODIFY_DN("MODIFY_DN", "moddn");
 
 
+
+  // The name of this change type as it should appear in the "changetype" field
+  // in LDIF records.
+  private String ldifChangeType;
+
+  // The user-friendly name given to this change type.
   private String type;
+
+
 
   /**
    * Creates a change type with the given string value.
    *
-   * @param  type  The string value for this change type.
+   * @param  type            The string value for this change type.
+   * @param  ldifChangeType  The change type as it should appear in the
+   *                         "changetype" field in LDIF records.
    */
-  private ChangeOperationType(String type)
+  private ChangeOperationType(String type, String ldifChangeType)
   {
-    this.type = type;
+    this.type           = type;
+    this.ldifChangeType = ldifChangeType;
   }
 
 
@@ -86,6 +97,19 @@ public enum ChangeOperationType
   public String getType()
   {
     return type;
+  }
+
+
+  /**
+   * Retrieves the name of the change type as it should appear in LDIF
+   * "changetype" records.
+   *
+   * @return  The name of the change type as it should appear in LDIF
+   *          "changetype" records.
+   */
+  public String getLDIFChangeType()
+  {
+    return ldifChangeType;
   }
 
 

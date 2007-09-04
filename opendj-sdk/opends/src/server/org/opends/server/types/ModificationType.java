@@ -44,7 +44,7 @@ public enum ModificationType
    * The modification type that indicates that the associated
    * attribute values should be added to the entry.
    */
-  ADD(0),
+  ADD(0, "add"),
 
 
 
@@ -52,7 +52,7 @@ public enum ModificationType
    * The modification type that indicates that the associated
    * attribute or set of values should be removed from the entry.
    */
-  DELETE(1),
+  DELETE(1, "delete"),
 
 
 
@@ -61,7 +61,7 @@ public enum ModificationType
    * attribute should be used to replace any existing values for that
    * attribute in the entry.
    */
-  REPLACE(2),
+  REPLACE(2, "replace"),
 
 
 
@@ -70,12 +70,16 @@ public enum ModificationType
    * associated attribute should be incremented by a specified amount
    * as defined in RFC 4525.
    */
-  INCREMENT(3);
+  INCREMENT(3, "increment");
 
 
 
   // The integer value for this modification type.
   private int intValue;
+
+  // The name of this modification type as it should appear in LDIF
+  // records.
+  private String ldifName;
 
 
 
@@ -83,10 +87,13 @@ public enum ModificationType
    * Creates a new modification type with the provided integer value.
    *
    * @param  intValue  The integer value for this modification type.
+   * @param  ldifName  The name of this modification type as it should
+   *                   appear in LDIF records.
    */
-  private ModificationType(int intValue)
+  private ModificationType(int intValue, String ldifName)
   {
     this.intValue = intValue;
+    this.ldifName = ldifName;
   }
 
 
@@ -104,9 +111,23 @@ public enum ModificationType
 
 
   /**
-   * Retrieves a string representation of this authentication type.
+   * Retrieves the name of this modification type as it should appear
+   * in LDIF records.
    *
-   * @return  A string representation of this authentication type.
+   * @return  The name of this modification type as it should appear
+   *          in LDIF records.
+   */
+  public String getLDIFName()
+  {
+    return ldifName;
+  }
+
+
+
+  /**
+   * Retrieves a string representation of this modification type.
+   *
+   * @return  A string representation of this modification type.
    */
   public String toString()
   {
