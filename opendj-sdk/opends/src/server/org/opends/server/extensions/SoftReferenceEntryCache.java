@@ -34,7 +34,6 @@ import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import org.opends.messages.MessageBuilder;
@@ -80,22 +79,12 @@ public class SoftReferenceEntryCache
    */
   private static final DebugTracer TRACER = getTracer();
 
-
-
-  // The set of time units that will be used for expressing the task retention
-  // time.
-  private static final LinkedHashMap<String,Double> timeUnits =
-       new LinkedHashMap<String,Double>();
-
   // The mapping between entry DNs and their corresponding entries.
   private ConcurrentHashMap<DN,SoftReference<CacheEntry>> dnMap;
 
   // The mapping between backend+ID and their corresponding entries.
   private ConcurrentHashMap<Backend,
                ConcurrentHashMap<Long,SoftReference<CacheEntry>>> idMap;
-
-  // The DN of the configuration entry for this entry cache implementation.
-  private DN configEntryDN;
 
   // The reference queue that will be used to notify us whenever a soft
   // reference is freed.
@@ -107,16 +96,6 @@ public class SoftReferenceEntryCache
   private Thread cleanerThread;
 
   private volatile boolean shutdown = false;
-
-
-
-  static
-  {
-    timeUnits.put(TIME_UNIT_MILLISECONDS_ABBR, 1D);
-    timeUnits.put(TIME_UNIT_MILLISECONDS_FULL, 1D);
-    timeUnits.put(TIME_UNIT_SECONDS_ABBR, 1000D);
-    timeUnits.put(TIME_UNIT_SECONDS_FULL, 1000D);
-  }
 
 
 
@@ -156,7 +135,6 @@ public class SoftReferenceEntryCache
   {
     registeredConfiguration = configuration;
     configuration.addSoftReferenceChangeListener (this);
-    configEntryDN = configuration.dn();
 
     dnMap.clear();
     idMap.clear();
@@ -580,34 +558,17 @@ public class SoftReferenceEntryCache
     switch (errorHandler.getConfigPhase())
     {
     case PHASE_INIT:
+    case PHASE_ACCEPTABLE:
+    case PHASE_APPLY:
       newIncludeFilters = EntryCacheCommon.getFilters (
           configuration.getIncludeFilter(),
-          ERR_SOFTREFCACHE_INVALID_INCLUDE_FILTER,
-          WARN_SOFTREFCACHE_CANNOT_DECODE_ANY_INCLUDE_FILTERS,
+          ERR_CACHE_INVALID_INCLUDE_FILTER,
           errorHandler,
           newConfigEntryDN
           );
       newExcludeFilters = EntryCacheCommon.getFilters (
           configuration.getExcludeFilter(),
-          WARN_SOFTREFCACHE_CANNOT_DECODE_EXCLUDE_FILTER,
-          WARN_SOFTREFCACHE_CANNOT_DECODE_ANY_EXCLUDE_FILTERS,
-          errorHandler,
-          newConfigEntryDN
-          );
-      break;
-    case PHASE_ACCEPTABLE:  // acceptable and apply are using the same
-    case PHASE_APPLY:       // error ID codes
-      newIncludeFilters = EntryCacheCommon.getFilters (
-          configuration.getIncludeFilter(),
-          ERR_SOFTREFCACHE_INVALID_INCLUDE_FILTER,
-          null,
-          errorHandler,
-          newConfigEntryDN
-          );
-      newExcludeFilters = EntryCacheCommon.getFilters (
-          configuration.getExcludeFilter(),
-          ERR_SOFTREFCACHE_INVALID_EXCLUDE_FILTER,
-          null,
+          ERR_CACHE_INVALID_EXCLUDE_FILTER,
           errorHandler,
           newConfigEntryDN
           );
@@ -616,8 +577,6 @@ public class SoftReferenceEntryCache
 
     if (applyChanges && errorHandler.getIsAcceptable())
     {
-      configEntryDN = newConfigEntryDN;
-
       setLockTimeout(newLockTimeout);
       setIncludeFilters(newIncludeFilters);
       setExcludeFilters(newExcludeFilters);
