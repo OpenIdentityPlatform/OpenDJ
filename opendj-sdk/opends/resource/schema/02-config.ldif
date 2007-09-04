@@ -1701,17 +1701,6 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.6 NAME 'ds-cfg-je-backend'
   ds-cfg-database-lock-num-lock-tables $ ds-cfg-database-cleaner-num-threads $
   ds-cfg-backend-compact-encoding $ ds-cfg-je-property )
   X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.7 NAME 'ds-cfg-je-database'
-  SUP top STRUCTURAL MAY ( cn $ ds-cfg-database-cache-percent $
-  ds-cfg-database-cache-size $ ds-cfg-database-txn-no-sync $
-  ds-cfg-database-txn-write-no-sync $ ds-cfg-database-run-cleaner $
-  ds-cfg-database-cleaner-min-utilization $ ds-cfg-database-evictor-lru-only $
-  ds-cfg-database-evictor-nodes-per-scan $ ds-cfg-database-log-file-max $
-  ds-cfg-database-logging-file-handler-on $ ds-cfg-database-logging-level $
-  ds-cfg-database-checkpointer-bytes-interval $
-  ds-cfg-database-checkpointer-wakeup-interval $
-  ds-cfg-database-lock-num-lock-tables $ ds-cfg-database-cleaner-num-threads )
-  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.8 NAME 'ds-cfg-je-index' SUP top
   STRUCTURAL MUST ( ds-cfg-index-attribute $ ds-cfg-index-type )
   MAY ( ds-cfg-index-entry-limit $ ds-cfg-index-substring-length )
