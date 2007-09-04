@@ -328,7 +328,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       // FIXME: should not abort here. Instead, display the errors (if
       // verbose) and apply the changes to the partial managed object.
       Message msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(ufn);
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg, e);
     } catch (CommunicationException e) {
       Message msg = ERR_DSCFG_ERROR_MODIFY_CE.get(ufn, e.getMessage());
       throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
