@@ -1646,6 +1646,12 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.486
   NAME 'ds-cfg-max-blocked-write-time-limit'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.487
+  NAME 'ds-cfg-7-bit-clean-attribute-type' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.488
+  NAME 'ds-cfg-7-bit-clean-base-dn' SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -2459,4 +2465,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.122
   $ ds-cfg-referential-integrity-update-interval
   $ ds-cfg-referential-integrity-log-file )
   X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.167 NAME 'ds-cfg-7-bit-clean-plugin'
+  SUP ds-cfg-plugin STRUCTURAL MUST ds-cfg-7-bit-clean-attribute-type
+  MAY ds-cfg-7-bit-clean-base-dn X-ORIGIN 'OpenDS Directory Server' )
 

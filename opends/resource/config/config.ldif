@@ -1419,6 +1419,21 @@ objectClass: ds-cfg-branch
 objectClass: ds-cfg-plugin-root
 cn: Plugins
 
+dn: cn=7-Bit Clean,cn=Plugins,cn=config
+objectClass: top
+objectClass: ds-cfg-plugin
+objectClass: ds-cfg-7-bit-clean-plugin
+cn: 7-Bit Clean
+ds-cfg-plugin-class: org.opends.server.plugins.SevenBitCleanPlugin
+ds-cfg-plugin-enabled: false
+ds-cfg-plugin-type: ldifImport
+ds-cfg-plugin-type: preParseAdd
+ds-cfg-plugin-type: preParseModify
+ds-cfg-plugin-type: preParseModifyDN
+ds-cfg-7-bit-clean-attribute-type: uid
+ds-cfg-7-bit-clean-attribute-type: mail
+ds-cfg-7-bit-clean-attribute-type: userPassword
+
 dn: cn=Entry UUID,cn=Plugins,cn=config
 objectClass: top
 objectClass: ds-cfg-plugin
@@ -1470,18 +1485,6 @@ ds-cfg-enable-profiling-on-startup: false
 ds-cfg-profile-directory: logs
 ds-cfg-profile-sample-interval: 10 milliseconds
 
-dn: cn=UID Unique Attribute,cn=Plugins,cn=config
-objectClass: top
-objectClass: ds-cfg-plugin
-objectClass: ds-cfg-unique-attribute-plugin
-cn: UID Unique Attribute
-ds-cfg-plugin-class: org.opends.server.plugins.UniqueAttributePlugin
-ds-cfg-plugin-enabled: false
-ds-cfg-plugin-type: preOperationAdd
-ds-cfg-plugin-type: preOperationModify
-ds-cfg-plugin-type: preOperationModifyDN
-ds-cfg-unique-attribute-type: uid
-
 dn: cn=Referential Integrity,cn=Plugins,cn=config
 objectClass: top
 objectClass: ds-cfg-plugin
@@ -1494,6 +1497,18 @@ ds-cfg-plugin-type: postOperationModifyDN
 ds-cfg-plugin-type: subordinateModifyDN
 ds-cfg-referential-integrity-attribute-type: member
 ds-cfg-referential-integrity-attribute-type: uniqueMember
+
+dn: cn=UID Unique Attribute,cn=Plugins,cn=config
+objectClass: top
+objectClass: ds-cfg-plugin
+objectClass: ds-cfg-unique-attribute-plugin
+cn: UID Unique Attribute
+ds-cfg-plugin-class: org.opends.server.plugins.UniqueAttributePlugin
+ds-cfg-plugin-enabled: false
+ds-cfg-plugin-type: preOperationAdd
+ds-cfg-plugin-type: preOperationModify
+ds-cfg-plugin-type: preOperationModifyDN
+ds-cfg-unique-attribute-type: uid
 
 dn: cn=Root DNs,cn=config
 objectClass: top

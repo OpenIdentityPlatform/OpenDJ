@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+! CDDL HEADER START
+!
+! The contents of this file are subject to the terms of the
+! Common Development and Distribution License, Version 1.0 only
+! (the "License").  You may not use this file except in compliance
+! with the License.
+!
+! You can obtain a copy of the license at
+! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+! See the License for the specific language governing permissions
+! and limitations under the License.
+!
+! When distributing Covered Code, include this CDDL HEADER in each
+! file and include the License file at
+! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+! add the following below this CDDL HEADER, with the fields enclosed
+! by brackets "[]" replaced with your own identifying information:
+!      Portions Copyright [yyyy] [name of copyright owner]
+!
+! CDDL HEADER END
+!
+!
+!      Portions Copyright 2007 Sun Microsystems, Inc.
+! -->
+
+<adm:managed-object
+  name="seven-bit-clean-plugin"
+  plural-name="seven-bit-clean-plugins"
+  package="org.opends.server.admin.std"
+  extends="plugin"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+
+  <adm:synopsis>
+    The <adm:user-friendly-name /> may be used to ensure that values for a
+    specified set of attributes are 7-bit clean.  That is, for those attributes,
+    the values are not allowed to contain any bytes having the high-order bit
+    set, which is used to indicate the presence of non-ASCII characters.  Some
+    applications may not properly handle attribute values that contain non-ASCII
+    characters, and this plugin may help ensure that attributes used by those
+    applications do not contain characters which may cause problems in those
+    applications.
+  </adm:synopsis>
+
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.167</ldap:oid>
+      <ldap:name>ds-cfg-7-bit-clean-plugin</ldap:name>
+      <ldap:superior>ds-cfg-plugin</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+
+  <adm:property-override name="plugin-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.plugins.SevenBitCleanPlugin
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+
+  <adm:property-override name="plugin-type">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>ldifimport</adm:value>
+        <adm:value>preparseadd</adm:value>
+        <adm:value>preparsemodify</adm:value>
+        <adm:value>preparsemodifydn</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+
+  <adm:property name="attribute-type" mandatory="true" multi-valued="true">
+    <adm:synopsis>
+      Specifies the name or OID of an attribute type for which values should be
+      checked to ensure that they are 7-bit clean.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>uid</adm:value>
+        <adm:value>mail</adm:value>
+        <adm:value>userPassword</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:attribute-type />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.487</ldap:oid>
+        <ldap:name>ds-cfg-7-bit-clean-attribute-type</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="base-dn" mandatory="false" multi-valued="true">
+    <adm:synopsis>
+      Specifies the base DN below which the checking will be performed.  Any
+      attempt to update a value for one of the configured attributes below this
+      base DN must be 7-bit clean for the operation to be allowed.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          All entries below all public naming contexts will be checked.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:dn />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.488</ldap:oid>
+        <ldap:name>ds-cfg-7-bit-clean-base-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+</adm:managed-object>
+
