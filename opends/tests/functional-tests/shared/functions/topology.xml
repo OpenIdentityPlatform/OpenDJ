@@ -614,7 +614,18 @@
            'dsPath'  : syncserverPath
          }
       </call>
-     
+        
+      <!-- WORK-AROUND for issue #2201 -->
+      <call function="'addEntry'">
+        { 'location'       : syncserver.getHostname(),
+          'dsPath'         : syncserverPath,
+          'dsInstanceHost' : syncserver.getHostname(),
+          'dsInstancePort' : syncserver.getPort(), 
+          'dsInstanceDn'   : syncserver.getRootDn(),
+          'dsInstancePswd' : syncserver.getRootPwd(),
+          'entryToBeAdded' : '%s/%s/replication/workaround-2201.ldif' % (syncserver.getDir(), relativeDataDir) }
+      </call>        
+      
       <message>
         'List synchronization providers'
       </message>
