@@ -297,8 +297,14 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
           .getUserFriendlyName());
       throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (OperationRejectedException e) {
-      Message msg = ERR_DSCFG_ERROR_DELETE_ORE.get(relation
-          .getUserFriendlyName(), e.getMessage());
+      Message msg;
+      if (e.getMessages().size() == 1) {
+        msg = ERR_DSCFG_ERROR_DELETE_ORE_SINGLE.get(relation
+            .getUserFriendlyName(), e.getMessagesAsSingleMessage());
+      } else {
+        msg = ERR_DSCFG_ERROR_DELETE_ORE_PLURAL.get(relation
+            .getUserFriendlyName(), e.getMessagesAsSingleMessage());
+      }
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (ManagedObjectNotFoundException e) {
       // Ignore the error if the deletion is being forced.

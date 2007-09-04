@@ -63,8 +63,8 @@ public class OperationRejectedException extends AdminClientException {
 
 
 
-  // Merge the messages into a single message.
-  private static Message getSingleMessage(Collection<Message> messages) {
+  // Gets the default message.
+  private static Message getDefaultMessage(Collection<Message> messages) {
     Validator.ensureNotNull(messages);
     Validator.ensureTrue(!messages.isEmpty());
 
@@ -72,23 +72,45 @@ public class OperationRejectedException extends AdminClientException {
       return ERR_OPERATION_REJECTED_EXCEPTION_SINGLE.get(messages.iterator()
           .next());
     } else {
+      return ERR_OPERATION_REJECTED_EXCEPTION_PLURAL
+          .get(getSingleMessage(messages));
+    }
+  }
+
+
+
+  // Merge the messages into a single message.
+  private static Message getSingleMessage(Collection<Message> messages) {
+    if (messages.size() == 1) {
+      return messages.iterator().next();
+    } else {
       MessageBuilder builder = new MessageBuilder();
 
       boolean isFirst = true;
       for (Message m : messages) {
         if (!isFirst) {
-          builder.append("; ");
+          builder.append(";  ");
         }
         builder.append(m);
         isFirst = false;
       }
 
-      return ERR_OPERATION_REJECTED_EXCEPTION_PLURAL.get(builder.toMessage());
+      return builder.toMessage();
     }
   }
 
   // The messages describing the constraint violations that occurred.
   private final Collection<Message> messages;
+
+
+
+  /**
+   * Creates a new operation rejected exception with a default
+   * message.
+   */
+  public OperationRejectedException() {
+    this(ERR_OPERATION_REJECTED_DEFAULT.get());
+  }
 
 
 
@@ -102,7 +124,7 @@ public class OperationRejectedException extends AdminClientException {
    *          non-empty).
    */
   public OperationRejectedException(Collection<Message> messages) {
-    super(getSingleMessage(messages));
+    super(getDefaultMessage(messages));
 
     this.messages = new ArrayList<Message>(messages);
   }
@@ -124,16 +146,6 @@ public class OperationRejectedException extends AdminClientException {
 
 
   /**
-   * Creates a new operation rejected exception with a default
-   * message.
-   */
-  public OperationRejectedException() {
-    this(ERR_OPERATION_REJECTED_DEFAULT.get());
-  }
-
-
-
-  /**
    * Gets an unmodifiable collection view of the messages describing
    * the constraint violations that occurred.
    *
@@ -142,6 +154,19 @@ public class OperationRejectedException extends AdminClientException {
    */
   public Collection<Message> getMessages() {
     return Collections.unmodifiableCollection(messages);
+  }
+
+
+
+  /**
+   * Creates a single message listing all the messages combined into a
+   * single list separated by semi-colons.
+   *
+   * @return Returns a single message listing all the messages
+   *         combined into a single list separated by semi-colons.
+   */
+  public Message getMessagesAsSingleMessage() {
+    return getSingleMessage(messages);
   }
 
 }

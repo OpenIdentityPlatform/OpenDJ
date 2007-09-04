@@ -554,7 +554,14 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       Message msg = ERR_DSCFG_ERROR_MODIFY_CME.get(ufn);
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (OperationRejectedException e) {
-      Message msg = ERR_DSCFG_ERROR_MODIFY_ORE.get(ufn, e.getMessage());
+      Message msg;
+      if (e.getMessages().size() == 1) {
+        msg = ERR_DSCFG_ERROR_MODIFY_ORE_SINGLE.get(ufn, e
+            .getMessagesAsSingleMessage());
+      } else {
+        msg = ERR_DSCFG_ERROR_MODIFY_ORE_PLURAL.get(ufn, e
+            .getMessagesAsSingleMessage());
+      }
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (CommunicationException e) {
       Message msg = ERR_DSCFG_ERROR_MODIFY_CE.get(ufn, e.getMessage());
