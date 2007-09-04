@@ -129,25 +129,16 @@ public class FileSystemEntryCache
   private static final FilePermission CACHE_HOME_PERMISSIONS =
       new FilePermission(0700);
 
-  // The DN of the configuration entry for this entry cache.
-  private DN configEntryDN;
-
   // The maximum amount of space in bytes that can be consumed in the filesystem
   // before we need to start purging entries.
   private long maxAllowedMemory;
 
   // The maximum number of entries that may be held in the cache.
-  // Atomic for additional safely and in case we decide to push
+  // Atomic for additional safety and in case we decide to push
   // some locks further down later. Does not inhere in additional
   // overhead, via blocking on synchronization primitive, on most
   // modern platforms being implemented via cpu instruction set.
   private AtomicLong maxEntries;
-
-  // The maximum percentage of memory dedicated to JE cache.
-  private int jeCachePercent;
-
-  // The maximum amount of memory in bytes dedicated to JE cache.
-  private long jeCacheSize;
 
   // The entry cache home folder to host db environment.
   private String cacheHome;
@@ -209,7 +200,7 @@ public class FileSystemEntryCache
 
   // The configuration to use when encoding entries in the database.
   private EntryEncodeConfig encodeConfig =
-    new EntryEncodeConfig(true, false, false);
+    new EntryEncodeConfig(true, true, true);
 
   // JE native properties to configuration attributes map.
   private HashMap<String, String> configAttrMap =
@@ -242,7 +233,6 @@ public class FileSystemEntryCache
 
     registeredConfiguration = configuration;
     configuration.addFileSystemChangeListener (this);
-    configEntryDN = configuration.dn();
 
     // Read and apply configuration.
     boolean applyChanges = true;
@@ -1064,98 +1054,6 @@ public class FileSystemEntryCache
   }
 
   /**
-   * Makes a best-effort attempt to apply the configuration contained in the
-   * provided entry.  Information about the result of this processing should be
-   * added to the provided message list.  Information should always be added to
-   * this list if a configuration change could not be applied.  If detailed
-   * results are requested, then information about the changes applied
-   * successfully (and optionally about parameters that were not changed) should
-   * also be included.
-   *
-   * @param  configuration    The entry containing the new configuration to
-   *                          apply for this component.
-   * @param  detailedResults  Indicates whether detailed information about the
-   *                          processing should be added to the list.
-   *
-   * @return  Information about the result of the configuration update.
-   */
-  public ConfigChangeResult applyNewConfiguration(
-      FileSystemEntryCacheCfg configuration,
-      boolean           detailedResults
-      )
-  {
-    // Store the current value to detect changes.
-    long                  prevLockTimeout      = getLockTimeout();
-    long                  prevMaxEntries       = maxEntries.longValue();
-    Set<SearchFilter>     prevIncludeFilters   = getIncludeFilters();
-    Set<SearchFilter>     prevExcludeFilters   = getExcludeFilters();
-    long                  prevMaxAllowedMemory = maxAllowedMemory;
-    int                   prevJECachePercent   = jeCachePercent;
-    long                  prevJECacheSize      = jeCacheSize;
-    boolean               prevPersistentCache  = persistentCache;
-
-    // Activate the new configuration.
-    ConfigChangeResult changeResult = applyConfigurationChange(configuration);
-
-    // Add detailed messages if needed.
-    ResultCode resultCode = changeResult.getResultCode();
-    boolean configIsAcceptable = (resultCode == ResultCode.SUCCESS);
-    if (detailedResults && configIsAcceptable)
-    {
-      if (maxEntries.longValue() != prevMaxEntries)
-      {
-        changeResult.addMessage(
-            INFO_FSCACHE_UPDATED_MAX_ENTRIES.get(maxEntries));
-      }
-
-      if (getLockTimeout() != prevLockTimeout)
-      {
-        changeResult.addMessage(
-            INFO_FSCACHE_UPDATED_LOCK_TIMEOUT.get(getLockTimeout()));
-      }
-
-      if (!getIncludeFilters().equals(prevIncludeFilters))
-      {
-        changeResult.addMessage(
-            INFO_FSCACHE_UPDATED_INCLUDE_FILTERS.get());
-      }
-
-      if (!getExcludeFilters().equals(prevExcludeFilters))
-      {
-        changeResult.addMessage(
-            INFO_FSCACHE_UPDATED_EXCLUDE_FILTERS.get());
-      }
-
-      if (maxAllowedMemory != prevMaxAllowedMemory)
-      {
-        changeResult.addMessage(
-            INFO_FSCACHE_UPDATED_MAX_MEMORY_SIZE.get(maxAllowedMemory));
-      }
-
-      if (jeCachePercent != prevJECachePercent)
-      {
-        changeResult.addMessage(
-            INFO_FSCACHE_UPDATED_JE_MEMORY_PCT.get(jeCachePercent));
-      }
-
-      if (jeCacheSize != prevJECacheSize)
-      {
-        changeResult.addMessage(
-            INFO_FSCACHE_UPDATED_JE_MEMORY_SIZE.get(jeCacheSize));
-      }
-
-      if (persistentCache != prevPersistentCache)
-      {
-        changeResult.addMessage(
-            INFO_FSCACHE_UPDATED_IS_PERSISTENT.get(
-                    String.valueOf(persistentCache)));
-      }
-    }
-
-    return changeResult;
-  }
-
-  /**
    * Parses the provided configuration and configure the entry cache.
    *
    * @param configuration  The new configuration containing the changes.
@@ -1231,17 +1129,15 @@ public class FileSystemEntryCache
 
       newIncludeFilters = EntryCacheCommon.getFilters(
           configuration.getIncludeFilter(),
-          ERR_FIFOCACHE_INVALID_INCLUDE_FILTER,
-          WARN_FIFOCACHE_CANNOT_DECODE_ANY_INCLUDE_FILTERS,
+          ERR_CACHE_INVALID_INCLUDE_FILTER,
           errorHandler,
-          configEntryDN
+          newConfigEntryDN
           );
       newExcludeFilters = EntryCacheCommon.getFilters (
           configuration.getExcludeFilter(),
-          WARN_FIFOCACHE_CANNOT_DECODE_EXCLUDE_FILTER,
-          WARN_FIFOCACHE_CANNOT_DECODE_ANY_EXCLUDE_FILTERS,
+          ERR_CACHE_INVALID_EXCLUDE_FILTER,
           errorHandler,
-          configEntryDN
+          newConfigEntryDN
           );
       // JE configuration properties.
       try {
@@ -1287,17 +1183,15 @@ public class FileSystemEntryCache
     case PHASE_APPLY:       // error ID codes
       newIncludeFilters = EntryCacheCommon.getFilters (
           configuration.getIncludeFilter(),
-          ERR_FIFOCACHE_INVALID_INCLUDE_FILTER,
-          null,
+          ERR_CACHE_INVALID_INCLUDE_FILTER,
           errorHandler,
-          configEntryDN
+          newConfigEntryDN
           );
       newExcludeFilters = EntryCacheCommon.getFilters (
           configuration.getExcludeFilter(),
-          ERR_FIFOCACHE_INVALID_EXCLUDE_FILTER,
-          null,
+          ERR_CACHE_INVALID_EXCLUDE_FILTER,
           errorHandler,
-          configEntryDN
+          newConfigEntryDN
           );
       // Iterate through native JE properties.
       try {
@@ -1414,7 +1308,6 @@ public class FileSystemEntryCache
         break;
       }
 
-      configEntryDN    = newConfigEntryDN;
       maxEntries       = new AtomicLong(newMaxEntries);
       maxAllowedMemory = newMaxAllowedMemory;
       persistentCache  = newPersistentCache;

@@ -36,7 +36,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -55,7 +54,6 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.ServerConstants;
 import org.opends.messages.MessageBuilder;
@@ -100,33 +98,14 @@ public class FIFOEntryCache
    */
   private static final DebugTracer TRACER = getTracer();
 
-
-
-  /**
-   * The set of time units that will be used for expressing the task retention
-   * time.
-   */
-  private static final LinkedHashMap<String,Double> timeUnits =
-       new LinkedHashMap<String,Double>();
-
-
-
   /**
    * The reference to the Java runtime used to determine the amount of memory
    * currently in use.
    */
   private static final Runtime runtime = Runtime.getRuntime();
 
-
-
-  // The DN of the configuration entry for this entry cache.
-  private DN configEntryDN;
-
   // The mapping between entry backends/IDs and entries.
   private HashMap<Backend,HashMap<Long,CacheEntry>> idMap;
-
-  // The maximum percentage of JVM memory that should be used by the cache.
-  private int maxMemoryPercent;
 
   // The mapping between DNs and entries.
   private LinkedHashMap<DN,CacheEntry> dnMap;
@@ -144,16 +123,6 @@ public class FIFOEntryCache
 
   // Currently registered configuration object.
   private FIFOEntryCacheCfg registeredConfiguration;
-
-
-
-  static
-  {
-    timeUnits.put(TIME_UNIT_MILLISECONDS_ABBR, 1D);
-    timeUnits.put(TIME_UNIT_MILLISECONDS_FULL, 1D);
-    timeUnits.put(TIME_UNIT_SECONDS_ABBR, 1000D);
-    timeUnits.put(TIME_UNIT_SECONDS_FULL, 1000D);
-  }
 
 
 
@@ -180,7 +149,6 @@ public class FIFOEntryCache
   {
     registeredConfiguration = configuration;
     configuration.addFIFOChangeListener (this);
-    configEntryDN = configuration.dn();
 
     // Initialize the cache structures.
     idMap     = new HashMap<Backend,HashMap<Long,CacheEntry>>();
@@ -949,80 +917,6 @@ public class FIFOEntryCache
 
 
   /**
-   * Makes a best-effort attempt to apply the configuration contained in the
-   * provided entry.  Information about the result of this processing should be
-   * added to the provided message list.  Information should always be added to
-   * this list if a configuration change could not be applied.  If detailed
-   * results are requested, then information about the changes applied
-   * successfully (and optionally about parameters that were not changed) should
-   * also be included.
-   *
-   * @param  configuration    The entry containing the new configuration to
-   *                          apply for this component.
-   * @param  detailedResults  Indicates whether detailed information about the
-   *                          processing should be added to the list.
-   *
-   * @return  Information about the result of the configuration update.
-   */
-  public ConfigChangeResult applyNewConfiguration(
-      FIFOEntryCacheCfg configuration,
-      boolean           detailedResults
-      )
-  {
-    // Store the current value to detect changes.
-    long              prevLockTimeout      = getLockTimeout();
-    long              prevMaxEntries       = maxEntries;
-    int               prevMaxMemoryPercent = maxMemoryPercent;
-    Set<SearchFilter> prevIncludeFilters   = getIncludeFilters();
-    Set<SearchFilter> prevExcludeFilters   = getExcludeFilters();
-
-    // Activate the new configuration.
-    ConfigChangeResult changeResult = applyConfigurationChange(configuration);
-
-    // Add detailed messages if needed.
-    ResultCode resultCode = changeResult.getResultCode();
-    boolean configIsAcceptable = (resultCode == ResultCode.SUCCESS);
-    if (detailedResults && configIsAcceptable)
-    {
-      if (maxMemoryPercent != prevMaxMemoryPercent)
-      {
-        changeResult.addMessage(
-            INFO_FIFOCACHE_UPDATED_MAX_MEMORY_PCT.get(maxMemoryPercent,
-                maxAllowedMemory));
-      }
-
-
-      if (maxEntries != prevMaxEntries)
-      {
-        changeResult.addMessage(
-            INFO_FIFOCACHE_UPDATED_MAX_ENTRIES.get(maxEntries));
-      }
-
-      if (getLockTimeout() != prevLockTimeout)
-      {
-        changeResult.addMessage(
-            INFO_FIFOCACHE_UPDATED_LOCK_TIMEOUT.get(getLockTimeout()));
-      }
-
-      if (!getIncludeFilters().equals(prevIncludeFilters))
-      {
-        changeResult.addMessage(
-            INFO_FIFOCACHE_UPDATED_INCLUDE_FILTERS.get());
-      }
-
-      if (!getExcludeFilters().equals(prevExcludeFilters))
-      {
-        changeResult.addMessage(
-            INFO_FIFOCACHE_UPDATED_EXCLUDE_FILTERS.get());
-      }
-    }
-
-    return changeResult;
-  }
-
-
-
-  /**
    * Parses the provided configuration and configure the entry cache.
    *
    * @param configuration  The new configuration containing the changes.
@@ -1061,34 +955,17 @@ public class FIFOEntryCache
     switch (errorHandler.getConfigPhase())
     {
     case PHASE_INIT:
+    case PHASE_ACCEPTABLE:
+    case PHASE_APPLY:
       newIncludeFilters = EntryCacheCommon.getFilters (
           configuration.getIncludeFilter(),
-          ERR_FIFOCACHE_INVALID_INCLUDE_FILTER,
-          WARN_FIFOCACHE_CANNOT_DECODE_ANY_INCLUDE_FILTERS,
+          ERR_CACHE_INVALID_INCLUDE_FILTER,
           errorHandler,
           newConfigEntryDN
           );
       newExcludeFilters = EntryCacheCommon.getFilters (
           configuration.getExcludeFilter(),
-          WARN_FIFOCACHE_CANNOT_DECODE_EXCLUDE_FILTER,
-          WARN_FIFOCACHE_CANNOT_DECODE_ANY_EXCLUDE_FILTERS,
-          errorHandler,
-          newConfigEntryDN
-          );
-      break;
-    case PHASE_ACCEPTABLE:  // acceptable and apply are using the same
-    case PHASE_APPLY:       // error ID codes
-      newIncludeFilters = EntryCacheCommon.getFilters (
-          configuration.getIncludeFilter(),
-          ERR_FIFOCACHE_INVALID_INCLUDE_FILTER,
-          null,
-          errorHandler,
-          newConfigEntryDN
-          );
-      newExcludeFilters = EntryCacheCommon.getFilters (
-          configuration.getExcludeFilter(),
-          ERR_FIFOCACHE_INVALID_EXCLUDE_FILTER,
-          null,
+          ERR_CACHE_INVALID_EXCLUDE_FILTER,
           errorHandler,
           newConfigEntryDN
           );
@@ -1097,9 +974,7 @@ public class FIFOEntryCache
 
     if (applyChanges && errorHandler.getIsAcceptable())
     {
-      configEntryDN    = newConfigEntryDN;
       maxEntries       = newMaxEntries;
-      maxMemoryPercent = newMaxMemoryPercent;
       maxAllowedMemory = newMaxAllowedMemory;
 
       setLockTimeout(newLockTimeout);

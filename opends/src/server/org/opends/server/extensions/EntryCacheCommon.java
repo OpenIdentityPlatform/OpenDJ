@@ -281,12 +281,8 @@ public class EntryCacheCommon
    *
    * @param filters  the list of string filter to convert to search filters
    * @param decodeErrorMsg  the error message ID to use in case of error
-   * @param errorHandler      an handler used to report errors
-   *                          during decoding of filter
-   * @param noFilterMsg     the error message ID to use when none of the
-   *                          filters was decoded properly
-   * @param configEntryDN     the DN of the configuration entry for the
-   *                          entry cache
+   * @param errorHandler  error handler to report filter decoding errors on
+   * @param configEntryDN  the entry cache configuration DN
    *
    * @return the set of search filters
    */
@@ -294,8 +290,6 @@ public class EntryCacheCommon
       SortedSet<String>       filters,
       MessageDescriptor.Arg3<CharSequence, CharSequence, CharSequence>
                               decodeErrorMsg,
-      MessageDescriptor.Arg1<CharSequence>
-                              noFilterMsg,
       ConfigErrorHandler      errorHandler,
       DN                      configEntryDN
       )
@@ -314,31 +308,12 @@ public class EntryCacheCommon
         }
         catch (DirectoryException de)
         {
-          // We couldn't decode this filter. Log a warning and continue.
-          errorHandler.reportError(
-                  decodeErrorMsg.get(
-                          String.valueOf(configEntryDN),
-                          curFilter,
-                          stackTraceToSingleLineString(de)),
-                  false,
-                  ResultCode.INVALID_ATTRIBUTE_SYNTAX
-          );
-        }
-      }
-
-      // If none of the filters was decoded properly log an error message
-      // (only if we are in initialize phase).
-      if ((errorHandler.getConfigPhase() == ConfigPhase.PHASE_INIT)
-          && searchFilters.isEmpty())
-      {
-        if (noFilterMsg != null) {
-          errorHandler.reportError(
-                  noFilterMsg.get(String.valueOf(configEntryDN)),
-                  false, null);
-        } else {
-          errorHandler.reportError( // TODO: i18n
-                  Message.raw("No filter provided: %s", configEntryDN),
-                  false, null);
+          // We couldn't decode this filter. Report an error and continue.
+          Message message = decodeErrorMsg.get(String.valueOf(configEntryDN),
+            curFilter, (de.getMessage() != null ? de.getMessage() :
+              stackTraceToSingleLineString(de)));
+          errorHandler.reportError(message, false,
+            ResultCode.INVALID_ATTRIBUTE_SYNTAX);
         }
       }
     }
