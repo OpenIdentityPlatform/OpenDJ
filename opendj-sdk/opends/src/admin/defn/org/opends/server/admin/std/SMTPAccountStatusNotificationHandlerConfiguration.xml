@@ -141,7 +141,7 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:oid>1.3.6.1.4.1.26027.1.1.477</ldap:oid>
-        <ldap:name>ds-cfg-send-message-without-end-user-address</ldap:name>
+        <ldap:name>ds-cfg-send-notification-without-end-user-address</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
