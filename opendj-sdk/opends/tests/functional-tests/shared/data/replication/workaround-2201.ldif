@@ -1,0 +1,4 @@
+dn: ds-cfg-key-id=ads-certificate,cn=ads-truststore
+objectclass: top
+objectclass: ds-cfg-self-signed-cert-request
+
