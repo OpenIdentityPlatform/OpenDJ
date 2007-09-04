@@ -230,6 +230,9 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   }
 
   private void writeReportToScreen(File reportFile) {
+    // HACK: print out status for the last test object
+    outputTestProgress(_lastTestObject);
+
     List<ITestResult> failedTests = getFailedTests();
     StringBuilder failed = new StringBuilder();
     for (int i = 0; i < failedTests.size(); i++) {
@@ -600,7 +603,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     }
 
     // Output progress info since we're running a new class
-    outputTestProgress(_lastTestObject, testInstance);
+    outputTestProgress(_lastTestObject);
     
     // And make sure we don't have a test object that we already ran tests with.
     if (_previousTestObjects.containsKey(testInstance)) {
@@ -700,7 +703,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   private List<String> prevThreads = new ArrayList<String>();
   private long prevMemInUse = 0;
   private long maxMemInUse = 0;
-  private void outputTestProgress(Object finishedTestObject, Object nextTestObject) {
+  private void outputTestProgress(Object finishedTestObject) {
     if (doProgressNone) {
       return;
     }
