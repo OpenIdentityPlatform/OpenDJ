@@ -38,6 +38,12 @@ import java.util.regex.Pattern;
 import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.RDN;
 
 
 
@@ -112,6 +118,95 @@ import org.opends.server.admin.std.server.RootCfg;
  */
 public final class ManagedObjectPath<C extends ConfigurationClient,
     S extends Configuration> {
+
+  /**
+   * A serialize which is used to generate the toDN representation.
+   */
+  private static final class DNSerializer implements
+      ManagedObjectPathSerializer {
+
+    // The current DN.
+    private DN dn;
+
+    // The LDAP profile.
+    private final LDAPProfile profile;
+
+
+
+    // Create a new DN builder.
+    private DNSerializer() {
+      this.dn = DN.nullDN();
+      this.profile = LDAPProfile.getInstance();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public <C extends ConfigurationClient, S extends Configuration>
+    void appendManagedObjectPathElement(
+        InstantiableRelationDefinition<? super C, ? super S> r,
+        AbstractManagedObjectDefinition<C, S> d, String name) {
+      // Add the RDN sequence representing the relation.
+      appendManagedObjectPathElement((RelationDefinition<?, ?>) r);
+
+      // Now add the single RDN representing the named instance.
+      String type = profile.getInstantiableRelationChildRDNType(r);
+      AttributeType atype = DirectoryServer.getAttributeType(
+          type.toLowerCase(), true);
+      AttributeValue avalue = new AttributeValue(atype, name);
+      dn = dn.concat(RDN.create(atype, avalue));
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public <C extends ConfigurationClient, S extends Configuration>
+    void appendManagedObjectPathElement(
+        OptionalRelationDefinition<? super C, ? super S> r,
+        AbstractManagedObjectDefinition<C, S> d) {
+      // Add the RDN sequence representing the relation.
+      appendManagedObjectPathElement((RelationDefinition<?, ?>) r);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public <C extends ConfigurationClient, S extends Configuration>
+    void appendManagedObjectPathElement(
+        SingletonRelationDefinition<? super C, ? super S> r,
+        AbstractManagedObjectDefinition<C, S> d) {
+      // Add the RDN sequence representing the relation.
+      appendManagedObjectPathElement((RelationDefinition<?, ?>) r);
+    }
+
+
+
+    // Appends the RDN sequence representing the provided relation.
+    private void appendManagedObjectPathElement(RelationDefinition<?, ?> r) {
+      // Add the RDN sequence representing the relation.
+      try {
+        DN localName = DN.decode(profile.getRelationRDNSequence(r));
+        dn = dn.concat(localName);
+      } catch (DirectoryException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+
+
+    // Gets the serialized DN value.
+    private DN toDN() {
+      return dn;
+    }
+  }
+
+
 
   /**
    * Abstract path element.
@@ -943,6 +1038,27 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
 
 
   /**
+   * Determines whether this managed object path references the same
+   * location as the provided managed object path.
+   * <p>
+   * This method differs from <code>equals</code> in that it ignores
+   * sub-type definitions.
+   *
+   * @param other
+   *          The managed object path to be compared.
+   * @return Returns <code>true</code> if this managed object path
+   *         references the same location as the provided managed
+   *         object path.
+   */
+  public boolean matches(ManagedObjectPath<?, ?> other) {
+    DN thisDN = toDN();
+    DN otherDN = other.toDN();
+    return thisDN.equals(otherDN);
+  }
+
+
+
+  /**
    * Creates a new parent managed object path representing the
    * immediate parent of this path. This method is a short-hand for
    * <code>parent(1)</code>.
@@ -1060,6 +1176,20 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
    */
   public int size() {
     return elements.size();
+  }
+
+
+
+  /**
+   * Creates a DN representation of this managed object path.
+   *
+   * @return Returns a DN representation of this managed object path.
+   */
+  public DN toDN() {
+    // Use a simple serializer to create the contents.
+    DNSerializer serializer = new DNSerializer();
+    serialize(serializer);
+    return serializer.toDN();
   }
 
 

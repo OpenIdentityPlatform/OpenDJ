@@ -29,41 +29,30 @@ package org.opends.server.admin.server;
 
 
 
-import org.opends.server.admin.AbstractManagedObjectDefinition;
-import org.opends.server.admin.Configuration;
-import org.opends.server.admin.ConfigurationClient;
-import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.ManagedObjectPath;
-import org.opends.server.admin.ManagedObjectPathSerializer;
-import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.RelationDefinition;
-import org.opends.server.admin.SingletonRelationDefinition;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.RDN;
 
 
 
 /**
- * A strategy for creating <code>DN</code>s from managed object paths.
+ * A factory class for creating <code>DN</code>s from managed
+ * object paths.
  */
-final class DNBuilder implements ManagedObjectPathSerializer {
+final class DNBuilder {
 
   /**
    * Creates a new DN representing the specified managed object path.
    *
    * @param path
    *          The managed object path.
-   * @return Returns a new DN representing the specified managed object path.
+   * @return Returns a new DN representing the specified managed
+   *         object path.
    */
   public static DN create(ManagedObjectPath<?, ?> path) {
-    DNBuilder builder = new DNBuilder();
-    path.serialize(builder);
-    return builder.getInstance();
+    return path.toDN();
   }
 
 
@@ -81,61 +70,12 @@ final class DNBuilder implements ManagedObjectPathSerializer {
    */
   public static DN create(ManagedObjectPath<?, ?> path,
       RelationDefinition<?, ?> relation) {
-    DNBuilder builder = new DNBuilder();
-    path.serialize(builder);
-    builder.appendManagedObjectPathElement(relation);
-    return builder.getInstance();
-  }
+    DN dn = path.toDN();
 
-  // The current DN.
-  private DN dn;
-
-  // The LDAP profile.
-  private final LDAPProfile profile;
-
-
-
-  /**
-   * Create a new DN builder.
-   */
-  public DNBuilder() {
-    this.dn = DN.nullDN();
-    this.profile = LDAPProfile.getInstance();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public <C extends ConfigurationClient, S extends Configuration>
-      void appendManagedObjectPathElement(
-          InstantiableRelationDefinition<? super C, ? super S> r,
-          AbstractManagedObjectDefinition<C, S> d, String name) {
-    // Add the RDN sequence representing the relation.
-    appendManagedObjectPathElement((RelationDefinition<?, ?>) r);
-
-    // Now add the single RDN representing the named instance.
-    String type = profile.getInstantiableRelationChildRDNType(r);
-    AttributeType atype = DirectoryServer.getAttributeType(type.toLowerCase(),
-                                                           true);
-    AttributeValue avalue = new AttributeValue(atype, name);
-    dn = dn.concat(RDN.create(atype, avalue));
-  }
-
-
-
-  /**
-   * Appends the RDN sequence representing the provided relation.
-   *
-   * @param r
-   *          The relation definition.
-   */
-  public void appendManagedObjectPathElement(RelationDefinition<?, ?> r) {
-    // Add the RDN sequence representing the relation.
     try {
-      DN localName = DN.decode(profile.getRelationRDNSequence(r));
-      dn = dn.concat(localName);
+      LDAPProfile profile = LDAPProfile.getInstance();
+      DN localName = DN.decode(profile.getRelationRDNSequence(relation));
+      return dn.concat(localName);
     } catch (DirectoryException e) {
       throw new RuntimeException(e);
     }
@@ -143,38 +83,8 @@ final class DNBuilder implements ManagedObjectPathSerializer {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  public <C extends ConfigurationClient, S extends Configuration>
-      void appendManagedObjectPathElement(
-          OptionalRelationDefinition<? super C, ? super S> r,
-          AbstractManagedObjectDefinition<C, S> d) {
-    // Add the RDN sequence representing the relation.
-    appendManagedObjectPathElement((RelationDefinition<?, ?>) r);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public <C extends ConfigurationClient, S extends Configuration>
-      void appendManagedObjectPathElement(
-          SingletonRelationDefinition<? super C, ? super S> r,
-          AbstractManagedObjectDefinition<C, S> d) {
-    // Add the RDN sequence representing the relation.
-    appendManagedObjectPathElement((RelationDefinition<?, ?>) r);
-  }
-
-
-
-  /**
-   * Create a new DN using the current state of this DN builder.
-   *
-   * @return Returns the new DN instance.
-   */
-  public DN getInstance() {
-    return dn;
+  // Prevent instantiation.
+  private DNBuilder() {
+    // No implementation required.
   }
 }
