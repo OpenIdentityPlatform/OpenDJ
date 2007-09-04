@@ -217,7 +217,7 @@
               'propertyType'           : 'publisher',
               'propertyName'           : 'File-Based Access Logger',
               'attributeName'          : 'time-interval',
-              'extraParams'            : '-M s',
+              'extraParams'            : '-m s',
               'expectedAttributeValue' : '180 s'
             }
           </call>
@@ -807,7 +807,7 @@
               'propertyType'           : 'policy',
               'propertyName'           : 'my time rotation policy',
               'attributeName'          : 'rotation-interval',
-              'extraParams'            : '-M d',
+              'extraParams'            : '-m d',
               'expectedAttributeValue' : '3 d'
             }
           </call>
@@ -836,7 +836,7 @@
               'propertyType'           : 'policy',
               'propertyName'           : 'my time rotation policy',
               'attributeName'          : 'rotation-interval',
-              'extraParams'            : '-M s',
+              'extraParams'            : '-m s',
               'expectedAttributeValue' : '3 s'
             }
           </call>
