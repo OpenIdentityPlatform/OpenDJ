@@ -68,14 +68,7 @@ rem Test that the provided JDK is 1.5 compatible.
 "%JAVA_BIN%" org.opends.server.tools.InstallDS -t > NUL 2>&1
 if not %errorlevel% == 0 goto noValidJavaHome
 
-if "%~1" == "" goto callLaunch
-goto callJava
-
-:callLaunch
-"%DIR_HOME%\lib\winlauncher.exe" launch "%JAVA_BIN%" %JAVA_ARGS% org.opends.guitools.uninstaller.UninstallLauncher
-goto end
-
-:callJava
+set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=uninstall.bat"
 "%JAVA_BIN%" %JAVA_ARGS% org.opends.guitools.uninstaller.UninstallLauncher %*
 
 rem return part
