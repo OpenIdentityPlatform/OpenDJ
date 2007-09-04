@@ -541,7 +541,7 @@
           'subcommand'     : 'create-trust-manager' ,
           'objectType'     : 'manager-name' ,
           'objectName'     :  customTrustMgr ,
-          'optionsString'  :  '--type generic --set enabled:true --set java-implementation-class:org.opends.server.extensions.BlindTrustManagerProvider' ,
+          'optionsString'  :  '--type blind --set enabled:true --set java-implementation-class:org.opends.server.extensions.BlindTrustManagerProvider' ,
           'expectedRC'     : 0 
         }
       </call>
