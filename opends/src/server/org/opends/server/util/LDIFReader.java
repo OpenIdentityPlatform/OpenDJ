@@ -303,9 +303,21 @@ public final class LDIFReader
              pluginConfigManager.invokeLDIFImportPlugins(importConfig, entry);
         if (! pluginResult.continueEntryProcessing())
         {
-          Message message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
-          logToSkipWriter(lines, message);
-          entriesIgnored++;
+          Message m;
+          Message rejectMessage = pluginResult.getRejectMessage();
+          if (rejectMessage == null)
+          {
+            m = ERR_LDIF_REJECTED_BY_PLUGIN_NOMESSAGE.get(
+                     String.valueOf(entryDN));
+          }
+          else
+          {
+            m = ERR_LDIF_REJECTED_BY_PLUGIN.get(String.valueOf(entryDN),
+                                                rejectMessage);
+          }
+
+          logToRejectWriter(lines, m);
+          entriesRejected++;
           continue;
         }
       }

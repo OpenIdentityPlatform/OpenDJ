@@ -82,15 +82,6 @@ public final class SevenBitCleanPlugin
 
 
   /**
-   * The result that should be returned if an imported entry fails the 7-bit
-   * clean check.
-   */
-  private static final LDIFPluginResult LDIF_FAILURE_RESULT =
-       new LDIFPluginResult(false, false);
-
-
-
-  /**
    * The result that should be returned if a pre-parse operation fails the 7-bit
    * clean check.
    */
@@ -210,7 +201,10 @@ public final class SevenBitCleanPlugin
           {
             if (! is7BitClean(v.getValue()))
             {
-              return LDIF_FAILURE_RESULT;
+              Message rejectMessage =
+                   ERR_PLUGIN_7BIT_IMPORT_ATTR_NOT_CLEAN.get(
+                        a.getNameWithOptions());
+              return new LDIFPluginResult(false, false, rejectMessage);
             }
           }
         }
@@ -219,7 +213,6 @@ public final class SevenBitCleanPlugin
 
 
     // If we've gotten here, then everything is acceptable.
-System.err.println("  The entry is acceptable");
     return LDIFPluginResult.SUCCESS;
   }
 
