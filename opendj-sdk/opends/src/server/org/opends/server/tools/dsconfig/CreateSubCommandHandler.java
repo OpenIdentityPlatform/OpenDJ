@@ -694,8 +694,14 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(d.getUserFriendlyName());
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (OperationRejectedException e) {
-      Message msg = ERR_DSCFG_ERROR_CREATE_ORE.get(d.getUserFriendlyName(), e
-          .getMessage());
+      Message msg;
+      if (e.getMessages().size() == 1) {
+        msg = ERR_DSCFG_ERROR_CREATE_ORE_SINGLE.get(d.getUserFriendlyName(), e
+            .getMessagesAsSingleMessage());
+      } else {
+        msg = ERR_DSCFG_ERROR_CREATE_ORE_PLURAL.get(d.getUserFriendlyName(), e
+            .getMessagesAsSingleMessage());
+      }
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (CommunicationException e) {
       Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(d.getUserFriendlyName(), e
