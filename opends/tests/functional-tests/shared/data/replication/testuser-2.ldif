@@ -1,0 +1,9 @@
+dn: cn=testuser-2,ou=people,o=example
+objectclass: top
+objectclass: person
+objectclass: testobjectclass-1
+cn: testuser-2
+sn: Test
+c: Testland
+street: Test Lane
+

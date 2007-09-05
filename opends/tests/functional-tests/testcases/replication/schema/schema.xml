@@ -41,7 +41,7 @@
             if not CurrentTestPath.has_key('group'):
               CurrentTestPath['group']='replication'                 
             CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
+          </script>            
 
           <call function="'testSuite_Preamble'"/>
 
@@ -63,6 +63,9 @@
           <script>
             synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()    
             replServerList = master.getSynchronizedSuffixList()[0].getChangelogServerList()
+            
+            currentSchemaFile = '%s/config/schema/99-user.ldif' % masterPath
+            provSchemaFile = '%s/../last-99-user.ldif' % masterPath                            
           </script>            
             
           <iterate var="server" in="_topologyServerList" indexvar="i">
@@ -116,7 +119,7 @@
               </call>                     
                                 
               <script>
-                newObjectclass = '( testobjectclass-oid NAME \'testobjectclass-0\'  SUP person MAY ( street $  c ) X-ORIGIN \'user defined\' )'
+                newObjectclass = '( testobjectclass-oid NAME \'testobjectclass-0\' SUP person MAY ( street $ c ) X-ORIGIN \'user defined\' )'
               </script>
                 
               <!-- Modify schema  in "master" server -->
@@ -178,7 +181,7 @@
               </message>
                                 
               <script>
-                newObjectclass = '( testobjectclass1-oid NAME \'testobjectclass-1\'  SUP person MAY ( street $ testattribute-1 $  c ) X-ORIGIN \'user defined\' )'
+                newObjectclass = '( testobjectclass1-oid NAME \'testobjectclass-1\' SUP person MAY ( street $ testattribute-1 $ c ) X-ORIGIN \'user defined\' )'
                 newAttributetype = '( testattribute1-oid NAME \'testattribute-1\' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN \'user defined\' )'
               </script>
                 
@@ -251,7 +254,7 @@
               </message>
                                 
               <script>
-                newObjectclass = '( testobjectclass-oid NAME \'testobjectclass-0\'  SUP person MAY ( street $  c ) X-ORIGIN \'user defined\' )'
+                newObjectclass = '( testobjectclass-oid NAME \'testobjectclass-0\' SUP person MAY ( street $ c ) X-ORIGIN \'user defined\' )'
               </script>
                 
               <!-- Modify schema  in "master" server -->
@@ -267,6 +270,18 @@
                   'changetype' : 'delete' }
               </call>
 
+              <!-- Delete previously added entry -->
+              <call function="'ldapDeleteWithScript'">
+                { 'location'       :  clientHost,
+                  'dsPath'         :  clientPath,
+                  'dsInstanceHost' :  master.getHostname(),
+                  'dsInstancePort' :  master.getPort(),
+                  'dsInstanceDn'   : master.getRootDn(),
+                  'dsInstancePswd' :  master.getRootPwd(),
+                  'dsDn'           :  ['cn=testuser-0,ou=People,%s' % synchroSuffix]
+                }
+              </call>
+                                
               <!-- Try to add entry to servers; should be rejected with error 65 (objectclass violation) -->
               <iterate var="server" in="_topologyServerList">
                 <call function="'addEntry'">
@@ -295,6 +310,396 @@
             </sequence>
           </testcase>                                                                     
  
+
+
+          <!-- Test Case information
+          #@TestMarker          Replication Schema Replication Tests
+          #@TestName            Replication: Schema Replication: Modify objectclass
+          #@TestID                  Modify objectclass
+          #@TestPurpose        Check schema replication when an objectclass is modified
+          #@TestPreamble
+          #@TestSteps
+          #@TestPostamble
+          #@TestResult
+          -->                    
+          <testcase name="getTestCaseName('Modify objectclass')">
+            <sequence>            
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'Replication: Schema Replication: Modify objectclass Check schema replication when an objectclass is modified'
+              </message>
+                                
+              <script>       
+                oldObjectclass = '( testobjectclass1-oid NAME \'testobjectclass-1\' SUP person MAY ( street $ testattribute-1 $ c ) X-ORIGIN \'user defined\' )'                             
+                newObjectclass = '( testobjectclass1-oid NAME \'testobjectclass-1\' SUP person MUST ( street $ testattribute-1 $ c ) X-ORIGIN \'user defined\' )'
+              </script>
+                
+              <!-- Modify schema  in "master" server -->
+              <call function="'modifyAnAttribute'">
+                { 'dsPath' : masterPath,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'    : master.getPort(),
+                  'dsInstanceDn'  : master.getRootDn(),
+                  'dsInstancePswd'    : master.getRootPwd(),
+                  'DNToModify'    : 'cn=schema',
+                  'attributeName' : 'objectClasses',
+                  'newAttributeValue' : oldObjectclass, 
+                  'changetype' : 'delete' }
+              </call>                
+              <call function="'modifyAnAttribute'">
+                { 'dsPath' : masterPath,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'    : master.getPort(),
+                  'dsInstanceDn'  : master.getRootDn(),
+                  'dsInstancePswd'    : master.getRootPwd(),
+                  'DNToModify'    : 'cn=schema',
+                  'attributeName' : 'objectClasses',
+                  'newAttributeValue' : newObjectclass, 
+                  'changetype' : 'add' }
+              </call>
+                                
+              <!-- Try to add entry to servers; should be rejected with error 65 (objectclass violation) -->
+              <iterate var="server" in="_topologyServerList">
+                <call function="'addEntry'">
+                  { 'location'       : clientHost,
+                    'dsPath'         : clientPath,
+                    'dsInstanceHost' : server.getHostname(),
+                    'dsInstancePort' : server.getPort(), 
+                    'dsInstanceDn'   : server.getRootDn(),
+                    'dsInstancePswd' : server.getRootPwd(),
+                    'entryToBeAdded' : '%s/replication/testuser-2.ldif' % clientDataDir,
+                    'expectedRC' : 65 }
+                </call>                             
+              </iterate> 
+                       
+              <!-- Verify the synchronization of the schema among the servers in the topology -->
+              <call function="'verifySchemas'">
+                [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
+              </call> 
+                
+              <!-- Verify the synchronization of the trees among the servers in the topology -->
+              <call function="'verifyTrees'">
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+              </call> 
+                                
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>                                                                     
+
+
+                                    
+          <!--- Test Case information
+          #@TestMarker          Replication Schema Replication Tests
+          #@TestName            Replication: Schema Replication: Add objectclass (edit schema file)
+          #@TestID                  Add objectclass (edit schema file)
+          #@TestPurpose        Check schema replication when a new objectclass is added manually
+          #@TestPreamble
+          #@TestSteps
+          #@TestPostamble
+          #@TestResult
+          -->               
+          <testcase name="getTestCaseName('Add objectclass (edit schema file)')">
+            <sequence>            
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'Replication: Schema Replication: Add objectclass (edit schema file). Check schema replication when a new objectclass is added manually'
+              </message>
+
+              <!-- Stop the servers in the topology -->
+              <call function="'stopServers'">
+                [_topologyServerList]
+              </call>
+                                  
+              <!-- Modify schema  in "master" server -->
+              <call function="'copyFile'">
+                { 'location'  :  masterHost,
+                  'srcfile'  :  currentSchemaFile,
+                  'destfile'  :  provSchemaFile }
+              </call>
+              <call function="'LdifModifyWithScript'">
+                { 'location'   :  masterHost,
+                  'dsPath'     :  masterPath, 
+                  'sourceLdif' : provSchemaFile,
+                  'changesLdif'  :  '%s/replication/schemamods-0.ldif' % masterDataDir,
+                  'targetLdif' :  currentSchemaFile }
+              </call>
+                                                              
+              <!-- Start the servers in the topology -->
+              <call function="'startServers'">
+                [_topologyServerList]
+              </call>                                                                  
+
+              <call function="'Sleep'">
+                { 'location'  :  masterHost,
+                  'sleepForMilliSeconds'  :  1000 }
+              </call>
+                
+              <!-- Add entry to "master" server -->                       
+              <call function="'addEntry'">
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost,
+                  'dsInstancePort' : master.getPort(), 
+                  'dsInstanceDn'   : master.getRootDn(),
+                  'dsInstancePswd' : master.getRootPwd(),
+                  'entryToBeAdded' : '%s/replication/newtestuser-0.ldif' % clientDataDir }
+              </call>           
+                       
+              <!-- Verify the synchronization of the schema among the servers in the topology -->          
+              <call function="'verifySchemas'">
+                [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
+              </call> 
+                
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
+              <call function="'verifyTrees'">
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+              </call> 
+                                
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>                     
+          
+
+
+
+          <!--- Test Case information
+          #@TestMarker          Replication Schema Replication Tests
+          #@TestName            Replication: Schema Replication: Add attributetype (edit schema file)
+          #@TestID                  Add attributetype (edit schema file)
+          #@TestPurpose        Check schema replication when a new attributetype is added manually
+          #@TestPreamble
+          #@TestSteps
+          #@TestPostamble
+          #@TestResult
+          -->               
+          <testcase name="getTestCaseName('Add attributetype (edit schema file)')">
+            <sequence>            
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'Replication: Schema Replication: Add attributetype (edit schema file). Check schema replication when a new attributetype is added manually'
+              </message>
+
+              <!-- Stop the servers in the topology -->
+              <call function="'stopServers'">
+                [_topologyServerList]
+              </call>
+                                  
+              <!-- Modify schema  in "master" server -->
+              <call function="'copyFile'">
+                { 'location'  :  masterHost,
+                  'srcfile'  :  currentSchemaFile,
+                  'destfile'  :  provSchemaFile }
+              </call>
+              <call function="'LdifModifyWithScript'">
+                { 'location'   :  masterHost,
+                  'dsPath'     :  masterPath, 
+                  'sourceLdif' : provSchemaFile,
+                  'changesLdif'  :  '%s/replication/schemamods-1.ldif' % masterDataDir,
+                  'targetLdif' :  currentSchemaFile }
+              </call>
+                                                              
+              <!-- Start the servers in the topology -->
+              <call function="'startServers'">
+                [_topologyServerList]
+              </call>                                                                                                     
+
+              <call function="'Sleep'">
+                { 'location'  :  masterHost,
+                  'sleepForMilliSeconds'  :  1000 }
+              </call>
+                                
+              <!-- Add entry to "master" server -->                       
+              <call function="'addEntry'">
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost,
+                  'dsInstancePort' : master.getPort(), 
+                  'dsInstanceDn'   : master.getRootDn(),
+                  'dsInstancePswd' : master.getRootPwd(),
+                  'entryToBeAdded' : '%s/replication/newtestuser-1.ldif' % clientDataDir }
+              </call>           
+                       
+              <!-- Verify the synchronization of the schema among the servers in the topology -->          
+              <call function="'verifySchemas'">
+                [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
+              </call> 
+                
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
+              <call function="'verifyTrees'">
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+              </call> 
+                                
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>                                           
+            
+
+
+            
+          <!-- Test Case information
+          #@TestMarker          Replication Schema Replication Tests
+          #@TestName            Replication: Schema Replication: Delete objectclass (edit schema file)
+          #@TestID                  Delete objectclass (edit schema file)
+          #@TestPurpose        Check schema replication when an objectclass is deleted manually
+          #@TestPreamble
+          #@TestSteps
+          #@TestPostamble
+          #@TestResult
+          -->                    
+          <testcase name="getTestCaseName('Delete objectclass (edit schema file)')">
+            <sequence>            
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'Replication: Schema Replication: Delete objectclass (edit schema file). Check schema replication when an objectclass is deleted manually'
+              </message>
+
+              <!-- Stop the servers in the topology -->
+              <call function="'stopServers'">
+                [_topologyServerList]
+              </call>
+                                  
+              <!-- Modify schema  in "master" server -->
+              <call function="'copyFile'">
+                { 'location'  :  masterHost,
+                  'srcfile'  :  currentSchemaFile,
+                  'destfile'  :  provSchemaFile }
+              </call>
+              <call function="'LdifModifyWithScript'">
+                { 'location'   :  masterHost,
+                  'dsPath'     :  masterPath, 
+                  'sourceLdif' : provSchemaFile,
+                  'changesLdif'  :  '%s/replication/schemamods-2.ldif' % masterDataDir,
+                  'targetLdif' :  currentSchemaFile }
+              </call>
+                                                              
+              <!-- Start the servers in the topology -->
+              <call function="'startServers'">
+                [_topologyServerList]
+              </call>                                                     
+
+                
+              <!-- Delete previously added entry -->
+              <call function="'ldapDeleteWithScript'">
+                { 'location'       :  clientHost,
+                  'dsPath'         :  clientPath,
+                  'dsInstanceHost' :  master.getHostname(),
+                  'dsInstancePort' :  master.getPort(),
+                  'dsInstanceDn'   : master.getRootDn(),
+                  'dsInstancePswd' :  master.getRootPwd(),
+                  'dsDn'           :  ['cn=newtestuser-0,ou=People,%s' % synchroSuffix]
+                }
+              </call>
+                                
+              <call function="'Sleep'">
+                { 'location'  :  masterHost,
+                  'sleepForMilliSeconds'  :  1000 }
+              </call>
+                                
+              <!-- Try to add entry to servers; should be rejected with error 65 (objectclass violation) -->
+              <iterate var="server" in="_topologyServerList">
+                <call function="'addEntry'">
+                  { 'location'       : clientHost,
+                    'dsPath'         : clientPath,
+                    'dsInstanceHost' : server.getHostname(),
+                    'dsInstancePort' : server.getPort(), 
+                    'dsInstanceDn'   : server.getRootDn(),
+                    'dsInstancePswd' : server.getRootPwd(),
+                    'entryToBeAdded' : '%s/replication/newtestuser-0.ldif' % clientDataDir,
+                    'expectedRC' : 65 }
+                </call>                             
+              </iterate> 
+                       
+              <!-- Verify the synchronization of the schema among the servers in the topology -->
+              <call function="'verifySchemas'">
+                [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
+              </call> 
+                
+              <!-- Verify the synchronization of the trees among the servers in the topology -->
+              <call function="'verifyTrees'">
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+              </call> 
+                                
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+
+
+          <!-- Test Case information
+          #@TestMarker          Replication Schema Replication Tests
+          #@TestName            Replication: Schema Replication: Modify objectclass (edit schema file)
+          #@TestID                  Modify objectclass (edit schema file)
+          #@TestPurpose        Check schema replication when an objectclass is modified manually
+          #@TestPreamble
+          #@TestSteps
+          #@TestPostamble
+          #@TestResult
+          -->                    
+          <testcase name="getTestCaseName('Modify objectclass (edit schema file)')">
+            <sequence>            
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'Replication: Schema Replication: Modify objectclass (edit schema file). Check schema replication when an objectclass is modified manually'
+              </message>
+
+              <!-- Stop the servers in the topology -->
+              <call function="'stopServers'">
+                [_topologyServerList]
+              </call>
+                                  
+              <!-- Modify schema  in "master" server -->
+              <call function="'copyFile'">
+                { 'location'  :  masterHost,
+                  'srcfile'  :  currentSchemaFile,
+                  'destfile'  :  provSchemaFile }
+              </call>
+              <call function="'LdifModifyWithScript'">
+                { 'location'   :  masterHost,
+                  'dsPath'     :  masterPath, 
+                  'sourceLdif' : provSchemaFile,
+                  'changesLdif'  :  '%s/replication/schemamods-3.ldif' % masterDataDir,
+                  'targetLdif' :  currentSchemaFile }
+              </call>
+                                                              
+              <!-- Start the servers in the topology -->
+              <call function="'startServers'">
+                [_topologyServerList]
+              </call>                     
+
+              <call function="'Sleep'">
+                { 'location'  :  masterHost,
+                  'sleepForMilliSeconds'  :  1000 }
+              </call>
+                                                                                                                                
+              <!-- Try to add entry to servers; should be rejected with error 65 (objectclass violation) -->
+              <iterate var="server" in="_topologyServerList">
+                <call function="'addEntry'">
+                  { 'location'       : clientHost,
+                    'dsPath'         : clientPath,
+                    'dsInstanceHost' : server.getHostname(),
+                    'dsInstancePort' : server.getPort(), 
+                    'dsInstanceDn'   : server.getRootDn(),
+                    'dsInstancePswd' : server.getRootPwd(),
+                    'entryToBeAdded' : '%s/replication/newtestuser-2.ldif' % clientDataDir,
+                    'expectedRC' : 65 }
+                </call>                             
+              </iterate> 
+                       
+              <!-- Verify the synchronization of the schema among the servers in the topology -->
+              <call function="'verifySchemas'">
+                [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
+              </call> 
+                
+              <!-- Verify the synchronization of the trees among the servers in the topology -->
+              <call function="'verifyTrees'">
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+              </call> 
+                                
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>                                                                     
+                                                
+                                                
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/replication_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'replication_cleanup'" />
