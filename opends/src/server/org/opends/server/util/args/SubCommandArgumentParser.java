@@ -1327,7 +1327,7 @@ public class SubCommandArgumentParser extends ArgumentParser
 
     buffer.append(" ");
     buffer.append(subCommand.getName());
-    buffer.append(" {options}");
+    buffer.append(" ").append(INFO_SUBCMDPARSER_OPTIONS.get());
     if (subCommand.allowsTrailingArguments()) {
       buffer.append(' ');
       buffer.append(subCommand.getTrailingArgumentsDisplayName());
@@ -1686,6 +1686,7 @@ public class SubCommandArgumentParser extends ArgumentParser
         }
       }
       indentNb++;
+      boolean isFirst = true;
       for (SubCommand sc : c) {
         if (sc.isHidden()) {
           continue;
@@ -1694,8 +1695,13 @@ public class SubCommandArgumentParser extends ArgumentParser
         for (int i = 0; i < indentNb - sc.getName().length(); i++) {
           buffer.append(" ");
         }
+        if (!isFirst)
+        {
+          buffer.append(EOL);
+        }
         buffer.append(sc.getDescription());
         buffer.append(EOL);
+        isFirst = false;
       }
     }
 

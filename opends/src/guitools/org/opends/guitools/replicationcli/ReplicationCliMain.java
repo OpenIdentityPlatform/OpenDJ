@@ -460,12 +460,12 @@ public class ReplicationCliMain extends CliApplicationHelper
     boolean useStartTLS1 = argParser.useStartTLS1();
     if (!useSSL1 && !useStartTLS1)
     {
-      useSSL1 = confirm(INFO_CLI_USESSL_PROMPT.get(), false);
+      useSSL1 = confirm(INFO_REPLICATION_ENABLE_USESSL1_PROMPT.get(), false);
       prompted = true;
       if (!useSSL1)
       {
         useStartTLS1 =
-          confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), false);
+          confirm(INFO_REPLICATION_ENABLE_USESTARTTLS1_PROMPT.get(), false);
         prompted = true;
       }
     }
@@ -544,10 +544,12 @@ public class ReplicationCliMain extends CliApplicationHelper
           pwd1 = promptForPassword(
               INFO_REPLICATION_ENABLE_PASSWORD1_PROMPT.get(bindDn1));
 
-          useSSL1 = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL1);
+          useSSL1 = confirm(INFO_REPLICATION_ENABLE_USESSL1_PROMPT.get(),
+              useSSL1);
           if (!useSSL1)
           {
-            useStartTLS1 = confirm(INFO_CLI_USESTARTTLS_PROMPT.get(),
+            useStartTLS1 = confirm(
+                INFO_REPLICATION_ENABLE_USESTARTTLS1_PROMPT.get(),
                 useStartTLS1);
           }
         }
@@ -612,7 +614,9 @@ public class ReplicationCliMain extends CliApplicationHelper
       // enableReplication(EnableReplicationUserData) method.  Here we have
       // to load the ADS to ask the user to accept the certificates and
       // eventually admin authentication data.
-      cancelled = !loadADSAndAcceptCertificates(ctx1, uData, true);
+      InitialLdapContext[] aux = new InitialLdapContext[] {ctx1};
+      cancelled = !loadADSAndAcceptCertificates(aux, uData, true);
+      ctx1 = aux[0];
       if (!cancelled)
       {
         administratorDefined |= hasAdministrator(ctx1);
@@ -665,11 +669,11 @@ public class ReplicationCliMain extends CliApplicationHelper
       useStartTLS2 = argParser.useStartTLS2();
       if (!useSSL2 && !useStartTLS2)
       {
-        useSSL2 = confirm(INFO_CLI_USESSL_PROMPT.get(), false);
+        useSSL2 = confirm(INFO_REPLICATION_ENABLE_USESSL2_PROMPT.get(), false);
         if (!useSSL2)
         {
           useStartTLS2 =
-            confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), false);
+            confirm(INFO_REPLICATION_ENABLE_USESTARTTLS2_PROMPT.get(), false);
         }
       }
 
@@ -743,11 +747,12 @@ public class ReplicationCliMain extends CliApplicationHelper
               getValue(bindDn2, argParser.getDefaultBindDn2()), false);
           pwd2 = promptForPassword(
               INFO_REPLICATION_ENABLE_PASSWORD2_PROMPT.get(bindDn2));
-          useSSL2 = confirm(INFO_CLI_USESSL_PROMPT.get(),
+          useSSL2 = confirm(INFO_REPLICATION_ENABLE_USESSL2_PROMPT.get(),
               useSSL2);
           if (!useSSL2)
           {
-            useStartTLS2 = confirm(INFO_CLI_USESTARTTLS_PROMPT.get(),
+            useStartTLS2 = confirm(
+                INFO_REPLICATION_ENABLE_USESTARTTLS2_PROMPT.get(),
                 useStartTLS2);
           }
         }
@@ -821,7 +826,9 @@ public class ReplicationCliMain extends CliApplicationHelper
       // there are issues with the ADS they will be encountered in the
       // enableReplication(EnableReplicationUserData) method.  Here we have
       // to load the ADS to ask the user to accept the certificates.
-      cancelled = !loadADSAndAcceptCertificates(ctx2, uData, false);
+      InitialLdapContext[] aux = new InitialLdapContext[] {ctx2};
+      cancelled = !loadADSAndAcceptCertificates(aux, uData, false);
+      ctx2 = aux[0];
       if (!cancelled)
       {
         administratorDefined |= hasAdministrator(ctx2);
@@ -1052,7 +1059,9 @@ public class ReplicationCliMain extends CliApplicationHelper
       // disableReplication(DisableReplicationUserData) method.  Here we have
       // to load the ADS to ask the user to accept the certificates and
       // eventually admin authentication data.
-      cancelled = !loadADSAndAcceptCertificates(ctx, uData, false);
+      InitialLdapContext[] aux = new InitialLdapContext[] {ctx};
+      cancelled = !loadADSAndAcceptCertificates(aux, uData, false);
+      ctx = aux[0];
     }
 
     if (!cancelled)
@@ -1147,11 +1156,13 @@ public class ReplicationCliMain extends CliApplicationHelper
     boolean useStartTLSSource = argParser.useStartTLSSource();
     if (!useSSLSource && !useStartTLSSource)
     {
-      useSSLSource = confirm(INFO_CLI_USESSL_PROMPT.get(), false);
+      useSSLSource = confirm(
+          INFO_REPLICATION_INITIALIZE_USESSLSOURCE_PROMPT.get(), false);
       if (!useSSLSource)
       {
         useStartTLSSource =
-          confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), false);
+          confirm(INFO_REPLICATION_INITIALIZE_USESTARTTLSSOURCE_PROMPT.get(),
+              false);
       }
     }
     /*
@@ -1195,11 +1206,14 @@ public class ReplicationCliMain extends CliApplicationHelper
               getValue(portSource, argParser.getDefaultPortSource()), false);
           adminUid = askForAdministratorUID(adminUid);
           adminPwd = askForAdministratorPwd();
-          useSSLSource = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSLSource);
+          useSSLSource = confirm(
+              INFO_REPLICATION_INITIALIZE_USESSLSOURCE_PROMPT.get(),
+              useSSLSource);
           if (!useSSLSource)
           {
-            useStartTLSSource =
-              confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), useStartTLSSource);
+            useStartTLSSource = confirm(
+                INFO_REPLICATION_INITIALIZE_USESTARTTLSSOURCE_PROMPT.get(),
+                useStartTLSSource);
           }
         }
       }
@@ -1246,11 +1260,13 @@ public class ReplicationCliMain extends CliApplicationHelper
     boolean useStartTLSDestination = argParser.useStartTLSDestination();
     if (!useSSLDestination && !useStartTLSDestination)
     {
-      useSSLDestination = confirm(INFO_CLI_USESSL_PROMPT.get(), false);
+      useSSLDestination = confirm(
+          INFO_REPLICATION_INITIALIZE_USESSLDESTINATION_PROMPT.get(), false);
       if (!useSSLDestination)
       {
-        useStartTLSDestination =
-          confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), false);
+        useStartTLSDestination = confirm(
+            INFO_REPLICATION_INITIALIZE_USESTARTTLSDESTINATION_PROMPT.get(),
+            false);
       }
     }
     /*
@@ -1295,13 +1311,14 @@ public class ReplicationCliMain extends CliApplicationHelper
               INFO_REPLICATION_INITIALIZE_PORTDESTINATION_PROMPT.get(),
               getValue(portDestination,
                   argParser.getDefaultPortDestination()), false);
-          useSSLDestination = confirm(INFO_CLI_USESSL_PROMPT.get(),
+          useSSLDestination = confirm(
+              INFO_REPLICATION_INITIALIZE_USESSLDESTINATION_PROMPT.get(),
               useSSLDestination);
           if (!useSSLDestination)
           {
-            useStartTLSDestination =
-              confirm(INFO_CLI_USESTARTTLS_PROMPT.get(),
-                  useStartTLSDestination);
+            useStartTLSDestination = confirm(
+                INFO_REPLICATION_INITIALIZE_USESTARTTLSDESTINATION_PROMPT.get(),
+                useStartTLSDestination);
           }
         }
       }
@@ -1613,7 +1630,8 @@ public class ReplicationCliMain extends CliApplicationHelper
    * provided ctx is not using Global Administrator credentials, we prompt the
    * user to provide them and update the provide ReplicationUserData
    * accordingly.
-   * @param ctx the Ldap context to be used.
+   * @param ctx the Ldap context to be used in an array: note the context
+   * may be modified with the new credentials provided by the user.
    * @param uData the ReplicationUserData to be udpated.
    * @param isFirstOrSourceServer whether this is the first server in the
    * enable replication subcommand or the source server in the initialize server
@@ -1623,18 +1641,18 @@ public class ReplicationCliMain extends CliApplicationHelper
    * if a critical error occurred or the user did not accept a certificate or
    * any of the confirmation messages.
    */
-  private boolean loadADSAndAcceptCertificates(InitialLdapContext ctx,
+  private boolean loadADSAndAcceptCertificates(InitialLdapContext[] ctx,
       ReplicationUserData uData, boolean isFirstOrSourceServer)
   {
     boolean cancelled = false;
     boolean triedWithUserProvidedAdmin = false;
-    String host = ConnectionUtils.getHostName(ctx);
-    int port = ConnectionUtils.getPort(ctx);
-    boolean isSSL = ConnectionUtils.isSSL(ctx);
-    boolean isStartTLS = ConnectionUtils.isStartTLS(ctx);
+    String host = ConnectionUtils.getHostName(ctx[0]);
+    int port = ConnectionUtils.getPort(ctx[0]);
+    boolean isSSL = ConnectionUtils.isSSL(ctx[0]);
+    boolean isStartTLS = ConnectionUtils.isStartTLS(ctx[0]);
     try
     {
-      ADSContext adsContext = new ADSContext(ctx);
+      ADSContext adsContext = new ADSContext(ctx[0]);
       if (adsContext.hasAdminData())
       {
         TopologyCache cache = new TopologyCache(adsContext, getTrustManager());
@@ -1692,18 +1710,19 @@ public class ReplicationCliMain extends CliApplicationHelper
                   }
                   try
                   {
-                    ctx.close();
+                    ctx[0].close();
                   }
                   catch (Throwable t)
                   {
                   }
                   try
                   {
-                    ctx = createContext(host, port, isSSL, isStartTLS,
+                    ctx[0] = createContext(host, port, isSSL, isStartTLS,
                         ADSContext.getAdministratorDN(adminUid), adminPwd,
                         getTrustManager());
-                    adsContext = new ADSContext(ctx);
+                    adsContext = new ADSContext(ctx[0]);
                     cache = new TopologyCache(adsContext, getTrustManager());
+                    connected = true;
                   }
                   catch (Throwable t)
                   {
@@ -1742,7 +1761,7 @@ public class ReplicationCliMain extends CliApplicationHelper
               {
                 reloadTopology = true;
                 cancelled = !promptForCertificateConfirmation(e.getCause(),
-                    e.getTrustManager(), e.getLdapUrl(), e.getTrustManager());
+                    e.getTrustManager(), e.getLdapUrl(), getTrustManager());
               }
               else
               {
@@ -1842,6 +1861,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       {
         for (ReplicaDescriptor rep2 : replicas2)
         {
+
           switch (type)
           {
           case NOT_REPLICATED:
@@ -3482,10 +3502,32 @@ public class ReplicationCliMain extends CliApplicationHelper
       LinkedHashSet<String> replicationServers,
       Set<Integer> usedReplicationDomainIds) throws OpenDsException
   {
-    printProgressMessage(formatter.getFormattedWithPoints(
-        INFO_REPLICATION_ENABLE_CONFIGURING_BASEDN.get(baseDN,
-            ConnectionUtils.getHostPort(ctx))));
-
+    boolean userSpecifiedAdminBaseDN = false;
+    LinkedList<String> l = argParser.getBaseDNs();
+    if (l != null)
+    {
+      for (String dn : l)
+      {
+        if (Utils.areDnsEqual(dn, ADSContext.getAdministrationSuffixDN()))
+        {
+          userSpecifiedAdminBaseDN = true;
+          break;
+        }
+      }
+    }
+    if (!userSpecifiedAdminBaseDN && Utils.areDnsEqual(baseDN,
+        ADSContext.getAdministrationSuffixDN()))
+    {
+      printProgressMessage(formatter.getFormattedWithPoints(
+          INFO_REPLICATION_ENABLE_CONFIGURING_ADS.get(
+              ConnectionUtils.getHostPort(ctx))));
+    }
+    else
+    {
+      printProgressMessage(formatter.getFormattedWithPoints(
+          INFO_REPLICATION_ENABLE_CONFIGURING_BASEDN.get(baseDN,
+              ConnectionUtils.getHostPort(ctx))));
+    }
     ManagementContext mCtx = LDAPManagementContext.createFromContext(
         JNDIDirContextAdaptor.adapt(ctx));
     RootCfgClient root = mCtx.getRootConfiguration();
@@ -3589,7 +3631,7 @@ public class ReplicationCliMain extends CliApplicationHelper
           String pwd = ConnectionUtils.getBindPassword(
               cache.getAdsContext().getDirContext());
 
-          ServerLoader loader = new ServerLoader(server.getAdsProperties(),
+          ServerLoader loader = new ServerLoader(s.getAdsProperties(),
               dn, pwd, getTrustManager());
           InitialLdapContext ctx = null;
           try
