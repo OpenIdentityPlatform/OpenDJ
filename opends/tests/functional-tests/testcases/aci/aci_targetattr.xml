@@ -367,7 +367,7 @@
               
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephonenumber:' ,
+                    'testString'         : 'telephoneNumber:' ,
                     'expectedResult'     : '1' }
               </call>
               
@@ -528,7 +528,7 @@
               
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephonenumber:' ,
+                    'testString'         : 'telephoneNumber:' ,
                     'expectedResult'     : '0' }
               </call>
               
@@ -690,7 +690,7 @@
               
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephonenumber:' ,
+                    'testString'         : 'telephoneNumber:' ,
                     'expectedResult'     : '1' }
               </call>
               
@@ -1169,7 +1169,7 @@
               
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephonenumber:' ,
+                    'testString'         : 'telephoneNumber:' ,
                     'expectedResult'     : '0' }
               </call>
               
