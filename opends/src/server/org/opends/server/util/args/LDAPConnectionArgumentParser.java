@@ -169,10 +169,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
    *         false otherwise
    */
   public boolean isLdapOperation() {
-    // This may not be ideal in all cases.  We might want to assume no
-    // host means 'localhost'.  However we would still need some way to
-    // tell whether the user intends this invocation to be remote.
-    return host.isPresent();
+    return host.isPresent() || port.isPresent() || bindDN.isPresent();
   }
 
   /**
