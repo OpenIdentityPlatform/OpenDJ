@@ -169,7 +169,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
         for (ServerConstraintHandler handler : constraint
             .getServerConstraintHandlers()) {
           try {
-            handler.performDeletePostCondition(cachedManagedObject);
+            handler.performPostDelete(cachedManagedObject);
           } catch (ConfigException e) {
             if (debugEnabled()) {
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
@@ -220,27 +220,27 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
     List<Message> reasons = new LinkedList<Message>();
 
     // Enforce any constraints.
-    boolean isAcceptable = true;
+    boolean isDeleteAllowed = true;
     ManagedObjectDefinition<?, ?> d = cachedManagedObject
         .getManagedObjectDefinition();
     for (Constraint constraint : d.getAllConstraints()) {
       for (ServerConstraintHandler handler : constraint
           .getServerConstraintHandlers()) {
         try {
-          if (!handler.isDeleteAcceptable(cachedManagedObject, reasons)) {
-            isAcceptable = false;
+          if (!handler.isDeleteAllowed(cachedManagedObject, reasons)) {
+            isDeleteAllowed = false;
           }
         } catch (ConfigException e) {
           Message message = ERR_SERVER_CONSTRAINT_EXCEPTION.get(e
               .getMessageObject());
           reasons.add(message);
-          isAcceptable = false;
+          isDeleteAllowed = false;
         }
       }
     }
 
     // Give up immediately if a constraint violation occurs.
-    if (!isAcceptable) {
+    if (!isDeleteAllowed) {
       generateUnacceptableReason(reasons, unacceptableReason);
       return false;
     }

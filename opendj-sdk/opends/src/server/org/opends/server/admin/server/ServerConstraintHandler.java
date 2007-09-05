@@ -67,42 +67,14 @@ public abstract class ServerConstraintHandler {
 
 
   /**
-   * Determines whether or not the newly created managed object which
-   * is about to be added to the server configuration satisfies this
-   * constraint.
+   * Determines whether or not the existing managed object can be
+   * deleted from the server's configuration. For example, an
+   * implementation might enforce referential integrity by preventing
+   * referenced managed objects from being deleted.
    * <p>
    * If the constraint is not satisfied, the implementation must
    * return <code>false</code> and add a message describing why the
-   * constraint was not satisfied.
-   * <p>
-   * The default implementation is to return <code>true</code>.
-   *
-   * @param managedObject
-   *          The new managed object.
-   * @param unacceptableReasons
-   *          A list of messages to which error messages should be
-   *          added.
-   * @return Returns <code>true</code> if this constraint is
-   *         satisfied, or <code>false</code> if it is not.
-   * @throws ConfigException
-   *           If an configuration exception prevented this constraint
-   *           from being evaluated.
-   */
-  public boolean isAddAcceptable(ServerManagedObject<?> managedObject,
-      Collection<Message> unacceptableReasons) throws ConfigException {
-    return true;
-  }
-
-
-
-  /**
-   * Determines whether or not the existing managed object which is
-   * about to be deleted from the server configuration satisfies this
-   * constraint.
-   * <p>
-   * If the constraint is not satisfied, the implementation must
-   * return <code>false</code> and add a message describing why the
-   * constraint was not satisfied.
+   * managed object cannot be deleted.
    * <p>
    * The default implementation is to return <code>true</code>.
    *
@@ -112,12 +84,13 @@ public abstract class ServerConstraintHandler {
    *          A list of messages to which error messages should be
    *          added.
    * @return Returns <code>true</code> if this constraint is
-   *         satisfied, or <code>false</code> if it is not.
+   *         satisfied, or <code>false</code> if it is not and the
+   *         managed object cannot be deleted.
    * @throws ConfigException
    *           If an configuration exception prevented this constraint
    *           from being evaluated.
    */
-  public boolean isDeleteAcceptable(ServerManagedObject<?> managedObject,
+  public boolean isDeleteAllowed(ServerManagedObject<?> managedObject,
       Collection<Message> unacceptableReasons) throws ConfigException {
     return true;
   }
@@ -125,28 +98,32 @@ public abstract class ServerConstraintHandler {
 
 
   /**
-   * Determines whether or not the changes to an existing managed
-   * object which are about to be committed to the server
-   * configuration satisfies this constraint.
+   * Determines whether or not the provided managed object can be used
+   * by the server. This method is invoked each time a managed object
+   * is decoded by the administration framework: when an attempt is
+   * made to add a new configuration, modify an existing
+   * configuration, or during server initialization. If the constraint
+   * is not satisfied the managed object will be rejected.
    * <p>
    * If the constraint is not satisfied, the implementation must
    * return <code>false</code> and add a message describing why the
-   * constraint was not satisfied.
+   * managed object is not usable.
    * <p>
    * The default implementation is to return <code>true</code>.
    *
    * @param managedObject
-   *          The modified managed object.
+   *          The new managed object.
    * @param unacceptableReasons
    *          A list of messages to which error messages should be
    *          added.
-   * @return Returns <code>true</code> if this modify is satisfied,
-   *         or <code>false</code> if it is not.
+   * @return Returns <code>true</code> if this constraint is
+   *         satisfied, or <code>false</code> if it is not and the
+   *         managed object cannot be used.
    * @throws ConfigException
    *           If an configuration exception prevented this constraint
    *           from being evaluated.
    */
-  public boolean isModifyAcceptable(ServerManagedObject<?> managedObject,
+  public boolean isUsable(ServerManagedObject<?> managedObject,
       Collection<Message> unacceptableReasons) throws ConfigException {
     return true;
   }
@@ -154,17 +131,22 @@ public abstract class ServerConstraintHandler {
 
 
   /**
-   * Perform any add post-condition processing.
+   * Performs any post-add processing required by this constraint.
+   * This method is invoked after a new managed object has been
+   * accepted for use by the administration framework. This might
+   * occur during initialization or when a managed object is added at
+   * run-time.
    * <p>
    * The default implementation is to do nothing.
    *
    * @param managedObject
-   *          The managed object which was added.
+   *          The managed object which has just been added to the
+   *          server's configuration.
    * @throws ConfigException
-   *           If the post-condition processing fails due to a
-   *           configuration exception.
+   *           If the post-add processing fails due to a configuration
+   *           exception.
    */
-  public void performAddPostCondition(ServerManagedObject<?> managedObject)
+  public void performPostAdd(ServerManagedObject<?> managedObject)
       throws ConfigException {
     // Do nothing.
   }
@@ -172,17 +154,19 @@ public abstract class ServerConstraintHandler {
 
 
   /**
-   * Perform any delete post-condition processing.
+   * Performs any post-delete processing required by this constraint.
+   * This method is invoked after a managed object has been accepted
+   * for deletion from the server's configuration.
    * <p>
    * The default implementation is to do nothing.
    *
    * @param managedObject
    *          The managed object which was deleted.
    * @throws ConfigException
-   *           If the post-condition processing fails due to a
+   *           If the post-delete processing fails due to a
    *           configuration exception.
    */
-  public void performDeletePostCondition(ServerManagedObject<?> managedObject)
+  public void performPostDelete(ServerManagedObject<?> managedObject)
       throws ConfigException {
     // Do nothing.
   }
@@ -190,17 +174,19 @@ public abstract class ServerConstraintHandler {
 
 
   /**
-   * Perform any modify post-condition processing.
+   * Performs any post-modify processing required by this constraint.
+   * This method is invoked after changes to an existing managed
+   * object have been accepted.
    * <p>
    * The default implementation is to do nothing.
    *
    * @param managedObject
    *          The managed object which was modified.
    * @throws ConfigException
-   *           If the post-condition processing fails due to a
+   *           If the post-modify processing fails due to a
    *           configuration exception.
    */
-  public void performModifyPostCondition(ServerManagedObject<?> managedObject)
+  public void performPostModify(ServerManagedObject<?> managedObject)
       throws ConfigException {
     // Do nothing.
   }

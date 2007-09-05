@@ -28,9 +28,6 @@ package org.opends.server.admin.server;
 
 
 
-import org.opends.messages.Message;
-
-import static org.opends.messages.AdminMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.util.Collection;
@@ -39,6 +36,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.opends.messages.AdminMessages;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AliasDefaultBehaviorProvider;
@@ -57,11 +57,8 @@ import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.messages.AdminMessages;
-
-import org.opends.messages.MessageBuilder;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
@@ -322,7 +319,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
         for (ServerConstraintHandler handler : constraint
             .getServerConstraintHandlers()) {
           try {
-            handler.performModifyPostCondition(cachedManagedObject);
+            handler.performPostModify(cachedManagedObject);
           } catch (ConfigException e) {
             if (debugEnabled()) {
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
@@ -377,35 +374,16 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
       return false;
     }
 
-    List<Message> reasons = new LinkedList<Message>();
-
-    // Enforce any constraints.
-    boolean isAcceptable = true;
-    ManagedObjectDefinition<?, ?> d = cachedManagedObject
-        .getManagedObjectDefinition();
-    for (Constraint constraint : d.getAllConstraints()) {
-      for (ServerConstraintHandler handler : constraint
-          .getServerConstraintHandlers()) {
-        try {
-          if (!handler.isModifyAcceptable(cachedManagedObject, reasons)) {
-            isAcceptable = false;
-          }
-        } catch (ConfigException e) {
-          Message message = ERR_SERVER_CONSTRAINT_EXCEPTION.get(e
-              .getMessageObject());
-          reasons.add(message);
-          isAcceptable = false;
-        }
-      }
-    }
-
     // Give up immediately if a constraint violation occurs.
-    if (!isAcceptable) {
-      generateUnacceptableReason(reasons, unacceptableReason);
+    try {
+      cachedManagedObject.ensureIsUsable();
+    } catch (ConstraintViolationException e) {
+      generateUnacceptableReason(e.getMessages(), unacceptableReason);
       return false;
     }
 
     // Let the change listener decide.
+    List<Message> reasons = new LinkedList<Message>();
     if (listener.isConfigurationChangeAcceptable(cachedManagedObject
         .getConfiguration(), reasons)) {
       return true;
