@@ -865,6 +865,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       {
         if (!promptedForAdmin)
         {
+          printLineBreak();
           printLine(INFO_REPLICATION_ENABLE_ADMINISTRATOR_MUST_BE_CREATED.get(),
             true);
         }
@@ -1127,35 +1128,52 @@ public class ReplicationCliMain extends CliApplicationHelper
 
     String adminPwd = argParser.getBindPasswordAdmin();
     String adminUid = argParser.getAdministratorUID();
-
+    boolean promptedForAdmin = false;
     if (adminUid == null)
     {
       adminUid = askForAdministratorUID(argParser.getDefaultAdministratorUID());
+      promptedForAdmin = true;
     }
 
     if (adminPwd == null)
     {
       adminPwd = askForAdministratorPwd();
+      promptedForAdmin = true;
     }
 
+    boolean promptedFor1 = false;
     String hostSource = argParser.getHostNameSource();
     if (hostSource == null)
     {
+      if (promptedForAdmin)
+      {
+        printLineBreak();
+      }
       hostSource = promptForString(
           INFO_REPLICATION_INITIALIZE_HOSTNAMESOURCE_PROMPT.get(),
           argParser.getDefaultHostNameSource(), false);
+      promptedFor1 = true;
     }
     int portSource = argParser.getPortSource();
     if (portSource == -1)
     {
+      if (promptedForAdmin && !promptedFor1)
+      {
+        printLineBreak();
+      }
       portSource = promptForPort(
           INFO_REPLICATION_INITIALIZE_PORTSOURCE_PROMPT.get(),
           argParser.getDefaultPortSource(), false);
+      promptedFor1 = true;
     }
     boolean useSSLSource = argParser.useSSLSource();
     boolean useStartTLSSource = argParser.useStartTLSSource();
     if (!useSSLSource && !useStartTLSSource)
     {
+      if (promptedForAdmin && !promptedFor1)
+      {
+        printLineBreak();
+      }
       useSSLSource = confirm(
           INFO_REPLICATION_INITIALIZE_USESSLSOURCE_PROMPT.get(), false);
       if (!useSSLSource)
@@ -1164,6 +1182,7 @@ public class ReplicationCliMain extends CliApplicationHelper
           confirm(INFO_REPLICATION_INITIALIZE_USESTARTTLSSOURCE_PROMPT.get(),
               false);
       }
+      promptedFor1 = true;
     }
     /*
      * Try to connect to the source server.
@@ -1230,15 +1249,25 @@ public class ReplicationCliMain extends CliApplicationHelper
 
     /* Prompt for destination server credentials */
     String hostDestination = argParser.getHostNameDestination();
+    boolean promptedFor2 = false;
     if (hostDestination == null)
     {
+      if (promptedFor1 || promptedForAdmin)
+      {
+        printLineBreak();
+      }
       hostDestination = promptForString(
           INFO_REPLICATION_INITIALIZE_HOSTNAMEDESTINATION_PROMPT.get(),
           argParser.getDefaultHostNameDestination(), false);
+      promptedFor2 = true;
     }
     int portDestination = argParser.getPortDestination();
     while (portDestination == -1)
     {
+      if ((promptedFor1 || promptedForAdmin) && !promptedFor2)
+      {
+        printLineBreak();
+      }
       portDestination = promptForPort(
           INFO_REPLICATION_INITIALIZE_PORTDESTINATION_PROMPT.get(),
           argParser.getDefaultPortDestination(), false);
@@ -1254,12 +1283,17 @@ public class ReplicationCliMain extends CliApplicationHelper
           printLineBreak();
         }
       }
+      promptedFor2 = true;
     }
 
     boolean useSSLDestination = argParser.useSSLDestination();
     boolean useStartTLSDestination = argParser.useStartTLSDestination();
     if (!useSSLDestination && !useStartTLSDestination)
     {
+      if ((promptedFor1 || promptedForAdmin) && !promptedFor2)
+      {
+        printLineBreak();
+      }
       useSSLDestination = confirm(
           INFO_REPLICATION_INITIALIZE_USESSLDESTINATION_PROMPT.get(), false);
       if (!useSSLDestination)
@@ -1268,6 +1302,7 @@ public class ReplicationCliMain extends CliApplicationHelper
             INFO_REPLICATION_INITIALIZE_USESTARTTLSDESTINATION_PROMPT.get(),
             false);
       }
+      promptedFor2 = true;
     }
     /*
      * Try to connect to the destination server.
@@ -2011,6 +2046,7 @@ public class ReplicationCliMain extends CliApplicationHelper
 
     LinkedList<Message> errorMessages = new LinkedList<Message>();
 
+    printProgressLineBreak();
     printProgressMessage(
         formatter.getFormattedWithPoints(INFO_REPLICATION_CONNECTING.get()));
     try
@@ -2300,6 +2336,7 @@ public class ReplicationCliMain extends CliApplicationHelper
         {
           try
           {
+            printProgressLineBreak();
             Message msg = formatter.getFormattedProgress(
                 INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN,
                     ConnectionUtils.getHostPort(ctxDestination)));
