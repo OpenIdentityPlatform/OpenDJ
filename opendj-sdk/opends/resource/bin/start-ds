@@ -158,6 +158,22 @@ then
     "${JAVA_BIN}" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete \
          --targetFile "${STARTING_FILE}"
   fi
+  EC=${?}
+  if test ${EC} -eq 0
+  then
+    # An exit code of 98 means that the server is already running.
+  	${JAVA_BIN} ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
+            --configClass org.opends.server.extensions.ConfigFileHandler \
+            --configFile "${CONFIG_FILE}" --checkStartability
+    EC=${?}
+    if test ${EC} -eq 98
+    then
+    	exit 0
+    else
+      # Could not start the server
+      exit 1
+    fi
+  fi
   exit ${?}
 else
   if test ${EC} -eq 100

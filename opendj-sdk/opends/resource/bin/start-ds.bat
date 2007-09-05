@@ -109,7 +109,7 @@ if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.s
 "%DIR_HOME%\lib\winlauncher.exe" start "%DIR_HOME%" "%JAVA_BIN%" %JAVA_ARGS%  org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
 echo %SCRIPT%: Waiting for "%DIR_HOME%\logs\server.out" to be deleted >> %LOG%
 "%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.starting" --logFile "%DIR_HOME%\logs\server.out"
-goto end
+goto checkStarted
 
 :runDetachCalledByWinService
 rem We write the output of the start command to the winservice.out file.
@@ -122,7 +122,7 @@ echo. > "%DIR_HOME%\logs\winservice.out"
 echo %SCRIPT%: Waiting for "%DIR_HOME%\logs\server.out" to be deleted >> %LOG%
 "%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.starting" --logFile "%DIR_HOME%\logs\server.out" --outputFile "%DIR_HOME%\logs\winservice.out"
 erase "%DIR_HOME%\logs\server.startingservice"
-goto end
+goto checkStarted
 
 :runAsService
 echo %SCRIPT%: Run as service >> %LOG%
@@ -132,6 +132,21 @@ echo %SCRIPT%: Waiting for "%DIR_HOME%\logs\server.startingservice" to be delete
 rem Type the contents the winwervice.out file and delete it.
 if exist "%DIR_HOME%\logs\winservice.out" type "%DIR_HOME%\logs\winservice.out"
 if exist "%DIR_HOME%\logs\winservice.out" erase "%DIR_HOME%\logs\winservice.out"
-:end
+goto end
 
+:checkStarted
+"%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" --checkStartability
+if %errorlevel% == 98 goto serverStarted
+goto serverNotStarted
+
+:serverStarted
+echo %SCRIPT%: finished >> %LOG%
+exit /B 0
+
+:serverNotStarted
+echo %SCRIPT%: finished >> %LOG%
+exit /B 1
+
+
+:end
 echo %SCRIPT%: finished >> %LOG%
