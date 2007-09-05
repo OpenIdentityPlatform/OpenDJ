@@ -207,17 +207,15 @@ public final class LDAPManagementContextFactory implements
         }
       }
 
-      if (secureConnection)
+      if (useSSL || useStartTSL)
       {
-        if (useSSL || useStartTSL)
-        {
-          // Get truststore info
-          trustManager = getTrustManager();
+        // Get truststore info
+        trustManager = getTrustManager();
 
-          // Check if we need client side authentication
-          keyManager = getKeyManager();
-        }
+        // Check if we need client side authentication
+        keyManager = getKeyManager();
       }
+
       // Get the LDAP host.
       String hostName = secureArgsList.hostNameArg.getValue();
       final String tmpHostName = hostName;
@@ -326,37 +324,53 @@ public final class LDAPManagementContextFactory implements
       // Get the LDAP bind credentials.
       String bindDN = secureArgsList.bindDnArg.getValue();
       final String tmpBindDN = bindDN;
-      if (app.isInteractive() && (keyManager == null)
-          && !secureArgsList.bindDnArg.isPresent())
+      if (keyManager == null)
       {
-        if (!isHeadingDisplayed) {
-          app.println();
-          app.println();
-          app.println(INFO_DSCFG_HEADING_CONNECTION_PARAMETERS.get());
-          isHeadingDisplayed = true;
-        }
-
-        ValidationCallback<String> callback = new ValidationCallback<String>() {
-
-          public String validate(ConsoleApplication app, String input)
-              throws CLIException {
-            String ninput = input.trim();
-            if (ninput.length() == 0) {
-              return tmpBindDN;
-            } else {
-              return ninput;
-            }
+        if (app.isInteractive() && !secureArgsList.bindDnArg.isPresent())
+        {
+          if (!isHeadingDisplayed)
+          {
+            app.println();
+            app.println();
+            app.println(INFO_DSCFG_HEADING_CONNECTION_PARAMETERS.get());
+            isHeadingDisplayed = true;
           }
 
-        };
+          ValidationCallback<String> callback = new ValidationCallback<String>()
+          {
 
-        try {
-          app.println();
-          bindDN = app.readValidatedInput(
-              INFO_DSCFG_PROMPT_BIND_DN.get(bindDN), callback);
-        } catch (CLIException e) {
-          throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
+            public String validate(ConsoleApplication app, String input)
+                throws CLIException
+            {
+              String ninput = input.trim();
+              if (ninput.length() == 0)
+              {
+                return tmpBindDN;
+              }
+              else
+              {
+                return ninput;
+              }
+            }
+
+          };
+
+          try
+          {
+            app.println();
+            bindDN = app.readValidatedInput(INFO_DSCFG_PROMPT_BIND_DN
+                .get(bindDN), callback);
+          }
+          catch (CLIException e)
+          {
+            throw ArgumentExceptionFactory
+                .unableToReadConnectionParameters(e);
+          }
         }
+      }
+      else
+      {
+        bindDN = null ;
       }
 
       String bindPassword = secureArgsList.bindPasswordArg.getValue();
