@@ -38,6 +38,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.AdminTestCase;
 import org.opends.server.admin.TestCfg;
 import org.opends.server.admin.TestChildCfg;
+import org.opends.server.admin.TestChildCfgDefn;
 import org.opends.server.admin.TestParentCfg;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.std.server.RootCfg;
@@ -60,8 +61,7 @@ import org.testng.annotations.Test;
 public final class ConstraintTest extends AdminTestCase {
 
   // Child DN.
-  private static final String TEST_CHILD_1_DN =
-    "cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config";
+  private static final String TEST_CHILD_1_DN = "cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config";
 
 
 
@@ -226,6 +226,75 @@ public final class ConstraintTest extends AdminTestCase {
 
 
   /**
+   * Tests that retrieval can succeed.
+   *
+   * @throws Exception
+   *           If the test unexpectedly fails.
+   */
+  @Test
+  public void testGetManagedObjectSuccess() throws Exception {
+    MockConstraint constraint = new MockConstraint(true, false);
+
+    try {
+      TestCaseUtils.addEntry(TEST_CHILD_1);
+      TestCfg.addConstraint(constraint);
+
+      TestParentCfg parent = getParent("test parent 1");
+      parent.getTestChild("test child 1");
+    } finally {
+      TestCfg.removeConstraint(constraint);
+
+      try {
+        deleteSubtree(TEST_CHILD_1_DN);
+      } catch (Exception e) {
+        // Do nothing.
+      }
+    }
+  }
+
+
+
+  /**
+   * Tests that retrieval can fail.
+   *
+   * @throws Exception
+   *           If the test unexpectedly fails.
+   */
+  @Test
+  public void testGetManagedObjectFail() throws Exception {
+    MockConstraint constraint = new MockConstraint(false, true);
+
+    try {
+      TestCaseUtils.addEntry(TEST_CHILD_1);
+      TestCfg.addConstraint(constraint);
+
+      TestParentCfg parent = getParent("test parent 1");
+      parent.getTestChild("test child 1");
+    } catch (ConfigException e) {
+      Throwable cause = e.getCause();
+      if (cause instanceof ConstraintViolationException) {
+        ConstraintViolationException cve = (ConstraintViolationException) cause;
+        Assert.assertEquals(cve.getMessages().size(), 1);
+        Assert.assertSame(cve.getManagedObject().getManagedObjectDefinition(),
+            TestChildCfgDefn.getInstance());
+      } else {
+        // Wrong cause.
+        throw e;
+      }
+    } finally {
+      TestCfg.removeConstraint(constraint);
+
+      try {
+        deleteSubtree(TEST_CHILD_1_DN);
+      } catch (Exception e) {
+        // Do nothing.
+      }
+    }
+  }
+
+
+
+  /**
    * Tests that an add constraint can succeed.
    *
    * @throws Exception
@@ -237,7 +306,7 @@ public final class ConstraintTest extends AdminTestCase {
     AddListener listener = new AddListener();
     parent.addTestChildAddListener(listener);
 
-    MockConstraint constraint = new MockConstraint(true, false, false);
+    MockConstraint constraint = new MockConstraint(true, false);
     TestCfg.addConstraint(constraint);
 
     try {
@@ -271,7 +340,7 @@ public final class ConstraintTest extends AdminTestCase {
     AddListener listener = new AddListener();
     parent.addTestChildAddListener(listener);
 
-    MockConstraint constraint = new MockConstraint(false, true, true);
+    MockConstraint constraint = new MockConstraint(false, true);
     TestCfg.addConstraint(constraint);
 
     try {
@@ -305,7 +374,7 @@ public final class ConstraintTest extends AdminTestCase {
     DeleteListener listener = new DeleteListener();
     parent.addTestChildDeleteListener(listener);
 
-    MockConstraint constraint = new MockConstraint(false, false, true);
+    MockConstraint constraint = new MockConstraint(false, true);
     TestCfg.addConstraint(constraint);
 
     try {
@@ -341,7 +410,7 @@ public final class ConstraintTest extends AdminTestCase {
     DeleteListener listener = new DeleteListener();
     parent.addTestChildDeleteListener(listener);
 
-    MockConstraint constraint = new MockConstraint(true, true, false);
+    MockConstraint constraint = new MockConstraint(true, false);
     TestCfg.addConstraint(constraint);
 
     try {
@@ -381,14 +450,14 @@ public final class ConstraintTest extends AdminTestCase {
   public void testChangeConstraintSuccess() throws Exception {
     TestParentCfg parent = getParent("test parent 1");
 
-    MockConstraint constraint = new MockConstraint(false, true, false);
-    TestCfg.addConstraint(constraint);
+    MockConstraint constraint = new MockConstraint(true, false);
 
     try {
       // Add the entry.
       TestCaseUtils.addEntry(TEST_CHILD_1);
       TestChildCfg child = parent.getTestChild("test child 1");
 
+      TestCfg.addConstraint(constraint);
       ChangeListener listener = new ChangeListener();
       child.addChangeListener(listener);
 
@@ -428,15 +497,14 @@ public final class ConstraintTest extends AdminTestCase {
   @Test
   public void testChangeConstraintFail() throws Exception {
     TestParentCfg parent = getParent("test parent 1");
-
-    MockConstraint constraint = new MockConstraint(true, false, true);
-    TestCfg.addConstraint(constraint);
+    MockConstraint constraint = new MockConstraint(false, true);
 
     try {
       // Add the entry.
       TestCaseUtils.addEntry(TEST_CHILD_1);
       TestChildCfg child = parent.getTestChild("test child 1");
 
+      TestCfg.addConstraint(constraint);
       ChangeListener listener = new ChangeListener();
       child.addChangeListener(listener);
 

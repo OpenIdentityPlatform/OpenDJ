@@ -28,7 +28,6 @@ package org.opends.server.admin.server;
 
 
 
-import static org.opends.messages.AdminMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.util.LinkedList;
@@ -168,7 +167,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
         for (ServerConstraintHandler handler : constraint
             .getServerConstraintHandlers()) {
           try {
-            handler.performAddPostCondition(cachedManagedObject);
+            handler.performPostAdd(cachedManagedObject);
           } catch (ConfigException e) {
             if (debugEnabled()) {
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
@@ -216,35 +215,17 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
     }
 
     cachedConfiguration = cachedManagedObject.getConfiguration();
-    List<Message> reasons = new LinkedList<Message>();
-
-    // Enforce any constraints.
-    boolean isAcceptable = true;
-    ManagedObjectDefinition<?, ?> d = cachedManagedObject
-        .getManagedObjectDefinition();
-    for (Constraint constraint : d.getAllConstraints()) {
-      for (ServerConstraintHandler handler : constraint
-          .getServerConstraintHandlers()) {
-        try {
-          if (!handler.isAddAcceptable(cachedManagedObject, reasons)) {
-            isAcceptable = false;
-          }
-        } catch (ConfigException e) {
-          Message message = ERR_SERVER_CONSTRAINT_EXCEPTION.get(e
-              .getMessageObject());
-          reasons.add(message);
-          isAcceptable = false;
-        }
-      }
-    }
 
     // Give up immediately if a constraint violation occurs.
-    if (!isAcceptable) {
-      generateUnacceptableReason(reasons, unacceptableReason);
+    try {
+      cachedManagedObject.ensureIsUsable();
+    } catch (ConstraintViolationException e) {
+      generateUnacceptableReason(e.getMessages(), unacceptableReason);
       return false;
     }
 
     // Let the add listener decide.
+    List<Message> reasons = new LinkedList<Message>();
     if (listener.isConfigurationAddAcceptable(cachedConfiguration, reasons)) {
       return true;
     } else {

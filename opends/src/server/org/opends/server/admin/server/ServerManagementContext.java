@@ -456,11 +456,20 @@ public final class ServerManagementContext {
     DN targetDN = DNBuilder.create(path);
     ConfigEntry configEntry = getManagedObjectConfigEntry(targetDN);
     try {
-      return decode(path, configEntry);
+      ServerManagedObject<? extends S> managedObject;
+      managedObject = decode(path, configEntry);
+
+      // Enforce any constraints.
+      managedObject.ensureIsUsable();
+
+      return managedObject;
     } catch (DefinitionDecodingException e) {
       throw ConfigExceptionFactory.getInstance()
           .createDecodingExceptionAdaptor(targetDN, e);
     } catch (ServerManagedObjectDecodingException e) {
+      throw ConfigExceptionFactory.getInstance()
+          .createDecodingExceptionAdaptor(e);
+    } catch (ConstraintViolationException e) {
       throw ConfigExceptionFactory.getInstance()
           .createDecodingExceptionAdaptor(e);
     }

@@ -57,13 +57,14 @@ public final class MockConstraint implements Constraint {
      * {@inheritDoc}
      */
     @Override
-    public boolean isAddAcceptable(ServerManagedObject<?> managedObject,
+    public boolean isDeleteAllowed(ServerManagedObject<?> managedObject,
         Collection<Message> unacceptableReasons) throws ConfigException {
-      if (!allowAdds) {
-        unacceptableReasons.add(Message.raw("Adds not allowed"));
+      if (!isDeleteAllowed) {
+        unacceptableReasons
+            .add(Message.raw("Configuration cannot be deleted."));
       }
 
-      return allowAdds;
+      return isDeleteAllowed;
     }
 
 
@@ -72,13 +73,13 @@ public final class MockConstraint implements Constraint {
      * {@inheritDoc}
      */
     @Override
-    public boolean isDeleteAcceptable(ServerManagedObject<?> managedObject,
+    public boolean isUsable(ServerManagedObject<?> managedObject,
         Collection<Message> unacceptableReasons) throws ConfigException {
-      if (!allowDeletes) {
-        unacceptableReasons.add(Message.raw("Deletes not allowed"));
+      if (!isUsable) {
+        unacceptableReasons.add(Message.raw("Configuration is not usable."));
       }
 
-      return allowDeletes;
+      return isUsable;
     }
 
 
@@ -87,22 +88,7 @@ public final class MockConstraint implements Constraint {
      * {@inheritDoc}
      */
     @Override
-    public boolean isModifyAcceptable(ServerManagedObject<?> managedObject,
-        Collection<Message> unacceptableReasons) throws ConfigException {
-      if (!allowModifies) {
-        unacceptableReasons.add(Message.raw("Modifies not allowed"));
-      }
-
-      return allowModifies;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void performAddPostCondition(ServerManagedObject<?> managedObject)
+    public void performPostAdd(ServerManagedObject<?> managedObject)
         throws ConfigException {
       // Make sure that the associated config entry exists.
       DN targetDN = managedObject.getDN();
@@ -116,7 +102,7 @@ public final class MockConstraint implements Constraint {
      * {@inheritDoc}
      */
     @Override
-    public void performDeletePostCondition(ServerManagedObject<?> managedObject)
+    public void performPostDelete(ServerManagedObject<?> managedObject)
         throws ConfigException {
       // Make sure that the associated config entry does not exist.
       DN targetDN = managedObject.getDN();
@@ -130,7 +116,7 @@ public final class MockConstraint implements Constraint {
      * {@inheritDoc}
      */
     @Override
-    public void performModifyPostCondition(ServerManagedObject<?> managedObject)
+    public void performPostModify(ServerManagedObject<?> managedObject)
         throws ConfigException {
       // Make sure that the associated config entry exists.
       DN targetDN = managedObject.getDN();
@@ -140,32 +126,25 @@ public final class MockConstraint implements Constraint {
 
   }
 
-  // Determines if add operations are allowed.
-  private final boolean allowAdds;
-
-  // Determines if modify operations are allowed.
-  private final boolean allowModifies;
-
   // Determines if delete operations are allowed.
-  private final boolean allowDeletes;
+  private final boolean isDeleteAllowed;
+
+  // Determines if configurations can be decoded.
+  private final boolean isUsable;
 
 
 
   /**
    * Creates a new mock constraint.
    *
-   * @param allowAdds
-   *          Determines if add operations are allowed.
-   * @param allowModifies
-   *          Determines if modify operations are allowed.
-   * @param allowDeletes
+   * @param isUsable
+   *          Determines if configurations can be decoded.
+   * @param isDeleteAllowed
    *          Determines if delete operations are allowed.
    */
-  public MockConstraint(boolean allowAdds, boolean allowModifies,
-      boolean allowDeletes) {
-    this.allowAdds = allowAdds;
-    this.allowModifies = allowModifies;
-    this.allowDeletes = allowDeletes;
+  public MockConstraint(boolean isUsable, boolean isDeleteAllowed) {
+    this.isUsable = isUsable;
+    this.isDeleteAllowed = isDeleteAllowed;
   }
 
 

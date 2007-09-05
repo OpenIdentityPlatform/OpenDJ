@@ -96,7 +96,6 @@ final class ConfigExceptionFactory {
 
   public ConfigException createDecodingExceptionAdaptor(
       ServerManagedObjectDecodingException e) {
-
     DN dn = e.getPartialManagedObject().getDN();
     Message message =
             AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(
@@ -108,13 +107,32 @@ final class ConfigExceptionFactory {
 
 
   /**
-   * Create an exception that describes a problem that occurred when attempting
-   * to load and instantiate a class.
+   * Create a configuration exception from a constraints violation
+   * decoding exception.
+   *
+   * @param e
+   *          The constraints violation decoding exception.
+   * @return Returns the configuration exception.
+   */
+  public ConfigException createDecodingExceptionAdaptor(
+      ConstraintViolationException e) {
+    DN dn = e.getManagedObject().getDN();
+    Message message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM
+        .get(String.valueOf(dn), stackTraceToSingleLineString(e));
+    return new ConfigException(message, e);
+  }
+
+
+
+  /**
+   * Create an exception that describes a problem that occurred when
+   * attempting to load and instantiate a class.
    *
    * @param dn
    *          The dn of the configuration entry was being processed.
    * @param className
-   *          The name of the class that could not be loaded or instantiated.
+   *          The name of the class that could not be loaded or
+   *          instantiated.
    * @param e
    *          The exception that occurred.
    * @return Returns the configuration exception.

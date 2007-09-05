@@ -29,9 +29,12 @@ package org.opends.server.admin.server;
 
 
 
+import static org.opends.messages.AdminMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -40,6 +43,7 @@ import java.util.TreeSet;
 import org.opends.messages.AdminMessages;
 import org.opends.messages.Message;
 import org.opends.server.admin.Configuration;
+import org.opends.server.admin.Constraint;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectPath;
@@ -536,6 +540,25 @@ public final class ServerManagedObject<S extends Configuration> implements
     ConfigChangeListener adaptor = new ConfigChangeListenerAdaptor<S>(path,
         listener);
     configEntry.registerChangeListener(adaptor);
+
+    // Change listener registration usually signifies that a managed
+    // object has been accepted and added to the server configuration
+    // either during initialization post-add.
+
+    // FIXME: we should prevent multiple invocations in the case where
+    // multiple change listeners are registered for the same object.
+    for (Constraint constraint : definition.getAllConstraints()) {
+      for (ServerConstraintHandler handler : constraint
+          .getServerConstraintHandlers()) {
+        try {
+          handler.performPostAdd(this);
+        } catch (ConfigException e) {
+          if (debugEnabled()) {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+      }
+    }
   }
 
 
@@ -596,6 +619,41 @@ public final class ServerManagedObject<S extends Configuration> implements
     ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(path, d,
         listener);
     registerDeleteListener(baseDN, adaptor);
+  }
+
+
+
+  /**
+   * Determines whether or not this managed object can be used by the
+   * server.
+   *
+   * @throws ConstraintViolationException
+   *           If one or more constraints determined that this managed
+   *           object cannot be used by the server.
+   */
+  void ensureIsUsable() throws ConstraintViolationException {
+    // Enforce any constraints.
+    boolean isUsable = true;
+    List<Message> reasons = new LinkedList<Message>();
+    for (Constraint constraint : definition.getAllConstraints()) {
+      for (ServerConstraintHandler handler : constraint
+          .getServerConstraintHandlers()) {
+        try {
+          if (!handler.isUsable(this, reasons)) {
+            isUsable = false;
+          }
+        } catch (ConfigException e) {
+          Message message = ERR_SERVER_CONSTRAINT_EXCEPTION.get(e
+              .getMessageObject());
+          reasons.add(message);
+          isUsable = false;
+        }
+      }
+    }
+
+    if (!isUsable) {
+      throw new ConstraintViolationException(this, reasons);
+    }
   }
 
 
