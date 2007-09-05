@@ -1,0 +1,5 @@
+dn: cn=schema
+changetype: modify
+delete: objectClasses
+objectClasses: ( newtestobjectclass-oid NAME 'newtestobjectclass-0' SUP person MUST ( street $ c ) X-ORIGIN 'user defined' )
+

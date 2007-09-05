@@ -35,7 +35,7 @@
     <function-map-args>
       <function-arg-def name="location"
                         type="optional"
-                        default="STAXServiceMachine">
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -135,7 +135,7 @@
   </function> 
   
   
-  <!-- This function starts DS using the start-ds script -->
+  <!-- This function compares two LDIF files using the ldif-diff script -->
   <function name="LdifDiffWithScript">
     <function-prolog>
       This function  compares two LDIF files and reports the differences in LDIF format
@@ -143,7 +143,7 @@
     <function-map-args>
       <function-arg-def name="location"
                         type="optional"
-                        default="STAXServiceMachine">
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -272,7 +272,106 @@
     </sequence>
   </function>
   
-  
+
+
+  <!-- This function modifies an LDIF file using ldifmodify script -->
+  <function name="LdifModifyWithScript">
+    <function-prolog>
+      This function modifies an LDIF file with the changes contained in another LDIF file
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      
+      <function-arg-def name="dsPath"
+                       type="optional"
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      
+      <function-arg-def name="version" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      
+      <function-arg-def name="sourceLdif" type="required">
+        <function-arg-description>
+          LDIF file containing the data to be updated
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      
+      <function-arg-def name="targetLdif" type="required">
+        <function-arg-description>
+          LDIF file that will contain the updated data
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      
+      <function-arg-def name="changesLdif" type="required">
+        <function-arg-description>
+          LDIF file containing the changes to apply
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>      
+      
+      <function-arg-def name="Help" type="optional">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="help" value="option"/>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldifmodify%s' % (dsBinPath,fileExt)
+        
+        if version:
+          STAFCmdParamsList.append('-V')
+        
+        if sourceLdif:
+          STAFCmdParamsList.append('-s %s' % sourceLdif)
+        
+        if targetLdif:
+          STAFCmdParamsList.append('-t %s' % targetLdif)
+        
+        if changesLdif:
+          STAFCmdParamsList.append('-m %s' % changesLdif)
+
+        if Help:
+          STAFCmdParamsList.append('-H')
+        
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      <call function="'runCommand'">
+        { 'name'      : 'LDIF Modify Script',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+        }
+      </call>
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+
+                      
   <function name="verifyTrees">
     <function-prolog>
       This function verifies that the trees in a group of ldap servers are synchronized.
@@ -280,7 +379,7 @@
     <function-list-args>
       <function-arg-def name="location"
                         type="optional"
-                        default="STAXServiceMachine">
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -394,9 +493,9 @@
           failingServerList = 'List of non-synchronized servers (tree verify FAILED): %s ' % comma.join(failedServers)
         </script>
         <else>
-          <script>
-            failingServerList = 'All servers synchronized (tree verify SUCCEEDED).'
-          </script>
+          <message>
+            'All servers synchronized (tree verify SUCCEEDED).'
+          </message>
         </else>
       </if>
       <call function="'checktestRC'">
@@ -417,7 +516,7 @@
     <function-list-args>
       <function-arg-def name="location"
                         type="optional"
-                        default="STAXServiceMachine">
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -506,9 +605,9 @@
           failingServerList = 'List of non-synchronized servers (schema verify FAILED): %s ' % comma.join(failedServers)
         </script>
         <else>
-          <script>
-            failingServerList = 'All servers synchronized (schema verify SUCCEEDED).'
-          </script>
+          <message>
+            'All servers synchronized (schema verify SUCCEEDED).'
+          </message>
         </else>
       </if>
       <call function="'checktestRC'">
