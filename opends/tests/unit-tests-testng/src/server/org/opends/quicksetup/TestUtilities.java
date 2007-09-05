@@ -95,14 +95,14 @@ public class TestUtilities {
     } else {
       args.add(new File(root, "setup.bat").getPath());
     }
-    args.add("--cli");
-    args.add("-Q");
+    args.add("-n");
     args.add("-p");
     args.add(Integer.toString(ldapPort));
     args.add("-x");
     args.add(Integer.toString(jmxPort));
     args.add("-w");
     args.add(DIRECTORY_MANAGER_PASSWORD);
+    args.add("-O");
 
     ProcessBuilder pb = new ProcessBuilder(args);
     Process p = pb.start();

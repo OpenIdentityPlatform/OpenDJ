@@ -29,6 +29,7 @@ package org.opends.quicksetup;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 
 import org.opends.admin.ads.ServerDescriptor;
@@ -63,7 +64,7 @@ public class UserData
   private String globalAdministratorPassword;
 
   private SecurityOptions securityOptions;
-  private int serverJMXPort;
+  private int serverJMXPort = -1;
 
   private boolean startServer;
 
@@ -87,6 +88,10 @@ public class UserData
 
   private boolean forceOnError;
 
+  private String configurationFile;
+
+  private String configurationClass;
+
   /**
    * Creates a user data object with default values.
    */
@@ -96,8 +101,10 @@ public class UserData
     enableWindowsService = false;
     forceOnError = true;
 
+    LinkedList<String> baseDn = new LinkedList<String>();
+    baseDn.add("dc=example,dc=com");
     NewSuffixOptions defaultNewSuffixOptions = new NewSuffixOptions(
-        NewSuffixOptions.Type.CREATE_BASE_ENTRY, "dc=example,dc=com");
+        NewSuffixOptions.Type.CREATE_BASE_ENTRY, baseDn);
     setNewSuffixOptions(defaultNewSuffixOptions);
 
     // See what we can propose as port
@@ -654,5 +661,41 @@ public class UserData
   {
     this.remoteWithNoReplicationPort.clear();
     this.remoteWithNoReplicationPort.putAll(remoteWithNoReplicationPort);
+  }
+
+  /**
+   * Returns the configuration file to be used.
+   * @return the configuration file to be used.
+   */
+  public String getConfigurationFile()
+  {
+    return configurationFile;
+  }
+
+  /**
+   * Sets the configuration file to be used.
+   * @param configurationFile the configuration file to be used.
+   */
+  public void setConfigurationFile(String configurationFile)
+  {
+    this.configurationFile = configurationFile;
+  }
+
+  /**
+   * Returns the configuration class to be used.
+   * @return the configuration class to be used.
+   */
+  public String getConfigurationClassName()
+  {
+    return configurationClass;
+  }
+
+  /**
+   * Sets the configuration class to be used.
+   * @param configurationClass the configuration class to be used.
+   */
+  public void setConfigurationClassName(String configurationClass)
+  {
+    this.configurationClass = configurationClass;
   }
 }

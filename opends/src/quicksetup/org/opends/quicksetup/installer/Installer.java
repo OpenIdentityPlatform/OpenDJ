@@ -156,7 +156,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * An static String that contains the class name of ConfigFileHandler.
    */
-  protected static final String CONFIG_CLASS_NAME =
+  protected static final String DEFAULT_CONFIG_CLASS_NAME =
       "org.opends.server.extensions.ConfigFileHandler";
 
   /** Alias of a self-signed certificate. */
@@ -180,8 +180,8 @@ public abstract class Installer extends GuiApplication {
       if (!QuickSetupLog.isInitialized())
         QuickSetupLog.initLogFileHandler(
                 File.createTempFile(
-                        InstallLauncher.LOG_FILE_PREFIX,
-                        InstallLauncher.LOG_FILE_SUFFIX));
+                    SetupGuiLauncher.LOG_FILE_PREFIX,
+                    SetupGuiLauncher.LOG_FILE_SUFFIX));
     } catch (IOException e) {
       System.err.println("Failed to initialize log");
     }
@@ -708,29 +708,34 @@ public abstract class Installer extends GuiApplication {
   }
 
   /**
-   * Creates a template file based in the contents of the UserData object.
-   * This template file is used to generate automatically data.  To generate
+   * Creates the template files based in the contents of the UserData object.
+   * These templates files are used to generate automatically data.  To generate
    * the template file the code will basically take into account the value of
    * the base dn and the number of entries to be generated.
    *
-   * @return the file object pointing to the create template file.
+   * @return a list of file objects pointing to the create template files.
    * @throws ApplicationException if an error occurs.
    */
-  protected File createTemplateFile() throws ApplicationException {
+  private LinkedList<File> createTemplateFiles() throws ApplicationException {
+    LinkedList<File> files = new LinkedList<File>();
     try
     {
-      return SetupUtils.createTemplateFile(
-                  getUserData().getNewSuffixOptions().getBaseDn(),
-                  getUserData().getNewSuffixOptions().getNumberEntries());
+      int nEntries = getUserData().getNewSuffixOptions().getNumberEntries();
+
+      for (String baseDn : getUserData().getNewSuffixOptions().getBaseDns())
+      {
+        files.add(SetupUtils.createTemplateFile(baseDn, nEntries));
+      }
     }
     catch (IOException ioe)
     {
       Message failedMsg = getThrowableMsg(
-              INFO_ERROR_CREATING_TEMP_FILE.get(), ioe);
+          INFO_ERROR_CREATING_TEMP_FILE.get(), ioe);
       throw new ApplicationException(
           ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
           failedMsg, ioe);
     }
+    return files;
   }
 
   /**
@@ -743,10 +748,10 @@ public abstract class Installer extends GuiApplication {
 
     ArrayList<String> argList = new ArrayList<String>();
     argList.add("-C");
-    argList.add(CONFIG_CLASS_NAME);
+    argList.add(getConfigurationClassName());
 
     argList.add("-c");
-    argList.add(getPath(getInstallation().getCurrentConfigurationFile()));
+    argList.add(getConfigurationFile());
     argList.add("-p");
     argList.add(String.valueOf(getUserData().getServerPort()));
 
@@ -811,10 +816,12 @@ public abstract class Installer extends GuiApplication {
     }
 
     // For the moment do not enable JMX
-    /*
-    argList.add("-x");
-    argList.add(String.valueOf(getUserData().getServerJMXPort()));
-     */
+    if (getUserData().getServerJMXPort() > 0)
+    {
+      argList.add("-x");
+      argList.add(String.valueOf(getUserData().getServerJMXPort()));
+    }
+
     argList.add("-D");
     argList.add(getUserData().getDirectoryManagerDn());
 
@@ -823,8 +830,13 @@ public abstract class Installer extends GuiApplication {
 
     if (createNotReplicatedSuffix())
     {
-      argList.add("-b");
-      argList.add(getUserData().getNewSuffixOptions().getBaseDn());
+      LinkedList<String> baseDns =
+        getUserData().getNewSuffixOptions().getBaseDns();
+      for (String baseDn : baseDns)
+      {
+        argList.add("-b");
+        argList.add(baseDn);
+      }
     }
     else
     {
@@ -976,26 +988,44 @@ public abstract class Installer extends GuiApplication {
    * @throws ApplicationException if something goes wrong.
    */
   private void createBaseEntry() throws ApplicationException {
-    notifyListeners(getFormattedWithPoints(
-        INFO_PROGRESS_CREATING_BASE_ENTRY.get(
-                getUserData().getNewSuffixOptions().getBaseDn())));
+    LinkedList<String> baseDns =
+      getUserData().getNewSuffixOptions().getBaseDns();
+    if (baseDns.size() == 1)
+    {
+      notifyListeners(getFormattedWithPoints(
+        INFO_PROGRESS_CREATING_BASE_ENTRY.get(baseDns.getFirst())));
+    }
+    else
+    {
+      notifyListeners(getFormattedWithPoints(
+          INFO_PROGRESS_CREATING_BASE_ENTRIES.get()));
+    }
 
     InstallerHelper helper = new InstallerHelper();
-    String baseDn = getUserData().getNewSuffixOptions().getBaseDn();
-    File tempFile = helper.createBaseEntryTempFile(baseDn);
 
+    LinkedList<File> ldifFiles = new LinkedList<File>();
+
+    for (String baseDn : baseDns)
+    {
+      ldifFiles.add(helper.createBaseEntryTempFile(baseDn));
+    }
     ArrayList<String> argList = new ArrayList<String>();
     argList.add("-C");
-    argList.add(CONFIG_CLASS_NAME);
+    argList.add(getConfigurationClassName());
 
     argList.add("-f");
-    argList.add(getPath(getInstallation().getCurrentConfigurationFile()));
+    argList.add(getConfigurationFile());
 
     argList.add("-n");
     argList.add(getBackendName());
 
-    argList.add("-l");
-    argList.add(tempFile.getAbsolutePath());
+    for (File f : ldifFiles)
+    {
+      argList.add("-l");
+      argList.add(f.getAbsolutePath());
+    }
+
+    argList.add("-F");
 
     argList.add("-q");
 
@@ -1034,23 +1064,36 @@ public abstract class Installer extends GuiApplication {
    * @throws ApplicationException if something goes wrong.
    */
   private void importLDIF() throws ApplicationException {
+    LinkedList<String> ldifPaths =
+      getUserData().getNewSuffixOptions().getLDIFPaths();
     MessageBuilder mb = new MessageBuilder();
-    mb.append(getFormattedProgress(INFO_PROGRESS_IMPORTING_LDIF.get(
-            getUserData().getNewSuffixOptions().getLDIFPath())));
+    if (ldifPaths.size() > 1)
+    {
+      mb.append(getFormattedProgress(INFO_PROGRESS_IMPORTING_LDIFS.get(
+            getStringFromCollection(ldifPaths, ", "))));
+    }
+    else
+    {
+      mb.append(getFormattedProgress(INFO_PROGRESS_IMPORTING_LDIF.get(
+          ldifPaths.getFirst())));
+    }
     mb.append(getLineBreak());
     notifyListeners(mb.toMessage());
 
     ArrayList<String> argList = new ArrayList<String>();
     argList.add("-C");
-    argList.add(CONFIG_CLASS_NAME);
+    argList.add(getConfigurationClassName());
 
     argList.add("-f");
-    argList.add(getPath(getInstallation().getCurrentConfigurationFile()));
+    argList.add(getConfigurationFile());
     argList.add("-n");
     argList.add(getBackendName());
-    argList.add("-l");
-    argList.add(getUserData().getNewSuffixOptions().getLDIFPath());
-
+    for (String ldifPath : ldifPaths)
+    {
+      argList.add("-l");
+      argList.add(ldifPath);
+    }
+    argList.add("-F");
     String[] args = new String[argList.size()];
     argList.toArray(args);
 
@@ -1079,7 +1122,7 @@ public abstract class Installer extends GuiApplication {
    * @throws ApplicationException if something goes wrong.
    */
   private void importAutomaticallyGenerated() throws ApplicationException {
-    File templatePath = createTemplateFile();
+    LinkedList<File> templatePaths = createTemplateFiles();
     int nEntries = getUserData().getNewSuffixOptions().getNumberEntries();
     MessageBuilder mb = new MessageBuilder();
     mb.append(getFormattedProgress(
@@ -1088,40 +1131,46 @@ public abstract class Installer extends GuiApplication {
     mb.append(getLineBreak());
     notifyListeners(mb.toMessage());
 
-    ArrayList<String> argList = new ArrayList<String>();
-    argList.add("-C");
-    argList.add(CONFIG_CLASS_NAME);
-
-    argList.add("-f");
-    argList.add(getPath(getInstallation().getCurrentConfigurationFile()));
-    argList.add("-n");
-    argList.add(getBackendName());
-    argList.add("-t");
-    argList.add(templatePath.getAbsolutePath());
-    argList.add("-s"); // seed
-    argList.add("0");
-
-    String[] args = new String[argList.size()];
-    argList.toArray(args);
-
-    try
+    for (File templatePath : templatePaths)
     {
-      InstallerHelper helper = new InstallerHelper();
-      int result = helper.invokeImportLDIF(args);
+      ArrayList<String> argList = new ArrayList<String>();
+      argList.add("-C");
+      argList.add(getConfigurationClassName());
 
-      if (result != 0)
+      argList.add("-f");
+      argList.add(getConfigurationFile());
+      argList.add("-n");
+      argList.add(getBackendName());
+      argList.add("-t");
+      argList.add(templatePath.getAbsolutePath());
+      argList.add("-s"); // seed
+      argList.add("0");
+
+      // append: each file contains data for each base DN.
+      argList.add("-a");
+
+      String[] args = new String[argList.size()];
+      argList.toArray(args);
+
+      try
+      {
+        InstallerHelper helper = new InstallerHelper();
+        int result = helper.invokeImportLDIF(args);
+
+        if (result != 0)
+        {
+          throw new ApplicationException(
+              ReturnCode.CONFIGURATION_ERROR,
+              INFO_ERROR_IMPORT_LDIF_TOOL_RETURN_CODE.get(
+                  Integer.toString(result)), null);
+        }
+      } catch (Throwable t)
       {
         throw new ApplicationException(
             ReturnCode.CONFIGURATION_ERROR,
-            INFO_ERROR_IMPORT_LDIF_TOOL_RETURN_CODE.get(
-                    Integer.toString(result)), null);
+            getThrowableMsg(INFO_ERROR_IMPORT_AUTOMATICALLY_GENERATED.get(
+                listToString(argList, " "), t.getLocalizedMessage()), t), t);
       }
-    } catch (Throwable t)
-    {
-      throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR,
-          getThrowableMsg(INFO_ERROR_IMPORT_AUTOMATICALLY_GENERATED.get(
-                  listToString(argList, " "), t.getLocalizedMessage()), t), t);
     }
   }
 
@@ -1313,12 +1362,16 @@ public abstract class Installer extends GuiApplication {
     if (getUserData().getReplicationOptions().getType()
             == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY)
     {
-      String dn = getUserData().getNewSuffixOptions().getBaseDn();
-      dns.add(dn);
+      LinkedList<String> baseDns =
+        getUserData().getNewSuffixOptions().getBaseDns();
+      dns.addAll(baseDns);
       HashSet<String> h = new HashSet<String>();
       h.add(getLocalReplicationServer());
       adsServers.add(getLocalReplicationServer());
-      replicationServers.put(dn, h);
+      for (String dn : baseDns)
+      {
+        replicationServers.put(dn, h);
+      }
     }
     else
     {
@@ -3235,7 +3288,12 @@ public abstract class Installer extends GuiApplication {
         qs.displayFieldInvalid(FieldName.LDIF_PATH, true);
       } else if (validBaseDn)
       {
-        dataOptions = new NewSuffixOptions(type, baseDn, ldifPath);
+        LinkedList<String> baseDns = new LinkedList<String>();
+        baseDns.add(baseDn);
+        LinkedList<String> ldifPaths = new LinkedList<String>();
+        ldifPaths.add(ldifPath);
+
+        dataOptions = new NewSuffixOptions(type, baseDns, ldifPaths);
         qs.displayFieldInvalid(FieldName.LDIF_PATH, false);
       }
       break;
@@ -3277,7 +3335,10 @@ public abstract class Installer extends GuiApplication {
       if (startErrors == errorMsgs.size() && validBaseDn)
       {
         // No validation errors
-        dataOptions = new NewSuffixOptions(type, baseDn, new Integer(nEntries));
+        LinkedList<String> baseDns = new LinkedList<String>();
+        baseDns.add(baseDn);
+        dataOptions = new NewSuffixOptions(type, baseDns,
+            new Integer(nEntries));
       }
       break;
 
@@ -3286,7 +3347,9 @@ public abstract class Installer extends GuiApplication {
       qs.displayFieldInvalid(FieldName.NUMBER_ENTRIES, false);
       if (validBaseDn)
       {
-        dataOptions = new NewSuffixOptions(type, baseDn);
+        LinkedList<String> baseDns = new LinkedList<String>();
+        baseDns.add(baseDn);
+        dataOptions = new NewSuffixOptions(type, baseDns);
       }
     }
 
@@ -3899,6 +3962,38 @@ public abstract class Installer extends GuiApplication {
                         ne), ne);
       }
     }
+  }
+
+  /**
+   * Returns the configuration file path to be used when invoking the
+   * command-lines.
+   * @return the configuration file path to be used when invoking the
+   * command-lines.
+   */
+  private String getConfigurationFile()
+  {
+    String file = getUserData().getConfigurationFile();
+    if (file == null)
+    {
+      file = getPath(getInstallation().getCurrentConfigurationFile());
+    }
+    return file;
+  }
+
+  /**
+   * Returns the configuration class name to be used when invoking the
+   * command-lines.
+   * @return the configuration class name to be used when invoking the
+   * command-lines.
+   */
+  private String getConfigurationClassName()
+  {
+    String className = getUserData().getConfigurationClassName();
+    if (className == null)
+    {
+      className = DEFAULT_CONFIG_CLASS_NAME;
+    }
+    return className;
   }
 
   private String getLocalReplicationServer()

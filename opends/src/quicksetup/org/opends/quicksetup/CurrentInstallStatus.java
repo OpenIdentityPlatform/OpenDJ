@@ -95,21 +95,39 @@ public class CurrentInstallStatus
       isInstalled = msgs.size() > 0;
       if (canOverwriteCurrentInstall)
       {
-        installationMsg =
-          INFO_INSTALLSTATUS_CANOVERWRITECURRENTINSTALL_MSG.get();
+        installationMsg = !Utils.isCli()?
+          INFO_INSTALLSTATUS_CANOVERWRITECURRENTINSTALL_MSG.get() :
+          INFO_INSTALLSTATUS_CANOVERWRITECURRENTINSTALL_MSG_CLI.get();
       }
       else if (isInstalled)
       {
         MessageBuilder buf = new MessageBuilder();
-        buf.append("<ul>");
-        for (Message msg : msgs)
+        if (Utils.isCli())
         {
-          buf.append("\n<li>");
-          buf.append(msg);
-          buf.append("</li>");
+          buf = new MessageBuilder();
+          for (Message msg : msgs)
+          {
+            buf.append(Constants.LINE_SEPARATOR);
+            buf.append("- "+msg);
+          }
+          String cmd = Utils.isWindows() ?
+              Installation.WINDOWS_SETUP_FILE_NAME :
+                Installation.UNIX_SETUP_FILE_NAME;
+          installationMsg =
+            INFO_INSTALLSTATUS_INSTALLED_CLI.get(cmd, buf.toString());
         }
-        buf.append("</ul>");
-        installationMsg = INFO_INSTALLSTATUS_INSTALLED.get( buf.toString() );
+        else
+        {
+          buf.append("<ul>");
+          for (Message msg : msgs)
+          {
+            buf.append("\n<li>");
+            buf.append(msg);
+            buf.append("</li>");
+          }
+          buf.append("</ul>");
+          installationMsg = INFO_INSTALLSTATUS_INSTALLED.get( buf.toString() );
+        }
       }
     }
     if (!isInstalled)

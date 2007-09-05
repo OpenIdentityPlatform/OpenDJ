@@ -28,6 +28,8 @@
 
 package org.opends.quicksetup.installer;
 
+import java.util.LinkedList;
+
 
 /**
  * This class is used to provide a data model for the Data Options panel of the
@@ -67,9 +69,9 @@ public class NewSuffixOptions
 
   private Type type = Type.NOTHING;
 
-  private String baseDn;
+  private LinkedList<String> baseDns = new LinkedList<String>();
 
-  private String ldifPath;
+  private LinkedList<String> ldifPaths = new LinkedList<String>();
 
   private int numberEntries = 2000;
 
@@ -91,12 +93,19 @@ public class NewSuffixOptions
   public NewSuffixOptions(Type type, Object... args)
   {
     this.type = type;
-    baseDn = (String) args[0];
-
+    LinkedList<?> v = (LinkedList<?>)args[0];
+    for (Object o : v)
+    {
+      baseDns.add((String)o);
+    }
     switch (type)
     {
     case IMPORT_FROM_LDIF_FILE:
-      ldifPath = (String) args[1];
+      v = (LinkedList<?>)args[1];
+      for (Object o : v)
+      {
+        ldifPaths.add((String)o);
+      }
       break;
 
     case IMPORT_AUTOMATICALLY_GENERATED_DATA:
@@ -120,9 +129,10 @@ public class NewSuffixOptions
    * Returns the path of the LDIF file used to import data.
    * @return the path of the LDIF file used to import data.
    */
-  public String getLDIFPath()
+  public LinkedList<String> getLDIFPaths()
   {
-    return ldifPath;
+    LinkedList<String> copy = new LinkedList<String>(ldifPaths);
+    return copy;
   }
 
   /**
@@ -140,8 +150,9 @@ public class NewSuffixOptions
    *
    * @return the base DN of the suffix that will be created in the server.
    */
-  public String getBaseDn()
+  public LinkedList<String> getBaseDns()
   {
-    return baseDn;
+    LinkedList<String> copy = new LinkedList<String>(baseDns);
+    return copy;
   }
 }
