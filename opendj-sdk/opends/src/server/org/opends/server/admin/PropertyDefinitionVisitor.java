@@ -65,6 +65,28 @@ public abstract class PropertyDefinitionVisitor<R, P> {
 
 
   /**
+   * Visit an aggregation property definition.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that
+   *          this aggregation property definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that
+   *          this aggregation property definition refers to.
+   * @param d
+   *          The aggregation property definition to visit.
+   * @param p
+   *          A visitor specified parameter.
+   * @return Returns a visitor specified result.
+   */
+  public <C extends ConfigurationClient, S extends Configuration>
+  R visitAggregation(AggregationPropertyDefinition<C, S> d, P p) {
+    return visitUnknown(d, p);
+  }
+
+
+
+  /**
    * Visit an attribute type property definition.
    *
    * @param d

@@ -73,6 +73,31 @@ public abstract class PropertyValueVisitor<R, P> {
 
 
   /**
+   * Visit an aggregation property value.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that
+   *          this aggregation property definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that
+   *          this aggregation property definition refers to.
+   * @param d
+   *          The aggregation property definition to visit.
+   * @param v
+   *          The property value to visit.
+   * @param p
+   *          A visitor specified parameter.
+   * @return Returns a visitor specified result.
+   */
+  public <C extends ConfigurationClient, S extends Configuration>
+  R visitAggregation(
+      AggregationPropertyDefinition<C, S> d, String v, P p) {
+    return visitUnknown(d, v, p);
+  }
+
+
+
+  /**
    * Visit an attribute type.
    *
    * @param d
@@ -172,8 +197,8 @@ public abstract class PropertyValueVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public <E extends Enum<E>> R visitEnum(
-      EnumPropertyDefinition<E> d, E v, P p) {
+  public <E extends Enum<E>>
+  R visitEnum(EnumPropertyDefinition<E> d, E v, P p) {
     return visitUnknown(d, v, p);
   }
 

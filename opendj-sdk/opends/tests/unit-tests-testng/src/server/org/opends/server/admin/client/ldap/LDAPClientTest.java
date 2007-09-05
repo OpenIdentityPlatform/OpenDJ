@@ -42,10 +42,8 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.AdminTestCase;
 import org.opends.server.admin.Constraint;
 import org.opends.server.admin.DefinitionDecodingException;
-import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.ManagedObjectAlreadyExistsException;
 import org.opends.server.admin.ManagedObjectNotFoundException;
-import org.opends.server.admin.MockLDAPProfile;
 import org.opends.server.admin.TestCfg;
 import org.opends.server.admin.TestChildCfgClient;
 import org.opends.server.admin.TestChildCfgDefn;
@@ -93,7 +91,7 @@ public final class LDAPClientTest extends AdminTestCase {
       // optional-multi-valued-dn-property.
       "dn: cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
-      "objectclass: ds-cfg-virtual-attribute",
+      "objectclass: ds-cfg-test-parent-dummy",
       "cn: test parent 1",
       "ds-cfg-virtual-attribute-enabled: true",
       "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
@@ -103,7 +101,7 @@ public final class LDAPClientTest extends AdminTestCase {
       // optional-multi-valued-dn-property.
       "dn: cn=test parent 2,cn=test parents,cn=config",
       "objectclass: top",
-      "objectclass: ds-cfg-virtual-attribute",
+      "objectclass: ds-cfg-test-parent-dummy",
       "cn: test parent 2",
       "ds-cfg-virtual-attribute-enabled: true",
       "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
@@ -115,7 +113,7 @@ public final class LDAPClientTest extends AdminTestCase {
       // optional-multi-valued-dn-property.
       "dn: cn=test parent 3,cn=test parents,cn=config",
       "objectclass: top",
-      "objectclass: ds-cfg-virtual-attribute",
+      "objectclass: ds-cfg-test-parent-dummy",
       "cn: test parent 3",
       "ds-cfg-virtual-attribute-enabled: true",
       "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
@@ -139,7 +137,7 @@ public final class LDAPClientTest extends AdminTestCase {
       // optional-multi-valued-dn-property2.
       "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
-      "objectclass: ds-cfg-virtual-attribute",
+      "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 1",
       "ds-cfg-virtual-attribute-enabled: true",
       "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
@@ -149,7 +147,7 @@ public final class LDAPClientTest extends AdminTestCase {
       // optional-multi-valued-dn-property2.
       "dn: cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
-      "objectclass: ds-cfg-virtual-attribute",
+      "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 2",
       "ds-cfg-virtual-attribute-enabled: true",
       "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
@@ -162,7 +160,7 @@ public final class LDAPClientTest extends AdminTestCase {
       // optional-multi-valued-dn-property2.
       "dn: cn=test child 3,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
-      "objectclass: ds-cfg-virtual-attribute",
+      "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 3",
       "ds-cfg-virtual-attribute-enabled: true",
       "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
@@ -177,12 +175,12 @@ public final class LDAPClientTest extends AdminTestCase {
       // optional-multi-valued-dn-property2.
       "dn: cn=test child 1,cn=test children,cn=test parent 2,cn=test parents,cn=config",
       "objectclass: top",
-      "objectclass: ds-cfg-virtual-attribute",
+      "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 1",
       "ds-cfg-virtual-attribute-enabled: true",
       "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
       "ds-cfg-virtual-attribute-type: description",
-      ""
+      "",
   };
 
 
@@ -273,7 +271,7 @@ public final class LDAPClientTest extends AdminTestCase {
     // This test suite depends on having the schema available, so
     // we'll start the server.
     TestCaseUtils.startServer();
-    LDAPProfile.getInstance().pushWrapper(new MockLDAPProfile());
+    TestCfg.setUp();
   }
 
 
@@ -283,7 +281,6 @@ public final class LDAPClientTest extends AdminTestCase {
    */
   @AfterClass
   public void tearDown() {
-    LDAPProfile.getInstance().popWrapper();
     TestCfg.cleanup();
   }
 
@@ -301,7 +298,7 @@ public final class LDAPClientTest extends AdminTestCase {
         "cn=test child new,cn=test children,cn=test parent 1,cn=test parents,cn=config");
     c.importLDIF(TEST_LDIF);
     c.addExpectedAttribute("cn", "test child new");
-    c.addExpectedAttribute("objectclass", "top", "ds-cfg-virtual-attribute");
+    c.addExpectedAttribute("objectclass", "top", "ds-cfg-test-child-dummy");
     c.addExpectedAttribute("ds-cfg-virtual-attribute-enabled", "true");
     c.addExpectedAttribute("ds-cfg-virtual-attribute-class",
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
@@ -372,7 +369,7 @@ public final class LDAPClientTest extends AdminTestCase {
         "cn=test parent new,cn=test parents,cn=config");
     c.importLDIF(TEST_LDIF);
     c.addExpectedAttribute("cn", "test parent new");
-    c.addExpectedAttribute("objectclass", "top", "ds-cfg-virtual-attribute");
+    c.addExpectedAttribute("objectclass", "top", "ds-cfg-test-parent-dummy");
     c.addExpectedAttribute("ds-cfg-virtual-attribute-enabled", "true");
     c.addExpectedAttribute("ds-cfg-virtual-attribute-class",
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
@@ -438,6 +435,7 @@ public final class LDAPClientTest extends AdminTestCase {
         "dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com");
     assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(),
         "dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com");
+    Assert.assertEquals(child.isMandatoryBooleanProperty(), Boolean.TRUE);
   }
 
 
@@ -537,7 +535,7 @@ public final class LDAPClientTest extends AdminTestCase {
         "cn=test child new,cn=test children,cn=test parent 1,cn=test parents,cn=config");
     c.importLDIF(TEST_LDIF);
     c.addExpectedAttribute("cn", "test child new");
-    c.addExpectedAttribute("objectclass", "top", "ds-cfg-virtual-attribute");
+    c.addExpectedAttribute("objectclass", "top", "ds-cfg-test-child-dummy");
     c.addExpectedAttribute("ds-cfg-virtual-attribute-enabled", "true");
     c.addExpectedAttribute("ds-cfg-virtual-attribute-class",
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
@@ -582,7 +580,7 @@ public final class LDAPClientTest extends AdminTestCase {
         "cn=test child new,cn=test children,cn=test parent 2,cn=test parents,cn=config");
     c.importLDIF(TEST_LDIF);
     c.addExpectedAttribute("cn", "test child new");
-    c.addExpectedAttribute("objectclass", "top", "ds-cfg-virtual-attribute");
+    c.addExpectedAttribute("objectclass", "top", "ds-cfg-test-child-dummy");
     c.addExpectedAttribute("ds-cfg-virtual-attribute-enabled", "true");
     c.addExpectedAttribute("ds-cfg-virtual-attribute-class",
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
@@ -808,14 +806,14 @@ public final class LDAPClientTest extends AdminTestCase {
   @Test
   public void testAddConstraintSuccess() throws Exception {
     Constraint constraint = new MockConstraint(true, false, false);
-    TestChildCfgDefn.getInstance().addConstraint(constraint);
+    TestCfg.addConstraint(constraint);
 
     try {
       CreateEntryMockLDAPConnection c = new CreateEntryMockLDAPConnection(
           "cn=test child new,cn=test children,cn=test parent 1,cn=test parents,cn=config");
       c.importLDIF(TEST_LDIF);
       c.addExpectedAttribute("cn", "test child new");
-      c.addExpectedAttribute("objectclass", "top", "ds-cfg-virtual-attribute");
+      c.addExpectedAttribute("objectclass", "top", "ds-cfg-test-child-dummy");
       c.addExpectedAttribute("ds-cfg-virtual-attribute-enabled", "true");
       c.addExpectedAttribute("ds-cfg-virtual-attribute-class",
           "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
@@ -833,7 +831,7 @@ public final class LDAPClientTest extends AdminTestCase {
       c.assertEntryIsCreated();
     } finally {
       // Clean up.
-      TestChildCfgDefn.getInstance().removeConstraint(constraint);
+      TestCfg.removeConstraint(constraint);
     }
   }
 
@@ -849,14 +847,14 @@ public final class LDAPClientTest extends AdminTestCase {
   @Test(expectedExceptions=OperationRejectedException.class)
   public void testAddConstraintFail() throws Exception {
     Constraint constraint = new MockConstraint(false, true, true);
-    TestChildCfgDefn.getInstance().addConstraint(constraint);
+    TestCfg.addConstraint(constraint);
 
     try {
       CreateEntryMockLDAPConnection c = new CreateEntryMockLDAPConnection(
           "cn=test child new,cn=test children,cn=test parent 1,cn=test parents,cn=config");
       c.importLDIF(TEST_LDIF);
       c.addExpectedAttribute("cn", "test child new");
-      c.addExpectedAttribute("objectclass", "top", "ds-cfg-virtual-attribute");
+      c.addExpectedAttribute("objectclass", "top", "ds-cfg-test-child-dummy");
       c.addExpectedAttribute("ds-cfg-virtual-attribute-enabled", "true");
       c.addExpectedAttribute("ds-cfg-virtual-attribute-class",
           "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
@@ -873,7 +871,7 @@ public final class LDAPClientTest extends AdminTestCase {
       Assert.fail("The add constraint failed to prevent creation of the managed object");
     } finally {
       // Clean up.
-      TestChildCfgDefn.getInstance().removeConstraint(constraint);
+      TestCfg.removeConstraint(constraint);
     }
   }
 
@@ -889,7 +887,7 @@ public final class LDAPClientTest extends AdminTestCase {
   @Test
   public void testRemoveConstraintSuccess() throws Exception {
     Constraint constraint = new MockConstraint(false, false, true);
-    TestChildCfgDefn.getInstance().addConstraint(constraint);
+    TestCfg.addConstraint(constraint);
 
     try {
       DeleteSubtreeMockLDAPConnection c = new DeleteSubtreeMockLDAPConnection(
@@ -901,7 +899,7 @@ public final class LDAPClientTest extends AdminTestCase {
       c.assertSubtreeIsDeleted();
     } finally {
       // Clean up.
-      TestChildCfgDefn.getInstance().removeConstraint(constraint);
+      TestCfg.removeConstraint(constraint);
     }
   }
 
@@ -917,7 +915,7 @@ public final class LDAPClientTest extends AdminTestCase {
   @Test(expectedExceptions=OperationRejectedException.class)
   public void testRemoveConstraintFail() throws Exception {
     Constraint constraint = new MockConstraint(true, true, false);
-    TestChildCfgDefn.getInstance().addConstraint(constraint);
+    TestCfg.addConstraint(constraint);
 
     try {
       DeleteSubtreeMockLDAPConnection c = new DeleteSubtreeMockLDAPConnection(
@@ -929,7 +927,7 @@ public final class LDAPClientTest extends AdminTestCase {
       Assert.fail("The remove constraint failed to prevent removal of the managed object");
     } finally {
       // Clean up.
-      TestChildCfgDefn.getInstance().removeConstraint(constraint);
+      TestCfg.removeConstraint(constraint);
     }
   }
 
@@ -945,7 +943,7 @@ public final class LDAPClientTest extends AdminTestCase {
   @Test
   public void testModifyConstraintSuccess() throws Exception {
     Constraint constraint = new MockConstraint(false, true, false);
-    TestChildCfgDefn.getInstance().addConstraint(constraint);
+    TestCfg.addConstraint(constraint);
 
     try {
       ModifyEntryMockLDAPConnection c = new ModifyEntryMockLDAPConnection(
@@ -960,7 +958,7 @@ public final class LDAPClientTest extends AdminTestCase {
       Assert.assertTrue(c.isEntryModified());
     } finally {
       // Clean up.
-      TestChildCfgDefn.getInstance().removeConstraint(constraint);
+      TestCfg.removeConstraint(constraint);
     }
   }
 
@@ -976,7 +974,7 @@ public final class LDAPClientTest extends AdminTestCase {
   @Test(expectedExceptions = OperationRejectedException.class)
   public void testModifyConstraintFail() throws Exception {
     Constraint constraint = new MockConstraint(true, false, true);
-    TestChildCfgDefn.getInstance().addConstraint(constraint);
+    TestCfg.addConstraint(constraint);
 
     try {
       ModifyEntryMockLDAPConnection c = new ModifyEntryMockLDAPConnection(
@@ -992,7 +990,7 @@ public final class LDAPClientTest extends AdminTestCase {
           .fail("The modify constraint failed to prevent modification of the managed object");
     } finally {
       // Clean up.
-      TestChildCfgDefn.getInstance().removeConstraint(constraint);
+      TestCfg.removeConstraint(constraint);
     }
   }
 

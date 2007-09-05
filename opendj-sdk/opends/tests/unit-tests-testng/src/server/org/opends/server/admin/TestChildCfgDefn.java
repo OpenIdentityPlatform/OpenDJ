@@ -34,24 +34,30 @@ import org.opends.server.admin.AdministratorAction;
 import org.opends.server.admin.AttributeTypePropertyDefinition;
 import org.opends.server.admin.BooleanPropertyDefinition;
 import org.opends.server.admin.ClassPropertyDefinition;
+import org.opends.server.admin.DNPropertyDefinition;
+import org.opends.server.admin.DefaultBehaviorProvider;
+import org.opends.server.admin.DefinedDefaultBehaviorProvider;
+import org.opends.server.admin.ManagedObjectAlreadyExistsException;
+import org.opends.server.admin.ManagedObjectDefinition;
+import org.opends.server.admin.ManagedObjectPath;
+import org.opends.server.admin.PropertyIsReadOnlyException;
+import org.opends.server.admin.PropertyOption;
+import org.opends.server.admin.PropertyProvider;
+import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
+import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
-import org.opends.server.admin.DefaultBehaviorProvider;
-import org.opends.server.admin.DefinedDefaultBehaviorProvider;
-import org.opends.server.admin.DNPropertyDefinition;
-import org.opends.server.admin.ManagedObjectAlreadyExistsException;
-import org.opends.server.admin.ManagedObjectDefinition;
-import org.opends.server.admin.PropertyIsReadOnlyException;
-import org.opends.server.admin.PropertyOption;
-import org.opends.server.admin.PropertyProvider;
-import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagedObject;
-import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
+import org.opends.server.admin.std.client.ConnectionHandlerCfgClient;
+import org.opends.server.admin.TestChildCfgClient;
+import org.opends.server.admin.std.meta.ConnectionHandlerCfgDefn;
+import org.opends.server.admin.std.server.ConnectionHandlerCfg;
+import org.opends.server.admin.TestChildCfg;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 
@@ -69,6 +75,11 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
 
   // The singleton configuration definition instance.
   private static final TestChildCfgDefn INSTANCE = new TestChildCfgDefn();
+
+
+
+  // The "aggregation-property" property definition.
+  private static final AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg> PD_AGGREGATION_PROPERTY;
 
 
 
@@ -94,6 +105,21 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
 
   // The "optional-multi-valued-dn-property2" property definition.
   private static final DNPropertyDefinition PD_OPTIONAL_MULTI_VALUED_DN_PROPERTY2;
+
+
+
+  // Build the "aggregation-property" property definition.
+  static {
+      AggregationPropertyDefinition.Builder<ConnectionHandlerCfgClient, ConnectionHandlerCfg> builder = AggregationPropertyDefinition.createBuilder(INSTANCE, "aggregation-property");
+      builder.setOption(PropertyOption.MULTI_VALUED);
+      builder.setAdministratorAction(new AdministratorAction(AdministratorAction.Type.NONE, INSTANCE, "aggregation-property"));
+      builder.setDefaultBehaviorProvider(new UndefinedDefaultBehaviorProvider<String>());
+      builder.setParentPath(ManagedObjectPath.valueOf("/"));
+      builder.setRelationDefinition("connection-handler");
+      builder.setManagedObjectDefinition(ConnectionHandlerCfgDefn.getInstance());
+      PD_AGGREGATION_PROPERTY = builder.getInstance();
+      INSTANCE.registerPropertyDefinition(PD_AGGREGATION_PROPERTY);
+  }
 
 
 
@@ -180,28 +206,6 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
   private TestChildCfgDefn() {
     super("test-child", null);
   }
-  
-  
-  
-  /**
-   * Adds a constraint temporarily with this test definition.
-   * 
-   * @param constraint The constraint.
-   */
-  public void addConstraint(Constraint constraint) {
-    registerConstraint(constraint);
-  }
-  
-  
-  
-  /**
-   * Removes a constraint from this test definition.
-   * 
-   * @param constraint The constraint.
-   */
-  public void removeConstraint(Constraint constraint) {
-    deregisterConstraint(constraint);
-  }
 
 
 
@@ -230,6 +234,19 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
    */
   public Class<TestChildCfg> getServerConfigurationClass() {
     return TestChildCfg.class;
+  }
+
+
+
+  /**
+   * Get the "aggregation-property" property definition.
+   * <p>
+   * An aggregation property which references connection handlers.
+   *
+   * @return Returns the "aggregation-property" property definition.
+   */
+  public AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg> getAggregationPropertyPropertyDefinition() {
+    return PD_AGGREGATION_PROPERTY;
   }
 
 
@@ -316,6 +333,24 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
     private TestChildCfgClientImpl(
         ManagedObject<? extends TestChildCfgClient> impl) {
       this.impl = impl;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public SortedSet<String> getAggregationProperty() {
+      return impl.getPropertyValues(INSTANCE.getAggregationPropertyPropertyDefinition());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setAggregationProperty(Collection<String> values) {
+      impl.setPropertyValues(INSTANCE.getAggregationPropertyPropertyDefinition(), values);
     }
 
 
@@ -476,6 +511,15 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
     public void removeChangeListener(
         ConfigurationChangeListener<TestChildCfg> listener) {
       impl.deregisterChangeListener(listener);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public SortedSet<String> getAggregationProperty() {
+      return impl.getPropertyValues(INSTANCE.getAggregationPropertyPropertyDefinition());
     }
 
 

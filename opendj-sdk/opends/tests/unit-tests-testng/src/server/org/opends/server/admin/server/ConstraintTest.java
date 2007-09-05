@@ -36,11 +36,8 @@ import javax.naming.ldap.LdapName;
 import org.opends.messages.Message;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.AdminTestCase;
-import org.opends.server.admin.LDAPProfile;
-import org.opends.server.admin.MockLDAPProfile;
 import org.opends.server.admin.TestCfg;
 import org.opends.server.admin.TestChildCfg;
-import org.opends.server.admin.TestChildCfgDefn;
 import org.opends.server.admin.TestParentCfg;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.std.server.RootCfg;
@@ -153,7 +150,7 @@ public final class ConstraintTest extends AdminTestCase {
   private static final String[] TEST_CHILD_1 = new String[] {
       "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
-      "objectclass: ds-cfg-virtual-attribute",
+      "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 1",
       "ds-cfg-virtual-attribute-enabled: true",
       "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
@@ -173,7 +170,7 @@ public final class ConstraintTest extends AdminTestCase {
       // optional-multi-valued-dn-property.
       "dn: cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
-      "objectclass: ds-cfg-virtual-attribute",
+      "objectclass: ds-cfg-test-parent-dummy",
       "cn: test parent 1",
       "ds-cfg-virtual-attribute-enabled: true",
       "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
@@ -204,7 +201,7 @@ public final class ConstraintTest extends AdminTestCase {
     // This test suite depends on having the schema available, so
     // we'll start the server.
     TestCaseUtils.startServer();
-    LDAPProfile.getInstance().pushWrapper(new MockLDAPProfile());
+    TestCfg.setUp();
 
     // Add test managed objects.
     TestCaseUtils.addEntries(TEST_LDIF);
@@ -220,7 +217,6 @@ public final class ConstraintTest extends AdminTestCase {
    */
   @AfterClass
   public void tearDown() throws Exception {
-    LDAPProfile.getInstance().popWrapper();
     TestCfg.cleanup();
 
     // Remove test entries.
@@ -242,7 +238,7 @@ public final class ConstraintTest extends AdminTestCase {
     parent.addTestChildAddListener(listener);
 
     MockConstraint constraint = new MockConstraint(true, false, false);
-    TestChildCfgDefn.getInstance().addConstraint(constraint);
+    TestCfg.addConstraint(constraint);
 
     try {
       try {
@@ -256,7 +252,7 @@ public final class ConstraintTest extends AdminTestCase {
         }
       }
     } finally {
-      TestChildCfgDefn.getInstance().removeConstraint(constraint);
+      TestCfg.removeConstraint(constraint);
       parent.removeTestChildAddListener(listener);
     }
   }
@@ -276,7 +272,7 @@ public final class ConstraintTest extends AdminTestCase {
     parent.addTestChildAddListener(listener);
 
     MockConstraint constraint = new MockConstraint(false, true, true);
-    TestChildCfgDefn.getInstance().addConstraint(constraint);
+    TestCfg.addConstraint(constraint);
 
     try {
       try {
@@ -290,7 +286,7 @@ public final class ConstraintTest extends AdminTestCase {
         }
       }
     } finally {
-      TestChildCfgDefn.getInstance().removeConstraint(constraint);
+      TestCfg.removeConstraint(constraint);
       parent.removeTestChildAddListener(listener);
     }
   }
@@ -310,7 +306,7 @@ public final class ConstraintTest extends AdminTestCase {
     parent.addTestChildDeleteListener(listener);
 
     MockConstraint constraint = new MockConstraint(false, false, true);
-    TestChildCfgDefn.getInstance().addConstraint(constraint);
+    TestCfg.addConstraint(constraint);
 
     try {
       // Add the entry.
@@ -319,7 +315,7 @@ public final class ConstraintTest extends AdminTestCase {
       // Now delete it - this should trigger the constraint.
       deleteSubtree(TEST_CHILD_1_DN);
     } finally {
-      TestChildCfgDefn.getInstance().removeConstraint(constraint);
+      TestCfg.removeConstraint(constraint);
       parent.removeTestChildDeleteListener(listener);
 
       try {
@@ -346,7 +342,7 @@ public final class ConstraintTest extends AdminTestCase {
     parent.addTestChildDeleteListener(listener);
 
     MockConstraint constraint = new MockConstraint(true, true, false);
-    TestChildCfgDefn.getInstance().addConstraint(constraint);
+    TestCfg.addConstraint(constraint);
 
     try {
       // Add the entry.
@@ -361,7 +357,7 @@ public final class ConstraintTest extends AdminTestCase {
         // Ignore - this is the expected exception.
       }
     } finally {
-      TestChildCfgDefn.getInstance().removeConstraint(constraint);
+      TestCfg.removeConstraint(constraint);
       parent.removeTestChildDeleteListener(listener);
 
       try {
@@ -386,7 +382,7 @@ public final class ConstraintTest extends AdminTestCase {
     TestParentCfg parent = getParent("test parent 1");
 
     MockConstraint constraint = new MockConstraint(false, true, false);
-    TestChildCfgDefn.getInstance().addConstraint(constraint);
+    TestCfg.addConstraint(constraint);
 
     try {
       // Add the entry.
@@ -412,7 +408,7 @@ public final class ConstraintTest extends AdminTestCase {
       int result = TestCaseUtils.applyModifications(changes);
       Assert.assertEquals(result, ResultCode.SUCCESS.getIntValue());
     } finally {
-      TestChildCfgDefn.getInstance().removeConstraint(constraint);
+      TestCfg.removeConstraint(constraint);
       try {
         deleteSubtree(TEST_CHILD_1_DN);
       } catch (Exception e) {
@@ -434,7 +430,7 @@ public final class ConstraintTest extends AdminTestCase {
     TestParentCfg parent = getParent("test parent 1");
 
     MockConstraint constraint = new MockConstraint(true, false, true);
-    TestChildCfgDefn.getInstance().addConstraint(constraint);
+    TestCfg.addConstraint(constraint);
 
     try {
       // Add the entry.
@@ -461,7 +457,7 @@ public final class ConstraintTest extends AdminTestCase {
       Assert
           .assertEquals(result, ResultCode.UNWILLING_TO_PERFORM.getIntValue());
     } finally {
-      TestChildCfgDefn.getInstance().removeConstraint(constraint);
+      TestCfg.removeConstraint(constraint);
       try {
         deleteSubtree(TEST_CHILD_1_DN);
       } catch (Exception e) {

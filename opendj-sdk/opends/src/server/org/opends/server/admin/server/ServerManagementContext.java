@@ -47,6 +47,7 @@ import org.opends.messages.AdminMessages;
 import org.opends.messages.Message;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
+import org.opends.server.admin.AggregationPropertyDefinition;
 import org.opends.server.admin.AliasDefaultBehaviorProvider;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
@@ -62,14 +63,17 @@ import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.PropertyDefinition;
+import org.opends.server.admin.PropertyDefinitionVisitor;
 import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyIsMandatoryException;
 import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyNotFoundException;
 import org.opends.server.admin.PropertyOption;
+import org.opends.server.admin.Reference;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
+import org.opends.server.admin.UnknownPropertyDefinitionException;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.admin.std.server.RootCfg;
@@ -263,22 +267,22 @@ public final class ServerManagementContext {
           throw new PropertyNotFoundException(propertyName);
         }
 
-        List<String> stringValues = getAttribute(mod, pd2, configEntry);
-        if (stringValues.isEmpty()) {
+        List<AttributeValue> values = getAttribute(mod, pd2, configEntry);
+        if (values.isEmpty()) {
           // Recursively retrieve this property's default values.
           Collection<T> tmp = find(target, pd2);
-          Collection<T> values = new ArrayList<T>(tmp.size());
+          Collection<T> pvalues = new ArrayList<T>(tmp.size());
           for (T value : tmp) {
             pd1.validateValue(value);
-            values.add(value);
+            pvalues.add(value);
           }
-          return values;
+          return pvalues;
         } else {
-          Collection<T> values = new ArrayList<T>(stringValues.size());
-          for (String s : stringValues) {
-            values.add(pd1.decodeValue(s));
+          Collection<T> pvalues = new ArrayList<T>(values.size());
+          for (AttributeValue value : values) {
+            pvalues.add(ValueDecoder.decode(pd1, value));
           }
-          return values;
+          return pvalues;
         }
       } catch (DefinitionDecodingException e) {
         throw new DefaultBehaviorException(pd1, e);
@@ -321,7 +325,76 @@ public final class ServerManagementContext {
       String oc = LDAPProfile.getInstance().getObjectClass(d);
       return entry.hasObjectClass(oc);
     }
-  };
+  }
+
+
+
+  /**
+   * A visitor which is used to decode property LDAP values.
+   */
+  private static final class ValueDecoder extends
+      PropertyDefinitionVisitor<Object, String> {
+
+    /**
+     * Decodes the provided property LDAP value.
+     *
+     * @param <PD>
+     *          The type of the property.
+     * @param pd
+     *          The property definition.
+     * @param value
+     *          The LDAP string representation.
+     * @return Returns the decoded LDAP value.
+     * @throws IllegalPropertyValueStringException
+     *           If the property value could not be decoded because it
+     *           was invalid.
+     */
+    public static <PD> PD decode(PropertyDefinition<PD> pd,
+        AttributeValue value) throws IllegalPropertyValueStringException {
+      String s = value.getStringValue();
+      return pd.castValue(pd.accept(new ValueDecoder(), s));
+    }
+
+
+
+    // Prevent instantiation.
+    private ValueDecoder() {
+      // No implementation required.
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <C extends ConfigurationClient, S extends Configuration>
+    Object visitAggregation(AggregationPropertyDefinition<C, S> d, String p) {
+      // Aggregations values are stored as full DNs in LDAP, but
+      // just their common name is exposed in the admin framework.
+      try {
+        Reference<C, S> reference = Reference.parseDN(d.getParentPath(), d
+            .getRelationDefinition(), p);
+        return reference.getName();
+      } catch (IllegalArgumentException e) {
+        throw new IllegalPropertyValueStringException(d, p);
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <T> Object visitUnknown(PropertyDefinition<T> d, String p)
+        throws UnknownPropertyDefinitionException {
+      // By default the property definition's decoder will do.
+      return d.decodeValue(p);
+    }
+  }
+
+
 
   // Singleton instance.
   private final static ServerManagementContext INSTANCE =
@@ -399,6 +472,12 @@ public final class ServerManagementContext {
    * Gets the effective value of a property in the named managed
    * object.
    *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          path definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          path definition refers to.
    * @param <PD>
    *          The type of the property to be retrieved.
    * @param path
@@ -417,7 +496,8 @@ public final class ServerManagementContext {
    *           If the named managed object could not be found or if it
    *           could not be decoded.
    */
-  public <PD> PD getPropertyValue(ManagedObjectPath<?, ?> path,
+  public <C extends ConfigurationClient, S extends Configuration, PD>
+  PD getPropertyValue(ManagedObjectPath<C, S> path,
       PropertyDefinition<PD> pd) throws IllegalArgumentException,
       ConfigException, PropertyException {
     SortedSet<PD> values = getPropertyValues(path, pd);
@@ -434,6 +514,12 @@ public final class ServerManagementContext {
    * Gets the effective values of a property in the named managed
    * object.
    *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          path definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          path definition refers to.
    * @param <PD>
    *          The type of the property to be retrieved.
    * @param path
@@ -452,15 +538,27 @@ public final class ServerManagementContext {
    *           If the named managed object could not be found or if it
    *           could not be decoded.
    */
-  public <PD> SortedSet<PD> getPropertyValues(ManagedObjectPath<?, ?> path,
+  @SuppressWarnings("unchecked")
+  public <C extends ConfigurationClient, S extends Configuration, PD>
+  SortedSet<PD> getPropertyValues(ManagedObjectPath<C, S> path,
       PropertyDefinition<PD> pd) throws IllegalArgumentException,
       ConfigException, PropertyException {
+    // Check that the requested property is from the definition
+    // associated with the path.
+    AbstractManagedObjectDefinition<C, S> d = path.getManagedObjectDefinition();
+    PropertyDefinition<?> tmp = d.getPropertyDefinition(pd.getName());
+    if (tmp != pd) {
+      throw new IllegalArgumentException("The property " + pd.getName()
+          + " is not associated with a " + d.getName());
+    }
+
+    // Determine the exact type of managed object referenced by the
+    // path.
     DN dn = DNBuilder.create(path);
     ConfigEntry configEntry = getManagedObjectConfigEntry(dn);
 
     DefinitionResolver resolver = new MyDefinitionResolver(configEntry);
-    AbstractManagedObjectDefinition<?, ?> d = path.getManagedObjectDefinition();
-    ManagedObjectDefinition<?, ?> mod;
+    ManagedObjectDefinition<? extends C, ? extends S> mod;
 
     try {
       mod = d.resolveManagedObjectDefinition(resolver);
@@ -469,8 +567,13 @@ public final class ServerManagementContext {
           .createDecodingExceptionAdaptor(dn, e);
     }
 
-    List<String> values = getAttribute(mod, pd, configEntry);
-    return decodeProperty(path, pd, values, null);
+    // Make sure we use the correct property definition, the
+    // provided one might have been overridden in the resolved
+    // definition.
+    pd = (PropertyDefinition<PD>) mod.getPropertyDefinition(pd.getName());
+
+    List<AttributeValue> values = getAttribute(mod, pd, configEntry);
+    return decodeProperty(path.asSubType(mod), pd, values, null);
   }
 
 
@@ -649,7 +752,7 @@ public final class ServerManagementContext {
     Map<PropertyDefinition<?>, SortedSet<?>> properties =
       new HashMap<PropertyDefinition<?>, SortedSet<?>>();
     for (PropertyDefinition<?> pd : mod.getAllPropertyDefinitions()) {
-      List<String> values = getAttribute(mod, pd, configEntry);
+      List<AttributeValue> values = getAttribute(mod, pd, configEntry);
       try {
         SortedSet<?> pvalues = decodeProperty(path, pd, values, newConfigEntry);
         properties.put(pd, pvalues);
@@ -686,16 +789,16 @@ public final class ServerManagementContext {
 
   // Create a property using the provided string values.
   private <T> SortedSet<T> decodeProperty(ManagedObjectPath<?, ?> path,
-      PropertyDefinition<T> pd, List<String> stringValues,
+      PropertyDefinition<T> pd, List<AttributeValue> values,
       ConfigEntry newConfigEntry) throws PropertyException {
     PropertyException exception = null;
-    SortedSet<T> values = new TreeSet<T>(pd);
+    SortedSet<T> pvalues = new TreeSet<T>(pd);
 
-    if (!stringValues.isEmpty()) {
+    if (!values.isEmpty()) {
       // The property has values defined for it.
-      for (String value : stringValues) {
+      for (AttributeValue value : values) {
         try {
-          values.add(pd.decodeValue(value));
+          pvalues.add(ValueDecoder.decode(pd, value));
         } catch (IllegalPropertyValueStringException e) {
           exception = e;
         }
@@ -703,21 +806,21 @@ public final class ServerManagementContext {
     } else {
       // No values defined so get the defaults.
       try {
-        values.addAll(getDefaultValues(path, pd, newConfigEntry));
+        pvalues.addAll(getDefaultValues(path, pd, newConfigEntry));
       } catch (DefaultBehaviorException e) {
         exception = e;
       }
     }
 
-    if (values.size() > 1 && !pd.hasOption(PropertyOption.MULTI_VALUED)) {
+    if (pvalues.size() > 1 && !pd.hasOption(PropertyOption.MULTI_VALUED)) {
       // This exception takes precedence over previous exceptions.
       exception = new PropertyIsSingleValuedException(pd);
-      T value = values.first();
-      values.clear();
-      values.add(value);
+      T value = pvalues.first();
+      pvalues.clear();
+      pvalues.add(value);
     }
 
-    if (values.isEmpty() && pd.hasOption(PropertyOption.MANDATORY)) {
+    if (pvalues.isEmpty() && pd.hasOption(PropertyOption.MANDATORY)) {
       // The values maybe empty because of a previous exception.
       if (exception == null) {
         exception = new PropertyIsMandatoryException(pd);
@@ -727,29 +830,30 @@ public final class ServerManagementContext {
     if (exception != null) {
       throw exception;
     } else {
-      return values;
+      return pvalues;
     }
   }
 
 
 
   // Gets the attribute associated with a property from a ConfigEntry.
-  private List<String> getAttribute(ManagedObjectDefinition<?, ?> d,
+  private List<AttributeValue> getAttribute(ManagedObjectDefinition<?, ?> d,
       PropertyDefinition<?> pd, ConfigEntry configEntry) {
     // TODO: we create a default attribute type if it is
     // undefined. We should log a warning here if this is the case
     // since the attribute should have been defined.
     String attrID = LDAPProfile.getInstance().getAttributeName(d, pd);
     AttributeType type = DirectoryServer.getAttributeType(attrID, true);
-    AttributeValueDecoder<String> decoder =
-      new AttributeValueDecoder<String>() {
+    AttributeValueDecoder<AttributeValue> decoder =
+      new AttributeValueDecoder<AttributeValue>() {
 
-      public String decode(AttributeValue value) throws DirectoryException {
-        return value.getStringValue();
+      public AttributeValue decode(AttributeValue value)
+          throws DirectoryException {
+        return value;
       }
     };
 
-    List<String> values = new LinkedList<String>();
+    List<AttributeValue> values = new LinkedList<AttributeValue>();
     try {
       configEntry.getEntry().getAttributeValues(type, decoder, values);
     } catch (DirectoryException e) {

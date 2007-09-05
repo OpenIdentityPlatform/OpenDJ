@@ -39,6 +39,7 @@
     
     
   -->
+  <xsl:include href="property-types/aggregation.xsl" />
   <xsl:include href="property-types/attribute-type.xsl" />
   <xsl:include href="property-types/boolean.xsl" />
   <xsl:include href="property-types/dn.xsl" />

@@ -214,6 +214,91 @@ public final class ManagedObjectDefinitionI18NResource {
 
 
 
+  /**
+   * Forcefully removes any resource bundles associated with the
+   * provided definition and using the default locale.
+   * <p>
+   * This method is intended for internal testing only.
+   *
+   * @param d
+   *          The managed object definition.
+   */
+  synchronized void removeResourceBundle(
+      AbstractManagedObjectDefinition<?, ?> d) {
+    removeResourceBundle(d, Locale.getDefault());
+  }
+
+
+
+  /**
+   * Forcefully removes any resource bundles associated with the
+   * provided definition and locale.
+   * <p>
+   * This method is intended for internal testing only.
+   *
+   * @param d
+   *          The managed object definition.
+   * @param locale
+   *          The locale.
+   */
+  synchronized void removeResourceBundle(
+      AbstractManagedObjectDefinition<?, ?> d, Locale locale) {
+    // Get the locale resource mapping.
+    Map<Locale, ResourceBundle> map = resources.get(d);
+    if (map != null) {
+      map.remove(locale);
+    }
+  }
+
+
+
+  /**
+   * Forcefully adds the provided resource bundle to this I18N
+   * resource for the default locale.
+   * <p>
+   * This method is intended for internal testing only.
+   *
+   * @param d
+   *          The managed object definition.
+   * @param resoureBundle
+   *          The resource bundle to be used.
+   */
+  synchronized void setResourceBundle(AbstractManagedObjectDefinition<?, ?> d,
+      ResourceBundle resoureBundle) {
+    setResourceBundle(d, Locale.getDefault(), resoureBundle);
+  }
+
+
+
+  /**
+   * Forcefully adds the provided resource bundle to this I18N
+   * resource.
+   * <p>
+   * This method is intended for internal testing only.
+   *
+   * @param d
+   *          The managed object definition.
+   * @param locale
+   *          The locale.
+   * @param resoureBundle
+   *          The resource bundle to be used.
+   */
+  synchronized void setResourceBundle(AbstractManagedObjectDefinition<?, ?> d,
+      Locale locale, ResourceBundle resoureBundle) {
+    // First get the locale-resource mapping, creating it if
+    // necessary.
+    Map<Locale, ResourceBundle> map = resources.get(d);
+    if (map == null) {
+      map = new HashMap<Locale, ResourceBundle>();
+      resources.put(d, map);
+    }
+
+    // Add the resource bundle.
+    map.put(locale, resoureBundle);
+  }
+
+
+
   // Retrieve the resource bundle associated with a managed object and
   // locale, lazily loading it if necessary.
   private synchronized ResourceBundle getResourceBundle(

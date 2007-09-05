@@ -34,6 +34,7 @@ import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.IllegalPropertyValueException;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.PropertyIsReadOnlyException;
+import org.opends.server.admin.TestChildCfg;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 
@@ -55,6 +56,30 @@ public interface TestChildCfgClient extends ConfigurationClient {
    * @return Returns the configuration definition associated with this Test Child.
    */
   ManagedObjectDefinition<? extends TestChildCfgClient, ? extends TestChildCfg> definition();
+
+
+
+  /**
+   * Get the "aggregation-property" property.
+   * <p>
+   * An aggregation property which references connection handlers.
+   *
+   * @return Returns the values of the "aggregation-property" property.
+   */
+  SortedSet<String> getAggregationProperty();
+
+
+
+  /**
+   * Set the "aggregation-property" property.
+   * <p>
+   * An aggregation property which references connection handlers.
+   *
+   * @param values The values of the "aggregation-property" property.
+   * @throws IllegalPropertyValueException
+   *           If one or more of the new values are invalid.
+   */
+  void setAggregationProperty(Collection<String> values) throws IllegalPropertyValueException;
 
 
 

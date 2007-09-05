@@ -26,7 +26,7 @@
   !      Portions Copyright 2007 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="test-parent" plural-name="test-parents"
-  package="org.opends.server.admin.std"
+  package="org.opends.server.admin"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
@@ -35,8 +35,8 @@
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.91</ldap:oid>
-      <ldap:name>ds-cfg-virtual-attribute</ldap:name>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.4455114401</ldap:oid>
+      <ldap:name>ds-cfg-test-parent-dummy</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>

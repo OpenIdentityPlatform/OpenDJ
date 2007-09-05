@@ -32,11 +32,9 @@ import static org.testng.Assert.*;
 
 import java.util.List;
 
-import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.AdminTestCase;
-import org.opends.server.admin.LDAPProfile;
-import org.opends.server.admin.MockLDAPProfile;
 import org.opends.server.admin.TestCfg;
 import org.opends.server.admin.TestParentCfg;
 import org.opends.server.admin.std.server.RootCfg;
@@ -125,7 +123,7 @@ public final class ListenerTest extends AdminTestCase {
     // This test suite depends on having the schema available, so
     // we'll start the server.
     TestCaseUtils.startServer();
-    LDAPProfile.getInstance().pushWrapper(new MockLDAPProfile());
+    TestCfg.setUp();
   }
 
 
@@ -135,7 +133,6 @@ public final class ListenerTest extends AdminTestCase {
    */
   @AfterClass
   public void tearDown() {
-    LDAPProfile.getInstance().popWrapper();
     TestCfg.cleanup();
   }
 
