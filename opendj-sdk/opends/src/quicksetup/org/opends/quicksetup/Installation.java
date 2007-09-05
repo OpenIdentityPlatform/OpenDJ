@@ -139,6 +139,16 @@ public class Installation {
   public static final String WINDOWS_SETUP_FILE_NAME = "setup.bat";
 
   /**
+   * The UNIX GUI setup script file name.
+   */
+  public static final String UNIX_SETUP_GUI_FILE_NAME = "setup-gui";
+
+  /**
+   * The Windows GUI setup batch file name.
+   */
+  public static final String WINDOWS_SETUP_GUI_FILE_NAME = "setup-gui.bat";
+
+  /**
    * The UNIX uninstall script file name.
    */
   public static final String UNIX_UNINSTALL_FILE_NAME = "uninstall";
@@ -739,6 +749,23 @@ public class Installation {
     } else {
       statusPanelCommandFile = new File(getBinariesDirectory(),
               UNIX_STATUSPANEL_FILE_NAME);
+    }
+    return statusPanelCommandFile;
+  }
+
+  /**
+   * Gets the status command file appropriate for the current operating
+   * system.
+   * @return File object representing the status command
+   */
+  public File getStatusCommandFile() {
+    File statusPanelCommandFile;
+    if (Utils.isWindows()) {
+      statusPanelCommandFile = new File(getBinariesDirectory(),
+              WINDOWS_STATUSCLI_FILE_NAME);
+    } else {
+      statusPanelCommandFile = new File(getBinariesDirectory(),
+              UNIX_STATUSCLI_FILE_NAME);
     }
     return statusPanelCommandFile;
   }

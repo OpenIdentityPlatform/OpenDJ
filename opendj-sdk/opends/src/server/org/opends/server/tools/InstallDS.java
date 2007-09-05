@@ -24,1153 +24,1627 @@
  *
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
+
 package org.opends.server.tools;
-import org.opends.messages.Message;
 
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.messages.ToolMessages.*;
 
-
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.security.KeyStoreException;
+import java.util.Collection;
 import java.util.LinkedList;
-import java.util.Set;
+import java.util.logging.Logger;
 
+import org.opends.messages.Message;
+import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.CliApplicationHelper;
+import org.opends.quicksetup.Constants;
+import org.opends.quicksetup.CurrentInstallStatus;
+import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.QuickSetupLog;
+import org.opends.quicksetup.SecurityOptions;
+import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.UserDataException;
+import org.opends.quicksetup.event.ProgressUpdateEvent;
+import org.opends.quicksetup.event.ProgressUpdateListener;
+import org.opends.quicksetup.installer.NewSuffixOptions;
+import org.opends.quicksetup.installer.offline.OfflineInstaller;
+import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
+import org.opends.quicksetup.util.Utils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.types.DN;
-import org.opends.server.types.ExistingFileBehavior;
-import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.NullOutputStream;
+import org.opends.server.util.CertificateManager;
 import org.opends.server.util.SetupUtils;
-import org.opends.server.util.LDIFWriter;
-import org.opends.server.util.PasswordReader;
 import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.ArgumentParser;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.tools.ToolConstants.*;
-
-
 
 /**
  * This class provides a very simple mechanism for installing the OpenDS
  * Directory Service.  It performs the following tasks:
  * <UL>
+ *   <LI>Checks if the server is already installed and running</LI>
  *   <LI>Ask the user what base DN should be used for the data</LI>
  *   <LI>Ask the user whether to create the base entry, or to import LDIF</LI>
  *   <LI>Ask the user for the LDAP port and make sure it's available</LI>
  *   <LI>Ask the user for the default root DN and password</LI>
+ *   <LI>Ask the user to enable SSL or not and for the type of certificate that
+ *   the server must use</LI>
  *   <LI>Ask the user if they want to start the server when done installing</LI>
  * </UL>
  */
-public class InstallDS
+public class InstallDS  extends CliApplicationHelper
 {
-  /**
-   * The fully-qualified name of this class.
-   */
-  private static final String CLASS_NAME = "org.opends.server.tools.InstallDS";
+  private PlainTextProgressMessageFormatter formatter =
+    new PlainTextProgressMessageFormatter();
+  /** Prefix for log files. */
+  static public final String LOG_FILE_PREFIX = "opends-setup-";
 
-
-
-  /**
-   * Indicates whether we think we're running on a Windows system.
-   */
-  private static final boolean isWindows = SetupUtils.isWindows();
-
-
+  /** Suffix for log files. */
+  static public final String LOG_FILE_SUFFIX = ".log";
 
   /**
-   * The version string for the server.
-   */
-  private static String versionString;
-
-
-
-  /**
-   * The name of the program used to launch this installation process.
-   */
-  private static String programName;
-
-
-
-  /**
-   * The value that indicates that only the base entry should be created.
-   */
-  private static final int POPULATE_TYPE_BASE_ONLY = 1;
-
-
-
-  /**
-   * The value that indicates that the database should be left empty.
-   */
-  private static final int POPULATE_TYPE_LEAVE_EMPTY = 2;
-
-
-
-  /**
-   * The value that indicates that data should be imported from an LDIF file.
-   */
-  private static final int POPULATE_TYPE_IMPORT_FROM_LDIF = 3;
-
-
-
-  /**
-   * The value that indicates that the database should be populated with sample
-   * data.
-   */
-  private static final int POPULATE_TYPE_GENERATE_SAMPLE_DATA = 4;
-
-
-
-  /**
-   * Invokes the <CODE>installMain</CODE> method with the provided arguments.
+   * The enumeration containing the different return codes that the command-line
+   * can have.
    *
-   * @param  args  The command-line arguments to use for this program.
    */
-  public static void main(String[] args)
+  enum ErrorReturnCode
   {
-    int exitCode = installMain(args);
-    if (exitCode != 0)
+    /**
+     * Successful setup.
+     */
+    SUCCESSFUL(0),
+    /**
+     * We did no have an error but the setup was not executed (displayed
+     * version or usage).
+     */
+    SUCCESSFUL_NOP(0),
+    /**
+     * Unexpected error (potential bug).
+     */
+    ERROR_UNEXPECTED(1),
+    /**
+     * Cannot parse arguments or data provided by user is not valid.
+     */
+    ERROR_USER_DATA(2),
+    /**
+     * Error server already installed.
+     */
+    ERROR_SERVER_ALREADY_INSTALLED(3),
+    /**
+     * Error initializing server.
+     */
+    ERROR_INITIALIZING_SERVER(4);
+
+    private int returnCode;
+    private ErrorReturnCode(int returnCode)
     {
-      System.exit(filterExitCode(exitCode));
+      this.returnCode = returnCode;
     }
+
+    /**
+     * Get the corresponding return code value.
+     *
+     * @return The corresponding return code value.
+     */
+    public int getReturnCode()
+    {
+      return returnCode;
+    }
+  };
+
+  /**
+   * The Logger.
+   */
+  static private final Logger LOG = Logger.getLogger(InstallDS.class.getName());
+
+  // The argument parser
+  private InstallDSArgumentParser argParser;
+
+  /**
+   * Constructor for the SetupCli object.
+   *
+   * @param out the print stream to use for standard output.
+   * @param err the print stream to use for standard error.
+   * @param in the input stream to use for standard input.
+   */
+  public InstallDS(PrintStream out, PrintStream err, InputStream in)
+  {
+    super(out, err, in);
   }
 
+  /**
+   * The main method for the setup CLI tool.
+   *
+   * @param args the command-line arguments provided to this program.
+   */
 
+  public static void main(String[] args)
+  {
+    int retCode = mainCLI(args, true, System.out, System.err, System.in);
+
+    System.exit(retCode);
+  }
 
   /**
-   * Prompts the user for the necessary information, installs the OpenDS
-   * software in the appropriate location, and gives it the desired
-   * configuration.
+   * Parses the provided command-line arguments and uses that information to
+   * run the setup tool.
    *
-   * @param  args  The command-line arguments to use for this program.
+   * @param args the command-line arguments provided to this program.
    *
-   * @return  A value of zero if the installation process was successful, or a
-   *          nonzero value if a problem occurred.
+   * @return The error code.
    */
-  public static int installMain(String[] args)
-  {
-    // Construct the product version string and the setup filename.
-    versionString = DirectoryServer.getVersionString();
 
-    if (isWindows)
+  public static int mainCLI(String[] args)
+  {
+    return mainCLI(args, true, System.out, System.err, System.in);
+  }
+
+  /**
+   * Parses the provided command-line arguments and uses that information to
+   * run the setup tool.
+   *
+   * @param  args              The command-line arguments provided to this
+   *                           program.
+   * @param initializeServer   Indicates whether to initialize the server.
+   * @param  outStream         The output stream to use for standard output, or
+   *                           <CODE>null</CODE> if standard output is not
+   *                           needed.
+   * @param  errStream         The output stream to use for standard error, or
+   *                           <CODE>null</CODE> if standard error is not
+   *                           needed.
+   * @param  inStream          The input stream to use for standard input.
+   * @return The error code.
+   */
+
+  public static int mainCLI(String[] args, boolean initializeServer,
+      OutputStream outStream, OutputStream errStream, InputStream inStream)
+  {
+    PrintStream out;
+    if (outStream == null)
     {
-      programName = "setup.bat";
+      out = NullOutputStream.printStream();
     }
     else
     {
-      programName = "setup";
+      out = new PrintStream(outStream);
     }
 
+    System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
 
-    // Create and initialize the argument parser for this program.
-    Message toolDescription = INFO_INSTALLDS_TOOL_DESCRIPTION.get();
-    ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
-                                                  false);
-    BooleanArgument   addBaseEntry;
-    BooleanArgument   cliMode;
-    BooleanArgument   testOnly;
-    BooleanArgument   showUsage;
-    BooleanArgument   quietInstall;
-    BooleanArgument   skipPortCheck;
-    BooleanArgument   enableWindowsService;
-    FileBasedArgument rootPWFile;
-    IntegerArgument   ldapPort;
-    IntegerArgument   jmxPort;
-    IntegerArgument   sampleData;
-    StringArgument    baseDN;
-    StringArgument    configClass;
-    StringArgument    configFile;
-    StringArgument    importLDIF;
-    StringArgument    progName;
-    StringArgument    rootDN;
-    StringArgument    rootPWString;
+    PrintStream err;
+    if (errStream == null)
+    {
+      err = NullOutputStream.printStream();
+    }
+    else
+    {
+      err = new PrintStream(errStream);
+    }
 
+    try {
+      QuickSetupLog.initLogFileHandler(
+              File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX),
+              "org.opends.server.tools");
+      QuickSetupLog.disableConsoleLogging();
+    } catch (Throwable t) {
+      System.err.println("Unable to initialize log");
+      t.printStackTrace();
+    }
+
+    InstallDS install = new InstallDS(out, err, inStream);
+
+    return install.execute(args, initializeServer);
+  }
+
+  /**
+   * Parses the provided command-line arguments and uses that information to
+   * run the setup CLI.
+   *
+   * @param args the command-line arguments provided to this program.
+   * @param  initializeServer  Indicates whether to initialize the server.
+   *
+   * @return the return code (SUCCESSFUL, USER_DATA_ERROR or BUG.
+   */
+  public int execute(String[] args, boolean initializeServer)
+  {
+    argParser = new InstallDSArgumentParser(InstallDS.class.getName());
     try
     {
-      testOnly = new BooleanArgument(
-              "test", 't', "testOnly",
-              INFO_INSTALLDS_DESCRIPTION_TESTONLY.get());
-      testOnly.setHidden(true);
-      argParser.addArgument(testOnly);
-
-      progName = new StringArgument(
-              "progname", 'P', "programName", false,
-              false, true, "{programName}", programName,
-              null, INFO_INSTALLDS_DESCRIPTION_PROGNAME.get());
-      progName.setHidden(true);
-      argParser.addArgument(progName);
-
-      configFile = new StringArgument(
-              "configfile", 'c', "configFile", false,
-              false, true, "{configFile}", null, null,
-              INFO_DESCRIPTION_CONFIG_FILE.get());
-      configFile.setHidden(true);
-      argParser.addArgument(configFile);
-
-      configClass = new StringArgument(
-              "configclass", OPTION_SHORT_CONFIG_CLASS,
-              OPTION_LONG_CONFIG_CLASS, false,
-              false, true, OPTION_VALUE_CONFIG_CLASS,
-              ConfigFileHandler.class.getName(), null,
-              INFO_DESCRIPTION_CONFIG_CLASS.get());
-      configClass.setHidden(true);
-      argParser.addArgument(configClass);
-
-      // NOTE:  This argument isn't actually used for anything, but it provides
-      // consistency with the setup script, which does take a --cli option.
-      cliMode = new BooleanArgument(
-              "cli", null, OPTION_LONG_CLI,
-              INFO_INSTALLDS_DESCRIPTION_CLI.get());
-      argParser.addArgument(cliMode);
-
-      quietInstall = new BooleanArgument(
-              "quiet", OPTION_SHORT_QUIET,
-              OPTION_LONG_QUIET,
-              INFO_INSTALLDS_DESCRIPTION_SILENT.get());
-      argParser.addArgument(quietInstall);
-
-      baseDN = new StringArgument(
-              "basedn", OPTION_SHORT_BASEDN,
-              OPTION_LONG_BASEDN, false, true, true,
-              OPTION_VALUE_BASEDN,
-              "dc=example,dc=com", null,
-              INFO_INSTALLDS_DESCRIPTION_BASEDN.get());
-      argParser.addArgument(baseDN);
-
-      addBaseEntry = new BooleanArgument(
-              "addbase", 'a', "addBaseEntry",
-              INFO_INSTALLDS_DESCRIPTION_ADDBASE.get());
-      argParser.addArgument(addBaseEntry);
-
-      importLDIF = new StringArgument(
-              "importldif", OPTION_SHORT_LDIF_FILE,
-              OPTION_LONG_LDIF_FILE, false,
-              true, true, OPTION_VALUE_LDIF_FILE,
-              null, null,
-              INFO_INSTALLDS_DESCRIPTION_IMPORTLDIF.get());
-      argParser.addArgument(importLDIF);
-
-      sampleData = new IntegerArgument(
-              "sampledata", 'd', "sampleData", false,
-              false, true, "{numEntries}", 0, null,
-              true, 0, false, 0,
-              INFO_INSTALLDS_DESCRIPTION_SAMPLE_DATA.get());
-      argParser.addArgument(sampleData);
-
-      ldapPort = new IntegerArgument(
-              "ldapport", OPTION_SHORT_PORT,
-              "ldapPort", false, false,
-              true, OPTION_VALUE_PORT, 389,
-              null, true, 1, true, 65535,
-              INFO_INSTALLDS_DESCRIPTION_LDAPPORT.get());
-      argParser.addArgument(ldapPort);
-
-      jmxPort = new IntegerArgument(
-              "jmxport", 'x', "jmxPort", false, false,
-              true, "{jmxPort}",
-              SetupUtils.getDefaultJMXPort(), null, true,
-              1, true, 65535,
-              INFO_INSTALLDS_DESCRIPTION_JMXPORT.get());
-      argParser.addArgument(jmxPort);
-
-      skipPortCheck = new BooleanArgument(
-              "skipportcheck", 'S', "skipPortCheck",
-              INFO_INSTALLDS_DESCRIPTION_SKIPPORT.get());
-      argParser.addArgument(skipPortCheck);
-
-      rootDN = new StringArgument(
-              "rootdn",OPTION_SHORT_ROOT_USER_DN,
-              OPTION_LONG_ROOT_USER_DN, false, true,
-              true, OPTION_VALUE_ROOT_USER_DN,
-              "cn=Directory Manager",
-              null, INFO_INSTALLDS_DESCRIPTION_ROOTDN.get());
-      argParser.addArgument(rootDN);
-
-      rootPWString = new StringArgument(
-              "rootpwstring", OPTION_SHORT_BINDPWD,
-              "rootUserPassword",
-              false, false, true,
-              "{password}", null,
-              null,
-              INFO_INSTALLDS_DESCRIPTION_ROOTPW.get());
-      argParser.addArgument(rootPWString);
-
-      rootPWFile = new FileBasedArgument(
-              "rootpwfile",
-              OPTION_SHORT_BINDPWD_FILE,
-              "rootUserPasswordFile", false, false,
-              OPTION_VALUE_BINDPWD_FILE,
-              null, null, INFO_INSTALLDS_DESCRIPTION_ROOTPWFILE.get());
-      argParser.addArgument(rootPWFile);
-
-      enableWindowsService = new BooleanArgument(
-              "enablewindowsservice", 'e',
-              "enableWindowsService",
-              INFO_INSTALLDS_DESCRIPTION_ENABLE_WINDOWS_SERVICE.get());
-      if (SetupUtils.isWindows())
-      {
-        argParser.addArgument(enableWindowsService);
-      }
-
-      showUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
-                                      OPTION_LONG_HELP,
-                                      INFO_INSTALLDS_DESCRIPTION_HELP.get());
-      argParser.addArgument(showUsage);
-      argParser.setUsageArgument(showUsage);
+      argParser.initializeArguments();
     }
     catch (ArgumentException ae)
     {
-      System.err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
-      System.err.println(argParser.getUsage());
-      return 1;
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      printErrorMessage(message);
+      return ErrorReturnCode.ERROR_UNEXPECTED.getReturnCode();
     }
 
-
-    // Parse all of the configuration arguments.
+    // Validate user provided data
     try
     {
       argParser.parseArguments(args);
     }
     catch (ArgumentException ae)
     {
-      System.err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
-      System.err.println(argParser.getUsage());
-      return 1;
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      printErrorMessage(message);
+      printLineBreak();
+      printErrorMessage(argParser.getUsage());
+
+      return ErrorReturnCode.ERROR_USER_DATA.getReturnCode();
     }
 
-
-    // If either the showUsage or testOnly or version arguments were provided,
+    //  If either the showUsage or testOnly or version arguments were provided,
     // then we're done.
-    if (argParser.usageOrVersionDisplayed() || testOnly.isPresent())
+    if (argParser.usageOrVersionDisplayed() ||
+        argParser.testOnlyArg.isPresent())
     {
-      return 0;
+      return ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode();
     }
 
     try
     {
-      Set<Integer> ports = new HashSet<Integer>();
-      if (ldapPort.isPresent())
-      {
-        ports.add(ldapPort.getIntValue());
-      }
-      if (jmxPort.isPresent())
-      {
-        if (ports.contains(jmxPort.getIntValue()))
-        {
-          Message message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
-                  String.valueOf(jmxPort.getIntValue()));
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
-          System.err.println(argParser.getUsage());
-          return 1;
-        }
-        else
-        {
-          ports.add(jmxPort.getIntValue());
-        }
-      }
+      checkInstallStatus();
     }
-    catch (ArgumentException ae)
+    catch (InitializationException ie)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      printErrorMessage(ie.getMessageObject());
+      return ErrorReturnCode.ERROR_SERVER_ALREADY_INSTALLED.getReturnCode();
     }
 
-    // Make sure that the user didn't provide conflicting arguments.
-    if (addBaseEntry.isPresent())
+    if (initializeServer)
     {
-      if (importLDIF.isPresent())
+      try
       {
-        Message message = ERR_TOOL_CONFLICTING_ARGS.get(
-                addBaseEntry.getLongIdentifier(),
-                importLDIF.getLongIdentifier());
-        System.err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        initializeDirectoryServer(argParser.configFileArg.getValue(),
+            argParser.configClassArg.getValue());
       }
-      else if (sampleData.isPresent())
+      catch (InitializationException ie)
       {
-        Message message = ERR_TOOL_CONFLICTING_ARGS.get(
-                addBaseEntry.getLongIdentifier(),
-                sampleData.getLongIdentifier());
-        System.err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        printErrorMessage(ie.getMessageObject());
+        return ErrorReturnCode.ERROR_INITIALIZING_SERVER.getReturnCode();
       }
     }
-    else if (importLDIF.isPresent() && sampleData.isPresent())
-    {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
-              importLDIF.getLongIdentifier(),
-              sampleData.getLongIdentifier());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
 
+    UserData uData = new UserData();
 
-    // Make sure the path to the configuration file was given.
-    String configFileName;
-    if (configFile.isPresent())
+    if (isInteractive())
     {
-      configFileName = configFile.getValue();
+      promptIfRequired(uData);
     }
     else
     {
-      Message message = ERR_INSTALLDS_NO_CONFIG_FILE.get(
-              configFile.getLongIdentifier());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      try
+      {
+        initializeUserDataWithParser(uData);
+      }
+      catch (UserDataException ude)
+      {
+        printErrorMessage(ude.getMessageObject());
+        return ErrorReturnCode.ERROR_USER_DATA.getReturnCode();
+      }
     }
 
+    OfflineInstaller installer = new OfflineInstaller();
+    installer.setUserData(uData);
+    System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
+    installer.setProgressMessageFormatter(formatter);
+    installer.addProgressUpdateListener(
+        new ProgressUpdateListener() {
+          public void progressUpdate(ProgressUpdateEvent ev) {
+            if (ev.getNewLogs() != null)
+            {
+              printProgressMessage(ev.getNewLogs());
+            }
+          }
+        });
+    printProgressLineBreak();
 
-    // Get the configuration handler class name.
-    String configClassName = configClass.getValue();
+    installer.run();
 
+    ApplicationException ue = installer.getRunError();
 
-    // If this isn't a quiet install, then print the version string.
-    if (! quietInstall.isPresent())
+    String cmd;
+    // Use this instead a call to Installation to avoid to launch a new JVM
+    // just to retrieve a path.
+    String root = Utils.getInstallPathFromClasspath();
+    if (SetupUtils.isWindows())
     {
-      System.out.println(versionString);
-      System.out.println();
-
-      Message message = INFO_INSTALLDS_INITIALIZING.get();
-      System.out.println(wrapText(message, MAX_LINE_WIDTH));
+      String binDir = Utils.getPath(root,
+          Installation.WINDOWS_BINARIES_PATH_RELATIVE);
+      cmd = Utils.getPath(binDir, Installation.WINDOWS_STATUSCLI_FILE_NAME);
     }
+    else
+    {
+      String binDir = Utils.getPath(root,
+          Installation.UNIX_BINARIES_PATH_RELATIVE);
+      cmd = Utils.getPath(binDir, Installation.UNIX_STATUSCLI_FILE_NAME);
+    }
+    printProgressLineBreak();
+    printProgressLineBreak();
+    printProgressMessage(INFO_INSTALLDS_STATUS_COMMAND_LINE.get(cmd));
+    printProgressLineBreak();
 
+    if (ue != null)
+    {
+      return ue.getType().getReturnCode();
+    }
+    else
+    {
+      return ErrorReturnCode.SUCCESSFUL.getReturnCode();
+    }
+  }
+
+  /**
+   * Checks if the server is installed or not.
+   * @throws InitializationException if the server is already installed and
+   * configured or if the user did not accept to overwrite the existing
+   * databases.
+   */
+  private void checkInstallStatus() throws InitializationException
+  {
+    CurrentInstallStatus installStatus = new CurrentInstallStatus();
+    if (installStatus.canOverwriteCurrentInstall())
+    {
+      if (isInteractive())
+      {
+        printLine(installStatus.getInstallationMsg(), true);
+        if (!confirm(INFO_CLI_DO_YOU_WANT_TO_CONTINUE.get()))
+        {
+          throw new InitializationException(Message.EMPTY, null);
+        }
+      }
+      else
+      {
+        printWarningMessage(installStatus.getInstallationMsg());
+      }
+    }
+    else if (installStatus.isInstalled())
+    {
+      throw new InitializationException(installStatus.getInstallationMsg(),
+          null);
+    }
+  }
+
+  /**
+   * Initialize the directory server to be able to perform the operations
+   * required during the installation.
+   * @param configFile the configuration file to be used to initialize the
+   * server.
+   * @param configClass the configuration class to be used to initialize the
+   * server.
+   * @throws InitializationException if there was an error during
+   * initialization.
+   */
+  private void initializeDirectoryServer(String configFile, String configClass)
+  throws InitializationException
+  {
+    printProgressLineBreak();
+    printProgressMessage(DirectoryServer.getVersionString());
+    printProgressLineBreak();
+    printProgressMessage(INFO_INSTALLDS_INITIALIZING.get());
+    printProgressLineBreak();
 
     // Perform a base-level initialization that will be required to get
     // minimal functionality like DN parsing to work.
     DirectoryServer directoryServer = DirectoryServer.getInstance();
-    directoryServer.bootstrapClient();
+    DirectoryServer.bootstrapClient();
 
     try
     {
-      directoryServer.initializeJMX();
+      DirectoryServer.initializeJMX();
     }
-    catch (Exception e)
+    catch (Throwable t)
     {
       Message message = ERR_INSTALLDS_CANNOT_INITIALIZE_JMX.get(
-              String.valueOf(configFile.getValue()),
-              e.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+              String.valueOf(configFile), t.getMessage());
+      throw new InitializationException(message, t);
     }
 
     try
     {
-      directoryServer.initializeConfiguration(configClass.getValue(),
-                                              configFile.getValue());
+      directoryServer.initializeConfiguration(configClass, configFile);
     }
-    catch (Exception e)
+    catch (Throwable t)
     {
       Message message = ERR_INSTALLDS_CANNOT_INITIALIZE_CONFIG.get(
-              String.valueOf(configFile.getValue()),
-                                  e.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+              configFile, t.getMessage());
+      throw new InitializationException(message, t);
     }
 
     try
     {
       directoryServer.initializeSchema();
     }
-    catch (Exception e)
+    catch (Throwable t)
     {
       Message message = ERR_INSTALLDS_CANNOT_INITIALIZE_SCHEMA.get(
-              String.valueOf(configFile.getValue()),
-                                  e.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+              configFile, t.getMessage());
+      throw new InitializationException(message, t);
     }
+  }
 
+  /**
+   * {@inheritDoc}
+   */
+  protected boolean isQuiet()
+  {
+    return argParser.quietArg.isPresent();
+  }
 
-    // Determine the LDAP port number.
-    int ldapPortNumber;
-    if (quietInstall.isPresent() || ldapPort.isPresent())
+  /**
+   * {@inheritDoc}
+   */
+  protected boolean isInteractive()
+  {
+    return !argParser.noPromptArg.isPresent();
+  }
+
+  /**
+   * This method updates the contents of a UserData object with what the user
+   * specified in the command-line.  It assumes that it is being called in no
+   * prompt mode.
+   * @param uData the UserData object.
+   * @throws UserDataException if something went wrong checking the data.
+   */
+  private void initializeUserDataWithParser(UserData uData)
+  throws UserDataException
+  {
+    LinkedList<Message> errorMessages = new LinkedList<Message>();
+    uData.setConfigurationClassName(argParser.configClassArg.getValue());
+    uData.setConfigurationFile(argParser.configFileArg.getValue());
+    uData.setQuiet(isQuiet());
+    //  Check the validity of the directory manager DNs
+    String dmDN = argParser.directoryManagerDNArg.getValue();
+
+    try
+    {
+      DN.decode(dmDN);
+    }
+    catch (Exception e)
+    {
+      Message message =
+        ERR_INSTALLDS_CANNOT_PARSE_DN.get(dmDN, e.getMessage());
+      errorMessages.add(message);
+    }
+    uData.setDirectoryManagerDn(dmDN);
+
+    uData.setDirectoryManagerPwd(argParser.getDirectoryManagerPassword());
+
+    // Check the validity of the base DNs
+    LinkedList<String> baseDNs = argParser.baseDNArg.getValues();
+    if (baseDNs.isEmpty())
+    {
+      baseDNs.add(argParser.baseDNArg.getDefaultValue());
+    }
+    for (String baseDN : baseDNs)
     {
       try
       {
-        ldapPortNumber = ldapPort.getIntValue();
-
-        if (! skipPortCheck.isPresent())
-        {
-          // Check if the port can be used.
-          if (!SetupUtils.canUseAsPort(ldapPortNumber))
-          {
-            Message message;
-            if (SetupUtils.isPriviledgedPort(ldapPortNumber))
-            {
-
-              message = ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(
-                      ldapPortNumber);
-              System.err.println(wrapText(message, MAX_LINE_WIDTH));
-            }
-            else
-            {
-
-              message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(ldapPortNumber);
-              System.err.println(wrapText(message, MAX_LINE_WIDTH));
-            }
-            return 1;
-          }
-        }
-      }
-      catch (ArgumentException ae)
-      {
-        System.err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
-        return 1;
-      }
-    }
-    else
-    {
-      while (true)
-      {
-        Message message = INFO_INSTALLDS_PROMPT_LDAPPORT.get();
-        ldapPortNumber = promptForInteger(message, 389, 1, 65535);
-
-        if (skipPortCheck.isPresent())
-        {
-            break;
-        }
-        else
-        {
-          // Check if the port can be used.
-          if (SetupUtils.canUseAsPort(ldapPortNumber))
-          {
-              break;
-          }
-          else
-          {
-            if (SetupUtils.isPriviledgedPort(ldapPortNumber))
-            {
-              message = ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(
-                      ldapPortNumber);
-              System.err.println(wrapText(message, MAX_LINE_WIDTH));
-            }
-            else
-            {
-              message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(ldapPortNumber);
-              System.err.println(wrapText(message, MAX_LINE_WIDTH));
-            }
-          }
-        }
-      }
-    }
-
-//  Determine the JMX port number.
-    int jmxPortNumber;
-    if (quietInstall.isPresent() || jmxPort.isPresent())
-    {
-      try
-      {
-        jmxPortNumber = jmxPort.getIntValue();
-
-        if (! skipPortCheck.isPresent())
-        {
-          // Check if the port can be used.
-          if (!SetupUtils.canUseAsPort(jmxPortNumber))
-          {
-            Message message;
-            if (SetupUtils.isPriviledgedPort(jmxPortNumber))
-            {
-              message = ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(
-                      jmxPortNumber);
-              System.err.println(wrapText(message, MAX_LINE_WIDTH));
-            }
-            else
-            {
-              message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(jmxPortNumber);
-              System.err.println(wrapText(message, MAX_LINE_WIDTH));
-            }
-            return 1;
-          }
-        }
-      }
-      catch (ArgumentException ae)
-      {
-        System.err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
-        return 1;
-      }
-    }
-    else
-    {
-      /* Do not ask for the JMX port if the user did not provide it.*/
-      jmxPortNumber = -1;
-      /*
-      while (true)
-      {
-        Message message = INFO_INSTALLDS_PROMPT_JMXPORT.get();
-        jmxPortNumber = promptForInteger(message,
-            SetupUtils.getDefaultJMXPort(), 1, 65535);
-
-        if (skipPortCheck.isPresent())
-        {
-            break;
-        }
-        else
-        {
-          // Check if the port can be used.
-          if (SetupUtils.canUseAsPort(jmxPortNumber))
-          {
-              break;
-          }
-          else
-          {
-            if (SetupUtils.isPriviledgedPort(jmxPortNumber))
-            {
-
-              message = ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(
-                        jmxPortNumber);
-              System.err.println(wrapText(message, MAX_LINE_WIDTH));
-            }
-            else
-            {
-              message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(jmxPortNumber);
-              System.err.println(wrapText(message, MAX_LINE_WIDTH));
-            }
-          }
-        }
-      }
-      */
-    }
-
-
-    // Determine the initial root user DN.
-    LinkedList<DN> rootDNs;
-    if (rootDN.isPresent())
-    {
-      rootDNs = new LinkedList<DN>();
-      for (String s : rootDN.getValues())
-      {
-        try
-        {
-          rootDNs.add(DN.decode(s));
-        }
-        catch (Exception e)
-        {
-          Message message = ERR_INSTALLDS_CANNOT_PARSE_DN.get(
-                  s, e.getMessage());
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
-        }
-      }
-    }
-    else if (quietInstall.isPresent())
-    {
-      rootDNs = new LinkedList<DN>();
-      try
-      {
-        rootDNs.add(DN.decode(rootDN.getDefaultValue()));
-      }
-      catch (Exception e)
-      {
-        Message message = ERR_INSTALLDS_CANNOT_PARSE_DN.get(
-                rootDN.getDefaultValue(),
-                                    e.getMessage());
-        System.err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-    }
-    else
-    {
-      Message message = INFO_INSTALLDS_PROMPT_ROOT_DN.get();
-      rootDNs = new LinkedList<DN>();
-      rootDNs.add(promptForDN(message, rootDN.getDefaultValue()));
-    }
-
-
-    // Determine the initial root user password.
-    String rootPassword;
-    if (rootPWString.isPresent())
-    {
-      rootPassword = rootPWString.getValue();
-
-      if (rootPWFile.isPresent())
-      {
-        Message message = ERR_INSTALLDS_TWO_CONFLICTING_ARGUMENTS.get(
-                rootPWString.getLongIdentifier(),
-                rootPWFile.getLongIdentifier());
-        System.err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-    }
-    else if (rootPWFile.isPresent())
-    {
-      rootPassword = rootPWFile.getValue();
-    }
-    else if (quietInstall.isPresent())
-    {
-      Message message = ERR_INSTALLDS_NO_ROOT_PASSWORD.get(
-              rootPWString.getLongIdentifier(),
-              rootPWFile.getLongIdentifier());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-    else
-    {
-      Message initialPrompt = INFO_INSTALLDS_PROMPT_ROOT_PASSWORD.get();
-
-      Message confirmPrompt = INFO_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD.get();
-
-      rootPassword =
-           new String(promptForPassword(initialPrompt, confirmPrompt));
-    }
-
-
-    // Determine the directory base DN.
-    LinkedList<DN> baseDNs;
-    if (baseDN.isPresent())
-    {
-      baseDNs = new LinkedList<DN>();
-      for (String s : baseDN.getValues())
-      {
-        try
-        {
-          baseDNs.add(DN.decode(s));
-        }
-        catch (Exception e)
-        {
-
-          Message message = ERR_INSTALLDS_CANNOT_PARSE_DN.get(
-                  s, e.getMessage());
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
-        }
-      }
-    }
-    else if (quietInstall.isPresent())
-    {
-      try
-      {
-        baseDNs = new LinkedList<DN>();
-        baseDNs.add(DN.decode(baseDN.getDefaultValue()));
+        DN.decode(baseDN);
       }
       catch (Exception e)
       {
         Message message =
-                ERR_INSTALLDS_CANNOT_PARSE_DN.get(baseDN.getDefaultValue(),
-                                    e.getMessage());
-        System.err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+          ERR_INSTALLDS_CANNOT_PARSE_DN.get(baseDN, e.getMessage());
+        errorMessages.add(message);
       }
     }
-    else
-    {
-      Message message = INFO_INSTALLDS_PROMPT_BASEDN.get();
 
-      baseDNs = new LinkedList<DN>();
-      baseDNs.add(promptForDN(message, baseDN.getDefaultValue()));
-    }
-
-
-    // Determine how to populate the database.
-    int                populateType = POPULATE_TYPE_LEAVE_EMPTY;
-    int                numUsers     = -1;
-    LinkedList<String> ldifFiles    = null;
-    if (addBaseEntry.isPresent())
+    try
     {
-      populateType = POPULATE_TYPE_BASE_ONLY;
-    }
-    else if (importLDIF.isPresent())
-    {
-      ldifFiles    = importLDIF.getValues();
-      populateType = POPULATE_TYPE_IMPORT_FROM_LDIF;
-    }
-    else if (sampleData.isPresent())
-    {
-      try
+      int ldapPort = argParser.ldapPortArg.getIntValue();
+      uData.setServerPort(ldapPort);
+      if (!argParser.skipPortCheckArg.isPresent())
       {
-        numUsers     = sampleData.getIntValue();
-        populateType = POPULATE_TYPE_GENERATE_SAMPLE_DATA;
-      }
-      catch (Exception e)
-      {
-        // This should never happen.
-        e.printStackTrace();
-        return 1;
-      }
-    }
-    else if (quietInstall.isPresent())
-    {
-      populateType = POPULATE_TYPE_LEAVE_EMPTY;
-    }
-    else
-    {
-      System.out.println(wrapText(
-              INFO_INSTALLDS_HEADER_POPULATE_TYPE.get(),
-              MAX_LINE_WIDTH));
-
-      System.out.println(wrapText("1.  " +
-              INFO_INSTALLDS_POPULATE_OPTION_BASE_ONLY.get(),
-              MAX_LINE_WIDTH));
-
-      System.out.println(wrapText("2.  " +
-              INFO_INSTALLDS_POPULATE_OPTION_LEAVE_EMPTY.get(),
-              MAX_LINE_WIDTH));
-
-      System.out.println(wrapText("3.  " +
-              INFO_INSTALLDS_POPULATE_OPTION_IMPORT_LDIF.get(),
-              MAX_LINE_WIDTH));
-
-      System.out.println(wrapText("4.  " +
-              INFO_INSTALLDS_POPULATE_OPTION_GENERATE_SAMPLE.get(),
-              MAX_LINE_WIDTH));
-
-      populateType = promptForInteger(
-              INFO_INSTALLDS_PROMPT_POPULATE_CHOICE.get(), 1, 1, 4);
-      System.out.println();
-
-      if (populateType == POPULATE_TYPE_IMPORT_FROM_LDIF)
-      {
-        ldifFiles = new LinkedList<String>();
-        while (true)
+        // Check if the port can be used.
+        if (!SetupUtils.canUseAsPort(ldapPort))
         {
-          Message message = INFO_INSTALLDS_PROMPT_IMPORT_FILE.get();
-          String path    = promptForString(message, "");
-          if (new File(path).exists())
+          Message message;
+          if (SetupUtils.isPriviledgedPort(ldapPort))
           {
-            ldifFiles.add(path);
-            System.out.println();
-            break;
+            message = ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(
+                ldapPort);
           }
           else
           {
-
-            message = ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(path);
-            System.err.println(wrapText(message, MAX_LINE_WIDTH));
-            System.err.println();
+            message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(ldapPort);
+          }
+          errorMessages.add(message);
+        }
+      }
+      if (argParser.jmxPortArg.isPresent())
+      {
+        int jmxPort = argParser.jmxPortArg.getIntValue();
+        uData.setServerPort(jmxPort);
+        //   Check if the port can be used.
+        if (!argParser.skipPortCheckArg.isPresent())
+        {
+          if (!SetupUtils.canUseAsPort(jmxPort))
+          {
+            Message message;
+            if (SetupUtils.isPriviledgedPort(jmxPort))
+            {
+              message = ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(
+                  jmxPort);
+            }
+            else
+            {
+              message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(jmxPort);
+            }
+            errorMessages.add(message);
           }
         }
+      }
+    }
+    catch (ArgumentException ae)
+    {
+      errorMessages.add(ae.getMessageObject());
+    }
+
+
+
+    NewSuffixOptions dataOptions;
+    if (argParser.importLDIFArg.isPresent())
+    {
+      // Check that the files exist
+      LinkedList<String> nonExistingFiles = new LinkedList<String>();
+      for (String file : argParser.importLDIFArg.getValues())
+      {
+        if (!Utils.fileExists(file))
+        {
+          nonExistingFiles.add(file);
+        }
+      }
+      if (nonExistingFiles.size() > 0)
+      {
+        errorMessages.add(ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(
+            Utils.getStringFromCollection(nonExistingFiles, ", ")));
+      }
+      dataOptions = new NewSuffixOptions(
+          NewSuffixOptions.Type.IMPORT_FROM_LDIF_FILE, baseDNs,
+          argParser.importLDIFArg.getValues());
+    }
+    else if (argParser.addBaseEntryArg.isPresent())
+    {
+      dataOptions = new NewSuffixOptions(
+          NewSuffixOptions.Type.CREATE_BASE_ENTRY, baseDNs);
+    }
+    else if (argParser.sampleDataArg.isPresent())
+    {
+      dataOptions = new NewSuffixOptions(
+          NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA, baseDNs,
+          new Integer(argParser.sampleDataArg.getValue()));
+    }
+    else
+    {
+      dataOptions = new NewSuffixOptions(
+          NewSuffixOptions.Type.LEAVE_DATABASE_EMPTY, baseDNs);
+    }
+    uData.setNewSuffixOptions(dataOptions);
+
+    // Check that the security data provided is valid.
+    String certNickname = argParser.certNicknameArg.getValue();
+    String pwd = argParser.getKeyStorePassword();
+    boolean enableSSL = argParser.ldapsPortArg.isPresent();
+    boolean enableStartTLS = argParser.enableStartTLSArg.isPresent();
+    int ldapsPort = -1;
+
+    try
+    {
+      ldapsPort = enableSSL ? argParser.ldapsPortArg.getIntValue() : -1;
+    }
+    catch (ArgumentException ae)
+    {
+      errorMessages.add(ae.getMessageObject());
+    }
+    if (enableSSL)
+    {
+      if (!argParser.skipPortCheckArg.isPresent())
+      {
+        if (!SetupUtils.canUseAsPort(ldapsPort))
+        {
+          if (SetupUtils.isPriviledgedPort(ldapsPort))
+          {
+            errorMessages.add(
+                ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(ldapsPort));
+          }
+          else
+          {
+            errorMessages.add(ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(ldapsPort));
+          }
+        }
+      }
+    }
+    SecurityOptions securityOptions;
+    LinkedList<String> keystoreAliases = new LinkedList<String>();
+    if (argParser.generateSelfSignedCertificateArg.isPresent())
+    {
+      securityOptions = SecurityOptions.createSelfSignedCertificateOptions(
+          enableSSL, enableStartTLS, ldapsPort);
+    }
+    else if (argParser.useJavaKeyStoreArg.isPresent())
+    {
+      String path = argParser.useJavaKeyStoreArg.getValue();
+      checkCertificateInKeystore(SecurityOptions.CertificateType.JKS, path, pwd,
+          certNickname, errorMessages, keystoreAliases);
+      securityOptions = SecurityOptions.createJKSCertificateOptions(
+          path, pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
+    }
+    else if (argParser.usePkcs12Arg.isPresent())
+    {
+      String path = argParser.usePkcs12Arg.getValue();
+      checkCertificateInKeystore(SecurityOptions.CertificateType.PKCS12, path,
+          pwd, certNickname, errorMessages, keystoreAliases);
+      securityOptions = SecurityOptions.createPKCS12CertificateOptions(
+          path, pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
+    }
+    else if (argParser.usePkcs11Arg.isPresent())
+    {
+      checkCertificateInKeystore(SecurityOptions.CertificateType.PKCS11, null,
+          pwd, certNickname, errorMessages, keystoreAliases);
+      securityOptions = SecurityOptions.createPKCS11CertificateOptions(
+          pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
+    }
+    else
+    {
+      securityOptions = SecurityOptions.createNoCertificateOptions();
+    }
+    uData.setSecurityOptions(securityOptions);
+
+    uData.setEnableWindowsService(
+        argParser.enableWindowsServiceArg.isPresent());
+    uData.setStartServer(!argParser.doNotStartArg.isPresent());
+
+
+    if (errorMessages.size() > 0)
+    {
+      throw new UserDataException(null,
+          Utils.getMessageFromCollection(errorMessages,
+              formatter.getLineBreak().toString()));
+    }
+  }
+
+  /**
+   * This method updates the contents of a UserData object with what the user
+   * specified in the command-line. If the user did not provide explicitly some
+   * data or if the provided data is not valid, it prompts the user to provide
+   * it.
+   * @param uData the UserData object to be updated.
+   */
+  private void promptIfRequired(UserData uData)
+  {
+    uData.setConfigurationClassName(argParser.configClassArg.getValue());
+    uData.setConfigurationFile(argParser.configFileArg.getValue());
+    uData.setQuiet(isQuiet());
+
+    promptIfRequiredForDirectoryManager(uData);
+    promptIfRequiredForPortData(uData);
+    promptIfRequiredForImportData(uData);
+    promptIfRequiredForSecurityData(uData);
+    promptIfRequiredForWindowsService(uData);
+    promptIfRequiredForStartServer(uData);
+  }
+
+  /**
+   * This method updates the contents of a UserData object with what the user
+   * specified in the command-line for the Directory Manager parameters.
+   * If the user did not provide explicitly some data or if the provided data is
+   * not valid, it prompts the user to provide it.
+   * @param uData the UserData object to be updated.
+   */
+  private void promptIfRequiredForDirectoryManager(UserData uData)
+  {
+    LinkedList<String> dns = promptIfRequiredForDNs(
+        argParser.directoryManagerDNArg, INFO_INSTALLDS_PROMPT_ROOT_DN.get(),
+        true);
+    uData.setDirectoryManagerDn(dns.getFirst());
+
+    String pwd = argParser.getDirectoryManagerPassword();
+    while (pwd == null)
+    {
+      printLineBreak();
+      String pwd1 = null;
+      // Prompt for password and confirm.
+      while (pwd1 == null)
+      {
+        pwd1 = promptForPassword(INFO_INSTALLDS_PROMPT_ROOT_PASSWORD.get());
+        if ("".equals(pwd1))
+        {
+          pwd1 = null;
+          printLineBreak();
+          printErrorMessage(INFO_EMPTY_PWD.get());
+        }
+      }
+      String pwd2 =
+        promptForPassword(INFO_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD.get());
+
+      if (pwd1.equals(pwd2))
+      {
+        pwd = pwd1;
+      }
+      else
+      {
+        printLineBreak();
+        printErrorMessage(ERR_INSTALLDS_PASSWORDS_DONT_MATCH.get());
+      }
+    }
+    uData.setDirectoryManagerPwd(pwd);
+  }
+
+  /**
+   * This method returns a list of DNs.  It checks that the provided list of
+   * actually contain some values.  If no valid values are found it prompts
+   * the user to provide a valid DN.
+   * @param arg the Argument that the user provided to specify the DNs.
+   * @param promptMsg the prompt message to be displayed.
+   * @param includeLineBreak whether to include a line break before the first
+   * prompt or not.
+   * @return a list of valid DNs.
+   */
+  private LinkedList<String> promptIfRequiredForDNs(StringArgument arg,
+      Message promptMsg, boolean includeLineBreak)
+  {
+    LinkedList<String> dns = new LinkedList<String>();
+
+    boolean usedProvided = false;
+    boolean firstPrompt = true;
+    while (dns.isEmpty())
+    {
+      boolean prompted = false;
+      if (usedProvided || !arg.isPresent())
+      {
+        if (firstPrompt && includeLineBreak)
+        {
+          printLineBreak();
+        }
+        String dn = promptForString(promptMsg, arg.getDefaultValue());
+        firstPrompt = false;
+        dns.add(dn);
+        prompted = true;
+      }
+      else
+      {
+        dns.addAll(arg.getValues());
+      }
+      LinkedList<String> toRemove = new LinkedList<String>();
+      for (String dn : dns)
+      {
+        try
+        {
+          DN.decode(dn);
+        }
+        catch (Exception e)
+        {
+          toRemove.add(dn);
+          Message message = prompted ? ERR_INSTALLDS_INVALID_DN_RESPONSE.get() :
+            ERR_INSTALLDS_CANNOT_PARSE_DN.get(dn, e.getMessage());
+          printErrorMessage(message);
+        }
+      }
+      if (toRemove.size() > 0)
+      {
+        printLineBreak();
+      }
+      dns.removeAll(toRemove);
+    }
+    return dns;
+  }
+
+  /**
+   * This method updates the contents of a UserData object with what the user
+   * specified in the command-line for the LDAP and JMX port parameters.
+   * If the user did not provide explicitly some data or if the provided data is
+   * not valid, it prompts the user to provide it.
+   * Note: this method does not update nor check the LDAPS port.
+   * @param uData the UserData object to be updated.
+   */
+  private void promptIfRequiredForPortData(UserData uData)
+  {
+    LinkedList<Integer> usedPorts = new LinkedList<Integer>();
+    //  Determine the LDAP port number.
+    int ldapPort = promptIfRequiredForPortData(argParser.ldapPortArg,
+        INFO_INSTALLDS_PROMPT_LDAPPORT.get(), usedPorts, true);
+    uData.setServerPort(ldapPort);
+    usedPorts.add(ldapPort);
+    if (argParser.jmxPortArg.isPresent())
+    {
+      int jmxPort = promptIfRequiredForPortData(argParser.jmxPortArg,
+          INFO_INSTALLDS_PROMPT_JMXPORT.get(), usedPorts, true);
+      uData.setServerJMXPort(jmxPort);
+    }
+    else
+    {
+      uData.setServerJMXPort(-1);
+    }
+  }
+
+  /**
+   * This method returns a valid port value.  It checks that the provided
+   * argument contains a valid port. If a valid port is not found it prompts
+   * the user to provide a valid port.
+   * @param arg the Argument that the user provided to specify the port.
+   * @param promptMsg the prompt message to be displayed.
+   * @param usedPorts the list of ports the user provided before for other
+   * connection handlers.
+   * @param includeLineBreak whether to include a line break before the first
+   * prompt or not.
+   * @return a valid port number.
+   */
+  private int promptIfRequiredForPortData(IntegerArgument portArg,
+      Message promptMsg, Collection<Integer> usedPorts,
+      boolean includeLineBreak)
+  {
+    int portNumber = -1;
+    boolean usedProvided = false;
+    boolean firstPrompt = true;
+    while (portNumber == -1)
+    {
+      try
+      {
+        boolean prompted = false;
+        if (usedProvided || !portArg.isPresent())
+        {
+          int defaultValue = -1;
+          if (portArg.getDefaultValue() != null)
+          {
+            defaultValue = Integer.parseInt(portArg.getDefaultValue());
+          }
+          if (firstPrompt && includeLineBreak)
+          {
+            printLineBreak();
+          }
+          portNumber = promptForPort(promptMsg, defaultValue);
+          prompted = true;
+          firstPrompt = false;
+        }
+        else
+        {
+          portNumber = portArg.getIntValue();
+          usedProvided = true;
+        }
+
+        if (!argParser.skipPortCheckArg.isPresent())
+        {
+          // Check if the port can be used.
+          if (!SetupUtils.canUseAsPort(portNumber))
+          {
+            Message message;
+            if (SetupUtils.isPriviledgedPort(portNumber))
+            {
+              if (prompted || includeLineBreak)
+              {
+                printLineBreak();
+              }
+              message = ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(
+                  portNumber);
+              printErrorMessage(message);
+              portNumber = -1;
+            }
+            else
+            {
+              if (prompted || includeLineBreak)
+              {
+                printLineBreak();
+              }
+              message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(portNumber);
+              printErrorMessage(message);
+              printLineBreak();
+              portNumber = -1;
+            }
+          }
+        }
+        if (portNumber != -1)
+        {
+          if (usedPorts.contains(portNumber))
+          {
+            Message message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
+                String.valueOf(portNumber));
+            printErrorMessage(message);
+            printLineBreak();
+            portNumber = -1;
+          }
+        }
+      }
+      catch (ArgumentException ae)
+      {
+        printErrorMessage(ae.getMessage());
+      }
+    }
+    return portNumber;
+  }
+
+  /**
+   * This method updates the contents of a UserData object with what the user
+   * specified in the command-line for the base DN and data import parameters.
+   * If the user did not provide explicitly some data or if the provided data is
+   * not valid, it prompts the user to provide it.
+   * @param uData the UserData object to be updated.
+   */
+  private void promptIfRequiredForImportData(UserData uData)
+  {
+    // Check the validity of the base DNs
+    LinkedList<String> baseDNs = promptIfRequiredForDNs(
+        argParser.baseDNArg, INFO_INSTALLDS_PROMPT_BASEDN.get(), true);
+
+    NewSuffixOptions dataOptions;
+    if (argParser.importLDIFArg.isPresent())
+    {
+      // Check that the files exist
+      LinkedList<String> nonExistingFiles = new LinkedList<String>();
+      LinkedList<String> importLDIFFiles = new LinkedList<String>();
+      for (String file : argParser.importLDIFArg.getValues())
+      {
+        if (!Utils.fileExists(file))
+        {
+          nonExistingFiles.add(file);
+        }
+        else
+        {
+          importLDIFFiles.add(file);
+        }
+      }
+      if (nonExistingFiles.size() > 0)
+      {
+        printLineBreak();
+        printErrorMessage(ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(
+            Utils.getStringFromCollection(nonExistingFiles, ", ")));
+      }
+      while (importLDIFFiles.isEmpty())
+      {
+        printLineBreak();
+        String path = promptForString(INFO_INSTALLDS_PROMPT_IMPORT_FILE.get(),
+            null);
+        if (!Utils.fileExists(path))
+        {
+          printLineBreak();
+          printErrorMessage(ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(path));
+        }
+        else
+        {
+          importLDIFFiles.add(path);
+        }
+      }
+      dataOptions = new NewSuffixOptions(
+          NewSuffixOptions.Type.IMPORT_FROM_LDIF_FILE,
+          baseDNs, importLDIFFiles);
+    }
+    else if (argParser.addBaseEntryArg.isPresent())
+    {
+      dataOptions = new NewSuffixOptions(
+          NewSuffixOptions.Type.CREATE_BASE_ENTRY,
+          baseDNs);
+    }
+    else if (argParser.sampleDataArg.isPresent())
+    {
+      int numUsers;
+      try
+      {
+        numUsers = argParser.sampleDataArg.getIntValue();
+      }
+      catch (ArgumentException ae)
+      {
+        printLineBreak();
+        printErrorMessage(ae.getMessageObject());
+        Message message = INFO_INSTALLDS_PROMPT_NUM_ENTRIES.get();
+        numUsers = promptForInteger(message, 2000, 0, Integer.MAX_VALUE);
+      }
+      dataOptions = new NewSuffixOptions(
+          NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA,
+          baseDNs, numUsers);
+    }
+    else
+    {
+      final int POPULATE_TYPE_BASE_ONLY = 1;
+      final int POPULATE_TYPE_LEAVE_EMPTY = 2;
+      final int POPULATE_TYPE_IMPORT_FROM_LDIF = 3;
+      final int POPULATE_TYPE_GENERATE_SAMPLE_DATA = 4;
+      Message[] options = new Message[] {
+          Message.raw(String.valueOf(POPULATE_TYPE_BASE_ONLY)),
+          Message.raw(String.valueOf(POPULATE_TYPE_LEAVE_EMPTY)),
+          Message.raw(String.valueOf(POPULATE_TYPE_IMPORT_FROM_LDIF)),
+          Message.raw(String.valueOf(POPULATE_TYPE_GENERATE_SAMPLE_DATA))
+        };
+      printLineBreak();
+      printLine(INFO_INSTALLDS_HEADER_POPULATE_TYPE.get(), true);
+      printLine(INFO_INSTALLDS_POPULATE_OPTION_BASE_ONLY.get(), true);
+      printLine(INFO_INSTALLDS_POPULATE_OPTION_LEAVE_EMPTY.get(), true);
+      printLine(INFO_INSTALLDS_POPULATE_OPTION_IMPORT_LDIF.get(), true);
+      printLine(INFO_INSTALLDS_POPULATE_OPTION_GENERATE_SAMPLE.get(), true);
+
+
+      Message answer = promptConfirm(
+          INFO_INSTALLDS_PROMPT_POPULATE_CHOICE.get(),
+            options[0], options);
+      int populateType = new Integer(answer.toString());
+
+      if (populateType == POPULATE_TYPE_IMPORT_FROM_LDIF)
+      {
+        LinkedList<String> importLDIFFiles = new LinkedList<String>();
+        while (importLDIFFiles.isEmpty())
+        {
+          Message message = INFO_INSTALLDS_PROMPT_IMPORT_FILE.get();
+          printLineBreak();
+          String path = promptForString(message, null);
+          if (Utils.fileExists(path))
+          {
+            importLDIFFiles.add(path);
+          }
+          else
+          {
+            message = ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(path);
+            printLineBreak();
+            printErrorMessage(message);
+          }
+        }
+        dataOptions = new NewSuffixOptions(
+            NewSuffixOptions.Type.IMPORT_FROM_LDIF_FILE,
+            baseDNs, importLDIFFiles);
       }
       else if (populateType == POPULATE_TYPE_GENERATE_SAMPLE_DATA)
       {
         Message message = INFO_INSTALLDS_PROMPT_NUM_ENTRIES.get();
-        numUsers = promptForInteger(message, 2000, 0, Integer.MAX_VALUE);
-        System.out.println();
+        int numUsers = promptForInteger(message, 2000, 0, Integer.MAX_VALUE);
+
+        dataOptions = new NewSuffixOptions(
+            NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA,
+            baseDNs, numUsers);
+      }
+      else if (populateType == POPULATE_TYPE_LEAVE_EMPTY)
+      {
+        dataOptions = new NewSuffixOptions(
+            NewSuffixOptions.Type.LEAVE_DATABASE_EMPTY, baseDNs);
+      }
+      else if (populateType == POPULATE_TYPE_BASE_ONLY)
+      {
+        dataOptions = new NewSuffixOptions(
+            NewSuffixOptions.Type.CREATE_BASE_ENTRY, baseDNs);
+      }
+      else
+      {
+        throw new IllegalStateException("Unexpected populateType: "+
+            populateType);
       }
     }
+    uData.setNewSuffixOptions(dataOptions);
+  }
 
+  /**
+   * This method updates the contents of a UserData object with what the user
+   * specified in the command-line for the security parameters.
+   * If the user did not provide explicitly some data or if the provided data is
+   * not valid, it prompts the user to provide it.
+   * @param uData the UserData object to be updated.
+   */
+  private void promptIfRequiredForSecurityData(UserData uData)
+  {
+    // Check that the security data provided is valid.
+    boolean enableSSL = false;
+    boolean enableStartTLS = false;
+    int ldapsPort = -1;
+
+    LinkedList<Integer> usedPorts = new LinkedList<Integer>();
+    usedPorts.add(uData.getServerPort());
+    if (uData.getServerJMXPort() != -1)
+    {
+      usedPorts.add(uData.getServerJMXPort());
+    }
+
+    // Ask to enable SSL
+    ldapsPort = -1;
+    if (!argParser.ldapsPortArg.isPresent())
+    {
+      printLineBreak();
+      enableSSL = confirm(INFO_INSTALLDS_PROMPT_ENABLE_SSL.get(), false);
+      if (enableSSL)
+      {
+        ldapsPort = promptIfRequiredForPortData(argParser.ldapsPortArg,
+            INFO_INSTALLDS_PROMPT_LDAPSPORT.get(), usedPorts, false);
+      }
+    }
+    else
+    {
+      ldapsPort = promptIfRequiredForPortData(argParser.ldapsPortArg,
+          INFO_INSTALLDS_PROMPT_LDAPSPORT.get(), usedPorts, true);
+      enableSSL = true;
+    }
+
+    // Ask to enable Start TLS
+    if (!argParser.enableStartTLSArg.isPresent())
+    {
+      printLineBreak();
+      enableStartTLS = confirm(INFO_INSTALLDS_ENABLE_STARTTLS.get(),
+          argParser.enableStartTLSArg.isPresent());
+    }
+    else
+    {
+      enableStartTLS = true;
+    }
+
+    SecurityOptions securityOptions;
+    if (argParser.generateSelfSignedCertificateArg.isPresent())
+    {
+      securityOptions = SecurityOptions.createSelfSignedCertificateOptions(
+          enableSSL, enableStartTLS, ldapsPort);
+    }
+    else if (argParser.useJavaKeyStoreArg.isPresent())
+    {
+      securityOptions =
+        createSecurityOptionsPrompting(SecurityOptions.CertificateType.JKS,
+            enableSSL, enableStartTLS, ldapsPort);
+    }
+    else if (argParser.usePkcs12Arg.isPresent())
+    {
+      securityOptions =
+        createSecurityOptionsPrompting(SecurityOptions.CertificateType.PKCS12,
+            enableSSL, enableStartTLS, ldapsPort);
+    }
+    else if (argParser.usePkcs11Arg.isPresent())
+    {
+      securityOptions =
+        createSecurityOptionsPrompting(SecurityOptions.CertificateType.PKCS11,
+            enableSSL, enableStartTLS, ldapsPort);
+    }
+    else
+    {
+      if (!enableSSL && !enableStartTLS)
+      {
+        // If the user did not want to enable SSL or start TLS do not ask
+        // to create a certificate.
+        securityOptions = SecurityOptions.createNoCertificateOptions();
+      }
+      else
+      {
+        final int SELF_SIGNED = 1;
+        final int JKS = 2;
+        final int PKCS12 = 3;
+        final int PKCS11 = 4;
+        Message[] options = new Message[] {
+            Message.raw(String.valueOf(SELF_SIGNED)),
+            Message.raw(String.valueOf(JKS)),
+            Message.raw(String.valueOf(PKCS12)),
+            Message.raw(String.valueOf(PKCS11))
+          };
+        printLineBreak();
+        printLine(INFO_INSTALLDS_HEADER_CERT_TYPE.get(), true);
+        printLine(INFO_INSTALLDS_CERT_OPTION_SELF_SIGNED.get(), true);
+        printLine(INFO_INSTALLDS_CERT_OPTION_JKS.get(), true);
+        printLine(INFO_INSTALLDS_CERT_OPTION_PKCS12.get(), true);
+        printLine(INFO_INSTALLDS_CERT_OPTION_PKCS11.get(), true);
+
+        Message answer = promptConfirm(
+            INFO_INSTALLDS_PROMPT_CERT_TYPE_CHOICE.get(),
+              options[0], options);
+        int certType = new Integer(answer.toString());
+
+        if (certType == SELF_SIGNED)
+        {
+          securityOptions = SecurityOptions.createSelfSignedCertificateOptions(
+                enableSSL, enableStartTLS, ldapsPort);
+        }
+        else if (certType == JKS)
+        {
+          securityOptions =
+            createSecurityOptionsPrompting(SecurityOptions.CertificateType.JKS,
+                enableSSL, enableStartTLS, ldapsPort);
+        }
+        else if (certType == PKCS12)
+        {
+          securityOptions =
+            createSecurityOptionsPrompting(
+                SecurityOptions.CertificateType.PKCS12, enableSSL,
+                enableStartTLS, ldapsPort);
+        }
+        else if (certType == PKCS11)
+        {
+          securityOptions =
+            createSecurityOptionsPrompting(
+                SecurityOptions.CertificateType.PKCS11, enableSSL,
+                enableStartTLS, ldapsPort);
+        }
+        else
+        {
+          throw new IllegalStateException("Unexpected cert type: "+ certType);
+        }
+      }
+    }
+    uData.setSecurityOptions(securityOptions);
+  }
+
+  /**
+   * This method updates the contents of a UserData object with what the user
+   * specified in the command-line for the Windows Service parameters.
+   * If the user did not provide explicitly the data, it prompts the user to
+   * provide it.
+   * @param uData the UserData object to be updated.
+   */
+  private void promptIfRequiredForWindowsService(UserData uData)
+  {
     boolean enableService = false;
     // If we are in Windows ask if the server must run as a windows service.
     if (SetupUtils.isWindows())
     {
-      if (quietInstall.isPresent())
-      {
-        enableService = enableWindowsService.isPresent();
-      }
-      else if (enableWindowsService.isPresent())
+      if (argParser.enableWindowsServiceArg.isPresent())
       {
         enableService = true;
       }
       else
       {
+        printLineBreak();
         Message message = INFO_INSTALLDS_PROMPT_ENABLE_SERVICE.get();
-        enableService = promptForBoolean(message, Boolean.TRUE);
+        enableService = confirm(message, false);
       }
     }
-
-    // At this point, we should be able to invoke the ConfigureDS utility to
-    // apply the requested configuration.
-    ArrayList<String> argList = new ArrayList<String>();
-    argList.add("-C");
-    argList.add(configClassName);
-    argList.add("-c");
-    argList.add(configFileName);
-    argList.add("-p");
-    argList.add(String.valueOf(ldapPortNumber));
-    if (jmxPortNumber != -1)
-    {
-      argList.add("-x");
-      argList.add(String.valueOf(jmxPortNumber));
-    }
-
-    for (DN dn : baseDNs)
-    {
-      argList.add("-b");
-      argList.add(dn.toString());
-    }
-
-    for (DN dn : rootDNs)
-    {
-      argList.add("-D");
-      argList.add(dn.toString());
-    }
-
-    argList.add("-w");
-    argList.add(rootPassword);
-
-    String[] configureDSArguments = new String[argList.size()];
-    argList.toArray(configureDSArguments);
-
-    if (! quietInstall.isPresent())
-    {
-      System.out.println();
-
-      Message message = INFO_INSTALLDS_STATUS_CONFIGURING_DS.get();
-      System.out.println(wrapText(message, MAX_LINE_WIDTH));
-    }
-
-    int returnValue = ConfigureDS.configMain(configureDSArguments);
-    if (returnValue != 0)
-    {
-      return returnValue;
-    }
-
-
-    // If we need to create a base LDIF file or a template file, then do so now.
-    if (populateType == POPULATE_TYPE_BASE_ONLY)
-    {
-      // Create a temporary LDIF file that will hold the entry to add.
-      if (! quietInstall.isPresent())
-      {
-        Message message = INFO_INSTALLDS_STATUS_CREATING_BASE_LDIF.get();
-        System.out.println(wrapText(message, MAX_LINE_WIDTH));
-      }
-
-      try
-      {
-        File   ldifFile     = File.createTempFile("opends-base-entry", ".ldif");
-        String ldifFilePath = ldifFile.getAbsolutePath();
-        ldifFile.deleteOnExit();
-
-        LDIFExportConfig exportConfig =
-             new LDIFExportConfig(ldifFilePath, ExistingFileBehavior.OVERWRITE);
-        LDIFWriter writer = new LDIFWriter(exportConfig);
-
-        for (DN dn : baseDNs)
-        {
-          writer.writeEntry(createEntry(dn));
-        }
-
-        writer.close();
-
-        if (ldifFiles == null)
-        {
-          ldifFiles = new LinkedList<String>();
-        }
-        ldifFiles.add(ldifFilePath);
-      }
-      catch (Exception e)
-      {
-        Message message = ERR_INSTALLDS_CANNOT_CREATE_BASE_ENTRY_LDIF.get(
-                String.valueOf(e));
-
-        System.err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-    }
-    else if (populateType == POPULATE_TYPE_GENERATE_SAMPLE_DATA)
-    {
-      try
-      {
-        File templateFile = SetupUtils.createTemplateFile(
-                                 baseDNs.getFirst().toString(), numUsers);
-        if (ldifFiles == null)
-        {
-          ldifFiles = new LinkedList<String>();
-        }
-        ldifFiles.add(templateFile.getAbsolutePath());
-      }
-      catch (Exception e)
-      {
-        Message message = ERR_INSTALLDS_CANNOT_CREATE_TEMPLATE_FILE.get(
-                String.valueOf(e));
-
-        System.err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-    }
-
-    if ((ldifFiles != null) && (! ldifFiles.isEmpty()))
-    {
-      if (! quietInstall.isPresent())
-      {
-        Message message = INFO_INSTALLDS_STATUS_IMPORTING_LDIF.get();
-        System.out.println(wrapText(message, MAX_LINE_WIDTH));
-      }
-
-      // Use the ImportLDIF tool to perform the import.
-      argList = new ArrayList<String>();
-      argList.add("-C");
-      argList.add(configClassName);
-      argList.add("-f");
-      argList.add(configFileName);
-      argList.add("-n");
-      argList.add("userRoot");
-
-      for (String s : ldifFiles)
-      {
-        if (populateType == POPULATE_TYPE_GENERATE_SAMPLE_DATA)
-        {
-          argList.add("-t");
-        }
-        else
-        {
-          argList.add("-l");
-        }
-        argList.add(s);
-      }
-
-      if (populateType == POPULATE_TYPE_GENERATE_SAMPLE_DATA)
-      {
-        argList.add("-s");
-        argList.add("0");
-      }
-
-      if (populateType == POPULATE_TYPE_BASE_ONLY)
-      {
-        argList.add("-q");
-      }
-
-      String[] importLDIFArguments = new String[argList.size()];
-      argList.toArray(importLDIFArguments);
-
-      returnValue = ImportLDIF.mainImportLDIF(importLDIFArguments);
-      if (returnValue != 0)
-      {
-        Message message = ERR_INSTALLDS_IMPORT_UNSUCCESSFUL.get();
-        System.out.println(wrapText(message, MAX_LINE_WIDTH));
-        return returnValue;
-      }
-      else
-      {
-        Message message = INFO_INSTALLDS_IMPORT_SUCCESSFUL.get();
-        System.out.println(wrapText(message, MAX_LINE_WIDTH));
-      }
-    }
-
-
-    // Try to write a file that can be used to set the JAVA_HOME environment
-    // variable for the administrative scripts and client tools provided with
-    // the server.  If this fails, then it's not a big deal.
-    try
-    {
-      String serverRoot = System.getenv("INSTANCE_ROOT");
-      if ((serverRoot == null) || (serverRoot.length() == 0))
-      {
-        File f = new File(configFileName);
-        serverRoot = f.getParentFile().getParentFile().getAbsolutePath();
-      }
-
-      // This isn't likely to happen, and it's not a serious problem even if it
-      // does.
-      SetupUtils.writeSetJavaHome(serverRoot);
-    } catch (Exception e) {}
-
-    if (enableService)
-    {
-      Message message = INFO_INSTALLDS_ENABLING_WINDOWS_SERVICE.get();
-      System.out.println(wrapText(message, MAX_LINE_WIDTH));
-      int code = ConfigureWindowsService.enableService(System.out,
-          System.err);
-
-      switch (code)
-      {
-      case ConfigureWindowsService.SERVICE_ENABLE_SUCCESS:
-        break;
-      case ConfigureWindowsService.SERVICE_ALREADY_ENABLED:
-        break;
-      default:
-        // It did not work.
-        return code;
-      }
-    }
-
-    // If we've gotten here, then everything seems to have gone smoothly.
-    if (! quietInstall.isPresent())
-    {
-      Message message = INFO_INSTALLDS_STATUS_SUCCESS.get();
-      System.out.println(wrapText(message, MAX_LINE_WIDTH));
-    }
-
-    return 0;
+    uData.setEnableWindowsService(enableService);
   }
-
-
 
   /**
-   * Interactively prompts (on standard output) the user to provide a Boolean
-   * value.  The answer provided must be one of "true", "t", "yes", "y",
-   * "false", "f", "no", or "n", ignoring capitalization.  It will keep
-   * prompting until an acceptable value is given.
-   *
-   * @param  prompt        The prompt to present to the user.
-   * @param  defaultValue  The default value to assume if the user presses ENTER
-   *                       without typing anything, or <CODE>null</CODE> if
-   *                       there should not be a default and the user must
-   *                       explicitly provide a value.
-   *
-   * @return  The <CODE>boolean</CODE> value read from the user input.
+   * This method updates the contents of a UserData object with what the user
+   * specified in the command-line for the Directory Manager parameters.
+   * If the user did not provide explicitly the data, it prompts the user to
+   * provide it.
+   * @param uData the UserData object to be updated.
    */
-  private static boolean promptForBoolean(Message prompt, Boolean defaultValue)
+  private void promptIfRequiredForStartServer(UserData uData)
   {
-    String wrappedPrompt = wrapText(prompt, MAX_LINE_WIDTH);
-
-    while (true)
+    boolean startServer = false;
+    if (!argParser.doNotStartArg.isPresent())
     {
-      System.out.println();
-      System.out.println(wrappedPrompt);
+      printLineBreak();
+      Message message = INFO_INSTALLDS_PROMPT_START_SERVER.get();
+      startServer = confirm(message);
+    }
+    uData.setStartServer(startServer);
+  }
 
-      if (defaultValue == null)
+  /**
+   * Checks that the provided parameters are valid to access an existing
+   * keystore.  This method adds the encountered errors to the provided
+   * list of Message.  It also adds the alias (nicknames) found to the provided
+   * list of String.
+   * @param type the type of keystore.
+   * @param path the path of the keystore.
+   * @param pwd the password (PIN) to access the keystore.
+   * @param certNickname the certificate nickname that we are looking for (or
+   * null if we just one to get the one that is in the keystore).
+   * @param errorMessages the list that will be updated with the errors
+   * encountered.
+   * @param nicknameList the list that will be updated with the nicknames found
+   * in the keystore.
+   */
+  private void checkCertificateInKeystore(SecurityOptions.CertificateType type,
+      String path, String pwd, String certNickname,
+      LinkedList<Message> errorMessages, LinkedList<String> nicknameList)
+  {
+    boolean errorWithPath = false;
+    if (type != SecurityOptions.CertificateType.PKCS11)
+    {
+      File f = new File(path);
+      if (!f.exists())
       {
-        System.out.print(": ");
+        errorMessages.add(INFO_KEYSTORE_PATH_DOES_NOT_EXIST.get());
+        errorWithPath = true;
       }
-      else
+      else if (!f.isFile())
       {
-        System.out.print("[");
-
-        if (defaultValue)
+        errorMessages.add(INFO_KEYSTORE_PATH_NOT_A_FILE.get());
+        errorWithPath = true;
+      }
+    }
+    if (!errorWithPath)
+    {
+      try
+      {
+        CertificateManager certManager;
+        switch (type)
         {
-          System.out.print(INFO_INSTALLDS_PROMPT_VALUE_YES.get());
+          case JKS:
+          certManager = new CertificateManager(
+              path,
+              CertificateManager.KEY_STORE_TYPE_JKS,
+              pwd);
+          break;
+
+          case PKCS12:
+          certManager = new CertificateManager(
+              path,
+              CertificateManager.KEY_STORE_TYPE_PKCS12,
+              pwd);
+          break;
+
+          case PKCS11:
+          certManager = new CertificateManager(
+              CertificateManager.KEY_STORE_PATH_PKCS11,
+              CertificateManager.KEY_STORE_TYPE_PKCS11,
+              pwd);
+          break;
+
+          default:
+            throw new IllegalArgumentException("Invalid type: "+type);
+        }
+        String[] aliases = certManager.getCertificateAliases();
+        if ((aliases == null) || (aliases.length == 0))
+        {
+          // Could not retrieve any certificate
+          switch (type)
+          {
+          case JKS:
+            errorMessages.add(INFO_PKCS11_KEYSTORE_DOES_NOT_EXIST.get());
+            break;
+
+          case PKCS12:
+            errorMessages.add(INFO_JKS_KEYSTORE_DOES_NOT_EXIST.get());
+            break;
+          case PKCS11:
+            errorMessages.add(INFO_PKCS12_KEYSTORE_DOES_NOT_EXIST.get());
+            break;
+          default:
+            throw new IllegalArgumentException("Invalid type: "+type);
+          }
         }
         else
         {
-          System.out.print(INFO_INSTALLDS_PROMPT_VALUE_NO.get());
+          for (int i=0; i<aliases.length; i++)
+          {
+            nicknameList.add(aliases[i]);
+          }
+          String aliasString = Utils.getStringFromCollection(nicknameList,
+              ", ");
+          if (certNickname != null)
+          {
+            // Check if the cert alias is in the list.
+            boolean found = false;
+            for (int i=0; i<aliases.length && !found; i++)
+            {
+              found = aliases[i].equalsIgnoreCase(certNickname);
+            }
+            if (!found)
+            {
+              errorMessages.add(ERR_INSTALLDS_CERTNICKNAME_NOT_FOUND.get(
+                  aliasString));
+            }
+          }
+          else if (aliases.length > 1)
+          {
+            errorMessages.add(ERR_INSTALLDS_MUST_PROVIDE_CERTNICKNAME.get(
+                aliasString));
+          }
         }
-
-        System.out.print("]: ");
       }
-
-      System.out.flush();
-
-      String response = toLowerCase(readLine());
-      if (response.equals("true") || response.equals("yes") ||
-          response.equals("t") || response.equals("y"))
+      catch (KeyStoreException ke)
       {
-        return true;
-      }
-      else if (response.equals("false") || response.equals("no") ||
-               response.equals("f") || response.equals("n"))
-      {
-        return false;
-      }
-      else if (response.equals(""))
-      {
-        if (defaultValue == null)
+        // Could not access to the keystore: because the password is no good,
+        // because the provided file is not a valid keystore, etc.
+        switch (type)
         {
-          Message message = ERR_INSTALLDS_INVALID_YESNO_RESPONSE.get();
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        case JKS:
+          errorMessages.add(INFO_ERROR_ACCESSING_JKS_KEYSTORE.get());
+          break;
+
+        case PKCS12:
+          errorMessages.add(INFO_ERROR_ACCESSING_PKCS12_KEYSTORE.get());
+          break;
+        case PKCS11:
+          errorMessages.add(INFO_ERROR_ACCESSING_PKCS11_KEYSTORE.get());
+          break;
+        default:
+          throw new IllegalArgumentException("Invalid type: "+type);
         }
-        else
-        {
-          return defaultValue;
-        }
-      }
-      else
-      {
-        Message message = ERR_INSTALLDS_INVALID_YESNO_RESPONSE.get();
-        System.err.println(wrapText(message, MAX_LINE_WIDTH));
       }
     }
   }
 
+  /**
+   * Creates a SecurityOptions object that corresponds to the provided
+   * parameters.  If the parameters are not valid, it prompts the user to
+   * provide them.
+   * @param type the keystore type.
+   * @param enableSSL whether to enable SSL or not.
+   * @param enableStartTLS whether to enable StartTLS or not.
+   * @param ldapsPort the LDAPS port to use.
+   * @return a SecurityOptions object that corresponds to the provided
+   * parameters (or to what the user provided after being prompted).
+   */
+  private SecurityOptions createSecurityOptionsPrompting(
+      SecurityOptions.CertificateType type, boolean enableSSL,
+      boolean enableStartTLS, int ldapsPort)
+  {
+    SecurityOptions securityOptions;
+    String path;
+    String certNickname = argParser.certNicknameArg.getValue();
+    String pwd = argParser.getKeyStorePassword();
+    Message pathPrompt;
+    String defaultPathValue;
 
+    switch (type)
+    {
+    case JKS:
+      path = argParser.useJavaKeyStoreArg.getValue();
+      pathPrompt = INFO_INSTALLDS_PROMPT_JKS_PATH.get();
+      defaultPathValue = argParser.useJavaKeyStoreArg.getValue();
+      break;
+    case PKCS11:
+      path = null;
+      defaultPathValue = null;
+      pathPrompt = null;
+      break;
+    case PKCS12:
+      path = argParser.usePkcs12Arg.getValue();
+      defaultPathValue = argParser.usePkcs12Arg.getValue();
+      pathPrompt = INFO_INSTALLDS_PROMPT_PKCS12_PATH.get();
+      break;
+    default:
+      throw new IllegalStateException(
+          "Called promptIfRequiredCertificate with invalid type: "+type);
+    }
+    LinkedList<Message> errorMessages = new LinkedList<Message>();
+    LinkedList<String> keystoreAliases = new LinkedList<String>();
+    boolean firstTry = true;
+
+    while ((errorMessages.size() > 0) || firstTry)
+    {
+      boolean prompted = false;
+      if (errorMessages.size() > 0)
+      {
+        printLineBreak();
+        printErrorMessage(Utils.getMessageFromCollection(errorMessages,
+            formatter.getLineBreak().toString()));
+      }
+
+      if (type != SecurityOptions.CertificateType.PKCS11)
+      {
+        if (containsKeyStorePathErrorMessage(errorMessages) || (path == null))
+        {
+          printLineBreak();
+          path = promptForString(pathPrompt, defaultPathValue);
+          prompted = true;
+          if (pwd != null)
+          {
+            errorMessages.clear();
+            keystoreAliases.clear();
+            checkCertificateInKeystore(type, path, pwd, certNickname,
+                errorMessages, keystoreAliases);
+            if (!errorMessages.isEmpty())
+            {
+              // Reset password: this might be a new keystore
+              pwd = null;
+            }
+          }
+        }
+      }
+      if (containsKeyStorePasswordErrorMessage(errorMessages) ||
+          (pwd == null))
+      {
+        if (!prompted)
+        {
+          printLineBreak();
+        }
+        pwd = promptForPassword(
+            INFO_INSTALLDS_PROMPT_KEYSTORE_PASSWORD.get());
+      }
+      if (containsCertNicknameErrorMessage(errorMessages))
+      {
+        if (!prompted)
+        {
+          printLineBreak();
+        }
+        certNickname = promptForCertificateNickname(keystoreAliases);
+      }
+      errorMessages.clear();
+      keystoreAliases.clear();
+      checkCertificateInKeystore(type, path, pwd, certNickname, errorMessages,
+          keystoreAliases);
+      firstTry = false;
+    }
+    if (certNickname == null)
+    {
+      certNickname = keystoreAliases.getFirst();
+    }
+    switch (type)
+    {
+      case JKS:
+        securityOptions = SecurityOptions.createJKSCertificateOptions(
+        path, pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
+        break;
+      case PKCS12:
+        securityOptions = SecurityOptions.createPKCS12CertificateOptions(
+            path, pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
+        break;
+      case PKCS11:
+        securityOptions = SecurityOptions.createPKCS11CertificateOptions(
+            pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
+        break;
+      default:
+        throw new IllegalStateException(
+            "Called createSecurityOptionsPrompting with invalid type: "+type);
+    }
+    return securityOptions;
+  }
+
+  /**
+   * Tells if any of the error messages provided corresponds to a problem
+   * with the key store path.
+   * @param msgs the messages to analyze.
+   * @return <CODE>true</CODE> if any of the error messages provided corresponds
+   * to a problem with the key store path and <CODE>false</CODE> otherwise.
+   */
+  private boolean containsKeyStorePathErrorMessage(Collection<Message> msgs)
+  {
+    boolean found = false;
+    for (Message msg : msgs)
+    {
+      if (msg.getDescriptor().equals(INFO_KEYSTORE_PATH_DOES_NOT_EXIST) ||
+          msg.getDescriptor().equals(INFO_KEYSTORE_PATH_NOT_A_FILE) ||
+          msg.getDescriptor().equals(INFO_JKS_KEYSTORE_DOES_NOT_EXIST) ||
+          msg.getDescriptor().equals(INFO_PKCS12_KEYSTORE_DOES_NOT_EXIST) ||
+          msg.getDescriptor().equals(INFO_PKCS11_KEYSTORE_DOES_NOT_EXIST) ||
+          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_JKS_KEYSTORE) ||
+          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_PKCS12_KEYSTORE) ||
+          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_PKCS11_KEYSTORE))
+      {
+        found = true;
+        break;
+      }
+    }
+    return found;
+  }
+
+  /**
+   * Tells if any of the error messages provided corresponds to a problem
+   * with the key store password.
+   * @param msgs the messages to analyze.
+   * @return <CODE>true</CODE> if any of the error messages provided corresponds
+   * to a problem with the key store password and <CODE>false</CODE> otherwise.
+   */
+  private boolean containsKeyStorePasswordErrorMessage(Collection<Message> msgs)
+  {
+    boolean found = false;
+    for (Message msg : msgs)
+    {
+      if (msg.getDescriptor().equals(INFO_JKS_KEYSTORE_DOES_NOT_EXIST) ||
+          msg.getDescriptor().equals(INFO_PKCS12_KEYSTORE_DOES_NOT_EXIST) ||
+          msg.getDescriptor().equals(INFO_PKCS11_KEYSTORE_DOES_NOT_EXIST) ||
+          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_JKS_KEYSTORE) ||
+          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_PKCS12_KEYSTORE) ||
+          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_PKCS11_KEYSTORE))
+      {
+        found = true;
+        break;
+      }
+    }
+    return found;
+  }
+
+  /**
+   * Tells if any of the error messages provided corresponds to a problem
+   * with the certificate nickname.
+   * @param msgs the messages to analyze.
+   * @return <CODE>true</CODE> if any of the error messages provided corresponds
+   * to a problem with the certificate nickname and <CODE>false</CODE>
+   * otherwise.
+   */
+  private boolean containsCertNicknameErrorMessage(Collection<Message> msgs)
+  {
+    boolean found = false;
+    for (Message msg : msgs)
+    {
+      if (msg.getDescriptor().equals(ERR_INSTALLDS_CERTNICKNAME_NOT_FOUND) ||
+          msg.getDescriptor().equals(ERR_INSTALLDS_MUST_PROVIDE_CERTNICKNAME))
+      {
+        found = true;
+        break;
+      }
+    }
+    return found;
+  }
 
   /**
    * Interactively prompts (on standard output) the user to provide an integer
@@ -1190,308 +1664,81 @@ public class InstallDS
    *
    * @return  The <CODE>int</CODE> value read from the user input.
    */
-  private static int promptForInteger(Message prompt, Integer defaultValue,
+  private int promptForInteger(Message prompt, Integer defaultValue,
                                       Integer lowerBound, Integer upperBound)
   {
-    String wrappedPrompt = wrapText(prompt, MAX_LINE_WIDTH);
-
-    while (true)
+    int returnValue = -1;
+    while (returnValue == -1)
     {
-      System.out.println();
-      System.out.println(wrappedPrompt);
-
-      if (defaultValue == null)
-      {
-        System.out.print(": ");
-      }
-      else
-      {
-        System.out.print("[");
-        System.out.print(defaultValue);
-        System.out.print("]: ");
-      }
-
-      System.out.flush();
-
-      String response = readLine();
-      if (response.equals(""))
+      String s = promptForString(prompt, String.valueOf(defaultValue));
+      if (s.equals(""))
       {
         if (defaultValue == null)
         {
           Message message = ERR_INSTALLDS_INVALID_INTEGER_RESPONSE.get();
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          printErrorMessage(message);
+          printLineBreak();
         }
         else
         {
-          return defaultValue;
+          returnValue = defaultValue;
         }
       }
       else
       {
         try
         {
-          int intValue = Integer.parseInt(response);
+          int intValue = Integer.parseInt(s);
           if ((lowerBound != null) && (intValue < lowerBound))
           {
             Message message =
                 ERR_INSTALLDS_INTEGER_BELOW_LOWER_BOUND.get(lowerBound);
-            System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            printErrorMessage(message);
+            printLineBreak();
           }
           else if ((upperBound != null) && (intValue > upperBound))
           {
             Message message =
                 ERR_INSTALLDS_INTEGER_ABOVE_UPPER_BOUND.get(upperBound);
-            System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            printErrorMessage(message);
+            printLineBreak();
           }
           else
           {
-            return intValue;
+            returnValue = intValue;
           }
         }
         catch (NumberFormatException nfe)
         {
           Message message = ERR_INSTALLDS_INVALID_INTEGER_RESPONSE.get();
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          printErrorMessage(message);
+          printLineBreak();
         }
       }
     }
+    return returnValue;
   }
 
-
-
   /**
-   * Interactively prompts (on standard output) the user to provide a DN value.
-   * Any non-empty string will be allowed if it can be parsed as a valid DN (the
-   * empty string will indicate that the default should be used, if there is
-   * one).
-   *
-   * @param  prompt        The prompt to present to the user.
-   * @param  defaultValue  The default value to assume if the user presses ENTER
-   *                       without typing anything, or <CODE>null</CODE> if
-   *                       there should not be a default and the user must
-   *                       explicitly provide a value.
-   *
-   * @return  The DN value read from the user.
+   * Prompts the user to accept on the certificates that appears on the list
+   * and returns the chosen certificate nickname.
+   * @param nicknames the list of certificates the user must choose from.
+   * @return the chosen certificate nickname.
    */
-  private static DN promptForDN(Message prompt, String defaultValue)
+  private String promptForCertificateNickname(LinkedList<String> nicknames)
   {
-    String wrappedPrompt = wrapText(prompt, MAX_LINE_WIDTH);
-
-    while (true)
+    String nickname = null;
+    while (nickname == null)
     {
-      System.out.println();
-      System.out.println(wrappedPrompt);
-
-      if (defaultValue == null)
+      for (String n : nicknames)
       {
-        System.out.print(": ");
-      }
-      else
-      {
-        System.out.print("[");
-        System.out.print(defaultValue);
-        System.out.print("]: ");
-      }
-
-      System.out.flush();
-
-      String response = readLine();
-      if (response.equals(""))
-      {
-        if (defaultValue == null)
+        if (confirm(INFO_INSTALLDS_PROMPT_CERTNICKNAME.get(n)))
         {
-          Message message = ERR_INSTALLDS_INVALID_DN_RESPONSE.get();
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
-        }
-        else
-        {
-          try
-          {
-            return DN.decode(defaultValue);
-          }
-          catch (Exception e)
-          {
-            Message message = ERR_INSTALLDS_INVALID_DN_RESPONSE.get();
-            System.err.println(wrapText(message, MAX_LINE_WIDTH));
-          }
-        }
-      }
-      else
-      {
-        try
-        {
-          return DN.decode(response);
-        }
-        catch (Exception e)
-        {
-          Message message = ERR_INSTALLDS_INVALID_DN_RESPONSE.get();
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
-        }
-      }
-    }
-  }
-
-
-
-  /**
-   * Interactively prompts (on standard output) the user to provide a string
-   * value.  Any non-empty string will be allowed (the empty string will
-   * indicate that the default should be used, if there is one).
-   *
-   * @param  prompt        The prompt to present to the user.
-   * @param  defaultValue  The default value to assume if the user presses ENTER
-   *                       without typing anything, or <CODE>null</CODE> if
-   *                       there should not be a default and the user must
-   *                       explicitly provide a value.
-   *
-   * @return  The string value read from the user.
-   */
-  private static String promptForString(Message prompt, String defaultValue)
-  {
-      System.out.println();
-    String wrappedPrompt = wrapText(prompt, MAX_LINE_WIDTH);
-
-    while (true)
-    {
-      System.out.println(wrappedPrompt);
-
-      if (defaultValue == null)
-      {
-        System.out.print(": ");
-      }
-      else
-      {
-        System.out.print("[");
-        System.out.print(defaultValue);
-        System.out.print("]: ");
-      }
-
-      System.out.flush();
-
-      String response = readLine();
-      if (response.equals(""))
-      {
-        if (defaultValue == null)
-        {
-          Message message = ERR_INSTALLDS_INVALID_STRING_RESPONSE.get();
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
-        }
-        else
-        {
-          return defaultValue;
-        }
-      }
-      else
-      {
-        return response;
-      }
-    }
-  }
-
-
-
-  /**
-   * Interactively prompts (on standard output) the user to provide a string
-   * value.  The response that the user provides will not be echoed, and it must
-   * be entered twice for confirmation.  No default value will be allowed, and
-   * the string entered must contain at least one character.
-   *
-   * @param  initialPrompt  The initial prompt to present to the user.
-   * @param  reEntryPrompt  The prompt to present to the user when requesting
-   *                        that the value be re-entered for confirmation.
-   *
-   * @return  The string value read from the user.
-   */
-  private static char[] promptForPassword(Message initialPrompt,
-                                          Message reEntryPrompt)
-  {
-    String wrappedInitialPrompt = wrapText(initialPrompt, MAX_LINE_WIDTH);
-    String wrappedReEntryPrompt = wrapText(reEntryPrompt, MAX_LINE_WIDTH);
-
-    while (true)
-    {
-      System.out.println();
-      System.out.print(wrappedInitialPrompt);
-      System.out.print(": ");
-      System.out.flush();
-
-      char[] password = PasswordReader.readPassword();
-      if ((password == null) || (password.length == 0))
-      {
-        Message message = ERR_INSTALLDS_INVALID_PASSWORD_RESPONSE.get();
-        System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      }
-      else
-      {
-        System.out.print(wrappedReEntryPrompt);
-        System.out.print(": ");
-        System.out.flush();
-        char[] confirmedPassword = PasswordReader.readPassword();
-        if ((confirmedPassword == null) ||
-            (! Arrays.equals(password, confirmedPassword)))
-        {
-          Message message = ERR_INSTALLDS_PASSWORDS_DONT_MATCH.get();
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
-        }
-        else
-        {
-          return password;
-        }
-      }
-    }
-  }
-
-
-
-  /**
-   * Reads a line of text from standard input.
-   *
-   * @return  The line of text read from standard input, or <CODE>null</CODE>
-   *          if the end of the stream is reached or an error occurs while
-   *          attempting to read the response.
-   */
-  private static String readLine()
-  {
-    try
-    {
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-      while (true)
-      {
-        int b = System.in.read();
-        if ((b < 0) || (b == '\n'))
-        {
+          nickname = n;
           break;
         }
-        else if (b == '\r')
-        {
-          int b2 = System.in.read();
-          if (b2 == '\n')
-          {
-            break;
-          }
-          else
-          {
-            baos.write(b);
-            baos.write(b2);
-          }
-        }
-        else
-        {
-          baos.write(b);
-        }
       }
-
-      return new String(baos.toByteArray(), "UTF-8");
     }
-    catch (Exception e)
-    {
-      Message message =
-          ERR_INSTALLDS_ERROR_READING_FROM_STDIN.get(String.valueOf(e));
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-
-      return null;
-    }
+    return nickname;
   }
 }
-

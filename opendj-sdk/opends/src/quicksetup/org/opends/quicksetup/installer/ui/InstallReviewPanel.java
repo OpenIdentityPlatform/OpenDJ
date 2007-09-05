@@ -294,10 +294,12 @@ public class InstallReviewPanel extends ReviewPanel {
       Message arg2;
 
       NewSuffixOptions options = userInstallData.getNewSuffixOptions();
+
       switch (options.getType())
       {
       case CREATE_BASE_ENTRY:
-        arg2 = INFO_REVIEW_CREATE_BASE_ENTRY_LABEL.get(options.getBaseDn());
+        arg2 = INFO_REVIEW_CREATE_BASE_ENTRY_LABEL.get(
+            options.getBaseDns().getFirst());
 
         break;
 
@@ -306,7 +308,7 @@ public class InstallReviewPanel extends ReviewPanel {
         break;
 
       case IMPORT_FROM_LDIF_FILE:
-        arg2 = INFO_REVIEW_IMPORT_LDIF.get(options.getLDIFPath());
+        arg2 = INFO_REVIEW_IMPORT_LDIF.get(options.getLDIFPaths().getFirst());
         break;
 
       case IMPORT_AUTOMATICALLY_GENERATED_DATA:
@@ -315,10 +317,11 @@ public class InstallReviewPanel extends ReviewPanel {
         break;
 
       default:
-        throw new IllegalArgumentException("Unknow type: " + options.getType());
+        throw new IllegalArgumentException("Unknown type: "+options.getType());
       }
 
-      msg = INFO_REVIEW_CREATE_SUFFIX.get(options.getBaseDn(), arg2);
+      msg = INFO_REVIEW_CREATE_SUFFIX.get(options.getBaseDns().getFirst(),
+          arg2);
     }
     else
     {
@@ -334,9 +337,9 @@ public class InstallReviewPanel extends ReviewPanel {
       }
       msg = INFO_REVIEW_REPLICATE_SUFFIX.get(buf.toString());
     }
-
     return msg.toString();
   }
+
    /**
     * Returns the String representing the replication port configuration.
     * @param userInstallData the DataOptions of the user.

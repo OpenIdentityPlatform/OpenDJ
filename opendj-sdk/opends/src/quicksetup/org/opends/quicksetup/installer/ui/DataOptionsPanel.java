@@ -38,6 +38,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
@@ -348,7 +349,16 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     switch (fieldName)
     {
     case DIRECTORY_BASE_DN:
-      value = defaultUserData.getNewSuffixOptions().getBaseDn();
+      LinkedList<String> defaults =
+        defaultUserData.getNewSuffixOptions().getBaseDns();
+      if ((defaults != null) && !defaults.isEmpty())
+      {
+        value = defaults.getFirst();
+      }
+      else
+      {
+        value = null;
+      }
       break;
 
     case DATA_OPTIONS:
@@ -356,7 +366,16 @@ public class DataOptionsPanel extends QuickSetupStepPanel
       break;
 
     case LDIF_PATH:
-      value = defaultUserData.getNewSuffixOptions().getLDIFPath();
+      defaults =
+        defaultUserData.getNewSuffixOptions().getLDIFPaths();
+      if ((defaults != null) && !defaults.isEmpty())
+      {
+        value = defaults.getFirst();
+      }
+      else
+      {
+        value = null;
+      }
       break;
 
     case NUMBER_ENTRIES:

@@ -74,6 +74,8 @@ public class OfflineInstaller extends Installer
   private HashMap<InstallProgressStep, Message> hmSummary =
       new HashMap<InstallProgressStep, Message>();
 
+  private ApplicationException runError;
+
   private static final Logger LOG =
     Logger.getLogger(OfflineInstaller.class.getName());
   /**
@@ -82,12 +84,13 @@ public class OfflineInstaller extends Installer
    */
   public void run()
   {
-    initMaps();
+    runError = null;
     PrintStream origErr = System.err;
     PrintStream origOut = System.out;
-
     try
     {
+      initMaps();
+
       System.setErr(getApplicationErrorStream());
       System.setOut(getApplicationOutputStream());
 
@@ -181,6 +184,7 @@ public class OfflineInstaller extends Installer
         notifyListeners(html);
         LOG.log(Level.SEVERE, "Error installing.", ex);
       }
+      runError = ex;
     }
     catch (Throwable t)
     {
@@ -203,9 +207,13 @@ public class OfflineInstaller extends Installer
       Message msg = getFormattedError(ex, true);
       notifyListeners(msg);
       LOG.log(Level.SEVERE, "Error installing.", t);
+      runError = ex;
     }
-    System.setErr(origErr);
-    System.setOut(origOut);
+    finally
+    {
+      System.setErr(origErr);
+      System.setOut(origOut);
+    }
   }
 
   /**
@@ -222,6 +230,14 @@ public class OfflineInstaller extends Installer
   public Message getSummary(ProgressStep status)
   {
     return hmSummary.get(status);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public ApplicationException getRunError()
+  {
+    return runError;
   }
 
   /**

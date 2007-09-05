@@ -23,18 +23,9 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+rem      Portions Copyright 2007 Sun Microsystems, Inc.
 
 setlocal
-
-rem check that the path does not contain the ^% character which breaks
-rem the batch files.
-for %%i in (%~sf0) do set NON_ESCAPED=%%~dPsi..
-
-
-FOR /F "tokens=1-2* delims=%%" %%1 IN ("%NON_ESCAPED%") DO (
-if NOT "%%2" == "" goto invalidPath)
-
 for %%i in (%~sf0) do set DIR_HOME=%%~dPsi.
 
 set INSTANCE_ROOT=%DIR_HOME%
@@ -42,13 +33,6 @@ set INSTANCE_ROOT=%DIR_HOME%
 :checkJavaBin
 if "%JAVA_BIN%" == "" goto noJavaBin
 goto setClassPath
-
-:invalidPath
-echo Error: The current path contains a %% character.  OpenDS cannot
-echo        be installed on a path containing this character.
-pause
-goto end
-
 
 :noJavaBin
 if "%JAVA_HOME%" == "" goto noJavaHome
@@ -84,7 +68,15 @@ rem Test that the provided JDK is 1.5 compatible.
 "%JAVA_BIN%" org.opends.server.tools.InstallDS -t > NUL 2>&1
 if not %errorlevel% == 0 goto noValidJavaHome
 
-"%JAVA_BIN%" %JAVA_ARGS% -Dorg.opends.server.scriptName=setup.bat org.opends.server.tools.InstallDS %*
+if "%~1" == "" goto callLaunch
+goto callJava
+
+:callLaunch
+"%DIR_HOME%\lib\winlauncher.exe" launch "%JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.installer.SetupGuiLauncher
+goto end
+
+:callJava
+"%JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.installer.SetupGuiLauncher %*
 
 rem return part
 if %errorlevel% == 50 goto version
@@ -95,4 +87,3 @@ rem version information was requested. Return code should be 0.
 exit /B 0
 
 :end
-
