@@ -86,7 +86,13 @@
           Enable as a Windows Service
         </function-arg-description>
         <function-arg-property name="type" value="boolean"/>
-      </function-arg-def>            
+      </function-arg-def>
+      <function-arg-def name="dsDoNotStart" type="optional">
+        <function-arg-description>
+          Do not start server after setup
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>                          
       <function-arg-def name="dsHelp" type="optional">
         <function-arg-description>
           Help option
@@ -104,8 +110,7 @@
 
         if dsPath:
           STAFCmd='%s/setup%s' % (dsPath,fileExt)
-          STAFCmdParamsList.append('--cli')
-          STAFCmdParamsList.append('-Q')    
+          STAFCmdParamsList.append('-n')    
                   
         if dsPort:
           STAFCmdParamsList.append('-p %s' % dsPort)
@@ -127,7 +132,10 @@
 
         if dsEnableWindowsService:
           STAFCmdParamsList.append('-e')
-        
+
+        if dsDoNotStart:
+          STAFCmdParamsList.append('-O')
+                  
         if dsHelp:
           STAFCmdParamsList.append('-H')
  

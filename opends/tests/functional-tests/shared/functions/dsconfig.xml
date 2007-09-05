@@ -287,7 +287,7 @@
       
       <function-arg-def name="extraParams" type="optional">
         <function-arg-description>
-          Optional extra parameters for specific test cases. ie -M
+          Optional extra parameters for specific test cases. ie -m
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
