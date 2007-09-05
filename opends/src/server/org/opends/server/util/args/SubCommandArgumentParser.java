@@ -1691,13 +1691,13 @@ public class SubCommandArgumentParser extends ArgumentParser
         if (sc.isHidden()) {
           continue;
         }
-        buffer.append("    " + sc.getName());
-        for (int i = 0; i < indentNb - sc.getName().length(); i++) {
-          buffer.append(" ");
-        }
         if (!isFirst)
         {
           buffer.append(EOL);
+        }
+        buffer.append("    " + sc.getName());
+        for (int i = 0; i < indentNb - sc.getName().length(); i++) {
+          buffer.append(" ");
         }
         buffer.append(sc.getDescription());
         buffer.append(EOL);
