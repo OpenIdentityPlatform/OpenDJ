@@ -1333,14 +1333,13 @@
     <echo message="      much time each progress line spends doing garbage collections"/>
     <echo message="      to get an accurate measure of memory usage."/>
     <echo message=""/>
-    <echo message="      A new line of progress is written immediately before TestNG starts"/>
-    <echo message="      to run the first test of a new class.  All @BeforeClass and"/>
-    <echo message="      @BeforeMethod methods will have been invoked for the class as well"/>
-    <echo message="      as the @DataProvider (if any) for the first test method."/>
-    <echo message="      Also, some classes are still run out-of-order.  These will only"/>
-    <echo message="      appear once in the output.  Keep these two things in mind when,"/>
-    <echo message="      especially when debugging memory usage, running times, and thread "/>
-    <echo message="      creation."/>
+    <echo message="      A new line of progress is written when TestNG completes running tests"/>
+    <echo message="      for a class.  This progress is reported immediately before TestNG"/>
+    <echo message="      starts to run the first test of the next class.  All @BeforeClass"/>
+    <echo message="      and @BeforeMethod methods will have been invoked for the next"/>
+    <echo message="      class as well as the @DataProvider (if any) for the first test method."/>
+    <echo message="      Keep this in mind when debugging memory usage, running times, and"/>
+    <echo message="      thread creation."/>
     <echo message=""/>
     <echo message="  -Dtestng.verbosity0to5=5"/>
     <echo message="      for example has TestNG dump the maximum amount of debugging"/>
