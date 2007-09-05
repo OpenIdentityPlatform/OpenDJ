@@ -272,6 +272,11 @@ public class ReplSessionSecurity
       // Force TLS negotiation now.
       secureSocket.startHandshake();
 
+//      SSLSession sslSession = secureSocket.getSession();
+//      System.out.println("Peer      = " + sslSession.getPeerHost() + ":" +
+//           sslSession.getPeerPort());
+//      System.out.println("Principal = " + sslSession.getPeerPrincipal());
+
       return new TLSSocketSession(socket, secureSocket);
     }
     else

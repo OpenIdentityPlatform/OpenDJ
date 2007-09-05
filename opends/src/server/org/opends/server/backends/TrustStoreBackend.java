@@ -41,7 +41,6 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 
 import org.opends.server.api.Backend;
-import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -60,16 +59,18 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.util.Validator;
 import org.opends.server.util.CertificateManager;
+import org.opends.server.util.ExpirationCheckTrustManager;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.TrustStoreBackendCfg;
 import org.opends.server.admin.Configuration;
-import org.opends.server.extensions.BlindTrustManagerProvider;
 import org.opends.messages.Message;
 import static org.opends.messages.BackendMessages.*;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 import javax.naming.ldap.Rdn;
 import java.security.cert.Certificate;
 import java.net.UnknownHostException;
@@ -247,7 +248,7 @@ public class TrustStoreBackend
             }
             catch (Exception e)
             {
-              Message message = ERR_TRUSTSTORE_PIN_NO_SUCH_FILE.get(
+              Message message = ERR_TRUSTSTORE_PIN_FILE_CANNOT_CREATE.get(
                    String.valueOf(pinFilePath), String.valueOf(configEntryDN));
               throw new InitializationException(message);
             }
@@ -537,11 +538,17 @@ public class TrustStoreBackend
                                    baseDN, null);
     }
 
-
+    String certAlias = v.getStringValue();
     ByteString certValue;
     try
     {
-      Certificate cert = certificateManager.getCertificate(v.getStringValue());
+      Certificate cert = certificateManager.getCertificate(certAlias);
+      if (cert == null)
+      {
+        Message message = ERR_TRUSTSTORE_CERTIFICATE_NOT_FOUND.get(
+            String.valueOf(entryDN), certAlias);
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
+      }
       certValue = new ASN1OctetString(cert.getEncoded());
     }
     catch (Exception e)
@@ -551,11 +558,10 @@ public class TrustStoreBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_TRUSTSTORE_INVALID_CERTIFICATE.get(
-          String.valueOf(entryDN), e.getMessage());
+      Message message = ERR_TRUSTSTORE_CANNOT_RETRIEVE_CERT.get(
+          certAlias, trustStoreFile, e.getMessage());
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
-
 
     // Construct the certificate entry to return.
     LinkedHashMap<ObjectClass,String> ocMap =
@@ -642,8 +648,22 @@ public class TrustStoreBackend
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    Message message = ERR_TRUSTSTORE_DELETE_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    if (entryDN.equals(baseDN))
+    {
+      Message message = ERR_TRUSTSTORE_INVALID_BASE.get(
+           String.valueOf(entryDN));
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    }
+
+    DN parentDN = entryDN.getParentDNInSuffix();
+    if (parentDN == null || !parentDN.equals(baseDN))
+    {
+      Message message = ERR_TRUSTSTORE_INVALID_BASE.get(
+           String.valueOf(entryDN));
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
+    }
+
+    deleteCertificate(entryDN);
   }
 
 
@@ -664,7 +684,7 @@ public class TrustStoreBackend
    * {@inheritDoc}
    */
   public void renameEntry(DN currentDN, Entry entry,
-                                   ModifyDNOperation modifyDNOperation)
+                          ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
     Message message = ERR_TRUSTSTORE_MODIFY_DN_NOT_SUPPORTED.get();
@@ -866,7 +886,7 @@ public class TrustStoreBackend
    * {@inheritDoc}
    */
   public void createBackup(BackupConfig backupConfig)
-  throws DirectoryException
+       throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
     Message message = ERR_TRUSTSTORE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
@@ -1170,7 +1190,7 @@ public class TrustStoreBackend
             {
               resultCode = DirectoryServer.getServerErrorResultCode();
 
-              messages.add(ERR_TRUSTSTORE_PIN_NO_SUCH_FILE.get(
+              messages.add(ERR_TRUSTSTORE_PIN_FILE_CANNOT_CREATE.get(
                       String.valueOf(newPINFile),
                       String.valueOf(configEntryDN)));
             }
@@ -1360,10 +1380,57 @@ public class TrustStoreBackend
   public TrustManager[] getTrustManagers()
          throws DirectoryException
   {
-    // TODO Temporary until the trust store is populated with the certificates
-    // TODO   of all the servers in the ADS topology.
-    TrustManagerProvider trustManagerProvider = new BlindTrustManagerProvider();
-    return trustManagerProvider.getTrustManagers();
+    KeyStore trustStore;
+    try
+    {
+      trustStore = KeyStore.getInstance(trustStoreType);
+
+      FileInputStream inputStream =
+           new FileInputStream(getFileForPath(trustStoreFile));
+      trustStore.load(inputStream, trustStorePIN);
+      inputStream.close();
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      Message message = ERR_TRUSTSTORE_CANNOT_LOAD.get(
+          trustStoreFile, getExceptionMessage(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, e);
+    }
+
+
+    try
+    {
+      String trustManagerAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+      TrustManagerFactory trustManagerFactory =
+           TrustManagerFactory.getInstance(trustManagerAlgorithm);
+      trustManagerFactory.init(trustStore);
+      TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
+      TrustManager[] newTrustManagers = new TrustManager[trustManagers.length];
+      for (int i=0; i < trustManagers.length; i++)
+      {
+        newTrustManagers[i] = new ExpirationCheckTrustManager(
+                                       (X509TrustManager) trustManagers[i]);
+      }
+      return newTrustManagers;
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      Message message = ERR_TRUSTSTORE_CANNOT_CREATE_FACTORY.get(
+          trustStoreFile, getExceptionMessage(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, e);
+    }
   }
 
 
@@ -1387,7 +1454,7 @@ public class TrustStoreBackend
 
     try
     {
-      if (certificateManager.aliasInUse(v.getStringValue()))
+      if (certificateManager.aliasInUse(certAlias))
       {
         Message message = ERR_TRUSTSTORE_ALIAS_IN_USE.get(
              String.valueOf(entryDN));
@@ -1490,6 +1557,45 @@ public class TrustStoreBackend
     catch (Exception e)
     {
       Message message = ERR_TRUSTSTORE_CANNOT_ADD_CERT.get(
+           certAlias, trustStoreFile, getExceptionMessage(e));
+      throw new DirectoryException(
+           DirectoryServer.getServerErrorResultCode(), message, e);
+    }
+
+  }
+
+
+  private void deleteCertificate(DN entryDN)
+       throws DirectoryException
+  {
+    // Make sure that the DN specifies a certificate alias.
+    AttributeType t =
+         DirectoryServer.getAttributeType(ATTR_CERT_ALIAS, true);
+    AttributeValue v = entryDN.getRDN().getAttributeValue(t);
+    if (v == null)
+    {
+      Message message = ERR_TRUSTSTORE_DN_DOES_NOT_SPECIFY_CERTIFICATE.get(
+           String.valueOf(entryDN));
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
+                                   baseDN, null);
+    }
+    String certAlias = v.getStringValue();
+
+    try
+    {
+      if (!certificateManager.aliasInUse(certAlias))
+      {
+        Message message = ERR_TRUSTSTORE_INVALID_BASE.get(
+             String.valueOf(entryDN));
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+                                     message);
+      }
+
+      certificateManager.removeCertificate(certAlias);
+    }
+    catch (Exception e)
+    {
+      Message message = ERR_TRUSTSTORE_CANNOT_DELETE_CERT.get(
            certAlias, trustStoreFile, getExceptionMessage(e));
       throw new DirectoryException(
            DirectoryServer.getServerErrorResultCode(), message, e);

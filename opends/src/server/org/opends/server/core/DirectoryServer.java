@@ -1435,6 +1435,9 @@ public class DirectoryServer
       }
 
 
+      // Start a thread to synchronize the trust store.
+      new TrustStoreSyncThread().start();
+
       // If we should write a copy of the config on successful startup, then do
       // so now.
       if (saveConfigOnSuccessfulStartup)
