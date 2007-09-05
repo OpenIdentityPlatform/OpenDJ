@@ -1400,7 +1400,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     {
       if (port1Arg.getValue() == port2Arg.getValue())
       {
-        Message message = ERR_REPLICATION_SAME_SERVER_PORT.get(
+        Message message = ERR_REPLICATION_ENABLE_SAME_SERVER_PORT.get(
             hostName1Arg.getValue(), port1Arg.getValue());
         addMessage(buf, message);
       }
@@ -1453,23 +1453,12 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   {
     // The startTLS and useSSL arguments are already validated in
     // SecureConnectionCliParser.validateGlobalOptions.
-    if (hostName1Arg.getValue().equalsIgnoreCase(hostName2Arg.getValue()) &&
-        !isInteractive())
-    {
-      if (port1Arg.getValue() == port2Arg.getValue())
-      {
-        Message message = ERR_REPLICATION_SAME_SERVER_PORT.get(
-            hostName1Arg.getValue(), port1Arg.getValue());
-        addMessage(buf, message);
-      }
-    }
-
     if (hostNameSourceArg.getValue().equalsIgnoreCase(
         hostNameDestinationArg.getValue()) && !isInteractive())
     {
-      if (portSourceArg.getValue() == portSourceArg.getValue())
+      if (portSourceArg.getValue() == portDestinationArg.getValue())
       {
-        Message message = ERR_REPLICATION_SAME_SERVER_PORT.get(
+        Message message = ERR_REPLICATION_INITIALIZE_SAME_SERVER_PORT.get(
             hostNameSourceArg.getValue(), portSourceArg.getValue());
         addMessage(buf, message);
       }

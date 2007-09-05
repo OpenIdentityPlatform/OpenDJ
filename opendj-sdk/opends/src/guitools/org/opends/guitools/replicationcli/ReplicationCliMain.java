@@ -657,7 +657,7 @@ public class ReplicationCliMain extends CliApplicationHelper
           if (port1 == port2)
           {
             port2 = -1;
-            Message message = ERR_REPLICATION_SAME_SERVER_PORT.get(
+            Message message = ERR_REPLICATION_ENABLE_SAME_SERVER_PORT.get(
                 host1, String.valueOf(port1));
             printLineBreak();
             printErrorMessage(message);
@@ -1276,7 +1276,7 @@ public class ReplicationCliMain extends CliApplicationHelper
         if (portSource == portDestination)
         {
           portDestination = -1;
-          Message message = ERR_REPLICATION_SAME_SERVER_PORT.get(
+          Message message = ERR_REPLICATION_INITIALIZE_SAME_SERVER_PORT.get(
               hostSource, String.valueOf(portSource));
           printLineBreak();
           printErrorMessage(message);
