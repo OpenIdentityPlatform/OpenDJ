@@ -54,9 +54,6 @@ import java.util.zip.ZipOutputStream;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
-import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
 import javax.crypto.Mac;
 
 import org.opends.messages.Message;
@@ -2823,13 +2820,13 @@ public class ConfigFileHandler
     // output stream.
     if (encrypt)
     {
-      String cipherAlgorithm = cryptoManager.getPreferredCipherAlgorithm();
+      String cipherAlgorithm = cryptoManager.getPreferredCipherTransformation();
       backupProperties.put(BACKUP_PROPERTY_CIPHER_ALGORITHM, cipherAlgorithm);
 
-      Cipher cipher;
       try
       {
-        cipher = cryptoManager.getPreferredCipher(Cipher.ENCRYPT_MODE);
+        outputStream
+                = cryptoManager.getCipherOutputStream(outputStream);
       }
       catch (Exception e)
       {
@@ -2843,8 +2840,6 @@ public class ConfigFileHandler
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
-
-      outputStream = new CipherOutputStream(outputStream, cipher);
     }
 
 
@@ -3259,11 +3254,10 @@ public class ConfigFileHandler
                                      message);
       }
 
-      Cipher cipher;
       try
       {
-        cipher = DirectoryServer.getCryptoManager().getCipher(cipherAlgorithm,
-                                                         Cipher.DECRYPT_MODE);
+        inputStream = DirectoryServer.getCryptoManager()
+                                            .getCipherInputStream(inputStream);
       }
       catch (Exception e)
       {
@@ -3272,8 +3266,6 @@ public class ConfigFileHandler
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
-
-      inputStream = new CipherInputStream(inputStream, cipher);
     }
 
     // Now wrap the resulting input stream in a zip stream so that we can read

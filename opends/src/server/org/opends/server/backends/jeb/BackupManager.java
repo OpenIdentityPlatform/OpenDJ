@@ -37,9 +37,6 @@ import org.opends.server.types.CryptoManager;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.RestoreConfig;
 
-import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
 import javax.crypto.Mac;
 import java.io.BufferedReader;
 import java.io.File;
@@ -345,13 +342,13 @@ public class BackupManager
     // output stream.
     if (encrypt)
     {
-      String cipherAlgorithm = cryptoManager.getPreferredCipherAlgorithm();
+      String cipherAlgorithm = cryptoManager.getPreferredCipherTransformation();
       backupProperties.put(BACKUP_PROPERTY_CIPHER_ALGORITHM, cipherAlgorithm);
 
-      Cipher cipher;
       try
       {
-        cipher = cryptoManager.getPreferredCipher(Cipher.ENCRYPT_MODE);
+        outputStream
+                = cryptoManager.getCipherOutputStream(outputStream);
       }
       catch (Exception e)
       {
@@ -365,8 +362,6 @@ public class BackupManager
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
-
-      outputStream = new CipherOutputStream(outputStream, cipher);
     }
 
 
@@ -983,10 +978,9 @@ public class BackupManager
       String cipherAlgorithm =
            backupProperties.get(BACKUP_PROPERTY_CIPHER_ALGORITHM);
 
-      Cipher cipher;
       try
       {
-        cipher = cryptoManager.getCipher(cipherAlgorithm, Cipher.DECRYPT_MODE);
+        inputStream = cryptoManager.getCipherInputStream(inputStream);
       }
       catch (Exception e)
       {
@@ -1000,8 +994,6 @@ public class BackupManager
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
-
-      inputStream = new CipherInputStream(inputStream, cipher);
     }
 
 
@@ -1318,10 +1310,9 @@ public class BackupManager
       String cipherAlgorithm =
            backupProperties.get(BACKUP_PROPERTY_CIPHER_ALGORITHM);
 
-      Cipher cipher;
       try
       {
-        cipher = cryptoManager.getCipher(cipherAlgorithm, Cipher.DECRYPT_MODE);
+        inputStream = cryptoManager.getCipherInputStream(inputStream);
       }
       catch (Exception e)
       {
@@ -1335,8 +1326,6 @@ public class BackupManager
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
-
-      inputStream = new CipherInputStream(inputStream, cipher);
     }
 
 

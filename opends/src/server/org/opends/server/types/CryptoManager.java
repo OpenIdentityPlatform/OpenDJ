@@ -25,26 +25,24 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+
 import org.opends.messages.Message;
 import static org.opends.messages.CoreMessages.*;
 
-
 import java.io.InputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.*;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
-import java.util.SortedSet;
-import javax.crypto.Cipher;
-import javax.crypto.Mac;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
+import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.KeyManager;
@@ -55,14 +53,16 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.ConfigConstants;
 
+import org.opends.server.admin.std.server.CryptoManagerCfg;
+import org.opends.server.api.Backend;
+import org.opends.server.backends.TrustStoreBackend;
+import org.opends.server.core.DirectoryServer;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.asn1.ASN1OctetString;
 import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.util.Validator;
 import org.opends.server.util.SelectableCertificateKeyManager;
-import org.opends.server.api.Backend;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.backends.TrustStoreBackend;
-import org.opends.server.admin.std.server.CryptoManagerCfg;
 
 /**
  * This class provides the interface to the Directory Server
@@ -86,33 +86,44 @@ public class CryptoManager
    */
   private static final DebugTracer TRACER = getTracer();
 
+  // The secure random number generator used for key generation,
+  // initialization vector PRNG seed...
+  private final SecureRandom secureRandom = new SecureRandom();
 
+  // The random number generator used for initialization vector
+  // production.
+  private final Random pseudoRandom
+          = new Random(secureRandom.nextLong());
 
+  // The map from encryption key ID to cipher algorithm name.
+  private final HashMap<ByteString, String> cipherTransformationMap
+          = new HashMap<ByteString, String>();
 
-  // The default secret key that we will use for encryption and
-  // decryption.
-  private SecretKey secretKey;
+  // The map from encryption key ID to cipher key.
+  private final HashMap<ByteString, byte[]> secretKeyMap
+          = new HashMap<ByteString, byte[]>();
 
   // The preferred cipher for the Directory Server.
-  private String preferredCipher;
+  private final String preferredCipherTransformation;
 
   // The preferred message digest algorithm for the Directory Server.
-  private String preferredDigestAlgorithm;
+  private final String preferredDigestAlgorithm;
 
   // The preferred MAC algorithm for the Directory Server.
-  private String preferredMACAlgorithm;
+  private final String preferredMACAlgorithm;
 
   // The name of the local certificate to use for SSL.
-  private String sslCertNickname;
+  private final String sslCertNickname;
 
   // Whether replication sessions use SSL encryption.
-  private boolean sslEncryption;
+  private final boolean sslEncryption;
 
   // The set of SSL protocols enabled or null for the default set.
-  private SortedSet<String> sslProtocols;
+  private final SortedSet<String> sslProtocols;
 
   // The set of SSL cipher suites enabled or null for the default set.
-  private SortedSet<String> sslCipherSuites;
+  private final SortedSet<String> sslCipherSuites;
+
 
   /**
    * Creates a new instance of this crypto manager object from a given
@@ -136,13 +147,12 @@ public class CryptoManager
     // hard-coding them.
     preferredDigestAlgorithm = "SHA-1";
     preferredMACAlgorithm    = "HmacSHA1";
-    preferredCipher          = "AES/CBC/PKCS5Padding";
+    preferredCipherTransformation = "AES/CBC/PKCS5Padding";
 
-
-    // FIXME -- Use a much more secure way of constructing the secret
-    // key.
-    secretKey = new SecretKeySpec(new byte[16], "AES");
-
+    sslCertNickname = cfg.getSSLCertNickname();
+    sslEncryption   = cfg.isSSLEncryption();
+    sslProtocols    = cfg.getSSLProtocols();
+    sslCipherSuites = cfg.getSSLCipherSuites();
 
     // Make sure that we can create instances of the preferred digest,
     // MAC, and cipher algorithms.
@@ -163,10 +173,12 @@ public class CryptoManager
                           getExceptionMessage(e).toString()), e);
     }
 
+    byte[] keyValue = new byte[16];
+    secureRandom.nextBytes(keyValue);
     try
     {
       Mac mac = Mac.getInstance(preferredMACAlgorithm);
-      mac.init(secretKey);
+      mac.init(new SecretKeySpec(keyValue, preferredMACAlgorithm));
     }
     catch (Exception e)
     {
@@ -183,8 +195,12 @@ public class CryptoManager
 
     try
     {
-      Cipher cipher = Cipher.getInstance(preferredCipher);
-      cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+      Cipher cipher
+              = Cipher.getInstance(preferredCipherTransformation);
+      cipher.init(Cipher.ENCRYPT_MODE,
+              new SecretKeySpec(keyValue,
+                     preferredCipherTransformation.substring(0,
+                        preferredCipherTransformation.indexOf('/'))));
     }
     catch (Exception e)
     {
@@ -198,25 +214,59 @@ public class CryptoManager
                      Message.raw("Can't get preferred cipher:  " +
                      getExceptionMessage(e).toString()), e);
     }
-
-    sslCertNickname = cfg.getSSLCertNickname();
-    sslEncryption   = cfg.isSSLEncryption();
-    sslProtocols    = cfg.getSSLProtocols();
-    sslCipherSuites = cfg.getSSLCipherSuites();
   }
 
 
 
   /**
-   * Retrieves an instance of a secure random number generator.
+   *  Converts a UUID string into a compact byte[16] representation.
    *
-   * @return  An instance of a secure random number generator.
+   *  @param  uuidString A string reprentation of a UUID.
+   *
+   *  @return  A new byte[16] containing the binary representation of
+   *  the UUID.
+   *
+   *  @throws  CryptoManagerException  If the uuidString argument does
+   *  not conform to the UUID string syntax.
    */
-  public SecureRandom getSecureRandom()
+  private static byte[] uuidToBytes(String uuidString)
+          throws CryptoManagerException
   {
-    // FIXME -- Is this threadsafe?  Can we share a single instance
-    // among all threads?
-    return new SecureRandom();
+    UUID uuid;
+    try {
+      uuid = UUID.fromString(uuidString);
+    }
+    catch (Exception ex) {
+      throw new CryptoManagerException(
+              // TODO: i18n
+              Message.raw("Invalid string representation of a UUID."),
+              ex);
+    }
+    return uuidToBytes(uuid);
+  }
+
+
+
+  /**
+   *  Converts a UUID string into a compact byte[16] representation.
+   *
+   *  @param  uuid A UUID.
+   *
+   *  @return  A new byte[16] containing the binary representation of
+   *  the UUID.
+   */
+  private static byte[] uuidToBytes(UUID uuid)
+  {
+    final byte[] uuidBytes = new byte[16];
+    long hiBytes = uuid.getMostSignificantBits();
+    long loBytes = uuid.getLeastSignificantBits();
+    for (int i = 7; i >= 0; --i) {
+      uuidBytes[i] = (byte)hiBytes;
+      hiBytes >>>= 8;
+      uuidBytes[8 + i] = (byte)loBytes;
+      loBytes >>>= 8;
+    }
+    return uuidBytes;
   }
 
 
@@ -429,10 +479,7 @@ public class CryptoManager
   public Mac getPreferredMACProvider()
          throws NoSuchAlgorithmException, InvalidKeyException
   {
-    Mac mac = Mac.getInstance(preferredMACAlgorithm);
-    mac.init(secretKey);
-
-    return mac;
+    return getMACProvider(getPreferredMACAlgorithm());
   }
 
 
@@ -456,7 +503,9 @@ public class CryptoManager
          throws NoSuchAlgorithmException, InvalidKeyException
   {
     Mac mac = Mac.getInstance(macAlgorithm);
-    mac.init(secretKey);
+    byte[] keyValue = new byte[16];
+    secureRandom.nextBytes(keyValue);
+    mac.init(new SecretKeySpec(keyValue, macAlgorithm));
 
     return mac;
   }
@@ -590,22 +639,24 @@ public class CryptoManager
    *
    * @return  The name of the preferred cipher algorithm
    */
-  public String getPreferredCipherAlgorithm()
+  public String getPreferredCipherTransformation()
   {
-    return preferredCipher;
+    return preferredCipherTransformation;
   }
 
 
 
   /**
-   * Retrieves a cipher using the preferred algorithm and the
-   * specified cipher mode.
+   * Retrieves an encryption mode cipher using the specified
+   * algorithm.
    *
-   * @param  cipherMode  The cipher mode that indicates how the cipher
-   *                     will be used (e.g., encryption, decryption,
-   *                     wrapping, unwrapping).
+   * @param  cipherTransformation  The algorithm/mode/padding to use
+   *         for the cipher.
    *
-   * @return  A cipher using the preferred algorithm.
+   * @param  keyIdentifier  The key identifier assigned to the cipher
+   *         key used by the cipher.
+   *
+   * @return  An encryption mode cipher using the preferred algorithm.
    *
    * @throws  NoSuchAlgorithmException  If the requested algorithm is
    *                                    not supported or is
@@ -622,34 +673,73 @@ public class CryptoManager
    * @throws  InvalidAlgorithmParameterException
    *               If an internal problem occurs as a result of the
    *               initialization vector used.
+   *
+   * @throws  CryptoManagerException If there is a problem managing
+   *          the encryption key.
    */
-  public Cipher getPreferredCipher(int cipherMode)
+  private Cipher getEncryptionCipher(String cipherTransformation,
+                                     byte[] keyIdentifier)
          throws NoSuchAlgorithmException, NoSuchPaddingException,
                 InvalidKeyException,
-                InvalidAlgorithmParameterException
+                InvalidAlgorithmParameterException,
+                CryptoManagerException
   {
-    Cipher cipher = Cipher.getInstance(preferredCipher);
+    Validator.ensureNotNull(cipherTransformation);
 
-    // FIXME -- This needs to be more secure.
-    IvParameterSpec iv = new IvParameterSpec(new byte[16]);
+    byte[] secretKey;
+    byte[] keyID = null;
+    for (Map.Entry<ByteString, String> cipherEntry
+            : cipherTransformationMap.entrySet()) {
+      if (cipherEntry.getValue().equals(cipherTransformation)) {
+        keyID = cipherEntry.getKey().value();
+        break;
+      }
+    }
+    if (null == keyID) {
+      secretKey = new byte[16]; // FIXME: not all keys are 128-bits
+      secureRandom.nextBytes(secretKey);
+      keyID = uuidToBytes(UUID.randomUUID());
+      final ByteString keyString = new ASN1OctetString(keyID);
+      secretKeyMap.put(keyString, secretKey);
+      cipherTransformationMap.put(keyString, cipherTransformation);
+    }
+    else {
+      secretKey = secretKeyMap.get(new ASN1OctetString(keyID));
+    }
 
-    cipher.init(cipherMode, secretKey, iv);
+    final Cipher cipher = Cipher.getInstance(cipherTransformation);
+    final String cipherAlgorithm = cipherTransformation.substring(0,
+                        cipherTransformation.indexOf('/'));
+    final byte[] iv = new byte[16];// FIXME: always keylength?
+    pseudoRandom.nextBytes(iv);
+    cipher.init(Cipher.ENCRYPT_MODE,
+                new SecretKeySpec(secretKey, cipherAlgorithm),
+                new IvParameterSpec(iv));
 
+    try {
+      System.arraycopy(keyID, 0, keyIdentifier, 0, keyID.length);
+    }
+    catch (Exception ex) {
+      throw new CryptoManagerException(
+                    // TODO: i18n
+                    Message.raw("Error copying key identifier."),
+                    ex);
+    }
     return cipher;
   }
 
 
 
   /**
-   * Retrieves a cipher using the preferred algorithm and the
-   * specified cipher mode.
+   * Retrieves a decryption mode cipher using the algorithm and
+   * encryption key specified by the key identifier and the supplied
+   * initialization vector.
    *
-   * @param  cipherAlgorithm  The algorithm to use for the cipher.
-   * @param  cipherMode       The cipher mode that indicates how the
-   *                          cipher will be used (e.g., encryption,
-   *                          decryption, wrapping, unwrapping).
+   * @param  keyID  The ID of the key to be used for decryption.
+   * @param  initializationVector The initialization vector to be used
+   *         for decryption.
    *
-   * @return  A cipher using the preferred algorithm.
+   * @return  A decryption mode cipher using the specified parameters.
    *
    * @throws  NoSuchAlgorithmException  If the requested algorithm is
    *                                    not supported or is
@@ -666,18 +756,35 @@ public class CryptoManager
    * @throws  InvalidAlgorithmParameterException
    *               If an internal problem occurs as a result of the
    *               initialization vector used.
+   *
+   * @throws  CryptoManagerException If an invalid keyID is supplied.
    */
-  public Cipher getCipher(String cipherAlgorithm, int cipherMode)
+  private Cipher getDecryptionCipher(byte[] keyID,
+                                     byte[] initializationVector)
          throws NoSuchAlgorithmException, NoSuchPaddingException,
                 InvalidKeyException,
-                InvalidAlgorithmParameterException
+                InvalidAlgorithmParameterException,
+                CryptoManagerException
   {
-    Cipher cipher = Cipher.getInstance(cipherAlgorithm);
+    Validator.ensureNotNull(keyID, initializationVector);
 
-    // FIXME -- This needs to be more secure.
-    IvParameterSpec iv = new IvParameterSpec(new byte[16]);
+    final ByteString keyString = new ASN1OctetString(keyID);
+    final String cipherTransformation
+            = cipherTransformationMap.get(keyString);
+    final byte[] secretKey = secretKeyMap.get(keyString);
+    if (null == cipherTransformation || null == secretKey) {
+      throw new CryptoManagerException(
+              // TODO: i18n
+              Message.raw("Invalid encryption key identifier %s.",
+                          keyString));
+    }
 
-    cipher.init(cipherMode, secretKey, iv);
+    final Cipher cipher = Cipher.getInstance(cipherTransformation);
+    final String cipherAlgorithm = cipherTransformation.substring(0,
+                        cipherTransformation.indexOf('/'));
+    cipher.init(Cipher.DECRYPT_MODE,
+                new SecretKeySpec(secretKey, cipherAlgorithm),
+                new IvParameterSpec(initializationVector));
 
     return cipher;
   }
@@ -686,7 +793,7 @@ public class CryptoManager
 
   /**
    * Encrypts the data in the provided byte array using the preferred
-   * cipher.
+   * cipher transformation.
    *
    * @param  data  The data to be encrypted.
    *
@@ -696,23 +803,129 @@ public class CryptoManager
    * @throws  GeneralSecurityException  If a problem occurs while
    *                                    attempting to encrypt the
    *                                    data.
+   *
+   * @throws  CryptoManagerException  If a problem occurs managing the
+   *          encryption key.
    */
   public byte[] encrypt(byte[] data)
-         throws GeneralSecurityException
+         throws GeneralSecurityException,
+                CryptoManagerException
   {
-    Cipher cipher = Cipher.getInstance(preferredCipher);
-
-    // FIXME -- This needs to be more secure.
-    IvParameterSpec iv = new IvParameterSpec(new byte[16]);
-
-    cipher.init(Cipher.ENCRYPT_MODE, secretKey, iv);
-    return cipher.doFinal(data);
+    return encrypt(getPreferredCipherTransformation(), data);
   }
 
 
 
   /**
-   * Decrypts the data in the provided byte array using the preferred
+   * Encrypts the data in the provided byte array using the requested
+   * cipher algorithm.
+   *
+   * @param  cipherTransformation  The algorithm to use to encrypt the
+   *                          data.
+   * @param  data             The data to be encrypted.
+   *
+   * @return  A byte array containing the encrypted representation of
+   *          the provided data.
+   *
+   * @throws  GeneralSecurityException  If a problem occurs while
+   *                                    attempting to encrypt the
+   *                                    data.
+   *
+   * @throws  CryptoManagerException  If a problem occurs managing the
+   *          encryption key.
+   */
+  public byte[] encrypt(String cipherTransformation, byte[] data)
+         throws GeneralSecurityException, CryptoManagerException
+  {
+    Validator.ensureNotNull(cipherTransformation, data);
+
+    final byte[] keyID = new byte[16];// FIXME: key id length constant
+    final Cipher cipher
+            = getEncryptionCipher(cipherTransformation, keyID);
+    final byte[] iv = cipher.getIV();
+    final int prologueLength = keyID.length + iv.length;
+    final int dataLength = cipher.getOutputSize(data.length);
+    final byte[] cipherText = new byte[prologueLength + dataLength];
+    System.arraycopy(keyID, 0, cipherText, 0, keyID.length);
+    System.arraycopy(iv, 0, cipherText, keyID.length, iv.length);
+    System.arraycopy(cipher.doFinal(data), 0, cipherText,
+                     prologueLength, dataLength);
+    return cipherText;
+  }
+
+
+
+  /**
+   * Encrypts the data in the provided byte array using the preferred
+   * cipher algorithm.
+   *
+   * @param  outputStream The output stream to be wrapped by the
+   *         returned output stream.
+   *
+   * @return  A byte array containing the encrypted representation of
+   *          the provided data.
+   *
+   * @throws  GeneralSecurityException  If a problem occurs while
+   *                                    attempting to encrypt the
+   *                                    data.
+   *
+   * @throws  CryptoManagerException  If a problem occurs managing the
+   *          encryption key.
+   */
+  public CipherOutputStream getCipherOutputStream(
+          OutputStream outputStream)
+          throws GeneralSecurityException, CryptoManagerException
+  {
+    return getCipherOutputStream(getPreferredCipherTransformation(),
+                                 outputStream);
+  }
+
+
+
+  /**
+   * Encrypts the data in the provided output stream using the
+   * requested cipher transformation.
+   *
+   * @param  cipherTransformation  The algorithm to use to encrypt the
+   *                          data.
+   * @param  outputStream The output stream to be wrapped by the
+   *         returned output stream.
+   *
+   * @return  A byte array containing the encrypted representation of
+   *          the provided data.
+   *
+   * @throws  GeneralSecurityException  If a problem occurs while
+   *                                    attempting to encrypt the
+   *                                    data.
+   *
+   * @throws  CryptoManagerException  If a problem occurs managing the
+   *          encryption key.
+   */
+  public CipherOutputStream getCipherOutputStream(
+          String cipherTransformation, OutputStream outputStream)
+         throws GeneralSecurityException, CryptoManagerException
+  {
+    final byte[] keyID = new byte[16];// FIXME: key id length constant
+    final Cipher cipher
+            = getEncryptionCipher(cipherTransformation, keyID);
+    try {
+      outputStream.write(keyID);
+      outputStream.write(cipher.getIV());
+    }
+    catch (IOException ioe) {
+      throw new CryptoManagerException(
+        // TODO: i18n
+        Message.raw("Exception when writing CryptoManager prologue."),
+        ioe);
+    }
+    return new CipherOutputStream(outputStream, cipher);
+  }
+
+
+
+  /**
+   * Decrypts the data in the provided byte array using cipher
+   * specified by the key identifier prologue to the data.
    * cipher.
    *
    * @param  data  The data to be decrypted.
@@ -723,77 +936,93 @@ public class CryptoManager
    * @throws  GeneralSecurityException  If a problem occurs while
    *                                    attempting to decrypt the
    *                                    data.
+   *
+   * @throws  CryptoManagerException  If a problem occurs reading the
+   *          key identifier or initialization vector from the data
+   *          prologue.
    */
   public byte[] decrypt(byte[] data)
-         throws GeneralSecurityException
+         throws GeneralSecurityException,
+                CryptoManagerException
   {
-    Cipher cipher = Cipher.getInstance(preferredCipher);
+    final byte[] keyID = new byte[16];
+    final byte[] iv = new byte[16]; // FIXME: always 128 bits?
+    final int prologueLength = keyID.length + iv.length;
+    try {
+      System.arraycopy(data, 0, keyID, 0, keyID.length);
+      System.arraycopy(data, keyID.length, iv, 0, iv.length);
+    }
+    catch (Exception ex) {
+      throw new CryptoManagerException(
+        // TODO: i18n
+        Message.raw("Exception when reading CryptoManager prologue."),
+        ex);
+    }
 
-    // FIXME -- This needs to be more secure.
-    IvParameterSpec iv = new IvParameterSpec(new byte[16]);
-
-    cipher.init(Cipher.DECRYPT_MODE, secretKey, iv);
-    return cipher.doFinal(data);
+    Cipher cipher = getDecryptionCipher(keyID, iv);
+    return cipher.doFinal(data, prologueLength,
+                          data.length - prologueLength);
   }
 
 
 
   /**
-   * Encrypts the data in the provided byte array using the preferred
-   * cipher.
+   * Returns a CipherInputStream instantiated with a cipher
+   * corresponding to the key identifier prologue to the data.
    *
-   * @param  cipherAlgorithm  The algorithm to use to encrypt the
-   *                          data.
-   * @param  data             The data to be encrypted.
+   * @param  inputStream The input stream be wrapped with the
+   *         CipherInputStream.
    *
-   * @return  A byte array containing the encrypted representation of
-   *          the provided data.
+   * @return The CiperInputStream instantiated as specified.
    *
-   * @throws  GeneralSecurityException  If a problem occurs while
-   *                                    attempting to encrypt the
-   *                                    data.
+   * @throws  NoSuchAlgorithmException  If the requested algorithm is
+   *                                    not supported or is
+   *                                    unavailable.
+   *
+   * @throws  NoSuchPaddingException  If the requested padding
+   *                                  mechanism is not supported or is
+   *                                  unavailable.
+   *
+   * @throws  InvalidKeyException  If the provided key is not
+   *                               appropriate for use with the
+   *                               requested cipher algorithm.
+   *
+   * @throws  InvalidAlgorithmParameterException
+   *               If an internal problem occurs as a result of the
+   *               initialization vector used.
+   *
+   * @throws  CryptoManagerException If there is a problem reading the
+   *          key ID or initialization vector from the input stream.
    */
-  public byte[] encrypt(String cipherAlgorithm, byte[] data)
-         throws GeneralSecurityException
+  public CipherInputStream getCipherInputStream(
+                                            InputStream inputStream)
+          throws NoSuchAlgorithmException, NoSuchPaddingException,
+                 InvalidKeyException,
+                 InvalidAlgorithmParameterException,
+                 CryptoManagerException
   {
-    Cipher cipher = Cipher.getInstance(cipherAlgorithm);
+    byte[] keyID = new byte[16];
+    byte[] iv = new byte[16];  // FIXME: not all ivs are key length
+    try {
+      if (keyID.length != inputStream.read(keyID)
+              || iv.length != inputStream.read(iv)){
+        throw new CryptoManagerException(
+          // TODO: i18n
+          Message.raw(
+            "Stream underflow when reading CryptoManager prologue."));
+      }
+    }
+    catch (IOException ioe) {
+      throw new CryptoManagerException(
+          // TODO: i18n
+          Message.raw(
+                 "IO exception when reading CryptoManager prologue."),
+                 ioe);
+    }
 
-    // FIXME -- This needs to be more secure.
-    IvParameterSpec iv = new IvParameterSpec(new byte[16]);
-
-    cipher.init(Cipher.ENCRYPT_MODE, secretKey, iv);
-    return cipher.doFinal(data);
+    return new CipherInputStream(inputStream,
+                          getDecryptionCipher(keyID, iv));
   }
-
-
-
-  /**
-   * Decrypts the data in the provided byte array using the requested
-   * cipher.
-   *
-   * @param  cipherAlgorithm  The algorithm to use to decrypt the
-   *                          data.
-   * @param  data             The data to be decrypted.
-   *
-   * @return  A byte array containing the cleartext representation of
-   *          the provided data.
-   *
-   * @throws  GeneralSecurityException  If a problem occurs while
-   *                                    attempting to decrypt the
-   *                                    data.
-   */
-  public byte[] decrypt(String cipherAlgorithm, byte[] data)
-         throws GeneralSecurityException
-  {
-    Cipher cipher = Cipher.getInstance(cipherAlgorithm);
-
-    // FIXME -- This needs to be more secure.
-    IvParameterSpec iv = new IvParameterSpec(new byte[16]);
-
-    cipher.init(Cipher.DECRYPT_MODE, secretKey, iv);
-    return cipher.doFinal(data);
-  }
-
 
 
   /**
@@ -1009,6 +1238,42 @@ public class CryptoManager
   public SortedSet<String> getSslCipherSuites()
   {
     return sslCipherSuites;
+  }
+
+  /**
+   * This class defines an exception that is thrown in the case of
+   * problems with encryption key managagment, and is a wrapper for a
+   * variety of other cipher related exceptions.
+   */
+  public static class CryptoManagerException extends OpenDsException
+  {
+    /**
+     * The serial version identifier required to satisfy the compiler
+     * because this class extends <CODE>java.lang.Exception</CODE>,
+     * which implements the <CODE>java.io.Serializable</CODE>
+     * interface. This value was generated using the
+     * <CODE>serialver</CODE> command-line utility included with the
+     * Java SDK.
+     */
+    static final long serialVersionUID = -5890763923778143774L;
+
+    /**
+     * Creates an exception with the given message.
+     * @param message the message message.
+     */
+    public CryptoManagerException(Message message) {
+      super(message);
+     }
+
+    /**
+     * Creates an exception with the given message and underlying
+     * cause.
+     * @param message The message message.
+     * @param cause  The underlying cause.
+     */
+    public CryptoManagerException(Message message, Exception cause) {
+      super(message, cause);
+    }
   }
 }
 
