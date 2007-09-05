@@ -28,9 +28,15 @@ package org.opends.server.tasks;
 
 
 
+import java.util.List;
+
+import org.opends.messages.Message;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 
 
 
@@ -41,6 +47,15 @@ import org.opends.server.types.DirectoryException;
 public class DummyTask
        extends Task
 {
+  // The length of time that the task should sleep before completing.
+  private long sleepTime;
+
+  // The task state to use when interrupting the task.  This will be null unless
+  // the task gets interrupted.
+  private volatile TaskState interruptedState;
+
+
+
   /**
    * {@inheritDoc}
    */
@@ -48,7 +63,25 @@ public class DummyTask
   public void initializeTask()
          throws DirectoryException
   {
-    // No implementation is required.
+    sleepTime = 0;
+    interruptedState = null;
+
+    Entry taskEntry = getTaskEntry();
+    if (taskEntry != null)
+    {
+      List<Attribute> attrList =
+           taskEntry.getAttribute("ds-task-dummy-sleep-time");
+      if (attrList != null)
+      {
+        for (Attribute a : attrList)
+        {
+          for (AttributeValue v : a.getValues())
+          {
+            sleepTime = Long.parseLong(v.getStringValue());
+          }
+        }
+      }
+    }
   }
 
 
@@ -58,7 +91,34 @@ public class DummyTask
    */
   protected TaskState runTask()
   {
-    return TaskState.COMPLETED_SUCCESSFULLY;
+    long stopTime = System.currentTimeMillis() + sleepTime;
+    while ((interruptedState == null) &&
+           (System.currentTimeMillis() < stopTime))
+    {
+      try
+      {
+        Thread.sleep(10);
+      } catch (Exception e) {}
+    }
+
+    if (interruptedState == null)
+    {
+      return TaskState.COMPLETED_SUCCESSFULLY;
+    }
+    else
+    {
+      return interruptedState;
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void interruptTask(TaskState taskState, Message interruptMessage)
+  {
+    interruptedState = taskState;
   }
 }
 
