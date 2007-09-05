@@ -213,7 +213,7 @@
                 
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'roomnumber:' ,
+                      'testString'         : 'roomNumber:' ,
                       'expectedResult'     : '1' }
                 </call>
                 
@@ -394,7 +394,7 @@
                 
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'roomnumber:' ,
+                      'testString'         : 'roomNumber:' ,
                       'expectedResult'     : '0' }
                 </call>
                 
@@ -572,7 +572,7 @@
                 
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'roomnumber:' ,
+                      'testString'         : 'roomNumber:' ,
                       'expectedResult'     : '1' }
                 </call>
                 
@@ -750,7 +750,7 @@
               
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'roomnumber:' ,
+                    'testString'         : 'roomNumber:' ,
                     'expectedResult'     : '1' }
               </call>
               
@@ -906,7 +906,7 @@
               
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'roomnumber:' ,
+                    'testString'         : 'roomNumber:' ,
                     'expectedResult'     : '1' }
               </call>
               
@@ -1110,7 +1110,7 @@
               
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'roomnumber:' ,
+                    'testString'         : 'roomNumber:' ,
                     'expectedResult'     : '1' }
               </call>
               
@@ -1539,7 +1539,7 @@
               
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'roomnumber:' ,
+                    'testString'         : 'roomNumber:' ,
                     'expectedResult'     : '1' }
               </call>
               
@@ -1743,7 +1743,7 @@
               
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'roomnumber:' ,
+                    'testString'         : 'roomNumber:' ,
                     'expectedResult'     : '1' }
               </call>
               
@@ -1899,7 +1899,7 @@
               
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'roomnumber:' ,
+                    'testString'         : 'roomNumber:' ,
                     'expectedResult'     : '1' }
               </call>
               
@@ -2079,7 +2079,7 @@
               
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'roomnumber:' ,
+                    'testString'         : 'roomNumber:' ,
                     'expectedResult'     : '1' }
               </call>
               
@@ -2259,7 +2259,7 @@
               
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'roomnumber:' ,
+                    'testString'         : 'roomNumber:' ,
                     'expectedResult'     : '1' }
               </call>
               
@@ -2439,7 +2439,7 @@
               
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'roomnumber:' ,
+                    'testString'         : 'roomNumber:' ,
                     'expectedResult'     : '1' }
               </call>
               
