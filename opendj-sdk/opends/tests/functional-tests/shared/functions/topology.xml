@@ -459,7 +459,8 @@
           'dsBindDN'               : dsBindDN,
           'dsBindPwd'              : dsBindPwd,
           'dsBaseDN'               : dsBaseDN,
-          'dsEnableWindowsService' : enableWindowsService
+          'dsEnableWindowsService' : enableWindowsService,
+          'dsDoNotStart'           : 'true'
         }
       </call>
       
