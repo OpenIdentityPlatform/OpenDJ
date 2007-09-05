@@ -72,6 +72,17 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
+    public <C extends ConfigurationClient, S extends Configuration>
+    Message visitAggregation(AggregationPropertyDefinition<C, S> d, Void p) {
+      return Message.raw("NAME");
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Message visitAttributeType(AttributeTypePropertyDefinition d,
         Void p) {
       return Message.raw("OID");

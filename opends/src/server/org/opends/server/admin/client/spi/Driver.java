@@ -430,6 +430,12 @@ public abstract class Driver {
    * Gets the effective value of a property in the named managed
    * object.
    *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          path definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          path definition refers to.
    * @param <PD>
    *          The type of the property to be retrieved.
    * @param path
@@ -458,7 +464,8 @@ public abstract class Driver {
    *           If the client cannot contact the server due to an
    *           underlying communication problem.
    */
-  public final <PD> PD getPropertyValue(ManagedObjectPath<?, ?> path,
+  public final <C extends ConfigurationClient, S extends Configuration, PD>
+  PD getPropertyValue(ManagedObjectPath<C, S> path,
       PropertyDefinition<PD> pd) throws IllegalArgumentException,
       DefinitionDecodingException, AuthorizationException,
       ManagedObjectNotFoundException, CommunicationException,
@@ -486,6 +493,12 @@ public abstract class Driver {
    * managed object contains a property which inherits default values
    * from another property in the same managed object.
    *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          path definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          path definition refers to.
    * @param <PD>
    *          The type of the property to be retrieved.
    * @param path
@@ -514,8 +527,9 @@ public abstract class Driver {
    *           If the client cannot contact the server due to an
    *           underlying communication problem.
    */
-  public abstract <PD> SortedSet<PD> getPropertyValues(
-      ManagedObjectPath<?, ?> path, PropertyDefinition<PD> pd)
+  public abstract <C extends ConfigurationClient, S extends Configuration, PD>
+  SortedSet<PD> getPropertyValues(
+      ManagedObjectPath<C, S> path, PropertyDefinition<PD> pd)
       throws IllegalArgumentException, DefinitionDecodingException,
       AuthorizationException, ManagedObjectNotFoundException,
       CommunicationException, PropertyException;

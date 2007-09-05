@@ -32,6 +32,7 @@ import java.util.SortedSet;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.TestChildCfgClient;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 
@@ -72,6 +73,17 @@ public interface TestChildCfg extends Configuration {
    *          The Test Child configuration change listener.
    */
   void removeChangeListener(ConfigurationChangeListener<TestChildCfg> listener);
+
+
+
+  /**
+   * Get the "aggregation-property" property.
+   * <p>
+   * An aggregation property which references connection handlers.
+   *
+   * @return Returns the values of the "aggregation-property" property.
+   */
+  SortedSet<String> getAggregationProperty();
 
 
 

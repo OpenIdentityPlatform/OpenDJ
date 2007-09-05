@@ -33,11 +33,9 @@ import java.util.SortedSet;
 
 import javax.naming.ldap.LdapName;
 
-import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.AdminTestCase;
-import org.opends.server.admin.LDAPProfile;
-import org.opends.server.admin.MockLDAPProfile;
 import org.opends.server.admin.TestCfg;
 import org.opends.server.admin.TestChildCfg;
 import org.opends.server.admin.TestParentCfg;
@@ -181,7 +179,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
   private static final String[] TEST_CHILD_1 = new String[] {
       "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
-      "objectclass: ds-cfg-virtual-attribute",
+      "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 1",
       "ds-cfg-virtual-attribute-enabled: true",
       "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
@@ -193,7 +191,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
   private static final String[] TEST_CHILD_2 = new String[] {
       "dn: cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
-      "objectclass: ds-cfg-virtual-attribute",
+      "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 2",
       "ds-cfg-virtual-attribute-enabled: true",
       "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
@@ -207,7 +205,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
   private static final String[] TEST_CHILD_3 = new String[] {
       "dn: cn=test child 3,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
-      "objectclass: ds-cfg-virtual-attribute",
+      "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 3",
       "ds-cfg-virtual-attribute-enabled: true",
       "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
@@ -223,7 +221,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
   private static final String[] TEST_CHILD_4 = new String[] {
       "dn: cn=test child 4,cn=test children,cn=test parent 2,cn=test parents,cn=config",
       "objectclass: top",
-      "objectclass: ds-cfg-virtual-attribute",
+      "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 4",
       "ds-cfg-virtual-attribute-enabled: true",
       "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
@@ -243,7 +241,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
       // optional-multi-valued-dn-property.
       "dn: cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
-      "objectclass: ds-cfg-virtual-attribute",
+      "objectclass: ds-cfg-test-parent-dummy",
       "cn: test parent 1",
       "ds-cfg-virtual-attribute-enabled: true",
       "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
@@ -254,7 +252,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
       // optional-multi-valued-dn-property.
       "dn: cn=test parent 2,cn=test parents,cn=config",
       "objectclass: top",
-      "objectclass: ds-cfg-virtual-attribute",
+      "objectclass: ds-cfg-test-parent-dummy",
       "cn: test parent 2",
       "ds-cfg-virtual-attribute-enabled: true",
       "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
@@ -292,7 +290,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
     // This test suite depends on having the schema available, so
     // we'll start the server.
     TestCaseUtils.startServer();
-    LDAPProfile.getInstance().pushWrapper(new MockLDAPProfile());
+    TestCfg.setUp();
 
     // Add test managed objects.
     TestCaseUtils.addEntries(TEST_LDIF);
@@ -308,7 +306,6 @@ public final class DefaultBehaviorTest extends AdminTestCase {
    */
   @AfterClass
   public void tearDown() throws Exception {
-    LDAPProfile.getInstance().popWrapper();
     TestCfg.cleanup();
 
     // Remove test entries.

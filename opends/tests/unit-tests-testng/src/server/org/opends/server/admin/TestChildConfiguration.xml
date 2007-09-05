@@ -26,7 +26,7 @@
   !      Portions Copyright 2007 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="test-child" plural-name="test-children"
-  package="org.opends.server.admin.std"
+  package="org.opends.server.admin"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
@@ -36,8 +36,8 @@
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.91</ldap:oid>
-      <ldap:name>ds-cfg-virtual-attribute</ldap:name>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.4455114402</ldap:oid>
+      <ldap:name>ds-cfg-test-child-dummy</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
@@ -137,6 +137,24 @@
       <ldap:attribute>
         <ldap:oid>1.3.6.1.4.1.26027.1.1.329</ldap:oid>
         <ldap:name>ds-cfg-virtual-attribute-group-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="aggregation-property" multi-valued="true">
+    <adm:synopsis>
+      An aggregation property which references connection handlers.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:aggregation parent-path="/"
+        relation-name="connection-handler" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.332</ldap:oid>
+        <ldap:name>ds-task-initialize-domain-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

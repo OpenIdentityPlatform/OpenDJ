@@ -36,7 +36,6 @@ import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.ManagedObjectPath;
-import org.opends.server.admin.MockLDAPProfile;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
 import org.opends.server.admin.TestCfg;
@@ -67,7 +66,7 @@ public final class DNBuilderTest extends AdminTestCase {
     // This test suite depends on having the schema available, so
     // we'll start the server.
     TestCaseUtils.startServer();
-    LDAPProfile.getInstance().pushWrapper(new MockLDAPProfile());
+    TestCfg.setUp();
   }
 
 
@@ -77,7 +76,6 @@ public final class DNBuilderTest extends AdminTestCase {
    */
   @AfterClass
   public void tearDown() {
-    LDAPProfile.getInstance().popWrapper();
     TestCfg.cleanup();
   }
 

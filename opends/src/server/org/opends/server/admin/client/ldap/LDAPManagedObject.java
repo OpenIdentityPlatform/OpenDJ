@@ -41,6 +41,7 @@ import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
 import org.opends.messages.Message;
+import org.opends.server.admin.AggregationPropertyDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.InstantiableRelationDefinition;
@@ -50,7 +51,10 @@ import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyOption;
+import org.opends.server.admin.PropertyValueVisitor;
+import org.opends.server.admin.Reference;
 import org.opends.server.admin.RelationDefinition;
+import org.opends.server.admin.UnknownPropertyDefinitionException;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
@@ -72,6 +76,47 @@ import org.opends.server.admin.client.spi.PropertySet;
  */
 final class LDAPManagedObject<T extends ConfigurationClient> extends
     AbstractManagedObject<T> {
+
+  /**
+   * A visitor which is used to encode property LDAP values.
+   */
+  private static final class ValueEncoder extends
+      PropertyValueVisitor<Object, Void> {
+
+    // Prevent instantiation.
+    private ValueEncoder() {
+      // No implementation required.
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <C extends ConfigurationClient, S extends Configuration>
+    Object visitAggregation(
+        AggregationPropertyDefinition<C, S> d, String v, Void p) {
+      // Aggregations values are stored as full DNs in LDAP, but
+      // just their common name is exposed in the admin framework.
+      Reference<C, S> reference = Reference.parseName(d.getParentPath(), d
+          .getRelationDefinition(), v);
+      return reference.toDN().toString();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <PD> Object visitUnknown(PropertyDefinition<PD> d, PD v, Void p)
+        throws UnknownPropertyDefinitionException {
+      return d.encodeValue(v);
+    }
+  }
+
+
 
   // The LDAP management driver associated with this managed object.
   private final LDAPDriver driver;
@@ -294,17 +339,18 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
   // Encode a property into LDAP string values.
   private <PD> void encodeProperty(Attribute attribute,
       PropertyDefinition<PD> pd) {
+    PropertyValueVisitor<Object, Void> visitor = new ValueEncoder();
     Property<PD> p = getProperty(pd);
     if (pd.hasOption(PropertyOption.MANDATORY)) {
       // For mandatory properties we fall-back to the default values
       // if defined which can sometimes be the case e.g when a
       // mandatory property is overridden.
       for (PD value : p.getEffectiveValues()) {
-        attribute.add(pd.encodeValue(value));
+        attribute.add(pd.accept(visitor, value, null));
       }
     } else {
       for (PD value : p.getPendingValues()) {
-        attribute.add(pd.encodeValue(value));
+        attribute.add(pd.accept(visitor, value, null));
       }
     }
   }

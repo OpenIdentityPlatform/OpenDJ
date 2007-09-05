@@ -49,6 +49,7 @@ import javax.naming.ldap.LdapName;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
+import org.opends.server.admin.AggregationPropertyDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.DefaultBehaviorException;
@@ -61,11 +62,14 @@ import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.PropertyDefinition;
+import org.opends.server.admin.PropertyDefinitionVisitor;
 import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyIsMandatoryException;
 import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyOption;
+import org.opends.server.admin.Reference;
 import org.opends.server.admin.RelationDefinition;
+import org.opends.server.admin.UnknownPropertyDefinitionException;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
@@ -83,6 +87,73 @@ import org.opends.server.admin.std.meta.RootCfgDefn;
  * The LDAP management context driver implementation.
  */
 final class LDAPDriver extends Driver {
+
+  /**
+   * A visitor which is used to decode property LDAP values.
+   */
+  private static final class ValueDecoder extends
+      PropertyDefinitionVisitor<Object, String> {
+
+    /**
+     * Decodes the provided property LDAP value.
+     *
+     * @param <PD>
+     *          The type of the property.
+     * @param pd
+     *          The property definition.
+     * @param value
+     *          The LDAP string representation.
+     * @return Returns the decoded LDAP value.
+     * @throws IllegalPropertyValueStringException
+     *           If the property value could not be decoded because it
+     *           was invalid.
+     */
+    public static <PD> PD decode(PropertyDefinition<PD> pd, Object value)
+        throws IllegalPropertyValueStringException {
+      String s = String.valueOf(value);
+      return pd.castValue(pd.accept(new ValueDecoder(), s));
+    }
+
+
+
+    // Prevent instantiation.
+    private ValueDecoder() {
+      // No implementation required.
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <C extends ConfigurationClient, S extends Configuration>
+    Object visitAggregation(AggregationPropertyDefinition<C, S> d, String p) {
+      // Aggregations values are stored as full DNs in LDAP, but
+      // just their common name is exposed in the admin framework.
+      try {
+        Reference<C, S> reference = Reference.parseDN(d.getParentPath(), d
+            .getRelationDefinition(), p);
+        return reference.getName();
+      } catch (IllegalArgumentException e) {
+        throw new IllegalPropertyValueStringException(d, p);
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <T> Object visitUnknown(PropertyDefinition<T> d, String p)
+        throws UnknownPropertyDefinitionException {
+      // By default the property definition's decoder will do.
+      return d.decodeValue(p);
+    }
+  }
+
+
 
   // The LDAP connection.
   private final LDAPConnection connection;
@@ -151,20 +222,8 @@ final class LDAPDriver extends Driver {
       for (PropertyDefinition<?> pd : mod.getAllPropertyDefinitions()) {
         String attrID = profile.getAttributeName(mod, pd);
         Attribute attribute = attributes.get(attrID);
-        List<String> values = new LinkedList<String>();
-
-        if (attribute != null && attribute.size() != 0) {
-          NamingEnumeration<?> ldapValues = attribute.getAll();
-          while (ldapValues.hasMore()) {
-            Object obj = ldapValues.next();
-            if (obj != null) {
-              values.add(obj.toString());
-            }
-          }
-        }
-
         try {
-          decodeProperty(newProperties, path, pd, values);
+          decodeProperty(newProperties, path, pd, attribute);
         } catch (PropertyException e) {
           exceptions.add(e);
         }
@@ -193,12 +252,23 @@ final class LDAPDriver extends Driver {
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("unchecked")
   @Override
-  public <PD> SortedSet<PD> getPropertyValues(ManagedObjectPath<?, ?> path,
+  public <C extends ConfigurationClient, S extends Configuration, PD>
+  SortedSet<PD> getPropertyValues(ManagedObjectPath<C, S> path,
       PropertyDefinition<PD> pd) throws IllegalArgumentException,
       DefinitionDecodingException, AuthorizationException,
       ManagedObjectNotFoundException, CommunicationException,
       PropertyException {
+    // Check that the requested property is from the definition
+    // associated with the path.
+    AbstractManagedObjectDefinition<C, S> d = path.getManagedObjectDefinition();
+    PropertyDefinition<?> tmp = d.getPropertyDefinition(pd.getName());
+    if (tmp != pd) {
+      throw new IllegalArgumentException("The property " + pd.getName()
+          + " is not associated with a " + d.getName());
+    }
+
     if (!managedObjectExists(path)) {
       throw new ManagedObjectNotFoundException();
     }
@@ -206,26 +276,27 @@ final class LDAPDriver extends Driver {
     try {
       // Read the entry associated with the managed object.
       LdapName dn = LDAPNameBuilder.create(path, profile);
-      AbstractManagedObjectDefinition<?, ?> d = path
-          .getManagedObjectDefinition();
-      ManagedObjectDefinition<?, ?> mod = getEntryDefinition(d, dn);
+      ManagedObjectDefinition<? extends C, ? extends S> mod;
+      mod = getEntryDefinition(d, dn);
+
+      // Make sure we use the correct property definition, the
+      // provided one might have been overridden in the resolved
+      // definition.
+      pd = (PropertyDefinition<PD>) mod.getPropertyDefinition(pd.getName());
 
       String attrID = profile.getAttributeName(mod, pd);
       Attributes attributes = connection.readEntry(dn, Collections
           .singleton(attrID));
       Attribute attribute = attributes.get(attrID);
 
+      // Decode the values.
       SortedSet<PD> values = new TreeSet<PD>(pd);
-      if (attribute == null || attribute.size() == 0) {
-        // Use the property's default values.
-        values.addAll(findDefaultValues(path, pd, false));
-      } else {
-        // Decode the values.
+      if (attribute != null) {
         NamingEnumeration<?> ldapValues = attribute.getAll();
         while (ldapValues.hasMore()) {
           Object obj = ldapValues.next();
           if (obj != null) {
-            PD value = pd.decodeValue(obj.toString());
+            PD value = ValueDecoder.decode(pd, obj);
             values.add(value);
           }
         }
@@ -238,6 +309,11 @@ final class LDAPDriver extends Driver {
 
       if (values.isEmpty() && pd.hasOption(PropertyOption.MANDATORY)) {
         throw new PropertyIsMandatoryException(pd);
+      }
+
+      if (values.isEmpty()) {
+        // Use the property's default values.
+        values.addAll(findDefaultValues(path.asSubType(mod), pd, false));
       }
 
       return values;
@@ -471,24 +547,28 @@ final class LDAPDriver extends Driver {
 
   // Create a property using the provided string values.
   private <PD> void decodeProperty(PropertySet newProperties,
-      ManagedObjectPath<?, ?> p, PropertyDefinition<PD> pd, List<String> values)
-      throws PropertyException {
+      ManagedObjectPath<?, ?> p, PropertyDefinition<PD> pd,
+      Attribute attribute) throws PropertyException,
+      NamingException {
     PropertyException exception = null;
 
     // Get the property's active values.
-    Collection<PD> activeValues = new ArrayList<PD>(values.size());
-    for (String value : values) {
-      try {
-        activeValues.add(pd.decodeValue(value));
-      } catch (IllegalPropertyValueStringException e) {
-        exception = e;
+    SortedSet<PD> activeValues = new TreeSet<PD>(pd);
+    if (attribute != null) {
+      NamingEnumeration<?> ldapValues = attribute.getAll();
+      while (ldapValues.hasMore()) {
+        Object obj = ldapValues.next();
+        if (obj != null) {
+          PD value = ValueDecoder.decode(pd, obj);
+          activeValues.add(value);
+        }
       }
     }
 
     if (activeValues.size() > 1 && !pd.hasOption(PropertyOption.MULTI_VALUED)) {
       // This exception takes precedence over previous exceptions.
       exception = new PropertyIsSingleValuedException(pd);
-      PD value = activeValues.iterator().next();
+      PD value = activeValues.first();
       activeValues.clear();
       activeValues.add(value);
     }

@@ -61,9 +61,9 @@
         type="tns:description-type">
         <xsd:annotation>
           <xsd:documentation>
-            The user friendly plural name of this managed object. This element
-            is optional and by default the user friendly plural name is derived
-            from the definition's plural-name attribute.
+            The user friendly plural name of this managed object. This
+            element is optional and by default the user friendly plural
+            name is derived from the definition's plural-name attribute.
           </xsd:documentation>
         </xsd:annotation>
       </xsd:element>
@@ -678,17 +678,6 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
-    <xsd:attribute name="aggregation" type="tns:path-type"
-      use="optional">
-      <xsd:annotation>
-        <xsd:documentation>
-          For aggregation relations, the path locating the relation
-          beneath which the referenced (aggregated) managed objects can
-          be found. If this attribute is not specified, the relation is
-          a composition by default.
-        </xsd:documentation>
-      </xsd:annotation>
-    </xsd:attribute>
     <xsd:attribute name="managed-object-name" type="tns:name-type"
       use="optional">
       <xsd:annotation>
@@ -1032,6 +1021,84 @@
       </xsd:documentation>
     </xsd:annotation>
     <xsd:choice>
+      <xsd:element name="aggregation">
+        <xsd:annotation>
+          <xsd:documentation>
+            An aggregation property names one or more managed objects
+            which are required by the managed object associated with
+            this property. An aggregation property definition takes care
+            to perform referential integrity checks: referenced managed
+            objects cannot be deleted. Nor can an aggregation reference
+            non-existent managed objects. Referential integrity checks
+            are not performed during value validation. Instead they are
+            performed when changes to the managed object are committed.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:attribute name="parent-path" type="tns:path-type"
+            use="required">
+            <xsd:annotation>
+              <xsd:documentation>
+                The name of the managed object which is the parent of
+                the aggregated managed objects.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+          <xsd:attribute name="relation-name" type="tns:name-type"
+            use="required">
+            <xsd:annotation>
+              <xsd:documentation>
+                The relation in the parent managed object which contains
+                the aggregated managed objects.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+          <xsd:attribute name="managed-object-name" type="tns:name-type"
+            use="optional">
+            <xsd:annotation>
+              <xsd:documentation>
+                The type of managed object referenced by this
+                aggregation if different from this relation's name.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+          <xsd:attribute name="managed-object-package"
+            type="tns:package-type" use="optional">
+            <xsd:annotation>
+              <xsd:documentation>
+                The package containing the referenced managed object
+                definition if it is not the same as this managed
+                object's package.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+          <xsd:attribute name="source-enabled-property-name"
+            type="tns:name-type" use="optional">
+            <xsd:annotation>
+              <xsd:documentation>
+                The optional boolean "enabled" property in the
+                aggregating managed object. When this property is true,
+                the "target-enabled-property-name" in the aggregated
+                managed objects must also be true. The
+                "target-enabled-property-name" attribute must be
+                specified when this attribute is defined.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+          <xsd:attribute name="target-enabled-property-name"
+            type="tns:name-type" use="optional">
+            <xsd:annotation>
+              <xsd:documentation>
+                The optional boolean "enabled" property in the
+                aggregated managed objects. This property must not be
+                false while the aggregated managed object is referenced.
+                This attribute must be defined when the
+                "source-enabled-property-name" attribute is specified.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+        </xsd:complexType>
+      </xsd:element>
       <xsd:element name="attribute-type">
         <xsd:annotation>
           <xsd:documentation>

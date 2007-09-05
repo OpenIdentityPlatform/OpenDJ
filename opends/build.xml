@@ -1088,6 +1088,11 @@
         <path refid="quickSetup.classpath" />
       </classpath>
     </javac>
+    
+    <copy todir="${unittest.classes.dir}">
+      <fileset dir="${unittest.testng.src.dir}"
+               includes="**/*.properties" />
+    </copy>
 
     <!-- Prep the TestNG XML file -->
 

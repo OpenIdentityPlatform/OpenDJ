@@ -81,6 +81,8 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
         return "ds-cfg-virtual-attribute-base-dn";
       } else if (pd == (PropertyDefinition<?>)td.getOptionalMultiValuedDNProperty2PropertyDefinition()) {
         return "ds-cfg-virtual-attribute-group-dn";
+      } else if (pd == (PropertyDefinition<?>)td.getAggregationPropertyPropertyDefinition()) {
+        return "ds-cfg-backend-base-dn";
       } else {
         throw new RuntimeException("Unexpected test-child property"
             + pd.getName());
@@ -117,9 +119,9 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
   public String getObjectClass(AbstractManagedObjectDefinition<?, ?> d) {
     // These casts throughout are required to work around a bug in JDK versions prior to 1.5.0_08.
     if (d == (AbstractManagedObjectDefinition<?, ?>)TestParentCfgDefn.getInstance()) {
-      return "ds-cfg-virtual-attribute";
+      return "ds-cfg-test-parent-dummy";
     } else if (d == (AbstractManagedObjectDefinition<?, ?>)TestChildCfgDefn.getInstance()) {
-      return "ds-cfg-virtual-attribute";
+      return "ds-cfg-test-child-dummy";
     } else {
       // Not known.
       return null;
