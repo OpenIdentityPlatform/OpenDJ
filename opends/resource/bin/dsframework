@@ -26,8 +26,8 @@
 #      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 
 
-# This script may be used to perform LDAP add, delete, modify, and modify DN
-# operations.
+# This script may be used to perform operations with the global administration
+# framework
 OPENDS_INVOKE_CLASS="org.opends.server.admin.client.cli.DsFrameworkCliMain"
 export OPENDS_INVOKE_CLASS
 
