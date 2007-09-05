@@ -157,8 +157,8 @@ public class TasksTestCase extends DirectoryServerTestCase {
 
 
   /**
-   * Retrieves the specified task from the server, waiting for it to finish all
-   * the running its going to do before returning.
+   * Retrieves the specified task from the server, regardless of its current
+   * state.
    *
    * @param  taskEntryDN  The DN of the entry for the task to retrieve.
    *
@@ -166,8 +166,9 @@ public class TasksTestCase extends DirectoryServerTestCase {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  protected Task getCompletedTask(DN taskEntryDN)
-          throws Exception
+  @Test(enabled=false) // This isn't a test method, but TestNG thinks it is.
+  public static Task getTask(DN taskEntryDN)
+         throws Exception
   {
     TaskBackend taskBackend =
          (TaskBackend) DirectoryServer.getBackend(DN.decode("cn=tasks"));
@@ -187,6 +188,27 @@ public class TasksTestCase extends DirectoryServerTestCase {
       throw new AssertionError("There is no such task " +
                                taskEntryDN.toString());
     }
+
+    return task;
+  }
+
+
+
+  /**
+   * Retrieves the specified task from the server, waiting for it to finish all
+   * the running its going to do before returning.
+   *
+   * @param  taskEntryDN  The DN of the entry for the task to retrieve.
+   *
+   * @return  The requested task entry.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(enabled=false) // This isn't a test method, but TestNG thinks it is.
+  public static Task getCompletedTask(DN taskEntryDN)
+          throws Exception
+  {
+    Task task = getTask(taskEntryDN);
 
     if (! TaskState.isDone(task.getTaskState()))
     {

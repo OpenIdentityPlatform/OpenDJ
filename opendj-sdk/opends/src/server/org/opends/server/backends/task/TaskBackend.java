@@ -33,6 +33,7 @@ import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
@@ -495,57 +496,6 @@ public class TaskBackend
 
 
   /**
-   * Indicates whether an entry with the specified DN exists in the backend.
-   * The default implementation obtains a read lock and calls
-   * <CODE>getEntry</CODE>, but backend implementations may override this with a
-   * more efficient version that does not require a lock.  The caller is not
-   * required to hold any locks on the specified DN.
-   *
-   * @param  entryDN  The DN of the entry for which to determine existence.
-   *
-   * @return  <CODE>true</CODE> if the specified entry exists in this backend,
-   *          or <CODE>false</CODE> if it does not.
-   *
-   * @throws  DirectoryException  If a problem occurs while trying to make the
-   *                              determination.
-   */
-  public boolean entryExists(DN entryDN)
-         throws DirectoryException
-  {
-    if (entryDN == null)
-    {
-      return false;
-    }
-
-    if (entryDN.equals(taskRootDN) || entryDN.equals(scheduledTaskParentDN) ||
-        entryDN.equals(recurringTaskParentDN))
-    {
-      return true;
-    }
-
-    DN parentDN = entryDN.getParentDNInSuffix();
-    if (parentDN == null)
-    {
-      return false;
-    }
-
-    if (parentDN.equals(scheduledTaskParentDN))
-    {
-      return (taskScheduler.getScheduledTaskEntry(entryDN) != null);
-    }
-    else if (parentDN.equals(recurringTaskParentDN))
-    {
-      return (taskScheduler.getRecurringTaskEntry(entryDN) != null);
-    }
-    else
-    {
-      return false;
-    }
-  }
-
-
-
-  /**
    * Adds the provided entry to this backend.  This method must ensure that the
    * entry is appropriate for the backend and that no entry already exists with
    * the same DN.
@@ -701,10 +651,158 @@ public class TaskBackend
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
          throws DirectoryException
   {
-    // FIXME -- We need to support this.
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-            Message.raw("Modify operations are not yet supported in " +
-                        "the task backend"));
+    DN entryDN = entry.getDN();
+
+    Lock entryLock = null;
+    if (! taskScheduler.holdsSchedulerLock())
+    {
+      for (int i=0; i < 3; i++)
+      {
+        entryLock = LockManager.lockWrite(entryDN);
+        if (entryLock != null)
+        {
+          break;
+        }
+      }
+
+      if (entryLock == null)
+      {
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                     ERR_TASKBE_MODIFY_CANNOT_LOCK_ENTRY.get(
+                                          String.valueOf(entryDN)));
+      }
+    }
+
+    try
+    {
+      // Get the parent for the provided entry DN.  It must be either the
+      // scheduled or recurring task parent DN.
+      DN parentDN = entryDN.getParentDNInSuffix();
+      if (parentDN == null)
+      {
+        Message message =
+            ERR_TASKBE_MODIFY_INVALID_ENTRY.get(String.valueOf(entryDN));
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+      }
+      else if (parentDN.equals(scheduledTaskParentDN))
+      {
+        // It's a scheduled task.  Make sure that it exists.
+        Task t = taskScheduler.getScheduledTask(entryDN);
+        if (t == null)
+        {
+          Message message =
+              ERR_TASKBE_MODIFY_NO_SUCH_TASK.get(String.valueOf(entryDN));
+          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
+        }
+
+
+        // Look at the state of the task.  We will allow anything to be altered
+        // for a pending task.  For a running task, we will only allow the state
+        // to be altered in order to cancel it.  We will not allow any
+        // modifications for completed tasks.
+        TaskState state = t.getTaskState();
+        if (TaskState.isPending(state))
+        {
+          Task newTask =
+                    taskScheduler.entryToScheduledTask(entry, modifyOperation);
+          taskScheduler.removePendingTask(t.getTaskID());
+          taskScheduler.scheduleTask(newTask, true);
+          return;
+        }
+        else if (TaskState.isRunning(state))
+        {
+          // If the task is running, we will only allow it to be cancelled.
+          // This will only be allowed using the replace modification type on
+          // the ds-task-state attribute if the value starts with "cancel" or
+          // "stop".  In that case, we'll cancel the task.
+          boolean acceptable = true;
+          for (Modification m : modifyOperation.getModifications())
+          {
+            if (m.isInternal())
+            {
+              continue;
+            }
+
+            if (m.getModificationType() != ModificationType.REPLACE)
+            {
+              acceptable = false;
+              break;
+            }
+
+            Attribute a = m.getAttribute();
+            AttributeType at = a.getAttributeType();
+            if (! at.hasName(ATTR_TASK_STATE))
+            {
+              acceptable = false;
+              break;
+            }
+
+            Iterator<AttributeValue> iterator = a.getValues().iterator();
+            if (! iterator.hasNext())
+            {
+              acceptable = false;
+              break;
+            }
+
+            AttributeValue v = iterator.next();
+            String valueString = toLowerCase(v.getStringValue());
+            if (! (valueString.startsWith("cancel") ||
+                   valueString.startsWith("stop")))
+            {
+              acceptable = false;
+              break;
+            }
+
+            if (iterator.hasNext())
+            {
+              acceptable = false;
+              break;
+            }
+          }
+
+          if (acceptable)
+          {
+            Message message = INFO_TASKBE_RUNNING_TASK_CANCELLED.get();
+            t.interruptTask(TaskState.STOPPED_BY_ADMINISTRATOR, message);
+            return;
+          }
+          else
+          {
+            Message message =
+                 ERR_TASKBE_MODIFY_RUNNING.get(String.valueOf(entryDN));
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                         message);
+          }
+        }
+        else
+        {
+          Message message =
+              ERR_TASKBE_MODIFY_COMPLETED.get(String.valueOf(entryDN));
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                       message);
+        }
+      }
+      else if (parentDN.equals(recurringTaskParentDN))
+      {
+        // We don't currently support altering recurring tasks.
+        Message message =
+            ERR_TASKBE_MODIFY_RECURRING.get(String.valueOf(entryDN));
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+      }
+      else
+      {
+        Message message =
+            ERR_TASKBE_MODIFY_INVALID_ENTRY.get(String.valueOf(entryDN));
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+      }
+    }
+    finally
+    {
+      if (entryLock != null)
+      {
+        LockManager.unlock(entryDN, entryLock);
+      }
+    }
   }
 
 
