@@ -66,8 +66,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme' ,
-                    'attributeValue'         : 'SMD5' }
+                    'attributeName'          : 'default-password-storage-scheme-dn' ,
+                    'attributeValue'         : 'cn=Salted MD5,cn=Password Storage Schemes,cn=config' }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -180,8 +180,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme' ,
-                    'attributeValue'         : 'SSHA' }
+                    'attributeName'          : 'default-password-storage-scheme-dn' ,
+                    'attributeValue'         : 'cn=Salted SHA-1,cn=Password Storage Schemes,cn=config' }
             </call>
             
             <call function="'testCase_Postamble'"/>
