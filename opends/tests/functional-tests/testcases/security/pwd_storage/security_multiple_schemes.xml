@@ -49,10 +49,11 @@
             #@TestIssue                 322
             #@TestPurpose               Add BASE64 password scheme
             #@TestPreamble              none
+            #@TestStep                  Admin deletes Salted SHA-1.
+            #@TestStep                  Admin creates new Salted SHA-1.
+            #@TestStep                  Admin adds new Salted SHA-1 to default storage scheme of the Default Password Policy.
+            #@TestStep                  Admin add palin SHA-1.
             #@TestStep                  Admin add BASE64.
-            #@TestStep                  Admin deletes SHA-1.
-            #@TestStep                  Admin creates new SHA-1.
-            #@TestStep                  Admin adds new SHA-1 to default storage scheme of the Default Password Policy.
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
                                         for all operations.
@@ -61,22 +62,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Multiple Pwd Schemes: Preamble - Admin adding BASE64 storage scheme'
-            </message>
-
-            <call function="'modifyPwdPolicy'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme' ,
-                    'attributeValue'         : 'BASE64' ,
-                    'modifyType'             : 'add' }
-            </call>
-            
-            <message>
-               'Security: Multiple Pwd Schemes: Preamble - Admin deleting SHA-1 storage scheme'
+               'Security: Multiple Pwd Schemes: Preamble - Admin deleting Salted SHA-1 storage scheme'
             </message>
 
             <call function="'dsconfig'">
@@ -86,7 +72,7 @@
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'           : 'delete-password-storage-scheme' ,    
               'objectType'           : 'scheme-name' ,
-              'objectName'           : 'SHA-1',
+              'objectName'           : 'Salted SHA-1',
               'expectedRC'           : 0 } 
             </call>          
             
@@ -101,8 +87,8 @@
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'           : 'create-password-storage-scheme' ,    
               'objectType'           : 'scheme-name' ,
-              'objectName'           : 'SHA-1',
-              'optionsString'        : '--type sha1 --set enabled:true ',
+              'objectName'           : 'Custom Salted SHA-1',
+              'optionsString'        : '--type salted-sha1 --set enabled:true ',
               'expectedRC'           : 0 } 
             </call>          
             
@@ -116,8 +102,37 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme' ,
-                    'attributeValue'         : 'SHA' ,
+                    'attributeName'          : 'default-password-storage-scheme-dn' ,
+                    'attributeValue'         : 'cn=Custom Salted SHA-1,cn=Password Storage Schemes,cn=config' }
+            </call>
+            
+            <message>
+               'Security: Multiple Pwd Schemes: Preamble - Admin adding SHA-1 storage scheme'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'default-password-storage-scheme-dn' ,
+                    'attributeValue'         : 'cn=SHA-1,cn=Password Storage Schemes,cn=config' ,
+                    'modifyType'             : 'add' }
+            </call>
+            
+            <message>
+               'Security: Multiple Pwd Schemes: Preamble - Admin adding BASE64 storage scheme'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'default-password-storage-scheme-dn' ,
+                    'attributeValue'         : 'cn=Base64,cn=Password Storage Schemes,cn=config' ,
                     'modifyType'             : 'add' }
             </call>
             
@@ -136,16 +151,16 @@
             #@TestPurpose               Test for the default SSHA scheme in the password policy
             #@TestPreamble              none
             #@TestStep                  Admin retrieve the value for 
-                                        ds-cfg-default-password-storage-scheme.
+                                        ds-cfg-default-password-storage-scheme-dn.
             #@TestPostamble             none
             #@TestResult                Success if the string, "SSHA", 
                                         is part of the return string.
         -->
-        <testcase name="getTestCaseName('Multiple Schemes - Check Pwd Schemes - SSHA')">
+        <testcase name="getTestCaseName('Multiple Schemes - Check Pwd Schemes - Custom SSHA')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Multiple Pwd Schemes: Checking for Password Schemes - SSHA'
+               'Security: Multiple Pwd Schemes: Checking for Password Schemes - Custom SSHA'
             </message>
 
             <call function="'SearchObject'">
@@ -155,7 +170,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'       : 'ds-cfg-default-password-storage-scheme' }
+                'attributes'       : 'ds-cfg-default-password-storage-scheme-dn' }
             </call>
 
             <script> 
@@ -164,7 +179,7 @@
 
             <call function="'checktestString'">
                 { 'returnString'       : returnString ,
-                  'expectedString'     : 'SSHA' }
+                  'expectedString'     : 'cn=Custom Salted SHA-1' }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -182,7 +197,7 @@
             #@TestPurpose               Test for the BASE64 scheme in the password policy
             #@TestPreamble              none
             #@TestStep                  Admin retrieve the value for 
-                                        ds-cfg-default-password-storage-scheme.
+                                        ds-cfg-default-password-storage-scheme-dn.
             #@TestPostamble             none
             #@TestResult                Success if the string, "BASE64", 
                                         is part of the return string.
@@ -201,7 +216,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'      : 'ds-cfg-default-password-storage-scheme' }
+                'attributes'       : 'ds-cfg-default-password-storage-scheme-dn' }
             </call>
 
             <script> 
@@ -210,7 +225,7 @@
 
             <call function="'checktestString'">
                 { 'returnString'       : returnString ,
-                  'expectedString'     : 'BASE64' }
+                  'expectedString'     : 'cn=Base64' }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -228,7 +243,7 @@
             #@TestPurpose               Test for the SHA-1 scheme in the password policy
             #@TestPreamble              none
             #@TestStep                  Admin retrieve the value for 
-                                        ds-cfg-default-password-storage-scheme.
+                                        ds-cfg-default-password-storage-scheme-dn.
             #@TestPostamble             none
             #@TestResult                Success if the string, "SHA-1", 
                                         is part of the return string.
@@ -247,7 +262,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'      : 'ds-cfg-default-password-storage-scheme' }
+                'attributes'       : 'ds-cfg-default-password-storage-scheme-dn' }
             </call>
 
             <script> 
@@ -256,7 +271,7 @@
 
             <call function="'checktestString'">
                 { 'returnString'       : returnString ,
-                  'expectedString'     : ': SHA' }
+                  'expectedString'     : 'cn=SHA-1' }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -480,13 +495,31 @@
             #@TestIssue                 322
             #@TestPurpose               Reset back to SSHA storage scheme alone
             #@TestPreamble              none
+            #@TestStep                  Admin create new SSHA password scheme.
             #@TestStep                  Admin reset the password policy to SSHA password scheme.
+            #@TestStep                  User binds.
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
         <testcase name="getTestCaseName('Multiple Schemes - Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: Multiple Pwd Schemes: Postamble - Admin creating new SSHA storage scheme'
+            </message>
+
+            <call function="'dsconfig'">
+            { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'           : 'create-password-storage-scheme' ,    
+              'objectType'           : 'scheme-name' ,
+              'objectName'           : 'Salted SHA-1',
+              'optionsString'        : '--type salted-sha1 --set enabled:true ',
+              'expectedRC'           : 0 } 
+            </call>          
+            
             <message>
                'Security: Mult Pwd Schemes: Postamble - Admin Resetting to SSHA Storage Scheme'
             </message>
@@ -497,8 +530,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme' ,
-                    'attributeValue'         : 'SSHA' }
+                    'attributeName'          : 'default-password-storage-scheme-dn' ,
+                    'attributeValue'         : 'cn=Salted SHA-1,cn=Password Storage Schemes,cn=config' }
             </call>
             
             <message>
